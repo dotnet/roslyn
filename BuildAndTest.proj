@@ -1,0 +1,51 @@
+<Project
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+  DefaultTargets="BuildAndTest"
+  ToolsVersion="12.0">
+
+  <UsingTask
+    AssemblyFile="Src\packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
+    TaskName="Xunit.Runner.MSBuild.xunit" />
+
+  <Target Name="RestorePackages">
+    <Exec Command="$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe restore $(MSBuildThisFileDirectory)\Src\Roslyn.sln" />
+  </Target>
+
+  <Target Name="Build"
+          DependsOnTargets="RestorePackages">
+    <MSBuild BuildInParallel="true"
+             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Properties="RestorePackages=false"
+             Targets="Build"/>
+  </Target>
+
+  <Target Name="Clean">
+    <MSBuild BuildInParallel="true"
+             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Properties="RestorePackages=false"
+             Targets="Clean"/>
+  </Target>
+
+  <Target Name="Rebuild">
+    <MSBuild BuildInParallel="true"
+             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Properties="RestorePackages=false"
+             Targets="Rebuild"/>
+  </Target>
+
+  <Target Name="Test">
+    <ItemGroup>
+      <TestAssemblies Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" />
+    </ItemGroup>
+
+
+    <xunit
+      Assemblies="@(TestAssemblies)"
+      Html="UnitTestResults.html"
+      ShadowCopy="false" />
+  </Target>
+
+  <Target Name="BuildAndTest"
+          DependsOnTargets="Build;Test" />
+
+</Project>

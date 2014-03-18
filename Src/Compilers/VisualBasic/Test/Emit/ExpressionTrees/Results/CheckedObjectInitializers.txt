@@ -1,0 +1,403 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object F1
+            expression: {
+              Convert(
+                New(
+                  Void .ctor(Int32)(
+                    ConvertChecked(
+                      Parameter(
+                        y
+                        type: System.String
+                      )
+                      method: Int32 ToInteger(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+                      type: System.Int32
+                    )
+                  )
+                  type: Clazz
+                )
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object P1
+            expression: {
+              Convert(
+                New(
+                  Void .ctor(Int32)(
+                    ConvertChecked(
+                      Parameter(
+                        y
+                        type: System.String
+                      )
+                      method: Int32 ToInteger(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+                      type: System.Int32
+                    )
+                  )
+                  type: Clazz
+                )
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: SSS F3
+            expression: {
+              New(
+                Void .ctor(Int32)(
+                  Constant(
+                    1
+                    type: System.Int32
+                  )
+                )
+                type: SSS
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: SSS P3
+            expression: {
+              New(
+                Void .ctor(Int32)(
+                  Constant(
+                    1
+                    type: System.Int32
+                  )
+                )
+                type: SSS
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object F1
+            expression: {
+              Constant(
+                null
+                type: System.Object
+              )
+            }
+          )
+          MemberAssignment(
+            member: System.Object F2
+            expression: {
+              MemberAccess(
+                <NULL>
+                -> F0
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor(Int32)(
+              Parameter(
+                x
+                type: System.Int32
+              )
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object P1
+            expression: {
+              Constant(
+                null
+                type: System.Object
+              )
+            }
+          )
+          MemberAssignment(
+            member: System.Object P2
+            expression: {
+              MemberAccess(
+                <NULL>
+                -> P0
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor()(
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object F1
+            expression: {
+              Convert(
+                Lambda(
+                  body {
+                    Call(
+                      <NULL>
+                      method: Void WriteLine() in System.Console (
+                      )
+                      type: System.Void
+                    )
+                  }
+                  return type: System.Void
+                  type: VB$AnonymousDelegate_0
+                )
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor()(
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object P1
+            expression: {
+              Convert(
+                Lambda(
+                  body {
+                    Call(
+                      <NULL>
+                      method: Void WriteLine() in System.Console (
+                      )
+                      type: System.Void
+                    )
+                  }
+                  return type: System.Void
+                  type: VB$AnonymousDelegate_0
+                )
+                type: System.Object
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)

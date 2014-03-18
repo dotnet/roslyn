@@ -1,0 +1,57 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.CaseCorrection
+{
+    internal abstract partial class AbstractCaseCorrectionService : ICaseCorrectionService
+    {
+        protected abstract void AddReplacements(SemanticModel semanticModel, SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements, CancellationToken cancellationToken);
+
+        public async Task<Document> CaseCorrectAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        {
+            if (!spans.Any())
+            {
+                return document;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
+
+            var newRoot = CaseCorrect(semanticModel, root, spans, document.Project.Solution.Workspace, cancellationToken);
+            return (root == newRoot) ? document : document.WithSyntaxRoot(newRoot);
+        }
+
+        public SyntaxNode CaseCorrect(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        {
+            return CaseCorrect(null, root, spans, workspace, cancellationToken);
+        }
+
+        private SyntaxNode CaseCorrect(SemanticModel semanticModel, SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect, cancellationToken))
+            {
+                var normalizedSpanCollection = new NormalizedTextSpanCollection(spans);
+                var replacements = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
+
+                using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_AddReplacements, cancellationToken))
+                {
+                    AddReplacements(semanticModel, root, normalizedSpanCollection, workspace, replacements, cancellationToken);
+                }
+
+                using (Logger.LogBlock(FeatureId.CaseCorrection, FunctionId.CaseCorrection_AbstractCaseCorrectionService_CaseCorrect_ReplaceTokens, cancellationToken))
+                {
+                    return root.ReplaceTokens(replacements.Keys, (oldToken, _) => replacements[oldToken]);
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,55 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Runtime.InteropServices
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+
+    ''' <summary>
+    ''' Binder used for interiors of documentation comment for binding 'name' attribute 
+    ''' value of 'typeparamref' documentation comment tag
+    ''' </summary>
+    Friend NotInheritable Class DocumentationCommentTypeParamRefBinder
+        Inherits DocumentationCommentTypeParamBinder
+
+        Public Sub New(containingBinder As Binder, commentedSymbol As Symbol)
+            MyBase.New(containingBinder, commentedSymbol)
+        End Sub
+
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+            Dim result As ImmutableArray(Of Symbol) = MyBase.BindXmlNameAttributeValue(identifier, useSiteDiagnostics)
+            If Not result.IsEmpty Then
+                Return result
+            End If
+
+            Const options As LookupOptions =
+                    LookupOptions.UseBaseReferenceAccessibility Or
+                    LookupOptions.MustNotBeReturnValueVariable Or
+                    LookupOptions.IgnoreExtensionMethods Or
+                    LookupOptions.MustNotBeLocalOrParameter
+
+            Dim lookupResult As LookupResult = lookupResult.GetInstance()
+            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteDiagnostics)
+
+            If Not lookupResult.HasSingleSymbol Then
+                lookupResult.Free()
+                Return Nothing
+            End If
+
+            Dim symbol As Symbol = lookupResult.SingleSymbol
+            lookupResult.Free()
+
+            If symbol.Kind = SymbolKind.TypeParameter Then
+                Return ImmutableArray.Create(Of Symbol)(symbol)
+            End If
+
+            Return ImmutableArray(Of Symbol).Empty
+        End Function
+
+    End Class
+
+End Namespace
+

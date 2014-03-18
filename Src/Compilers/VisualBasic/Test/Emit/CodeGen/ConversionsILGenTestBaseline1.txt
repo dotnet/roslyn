@@ -1,0 +1,88 @@
+﻿Conversions from Type Parameter:
+Object: 12
+Object: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+IComparable: 12
+IComparable: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+
+Conversions to Type Parameter:
+Guid: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+IComparable: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+String: 12
+IComparable: 12
+
+Conversions from Value types to Reference types
+Object: 1
+Object: 2
+Object: 3
+Object: 4
+Object: 5
+Object: 6
+Object: 7
+Object: 8
+Object: 10
+Object: 11
+Object: 9
+Object: 1/1/0001 8:30:00 AM
+Object: c
+Object: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+ValueType: 1
+ValueType: 2
+ValueType: 3
+ValueType: 4
+ValueType: 5
+ValueType: 6
+ValueType: 7
+ValueType: 8
+ValueType: 10
+ValueType: 11
+ValueType: 9
+ValueType: 1/1/0001 8:30:00 AM
+ValueType: c
+ValueType: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+IComparable: 1
+IComparable: 2
+IComparable: 3
+IComparable: 4
+IComparable: 5
+IComparable: 6
+IComparable: 7
+IComparable: 8
+IComparable: 10
+IComparable: 11
+IComparable: 9
+IComparable: 1/1/0001 8:30:00 AM
+IComparable: c
+IComparable: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+
+Conversions from ref type to Char()
+Char(): 12
+
+Conversions from ref type to ref type
+Object: 12
+Object: 12
+Object: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+IComparable: 12
+IComparable: 12
+String: 12
+IComparable: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+IEnumerable(Of Char): System.Char[]
+ICollection(Of Char): System.Char[]
+IList(Of Char): System.Char[]
+
+Conversions from ref types to value types
+Guid: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+Guid: eb32bf0d-6a19-4095-96b7-b4db556a5d48
+Guid: 00000000-0000-0000-0000-000000000000
+Boolean: False
+SByte: 0
+Byte: 0
+Short: 0
+UShort: 0
+Integer: 0
+UInteger: 0
+Long: 0
+ULong: 0
+Single: 0
+Double: 0
+Decimal: 0
+Date: 1/1/0001 12:00:00 AM

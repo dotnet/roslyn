@@ -1,0 +1,2258 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+    ''' <summary>
+    ''' Binding info for expressions and statements that are part of a member declaration.
+    ''' </summary>
+    Partial Friend MustInherit Class MemberSemanticModel
+        Inherits VisualBasicSemanticModel
+
+        Private ReadOnly m_Root As VisualBasicSyntaxNode
+        Private ReadOnly m_RootBinder As Binder
+
+        ' Fields specific to speculative MemberSemanticModel
+        Private ReadOnly m_parentSemanticModelOpt As SyntaxTreeSemanticModel
+        Private ReadOnly m_speculatedPosition As Integer
+
+        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer)
+            Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
+
+            m_Root = root
+            m_RootBinder = SemanticModelBinder.Mark(rootBinder)
+            m_parentSemanticModelOpt = parentSemanticModelOpt
+            m_speculatedPosition = speculatedPosition
+        End Sub
+
+        Friend ReadOnly Property RootBinder As Binder
+            Get
+                Return m_RootBinder
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+            Get
+                Return m_Root
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsSpeculativeSemanticModel As Boolean
+            Get
+                Return m_parentSemanticModelOpt IsNot Nothing
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
+            Get
+                Return Me.m_speculatedPosition
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
+            Get
+                Return Me.m_parentSemanticModelOpt
+            End Get
+        End Property
+
+        Friend NotOverridable Overloads Overrides Function GetEnclosingBinder(position As Integer) As Binder
+            Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, FindInitialNodeFromPosition(position), position)
+            Debug.Assert(binder IsNot Nothing)
+            Return SemanticModelBinder.Mark(binder)
+        End Function
+
+        Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
+            Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
+            Debug.Assert(binder IsNot Nothing)
+            Return SemanticModelBinder.Mark(binder)
+        End Function
+
+        ' Get the bound node corresponding to the root.
+        Friend Overridable Function GetBoundRoot() As BoundNode
+            Return GetUpperBoundNode(Me.Root)
+        End Function
+
+        Public Overrides Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
+            CheckSyntaxNode(expression)
+            expression = SyntaxFactory.GetStandaloneExpression(expression)
+
+            If destination Is Nothing Then
+                Throw New ArgumentNullException("destination")
+            End If
+
+            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
+
+            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
+
+            If boundExpression Is Nothing OrElse vbdestination.IsErrorType() Then
+                Return New Conversion(Nothing)  ' NoConversion
+            End If
+
+            If boundExpression.Kind = BoundKind.Lambda Then
+                ' Switch back to the unbound lambda node since bound lambda represents a lambda already
+                ' converted to whatever target type was provided by the context within the statement.
+                ' NOTE: Using the UnboundLambda in this way might result in new entries in its trial-binding
+                ' cache, but that won't affect future semantic model queries because it will already have 
+                ' been bound (possibly for error recovery) on insertion into the syntax-to-bound-node map
+                ' and the result of that binding is also cached.  That is, even though the list of trial-bindings
+                ' may change, it will never again be consumed for error recovery (only as a cache), so there
+                ' should be no problems.
+                Dim unbound As UnboundLambda = DirectCast(boundExpression, BoundLambda).LambdaSymbol.UnboundLambdaOpt
+                Debug.Assert(unbound IsNot Nothing)
+
+                If unbound IsNot Nothing Then
+                    boundExpression = unbound
+                End If
+            End If
+
+            Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbdestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
+        End Function
+
+        ''' <summary>
+        ''' Get the highest bound node in the tree associated with a particular syntax node.
+        ''' </summary>
+        Friend Function GetUpperBoundNode(node As VisualBasicSyntaxNode) As BoundNode
+            ' The bound nodes are stored in the map from highest to lowest, so the first bound node is the highest.
+            Dim boundNodes = GetBoundNodes(node)
+
+            If boundNodes.Length = 0 Then
+                Return Nothing
+            Else
+                Return boundNodes(0)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Get the lowest bound node in the tree associated with a particular syntax node. Lowest is defined as last
+        ''' in a pre-order traversal of the bound tree.
+        ''' </summary>
+        Friend Function GetLowerBoundNode(node As VisualBasicSyntaxNode) As BoundNode
+            ' The bound nodes are stored in the map from highest to lowest, so the last bound node is the lowest.
+            Dim boundNodes = GetBoundNodes(node)
+            If boundNodes.Length = 0 Then
+                Return Nothing
+            Else
+                Return boundNodes(boundNodes.Length - 1)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' If node has an immediate parent that is an expression or statement or attribute, return
+        ''' that (making sure it can be bound on its own). Otherwise return Nothing.
+        ''' </summary>
+        Protected Function GetBindableParent(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+            Dim parent As VisualBasicSyntaxNode = node.Parent
+            If parent Is Nothing OrElse node Is Me.Root Then
+                Return Nothing
+            End If
+
+            Dim expressionSyntax = TryCast(parent, expressionSyntax)
+            If expressionSyntax IsNot Nothing Then
+                Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
+            End If
+
+            Dim statementSyntax = TryCast(parent, statementSyntax)
+            If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
+                Return statementSyntax
+            End If
+
+            Dim attributeSyntax = TryCast(parent, attributeSyntax)
+            If attributeSyntax IsNot Nothing Then
+                Return attributeSyntax
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Get a summary of the bound nodes associated with a particular syntax nodes,
+        ''' and its parent. This is what the rest of the semantic model uses to determine
+        ''' what to return back.
+        ''' </summary>
+        Friend Function GetBoundNodeSummary(node As VisualBasicSyntaxNode) As BoundNodeSummary
+            ' TODO: Should these two call be merged into a single one for efficiency?
+            Dim upperBound = GetUpperBoundNode(node)
+            Dim lowerBound = GetLowerBoundNode(node)
+            Dim parentSyntax As VisualBasicSyntaxNode = GetBindableParent(node)
+            Dim lowerBoundOfParent = If(parentSyntax Is Nothing, Nothing, GetLowerBoundNode(parentSyntax))
+
+            Return New BoundNodeSummary(lowerBound, upperBound, lowerBoundOfParent)
+        End Function
+
+        ''' <summary>
+        ''' Gets a summary of the bound nodes associated with an underlying
+        ''' bound call node for a raiseevent statement.
+        ''' </summary>
+        Friend Overrides Function GetInvokeSummaryForRaiseEvent(node As RaiseEventStatementSyntax) As BoundNodeSummary
+            Dim upperBound = UnwrapRaiseEvent(GetUpperBoundNode(node))
+            Dim lowerBound = UnwrapRaiseEvent(GetLowerBoundNode(node))
+
+
+            Dim parentSyntax As VisualBasicSyntaxNode = GetBindableParent(node)
+            Dim lowerBoundOfParent = If(parentSyntax Is Nothing, Nothing, UnwrapRaiseEvent(GetLowerBoundNode(parentSyntax)))
+
+            Return New BoundNodeSummary(lowerBound, upperBound, lowerBoundOfParent)
+        End Function
+
+        ''' <summary>
+        ''' if "node" argument is a BoundRaiseEvent, returns its underlying boundcall instesd.
+        ''' Otherwise returns "node" unchanged.
+        ''' </summary>
+        Private Shared Function UnwrapRaiseEvent(node As BoundNode) As BoundNode
+            Dim asRaiseEvent = TryCast(node, BoundRaiseEventStatement)
+            If asRaiseEvent IsNot Nothing Then
+                Return asRaiseEvent.EventInvocation
+            End If
+
+            Return node
+        End Function
+
+        ''' <summary>
+        ''' Return True if the statement can be bound by a Binder on its own.
+        ''' For example Catch statement cannot be bound on its own, only 
+        ''' as part of Try block. Similarly, Next statement cannot be bound on its own,
+        ''' only as part of For statement.
+        ''' 
+        ''' Only handles statements that are in executable code.
+        ''' </summary>
+        Private Shared Function IsStandaloneStatement(node As StatementSyntax) As Boolean
+            Select Case node.Kind
+                Case SyntaxKind.EmptyStatement,
+                     SyntaxKind.SimpleAssignmentStatement,
+                     SyntaxKind.AddAssignmentStatement,
+                     SyntaxKind.SubtractAssignmentStatement,
+                     SyntaxKind.MultiplyAssignmentStatement,
+                     SyntaxKind.DivideAssignmentStatement,
+                     SyntaxKind.IntegerDivideAssignmentStatement,
+                     SyntaxKind.ExponentiateAssignmentStatement,
+                     SyntaxKind.LeftShiftAssignmentStatement,
+                     SyntaxKind.RightShiftAssignmentStatement,
+                     SyntaxKind.ConcatenateAssignmentStatement,
+                     SyntaxKind.CallStatement,
+                     SyntaxKind.GoToStatement,
+                     SyntaxKind.LabelStatement,
+                     SyntaxKind.SingleLineIfStatement,
+                     SyntaxKind.MidAssignmentStatement,
+                     SyntaxKind.MultiLineIfBlock,
+                     SyntaxKind.SelectBlock,
+                     SyntaxKind.UsingBlock,
+                     SyntaxKind.SyncLockBlock,
+                     SyntaxKind.LocalDeclarationStatement,
+                     SyntaxKind.DoLoopTopTestBlock,
+                     SyntaxKind.DoLoopBottomTestBlock,
+                     SyntaxKind.DoLoopForeverBlock,
+                     SyntaxKind.WhileBlock,
+                     SyntaxKind.ForBlock,
+                     SyntaxKind.ForEachBlock,
+                     SyntaxKind.TryBlock,
+                     SyntaxKind.WithBlock,
+                     SyntaxKind.ExitDoStatement,
+                     SyntaxKind.ExitForStatement,
+                     SyntaxKind.ExitSelectStatement,
+                     SyntaxKind.ExitTryStatement,
+                     SyntaxKind.ExitWhileStatement,
+                     SyntaxKind.ExitFunctionStatement,
+                     SyntaxKind.ExitSubStatement,
+                     SyntaxKind.ContinueDoStatement,
+                     SyntaxKind.ContinueForStatement,
+                     SyntaxKind.ContinueWhileStatement,
+                     SyntaxKind.ReturnStatement,
+                     SyntaxKind.ThrowStatement,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.PropertyGetBlock,
+                     SyntaxKind.PropertySetBlock,
+                     SyntaxKind.AddHandlerBlock, SyntaxKind.RemoveHandlerBlock, SyntaxKind.RaiseEventBlock,
+                     SyntaxKind.ReDimStatement,
+                     SyntaxKind.ReDimPreserveStatement,
+                     SyntaxKind.EraseStatement,
+                     SyntaxKind.ErrorStatement,
+                     SyntaxKind.OnErrorGoToZeroStatement,
+                     SyntaxKind.OnErrorGoToMinusOneStatement,
+                     SyntaxKind.OnErrorGoToLabelStatement,
+                     SyntaxKind.OnErrorResumeNextStatement,
+                     SyntaxKind.ResumeLabelStatement,
+                     SyntaxKind.ResumeNextStatement,
+                     SyntaxKind.EndStatement,
+                     SyntaxKind.StopStatement,
+                     SyntaxKind.AddHandlerStatement,
+                     SyntaxKind.RemoveHandlerStatement,
+                     SyntaxKind.RaiseEventStatement,
+                     SyntaxKind.ExpressionStatement,
+                     SyntaxKind.YieldStatement,
+                     SyntaxKind.PrintStatement
+                    Return True
+
+                Case SyntaxKind.IfStatement,
+                     SyntaxKind.ElseStatement,
+                     SyntaxKind.ElseIfStatement,
+                     SyntaxKind.EndIfStatement,
+                     SyntaxKind.WithStatement,
+                     SyntaxKind.EndWithStatement,
+                     SyntaxKind.SelectStatement,
+                     SyntaxKind.CaseElseStatement,
+                     SyntaxKind.CaseStatement,
+                     SyntaxKind.EndSelectStatement,
+                     SyntaxKind.EndSubStatement,
+                     SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.WhileStatement,
+                     SyntaxKind.EndWhileStatement,
+                     SyntaxKind.TryStatement,
+                     SyntaxKind.CatchStatement,
+                     SyntaxKind.FinallyStatement,
+                     SyntaxKind.EndTryStatement,
+                     SyntaxKind.SyncLockStatement,
+                     SyntaxKind.EndSyncLockStatement,
+                     SyntaxKind.ForStatement,
+                     SyntaxKind.ForEachStatement,
+                     SyntaxKind.NextStatement,
+                     SyntaxKind.DoStatement,
+                     SyntaxKind.LoopStatement,
+                     SyntaxKind.UsingStatement,
+                     SyntaxKind.EndUsingStatement,
+                     SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubStatement, SyntaxKind.FunctionStatement,
+                     SyntaxKind.FieldDeclaration,
+                     SyntaxKind.SubNewStatement,
+                     SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.EventStatement,
+                     SyntaxKind.OperatorStatement,
+                     SyntaxKind.PropertyStatement,
+                     SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement,
+                     SyntaxKind.AddHandlerAccessorStatement, SyntaxKind.RemoveHandlerAccessorStatement, SyntaxKind.RaiseEventAccessorStatement,
+                     SyntaxKind.EndNamespaceStatement,
+                     SyntaxKind.EndModuleStatement,
+                     SyntaxKind.EndClassStatement,
+                     SyntaxKind.EndStructureStatement,
+                     SyntaxKind.EndInterfaceStatement,
+                     SyntaxKind.EndEnumStatement,
+                     SyntaxKind.EndSubStatement,
+                     SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndOperatorStatement,
+                     SyntaxKind.EndPropertyStatement,
+                     SyntaxKind.EndGetStatement,
+                     SyntaxKind.EndSetStatement,
+                     SyntaxKind.EndEventStatement,
+                     SyntaxKind.EndAddHandlerStatement,
+                     SyntaxKind.EndRemoveHandlerStatement,
+                     SyntaxKind.EndRaiseEventStatement,
+                     SyntaxKind.IncompleteMember,
+                     SyntaxKind.InheritsStatement,
+                     SyntaxKind.ImplementsStatement,
+                     SyntaxKind.ImportsStatement
+                    Return False
+
+                Case Else
+                    Debug.Fail("Unexpected statement kind; add to either stand-alone or non-standalone list.")
+                    Return False
+            End Select
+            Return True
+        End Function
+
+
+        ''' <summary>
+        ''' Get all the syntax and declaration errors within the syntax tree associated with this object. Does not get
+        ''' errors involving compiling method bodies or initializers.
+        ''' </summary>
+        ''' <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        ''' <param name="cancellationToken">A cancellation token that can be used to cancel the process of obtaining the
+        ''' diagnostics.</param>
+        ''' <remarks>The declaration errors for a syntax tree are cached. The first time this method is called, a ll
+        ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
+        ''' </remarks>
+        Public Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Throw New NotSupportedException()
+        End Function
+
+        ''' <summary>
+        ''' Get all the syntax and declaration errors within the syntax tree associated with this object. Does not get
+        ''' errors involving compiling method bodies or initializers.
+        ''' </summary>
+        ''' <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        ''' <param name="cancellationToken">A cancellation token that can be used to cancel the process of obtaining the
+        ''' diagnostics.</param>
+        ''' <remarks>The declaration errors for a syntax tree are cached. The first time this method is called, a ll
+        ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
+        ''' </remarks>
+        Public Overrides Function GetMethodBodyDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Throw New NotSupportedException()
+        End Function
+
+        ''' <summary>
+        ''' Get all the errors within the syntax tree associated with this object. Includes errors involving compiling
+        ''' method bodies or initializers, in addition to the errors returned by GetDeclarationDiagnostics.
+        ''' </summary>
+        ''' <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        ''' <param name="cancellationToken">A cancellation token that can be used to cancel the process of obtaining the
+        ''' diagnostics.</param>
+        ''' <remarks>
+        ''' Because this method must semantically all method bodies and initializers to check for diagnostics, it may
+        ''' take a significant amount of time. Unlike GetDeclarationDiagnostics, diagnostics for method bodies and
+        ''' initializers are not cached, the any semantic information used to obtain the diagnostics is discarded.
+        ''' </remarks>
+        Public Overrides Function GetDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Throw New NotSupportedException()
+        End Function
+
+        ''' <summary>
+        ''' Given a type declaration, get the corresponding type symbol.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares a type.</param>
+        ''' <returns>The type symbol that was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As TypeStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
+            ' Can't define type inside member
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given a enum declaration, get the corresponding type symbol.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares an enum.</param>
+        ''' <returns>The type symbol that was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As EnumStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
+            ' Can't define enum inside member
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given a namespace declaration, get the corresponding type symbol.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares a namespace.</param>
+        ''' <returns>The namespace symbol that was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As NamespaceStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamespaceSymbol
+            ' Can't define namespace inside member
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given a method, property, or event declaration, get the corresponding symbol.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares a method, property, or event.</param>
+        ''' <returns>The method, property, or event symbol that was declared.</returns>
+        Friend Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As MethodBaseSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
+            ' Can't define method inside member
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given a parameter declaration, get the corresponding parameter symbol.
+        ''' </summary>
+        ''' <param name="parameter">The syntax node that declares a parameter.</param>
+        ''' <returns>The parameter symbol that was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(parameter As ParameterSyntax, Optional cancellationToken As CancellationToken = Nothing) As IParameterSymbol
+            ' This could be a lambda parameter.
+            Dim parent As VisualBasicSyntaxNode = parameter.Parent
+
+            Dim paramList As ParameterListSyntax = TryCast(parameter.Parent, ParameterListSyntax)
+            If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ParameterList Then
+                Dim lambdaHeader = TryCast(parent.Parent, LambdaHeaderSyntax)
+
+                If lambdaHeader IsNot Nothing Then
+                    Dim lambdaSyntax = TryCast(lambdaHeader.Parent, LambdaExpressionSyntax)
+
+                    If lambdaSyntax IsNot Nothing Then
+                        ' We should always be able to get at least an error binding for a lambda, so assert
+                        ' if this isn't true.
+
+                        Dim boundlambda = TryCast(GetLowerBoundNode(lambdaSyntax), BoundLambda)
+                        Debug.Assert(boundlambda IsNot Nothing)
+
+                        If boundlambda IsNot Nothing Then
+                            For Each symbol In boundlambda.LambdaSymbol.Parameters
+                                For Each location In symbol.Locations
+                                    If parameter.Span.Contains(location.SourceSpan) Then
+                                        Return symbol
+                                    End If
+                                Next
+                            Next
+                        End If
+                    End If
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given an import clause get the corresponding symbol for the import alias that was introduced.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The import statement syntax node.</param>
+        ''' <returns>The alias symbol that was declared or Nothing if no alias symbol was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
+            ' Can't define alias inside member
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Given a type parameter declaration, get the corresponding type parameter symbol.
+        ''' </summary>
+        ''' <param name="typeParameter">The syntax node that declares a type parameter.</param>
+        ''' <returns>The type parameter symbol that was declared.</returns>
+        Public Overloads Overrides Function GetDeclaredSymbol(typeParameter As TypeParameterSyntax, Optional cancellationToken As CancellationToken = Nothing) As ITypeParameterSymbol
+            ' Can't define type parameter inside member
+            Return Nothing
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(declarationSyntax As EnumMemberDeclarationSyntax, Optional cancellationToken As CancellationToken = Nothing) As IFieldSymbol
+            ' Can't define enum member inside member
+            Return Nothing
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
+            If identifierSyntax Is Nothing Then
+                Throw New ArgumentNullException("identifierSyntax")
+            End If
+            If Not IsInTree(identifierSyntax) Then
+                Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
+            End If
+
+            Dim parent As VisualBasicSyntaxNode = identifierSyntax.Parent
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.CollectionRangeVariable
+
+                        Return GetDeclaredSymbol(DirectCast(parent, CollectionRangeVariableSyntax), cancellationToken)
+
+                    Case SyntaxKind.VariableNameEquals
+                        parent = parent.Parent
+
+                        If parent IsNot Nothing Then
+                            Select Case parent.Kind
+                                Case SyntaxKind.ExpressionRangeVariable
+                                    Return GetDeclaredSymbol(DirectCast(parent, ExpressionRangeVariableSyntax), cancellationToken)
+
+                                Case SyntaxKind.AggregationRangeVariable
+                                    Return GetDeclaredSymbol(DirectCast(parent, AggregationRangeVariableSyntax), cancellationToken)
+                            End Select
+                        End If
+                End Select
+            End If
+
+            Return MyBase.GetDeclaredSymbol(identifierSyntax, cancellationToken)
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
+            If anonymousObjectCreationExpressionSyntax Is Nothing Then
+                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
+            End If
+            If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
+                Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
+            End If
+
+            Dim boundExpression = TryCast(GetLowerBoundNode(anonymousObjectCreationExpressionSyntax), BoundExpression)
+            If boundExpression Is Nothing Then
+                Return Nothing
+            End If
+
+            Return TryCast(boundExpression.Type, AnonymousTypeManager.AnonymousTypePublicSymbol)
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As IPropertySymbol
+            If fieldInitializerSyntax Is Nothing Then
+                Throw New ArgumentNullException("fieldInitializerSyntax")
+            End If
+            If Not IsInTree(fieldInitializerSyntax) Then
+                Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
+            End If
+
+            Dim parentInitializer = TryCast(fieldInitializerSyntax.Parent, ObjectMemberInitializerSyntax)
+            If parentInitializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim anonymousObjectCreation = TryCast(parentInitializer.Parent, AnonymousObjectCreationExpressionSyntax)
+            If anonymousObjectCreation Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim boundExpression = TryCast(GetLowerBoundNode(anonymousObjectCreation), BoundExpression)
+            If boundExpression Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim anonymousType = TryCast(boundExpression.Type, AnonymousTypeManager.AnonymousTypePublicSymbol)
+            If anonymousType Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim index = parentInitializer.Initializers.IndexOf(fieldInitializerSyntax)
+            Debug.Assert(index >= 0)
+            Debug.Assert(index < parentInitializer.Initializers.Count)
+            Debug.Assert(index < anonymousType.Properties.Length)
+            Return anonymousType.Properties(index)
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
+            If rangeVariableSyntax Is Nothing Then
+                Throw New ArgumentNullException("rangeVariableSyntax")
+            End If
+            If Not IsInTree(rangeVariableSyntax) Then
+                Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
+            End If
+
+            Dim bound As BoundNode = GetLowerBoundNode(rangeVariableSyntax)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.QueryableSource Then
+                Dim queryableSource = DirectCast(bound, BoundQueryableSource)
+
+                If queryableSource.RangeVariableOpt IsNot Nothing Then
+                    Return queryableSource.RangeVariableOpt
+                End If
+            End If
+
+            Return MyBase.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
+            If rangeVariableSyntax Is Nothing Then
+                Throw New ArgumentNullException("rangeVariableSyntax")
+            End If
+            If Not IsInTree(rangeVariableSyntax) Then
+                Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
+            End If
+
+            Dim bound As BoundNode = GetLowerBoundNode(rangeVariableSyntax)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.RangeVariableAssignment Then
+                Return DirectCast(bound, BoundRangeVariableAssignment).RangeVariable
+            End If
+
+            Return MyBase.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
+        End Function
+
+        Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
+            If rangeVariableSyntax Is Nothing Then
+                Throw New ArgumentNullException("rangeVariableSyntax")
+            End If
+            If Not IsInTree(rangeVariableSyntax) Then
+                Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
+            End If
+
+            Dim bound As BoundNode = GetLowerBoundNode(rangeVariableSyntax)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.RangeVariableAssignment Then
+                Return DirectCast(bound, BoundRangeVariableAssignment).RangeVariable
+            End If
+
+            Return MyBase.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Gets the semantic information of a for each statement.
+        ''' </summary>
+        ''' <param name="node">The for each syntax node.</param>
+        Friend Overrides Function GetForEachStatementInfoWorker(node As ForBlockSyntax) As ForEachStatementInfo
+            Dim boundForEach = DirectCast(GetUpperBoundNode(node), BoundForEachStatement)
+
+            If boundForEach IsNot Nothing Then
+                Dim enumeratorInfo = boundForEach.EnumeratorInfo
+
+                Dim getEnumerator As MethodSymbol = Nothing
+                If enumeratorInfo.GetEnumerator IsNot Nothing AndAlso enumeratorInfo.GetEnumerator.Kind = BoundKind.Call Then
+                    getEnumerator = DirectCast(enumeratorInfo.GetEnumerator, BoundCall).Method
+                End If
+
+                Dim moveNext As MethodSymbol = Nothing
+                If enumeratorInfo.MoveNext IsNot Nothing AndAlso enumeratorInfo.MoveNext.Kind = BoundKind.Call Then
+                    moveNext = DirectCast(enumeratorInfo.MoveNext, BoundCall).Method
+                End If
+
+                Dim current As PropertySymbol = Nothing
+                If enumeratorInfo.Current IsNot Nothing AndAlso enumeratorInfo.Current.Kind = BoundKind.PropertyAccess Then
+                    current = DirectCast(enumeratorInfo.Current, BoundPropertyAccess).PropertySymbol
+                End If
+
+
+                ' The batch compiler doesn't actually use this conversion, so we'll just compute it here.
+                ' It will usually be an identity conversion.
+                Dim currentConversion As Conversion = Nothing
+                Dim elementType As TypeSymbol = Nothing
+                If enumeratorInfo.CurrentPlaceholder IsNot Nothing Then
+                    elementType = enumeratorInfo.CurrentPlaceholder.Type
+                    currentConversion = New Conversion(Conversions.ClassifyConversion(current.Type, elementType, useSiteDiagnostics:=Nothing))
+                End If
+
+                Dim elementConversion As Conversion = Nothing
+                If enumeratorInfo.CurrentConversion IsNot Nothing AndAlso enumeratorInfo.CurrentConversion.Kind = BoundKind.Conversion Then
+                    ' NOTE: What VB calls the current conversion is used to convert the current placeholder to the iteration
+                    ' variable type.  In the terminology of the public API, this is a conversion from the element type to the
+                    ' iteration variable type, and is referred to as the element conversion.
+                    Dim boundConversion = DirectCast(enumeratorInfo.CurrentConversion, boundConversion)
+                    elementConversion = New Conversion(KeyValuePair.Create(boundConversion.ConversionKind, TryCast(boundConversion.ExpressionSymbol, MethodSymbol)))
+                End If
+
+                Dim originalCollection As BoundExpression = boundForEach.Collection
+                If originalCollection.Kind = BoundKind.Conversion Then
+                    Dim conversion = DirectCast(originalCollection, BoundConversion)
+                    If Not conversion.ExplicitCastInCode Then
+                        originalCollection = conversion.Operand
+                    End If
+                End If
+
+                Return New ForEachStatementInfo(getEnumerator,
+                                                moveNext,
+                                                current,
+                                                If(enumeratorInfo.NeedToDispose OrElse (originalCollection.Type IsNot Nothing AndAlso originalCollection.Type.IsArrayType()),
+                                                   DirectCast(Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol),
+                                                   Nothing),
+                                                elementType,
+                                                elementConversion,
+                                                currentConversion)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Friend Overrides Function GetAttributeSymbolInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, GetBoundNodeSummary(attribute), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetAttributeTypeInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
+            Return GetTypeInfoForNode(GetBoundNodeSummary(attribute))
+        End Function
+
+        Friend Overrides Function GetAttributeMemberGroup(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
+            Return GetMemberGroupForNode(GetBoundNodeSummary(attribute), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetExpressionSymbolInfo(node As ExpressionSyntax, options As SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            ValidateSymbolInfoOptions(options)
+
+            If Me.IsSpeculativeSemanticModel Then
+                ' For speculative model, we need to get the standalone expression when this is invoked via public GetSymbolInfo API
+                node = SyntaxFactory.GetStandaloneExpression(node)
+            End If
+
+            If node.EnclosingStructuredTrivia IsNot Nothing Then
+                Return SymbolInfo.None
+            End If
+
+            Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
+            If Me.IsSpeculativeSemanticModel Then
+                ' For speculative model, we need to get the standalone expression when this is invoked via public GetTypeInfo API
+                node = SyntaxFactory.GetStandaloneExpression(node)
+            End If
+
+            If node.EnclosingStructuredTrivia IsNot Nothing Then
+                Return VisualBasicTypeInfo.None
+            End If
+
+            Return GetTypeInfoForNode(GetBoundNodeSummary(node))
+        End Function
+
+        Friend Overrides Function GetExpressionMemberGroup(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
+            If Me.IsSpeculativeSemanticModel Then
+                ' For speculative model, we need to get the standalone expression when this is invoked via public GetMemberGroup API
+                node = SyntaxFactory.GetStandaloneExpression(node)
+            End If
+
+            If node.EnclosingStructuredTrivia IsNot Nothing Then
+                Return ImmutableArray(Of Symbol).Empty
+            End If
+
+            Return GetMemberGroupForNode(GetBoundNodeSummary(node), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetExpressionConstantValue(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ConstantValue
+            If Me.IsSpeculativeSemanticModel Then
+                ' For speculative model, we need to get the standalone expression when this is invoked via public GetConstantValue API
+                node = SyntaxFactory.GetStandaloneExpression(node)
+            End If
+
+            If node.EnclosingStructuredTrivia IsNot Nothing Then
+                Return Nothing
+            End If
+
+            Return GetConstantValueForNode(GetBoundNodeSummary(node))
+        End Function
+
+        Friend Overrides Function GetCollectionInitializerAddSymbolInfo(collectionInitializer As ObjectCreationExpressionSyntax, node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            Dim boundCollectionInitializer = TryCast(GetLowerBoundNode(collectionInitializer.Initializer), BoundCollectionInitializerExpression)
+
+            If boundCollectionInitializer IsNot Nothing Then
+                Dim boundAdd = boundCollectionInitializer.Initializers(DirectCast(collectionInitializer.Initializer, ObjectCollectionInitializerSyntax).Initializer.Initializers.IndexOf(node))
+
+                If boundAdd.WasCompilerGenerated Then
+                    Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(boundAdd, boundAdd, Nothing), binderOpt:=Nothing)
+                End If
+            End If
+
+            Return SymbolInfo.None
+        End Function
+
+        Friend Overrides Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As VisualBasicSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            Return SymbolInfo.None
+        End Function
+
+        Friend Overrides Function GetQueryClauseSymbolInfo(node As QueryClauseSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As SymbolInfo
+            Dim nodeKind As SyntaxKind = node.Kind
+            Debug.Assert(nodeKind <> SyntaxKind.LetClause AndAlso nodeKind <> SyntaxKind.OrderByClause AndAlso nodeKind <> SyntaxKind.AggregateClause)
+
+            Dim bound As BoundNode
+
+            If nodeKind = SyntaxKind.FromClause Then
+                If DirectCast(node, FromClauseSyntax).Variables.Count < 2 AndAlso
+                   node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.QueryExpression Then
+                    Dim query = DirectCast(node.Parent, QueryExpressionSyntax)
+
+                    If query.Clauses.Count = 1 AndAlso query.Clauses(0) Is node Then
+                        ' From needs an implicit Select call.
+                        bound = GetLowerBoundNode(query)
+
+                        Debug.Assert(bound Is Nothing OrElse bound.Kind = BoundKind.QueryExpression)
+                        If bound IsNot Nothing AndAlso bound.Kind = BoundKind.QueryExpression Then
+                            Dim boundQuery = DirectCast(bound, BoundQueryExpression)
+
+                            If boundQuery.LastOperator.Syntax Is node Then
+                                Debug.Assert(boundQuery.LastOperator.WasCompilerGenerated)
+                                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions,
+                                                            New BoundNodeSummary(boundQuery.LastOperator, boundQuery.LastOperator, Nothing),
+                                                            binderOpt:=Nothing)
+                            End If
+                        End If
+                    End If
+                End If
+
+                Return SymbolInfo.None
+            End If
+
+            bound = GetLowerBoundNode(node)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.QueryClause Then
+                If nodeKind = SyntaxKind.SelectClause AndAlso
+                   DirectCast(bound, BoundQueryClause).UnderlyingExpression.Kind = BoundKind.QueryClause Then
+                    ' Select was absorbed by the previous operator.
+                    Return SymbolInfo.None
+                End If
+
+                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
+            End If
+
+            Return SymbolInfo.None
+        End Function
+
+        Friend Overrides Function GetLetClauseSymbolInfo(node As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            Debug.Assert(node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.LetClause)
+
+            Dim bound As BoundNode = GetUpperBoundNode(node)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.QueryClause Then
+                If DirectCast(bound, BoundQueryClause).UnderlyingExpression.Kind = BoundKind.QueryClause Then
+                    ' Let was absorbed by the previous operator.
+                    Return SymbolInfo.None
+                End If
+
+                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
+            End If
+
+            Return SymbolInfo.None
+        End Function
+
+        Friend Overrides Function GetOrderingSymbolInfo(node As OrderingSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
+            Dim bound As BoundNode = GetLowerBoundNode(node)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.Ordering Then
+                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
+            End If
+
+            Return SymbolInfo.None
+        End Function
+
+        Friend Overrides Function GetAggregateClauseSymbolInfoWorker(node As AggregateClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As AggregateClauseSymbolInfo
+            Dim bound As BoundNode = GetLowerBoundNode(node)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.AggregateClause Then
+                Dim aggregateClause = DirectCast(bound, BoundAggregateClause)
+
+                If TypeOf aggregateClause.UnderlyingExpression Is BoundQueryClauseBase Then
+                    ' The Aggregate clause was completely absorbed by the previous join.
+                    Return New AggregateClauseSymbolInfo(SymbolInfo.None, SymbolInfo.None)
+                End If
+
+                Dim select2 As SymbolInfo = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
+
+                ' Now let's check if there is another Select call preceeding this one.
+                Dim select1Node = DirectCast(CompilerGeneratedNodeFinder.FindIn(bound, node, BoundKind.QueryClause), BoundQueryClause)
+
+                If select1Node IsNot Nothing Then
+
+                    If TypeOf select1Node.UnderlyingExpression Is BoundQueryClauseBase Then
+                        ' The first Select was absorbed by the previous join.
+                        Return New AggregateClauseSymbolInfo(SymbolInfo.None, select2)
+                    End If
+
+                    Return New AggregateClauseSymbolInfo(GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(select1Node, select1Node, Nothing), binderOpt:=Nothing),
+                                                         select2)
+                End If
+
+                Return New AggregateClauseSymbolInfo(select2)
+            End If
+
+            Return New AggregateClauseSymbolInfo(SymbolInfo.None, SymbolInfo.None)
+        End Function
+
+        Friend Overrides Function GetCollectionRangeVariableSymbolInfoWorker(node As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As CollectionRangeVariableSymbolInfo
+            ' Find the upper most bound node that is a QueryClause or QueryableSource
+            Dim boundNodes As ImmutableArray(Of BoundNode) = GetBoundNodes(node)
+            Dim bound As BoundNode = Nothing
+            For i = 0 To boundNodes.Length - 1
+                If boundNodes(i).Kind = BoundKind.QueryClause OrElse boundNodes(i).Kind = BoundKind.QueryableSource Then
+                    bound = boundNodes(i)
+                    Exit For
+                End If
+            Next
+
+            If bound Is Nothing Then
+                Return CollectionRangeVariableSymbolInfo.None
+            End If
+
+            Dim toQueryableCollectionConversion As SymbolInfo = SymbolInfo.None
+            Dim asClauseConversion As SymbolInfo = SymbolInfo.None
+            Dim selectMany As SymbolInfo = SymbolInfo.None
+
+            If bound.Kind = BoundKind.QueryClause Then
+                ' This must be SelectMany operator.
+                selectMany = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
+
+                ' Look for queryable source.
+                bound = GetLowerBoundNode(node)
+            End If
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.QueryableSource Then
+                Dim queryableSource = DirectCast(bound, BoundQueryableSource)
+
+                Select Case queryableSource.Source.Kind
+                    Case BoundKind.QueryClause
+                        ' This must be an implicit Select for an AsClause conversion.
+                        asClauseConversion = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(queryableSource.Source, queryableSource.Source, Nothing), binderOpt:=Nothing)
+
+                        ' See if there is also ToQueryableSource conversion.
+                        Dim toQueryable = DirectCast(CompilerGeneratedNodeFinder.FindIn(DirectCast(queryableSource.Source, BoundQueryClause).UnderlyingExpression,
+                                                                                        node.Expression, BoundKind.ToQueryableCollectionConversion),
+                                                     BoundToQueryableCollectionConversion)
+
+                        If toQueryable Is Nothing Then
+                            toQueryableCollectionConversion = SymbolInfo.None
+                        Else
+                            toQueryableCollectionConversion = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(toQueryable, toQueryable, Nothing), binderOpt:=Nothing)
+                        End If
+
+                    Case BoundKind.ToQueryableCollectionConversion
+                        asClauseConversion = SymbolInfo.None
+                        toQueryableCollectionConversion = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(queryableSource.Source, queryableSource.Source, Nothing), binderOpt:=Nothing)
+
+                    Case BoundKind.QuerySource
+                        asClauseConversion = SymbolInfo.None
+                        toQueryableCollectionConversion = SymbolInfo.None
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(queryableSource.Source.Kind)
+                End Select
+            Else
+                ' Failed to locate corresponding QueryableSource, something went wrong.
+                selectMany = SymbolInfo.None
+            End If
+
+            Return New CollectionRangeVariableSymbolInfo(toQueryableCollectionConversion, asClauseConversion, selectMany)
+        End Function
+
+        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+            Dim binder As Binder = Me.GetSpeculativeBinderForExpression(position, type, bindingOption)
+            If binder Is Nothing Then
+                speculativeModel = Nothing
+                Return False
+            End If
+
+            speculativeModel = New SpeculativeMemberSemanticModel(parentModel, type, binder, position)
+            Return True
+        End Function
+
+        Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+            Dim binder = Me.GetEnclosingBinder(position)
+            If binder Is Nothing Then
+                speculativeModel = Nothing
+                Return False
+            End If
+
+            ' Add speculative binder to bind speculatively.
+            binder = SpeculativeBinder.Create(binder)
+
+            speculativeModel = New SpeculativeMemberSemanticModel(parentModel, rangeArgument, binder, position)
+            Return True
+        End Function
+
+        Protected Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
+            SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
+        End Sub
+
+        Private Class CompilerGeneratedNodeFinder
+            Inherits BoundTreeWalker
+
+            Private ReadOnly m_TargetSyntax As VisualBasicSyntaxNode
+            Private ReadOnly m_TargetBoundKind As BoundKind
+            Private m_Found As BoundNode
+
+            Private Sub New(targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind)
+                m_TargetSyntax = targetSyntax
+                m_TargetBoundKind = targetBoundKind
+            End Sub
+
+            Public Shared Function FindIn(context As BoundNode, targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind) As BoundNode
+                Dim finder As New CompilerGeneratedNodeFinder(targetSyntax, targetBoundKind)
+                finder.Visit(context)
+                Return finder.m_Found
+            End Function
+
+            Public Overrides Function Visit(node As BoundNode) As BoundNode
+                If node Is Nothing OrElse m_Found IsNot Nothing Then
+                    Return Nothing
+                End If
+
+                If node.WasCompilerGenerated AndAlso
+                   node.Syntax Is m_TargetSyntax AndAlso
+                   node.Kind = m_TargetBoundKind Then
+
+                    m_Found = node
+                    Return Nothing
+                End If
+
+                Return MyBase.Visit(node)
+            End Function
+        End Class
+
+        Public Overrides ReadOnly Property Compilation As VisualBasicCompilation
+            Get
+                Return RootBinder.Compilation
+            End Get
+        End Property
+
+        Friend ReadOnly Property MemberSymbol As Symbol
+            Get
+                Return RootBinder.ContainingMember
+            End Get
+        End Property
+
+        ''' <summary> 
+        ''' The SyntaxTree that is bound
+        ''' </summary>
+        Public Overrides ReadOnly Property SyntaxTree As SyntaxTree
+            Get
+                Return Root.SyntaxTree
+            End Get
+        End Property
+
+        Private ReadOnly rwLock As ReaderWriterLockSlim = New ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion)
+
+        '' This class manages a cache of bound nodes and binders for all the executable code under the root SyntaxNode
+        '' of this SemanticModel.
+        '' 
+        '' The basic strategy is that a mapping from SyntaxNode -> ImmutableArray(Of BoundNode) is maintained, where
+        '' the bound nodes are in top-down order. If we need to find the bound nodes associated with a syntax node, we
+        '' first check the cache. If its not there, then we bind the enclosing statement which is NOT inside a lambda
+        '' (statements inside lambda may not have type information inferred for them). We then do a walk over the resulting
+        '' bound statement, placing all bound nodes into the mapping. We also place binders for lambda and queries into a 
+        '' map, so that we can answer GetEnclosingBinder questions.
+
+        ' The bound nodes associated with syntaxnode, from highest in the tree to lowest.
+        Private ReadOnly guardedNodeMap As New SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
+
+        Private ReadOnly guardedQueryBindersMap As New Dictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of Binder))()
+        Private ReadOnly guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
+
+        Private ReadOnly guardedDiagnostics As DiagnosticBag = New DiagnosticBag()
+
+        ' If implicit variable declaration is in play, then we must bind everything
+        ' up front in order to get all implicit local variables declared.
+        ' Because order of declaration is important, and any expression could declare
+        ' an implicit local, we have to bind the whole method body from start to finish. 
+        Private Sub EnsureFullyBoundIfImplicitVariablesAllowed()
+            If Me.RootBinder.ImplicitVariableDeclarationAllowed AndAlso Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
+                rwLock.EnterWriteLock()
+                Try
+                    ' To prevent races, we must check again under the lock.
+                    If Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
+                        ' bind everything, so all implicit variables are declared, and processed in the right order.
+                        Me.GuardedIncrementalBind(Me.Root, Me.RootBinder)
+
+                        ' after this call, RootBinder.AllImplicitVariableDeclarationsAreHandled = True
+                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(Me.guardedDiagnostics)
+                    End If
+                Finally
+                    rwLock.ExitWriteLock()
+                End Try
+            End If
+        End Sub
+
+        Private Function GetBoundNodesFromMap(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
+            Dim result As ImmutableArray(Of BoundNode) = Nothing
+            Return If(Me.guardedNodeMap.TryGetValue(node, result), result, Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Get the correct enclosing binder for the given position, taking into account  
+        ''' block constructs and lambdas.
+        ''' </summary>
+        ''' <param name="memberBinder">Binder for the method body, lambda body, or field initializer. The
+        ''' returned binder will be nested inside the binder, or be this binder.</param>
+        ''' <param name="binderRoot">Syntax node that is the root of the construct associated with "memberBinder".</param>
+        ''' <param name="node">Syntax node that position is in.</param>
+        ''' <param name="position">Position we are finding the enclosing binder for.</param>
+        ''' <returns>The enclosing binder within "memberBinder" for the given position.</returns>
+        ''' <remarks>
+        ''' WARN WARN WARN: The result is not guaranteed to have IsSemanticModelBinder set.
+        ''' </remarks>
+        Private Function GetEnclosingBinderInternal(
+            memberBinder As Binder,
+            binderRoot As VisualBasicSyntaxNode,
+            node As VisualBasicSyntaxNode,
+            position As Integer
+        ) As Binder
+            Dim binder As binder = Nothing
+
+            EnsureFullyBoundIfImplicitVariablesAllowed()
+
+            Dim current As VisualBasicSyntaxNode = node
+            Do
+                Dim body As SyntaxList(Of StatementSyntax) = Nothing
+
+                If current.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                    Dim trivia As SyntaxTrivia = DirectCast(current, DocumentationCommentTriviaSyntax).ParentTrivia
+                    Debug.Assert(trivia.VisualBasicKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.VisualBasicKind <> SyntaxKind.None)
+                    Return GetEnclosingBinderInternal(memberBinder, binderRoot, DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode), position)
+
+                ElseIf SyntaxFacts.InBlockInterior(current, position, body) Then
+                    ' We are in the interior of a block statement.
+                    binder = memberBinder.GetBinder(body)
+                    If binder IsNot Nothing Then
+                        Return binder
+                    End If
+
+                ElseIf SyntaxFacts.InLambdaInterior(current, position) Then
+                    If current IsNot binderRoot Then
+                        Dim lambdaBinder As LambdaBodyBinder =
+                                            Me.GetLambdaBodyBinder(DirectCast(current, LambdaExpressionSyntax))
+
+                        If lambdaBinder IsNot Nothing Then
+                            Debug.Assert(lambdaBinder.Root Is current)
+
+                            If current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
+                                Dim multiLineLambda = DirectCast(current, MultiLineLambdaExpressionSyntax)
+
+                                If multiLineLambda.Begin.FullSpan.Contains(position) Then
+                                    Return lambdaBinder
+                                End If
+                            End If
+
+                            binder = GetEnclosingBinderInternal(lambdaBinder, lambdaBinder.Root, node, position)
+
+                            If binder IsNot Nothing Then
+                                Return binder
+                            End If
+                        End If
+
+                    ElseIf current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
+                        ' We reached the lambda node, get binder for the whole body.
+                        binder = memberBinder.GetBinder(DirectCast(current, MultiLineLambdaExpressionSyntax).Statements)
+                        If binder IsNot Nothing Then
+                            Return binder
+                        End If
+                    ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
+                        ' Even though single line sub lambdas only have a single statement.  Get a binder for
+                        ' a statement list so that locals can be bound. Note, while locals are not allowed at the top
+                        ' level it is useful in the semantic model to bind them.
+                        binder = memberBinder.GetBinder(DirectCast(current, SingleLineLambdaExpressionSyntax).Statements)
+                        If binder IsNot Nothing Then
+                            Return binder
+                        End If
+                    End If
+
+                ElseIf InQueryInterior(current, position, binder) Then
+                    ' We are in context of a query expression binder.
+                    Debug.Assert(binder IsNot Nothing)
+                    Return binder
+
+                ElseIf InAnonymousTypeInitializerInterior(current, position, binder) Then
+                    ' We are in context of an initializer expression binder.
+                    Debug.Assert(binder IsNot Nothing)
+                    Return binder
+
+                ElseIf InWithStatementExpressionInterior(current) Then
+                    ' Expression from With statement is supposed to be bound using 
+                    ' the binder for the syntax node enclosing With statement 
+                    Debug.Assert(current.Parent.Kind = SyntaxKind.WithStatement)
+                    Debug.Assert(current.Parent.Parent.Kind = SyntaxKind.WithBlock)
+
+                    current = current.Parent.Parent.Parent
+                    ' Proceed to the end of If statement
+
+                End If
+
+                binder = memberBinder.GetBinder(current)
+                If binder IsNot Nothing Then
+                    Return binder
+                End If
+
+                If current Is binderRoot Then
+                    Return memberBinder
+                End If
+
+                current = current.Parent
+            Loop
+        End Function
+
+        ''' <summary>
+        ''' If answer is True, the binder is returned via [binder] parameter.
+        ''' </summary>
+        Private Function InQueryInterior(
+            node As VisualBasicSyntaxNode,
+            position As Integer,
+            <Out()> ByRef binder As Binder
+        ) As Boolean
+            binder = Nothing
+
+            Select Case node.Kind
+                Case SyntaxKind.WhereClause
+                    Dim where = DirectCast(node, WhereClauseSyntax)
+                    binder = GetSingleLambdaClauseLambdaBinder(where, where.WhereKeyword, position)
+
+                Case SyntaxKind.SkipWhileClause, SyntaxKind.TakeWhileClause
+                    Dim partitionWhile = DirectCast(node, PartitionWhileClauseSyntax)
+                    binder = GetSingleLambdaClauseLambdaBinder(partitionWhile, partitionWhile.WhileKeyword, position)
+
+                Case SyntaxKind.SelectClause
+                    Dim [select] = DirectCast(node, SelectClauseSyntax)
+                    binder = GetSingleLambdaClauseLambdaBinder([select], [select].SelectKeyword, position)
+
+                Case SyntaxKind.LetClause
+                    binder = GetLetClauseLambdaBinder(DirectCast(node, LetClauseSyntax), position)
+
+                Case SyntaxKind.FromClause
+                    binder = GetFromClauseLambdaBinder(DirectCast(node, FromClauseSyntax), position)
+
+                Case SyntaxKind.GroupByClause
+                    binder = GetGroupByClauseLambdaBinder(DirectCast(node, GroupByClauseSyntax), position)
+
+                Case SyntaxKind.OrderByClause
+                    Dim orderBy = DirectCast(node, OrderByClauseSyntax)
+                    binder = GetSingleLambdaClauseLambdaBinder(orderBy, If(orderBy.ByKeyword.IsMissing, orderBy.OrderKeyword, orderBy.ByKeyword), position)
+
+                Case SyntaxKind.SimpleJoinClause
+                    binder = GetJoinClauseLambdaBinder(DirectCast(node, SimpleJoinClauseSyntax), position)
+
+                Case SyntaxKind.GroupJoinClause
+                    binder = GetGroupJoinClauseLambdaBinder(DirectCast(node, GroupJoinClauseSyntax), position)
+
+                Case SyntaxKind.AggregateClause
+                    binder = GetAggregateClauseLambdaBinder(DirectCast(node, AggregateClauseSyntax), position)
+
+                Case SyntaxKind.FunctionAggregation
+                    binder = GetFunctionAggregationLambdaBinder(DirectCast(node, FunctionAggregationSyntax), position)
+
+            End Select
+
+            Return binder IsNot Nothing
+        End Function
+
+        Private Function GetAggregateClauseLambdaBinder(aggregate As AggregateClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            ' If position were in context of an additional query operator that operator would have handled it, unless there were 
+            ' no need for a special binder.
+            ' We only need to worry about Variables and the Into clause.
+
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(aggregate, position) Then
+                If Not aggregate.IntoKeyword.IsMissing AndAlso aggregate.IntoKeyword.SpanStart <= position Then
+                    ' Should return binder for the Into clause - the last one associated with the node.
+                    Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(aggregate)
+#If DEBUG Then
+                    Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(aggregate, guard:=True))
+                    Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3))
+#End If
+                    If Not binders.IsEmpty Then
+                        binder = binders.Last
+                        Debug.Assert(binder IsNot Nothing)
+                    End If
+
+                ElseIf aggregate.AggregateKeyword.SpanStart <= position Then
+                    binder = GetCollectionRangeVariablesLambdaBinder(aggregate.Variables, position)
+
+                    If binder Is Nothing Then
+                        ' Must be in context of the very first collection variable or an additional operator
+                        ' that inherits the binder from parent context.
+                        ' If this Aggregate clause doesn't begin the query, it has two binders:
+                        '   - parent context binder, the one we should return;
+                        '   - Into clause binder.
+                        ' If this Aggregate begins the query, it has only one binder - the Into clause binder.
+
+                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(aggregate)
+#If DEBUG Then
+                        Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(aggregate, guard:=True))
+                        Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3 AndAlso binders(0) IsNot Nothing))
+#End If
+                        If Not binders.IsDefault AndAlso binders.Length = 2 Then
+                            binder = binders(0)
+                        End If
+                    End If
+                End If
+            End If
+
+            Return binder
+        End Function
+
+
+        Private Function GetGroupJoinClauseLambdaBinder(join As GroupJoinClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(join, position) Then
+                If Not join.IntoKeyword.IsMissing AndAlso join.IntoKeyword.SpanStart <= position Then
+                    ' Should return binder to lookup aggregate functions.
+                    Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(join)
+#If DEBUG Then
+                    Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(join, guard:=True))
+                    Debug.Assert(binders.IsDefault OrElse binders.Length = 3)
+#End If
+                    If Not binders.IsDefault AndAlso binders.Length = 3 Then
+                        binder = binders(2)
+                    End If
+
+                Else
+                    ' Handle all parts, but [Into] clause.
+                    binder = GetJoinClauseLambdaBinder(join, position)
+                End If
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetJoinClauseLambdaBinder(join As JoinClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            ' If position were in context of an additional join that join would have handled it, unless there were 
+            ' no need for a special binder.
+            ' If position is in context of the collection range variable, we don't need a special binder.
+            ' If position is in context of an 'On' clause, there is a binder that we need to return. 
+
+            If Not join.OnKeyword.IsMissing AndAlso join.OnKeyword.SpanStart <= position AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(join, position) Then
+                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(join)
+#If DEBUG Then
+                Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(join, guard:=True))
+                Debug.Assert(binders.IsDefault OrElse (binders.Length > 1 AndAlso binders.Length < 4 AndAlso binders(0) IsNot Nothing))
+#End If
+                If Not binders.IsEmpty Then
+                    ' The first two binders are outerkey and innerkey binders. Both have the same symbols in scope.
+                    ' It is safe to always use the outerkey binder.
+                    binder = binders(0)
+                End If
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetFromClauseLambdaBinder(from As FromClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(from, position) Then
+                binder = GetCollectionRangeVariablesLambdaBinder(from.Variables, position)
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetCollectionRangeVariablesLambdaBinder(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax), position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            For i As Integer = 0 To variables.Count - 1
+                Dim item As CollectionRangeVariableSyntax = variables(i)
+
+                If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(item, position) OrElse position < item.SpanStart Then
+
+                    ' The first collection variable in a query or in an Aggregate clause doesn't have special binder 
+                    ' stored for it in the bound tree, the binder is inherited from outer context in that case.
+                    If i > 0 OrElse
+                      (item.Parent.Kind <> SyntaxKind.AggregateClause AndAlso
+                       item.Parent.Parent IsNot Nothing AndAlso
+                       Not (item.Parent.Parent.Kind = SyntaxKind.QueryExpression AndAlso
+                                DirectCast(item.Parent.Parent, QueryExpressionSyntax).Clauses.FirstOrDefault Is item.Parent)) Then
+
+                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(item)
+#If DEBUG Then
+                        Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(item, guard:=True))
+                        Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3 AndAlso binders(0) IsNot Nothing))
+#End If
+                        If Not binders.IsEmpty Then
+                            ' Return manySelector binder.
+                            binder = binders(0)
+                        End If
+                    End If
+
+                    Exit For
+                End If
+            Next
+
+            Return binder
+        End Function
+
+
+
+        Private Function GetLetClauseLambdaBinder([let] As LetClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode([let], position) Then
+
+                For Each item As ExpressionRangeVariableSyntax In [let].Variables
+                    If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(item, position) OrElse position < item.SpanStart Then
+                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(item)
+#If DEBUG Then
+                        Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound([let], guard:=True))
+                        Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
+#End If
+                        If Not binders.IsEmpty Then
+                            binder = binders(0)
+                        End If
+
+                        Exit For
+                    End If
+                Next
+
+                Debug.Assert(binder IsNot Nothing)
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetGroupByClauseLambdaBinder(groupBy As GroupByClauseSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(groupBy, position) Then
+                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(groupBy)
+#If DEBUG Then
+                Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(groupBy, guard:=True))
+                Debug.Assert(binders.IsDefault OrElse (binders.Length = 2 OrElse binders.Length = 3))
+#End If
+                If Not binders.IsEmpty Then
+
+                    If position < groupBy.ByKeyword.SpanStart Then
+                        If binders.Length <= 2 Then
+                            ' If we didn't create a binder for items, which is the case if there were no items,
+                            ' it is safe to grab the keys binder, because the scope is the same for both.
+                            binder = binders(0)
+                        Else
+                            binder = binders(1)
+                        End If
+
+                    ElseIf position < groupBy.IntoKeyword.SpanStart Then
+                        ' Binder for keys.
+                        binder = binders(0)
+
+                    Else
+                        ' Binder for Into.
+                        binder = binders.Last
+                    End If
+
+                    Debug.Assert(binder IsNot Nothing)
+                End If
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetFunctionAggregationLambdaBinder(func As FunctionAggregationSyntax, position As Integer) As Binder
+            Dim binder As binder = Nothing
+
+            If Not func.OpenParenToken.IsMissing AndAlso func.OpenParenToken.SpanStart <= position AndAlso
+               ((func.CloseParenToken.IsMissing AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(func, position)) OrElse position < func.CloseParenToken.SpanStart) Then
+
+                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(func)
+#If DEBUG Then
+                Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(func, guard:=True))
+                Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
+#End If
+                If Not binders.IsEmpty Then
+                    binder = binders(0)
+                End If
+            End If
+
+            Return binder
+        End Function
+
+        Private Function GetSingleLambdaClauseLambdaBinder(
+            operatorSyntax As QueryClauseSyntax,
+            operatorKeyWord As SyntaxToken,
+            position As Integer
+        ) As Binder
+            If operatorKeyWord.SpanStart <= position AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(operatorSyntax, position) Then
+                Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(operatorSyntax)
+#If DEBUG Then
+                Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(operatorSyntax, guard:=True))
+                Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
+#End If
+                If Not binders.IsEmpty Then
+                    Return binders(0)
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function GetQueryClauseLambdaBinders(node As VisualBasicSyntaxNode) As ImmutableArray(Of Binder)
+            Debug.Assert(TypeOf node Is QueryClauseSyntax OrElse node.Kind = SyntaxKind.FunctionAggregation OrElse
+                         (node.Kind = SyntaxKind.ExpressionRangeVariable AndAlso node.Parent.Kind = SyntaxKind.LetClause) OrElse
+                         node.Kind = SyntaxKind.CollectionRangeVariable)
+
+            Dim binders As ImmutableArray(Of Binder) = Nothing
+
+            rwLock.EnterReadLock()
+            Try
+                If Me.guardedQueryBindersMap.TryGetValue(node, binders) Then
+                    Return binders
+                End If
+            Finally
+                rwLock.ExitReadLock()
+            End Try
+
+            ' Calling GetUpperBoundNode for the expression will force the
+            ' query binders map for the whole immediate query expression
+            ' to be generated.
+            Dim boundNode = GetUpperBoundNode(node)
+
+            rwLock.EnterWriteLock()
+            Try
+                If Me.guardedQueryBindersMap.TryGetValue(node, binders) Then
+                    Return binders
+                End If
+
+                ' NOTE: this is a fix for the case when we cannot find a bound node 
+                '       because the syntax is under unsupported construction
+                If boundNode Is Nothing OrElse boundNode.Kind <> BoundKind.NoOpStatement OrElse Not boundNode.HasErrors Then
+                    AssertIfShouldHaveFound(node)
+                End If
+
+                Me.guardedQueryBindersMap.Add(node, Nothing)
+                Return Nothing
+            Finally
+                rwLock.ExitWriteLock()
+            End Try
+        End Function
+
+        ''' <summary>
+        ''' If answer is True, the binder is returned via [binder] parameter.
+        ''' </summary>
+        Private Function InAnonymousTypeInitializerInterior(
+            node As VisualBasicSyntaxNode,
+            position As Integer,
+            <Out()> ByRef binder As Binder
+        ) As Boolean
+            binder = Nothing
+
+            If (node.Kind = SyntaxKind.InferredFieldInitializer OrElse node.Kind = SyntaxKind.NamedFieldInitializer) AndAlso
+               node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.ObjectMemberInitializer AndAlso
+               node.Parent.Parent IsNot Nothing AndAlso node.Parent.Parent.Kind = SyntaxKind.AnonymousObjectCreationExpression Then
+
+                Dim initialization = DirectCast(node, FieldInitializerSyntax)
+
+                If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(initialization, position) Then
+
+                    Dim cachedBinder As binder.AnonymousTypeFieldInitializerBinder = Nothing
+
+                    rwLock.EnterReadLock()
+                    Try
+                        If Me.guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                            binder = cachedBinder
+                            Return binder IsNot Nothing
+                        End If
+                    Finally
+                        rwLock.ExitReadLock()
+                    End Try
+
+                    ' Get bound node for the whole AnonymousType initializer expression.
+                    ' This will build required maps for it.
+                    Dim boundNode As boundNode = GetUpperBoundNode(initialization.Parent.Parent)
+
+                    rwLock.EnterReadLock()
+                    Try
+                        If Me.guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                            binder = cachedBinder
+                            Return binder IsNot Nothing
+                        End If
+
+                        ' NOTE: this is a fix for the case when we cannot find a bound node 
+                        '       because the syntax is under unsupported construction
+                        If boundNode Is Nothing OrElse boundNode.Kind <> BoundKind.NoOpStatement OrElse Not boundNode.HasErrors Then
+                            AssertIfShouldHaveFound(initialization)
+                        End If
+                    Finally
+                        rwLock.ExitReadLock()
+                    End Try
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Function InWithStatementExpressionInterior(node As VisualBasicSyntaxNode) As Boolean
+
+            Dim expression = TryCast(node, ExpressionSyntax)
+            If expression IsNot Nothing Then
+                Dim parent As VisualBasicSyntaxNode = expression.Parent
+                If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.WithStatement Then
+                    parent = parent.Parent
+                    Return parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.WithBlock AndAlso parent.Parent IsNot Nothing
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Function GetLambdaBodyBinder(lambda As LambdaExpressionSyntax) As LambdaBodyBinder
+            Dim boundLambda As boundLambda = GetBoundLambda(lambda)
+
+            If boundLambda IsNot Nothing Then
+                Return boundLambda.LambdaBinderOpt
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function GetBoundLambda(lambda As LambdaExpressionSyntax) As BoundLambda
+            Dim boundNode = GetLowerBoundNode(lambda)
+            Debug.Assert(boundNode Is Nothing OrElse boundNode.Kind = BoundKind.Lambda, "all lambdas should be converted to bound lambdas now")
+            Return DirectCast(boundNode, BoundLambda)
+        End Function
+
+        <Conditional("DEBUG")>
+        Private Sub AssertIfShouldHaveFound(node As VisualBasicSyntaxNode)
+#If DEBUG Then
+            Debug.Assert(Not ShouldHaveFound(node))
+#End If
+        End Sub
+
+#If DEBUG Then
+        Private Function ShouldHaveFound(node As VisualBasicSyntaxNode, Optional guard As Boolean = False) As Boolean
+            If guard Then
+                rwLock.EnterReadLock()
+                Try
+                    Return ShouldHaveFound(node, guard:=False)
+                Finally
+                    rwLock.ExitReadLock()
+                End Try
+            End If
+
+            Dim child As VisualBasicSyntaxNode = node
+            Dim parent As VisualBasicSyntaxNode = node.Parent
+
+            ' We will not be able to find an expression used in an array bounds within a parameter declaration.
+            ' We will not be able to find an expression used as a lower array bound.
+            While parent IsNot Nothing
+                Select Case parent.Kind
+                    Case SyntaxKind.RangeArgument
+                        If DirectCast(parent, RangeArgumentSyntax).LowerBound Is child Then
+                            Exit While
+                        End If
+
+                    Case SyntaxKind.ModifiedIdentifier
+                        If parent.Parent IsNot Nothing AndAlso parent.Parent.Kind = SyntaxKind.Parameter Then
+                            Exit While
+                        End If
+                End Select
+
+                child = parent
+                parent = parent.Parent
+            End While
+
+            Return (parent Is Nothing)
+        End Function
+#End If
+
+        ''' <summary>
+        ''' Get all bound nodes associated with a node, ordered from highest to lowest in the bound tree.
+        ''' Strictly speaking, the order is that of a pre-order traversal of the bound tree.
+        ''' As a side effect, caches nodes and binders.
+        ''' </summary>
+        Friend Function GetBoundNodes(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
+            Dim bound As ImmutableArray(Of BoundNode) = Nothing
+
+            EnsureFullyBoundIfImplicitVariablesAllowed()
+
+            ' First, look in the cached bounds nodes.
+            rwLock.EnterReadLock()
+            Try
+                bound = GetBoundNodesFromMap(node)
+            Finally
+                rwLock.ExitReadLock()
+            End Try
+
+            If Not bound.IsDefault Then
+                Return bound
+            End If
+
+            If IsNonExpressionCollectionInitializer(node) Then
+                Return ImmutableArray(Of BoundNode).Empty
+            End If
+
+            ' If we didn't find in the cached bound nodes, find a binding root and bind it.
+            ' This will cache bound nodes under the binding root.
+            Dim bindingRoot = Me.GetBindingRoot(node)
+            Dim bindingRootBinder = GetEnclosingBinder(bindingRoot)
+
+            rwLock.EnterWriteLock()
+            Try
+                bound = GetBoundNodesFromMap(node)
+                If bound.IsDefault Then
+                    GuardedIncrementalBind(bindingRoot, bindingRootBinder)
+                End If
+                bound = GetBoundNodesFromMap(node)
+
+                If Not bound.IsDefault Then
+                    Return bound
+                End If
+            Finally
+                rwLock.ExitWriteLock()
+            End Try
+
+            ' If we still didn't find it, its still possible we could bind it directly.
+            ' For example, types are usually not represented by bound nodes, and some error conditions and
+            ' not yet implemented features do not create bound nodes for everything underneath them.
+            '
+            ' In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
+            ' to avoid duplicates in the map if a parent of this node comes through this code path also.
+            If TypeOf node Is ExpressionSyntax OrElse TypeOf node Is StatementSyntax Then
+                Dim binder = GetEnclosingBinder(node)
+
+                rwLock.EnterWriteLock()
+                Try
+                    bound = GetBoundNodesFromMap(node)
+
+                    If bound.IsDefault Then
+                        ' Bind the node and cache any associated bound nodes we find.
+                        Dim boundNode = Me.Bind(binder, node, Me.guardedDiagnostics)
+                        SemanticModelMapsBuilder.CacheBoundNodes(boundNode, Me, guardedNodeMap, node)
+                    End If
+
+                    bound = GetBoundNodesFromMap(node)
+
+                    If Not bound.IsDefault Then
+                        Return bound
+                    End If
+                Finally
+                    rwLock.ExitWriteLock()
+                End Try
+            End If
+
+            ' Nothing to return.
+            Return ImmutableArray(Of BoundNode).Empty
+        End Function
+
+        ''' <summary>
+        ''' A collection initializer syntax node is not always treated as a VB expression syntax node
+        ''' in case it's part of a CollectionInitializer (outer most or top level initializer).
+        ''' </summary>
+        ''' <param name="syntax">The syntax node to check.</param>
+        ''' <returns><c>True</c> if the syntax node represents an expression syntax, but it's not 
+        ''' an expression from the VB language point of view; otherwise <c>False</c>.</returns>
+        Private Function IsNonExpressionCollectionInitializer(syntax As VisualBasicSyntaxNode) As Boolean
+            Dim parent As VisualBasicSyntaxNode = syntax.Parent
+            If syntax.Kind = SyntaxKind.CollectionInitializer AndAlso parent IsNot Nothing Then
+                If parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                    Return True
+                ElseIf parent.Kind = SyntaxKind.CollectionInitializer Then
+                    parent = parent.Parent
+                    Return parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ObjectCollectionInitializer
+                End If
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Incrementally bind bindingRoot (which is always a non-lambda enclosed statement, or the
+        ''' root of this model). Side effect is to store nodes into the guarded node map.
+        ''' </summary>
+        Private Sub GuardedIncrementalBind(bindingRoot As VisualBasicSyntaxNode, enclosingBinder As Binder)
+            If guardedNodeMap.ContainsKey(bindingRoot) Then
+                ' We've already bound this. No need to bind it again (saves a bit of 
+                ' work below).
+                Return
+            End If
+
+            Debug.Assert(enclosingBinder.IsSemanticModelBinder)
+            Dim binder = New IncrementalBinder(Me, enclosingBinder)
+            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, Me.guardedDiagnostics)
+
+            ' if the node could not be bound, there's nothing more to do.
+            If boundRoot Is Nothing Then
+                Return
+            End If
+
+            SemanticModelMapsBuilder.CacheBoundNodes(boundRoot, Me, guardedNodeMap)
+
+            If Not guardedNodeMap.ContainsKey(bindingRoot) Then
+                ' Generally 'bindingRoot' is supposed to be found in node map at this point,
+                ' but it will not happen in some scenarios such as for field or property 
+                ' initializers, let's add it to prevent re-binding 
+
+                Debug.Assert(bindingRoot.Kind = SyntaxKind.FieldDeclaration OrElse
+                             bindingRoot.Kind = SyntaxKind.PropertyStatement OrElse
+                             bindingRoot.Kind = SyntaxKind.Parameter OrElse
+                             bindingRoot.Kind = SyntaxKind.EnumMemberDeclaration OrElse
+                             bindingRoot Is Me.Root AndAlso Me.IsSpeculativeSemanticModel)
+
+                guardedNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' In order that any expression level special binders are used, lambdas are fully resolved,
+        ''' and that any other binding context is correctly handled, we only use the binder to create bound
+        ''' nodes for:
+        '''   a) The root syntax of this semantic model (because there's nothing more outer to bind)
+        '''   b) A stand-alone statement is that is not inside a lambda.
+        ''' </summary>
+        Private Function GetBindingRoot(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+            Dim enclosingStatement As StatementSyntax = Nothing
+
+            ' Walk all the way up to the root syntax, so that we see any enclosing lambdas.
+            While node IsNot Me.Root
+                If enclosingStatement Is Nothing Then
+                    Dim statementNode = TryCast(node, StatementSyntax)
+                    If statementNode IsNot Nothing AndAlso IsStandaloneStatement(statementNode) Then
+                        enclosingStatement = statementNode
+                    End If
+                End If
+
+                If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                    Dim trivia As SyntaxTrivia = DirectCast(node, DocumentationCommentTriviaSyntax).ParentTrivia
+                    Debug.Assert(trivia.VisualBasicKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.VisualBasicKind <> SyntaxKind.None)
+                    node = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
+                    Continue While
+
+                ElseIf node.IsLambdaExpressionSyntax Then
+                    ' We can't use a statement that is inside a lambda.
+                    enclosingStatement = Nothing
+                End If
+
+                node = node.Parent
+            End While
+
+            If enclosingStatement IsNot Nothing Then
+                Return enclosingStatement
+            Else
+                Return Me.Root
+            End If
+        End Function
+
+        ''' <summary>
+        ''' The incremental binder is used when binding statements. Whenever a statement
+        ''' is bound, it checks the bound node cache to see if that statement was bound, 
+        ''' and returns it instead of rebinding it. 
+        ''' 
+        ''' FOr example, we might have:
+        '''    While x > foo()
+        '''      y = y * x
+        '''      z = z + y
+        '''    End While
+        ''' 
+        ''' We might first get semantic info about "z", and thus bind just the statement
+        ''' "z = z + y". Later, we might bind the entire While block. While binding the while
+        ''' block, we can reuse the binding we did of "z = z + y".
+        ''' </summary>
+        Friend Class IncrementalBinder
+            Inherits Binder
+
+            Private ReadOnly _binding As MemberSemanticModel
+
+            Friend Sub New(binding As MemberSemanticModel, [next] As Binder)
+                MyBase.New([next])
+                _binding = binding
+            End Sub
+
+            ''' <summary>
+            ''' We override GetBinder so that the BindStatement override is stil
+            ''' in effect on nested binders.
+            ''' </summary>
+            Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+                Dim binder As binder = Me.ContainingBinder.GetBinder(node)
+
+                If binder IsNot Nothing Then
+                    Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
+                    Return New IncrementalBinder(_binding, binder)
+                End If
+
+                Return Nothing
+            End Function
+
+            ''' <summary>
+            ''' We override GetBinder so that the BindStatement override is stil
+            ''' in effect on nested binders.
+            ''' </summary>
+            Public Overrides Function GetBinder(list As SyntaxList(Of StatementSyntax)) As Binder
+                Dim binder As binder = Me.ContainingBinder.GetBinder(list)
+
+                If binder IsNot Nothing Then
+                    Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
+                    Return New IncrementalBinder(_binding, binder)
+                End If
+
+                Return Nothing
+            End Function
+
+            Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+                ' Check the bound node cache to see if the statement was already bound.
+                Dim boundNodes As ImmutableArray(Of BoundNode) = _binding.GetBoundNodesFromMap(node)
+
+                If boundNodes.IsDefault Then
+                    ' Not bound already. Bind it. It will get added to the cache later by the SemanticModelMapsBuilder.
+                    Dim boundStmt = MyBase.BindStatement(node, diagnostics)
+                    Debug.Assert((TypeOf boundStmt Is BoundStatement))
+                    Return boundStmt
+                Else
+                    ' Already bound. Return the top-most bound node associated with the statement. 
+                    Return DirectCast(boundNodes.First, BoundStatement)
+                End If
+            End Function
+        End Class
+
+        Friend Overrides Function GetAwaitExpressionInfoWorker(awaitExpression As AwaitExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As AwaitExpressionInfo
+            Dim bound As BoundNode = GetLowerBoundNode(awaitExpression)
+
+            If bound IsNot Nothing AndAlso bound.Kind = BoundKind.AwaitOperator Then
+                Dim boundAwait = DirectCast(bound, BoundAwaitOperator)
+
+                Return New AwaitExpressionInfo(TryCast(boundAwait.GetAwaiter.ExpressionSymbol, MethodSymbol),
+                                               TryCast(boundAwait.IsCompleted.ExpressionSymbol, PropertySymbol),
+                                               TryCast(boundAwait.GetResult.ExpressionSymbol, MethodSymbol))
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Traverse a tree of bound nodes, and update the following maps inside the SemanticModel:
+        ''' 
+        '''     guardedNodeMap  - a map from syntax node to bound nodes. Bound nodes are added in the order they are bound
+        '''                       traversing the tree, so they will be in order from upper to lower node.
+        ''' 
+        '''     guardedQueryBindersMap - a map from query-specific syntax node to an array of binders used to
+        '''                              bind various children of the node.
+        ''' 
+        '''     guardedAnonymousTypeBinderMap - a map from Anonymous Type initializer's FieldInitializerSyntax to
+        '''                                     Binder.AnonymousTypeFieldInitializerBinder used to bind its expression.
+        '''</summary>
+        Private Class SemanticModelMapsBuilder
+            Inherits BoundTreeWalker
+
+            Private ReadOnly _semanticModel As MemberSemanticModel
+            Private ReadOnly _thisSyntaxNodeOnly As VisualBasicSyntaxNode ' If not Nothing, record nodes for this syntax node only.
+            Private _placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
+            Private _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
+
+            Private Sub New(semanticModel As MemberSemanticModel, thisSyntaxNodeOnly As VisualBasicSyntaxNode, nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode))
+                _semanticModel = semanticModel
+                _thisSyntaxNodeOnly = thisSyntaxNodeOnly
+                _nodeCache = nodeCache
+            End Sub
+
+            Public Shared Sub CacheBoundNodes(
+                root As BoundNode,
+                semanticModel As MemberSemanticModel,
+                nodeCache As SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode)),
+                Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing
+            )
+                Dim additionalNodes = OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode).GetInstance()
+
+                Dim walker = New SemanticModelMapsBuilder(semanticModel, thisSyntaxNodeOnly, additionalNodes)
+                walker.Visit(root)
+
+                For Each key In additionalNodes.Keys
+                    If Not nodeCache.ContainsKey(key) Then
+                        nodeCache(key) = additionalNodes(key)
+                    Else
+#If DEBUG Then
+                        ' It's possible that GuardedIncrementalBind was previously called with a subtree of bindingRoot. If 
+                        ' this is the case, then we'll see an entry in the map. Since the incremental binder should also have seen the
+                        ' pre-existing map entry, the entry in addition map should be identical.
+                        ' Another, more unfortunate, possibility is that we've had to re-bind the syntax and the new bound
+                        ' nodes are equivalent, but not identical, to the existing ones. In such cases, we prefer the
+                        ' existing nodes so that the cache will always return the same bound node for a given syntax node.
+
+                        ' EXAMPLE: Suppose we have the statement P.M(1)
+                        ' First, we ask for semantic info about "P".  We'll walk up to the statement level and bind that.
+                        ' We'll end up with map entries for "1", "P" and "P.M(1)".
+                        ' Next, we ask for semantic info about "P.M".  That isn't in our map, so we walk up to the statement
+                        ' level - again - and bind that - again.
+                        ' Once again, we'll end up with map entries for "1", "P" and "P.M(1)". They will
+                        ' have the same structure as the original map entries, but will not be ReferenceEquals.
+
+                        Dim existing = nodeCache(key)
+                        Dim added = additionalNodes(key)
+                        Debug.Assert(existing.Length = added.Length)
+
+                        For i = 0 To existing.Length - 1
+                            Debug.Assert(existing(i).Kind = added(i).Kind, "New bound node does not match existing bound node")
+                        Next
+#End If
+                    End If
+                Next
+
+                additionalNodes.Free()
+            End Sub
+
+            ''' <summary>
+            ''' Should we record bound node mapping for this node? Generally, we ignore compiler generated, but optionally can
+            ''' allow.
+            ''' </summary>
+            Public Function RecordNode(node As BoundNode, Optional allowCompilerGenerated As Boolean = False) As Boolean
+                If (Not allowCompilerGenerated AndAlso node.WasCompilerGenerated) OrElse node.Kind = BoundKind.UnboundLambda Then
+                    ' Don't cache compiler generated nodes or unbound lambdas (unbound lambda are converted into bound lambdas in VisitUnboundLambda.)
+                    Return False
+                End If
+
+                If _thisSyntaxNodeOnly IsNot Nothing AndAlso node.Syntax IsNot _thisSyntaxNodeOnly Then
+                    ' Didn't match the syntax node we're trying to handle
+                    Return False
+                End If
+
+                Return True
+            End Function
+
+            Public Overrides Function Visit(node As BoundNode) As BoundNode
+                If node Is Nothing Then
+                    Return Nothing
+                End If
+
+                If RecordNode(node) Then
+                    _nodeCache.Add(node.Syntax, node)
+                End If
+
+                Return MyBase.Visit(node)
+            End Function
+
+            Public Overrides Function VisitUnboundLambda(node As UnboundLambda) As BoundNode
+                Return Visit(node.BindForErrorRecovery())
+            End Function
+
+            Public Overrides Function VisitCall(node As BoundCall) As BoundNode
+                Dim receiver As BoundExpression = node.ReceiverOpt
+                Debug.Assert(receiver Is Nothing OrElse Not node.Method.IsShared OrElse receiver.HasErrors)
+                Me.Visit(receiver)
+
+                Dim boundGroup As BoundMethodGroup = node.MethodGroupOpt
+                If boundGroup IsNot Nothing Then
+                    If boundGroup.Syntax IsNot node.Syntax Then
+
+                        Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
+                        Me.Visit(boundGroup)
+
+                    ElseIf node.Method.IsShared Then
+                        ' NOTE: in this case the receiver is nothing, but we still 
+                        '       want to visit it if we find it in the method group
+                        Me.Visit(boundGroup.ReceiverOpt)
+                    End If
+                End If
+
+                Me.VisitList(node.Arguments)
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode
+                Dim receiver As BoundExpression = node.ReceiverOpt
+                Debug.Assert(receiver Is Nothing OrElse Not node.PropertySymbol.IsShared OrElse receiver.HasErrors)
+                Me.Visit(receiver)
+
+                Dim boundGroup As BoundPropertyGroup = node.PropertyGroupOpt
+                If boundGroup IsNot Nothing Then
+                    If boundGroup.Syntax IsNot node.Syntax Then
+
+                        Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
+                        Me.Visit(node.PropertyGroupOpt)
+
+                    ElseIf node.PropertySymbol.IsShared Then
+                        ' NOTE: in this case the receiver is nothing but we still 
+                        '       want to visit it if we find it in the property group
+                        Me.Visit(boundGroup.ReceiverOpt)
+                    End If
+                End If
+
+                Me.VisitList(node.Arguments)
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
+                Me.Visit(node.UnevaluatedReceiverOpt)
+                Return MyBase.VisitTypeExpression(node)
+            End Function
+
+            Public Overrides Function VisitAttribute(node As BoundAttribute) As BoundNode
+                Me.VisitList(node.ConstructorArguments)
+                For Each namedArg In node.NamedArguments
+                    Me.Visit(namedArg)
+                Next
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitQueryClause(node As BoundQueryClause) As BoundNode
+                If RecordNode(node) Then
+#If DEBUG Then
+                    Dim haveBindersInTheMap As ImmutableArray(Of Binder) = Nothing
+                    Debug.Assert(Not _semanticModel.guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
+#End If
+
+                    _semanticModel.guardedQueryBindersMap(node.Syntax) = node.Binders
+                End If
+
+                Return MyBase.VisitQueryClause(node)
+            End Function
+
+            Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
+                If RecordNode(node) Then
+#If DEBUG Then
+                    Dim haveBindersInTheMap As ImmutableArray(Of Binder) = Nothing
+                    Debug.Assert(Not _semanticModel.guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
+#End If
+                    _semanticModel.guardedQueryBindersMap(node.Syntax) = node.Binders
+                End If
+
+                Return MyBase.VisitAggregateClause(node)
+            End Function
+
+            Public Overrides Function VisitAnonymousTypeFieldInitializer(node As BoundAnonymousTypeFieldInitializer) As BoundNode
+                If RecordNode(node, allowCompilerGenerated:=True) Then
+                    Dim initialization = TryCast(node.Syntax, FieldInitializerSyntax)
+
+                    If initialization IsNot Nothing Then
+#If DEBUG Then
+                        Dim haveBindersInTheMap As Binder.AnonymousTypeFieldInitializerBinder = Nothing
+                        Debug.Assert(Not _semanticModel.guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
+#End If
+                        _semanticModel.guardedAnonymousTypeBinderMap(initialization) = node.Binder
+                    End If
+                End If
+
+                Return MyBase.VisitAnonymousTypeFieldInitializer(node)
+            End Function
+
+            Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
+                ' Shouldn't visit RelaxationLambda here.
+                Return Visit(node.Operand)
+            End Function
+
+            Public Overrides Function VisitDirectCast(node As BoundDirectCast) As BoundNode
+                ' Shouldn't visit RelaxationLambda here.
+                Return Visit(node.Operand)
+            End Function
+
+            Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
+                ' Shouldn't visit RelaxationLambda here.
+                Return Visit(node.Operand)
+            End Function
+
+            Public Overrides Function VisitDelegateCreationExpression(node As BoundDelegateCreationExpression) As BoundNode
+                ' Shouldn't visit RelaxationLambda here.
+
+                Dim receiver As BoundExpression = node.ReceiverOpt
+                Me.Visit(receiver)
+
+                Dim boundGroup As BoundMethodGroup = node.MethodGroupOpt
+                If boundGroup IsNot Nothing Then
+                    If boundGroup.Syntax IsNot node.Syntax Then
+
+                        Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
+                        Me.Visit(boundGroup)
+
+                    ElseIf node.Method.IsShared Then
+                        ' NOTE: in this case the receiver is nothing, but we still 
+                        '       want to visit it if we find it in the method group
+                        Me.Visit(boundGroup.ReceiverOpt)
+                    End If
+                End If
+
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
+                If node.LeftOnTheRightOpt Is Nothing Then
+                    Return MyBase.VisitAssignmentOperator(node)
+                End If
+
+                ' This is a compound assignment.
+                ' Don't cache the left node now, in order to provide accurate type information,
+                ' it should be cached when we visit its placeholder instead. 
+                ' Visiting the right side should take care of this.
+                If _placeholderReplacementMap Is Nothing Then
+                    _placeholderReplacementMap = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
+                End If
+
+                _placeholderReplacementMap.Add(node.LeftOnTheRightOpt, node.Left)
+                Visit(node.Right)
+                _placeholderReplacementMap.Remove(node.LeftOnTheRightOpt)
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitCompoundAssignmentTargetPlaceholder(node As BoundCompoundAssignmentTargetPlaceholder) As BoundNode
+                Dim replacement As BoundExpression = Nothing
+
+                If _placeholderReplacementMap IsNot Nothing AndAlso _placeholderReplacementMap.TryGetValue(node, replacement) Then
+                    Return Visit(replacement)
+                End If
+
+                Return MyBase.VisitCompoundAssignmentTargetPlaceholder(node)
+            End Function
+
+            Public Overrides Function VisitByRefArgumentPlaceholder(node As BoundByRefArgumentPlaceholder) As BoundNode
+                Dim replacement As BoundExpression = Nothing
+
+                If _placeholderReplacementMap IsNot Nothing AndAlso _placeholderReplacementMap.TryGetValue(node, replacement) Then
+                    Return Visit(replacement)
+                End If
+
+                Return MyBase.VisitByRefArgumentPlaceholder(node)
+            End Function
+
+            Public Overrides Function VisitByRefArgumentWithCopyBack(node As BoundByRefArgumentWithCopyBack) As BoundNode
+                ' Don't cache the OriginalArgument node now, in order to provide accurate type information,
+                ' it should be cached when we visit its InPlaceholder instead. 
+                ' Visiting the InConversion should take care of this.
+                If _placeholderReplacementMap Is Nothing Then
+                    _placeholderReplacementMap = New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)()
+                End If
+
+                _placeholderReplacementMap.Add(node.InPlaceholder, node.OriginalArgument)
+                Visit(node.InConversion)
+                _placeholderReplacementMap.Remove(node.InPlaceholder)
+                Return Nothing
+            End Function
+
+            Private Function VisitObjectInitializerExpressionBase(node As BoundObjectInitializerExpressionBase) As BoundNode
+                Me.VisitList(node.Initializers)
+
+                Return Nothing
+            End Function
+
+            Public Overrides Function VisitCollectionInitializerExpression(node As BoundCollectionInitializerExpression) As BoundNode
+                Return Me.VisitObjectInitializerExpressionBase(node)
+            End Function
+
+            Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
+                Return Me.VisitObjectInitializerExpressionBase(node)
+            End Function
+        End Class
+    End Class
+End Namespace

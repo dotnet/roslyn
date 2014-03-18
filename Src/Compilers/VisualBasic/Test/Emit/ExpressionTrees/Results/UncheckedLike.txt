@@ -1,0 +1,3345 @@
+﻿-=-=-=-=-=-=-=-=- SByte Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.SByte,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like SByte => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.SByte
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.SByte
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.SByte,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like SByte? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.SByte]
+              )
+              method: SByte op_Explicit(System.Nullable`1[System.SByte]) in System.Nullable`1[System.SByte]
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- SByte? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.SByte]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.SByte],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_SByte => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_SByte
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_SByte,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_SByte
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_SByte,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_SByte]
+              )
+              method: E_SByte op_Explicit(System.Nullable`1[E_SByte]) in System.Nullable`1[E_SByte]
+              type: E_SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_SByte],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_SByte? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_SByte]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Byte Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Byte,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Byte => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Byte
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Byte
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Byte,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Byte? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Byte]
+            )
+            method: Byte op_Explicit(System.Nullable`1[System.Byte]) in System.Nullable`1[System.Byte]
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Byte? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Byte]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Byte],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_Byte => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Byte
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_Byte
+            )
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_Byte,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_Byte
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_Byte,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_Byte]
+              )
+              method: E_Byte op_Explicit(System.Nullable`1[E_Byte]) in System.Nullable`1[E_Byte]
+              type: E_Byte
+            )
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_Byte],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_Byte? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Byte]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Short Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.Int16
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Int16,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Short => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Int16
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Int16
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Int16,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Short? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.Int16]
+              )
+              method: Int16 op_Explicit(System.Nullable`1[System.Int16]) in System.Nullable`1[System.Int16]
+              type: System.Int16
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Int16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Short? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int16]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Int16],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_Short => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Short
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_Short
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_Short,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Short Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_Short
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_Short,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_Short]
+              )
+              method: E_Short op_Explicit(System.Nullable`1[E_Short]) in System.Nullable`1[E_Short]
+              type: E_Short
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_Short],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_Short? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Short]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_Short],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UShort Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.UInt16
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.UInt16,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like UShort => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.UInt16
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.UInt16
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.UInt16,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like UShort? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.UInt16]
+              )
+              method: UInt16 op_Explicit(System.Nullable`1[System.UInt16]) in System.Nullable`1[System.UInt16]
+              type: System.UInt16
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UShort? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.UInt16]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.UInt16],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_UShort => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UShort
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_UShort
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_UShort,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_UShort
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_UShort,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_UShort]
+              )
+              method: E_UShort op_Explicit(System.Nullable`1[E_UShort]) in System.Nullable`1[E_UShort]
+              type: E_UShort
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_UShort],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_UShort? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_UShort]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_UShort],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Integer Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Int32,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Integer => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Int32
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Int32
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Int32,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Integer? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Int32]
+            )
+            method: Int32 op_Explicit(System.Nullable`1[System.Int32]) in System.Nullable`1[System.Int32]
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Int32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Integer? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int32]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Int32],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_Integer => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Integer
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_Integer
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_Integer,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_Integer
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_Integer,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_Integer]
+              )
+              method: E_Integer op_Explicit(System.Nullable`1[E_Integer]) in System.Nullable`1[E_Integer]
+              type: E_Integer
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_Integer],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_Integer? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Integer]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_Integer],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UInteger Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.UInt32,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like UInteger => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.UInt32
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.UInt32
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.UInt32,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like UInteger? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.UInt32]
+            )
+            method: UInt32 op_Explicit(System.Nullable`1[System.UInt32]) in System.Nullable`1[System.UInt32]
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.UInt32]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.UInt32],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_UInteger => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UInteger
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_UInteger
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_UInteger,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_UInteger
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_UInteger,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_UInteger]
+              )
+              method: E_UInteger op_Explicit(System.Nullable`1[E_UInteger]) in System.Nullable`1[E_UInteger]
+              type: E_UInteger
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_UInteger],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_UInteger? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_UInteger]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_UInteger],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Long Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Int64,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Long => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Int64
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Int64
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Int64,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Long? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Int64]
+            )
+            method: Int64 op_Explicit(System.Nullable`1[System.Int64]) in System.Nullable`1[System.Int64]
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Int64],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Long? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int64]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Int64],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like E_Long => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Long
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: E_Long
+            )
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,E_Long,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Long Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: E_Long
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[E_Long,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_Long]
+              )
+              method: E_Long op_Explicit(System.Nullable`1[E_Long]) in System.Nullable`1[E_Long]
+              type: E_Long
+            )
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[E_Long],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like E_Long? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Long]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[E_Long],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Boolean Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.Boolean
+          )
+          method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Boolean,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Boolean => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Boolean
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Boolean,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Boolean? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Boolean]
+            )
+            method: Boolean op_Explicit(System.Nullable`1[System.Boolean]) in System.Nullable`1[System.Boolean]
+            type: System.Boolean
+          )
+          method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Boolean],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Single => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Single
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Single
+          )
+          method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Single,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Single Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Single
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Single,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Single? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Single]
+            )
+            method: Single op_Explicit(System.Nullable`1[System.Single]) in System.Nullable`1[System.Single]
+            type: System.Single
+          )
+          method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Single],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Single? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Single]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[System.Single],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Double Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.Double
+          )
+          method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Double,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Double => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Double
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Double
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Double,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Double? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Double]
+            )
+            method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+            type: System.Double
+          )
+          method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.Double],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Double? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Double]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Double],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Decimal => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Decimal
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Decimal
+          )
+          method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Decimal,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Decimal Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Decimal
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Decimal,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Decimal]
+            )
+            method: System.Decimal op_Explicit(System.Nullable`1[System.Decimal]) in System.Nullable`1[System.Decimal]
+            type: System.Decimal
+          )
+          method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.Decimal],System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Decimal? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Decimal]
+            )
+            Lifted
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Nullable`1[System.Decimal],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Date Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.DateTime,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Date => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.DateTime
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.DateTime,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Date? => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.DateTime]
+            )
+            method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Nullable`1[System.DateTime],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Date? Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.DateTime]
+            )
+            Lifted
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean LikeString(System.String, System.String, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Convert(
+            Parameter(
+              x
+              type: System.String
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.String
+            )
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+          Constant(
+            Binary
+            type: Microsoft.VisualBasic.CompareMethod
+          )
+        )
+        type: System.Object
+      )
+      method: Boolean ToBoolean(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Like Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object LikeObject(System.Object, System.Object, Microsoft.VisualBasic.CompareMethod) in Microsoft.VisualBasic.CompilerServices.LikeOperator (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        Constant(
+          Binary
+          type: Microsoft.VisualBasic.CompareMethod
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Object,System.Object]
+)
+

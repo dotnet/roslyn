@@ -1,0 +1,46 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System
+Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+
+    Friend Class Analyzer
+
+        ''' <summary>
+        ''' Analyses method body for error conditions such as definite assignments, unreachable code etc...
+        ''' 
+        ''' This analysis is done when doing the full compile or when responding to GetCompileDiagnostics.
+        ''' This method assume that the trees are already bound and will not do any rewriting/lowering
+        ''' It is possible and common for this analysis to be done in the presence of errors.
+        ''' </summary>
+        Friend Shared Sub AnalyzeMethodBody(method As MethodSymbol,
+                                            body As BoundBlock,
+                                            diagnostics As DiagnosticBag)
+
+            Debug.Assert(diagnostics IsNot Nothing)
+
+            Dim diagBag As DiagnosticBag = diagnostics
+
+            If method.IsImplicitlyDeclared AndAlso method.AssociatedPropertyOrEvent IsNot Nothing AndAlso
+               method.AssociatedPropertyOrEvent.IsMyGroupCollectionProperty Then
+                diagBag = DiagnosticBag.GetInstance()
+            End If
+
+            FlowAnalysisPass.Analyze(method, body, diagBag)
+
+            ' the ForLoopVerification only just produces diagnostics. This should be done even if the 
+            ' tree already has diagnostics
+            ForLoopVerification.VerifyForLoops(body, diagBag)
+
+            If diagBag IsNot diagnostics Then
+                DirectCast(method.AssociatedPropertyOrEvent, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagnostics)
+                diagBag.Free()
+            End If
+        End Sub
+    End Class
+End Namespace
+

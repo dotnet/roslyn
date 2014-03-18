@@ -1,0 +1,1407 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection.PortableExecutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp.Emit
+{
+    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager>
+    {
+        // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
+        protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
+        private readonly ConcurrentDictionary<Symbol, object> genericInstanceMap = new ConcurrentDictionary<Symbol, object>();
+        private readonly ConcurrentSet<ErrorTypeSymbol> reportedErrorTypesMap = new ConcurrentSet<ErrorTypeSymbol>();
+
+        private readonly NoPia.EmbeddedTypesManager embeddedTypesManagerOpt;
+        public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
+        {
+            get { return embeddedTypesManagerOpt; }
+        }
+
+        // Gives the name of this module (may not reflect the name of the underlying symbol).
+        // See Assembly.MetadataName.
+        private readonly string metadataName;
+
+        private ImmutableArray<Cci.AliasForType<NamedTypeSymbol>> lazyExportedTypes;
+
+        /// <summary>
+        /// The compiler-generated implementation type for each fixed-size buffer.
+        /// </summary>
+        private Dictionary<FieldSymbol, NamedTypeSymbol> fixedImplementationTypes;
+
+        // These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
+        private ConcurrentDictionary<string, CompilationTestData.MethodData> testData;
+
+        private SymbolDisplayFormat testDataKeyFormat;
+        private SymbolDisplayFormat testDataOperatorKeyFormat;
+
+        internal PEModuleBuilder(
+            SourceModuleSymbol sourceModule,
+            string outputName,
+            OutputKind outputKind,
+            ModulePropertiesForSerialization serializationProperties,
+            IEnumerable<ResourceDescription> manifestResources,
+            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper)
+            : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation, sourceModule, serializationProperties, manifestResources, outputKind, assemblySymbolMapper)
+        {
+            metadataName = outputName ?? sourceModule.MetadataName;
+
+            AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, this);
+
+            if (sourceModule.AnyReferencedAssembliesAreLinked)
+            {
+                embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
+            }
+        }
+
+        internal override string Name
+        {
+            get { return metadataName; }
+        }
+
+        internal sealed override string ModuleName
+        {
+            get { return metadataName; }
+        }
+
+        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        {
+            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+        }
+
+        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
+        {
+            return SourceModule.ContainingSourceAssembly.GetSecurityAttributes();
+        }
+
+        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
+        {
+            return SourceModule.GetCustomAttributesToEmit();
+        }
+
+        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
+        {
+            return Compilation.SynthesizeAttribute(attributeConstructor);
+        }
+
+        internal sealed override AssemblySymbol CorLibrary
+        {
+            get { return SourceModule.ContainingSourceAssembly.CorLibrary; }
+        }
+
+        protected override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
+        {
+            ImmutableArray<ModuleSymbol> modules = SourceModule.ContainingAssembly.Modules;
+
+            for (int i = 1; i < modules.Length; i++)
+            {
+                foreach (AssemblySymbol aRef in modules[i].GetReferencedAssemblySymbols())
+                {
+                    yield return Translate(aRef, diagnostics);
+                }
+            }
+        }
+
+        private void ValidateReferencedAssembly(AssemblySymbol assembly, AssemblyReference asmRef, DiagnosticBag diagnostics)
+        {
+            AssemblyIdentity asmIdentity = SourceModule.ContainingAssembly.Identity;
+            AssemblyIdentity refIdentity = asmRef.MetadataIdentity;
+
+            if (asmIdentity.IsStrongName && !refIdentity.IsStrongName &&
+                ((Cci.IAssemblyReference)asmRef).ContentType != System.Reflection.AssemblyContentType.WindowsRuntime)
+            {
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton);
+            }
+
+            if (OutputKind != OutputKind.NetModule &&
+               !string.IsNullOrEmpty(refIdentity.CultureName) &&
+               !string.Equals(refIdentity.CultureName, asmIdentity.CultureName, StringComparison.OrdinalIgnoreCase))
+            {
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_RefCultureMismatch, assembly, refIdentity.CultureName), NoLocation.Singleton);
+            }
+
+            var refMachine = assembly.Machine;
+            // If other assembly is agnostic this is always safe
+            // Also, if no mscorlib was specified for back compat we add a reference to mscorlib
+            // that resolves to the current framework directory. If the compiler is 64-bit
+            // this is a 64-bit mscorlib, which will produce a warning if /platform:x86 is
+            // specified. A reference to the default mscorlib should always succeed without
+            // warning so we ignore it here.
+            if ((object)assembly != (object)assembly.CorLibrary &&
+                !(refMachine == Machine.I386 && !assembly.Bit32Required))
+            {
+                var machine = SourceModule.Machine;
+
+                if (!(machine == Machine.I386 && !SourceModule.Bit32Required) &&
+                    machine != refMachine)
+                {
+                    // Different machine types, and neither is agnostic
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_ConflictingMachineAssembly, assembly), NoLocation.Singleton);
+                }
+            }
+
+            if (embeddedTypesManagerOpt != null && embeddedTypesManagerOpt.IsFrozen)
+            {
+                embeddedTypesManagerOpt.ReportIndirectReferencesToLinkedAssemblies(assembly, diagnostics);
+            }
+        }
+
+        internal sealed override IEnumerable<Cci.INestedTypeDefinition> GetSynthesizedNestedTypes(NamedTypeSymbol container)
+        {
+            return null;
+        }
+
+        protected override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
+        {
+            var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
+
+            var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
+            namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
+
+            Location location = null;
+
+            while (namespacesAndTypesToProcess.Count > 0)
+            {
+                NamespaceOrTypeSymbol symbol = namespacesAndTypesToProcess.Pop();
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        location = GetSmallestSourceLocationOrNull(symbol);
+
+                        // filtering out synthesized symbols not having real source 
+                        // locations such as anonymous types, etc...
+                        if (location != null)
+                        {
+                            foreach (var member in symbol.GetMembers())
+                            {
+                                switch (member.Kind)
+                                {
+                                    case SymbolKind.Namespace:
+                                    case SymbolKind.NamedType:
+                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        break;
+
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                                }
+                            }
+                        }
+                        break;
+
+                    case SymbolKind.NamedType:
+                        location = GetSmallestSourceLocationOrNull(symbol);
+                        if (location != null)
+                        {
+                            //  add this named type location
+                            AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
+
+                            foreach (var member in symbol.GetMembers())
+                            {
+                                switch (member.Kind)
+                                {
+                                    case SymbolKind.NamedType:
+                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        break;
+
+                                    case SymbolKind.Method:
+                                        // NOTE: Dev11 does not add synthesized static constructors to this map,
+                                        //       but adds synthesized instance constructors, Roslyn adds both
+                                        var method = (MethodSymbol)member;
+                                        if (!method.IsParameterlessValueTypeConstructor(requireSynthesized: true))
+                                        {
+                                            AddSymbolLocation(result, member);
+                                        }
+                                        break;
+
+                                    case SymbolKind.Property:
+                                    case SymbolKind.Field:
+                                        // NOTE: Dev11 does not add synthesized backing fields for properties,
+                                        //       but adds backing fields for events, Roslyn adds both
+                                        AddSymbolLocation(result, member);
+                                        break;
+
+                                    case SymbolKind.Event:
+                                        AddSymbolLocation(result, member);
+                                        //  event backing fields do not show up in GetMembers
+                                        FieldSymbol field = ((EventSymbol)member).AssociatedField;
+                                        if ((object)field != null)
+                                        {
+                                            AddSymbolLocation(result, field);
+                                        }
+                                        break;
+
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                                }
+                            }
+                        }
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                }
+            }
+
+            return result;
+        }
+
+        private void AddSymbolLocation(MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> result, Symbol symbol)
+        {
+            var location = GetSmallestSourceLocationOrNull(symbol);
+            if (location != null)
+            {
+                AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
+            }
+        }
+
+        private void AddSymbolLocation(MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> result, Location location, Cci.IDefinition definition)
+        {
+            FileLinePositionSpan span = location.GetLineSpan();
+
+            Cci.DebugSourceDocument doc = TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
+            Debug.Assert(doc != null);
+
+            result.Add(doc,
+                       new Cci.DefinitionWithLocation(
+                           definition,
+                           span.StartLinePosition.Line,
+                           span.StartLinePosition.Character,
+                           span.EndLinePosition.Line,
+                           span.EndLinePosition.Character));
+        }
+
+        private Location GetSmallestSourceLocationOrNull(Symbol symbol)
+        {
+            CSharpCompilation compilation = symbol.DeclaringCompilation;
+            Debug.Assert(Compilation == compilation, "How did we get symbol from different compilation?");
+
+            Location result = null;
+            foreach (var loc in symbol.Locations)
+            {
+                if (loc.IsInSource && (result == null || compilation.CompareSourceLocations(result, loc) > 0))
+                {
+                    result = loc;
+                }
+            }
+
+            return result;
+        }
+
+        internal virtual bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        {
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+            name = null;
+            index = -1;
+            return false;
+        }
+
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        {
+            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
+        }
+
+        internal override IReadOnlyDictionary<CodeAnalysis.Emit.AnonymousTypeKey, CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
+        {
+            // Should only be called when emitting delta PE.
+            // See PEDeltaAssemblyBuilder implementation.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        /// <summary>
+        /// True if this module is an ENC update.
+        /// </summary>
+        internal virtual bool IsENCDelta
+        {
+            get { return false; }
+        }
+
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.Context context)
+        {
+            foreach (var type in GetAdditionalTopLevelTypes())
+            {
+                yield return type;
+            }
+
+            var namespacesToProcess = new Stack<NamespaceSymbol>();
+            namespacesToProcess.Push(SourceModule.GlobalNamespace);
+
+            while (namespacesToProcess.Count > 0)
+            {
+                var ns = namespacesToProcess.Pop();
+                foreach (var member in ns.GetMembers())
+                {
+                    var memberNamespace = member as NamespaceSymbol;
+                    if ((object)memberNamespace != null)
+                    {
+                        namespacesToProcess.Push(memberNamespace);
+                    }
+                    else
+                    {
+                        var type = (NamedTypeSymbol)member;
+                        yield return type;
+                    }
+                }
+            }
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        private void GetExportedTypes(NamespaceOrTypeSymbol sym, ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>> builder)
+        {
+            if (sym.Kind == SymbolKind.NamedType)
+            {
+                if (sym.DeclaredAccessibility == Accessibility.Public)
+                {
+                    Debug.Assert(sym.IsDefinition);
+                    builder.Add(new Cci.AliasForType<NamedTypeSymbol>((NamedTypeSymbol)sym));
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            foreach (var t in sym.GetMembers())
+            {
+                NamespaceOrTypeSymbol nortsym = t as NamespaceOrTypeSymbol;
+
+                if ((object)nortsym != null)
+                {
+                    GetExportedTypes(nortsym, builder);
+                }
+            }
+        }
+
+        public override IEnumerable<Cci.IAliasForType> GetExportedTypes(CodeAnalysis.Emit.Context context)
+        {
+            Debug.Assert(HaveDeterminedTopLevelTypes);
+
+            if (lazyExportedTypes.IsDefault)
+            {
+                SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
+                var builder = ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>>.GetInstance();
+
+                if (!OutputKind.IsNetModule())
+                {
+                    var modules = sourceAssembly.Modules;
+                    int count = modules.Length;
+
+                    for (int i = 1; i < count; i++) //NOTE: skipping modules[0]
+                    {
+                        GetExportedTypes(modules[i].GlobalNamespace, builder);
+                    }
+                }
+
+                HashSet<NamedTypeSymbol> seenTopLevelForwardedTypes = new HashSet<NamedTypeSymbol>();
+                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder);
+
+                if (!OutputKind.IsNetModule())
+                {
+                    GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder);
+                }
+
+                Debug.Assert(lazyExportedTypes.IsDefault);
+
+                lazyExportedTypes = builder.ToImmutableAndFree();
+
+                if (lazyExportedTypes.Length > 0)
+                {
+                    var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>();
+
+                    // Report name collisions.
+                    foreach (var alias in lazyExportedTypes)
+                    {
+                        NamedTypeSymbol aliasedType = alias.AliasedType;
+                        Debug.Assert(aliasedType.IsDefinition);
+
+                        if (aliasedType.IsTopLevelType())
+                        {
+                            string fullEmittedName = MetadataHelpers.BuildQualifiedName(((Cci.INamespaceTypeReference)aliasedType).NamespaceName,
+                                                                                        Cci.PeWriter.GetMangledName(aliasedType));
+
+                            // First check against types declared in the primary module
+                            if (ContainsTopLevelType(fullEmittedName))
+                            {
+                                if (aliasedType.ContainingAssembly == sourceAssembly)
+                                {
+                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration,
+                                                                                                aliasedType, aliasedType.ContainingModule),
+                                                                           NoLocation.Singleton));
+                                }
+                                else
+                                {
+                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration,
+                                                                                                aliasedType),
+                                                                           NoLocation.Singleton));
+                                }
+
+                                continue;
+                            }
+
+                            NamedTypeSymbol contender;
+
+                            // Now check against other exported types
+                            if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
+                            {
+                                if (aliasedType.ContainingAssembly == sourceAssembly)
+                                {
+                                    // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
+                                    Debug.Assert(contender.ContainingAssembly == sourceAssembly);
+
+                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_ExportedTypesConflict,
+                                                                                                aliasedType, aliasedType.ContainingModule,
+                                                                                                contender, contender.ContainingModule),
+                                                                           NoLocation.Singleton));
+                                }
+                                else
+                                {
+                                    if (contender.ContainingAssembly == sourceAssembly)
+                                    {
+                                        // Forwarded type conflicts with exported type
+                                        context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType,
+                                                                                                    aliasedType, aliasedType.ContainingAssembly,
+                                                                                                    contender, contender.ContainingModule),
+                                                                               NoLocation.Singleton));
+                                    }
+                                    else
+                                    {
+                                        // Forwarded type conflicts with another forwarded type
+                                        context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_ForwardedTypesConflict,
+                                                                                                    aliasedType, aliasedType.ContainingAssembly,
+                                                                                                    contender, contender.ContainingAssembly),
+                                                                               NoLocation.Singleton));
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            exportedNamesMap.Add(fullEmittedName, aliasedType);
+                        }
+                    }
+                }
+            }
+
+            return lazyExportedTypes;
+        }
+
+        private static void GetForwardedTypes(
+            HashSet<NamedTypeSymbol> seenTopLevelTypes,
+            CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
+            ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>> builder)
+        {
+            if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
+            {
+                foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                {
+                    NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
+                    Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
+
+                    // Since we need to allow multiple constructions of the same generic type at the source
+                    // level, we need to de-dup the original definitions before emitting.
+                    if (!seenTopLevelTypes.Add(originalDefinition)) continue;
+
+                    // Return all nested types.
+                    // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
+                    Stack<NamedTypeSymbol> stack = new Stack<NamedTypeSymbol>();
+                    stack.Push(originalDefinition);
+
+                    while (stack.Count > 0)
+                    {
+                        NamedTypeSymbol curr = stack.Pop();
+
+                        // In general, we don't want private types to appear in the ExportedTypes table.
+                        // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
+                        // to meet the bar Bug: Dev10/258038 and was left as-is.
+                        if (curr.DeclaredAccessibility == Accessibility.Private)
+                        {
+                            // NOTE: this will also exclude nested types of curr.
+                            continue;
+                        }
+
+                        // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
+
+                        builder.Add(new Cci.AliasForType<NamedTypeSymbol>(curr));
+
+                        // Iterate backwards so they get popped in forward order.
+                        ImmutableArray<NamedTypeSymbol> nested = curr.GetTypeMembers(); // Ordered.
+                        for (int i = nested.Length - 1; i >= 0; i--)
+                        {
+                            stack.Push(nested[i]);
+                        }
+                    }
+                }
+            }
+        }
+
+        internal sealed override byte LinkerMajorVersion
+        {
+            //I have no idea why, but this can't be zero or signtool.exe can't operate on the binary.
+
+            //EDMAURER The Windows loader team says that this value is not used by them, 
+            //but the OS appcompat infrastructure uses it to identify apps. It is useful for us to have
+            //a mechanism to identify the compiler that produced the binary. This is the appropriate
+            //value to use for that. That is what it was invented for. We don't want to have the high
+            //bit set for this in case some users perform a signed comparision to determine if the value
+            //is less than some version. The C++ linker is at 0x0B. We'll start our numbering at 0x30.
+            //Roslyn VB will start numbering at 0x50
+            get { return 0x30; }
+        }
+
+        internal sealed override byte LinkerMinorVersion
+        {
+            get { return 0; }
+        }
+
+        internal IEnumerable<AssemblySymbol> GetReferencedAssembliesUsedSoFar()
+        {
+            foreach (AssemblySymbol a in SourceModule.GetReferencedAssemblySymbols())
+            {
+                if (!a.IsLinked && !a.IsMissing && AssemblyOrModuleSymbolToModuleRefMap.ContainsKey(a))
+                {
+                    yield return a;
+                }
+            }
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(diagnostics != null);
+
+            var typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
+
+            DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+            if (info != null)
+            {
+                Symbol.ReportUseSiteDiagnostic(info,
+                                               diagnostics,
+                                               syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
+            }
+
+            return Translate(typeSymbol,
+                             diagnostics: diagnostics,
+                             syntaxNodeOpt: syntaxNodeOpt,
+                             needDeclaration: true);
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
+
+            DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
+            if (info != null)
+            {
+                Symbol.ReportUseSiteDiagnostic(info,
+                                               diagnostics,
+                                               syntaxOpt != null ? syntaxOpt.Location : NoLocation.Singleton);
+            }
+
+            return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
+        }
+
+        public sealed override Cci.IMethodReference GetInitArrayHelper()
+        {
+            return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
+        }
+
+        protected sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
+        {
+            var namedType = typeRef as NamedTypeSymbol;
+            if ((object)namedType != null)
+            {
+                if (platformType == Cci.PlatformType.SystemType)
+                {
+                    return (object)namedType == (object)Compilation.GetWellKnownType(WellKnownType.System_Type);
+                }
+
+                return namedType.SpecialType == (SpecialType)platformType;
+            }
+
+            return false;
+        }
+
+        protected sealed override Cci.IAssemblyReference GetCorLibraryReferenceToEmit(CodeAnalysis.Emit.Context context)
+        {
+            AssemblySymbol corLibrary = CorLibrary;
+
+            if (!corLibrary.IsMissing &&
+                !corLibrary.IsLinked &&
+                !ReferenceEquals(corLibrary, SourceModule.ContainingAssembly))
+            {
+                return Translate(corLibrary, context.Diagnostics);
+            }
+
+            return null;
+        }
+
+        internal sealed override Cci.IAssemblyReference Translate(AssemblySymbol assembly, DiagnosticBag diagnostics)
+        {
+            if (ReferenceEquals(SourceModule.ContainingAssembly, assembly))
+            {
+                return (Cci.IAssemblyReference)this;
+            }
+
+            Cci.IModuleReference reference;
+
+            if (AssemblyOrModuleSymbolToModuleRefMap.TryGetValue(assembly, out reference))
+            {
+                return (Cci.IAssemblyReference)reference;
+            }
+
+            AssemblyReference asmRef = new AssemblyReference(assembly, assemblySymbolMapper);
+
+            AssemblyReference cachedAsmRef = (AssemblyReference)AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(assembly, asmRef);
+
+            if (cachedAsmRef == asmRef)
+            {
+                ValidateReferencedAssembly(assembly, cachedAsmRef, diagnostics);
+            }
+
+            // tryadd because whatever is associated with assembly should be associated with Modules[0]
+            AssemblyOrModuleSymbolToModuleRefMap.TryAdd(assembly.Modules[0], cachedAsmRef);
+
+            return cachedAsmRef;
+        }
+
+        internal Cci.IModuleReference Translate(ModuleSymbol module, DiagnosticBag diagnostics)
+        {
+            if (ReferenceEquals(SourceModule, module))
+            {
+                return this;
+            }
+
+            if ((object)module == null)
+            {
+                return null;
+            }
+
+            Cci.IModuleReference moduleRef;
+
+            if (AssemblyOrModuleSymbolToModuleRefMap.TryGetValue(module, out moduleRef))
+            {
+                return moduleRef;
+            }
+
+            AssemblySymbol container = module.ContainingAssembly;
+
+            if ((object)container != null && ReferenceEquals(container.Modules[0], module))
+            {
+                moduleRef = new AssemblyReference(container, assemblySymbolMapper);
+                Cci.IModuleReference cachedModuleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef);
+
+                if (cachedModuleRef == moduleRef)
+                {
+                    ValidateReferencedAssembly(container, (AssemblyReference)moduleRef, diagnostics);
+                }
+                else
+                {
+                    moduleRef = cachedModuleRef;
+                }
+            }
+            else
+            {
+                moduleRef = new ModuleReference(this, module);
+            }
+
+            moduleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(module, moduleRef);
+
+            return moduleRef;
+        }
+
+        internal Cci.INamedTypeReference Translate(
+            NamedTypeSymbol namedTypeSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics,
+            bool fromImplements = false,
+            bool needDeclaration = false)
+        {
+            Debug.Assert(namedTypeSymbol.IsDefinitionOrDistinct());
+            Debug.Assert(diagnostics != null);
+
+            // Anonymous type being translated
+            if (namedTypeSymbol.IsAnonymousType)
+            {
+                namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
+            }
+
+            // Substitute error types with a special singleton object.
+            // Unreported bad types can come through NoPia embedding, for example.
+            if (namedTypeSymbol.OriginalDefinition.Kind == SymbolKind.ErrorType)
+            {
+                ErrorTypeSymbol errorType = (ErrorTypeSymbol)namedTypeSymbol.OriginalDefinition;
+                DiagnosticInfo diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+
+                if (diagInfo == null && namedTypeSymbol.Kind == SymbolKind.ErrorType)
+                {
+                    errorType = (ErrorTypeSymbol)namedTypeSymbol;
+                    diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                }
+
+                // Try to decrease noise by not complaining about the same type over and over again.
+                if (reportedErrorTypesMap.Add(errorType))
+                {
+                    diagnostics.Add(new CSDiagnostic(diagInfo ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
+                }
+
+                return CodeAnalysis.Emit.ErrorType.Singleton;
+            }
+
+            if (!namedTypeSymbol.IsDefinition)
+            {
+                // generic instantiation for sure
+                Debug.Assert(!needDeclaration);
+
+                if (namedTypeSymbol.IsUnboundGenericType)
+                {
+                    namedTypeSymbol = namedTypeSymbol.OriginalDefinition;
+                }
+                else
+                {
+                    return namedTypeSymbol;
+                }
+            }
+            else if (!needDeclaration)
+            {
+                object reference;
+                Cci.INamedTypeReference typeRef;
+
+                NamedTypeSymbol container = namedTypeSymbol.ContainingType;
+
+                if (namedTypeSymbol.Arity > 0)
+                {
+                    if (genericInstanceMap.TryGetValue(namedTypeSymbol, out reference))
+                    {
+                        return (Cci.INamedTypeReference)reference;
+                    }
+
+                    if ((object)container != null)
+                    {
+                        if (IsGenericType(container))
+                        {
+                            // Container is a generic instance too.
+                            typeRef = new SpecializedGenericNestedTypeInstanceReference(namedTypeSymbol);
+                        }
+                        else
+                        {
+                            typeRef = new GenericNestedTypeInstanceReference(namedTypeSymbol);
+                        }
+                    }
+                    else
+                    {
+                        typeRef = new GenericNamespaceTypeInstanceReference(namedTypeSymbol);
+                    }
+
+                    typeRef = (Cci.INamedTypeReference)genericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef);
+
+                    return typeRef;
+                }
+                else if (IsGenericType(container))
+                {
+                    Debug.Assert((object)container != null);
+
+                    if (genericInstanceMap.TryGetValue(namedTypeSymbol, out reference))
+                    {
+                        return (Cci.INamedTypeReference)reference;
+                    }
+
+                    typeRef = new SpecializedNestedTypeReference(namedTypeSymbol);
+                    typeRef = (Cci.INamedTypeReference)genericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef);
+
+                    return typeRef;
+                }
+            }
+
+            // NoPia: See if this is a type, which definition we should copy into our assembly.
+            Debug.Assert(namedTypeSymbol.IsDefinition);
+
+            if (embeddedTypesManagerOpt != null)
+            {
+                return embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics);
+            }
+
+            return namedTypeSymbol;
+        }
+
+        public static bool IsGenericType(NamedTypeSymbol toCheck)
+        {
+            while ((object)toCheck != null)
+            {
+                if (toCheck.Arity > 0)
+                {
+                    return true;
+                }
+
+                toCheck = toCheck.ContainingType;
+            }
+
+            return false;
+        }
+
+        internal static Cci.IGenericParameterReference Translate(TypeParameterSymbol param)
+        {
+            if (!param.IsDefinition)
+                throw new InvalidOperationException(string.Format(CSharpResources.GenericParameterDefinition, param.Name));
+
+            return param;
+        }
+
+        internal sealed override Cci.ITypeReference Translate(
+            TypeSymbol typeSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(diagnostics != null);
+
+            switch (typeSymbol.Kind)
+            {
+                case SymbolKind.DynamicType:
+                    return Translate((DynamicTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+
+                case SymbolKind.ArrayType:
+                    return Translate((ArrayTypeSymbol)typeSymbol);
+
+                case SymbolKind.ErrorType:
+                case SymbolKind.NamedType:
+                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+
+                case SymbolKind.PointerType:
+                    return Translate((PointerTypeSymbol)typeSymbol);
+
+                case SymbolKind.TypeParameter:
+                    return Translate((TypeParameterSymbol)typeSymbol);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
+        }
+
+        internal Cci.IFieldReference Translate(
+            FieldSymbol fieldSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics,
+            bool needDeclaration = false)
+        {
+            Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
+
+            if (!fieldSymbol.IsDefinition)
+            {
+                Debug.Assert(!needDeclaration);
+
+                return fieldSymbol;
+            }
+            else if (!needDeclaration && IsGenericType(fieldSymbol.ContainingType))
+            {
+                object reference;
+                Cci.IFieldReference fieldRef;
+
+                if (genericInstanceMap.TryGetValue(fieldSymbol, out reference))
+                {
+                    return (Cci.IFieldReference)reference;
+                }
+
+                fieldRef = new SpecializedFieldReference(fieldSymbol);
+                fieldRef = (Cci.IFieldReference)genericInstanceMap.GetOrAdd(fieldSymbol, fieldRef);
+
+                return fieldRef;
+            }
+
+            if (embeddedTypesManagerOpt != null)
+            {
+                return embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics);
+            }
+
+            return fieldSymbol;
+        }
+
+        public static Cci.TypeMemberVisibility MemberVisibility(Symbol symbol)
+        {
+            //
+            // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+            // 
+            // Top-level:
+            //   private                       -> public
+            //   protected                     -> public (compiles with a warning)
+            //   public                         
+            //   internal                      -> public
+            // 
+            // In a nested class:
+            //   
+            //   private                       
+            //   protected                     
+            //   public                         
+            //   internal                      -> public
+            //
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Public:
+                    return Cci.TypeMemberVisibility.Public;
+
+                case Accessibility.Private:
+                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
+                    {
+                        // top-level private member:
+                        return Cci.TypeMemberVisibility.Public;
+                    }
+                    else
+                    {
+                        return Cci.TypeMemberVisibility.Private;
+                    }
+
+                case Accessibility.Internal:
+                    if (symbol.ContainingAssembly.IsInteractive)
+                    {
+                        // top-level or nested internal member:
+                        return Cci.TypeMemberVisibility.Public;
+                    }
+                    else
+                    {
+                        return Cci.TypeMemberVisibility.Assembly;
+                    }
+
+                case Accessibility.Protected:
+                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
+                    {
+                        // top-level protected member:
+                        return Cci.TypeMemberVisibility.Public;
+                    }
+                    else
+                    {
+                        return Cci.TypeMemberVisibility.Family;
+                    }
+
+                case Accessibility.ProtectedAndInternal: // Not supported by language, but we should be able to import it.
+                    Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
+                    return Cci.TypeMemberVisibility.FamilyAndAssembly;
+
+                case Accessibility.ProtectedOrInternal:
+                    if (symbol.ContainingAssembly.IsInteractive)
+                    {
+                        // top-level or nested protected internal member:
+                        return Cci.TypeMemberVisibility.Public;
+                    }
+                    else
+                    {
+                        return Cci.TypeMemberVisibility.FamilyOrAssembly;
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+            }
+        }
+
+        internal Cci.IMethodReference Translate(
+            MethodSymbol methodSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics,
+            BoundArgListOperator optArgList = null,
+            bool needDeclaration = false)
+        {
+            Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
+
+            Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
+
+            if (optArgList != null && optArgList.Arguments.Length > 0)
+            {
+                Cci.IParameterTypeInformation[] @params = new Cci.IParameterTypeInformation[optArgList.Arguments.Length];
+                int ordinal = methodSymbol.ParameterCount;
+
+                for (int i = 0; i < @params.Length; i++)
+                {
+                    @params[i] = new ArgListParameterTypeInformation(ordinal,
+                                                                    !optArgList.ArgumentRefKindsOpt.IsDefaultOrEmpty && optArgList.ArgumentRefKindsOpt[i] != RefKind.None,
+                                                                    Translate(optArgList.Arguments[i].Type, syntaxNodeOpt, diagnostics));
+                    ordinal++;
+                }
+
+                return new ExpandedVarargsMethodReference(unexpandedMethodRef, @params.AsImmutableOrNull());
+            }
+            else
+            {
+                return unexpandedMethodRef;
+            }
+        }
+
+        private Cci.IMethodReference Translate(
+            MethodSymbol methodSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics,
+            bool needDeclaration)
+        {
+            object reference;
+            Cci.IMethodReference methodRef;
+            NamedTypeSymbol container = methodSymbol.ContainingType;
+
+            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
+
+            // Method of anonymous type being translated
+            if (container.IsAnonymousType)
+            {
+                methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
+            }
+
+            if (!methodSymbol.IsDefinition)
+            {
+                Debug.Assert(!needDeclaration);
+
+                return methodSymbol;
+            }
+            else if (!needDeclaration)
+            {
+                bool methodIsGeneric = methodSymbol.IsGenericMethod;
+                bool typeIsGeneric = IsGenericType(container);
+
+                if (methodIsGeneric || typeIsGeneric)
+                {
+                    if (genericInstanceMap.TryGetValue(methodSymbol, out reference))
+                    {
+                        return (Cci.IMethodReference)reference;
+                    }
+
+                    if (methodIsGeneric)
+                    {
+                        if (typeIsGeneric)
+                        {
+                            // Specialized and generic instance at the same time.
+                            methodRef = new SpecializedGenericMethodInstanceReference(methodSymbol);
+                        }
+                        else
+                        {
+                            methodRef = new GenericMethodInstanceReference(methodSymbol);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(typeIsGeneric);
+                        methodRef = new SpecializedMethodReference(methodSymbol);
+                    }
+
+                    methodRef = (Cci.IMethodReference)genericInstanceMap.GetOrAdd(methodSymbol, methodRef);
+
+                    return methodRef;
+                }
+            }
+
+            if (embeddedTypesManagerOpt != null)
+            {
+                return embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics);
+            }
+
+            return methodSymbol;
+        }
+
+        internal Cci.IMethodReference TranslateOverriddenMethodReference(
+            MethodSymbol methodSymbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics)
+        {
+            Cci.IMethodReference methodRef;
+            NamedTypeSymbol container = methodSymbol.ContainingType;
+
+            if (IsGenericType(container))
+            {
+                if (methodSymbol.IsDefinition)
+                {
+                    object reference;
+
+                    if (genericInstanceMap.TryGetValue(methodSymbol, out reference))
+                    {
+                        methodRef = (Cci.IMethodReference)reference;
+                    }
+                    else
+                    {
+                        methodRef = new SpecializedMethodReference(methodSymbol);
+                        methodRef = (Cci.IMethodReference)genericInstanceMap.GetOrAdd(methodSymbol, methodRef);
+                    }
+                }
+                else
+                {
+                    methodRef = new SpecializedMethodReference(methodSymbol);
+                }
+
+            }
+            else
+            {
+                Debug.Assert(methodSymbol.IsDefinition);
+
+                if (embeddedTypesManagerOpt != null)
+                {
+                    methodRef = embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics);
+                }
+                else
+                {
+                    methodRef = methodSymbol;
+                }
+            }
+
+            return methodRef;
+        }
+
+        internal IEnumerable<Cci.IParameterTypeInformation> Translate(ImmutableArray<ParameterSymbol> @params)
+        {
+            Debug.Assert(@params.All(p => p.IsDefinitionOrDistinct()));
+            if (@params.Length == 0)
+            {
+                return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>();
+            }
+
+            var firstParam = @params.First();
+
+            bool mustBeTranslated = MustBeWrapped(firstParam);
+            Debug.Assert(@params.All(p => mustBeTranslated == MustBeWrapped(p)), "either all or no parameters need translating");
+
+            if (!mustBeTranslated)
+            {
+                return @params;
+            }
+
+            return TranslateAll(@params);
+        }
+
+        private static bool MustBeWrapped(ParameterSymbol param)
+        {
+            // we represent parameters of generic methods as definitions
+            // CCI wants them represented as IParameterTypeInformation
+            // so we need to create a wrapper of parameters iff
+            // 1) parameters are definitions and
+            // 2) container is generic
+            // NOTE: all parameters must always agree on whether they need wrapping
+            if (param.IsDefinition)
+            {
+                var container = param.ContainingSymbol;
+                if (ContainerIsGeneric(container))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private IEnumerable<Cci.IParameterTypeInformation> TranslateAll(ImmutableArray<ParameterSymbol> @params)
+        {
+            foreach (var param in @params)
+            {
+                yield return CreateParameterTypeInformationWrapper(param);
+            }
+        }
+
+        private Cci.IParameterTypeInformation CreateParameterTypeInformationWrapper(ParameterSymbol param)
+        {
+            object reference;
+            Cci.IParameterTypeInformation paramRef;
+
+            if (genericInstanceMap.TryGetValue(param, out reference))
+            {
+                return (Cci.IParameterTypeInformation)reference;
+            }
+
+            paramRef = new ParameterTypeInformation(param);
+            paramRef = (Cci.IParameterTypeInformation)genericInstanceMap.GetOrAdd(param, paramRef);
+
+            return paramRef;
+        }
+
+        private static bool ContainerIsGeneric(Symbol container)
+        {
+            return container.Kind == SymbolKind.Method && ((MethodSymbol)container).IsGenericMethod ||
+                IsGenericType(container.ContainingType);
+        }
+
+        internal Cci.ITypeReference Translate(
+            DynamicTypeSymbol symbol,
+            CSharpSyntaxNode syntaxNodeOpt,
+            DiagnosticBag diagnostics)
+        {
+            // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
+            // We don't need to recursively replace the dynamic type with Object since the DynamicTypeSymbol adapter 
+            // masquarades the TypeRef as System.Object when used to encode signatures.
+            return GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics);
+        }
+
+        internal static Cci.IArrayTypeReference Translate(ArrayTypeSymbol symbol)
+        {
+            return symbol;
+        }
+
+        internal static Cci.IPointerTypeReference Translate(PointerTypeSymbol symbol)
+        {
+            return symbol;
+        }
+
+        /// <summary>
+        /// Set the underlying implementation type for a given fixed-size buffer field.
+        /// </summary>
+        public NamedTypeSymbol SetFixedImplementationType(SourceMemberFieldSymbol field)
+        {
+            if (fixedImplementationTypes == null)
+            {
+                Interlocked.CompareExchange(ref fixedImplementationTypes, new Dictionary<FieldSymbol, NamedTypeSymbol>(), null);
+            }
+
+            lock (fixedImplementationTypes)
+            {
+                NamedTypeSymbol result;
+                if (fixedImplementationTypes.TryGetValue(field, out result))
+                {
+                    return result;
+                }
+
+                result = new FixedFieldImplementationType(field);
+                fixedImplementationTypes.Add(field, result);
+                AddCompilerGeneratedDefinition(result.ContainingType, result);
+                return result;
+            }
+        }
+
+        internal NamedTypeSymbol GetFixedImplementationType(FieldSymbol field)
+        {
+            // Note that this method is called only after ALL fixed buffer types have been placed in the map.
+            // At that point the map is all filled in and will not change further.  Therefore it is safe to
+            // pull values from the map without locking.
+            NamedTypeSymbol result;
+            var found = fixedImplementationTypes.TryGetValue(field, out result);
+            Debug.Assert(found);
+            return result;
+        }
+
+        #region Test Hooks
+
+        internal bool SaveTestData
+        {
+            get
+            {
+                return testData != null;
+            }
+        }
+
+        internal void SetMethodTestData(MethodSymbol methodSymbol, ILBuilder builder)
+        {
+            if (testData == null)
+            {
+                throw new InvalidOperationException(CSharpResources.MustCallSetMethodTestData);
+            }
+
+            // If this ever throws "ArgumentException: An item with the same key has already been added.", then
+            // the ilBuilderMapKeyFormat will need to be updated to provide a unique key (see SetMethodTestData).
+            testData.Add(
+                GetMethodKey(methodSymbol),
+                new CompilationTestData.MethodData(builder, methodSymbol));
+        }
+
+        private string GetMethodKey(MethodSymbol methodSymbol)
+        {
+            // It is possible for two methods to have the same symbol display string.  For example,
+            //
+            //   extern alias A;
+            //   extern alias B;
+            //   
+            //   class C : A::I, B::I
+            //   {
+            //       void A::I.M() { }
+            //       void B::I.M() { }
+            //   }
+            //
+            // Note that symbol display does not incorporate the extern aliases, since they are specific to
+            // declaration context.
+            //
+            // We compensate by prepending the alias qualifier to unique-ify the method key.
+            string aliasQualifierOpt = null;
+            if (methodSymbol.IsExplicitInterfaceImplementation)
+            {
+                Symbol symbol = methodSymbol.AssociatedPropertyOrEvent ?? methodSymbol;
+                Debug.Assert(symbol.DeclaringSyntaxReferences.Length < 2, "Can't have a partial explicit interface implementation");
+                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+                if (reference != null)
+                {
+                    var syntax = reference.GetSyntax();
+                    switch (syntax.CSharpKind())
+                    {
+                        case SyntaxKind.MethodDeclaration:
+                            MethodDeclarationSyntax methodDecl = (MethodDeclarationSyntax)syntax;
+                            aliasQualifierOpt = methodDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
+                            break;
+                        case SyntaxKind.IndexerDeclaration:
+                        case SyntaxKind.PropertyDeclaration:
+                        case SyntaxKind.EventDeclaration:
+                            BasePropertyDeclarationSyntax propertyDecl = (BasePropertyDeclarationSyntax)syntax;
+                            aliasQualifierOpt = propertyDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
+                            break;
+                        case SyntaxKind.EventFieldDeclaration:
+                            Debug.Assert(false, "Field-like events are never explicit interface implementations");
+                            break;
+                        default:
+                            Debug.Assert(false, "Unexpected syntax kind " + syntax.CSharpKind());
+                            break;
+                    }
+                }
+            }
+
+            string result = methodSymbol.ToDisplayString(methodSymbol.IsOperator() ? testDataOperatorKeyFormat : testDataKeyFormat);
+
+            if (aliasQualifierOpt != null)
+            {
+                // Not using the colon-colon syntax since it won't be in the right place anyway.
+                result = aliasQualifierOpt + "$$" + result;
+            }
+
+            return result;
+        }
+
+        internal void SetMethodTestData(ConcurrentDictionary<string, CompilationTestData.MethodData> methods)
+        {
+            testData = methods;
+            testDataKeyFormat = new SymbolDisplayFormat(
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType,
+                // Not showing the name is important because we visit parameters to display their
+                // types.  If we visited their types directly, we wouldn't get ref/out/params.
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+            // most methods don't need return type to disambiguate signatures, however,
+            // it is necessary to disambiguate user defined operators:
+            //   int op_Implicit(Type)
+            //   float op_Implicit(Type)
+            //   ... etc ...
+            testDataOperatorKeyFormat = new SymbolDisplayFormat(
+                testDataKeyFormat.CompilerInternalOptions,
+                testDataKeyFormat.GlobalNamespaceStyle,
+                testDataKeyFormat.TypeQualificationStyle,
+                testDataKeyFormat.GenericsOptions,
+                testDataKeyFormat.MemberOptions | SymbolDisplayMemberOptions.IncludeType,
+                testDataKeyFormat.ParameterOptions,
+                testDataKeyFormat.DelegateStyle,
+                testDataKeyFormat.ExtensionMethodStyle,
+                testDataKeyFormat.PropertyStyle,
+                testDataKeyFormat.LocalOptions,
+                testDataKeyFormat.KindOptions,
+                testDataKeyFormat.MiscellaneousOptions);
+        }
+
+        #endregion
+    }
+}

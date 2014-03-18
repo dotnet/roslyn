@@ -1,0 +1,1431 @@
+﻿-=-=-=-=-=-=-=-=- Object -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Parameter(
+      x
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Parameter(
+      x
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Parameter(
+      x
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Object, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Parameter(
+      x
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Parameter(
+      x
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- CStr(Object) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Object -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[System.Object,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[System.Object,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[System.Object,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- Object -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Object,System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, Struct1?) -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Object,System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, Struct1?) -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Object,System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- Object -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[System.Object,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[System.Object,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[System.Object,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Object, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    TypeAs(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[System.Object,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- Object -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[System.Object,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- CType(Object, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[System.Object,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Object, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[System.Object,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Object, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    TypeAs(
+      Parameter(
+        x
+        type: System.Object
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[System.Object,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- String -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(String, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(String, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(String, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(String) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Parameter(
+      x
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- CType(String, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Parameter(
+      x
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(String, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Parameter(
+      x
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- CStr(String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Parameter(
+      x
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Struct1 -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Struct1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Struct1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Struct1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Struct1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Struct1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    TypeAs(
+      Parameter(
+        x
+        type: Struct1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Struct1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(Struct1) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Struct1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Struct1 -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Parameter(
+      x
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[Struct1,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Parameter(
+      x
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[Struct1,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Struct1, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Parameter(
+      x
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[Struct1,Struct1]
+)
+
+-=-=-=-=-=-=-=-=- Struct1 -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[Struct1,System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1, Struct1?) -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Struct1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Struct1
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[Struct1,System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- Struct1? -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Struct1],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1?, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Struct1],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Struct1?, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Struct1],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Struct1?, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    TypeAs(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Struct1],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(Struct1?) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Struct1],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Struct1? -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[System.Nullable`1[Struct1],Struct1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1?, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[Struct1]
+      )
+      Lifted
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`2[System.Nullable`1[Struct1],Struct1]
+)
+
+-=-=-=-=-=-=-=-=- Struct1? -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Nullable`1[Struct1],System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Struct1?, Struct1?) -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Nullable`1[Struct1],System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Struct1?, Struct1?) -> Struct1? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Struct1]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[Struct1]
+    )
+  }
+  return type: System.Nullable`1[Struct1]
+  type: System.Func`2[System.Nullable`1[Struct1],System.Nullable`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- Clazz1 -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz1, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(Clazz1) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz1,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Clazz1 -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz1,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz1, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz1,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz1, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz1,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz1, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz1,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- Clazz1 -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz1,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz1, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz1,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz1, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz1,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz1, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz1
+  )
+  body {
+    TypeAs(
+      Parameter(
+        x
+        type: Clazz1
+      )
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz1,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- Clazz2 -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz2,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz2, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz2,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz2, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz2,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz2, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz2,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CObj(Clazz2) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz2,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Clazz2 -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz2,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz2, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz2,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz2, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz2,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz2, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: Clazz2
+      )
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`2[Clazz2,Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- Clazz2 -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz2,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- CType(Clazz2, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz2,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Clazz2, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz2,Clazz2]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Clazz2, Clazz2) -> Clazz2 -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: Clazz2
+  )
+  body {
+    Parameter(
+      x
+      type: Clazz2
+    )
+  }
+  return type: Clazz2
+  type: System.Func`2[Clazz2,Clazz2]
+)

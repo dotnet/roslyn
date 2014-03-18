@@ -1,0 +1,938 @@
+﻿Lambda(
+  body {
+    SubtractChecked(
+      MemberAccess(
+        <NULL>
+        -> s1
+        type: Form1+Struct1`1[System.Int64]
+      )
+      ConvertChecked(
+        MemberAccess(
+          <NULL>
+          -> x1
+          type: System.Int16
+        )
+        type: System.Int64
+      )
+      method: Int64 op_Subtraction(Struct1`1, Int64) in Form1+Struct1`1[System.Int64]
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`1[System.Int64]
+)
+
+Lambda(
+  body {
+    SubtractChecked(
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> s1
+          type: Form1+Struct1`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[Form1+Struct1`1[System.Int64]]
+      )
+      ConvertChecked(
+        MemberAccess(
+          <NULL>
+          -> x2
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      method: Int64 op_Subtraction(Struct1`1, Int64) in Form1+Struct1`1[System.Int64]
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`1[System.Nullable`1[System.Int64]]
+)
+
+Lambda(
+  body {
+    Subtract(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1`1[System.Decimal]]
+      )
+      Convert(
+        Convert(
+          ConvertChecked(
+            MemberAccess(
+              <NULL>
+              -> x1
+              type: System.Int16
+            )
+            type: System.Int32
+          )
+          method: System.Decimal op_Implicit(Int32) in System.Decimal
+          type: System.Decimal
+        )
+        method: System.Nullable`1[System.Decimal] op_Implicit(System.Decimal) in System.Nullable`1[System.Decimal]
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal op_Subtraction(Struct1`1, System.Decimal) in Form1+Struct1`1[System.Decimal]
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+Lambda(
+  body {
+    Subtract(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1`1[System.Decimal]]
+      )
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> x2
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        method: System.Decimal op_Implicit(Int32) in System.Decimal
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal op_Subtraction(Struct1`1, System.Decimal) in Form1+Struct1`1[System.Decimal]
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+Lambda(
+  body {
+    Negate(
+      MemberAccess(
+        <NULL>
+        -> d3
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal Negate(System.Decimal) in System.Decimal
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+Lambda(
+  body {
+    Modulo(
+      Convert(
+        Convert(
+          ConvertChecked(
+            MemberAccess(
+              <NULL>
+              -> i2
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          method: System.Decimal op_Implicit(Int32) in System.Decimal
+          type: System.Decimal
+        )
+        method: System.Nullable`1[System.Decimal] op_Implicit(System.Decimal) in System.Nullable`1[System.Decimal]
+        type: System.Nullable`1[System.Decimal]
+      )
+      MemberAccess(
+        <NULL>
+        -> d3
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal Remainder(System.Decimal, System.Decimal) in System.Decimal
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    MemberAccess(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      -> Prop
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Convert(
+      And(
+        Negate(
+          ConvertChecked(
+            MemberAccess(
+              MemberAccess(
+                <NULL>
+                -> c1
+                type: Form1+Class1
+              )
+              -> Prop
+              type: System.Boolean
+            )
+            type: System.Int64
+          )
+          type: System.Int64
+        )
+        ConvertChecked(
+          MemberAccess(
+            MemberAccess(
+              <NULL>
+              -> c1
+              type: Form1+Class1
+            )
+            -> field2
+            type: System.Decimal
+          )
+          method: Int64 op_Explicit(System.Decimal) in System.Decimal
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      method: Boolean ToBoolean(Int64) in System.Convert
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Call(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      method: Boolean get_MyProperty(System.String) in Form1+Class1 (
+        Constant(
+          Foo
+          type: System.String
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Equal(
+      Call(
+        MemberAccess(
+          <NULL>
+          -> c2
+          type: Form1+class2
+        )
+        method: System.DateTime get_MyProperty2(System.String) in Form1+class2 (
+          Constant(
+            Day
+            type: System.String
+          )
+        )
+        type: System.DateTime
+      )
+      MemberAccess(
+        MemberAccess(
+          <NULL>
+          -> c2
+          type: Form1+class2
+        )
+        -> datetime2
+        type: System.DateTime
+      )
+      method: Boolean op_Equality(System.DateTime, System.DateTime) in System.DateTime
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean RefParam(System.DateTime ByRef) in Form1 (
+        MemberAccess(
+          MemberAccess(
+            <NULL>
+            -> c2
+            type: Form1+class2
+          )
+          -> MyProperty3
+          type: System.DateTime
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean RefParam(System.DateTime ByRef) in Form1 (
+        MemberAccess(
+          MemberAccess(
+            <NULL>
+            -> c2
+            type: Form1+class2
+          )
+          -> MyProperty3
+          type: System.DateTime
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    GreaterThan(
+      Parameter(
+        i
+        type: System.Int32
+      )
+      Constant(
+        2
+        type: System.Int32
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Int32,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    j
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      j
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  Parameter(
+    $VB$ItAnonymous
+    type: System.Linq.IQueryable`1[System.Int32]
+  )
+  body {
+    New(
+      Void .ctor(Int32, Int32, Int32, Double)(
+        Parameter(
+          i
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Int32 Count[Int32](System.Linq.IQueryable`1[System.Int32]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+          )
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Int32 Sum[Int32](System.Linq.IQueryable`1[System.Int32], System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+            Quote(
+              Lambda(
+                Parameter(
+                  j
+                  type: System.Int32
+                )
+                body {
+                  Parameter(
+                    i
+                    type: System.Int32
+                  )
+                }
+                return type: System.Int32
+                type: System.Func`2[System.Int32,System.Int32]
+              )
+              type: System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]
+            )
+          )
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Double Average[Int32](System.Linq.IQueryable`1[System.Int32], System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+            Quote(
+              Lambda(
+                Parameter(
+                  j
+                  type: System.Int32
+                )
+                body {
+                  Parameter(
+                    i
+                    type: System.Int32
+                  )
+                }
+                return type: System.Int32
+                type: System.Func`2[System.Int32,System.Int32]
+              )
+              type: System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]
+            )
+          )
+          type: System.Double
+        )
+      )
+      members: {
+        Int32 i
+        Int32 Count
+        Int32 Sum
+        Double Average
+      }
+      type: VB$AnonymousType_0`4[System.Int32,System.Int32,System.Int32,System.Double]
+    )
+  }
+  return type: VB$AnonymousType_0`4[System.Int32,System.Int32,System.Int32,System.Double]
+  type: System.Func`3[System.Int32,System.Linq.IQueryable`1[System.Int32],VB$AnonymousType_0`4[System.Int32,System.Int32,System.Int32,System.Double]]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    GreaterThan(
+      Parameter(
+        i
+        type: System.Int32
+      )
+      Constant(
+        2
+        type: System.Int32
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Int32,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    j
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      j
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  Parameter(
+    $VB$ItAnonymous
+    type: System.Linq.IQueryable`1[System.Int32]
+  )
+  body {
+    New(
+      Void .ctor(Int32, Int32, Int32)(
+        Parameter(
+          i
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Int32 Count[Int32](System.Linq.IQueryable`1[System.Int32]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+          )
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Int32 Sum[Int32](System.Linq.IQueryable`1[System.Int32], System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+            Quote(
+              Lambda(
+                Parameter(
+                  j
+                  type: System.Int32
+                )
+                body {
+                  Parameter(
+                    j
+                    type: System.Int32
+                  )
+                }
+                return type: System.Int32
+                type: System.Func`2[System.Int32,System.Int32]
+              )
+              type: System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]
+            )
+          )
+          type: System.Int32
+        )
+      )
+      members: {
+        Int32 i
+        Int32 Count
+        Int32 Sum
+      }
+      type: VB$AnonymousType_1`3[System.Int32,System.Int32,System.Int32]
+    )
+  }
+  return type: VB$AnonymousType_1`3[System.Int32,System.Int32,System.Int32]
+  type: System.Func`3[System.Int32,System.Linq.IQueryable`1[System.Int32],VB$AnonymousType_1`3[System.Int32,System.Int32,System.Int32]]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    GreaterThan(
+      Parameter(
+        i
+        type: System.Int32
+      )
+      Constant(
+        2
+        type: System.Int32
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Int32,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      i
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    j
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      j
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+Lambda(
+  Parameter(
+    i
+    type: System.Int32
+  )
+  Parameter(
+    $VB$ItAnonymous
+    type: System.Linq.IQueryable`1[System.Int32]
+  )
+  body {
+    New(
+      Void .ctor(Int32, Int32)(
+        Parameter(
+          i
+          type: System.Int32
+        )
+        Call(
+          <NULL>
+          method: Int32 Count[Int32](System.Linq.IQueryable`1[System.Int32]) in System.Linq.Queryable (
+            Parameter(
+              $VB$ItAnonymous
+              type: System.Linq.IQueryable`1[System.Int32]
+            )
+          )
+          type: System.Int32
+        )
+      )
+      members: {
+        Int32 i
+        Int32 Count
+      }
+      type: VB$AnonymousType_2`2[System.Int32,System.Int32]
+    )
+  }
+  return type: VB$AnonymousType_2`2[System.Int32,System.Int32]
+  type: System.Func`3[System.Int32,System.Linq.IQueryable`1[System.Int32],VB$AnonymousType_2`2[System.Int32,System.Int32]]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean Bar(Foo) in Form1 (
+        Convert(
+          Call(
+            <NULL>
+            method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
+              Constant(
+                Form1+Foo
+                type: System.Type
+              )
+              Constant(
+                null
+                type: System.Object
+              )
+              Constant(
+                Void SubRoutine()
+                type: System.Reflection.MethodInfo
+              )
+              Constant(
+                False
+                type: System.Boolean
+              )
+            )
+            type: System.Delegate
+          )
+          type: Form1+Foo
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: Boolean Bar(Foo) in Form1 (
+        MemberAccess(
+          Constant(
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
+          )
+          -> $VB$Local_d
+          type: Form1+Foo
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)

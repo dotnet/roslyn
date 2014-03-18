@@ -1,0 +1,3277 @@
+﻿Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Threading
+Imports System.Threading.Tasks
+Imports System.Runtime.CompilerServices
+Imports Microsoft.VisualBasic
+
+Module Program
+    Sub Main(args As String())
+        Async_Overload_Change_3.Async_Overload_Change_3_Conversions_test().Wait(60000)
+    End Sub
+End Module
+
+Public Module Async_Overload_Change_3
+    Dim previousScenario As String = "Just Initialized"
+    Sub apInitScenario(sc As String)
+        previousScenario = sc
+    End Sub
+    Sub apCompare(a As String, b As String, message As String)
+        If a = b Then
+            Return
+        End If
+        Console.WriteLine("ERROR: " + message)
+        Console.WriteLine("Expected: " + a + "; Actual: " + b)
+        Console.WriteLine("Scenario: " + previousScenario)
+    End Sub
+    Sub apLogFailInfo(message As String)
+        Console.WriteLine("EXCEPTION: " + message)
+        Console.WriteLine("Scenario: " + previousScenario)
+    End Sub
+
+    Public Async Function Async_Overload_Change_3_Conversions_test() As Task
+        Await Task.Yield
+        Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - Integer")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return 1
+                                         End Function)
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - Short")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return 1S
+                                         End Function)
+
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - Long")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return 1L
+                                         End Function)
+
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - String")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return "1"
+                                         End Function)
+
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - Date")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return Now
+                                         End Function)
+
+                apCompare("System.DateTime", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - Boolean")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return False
+                                         End Function)
+
+                apCompare("System.Boolean", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - UDCLass")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return New UDClass
+                                         End Function)
+
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - UD Structure")
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return New UDStruct
+                                         End Function)
+
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - Integer")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield 1
+                                         End Function)
+
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - Short")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield 1S
+                                         End Function)
+
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - Long")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield 1L
+                                         End Function)
+
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - Double")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield 1.1
+                                         End Function)
+
+                apCompare("System.Double", x, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - String")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield "String"
+                                         End Function)
+
+
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - UDCLass")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield New UDClass
+                                         End Function)
+
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - UDStructure")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield New UDStruct
+                                         End Function)
+
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async Expression  Lambda - Integer")
+            Try
+                Dim x = Await TaskMethod(Async Function() 1)
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - Short")
+            Try
+                Dim x = Await TaskMethod(Async Function() 1S)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - Long")
+            Try
+                Dim x = Await TaskMethod(Async Function() 1L)
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - String")
+            Try
+                Dim x = Await TaskMethod(Async Function() "1")
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - Date")
+            Try
+                Dim x = Await TaskMethod(Async Function() Now)
+                apCompare("System.DateTime", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - Boolean")
+            Try
+                Dim x = Await TaskMethod(Async Function() False)
+                apCompare("System.Boolean", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - UDCLass")
+            Try
+                Dim x = Await TaskMethod(Async Function() New UDClass)
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Async expression lambda - UD Structure")
+            Try
+                Dim x = Await TaskMethod(Async Function() New UDStruct)
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator expression lambda - Integer")
+            Try
+#If comperrortest Then
+                'COMPILEERROR: BC30201, "Yield"
+                            Dim x = EnumerableMethod(Iterator Function()  Yield 1)
+                ' apCompare("System.Int32", x, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator expression lambda - Short")
+            Try
+#If comperrortest Then
+                'COMPILEERROR: BC30201, "Yield"
+                  Dim x1 = EnumerableMethod(Iterator Function() Yield 1S)
+                '     apCompare("System.Int16", x1, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Iterator expression lambda - Long")
+            Try
+#If comperrortest Then
+                'COMPILEERROR : BC30201, "Yield"
+                   Dim x2 = EnumerableMethod(Iterator Function() Yield 1L)
+                ' apCompare("System.Int64", x2, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - Integer")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return 1
+                                     End Function)
+
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - Short")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return 1S
+                                     End Function)
+
+                apCompare("System.Int16", x, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - Long")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return 1L
+                                     End Function)
+
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - Double")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return 1.1
+                                     End Function)
+
+                apCompare("System.Double", x, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - String")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return "String"
+                                     End Function)
+
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - UDClass")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return New UDClass
+                                     End Function)
+
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Statement Lambda - UDStructure")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return New UDStruct
+                                     End Function)
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - Integer")
+            Try
+                Dim x = NormalMethod(Function() 1)
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - Short")
+            Try
+                Dim x = NormalMethod(Function() 1S)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - Long")
+            Try
+                Dim x = NormalMethod(Function() 1L)
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - Double")
+            Try
+                Dim x = NormalMethod(Function() 1.1)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - String")
+            Try
+                Dim x = NormalMethod(Function() "String")
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - UDCLass")
+            Try
+                Dim x = NormalMethod(Function() New UDClass)
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference from Normal Expression Lambda - UDStruct")
+            Try
+                Dim x = NormalMethod(Function() New UDStruct)
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Async Lambda")
+            Try
+                Dim x = TaskMethod(Of Short)(Async Function()
+                                                 Return 1L
+                                             End Function)
+
+                apCompare("System.Int16", Await x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Async Lambda")
+            Try
+                Dim x = Await TaskMethod(Of Long)(Async Function()
+                                                      Return 1S
+                                                  End Function)
+
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Async Expression Lambda")
+            Try
+                Dim x = Await TaskMethod(Of Integer)(Async Function() 1L)
+                apCompare("System.Int32", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Async Expression Lambda")
+            Try
+                Dim x = Await TaskMethod(Of Double)(Async Function() 1L)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from iterator Statement Lambda")
+            Try
+                Dim x = EnumerableMethod(Of Short)(Iterator Function()
+                                                       Yield 1L
+                                                   End Function)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from iterator Statement Lambda")
+            Try
+                Dim x = EnumerableMethod(Of Double)(Iterator Function()
+                                                        Yield 1S
+                                                    End Function)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from iterator Expression Lambda")
+            Try
+#If comperrortest Then
+                'COMPILEERROR: BC30201, "Yield"
+                            Dim x = EnumerableMethod(Of Short)(Iterator Function() Yield 1L)
+                ' apCompare("System.Int16", x, "Unexpected Return")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from iterator Expression Lambda")
+            Try
+#If comperrortest Then
+                'COMPILEERROR : BC30201, "Yield"
+                             Dim x = EnumerableMethod(Of Double)(Iterator Function() Yield 1S)
+                'apCompare("System.Double", x, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Normal Statement Lambda")
+            Try
+                Dim x = NormalMethod(Of Short)(Function()
+                                                   Return 1L
+                                               End Function)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Normal Statement Lambda")
+            Try
+                Dim x = NormalMethod(Of Double)(Function()
+                                                    Return 1L
+                                                End Function)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Normal Expression Lambda")
+            Try
+                Dim x = NormalMethod(Of Short)(Function() 1L)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '*********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                Dim x = Obj.NormalMethod(Function() 1L)
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for ExtensionMethod")
+            Try
+                Dim x = ExtenstionMethod_Rule3.ExtensionNormalMethod(Function() 1S)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for Shared Method")
+            Try
+                Dim x = NormalMethod(Function() 1.1)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for Instance Method")
+            Try
+                Dim Obj As New Structure_Rule3
+                Dim x = Obj.NormalMethod(Function()
+                                             Return "1.1"
+                                         End Function)
+                apCompare("System.String", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for ExtensionMethod")
+            Try
+                Dim x = ExtenstionMethod_Rule3.ExtensionNormalMethod(Function()
+                                                                         Return New Byte
+                                                                     End Function)
+                apCompare("System.Byte", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for Shared Method")
+            Try
+                Dim x = NormalMethod(Function()
+                                         Return Now
+                                     End Function)
+                apCompare("System.DateTime", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                Dim x = Await Obj.TaskMethod(Async Function()
+                                                 Await Task.Yield
+                                                 Return New UDClass
+                                             End Function)
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for ExtensionMethod")
+            Try
+                Dim x = Await ExtenstionMethod_Rule3.ExtensionTaskMethod(Async Function()
+                                                                             Await Task.Yield
+                                                                             Return New UDStruct
+                                                                         End Function)
+                apCompare("UDStruct", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for Shared Method")
+
+            Try
+                Dim x = Await TaskMethod(Async Function()
+                                             Await Task.Yield
+                                             Return 1.1
+                                         End Function)
+                apCompare("System.Double", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                Dim x = Obj.EnumerableMethod(Iterator Function()
+                                                 Yield 1L
+                                             End Function)
+                apCompare("System.Int64", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for ExtensionMethod")
+            Try
+                Dim x = ExtenstionMethod_Rule3.ExtensionEnumerableMethod(Iterator Function()
+                                                                             Yield 1S
+                                                                         End Function)
+                apCompare("System.Int16", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for Shared Method")
+            Try
+                Dim x = EnumerableMethod(Iterator Function()
+                                             Yield New UDClass
+                                         End Function)
+                apCompare("UDClass", x, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from an extension method which is called using async or iterator lambda return - and calling subsequent functions - CTI To Implement")
+            'Bugs have been found in this area with invalid type inference causing IDE Crashes
+            ' when calling a method of a invalid type inferred object so its the second . that causes the problem
+            'ie dim x = await foo()
+            'dim y1 = x.ExtMethod()
+            'dim y2 = (await foo()).ExtMethod()
+            'dim y3 = x.ExtMethod().Tostring()  'SubSequent Functions 
+            Try
+                Dim foo1 = Async Function()
+                               Await Task.Yield
+                               Return "test"
+                           End Function
+                Dim foo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
+                                                                Yield 1L
+                                                            End Function
+
+                Dim x10 = Await foo1()
+                Dim y1 = x10.ExtensionMethod
+                Dim y2 = x10.ExtensionMethod.ToString()
+                Dim y3 = (Await foo1()).ExtensionMethod.ToString()
+                apCompare("System.String", y1, "Unexpected Return")
+                apCompare("System.String", y2, "Unexpected Return")
+                apCompare("System.String", y3, "Unexpected Return")
+
+                Dim x110 = foo2()
+                Dim y11 = x110.EnumerableExtensionMethod
+                Dim y21 = x110.EnumerableExtensionMethod.ToString()
+                Dim y31 = foo2().EnumerableExtensionMethod.ToString()
+                apCompare("System.Int64", y11, "Unexpected Return")
+                apCompare("System.Int64", y21, "Unexpected Return")
+                apCompare("System.Int64", y31, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return LongValue
+                                        End Function,
+                                LongValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return LongValue
+                                        End Function,
+                                IntegerValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                LongValue)
+
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, Integer) Infer Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                IntegerValue)
+                apCompare("System.Int32", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Short) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return LongValue
+                                        End Function,
+                                ShortValue)
+
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Short, Long) Infer Long")
+            Try
+                Dim LongValue As Long = Long.MaxValue
+                Dim ShortValue As Short = Short.MaxValue
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return ShortValue
+                                        End Function,
+                                LongValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(UDCLass, Long) - COMPILEERROR")
+            Try
+                '//Cannot Infer
+#If CompErrorTest Then
+                            Dim LongValue As Long = 5L
+                            'COMPILEERROR: BC36657, "BindingMethod_1(Async Function()"
+                            Dim s = BindingMethod_1(Async Function()
+                                                        Await Task.Yield
+                                                        Return New UDClass
+                                                    End Function,
+                                                                                            LongValue)
+
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Object, String) Infer object")
+            Try
+                Dim ObjectValue As Object = New Object
+                Dim stringValue As String = "String"
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return ObjectValue
+                                        End Function,
+                                stringValue)
+
+                apCompare("System.Object", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Object, Object) Infer Object")
+            Try
+                Dim ObjectValue As Object = New Object
+
+                Dim s = BindingMethod_1(Async Function()
+                                            Await Task.Yield
+                                            Return ObjectValue
+                                        End Function,
+                                ObjectValue)
+                apCompare("System.Object", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, String) COMPILEERROR")
+            Try
+#If CompErrorTest Then
+                            'ID , Narrow
+                            'Narrow, ID
+
+                            Dim StringValue As String = "1"
+                            Dim IntegerValue As Integer = 1
+
+                'COMPILEERROR: BC36651, "BindingMethod_1(Async Function()"
+                            Dim s = BindingMethod_1(Async Function()
+                                                        Await Task.Yield
+                                                        Return IntegerValue
+                                                    End Function,
+                                                    StringValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+#If CompErrorTest Then
+                            Dim StringValue As String = "1"
+                            Dim IntegerValue As Integer = 1
+                            'COMPILEERROR: BC36651, "BindingMethod_1(Async Function()"
+                            Dim s = BindingMethod_1(Async Function()
+                                                        Await Task.Yield
+                                                        Return StringValue
+                                                    End Function,
+                                                    IntegerValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments (SPECIFY String) - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                Dim s = BindingMethod_1(Of String)(Async Function()
+                                                       Await Task.Yield
+                                                       Return StringValue
+                                                   End Function,
+                                IntegerValue)
+                apCompare("System.String", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments (SPECIFY Integer) - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                Dim s = BindingMethod_1(Of Integer)(Async Function()
+                                                        Await Task.Yield
+                                                        Return StringValue
+                                                    End Function,
+                                IntegerValue)
+                apCompare("System.Int32", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Long, Short, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return LongValue
+                                        End Function,
+                                ShortValue,
+                                IntegerValue)
+
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return ShortValue
+                                        End Function,
+                                IntegerValue,
+                                LongValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                ShortValue,
+                                LongValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, short) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                LongValue,
+                                ShortValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                LongValue,
+                                IntegerValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Async Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Long, Integer) COMPILE ERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                '//Change only effect Async or Iterator Methods
+#If CompErrorTest Then
+                            'COMPILEERROR: BC36651, "BindingMethod_1R(Async Function()"
+                            Dim s = BindingMethod_1R(Async Function()
+                                                         Await Task.Yield
+                                                         Return LongValue
+                                                     End Function,
+                                                     IntegerValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Async Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters(Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                Dim s = BindingMethod_1R(Async Function()
+                                             Await Task.Yield
+                                             Return IntegerValue
+                                         End Function,
+                                LongValue)
+                apCompare("System.Int64", s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Long, Integer) COMPILE ERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                Dim s As String = ""
+
+                '//Change only effect Async or Iterator Methods
+#If CompErrorTest Then
+                            'COMPILEERROR: BC36651, "BindingMethod_1R2(Iterator Function()" 
+                            s = BindingMethod_1R2(Iterator Function()
+                                                      Yield LongValue
+                                                  End Function,
+                                                  IntegerValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                Dim s As String = ""
+
+                'Covariance so Integer widens to Long
+                s = BindingMethod_1R2(Iterator Function()
+                                          Yield IntegerValue
+                                      End Function,
+                                      LongValue)
+                apCompare("System.Int64", s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Integer) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                Dim s As String = ""
+                s = BindingMethod_1R2(Of Integer)(Iterator Function()
+                                                      Yield LongValue
+                                                  End Function, IntegerValue)
+                apCompare("System.Int32", s, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Long) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                Dim s As String = ""
+
+                s = BindingMethod_1R2(Of Long)(Iterator Function()
+                                                   Yield LongValue
+                                               End Function,
+                                               IntegerValue)
+                apCompare("System.Int64", s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Short) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                Dim s As String = ""
+
+                s = BindingMethod_1R2(Of Short)(Iterator Function()
+                                                    Yield LongValue
+                                                End Function,
+                                               IntegerValue)
+                apCompare("System.Int16", s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(String, Long, Short) COMPILEERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As String = ""
+                'Cannot Infer
+#If COMPERRORTEST Then
+                            'COMPILEERROR: BC36651, "BindingMethod_2(Async Function()"
+                            s = BindingMethod_2(Async Function()
+                                                    Await Task.Yield
+                                                    Return StringValue_RepresentingInteger
+                                                End Function,
+                                                LongValue,
+                                                ShortValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Integer) - Hints / Multiple Parameters(String, Long, Short) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As Task(Of String)
+
+                s = BindingMethod_2(Of Integer)(Async Function()
+                                                    Await Task.Yield
+                                                    Return StringValue_RepresentingInteger
+                                                End Function,
+                                LongValue,
+                                ShortValue)
+                apCompare("System.Int32", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify String) - Hints / Multiple Parameters(String, Long, Short) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As Task(Of String)
+                s = BindingMethod_2(Of String)(Async Function()
+                                                   Await Task.Yield
+                                                   Return StringValue_RepresentingInteger
+                                               End Function,
+                                               LongValue,
+                                               ShortValue)
+                apCompare("System.String", Await s, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Object) - Hints / Multiple Parameters(String, Long, Short) Object")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As Task(Of String)
+                s = BindingMethod_2(Of Object)(Async Function()
+                                                   Await Task.Yield
+                                                   Return StringValue_RepresentingInteger
+                                               End Function,
+                                               LongValue,
+                                               ShortValue)
+                apCompare("System.Object", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Long, String, Short) COMPILEERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As String = ""
+#If CompErrorTest Then
+                            'COMPILEERROR: BC36651, "BindingMethod_2(Async Function()"
+                            s = BindingMethod_2(Async Function()
+                                                    Await Task.Yield
+                                                    Return LongValue
+                                                End Function,
+                                                StringValue_RepresentingInteger,
+                                                ShortValue)
+                            apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Short, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As Task(Of String)
+
+                s = BindingMethod_2(Async Function()
+                                        Await Task.Yield
+                                        Return ShortValue
+                                    End Function,
+                                    ShortValue,
+                                    LongValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Short, Integer) Infer Integer")
+            Try
+                Dim IntegerValue As Integer = 5
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger As String = "1"
+                Dim s As Task(Of String)
+                s = BindingMethod_2(Async Function()
+                                        Await Task.Yield
+                                        Return ShortValue
+                                    End Function,
+                                        ShortValue,
+                                        IntegerValue)
+                apCompare("System.Int32", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, Object) Infer Object")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+
+                Dim s = BindingMethod_2(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,
+                                LongValue,
+                                ObjectValue)
+                apCompare("System.Object", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Long) - Hints / Multiple Parameters(Integer, Long, Object) Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+                Dim s As Task(Of String)
+                s = BindingMethod_2(Of Long)(Async Function()
+                                                 Await Task.Yield
+                                                 Return IntegerValue
+                                             End Function,
+                                             LongValue,
+                                             ObjectValue)
+                apCompare("System.Int64", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify String) - Hints / Multiple Parameters(Integer, Long, Object) Long")
+            Try
+                'Specify a value which is convertible through widening and narrowing from
+                'all the value but is not actually on of the values specified
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+                Dim s As Task(Of String)
+
+                s = BindingMethod_2(Of String)(Async Function()
+                                                   Await Task.Yield
+                                                   Return IntegerValue
+                                               End Function,
+                                               LongValue,
+                                               ObjectValue)
+                apCompare("System.String", Await s, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in async function ")
+
+            'This is really a validation of the same behaviour on Delegates
+            Try
+                Dim Obj As New DelegateClass
+                Dim Del1 As DelegateClass.Del1(Of Short) = AddressOf Obj.DelFuction1
+                Dim x11 = Await Del1(Async Function()
+                                         Await Task.Yield
+                                         Return 1L
+                                     End Function)
+
+                apCompare("System.Int16", x11, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference Scenarios  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in normal function")
+            'This is really a validation of the same behaviour on Delegates
+            Try
+                Dim Obj As New DelegateClass
+                Dim Del1 As DelegateClass.Del2(Of Double) = AddressOf Obj.DelFunction2
+                Dim x12 = Del1(Iterator Function()
+                                   Yield 1S
+                               End Function)
+
+                apCompare("System.Double", x12, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+            '**********************************************************************************************
+            apInitScenario("Type Inference Scenarios For SUB")
+            'Selection of tests using sub's instead of functions
+            Await Async_Overload_Change_3_Above_Scenaros_inSub()
+
+        Catch ex As Exception
+            apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+        End Try
+    End Function
+
+End Module
+
+Class UDClass
+End Class
+
+Structure UDStruct
+End Structure
+
+Module Module_Rule3
+    Public ResultField As String = ""
+    Async Function TaskMethod(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Async Sub TaskMethodSub(Of t)(x As Func(Of Task(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Function EnumerableMethod(Of t)(x As Func(Of IEnumerable(Of t))) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Async Sub EnumerableMethodSub(Of t)(x As Func(Of IEnumerable(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Function NormalMethod(Of t)(x As Func(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Sub NormalMethodSub(Of t)(x As Func(Of t))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Async Function BindingMethod_1(Of t)(x As Func(Of Task(Of t)), y As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Async Sub BindingMethod_1Sub(Of t)(x As Func(Of Task(Of t)), y As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Function BindingMethod_1R(Of t)(x As Func(Of Task(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+    Sub BindingMethod_1RSub(Of t)(x As Func(Of Task(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString
+    End Sub
+
+    Function BindingMethod_1R2(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+
+    Sub BindingMethod_1R2Sub(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString
+    End Sub
+
+    Async Function BindingMethod_2(Of t)(x As Func(Of Task(Of t)), y As t, z As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Async Sub BindingMethod_2Sub(Of t)(x As Func(Of Task(Of t)), y As t, z As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+End Module
+
+Class Class_Rule3
+    Public Async Function TaskMethod(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub TaskMethodSub(Of t)(x As Func(Of Task(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Public Function EnumerableMethod(Of t)(x As Func(Of IEnumerable(Of t))) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Public Sub EnumerableMethodSub(Of t)(x As Func(Of IEnumerable(Of t)))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Function NormalMethod(Of t)(x As Func(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Public Sub NormalMethodSub(Of t)(x As Func(Of t))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Async Function BindingMethod_1(Of t)(x As Func(Of Task(Of t)), y As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub BindingMethod_1Sub(Of t)(x As Func(Of Task(Of t)), y As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Public Function BindingMethod_1R(Of t)(x As Func(Of Task(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+
+    Public Sub BindingMethod_1RSub(Of t)(x As Func(Of Task(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Function BindingMethod_1R2(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+
+
+    Public Sub BindingMethod_1R2Sub(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Async Function BindingMethod_2(Of t)(x As Func(Of Task(Of t)), y As t, z As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub BindingMethod_2Sub(Of t)(x As Func(Of Task(Of t)), y As t, z As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+End Class
+
+Structure Structure_Rule3
+    Public Async Function TaskMethod(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub TaskMethodSub(Of t)(x As Func(Of Task(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Public Function EnumerableMethod(Of t)(x As Func(Of IEnumerable(Of t))) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Public Sub EnumerableMethodSub(Of t)(x As Func(Of IEnumerable(Of t)))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Function NormalMethod(Of t)(x As Func(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Public Sub NormalMethodSub(Of t)(x As Func(Of t))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Async Function BindingMethod_1(Of t)(x As Func(Of Task(Of t)), y As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub BindingMethod_1Sub(Of t)(x As Func(Of Task(Of t)), y As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    Public Function BindingMethod_1R(Of t)(x As Func(Of Task(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+
+    Public Sub BindingMethod_1RSub(Of t)(x As Func(Of Task(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Function BindingMethod_1R2(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+
+
+    Public Sub BindingMethod_1R2Sub(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t)
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    Public Async Function BindingMethod_2(Of t)(x As Func(Of Task(Of t)), y As t, z As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub BindingMethod_2Sub(Of t)(x As Func(Of Task(Of t)), y As t, z As t)
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+End Structure
+
+Module ExtenstionMethod_Rule3
+    <Extension()>
+    Async Function ExtensionTaskMethod(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+
+    <Extension()>
+    Async Sub ExtensionTaskMethodSub(Of t)(x As Func(Of Task(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield
+    End Sub
+
+    <Extension()>
+    Function ExtensionEnumerableMethod(Of t)(x As Func(Of IEnumerable(Of t))) As String
+        Return GetType(t).ToString()
+    End Function
+
+    <Extension()>
+    Sub ExtensionEnumerableMethodSub(Of t)(x As Func(Of IEnumerable(Of t)))
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    <Extension()>
+    Function ExtensionNormalMethod(Of t)(x As Func(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+
+    <Extension()>
+    Sub ExtensionNormalMethodSub(Of t)(x As Func(Of t))
+        ResultField = GetType(t).ToString()
+    End Sub
+    <Extension()>
+    Async Function ExtensionBindingMethod_1(Of t)(x As Func(Of Task(Of t)), y As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+    <Extension()>
+    Function ExtensionBindingMethod_1R(Of t)(x As Func(Of Task(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+    <Extension()>
+    Function ExtensionBindingMethod_1R2(Of t)(x As Func(Of IEnumerable(Of t)), ByRef y As t) As String
+        Return GetType(t).ToString
+    End Function
+    <Extension()>
+    Async Function ExtensionBindingMethod_2(Of t)(x As Func(Of Task(Of t)), y As t, z As t) As Task(Of String)
+        Await Task.Yield
+        Return GetType(t).ToString()
+    End Function
+End Module
+Module m2
+    <Extension()>
+    Function ExtensionMethod(Of t)(x As t) As String
+        Return GetType(t).ToString()
+    End Function
+
+    <Extension()>
+    Sub ExtensionMethodSub(Of t)(x As t)
+        ResultField = GetType(t).ToString()
+    End Sub
+
+    <Extension()>
+    Function ExtensionMethodTEST(Of t)(x As Func(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+    <Extension()>
+    Function EnumerableExtensionMethod(Of t)(x As IEnumerable(Of t)) As String
+        Return GetType(t).ToString()
+    End Function
+
+    <Extension()>
+    Sub EnumerableExtensionMethodSub(Of t)(x As IEnumerable(Of t))
+        ResultField = GetType(t).ToString()
+    End Sub
+End Module
+
+Class DelegateClass
+    Public Delegate Function Del1(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+    Public Delegate Function Del2(Of t)(x As Func(Of IEnumerable(Of t))) As String
+    Public Delegate Sub Del3(Of t)(x As Func(Of IEnumerable(Of t)))
+    Public Delegate Sub Del4(Of t)(x As Func(Of Task(Of t)))
+
+    Public Async Function DelFuction1(Of t)(x As Func(Of Task(Of t))) As Task(Of String)
+        Await Task.Yield()
+        Return GetType(t).ToString()
+    End Function
+
+    Public Async Sub DelFuction1Sub(Of t)(x As Func(Of Task(Of t)))
+        ResultField = GetType(t).ToString()
+        Await Task.Yield()
+    End Sub
+
+    Public Function DelFunction2(Of t)(x As Func(Of IEnumerable(Of t))) As String
+        Return GetType(t).ToString()
+    End Function
+
+    Public Sub DelFunction2Sub(Of t)(x As Func(Of IEnumerable(Of t)))
+        ResultField = GetType(t).ToString()
+    End Sub
+End Class
+
+Module AllScenariosInSub
+    Public Async Function Async_Overload_Change_3_Above_Scenaros_inSub() As Task
+        Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - Integer")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return 1
+                              End Function)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - Short")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return 1S
+                              End Function)
+
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - Long")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return 1L
+                              End Function)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - String")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return "1"
+                              End Function)
+
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - Date")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return Now
+                              End Function)
+
+                apCompare("System.DateTime", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - Boolean")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return False
+                              End Function)
+
+                apCompare("System.Boolean", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - UDCLass")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return New UDClass
+                              End Function)
+
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - UD Structure")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return New UDStruct
+                              End Function)
+
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - Integer")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (1)
+                                    End Function)
+
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - Short")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (1S)
+                                    End Function)
+
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - Long")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (1L)
+                                    End Function)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - Double")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (1.1)
+                                    End Function)
+
+                apCompare("System.Double", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - String")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield ("String")
+                                    End Function)
+
+
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - UDCLass")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (New UDClass)
+                                    End Function)
+
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - UDStructure")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (New UDStruct)
+                                    End Function)
+
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Expression  Lambda - Integer")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() 1)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - Short")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() 1S)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - Long")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() 1L)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - String")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() "1")
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - Date")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() Now)
+                apCompare("System.DateTime", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - Boolean")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() False)
+                apCompare("System.Boolean", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - UDCLass")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() New UDClass)
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async expression lambda - UD Structure")
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function() New UDStruct)
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator expression lambda - Integer")
+            Try
+#If comperrortest Then
+                ResultField = ""
+                'COMPILEERROR : BC36645, "EnumerableMethodSub(Iterator Function()  Yield 1)" , BC30201, "Yield",BC36947, "Iterator Function()"
+ EnumerableMethodSub(Iterator Function()  Yield 1)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator expression lambda - Short")
+            Try
+#If comperrortest Then
+                ResultField = ""
+                'COMPILEERROR : BC36645, "EnumerableMethodSub(Iterator Function() Yield 1S)" , BC30201, "Yield",BC36947, "Iterator Function()"
+                  EnumerableMethodSub(Iterator Function() Yield 1S)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator expression lambda - Long")
+            Try
+#If comperrortest Then
+                ResultField = ""
+                'COMPILEERROR : BC36645, "EnumerableMethodSub(Iterator Function() Yield 1L)" , BC30201, "Yield",BC36947, "Iterator Function()"
+               EnumerableMethodSub(Iterator Function() Yield 1L)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - Integer")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return 1
+                                End Function)
+
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - Short")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return 1S
+                                End Function)
+
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - Long")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return 1L
+                                End Function)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - Double")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return 1.1
+                                End Function)
+
+                apCompare("System.Double", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - String")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return "String"
+                                End Function)
+
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - UDClass")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return New UDClass
+                                End Function)
+
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Statement Lambda - UDStructure")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return New UDStruct
+                                End Function)
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - Integer")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() 1)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - Short")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() 1S)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - Long")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() 1L)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - Double")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() 1.1)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - String")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() "String")
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - UDCLass")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() New UDClass)
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Type Inference in Sub from Normal Expression Lambda - UDStruct")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() New UDStruct)
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Async Lambda")
+            Try
+                ResultField = ""
+                TaskMethodSub(Of Short)(Async Function()
+                                            Await Task.Yield
+                                            Return 1L
+                                        End Function)
+
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Async Lambda")
+            Try
+                ResultField = ""
+                TaskMethodSub(Of Long)(Async Function()
+                                           Await Task.Yield
+                                           Return 1S
+                                       End Function)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Async Expression Lambda")
+            Try
+                ResultField = ""
+                TaskMethodSub(Of Integer)(Async Function() 1L)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Async Expression Lambda")
+            Try
+                ResultField = ""
+                TaskMethodSub(Of Double)(Async Function() 1L)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from iterator Statement Lambda")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Of Short)(Iterator Function()
+                                                  Yield (1L)
+                                              End Function)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from iterator Statement Lambda")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Of Double)(Iterator Function()
+                                                   Yield (1S)
+                                               End Function)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from iterator Expression Lambda")
+            Try
+#If comperrortest Then
+                ResultField = ""
+                'COMPILEERROR : BC36947, "Iterator Function()" , BC30201, "Yield"
+                 EnumerableMethodSub(Of Short)(Iterator Function() Yield 1L)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from iterator Expression Lambda")
+            Try
+#If comperrortest Then
+
+                ResultField = ""
+                'COMPILEERROR : BC36947, "Iterator Function()",BC30201, "Yield"
+ EnumerableMethodSub(Of Double)(Iterator Function() Yield 1S)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Normal Statement Lambda")
+            Try
+                ResultField = ""
+                NormalMethodSub(Of Short)(Function()
+                                              Return 1L
+                                          End Function)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Widening from Normal Statement Lambda")
+            Try
+                ResultField = ""
+                NormalMethodSub(Of Double)(Function()
+                                               Return 1L
+                                           End Function)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Single Argument: Compile Time Specify Different Type (Narrowing from Normal Expression Lambda")
+            Try
+                ResultField = ""
+                NormalMethodSub(Of Short)(Function() 1L)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '*********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                ResultField = ""
+                Obj.NormalMethodSub(Function() 1L)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for ExtensionMethod")
+            Try
+
+                ResultField = ""
+                ExtenstionMethod_Rule3.ExtensionNormalMethodSub(Function() 1S)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Expression Lambda  for Shared Method")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function() 1.1)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for Instance Method")
+            Try
+                Dim Obj As New Structure_Rule3
+                ResultField = ""
+                Obj.NormalMethodSub(Function()
+                                        Return "1.1"
+                                    End Function)
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for ExtensionMethod")
+            Try
+                ResultField = ""
+                ExtenstionMethod_Rule3.ExtensionNormalMethodSub(Function()
+                                                                    Return New Byte
+                                                                End Function)
+                apCompare("System.Byte", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Statement Lambda  for Shared Method")
+            Try
+                ResultField = ""
+                NormalMethodSub(Function()
+                                    Return Now
+                                End Function)
+                apCompare("System.DateTime", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                ResultField = ""
+                Obj.TaskMethodSub(Async Function()
+                                      Await Task.Yield
+                                      Return New UDClass
+                                  End Function)
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for ExtensionMethod")
+            Try
+                ResultField = ""
+                ExtenstionMethod_Rule3.ExtensionTaskMethodSub(Async Function()
+                                                                  Await Task.Yield
+                                                                  Return New UDStruct
+                                                              End Function)
+                apCompare("UDStruct", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Async Lambda  for Shared Method")
+
+            Try
+                ResultField = ""
+                TaskMethodSub(Async Function()
+                                  Await Task.Yield
+                                  Return 1.1
+                              End Function)
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for Instance Method")
+            Try
+                Dim Obj As New Class_Rule3
+                ResultField = ""
+                Obj.EnumerableMethodSub(Iterator Function()
+                                            Yield 1L
+                                        End Function)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for ExtensionMethod")
+            Try
+                ResultField = ""
+                ExtenstionMethod_Rule3.ExtensionEnumerableMethodSub(Iterator Function()
+                                                                        Yield 1S
+                                                                    End Function)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from Iterator Lambda  for Shared Method")
+            Try
+                ResultField = ""
+                EnumerableMethodSub(Iterator Function()
+                                        Yield (New UDClass)
+                                    End Function)
+                apCompare("UDClass", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference from an extension method which is called using async or iterator lambda return - ")
+            Try
+                Dim foo1 = Async Function()
+                               'Await task.Yield
+                               Return "test"
+                           End Function
+                Dim foo2 As Func(Of IEnumerable(Of Long)) = Iterator Function()
+                                                                Yield 1L
+                                                            End Function
+
+                Dim x10 = Await foo1()
+                ResultField = ""
+                x10.ExtensionMethodSub()
+                Dim y1 = ResultField
+                apCompare("System.String", y1, "Unexpected Return")
+
+                Dim x110 = foo2()
+                ResultField = ""
+                x110.EnumerableExtensionMethodSub()
+                Dim y11 = ResultField
+                apCompare("System.Int64", y11, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return LongValue
+                                   End Function,
+                                LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return LongValue
+                                   End Function,
+                                IntegerValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                LongValue)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, Integer) Infer Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Integer = 3
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                IntegerValue)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Long, Short) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return LongValue
+                                   End Function,
+                                ShortValue)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Short, Long) Infer Long")
+            Try
+                Dim LongValue As Long = Long.MaxValue
+                Dim ShortValue As Short = Short.MaxValue
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ShortValue
+                                   End Function,
+                                LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(UDCLass, Long) - COMPILEERROR")
+            Try
+                '//Cannot Infer
+#If comperrortest Then
+                Dim LongValue As Long = 5L
+                'COMPILEERROR : BC36657, "BindingMethod_1Sub(Async Function()"
+                ResultField = ""  
+                 BindingMethod_1Sub(Async Function()
+                                            Await Task.Yield
+                                            Return New UDClass
+                                        End Function, LongValue)
+
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Object, String) Infer object")
+            Try
+                Dim ObjectValue As Object = New Object
+                Dim stringValue As String = "String"
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ObjectValue
+                                   End Function,
+                                stringValue)
+
+                apCompare("System.Object", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Object, Object) Infer Object")
+            Try
+                Dim ObjectValue As Object = New Object
+
+                ResultField = ""
+                BindingMethod_1Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ObjectValue
+                                   End Function,
+                                ObjectValue)
+                apCompare("System.Object", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(Integer, String) COMPILEERROR")
+            Try
+#If comperrortest Then
+                'ID , Narrow
+                'Narrow, ID
+
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                ResultField = ""
+                'COMPILEERROR : BC36651, "BindingMethod_1Sub(Async Function()"
+                BindingMethod_1Sub(Async Function()
+                                            Await Task.Yield
+                                            Return IntegerValue
+                                        End Function,StringValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+#If comperrortest Then
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                ResultField = ""
+                'COMPILEERROR: BC36651, "BindingMethod_1Sub(Async Function()"
+                BindingMethod_1Sub(Async Function()
+                                            Await Task.Yield
+                                            Return StringValue
+                                        End Function,
+                                        IntegerValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments (SPECIFY String) - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                ResultField = ""
+                BindingMethod_1Sub(Of String)(Async Function()
+                                                  Await Task.Yield
+                                                  Return StringValue
+                                              End Function,
+                                IntegerValue)
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 2 Arguments (SPECIFY Integer) - Hints / Multiple Parameters(String, Integer) COMPILEERROR")
+            Try
+                Dim StringValue As String = "1"
+                Dim IntegerValue As Integer = 1
+
+                ResultField = ""
+                BindingMethod_1Sub(Of Integer)(Async Function()
+                                                   Await Task.Yield
+                                                   Return StringValue
+                                               End Function,
+                                IntegerValue)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Long, Short, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return LongValue
+                                   End Function,
+                                ShortValue,
+                                IntegerValue)
+
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ShortValue
+                                   End Function,
+                                IntegerValue,
+                                LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                ShortValue,
+                                LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, short) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                LongValue,
+                                ShortValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, Integer) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 1S
+                Dim IntegerValue As Short = 1
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                LongValue,
+                                IntegerValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Async Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Long, Integer) COMPILE ERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                '//Change only effect Async or Iterator Methods
+#If comperrortest Then
+                'COMPILEERROR: BC36651, "BindingMethod_1RSub(Async Function()"
+                ResultField = ""  
+                BindingMethod_1RSub(Async Function()
+                                             Await Task.Yield
+                                             Return LongValue
+                                         End Function,
+                                         IntegerValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Async Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters(Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                ResultField = ""
+                BindingMethod_1RSub(Async Function()
+                                        Await Task.Yield
+                                        Return IntegerValue
+                                    End Function,
+                                LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Long, Integer) COMPILE ERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                '//Change only effect Async or Iterator Methods
+#If comperrortest Then
+                'COMPILEERROR: BC36651, "BindingMethod_1R2Sub(Iterator Function()" 
+                ResultField = "" 
+                BindingMethod_1R2Sub(Iterator Function()
+                                          Yield LongValue
+                                      End Function,
+                                      IntegerValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter - Type Inference 2 Arguments (One with ByRef) - Hints / Multiple Parameters( Integer, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+
+                'Covariance so Integer widens to Long
+                ResultField = ""
+                BindingMethod_1R2Sub(Iterator Function()
+                                         Yield IntegerValue
+                                     End Function,
+                                      LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Integer) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                ResultField = ""
+                BindingMethod_1R2Sub(Of Integer)(Iterator Function()
+                                                     Yield LongValue
+                                                 End Function, IntegerValue)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Long) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                ResultField = ""
+                BindingMethod_1R2Sub(Of Long)(Iterator Function()
+                                                  Yield LongValue
+                                              End Function,
+                                               IntegerValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Iterator Lambda parameter (Specify Short) - Type Inference 2 Arguments (One with ByRef) (Specify Integer) - Hints / Multiple Parameters( Long, Integer ) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1
+                ResultField = ""
+                BindingMethod_1R2Sub(Of Short)(Iterator Function()
+                                                   Yield LongValue
+                                               End Function,
+                                               IntegerValue)
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(String, Long, ResultFieldhort) COMPILEERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger1 As String = "1"
+                'Cannot Infer
+#If comperrortest Then
+                'COMPILEERROR: BC36651, "BindingMethod_2Sub(Async Function()"
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                        Await Task.Yield
+                                        Return StringValue_RepresentingInteger1
+                                    End Function,
+                                    LongValue,
+                                    ShortValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Integer) - Hints / Multiple Parameters(String, Long, Short) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                ResultField = ""
+                BindingMethod_2Sub(Of Integer)(Async Function()
+                                                   Await Task.Yield
+                                                   Return 1
+                                               End Function,
+                                LongValue,
+                                ShortValue)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify String) - Hints / Multiple Parameters(String, Long, Short) Integer")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger2 As String = "1"
+                ResultField = ""
+                BindingMethod_2Sub(Of String)(Async Function()
+                                                  Await Task.Yield
+                                                  Return StringValue_RepresentingInteger2
+                                              End Function,
+                                               LongValue,
+                                               ShortValue)
+                apCompare("System.String", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Object) - Hints / Multiple Parameters(String, Long, Short) Object")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue As String = "String"
+                Dim StringValue_RepresentingInteger1 As String = "1"
+                ResultField = ""
+                BindingMethod_2Sub(Of Object)(Async Function()
+                                                  Await Task.Yield
+                                                  Return StringValue_RepresentingInteger1
+                                              End Function,
+                                               LongValue,
+                                               ShortValue)
+                apCompare("System.Object", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Long, String, Short) COMPILEERROR")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger1 As String = "1"
+#If comperrortest Then
+                'COMPILEERROR: BC36651, "BindingMethod_2Sub(Async Function()"
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                        Await Task.Yield
+                                        Return LongValue
+                                    End Function,
+                                    StringValue_RepresentingInteger1,
+                                    ShortValue)
+                apLogFailInfo("Compile Error Expected None Occured")
+#End If
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Short, Long) Infer Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger4 As String = "1"
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ShortValue
+                                   End Function,
+                                    ShortValue,
+                                    LongValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Short, Short, Integer) Infer Integer")
+            Try
+                Dim IntegerValue As Integer = 5
+                Dim ShortValue As Short = 3S
+                Dim StringValue_RepresentingInteger5 As String = "1"
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return ShortValue
+                                   End Function,
+                                        ShortValue,
+                                        IntegerValue)
+                apCompare("System.Int32", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments - Hints / Multiple Parameters(Integer, Long, Object) Infer Object")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+
+                ResultField = ""
+                BindingMethod_2Sub(Async Function()
+                                       Await Task.Yield
+                                       Return IntegerValue
+                                   End Function,
+                                LongValue,
+                                ObjectValue)
+                apCompare("System.Object", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify Long) - Hints / Multiple Parameters(Integer, Long, Object) Long")
+            Try
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+                ResultField = ""
+                BindingMethod_2Sub(Of Long)(Async Function()
+                                                Await Task.Yield
+                                                Return IntegerValue
+                                            End Function,
+                                             LongValue,
+                                             ObjectValue)
+                apCompare("System.Int64", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference 3 Arguments (Specify String) - Hints / Multiple Parameters(Integer, Long, Object) Long")
+            Try
+                'Specify a value which is convertible through widening and narrowing from
+                'all the value but is not actually on of the values specified
+                Dim LongValue As Long = 5L
+                Dim IntegerValue As Short = 1S
+                Dim ObjectValue As Object = 1
+                ResultField = ""
+                BindingMethod_2Sub(Of String)(Async Function()
+                                                  Await Task.Yield
+                                                  Return IntegerValue
+                                              End Function,
+                                               LongValue,
+                                               ObjectValue)
+                apCompare("System.String", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference in sub Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify ")
+
+            'This is really a validation of the same behaviour on Delegates
+            Try
+                ResultField = ""
+                Dim Obj As New DelegateClass
+                Dim Del1 As DelegateClass.Del4(Of Short) = AddressOf Obj.DelFuction1Sub
+                Del1(Async Function()
+                         Await Task.Yield
+                         Return 1L
+                     End Function)
+
+                apCompare("System.Int16", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+
+
+            '**********************************************************************************************
+            apInitScenario("Type Inference Scenarios in sub  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify")
+            'This is really a validation of the same behaviour on Delegates
+            Try
+                ResultField = ""
+                Dim Obj As New DelegateClass
+                Dim Del1 As DelegateClass.Del3(Of Double) = AddressOf Obj.DelFunction2Sub
+                Del1(Iterator Function()
+                         Yield 1S
+                     End Function)
+
+                apCompare("System.Double", ResultField, "Unexpected Return")
+            Catch ex As Exception
+                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            End Try
+        Catch ex As Exception
+            apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+        Finally
+        End Try
+    End Function
+End Module

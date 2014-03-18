@@ -1,0 +1,586 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    Convert(
+      UnaryPlus(
+        Convert(
+          Parameter(
+            x
+            type: S1
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_UnaryPlus(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[S1,S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      UnaryPlus(
+        Parameter(
+          x
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_UnaryPlus(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[System.Nullable`1[S1],S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    UnaryPlus(
+      Convert(
+        Parameter(
+          x
+          type: S1
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_UnaryPlus(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[S1,System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    UnaryPlus(
+      Parameter(
+        x
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_UnaryPlus(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[System.Nullable`1[S1],System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: S1
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_UnaryNegation(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[S1,S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      Negate(
+        Parameter(
+          x
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_UnaryNegation(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[System.Nullable`1[S1],S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    Negate(
+      Convert(
+        Parameter(
+          x
+          type: S1
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_UnaryNegation(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[S1,System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_UnaryNegation(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[System.Nullable`1[S1],System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: S1
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_OnesComplement(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[S1,S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      Not(
+        Parameter(
+          x
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_OnesComplement(System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: S1
+    )
+  }
+  return type: S1
+  type: System.Func`2[System.Nullable`1[S1],S1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  body {
+    Not(
+      Convert(
+        Parameter(
+          x
+          type: S1
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_OnesComplement(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[S1,System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[S1]
+      )
+      method: System.Nullable`1[S1] op_OnesComplement(System.Nullable`1[S1]) in S1
+      type: System.Nullable`1[S1]
+    )
+  }
+  return type: System.Nullable`1[S1]
+  type: System.Func`2[System.Nullable`1[S1],System.Nullable`1[S1]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    UnaryPlus(
+      Parameter(
+        x
+        type: S2
+      )
+      method: S2 op_UnaryPlus(S2) in S2
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[S2,S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      UnaryPlus(
+        Parameter(
+          x
+          type: System.Nullable`1[S2]
+        )
+        Lifted
+        LiftedToNull
+        method: S2 op_UnaryPlus(S2) in S2
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[System.Nullable`1[S2],S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    Convert(
+      UnaryPlus(
+        Parameter(
+          x
+          type: S2
+        )
+        method: S2 op_UnaryPlus(S2) in S2
+        type: S2
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[S2,System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    UnaryPlus(
+      Parameter(
+        x
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      LiftedToNull
+      method: S2 op_UnaryPlus(S2) in S2
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[System.Nullable`1[S2],System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: S2
+      )
+      method: S2 op_UnaryNegation(S2) in S2
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[S2,S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      Negate(
+        Parameter(
+          x
+          type: System.Nullable`1[S2]
+        )
+        Lifted
+        LiftedToNull
+        method: S2 op_UnaryNegation(S2) in S2
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[System.Nullable`1[S2],S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    Convert(
+      Negate(
+        Parameter(
+          x
+          type: S2
+        )
+        method: S2 op_UnaryNegation(S2) in S2
+        type: S2
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[S2,System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      LiftedToNull
+      method: S2 op_UnaryNegation(S2) in S2
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[System.Nullable`1[S2],System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: S2
+      )
+      method: S2 op_OnesComplement(S2) in S2
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[S2,S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      Not(
+        Parameter(
+          x
+          type: System.Nullable`1[S2]
+        )
+        Lifted
+        LiftedToNull
+        method: S2 op_OnesComplement(S2) in S2
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: S2
+    )
+  }
+  return type: S2
+  type: System.Func`2[System.Nullable`1[S2],S2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  body {
+    Convert(
+      Not(
+        Parameter(
+          x
+          type: S2
+        )
+        method: S2 op_OnesComplement(S2) in S2
+        type: S2
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[S2,System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      LiftedToNull
+      method: S2 op_OnesComplement(S2) in S2
+      type: System.Nullable`1[S2]
+    )
+  }
+  return type: System.Nullable`1[S2]
+  type: System.Func`2[System.Nullable`1[S2],System.Nullable`1[S2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: O1
+  )
+  body {
+    UnaryPlus(
+      Parameter(
+        x
+        type: O1
+      )
+      method: O1 op_UnaryPlus(O1) in O1
+      type: O1
+    )
+  }
+  return type: O1
+  type: System.Func`2[O1,O1]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: O1
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: O1
+      )
+      method: O1 op_UnaryNegation(O1) in O1
+      type: O1
+    )
+  }
+  return type: O1
+  type: System.Func`2[O1,O1]
+)

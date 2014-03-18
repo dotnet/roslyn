@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props" Condition="Exists('..\..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props')" />
+    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{91F6F646-4F6E-449A-9AB4-2986348F329D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
+    <VBSyntaxGeneratorToolPath>..\..\..\..\..\Binaries\$(Configuration)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
+  </PropertyGroup>
+  <ItemGroup Label="Build Items">
+    <SyntaxTestDefinition Include="..\..\Source\Syntax\Syntax.xml" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
+      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\Source\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\CSharp\Source\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.vbproj">
+      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
+      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
+      <Name>BasicCompilerTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
+      <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
+      <Name>VisualBasicSyntaxGenerator</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="xunit.abstractions">
+      <HintPath>..\..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2.assert">
+      <HintPath>..\..\..\..\packages\xunit.assert.2.0.0-alpha-build2576\lib\net45\xunit2.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2">
+      <HintPath>..\..\..\..\packages\xunit.core.2.0.0-alpha-build2576\lib\net45\xunit2.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\..\..\packages\Microsoft.Bcl.Immutable.1.1.18-beta\lib\portable-net45+win8+wp8\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
+      <HintPath>..\..\..\..\packages\Microsoft.CodeAnalysis.TestResources.0.6.0.0\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <DebugType>full</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IncrementalParser\IncrementalParser.vb" />
+    <Compile Include="IncrementalParser\IPEndBlockStatements.vb" />
+    <Compile Include="IncrementalParser\SyntaxDifferences.vb" />
+    <Compile Include="LocationTests.vb" />
+    <Compile Include="Parser\DeclarationTests.vb" />
+    <Compile Include="Parser\FuzzTesting.vb" />
+    <Compile Include="Parser\ParseAsyncTests.vb" />
+    <Compile Include="Parser\ParseAttributes.vb" />
+    <Compile Include="Parser\ParseDeclarationTests.vb" />
+    <Compile Include="Parser\ParseDirectives.vb" />
+    <Compile Include="Parser\ParseErrorTests.vb" />
+    <Compile Include="Parser\ParseExpression.vb" />
+    <Compile Include="Parser\ParseImports.vb" />
+    <Compile Include="Parser\ParseIteratorTests.vb" />
+    <Compile Include="Parser\ParseMethods.vb" />
+    <Compile Include="Parser\ParseOptionsTests.vb" />
+    <Compile Include="Parser\ParseSpecifiers.vb" />
+    <Compile Include="Parser\ParseStatements.vb" />
+    <Compile Include="Parser\ParseVarDecl.vb" />
+    <Compile Include="Parser\ParseXml.vb" />
+    <Compile Include="Parser\XmlDocComments.vb" />
+    <Compile Include="PreprocessorEETests.vb" />
+    <Compile Include="QuickTokenTableTests.vb" />
+    <Compile Include="Resource.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Scanner\ScanConditionalTests.vb" />
+    <Compile Include="Scanner\ScanErrorTests.vb" />
+    <Compile Include="Scanner\ScannerTests.vb" />
+    <Compile Include="Scanner\XmlScannerTests.vb" />
+    <Compile Include="Syntax\ConstantExpressionEvaluatorTests.vb" />
+    <Compile Include="Syntax\GeneratedTests.vb" />
+    <Compile Include="Syntax\ManualTests.vb" />
+    <Compile Include="Syntax\SeparatedSyntaxListTests.vb" />
+    <Compile Include="Syntax\SerializationTests.vb" />
+    <Compile Include="Syntax\StatementSyntaxWalkerTests.vb" />
+    <Compile Include="Syntax\SyntaxAnnotationTests.vb" />
+    <Compile Include="Syntax\SyntaxEquivalenceTests.vb" />
+    <Compile Include="Syntax\SyntaxFactoryTests.vb" />
+    <Compile Include="Syntax\SyntaxFactsTest.vb" />
+    <Compile Include="Syntax\SyntaxFormatterTests.vb" />
+    <Compile Include="Syntax\SyntaxListTests.vb" />
+    <Compile Include="Syntax\SyntaxRewriterTests.vb" />
+    <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
+    <Compile Include="TestSyntaxNodes.vb" />
+    <Content Include="Syntax\VBAllInOne.txt" />
+    <None Include="Resources\VBAllInOne.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
+    <Import Include="Roslyn.Utilities" />
+    <Import Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.vb">
+      <Link>Syntax\Syntax.xml.Generated.vb</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+</Project>

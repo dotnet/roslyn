@@ -1,0 +1,119 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    partial class IteratorMethodToClassRewriter
+    {
+        // storage of various information about a given try/finally frame
+        private class IteratorFinallyFrame
+        {
+            // finalize state of this frame. This is the state we shoudl be in when we are "between real states"
+            public readonly int finalizeState;
+
+            // Enclosing frame. Root frame does not have parent.
+            public readonly IteratorFinallyFrame parent;
+
+            // Finally handler function. We must run this when logically leaving the frame. Root does not have a handler.
+            public readonly IteratorFinally handler;
+
+            // All states encountered in nested frames mapped to corresponding finally frames.
+            // This is enough information to restore Try/Finally tree structure in Dispose and dispatch any valid state
+            // into a corresponding try.
+            // NOTE: union of all values in this map gives all nested frames.
+            public Dictionary<int, IteratorFinallyFrame> knownStates = null;
+
+            // labels within this frame (branching to these labels does not go through finally).
+            public readonly HashSet<LabelSymbol> labels;
+
+            // proxy labels for branches leaving the frame. 
+            // we build this on demand once we encounter leaving branches.
+            // subsequent leaves to an already proxied label redirected to the proxy.
+            // At the proxy lable we will execute finally and forward the control flow 
+            // to the actual destination. (which could be proxied again in the parent)
+            public Dictionary<LabelSymbol, LabelSymbol> proxyLabels = null;
+
+            public IteratorFinallyFrame(
+                IteratorFinallyFrame parent,
+                int finalizeState,
+                IteratorFinally handler,
+                HashSet<LabelSymbol> labels)
+            {
+                Debug.Assert(parent != null, "non root frame must have a parent");
+                Debug.Assert((object)handler != null, "non root frame must have a handler");
+
+                this.parent = parent;
+                this.finalizeState = finalizeState;
+                this.handler = handler;
+                this.labels = labels;
+            }
+
+            public IteratorFinallyFrame()
+            {
+                this.finalizeState = StateMachineStates.NotStartedStateMachine;
+            }
+
+            public bool IsRoot()
+            {
+                return this.parent == null;
+            }
+
+            public void AddState(int state)
+            {
+                if (parent != null)
+                {
+                    parent.AddState(state, this);
+                }
+            }
+
+            // Notifies all parents about the state recursively. 
+            // All parents need to know states they recursively contain and what 
+            // immediate child can handle every particular state.
+            private void AddState(int state, IteratorFinallyFrame innerHandler)
+            {
+                var knownStates = this.knownStates;
+                if (knownStates == null)
+                {
+                    this.knownStates = knownStates = new Dictionary<int, IteratorFinallyFrame>();
+                }
+
+                knownStates.Add(state, innerHandler);
+
+                if (parent != null)
+                {
+                    // Present ourselves to the parent as responsible for a handling a state.
+                    parent.AddState(state, this);
+                }
+            }
+
+            // returns a proxy for a label if branch must be hijacked to run finally
+            // otherwise returns same label back
+            public LabelSymbol ProxyLabelIfNeeded(LabelSymbol label)
+            {
+                // no need to proxy a label in the current frame or when we are at the root
+                if (this.IsRoot() || (labels != null && labels.Contains(label)))
+                {
+                    return label;
+                }
+
+                var proxyLabels = this.proxyLabels;
+                if (proxyLabels == null)
+                {
+                    this.proxyLabels = proxyLabels = new Dictionary<LabelSymbol, LabelSymbol>();
+                }
+
+                LabelSymbol proxy;
+                if (!proxyLabels.TryGetValue(label, out proxy))
+                {
+                    proxy = new GeneratedLabelSymbol("proxy" + label.Name);
+                    proxyLabels.Add(label, proxy);
+                }
+
+                return proxy;
+            }
+        }
+    }
+}

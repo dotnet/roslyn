@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <OutDir>..\..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <StartupObject>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Program</StartupObject>
+    <AssemblyName>VBSyntaxGenerator</AssemblyName>
+    <OptionStrict>Off</OptionStrict>
+    <OutDir Condition="'$(OutDir)' == ''">bin\$(Configuration)\</OutDir>
+    <OutputPath>$(OutDir)</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Collections.ObjectModel" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GreenNodes\GreenNodeFactoryWriter.vb" />
+    <Compile Include="GreenNodes\GreenNodeWriter.vb" />
+    <Compile Include="Program.vb" />
+    <Compile Include="RedNodes\RedNodeFactoryWriter.vb" />
+    <Compile Include="RedNodes\RedNodeWriter.vb" />
+    <Compile Include="RedNodes\SyntaxFactsWriter.vb" />
+    <Compile Include="Tests\TestWriter.vb" />
+    <Compile Include="Util\WriteCsvNames.vb" />
+    <Compile Include="Util\WriteDumper.vb" />
+    <Compile Include="Util\WriteUtils.vb" />
+    <Compile Include="Util\XmlRenamer.vb" />
+    <Compile Include="XML\ParseTreeDescription.vb" />
+    <Compile Include="XML\ReadTree.vb" />
+    <Compile Include="XML\TreeValidator.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Open\Compilers\VisualBasic\Source\Syntax\Syntax.xml">
+      <Link>XML\Syntax.xml</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VBSyntaxModelSchema.xsd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>

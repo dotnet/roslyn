@@ -1,0 +1,76 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    ''' <summary>
+    ''' A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents
+    ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
+    ''' but the canonocal type was ambiguous.
+    ''' </summary>
+    Friend Class NoPiaAmbiguousCanonicalTypeSymbol
+        Inherits ErrorTypeSymbol
+
+        Private ReadOnly m_EmbeddingAssembly As AssemblySymbol
+        Private ReadOnly m_FirstCandidate As NamedTypeSymbol
+        Private ReadOnly m_SecondCandidate As NamedTypeSymbol
+
+        Public Sub New(
+            embeddingAssembly As AssemblySymbol,
+            firstCandidate As NamedTypeSymbol,
+            secondCandidate As NamedTypeSymbol
+        )
+            m_EmbeddingAssembly = embeddingAssembly
+            m_FirstCandidate = firstCandidate
+            m_SecondCandidate = secondCandidate
+        End Sub
+
+        Friend Overrides ReadOnly Property MangleName As Boolean
+            Get
+                Debug.Assert(Arity = 0)
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property EmbeddingAssembly As AssemblySymbol
+            Get
+                Return m_EmbeddingAssembly
+            End Get
+        End Property
+
+        Public ReadOnly Property FirstCandidate As NamedTypeSymbol
+            Get
+                Return m_FirstCandidate
+            End Get
+        End Property
+
+        Public ReadOnly Property SecondCandidate As NamedTypeSymbol
+            Get
+                Return m_SecondCandidate
+            End Get
+        End Property
+
+        Public Overrides Function GetHashCode() As Integer
+            Return RuntimeHelpers.GetHashCode(Me)
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return obj Is Me
+        End Function
+
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                ' It doesn't look like Dev10 had a special error for this particular scenario.
+                ' ERR_AbsentReferenceToPIA1 should be good enough and we already ignore it, 
+                ' when it comes from implemented interfaces.
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_AbsentReferenceToPIA1, CustomSymbolDisplayFormatter.QualifiedName(m_FirstCandidate))
+            End Get
+        End Property
+    End Class
+
+End Namespace

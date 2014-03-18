@@ -1,0 +1,210 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Threading
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    Partial Friend NotInheritable Class AnonymousTypeManager
+
+        Private NotInheritable Class AnonymousTypePropertySymbol
+            Inherits PropertySymbol
+
+            Private ReadOnly m_containingType As AnonymousTypeTemplateSymbol
+            Private ReadOnly m_type As TypeSymbol
+            Private ReadOnly m_name As String
+
+            Private ReadOnly m_getMethod As MethodSymbol
+            Private ReadOnly m_setMethod As MethodSymbol
+            Private ReadOnly m_backingField As FieldSymbol
+
+            ''' <summary> Index of the property in the containing anonymous type </summary>
+            Friend ReadOnly PropertyIndex As Integer
+
+            Public Sub New(container As AnonymousTypeTemplateSymbol, field As AnonymousTypeField, index As Integer, typeSymbol As TypeSymbol)
+
+                m_containingType = container
+
+                m_type = typeSymbol
+                m_name = field.Name
+                PropertyIndex = index
+
+                m_getMethod = New AnonymousTypePropertyGetAccessorSymbol(Me)
+                If Not field.IsKey Then
+                    m_setMethod = New AnonymousTypePropertySetAccessorSymbol(Me, container.Manager.System_Void)
+                End If
+                m_backingField = New AnonymousTypePropertyBackingFieldSymbol(Me)
+            End Sub
+
+            Friend ReadOnly Property AnonymousType As AnonymousTypeTemplateSymbol
+                Get
+                    Return m_containingType
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
+                Get
+                    Return m_backingField
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsDefault As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
+                Get
+                    Return ImmutableArray(Of ParameterSymbol).Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
+                Get
+                    Return ImmutableArray(Of CustomModifier).Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property SetMethod As MethodSymbol
+                Get
+                    Return m_setMethod
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property GetMethod As MethodSymbol
+                Get
+                    Return m_getMethod
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Type As TypeSymbol
+                Get
+                    Return m_type
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Name As String
+                Get
+                    Return Me.m_name
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property MetadataName As String
+                Get
+                    Return Me.AnonymousType.GetAdjustedName(Me.PropertyIndex)
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasSpecialName As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
+                Get
+                    Return Accessibility.Public
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
+                Get
+                    Return Microsoft.Cci.CallingConvention.HasThis
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ContainingSymbol As Symbol
+                Get
+                    Return m_containingType
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
+                Get
+                    Return m_containingType
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
+                Get
+                    Return ImmutableArray(Of PropertySymbol).Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsMustOverride As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsNotOverridable As Boolean
+                Get
+                    Return False ' property is not virtual by default
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsOverloads As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsOverridable As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsOverrides As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsShared As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
+                Get
+                    Return ImmutableArray(Of Location).Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
+                Get
+                    Return ImmutableArray(Of SyntaxReference).Empty
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+        End Class
+
+    End Class
+
+End Namespace

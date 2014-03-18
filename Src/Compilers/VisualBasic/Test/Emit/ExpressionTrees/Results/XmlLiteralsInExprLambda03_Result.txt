@@ -1,0 +1,1578 @@
+﻿Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              New(
+                Void .ctor(System.Xml.Linq.XName, System.Object[])(
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        y
+                        type: System.String
+                      )
+                      Constant(
+                        
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  NewArrayInit(
+                    Convert(
+                      New(
+                        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+                          Call(
+                            <NULL>
+                            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                              Constant(
+                                z
+                                type: System.String
+                              )
+                              Constant(
+                                http://roslyn/p
+                                type: System.String
+                              )
+                            )
+                            type: System.Xml.Linq.XName
+                          )
+                          NewArrayInit(
+                            Convert(
+                              New(
+                                Void .ctor(System.Xml.Linq.XName, System.Object)(
+                                  Call(
+                                    <NULL>
+                                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                                      Constant(
+                                        a
+                                        type: System.String
+                                      )
+                                      Constant(
+                                        http://roslyn/q1
+                                        type: System.String
+                                      )
+                                    )
+                                    type: System.Xml.Linq.XName
+                                  )
+                                  Convert(
+                                    Constant(
+                                      b
+                                      type: System.String
+                                    )
+                                    type: System.Object
+                                  )
+                                )
+                                type: System.Xml.Linq.XAttribute
+                              )
+                              type: System.Object
+                            )
+                            Convert(
+                              New(
+                                Void .ctor(System.Xml.Linq.XName, System.Object)(
+                                  Call(
+                                    <NULL>
+                                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                                      Constant(
+                                        c
+                                        type: System.String
+                                      )
+                                      Constant(
+                                        http://roslyn/r
+                                        type: System.String
+                                      )
+                                    )
+                                    type: System.Xml.Linq.XName
+                                  )
+                                  Convert(
+                                    Constant(
+                                      d
+                                      type: System.String
+                                    )
+                                    type: System.Object
+                                  )
+                                )
+                                type: System.Xml.Linq.XAttribute
+                              )
+                              type: System.Object
+                            )
+                            type: System.Object[]
+                          )
+                        )
+                        type: System.Xml.Linq.XElement
+                      )
+                      type: System.Object
+                    )
+                    Call(
+                      <NULL>
+                      method: System.Object RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Object) in My.InternalXmlHelper (
+                        MemberAccess(
+                          MemberAccess(
+                            Constant(
+                              Form1+_Closure$__20
+                              type: Form1+_Closure$__20
+                            )
+                            -> $VB$NonLocal_$VB$Closure_21
+                            type: Form1+_Closure$__19
+                          )
+                          -> $VB$NonLocal_VB$t_array$L2
+                          type: System.String[]
+                        )
+                        MemberAccess(
+                          MemberAccess(
+                            Constant(
+                              Form1+_Closure$__20
+                              type: Form1+_Closure$__20
+                            )
+                            -> $VB$NonLocal_$VB$Closure_21
+                            type: Form1+_Closure$__19
+                          )
+                          -> $VB$NonLocal_VB$t_array$L3
+                          type: System.Xml.Linq.XNamespace[]
+                        )
+                        MemberAccess(
+                          MemberAccess(
+                            Constant(
+                              Form1+_Closure$__20
+                              type: Form1+_Closure$__20
+                            )
+                            -> $VB$NonLocal_$VB$Closure_21
+                            type: Form1+_Closure$__19
+                          )
+                          -> $VB$NonLocal_VB$t_ref$L1
+                          type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                        )
+                        MemberAccess(
+                          <NULL>
+                          -> F
+                          type: System.Object
+                        )
+                      )
+                      type: System.Object
+                    )
+                    type: System.Object[]
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        r
+                        type: System.String
+                      )
+                      Constant(
+                        http://www.w3.org/2000/xmlns/
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                      Constant(
+                        http://roslyn/r
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XNamespace
+                  )
+                )
+                type: System.Xml.Linq.XAttribute
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        q
+                        type: System.String
+                      )
+                      Constant(
+                        http://www.w3.org/2000/xmlns/
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                      Constant(
+                        http://roslyn/q1
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XNamespace
+                  )
+                )
+                type: System.Xml.Linq.XAttribute
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        p
+                        type: System.String
+                      )
+                      Constant(
+                        http://www.w3.org/2000/xmlns/
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                      Constant(
+                        http://roslyn/p
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XNamespace
+                  )
+                )
+                type: System.Xml.Linq.XAttribute
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L1
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L5
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L6
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L4
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  New(
+                    Void .ctor(System.Xml.Linq.XName, System.Object)(
+                      Call(
+                        <NULL>
+                        method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                          Constant(
+                            y
+                            type: System.String
+                          )
+                          Constant(
+                            http://roslyn/p
+                            type: System.String
+                          )
+                        )
+                        type: System.Xml.Linq.XName
+                      )
+                      Convert(
+                        Call(
+                          <NULL>
+                          method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                            Call(
+                              <NULL>
+                              method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                                Constant(
+                                  p
+                                  type: System.String
+                                )
+                                Constant(
+                                  http://www.w3.org/2000/xmlns/
+                                  type: System.String
+                                )
+                              )
+                              type: System.Xml.Linq.XName
+                            )
+                            Call(
+                              <NULL>
+                              method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                                Constant(
+                                  http://roslyn/p
+                                  type: System.String
+                                )
+                              )
+                              type: System.Xml.Linq.XNamespace
+                            )
+                          )
+                          type: System.Xml.Linq.XAttribute
+                        )
+                        type: System.Object
+                      )
+                    )
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L4
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XElement)(
+          New(
+            Void .ctor(System.Xml.Linq.XName, System.Object)(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                  Constant(
+                    y
+                    type: System.String
+                  )
+                  Constant(
+                    http://roslyn/p
+                    type: System.String
+                  )
+                )
+                type: System.Xml.Linq.XName
+              )
+              Convert(
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                    Call(
+                      <NULL>
+                      method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                        Constant(
+                          p
+                          type: System.String
+                        )
+                        Constant(
+                          http://www.w3.org/2000/xmlns/
+                          type: System.String
+                        )
+                      )
+                      type: System.Xml.Linq.XName
+                    )
+                    Call(
+                      <NULL>
+                      method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                        Constant(
+                          http://roslyn/p
+                          type: System.String
+                        )
+                      )
+                      type: System.Xml.Linq.XNamespace
+                    )
+                  )
+                  type: System.Xml.Linq.XAttribute
+                )
+                type: System.Object
+              )
+            )
+            type: System.Xml.Linq.XElement
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XDeclaration, System.Object[])(
+          New(
+            Void .ctor(System.String, System.String, System.String)(
+              Constant(
+                1.0
+                type: System.String
+              )
+              Constant(
+                null
+                type: System.String
+              )
+              Constant(
+                null
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XDeclaration
+          )
+          NewArrayInit(
+            Convert(
+              New(
+                Void .ctor(System.Xml.Linq.XName, System.Object)(
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        y
+                        type: System.String
+                      )
+                      Constant(
+                        http://roslyn/p
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Convert(
+                    Call(
+                      <NULL>
+                      method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                        Call(
+                          <NULL>
+                          method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                            Constant(
+                              p
+                              type: System.String
+                            )
+                            Constant(
+                              http://www.w3.org/2000/xmlns/
+                              type: System.String
+                            )
+                          )
+                          type: System.Xml.Linq.XName
+                        )
+                        Call(
+                          <NULL>
+                          method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                            Constant(
+                              http://roslyn/p
+                              type: System.String
+                            )
+                          )
+                          type: System.Xml.Linq.XNamespace
+                        )
+                      )
+                      type: System.Xml.Linq.XAttribute
+                    )
+                    type: System.Object
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XDocument
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                http://roslyn/p
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L8
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L9
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L7
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F1
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        p
+                        type: System.String
+                      )
+                      Constant(
+                        http://www.w3.org/2000/xmlns/
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                      Constant(
+                        http://roslyn/p
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XNamespace
+                  )
+                )
+                type: System.Xml.Linq.XAttribute
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L7
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                http://roslyn/p
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L11
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L12
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L10
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F1
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XAttribute CreateNamespaceAttribute(System.Xml.Linq.XName, System.Xml.Linq.XNamespace) in My.InternalXmlHelper (
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                      Constant(
+                        p
+                        type: System.String
+                      )
+                      Constant(
+                        http://www.w3.org/2000/xmlns/
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XName
+                  )
+                  Call(
+                    <NULL>
+                    method: System.Xml.Linq.XNamespace Get(System.String) in System.Xml.Linq.XNamespace (
+                      Constant(
+                        http://roslyn/p
+                        type: System.String
+                      )
+                    )
+                    type: System.Xml.Linq.XNamespace
+                  )
+                )
+                type: System.Xml.Linq.XAttribute
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L10
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Convert(
+            MemberAccess(
+              Constant(
+                Form1+_Closure$__20
+                type: Form1+_Closure$__20
+              )
+              -> $VB$Local_F2
+              type: System.String
+            )
+            method: System.Xml.Linq.XName op_Implicit(System.String) in System.Xml.Linq.XName
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            New(
+              Void .ctor(System.Xml.Linq.XName, System.Object)(
+                Convert(
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F2
+                    type: System.String
+                  )
+                  method: System.Xml.Linq.XName op_Implicit(System.String) in System.Xml.Linq.XName
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  Constant(
+                    ...
+                    type: System.String
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            New(
+              Void .ctor(System.Xml.Linq.XName, System.Object)(
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      a1
+                      type: System.String
+                    )
+                    Constant(
+                      
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  Constant(
+                    b1
+                    type: System.String
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            Call(
+              <NULL>
+              method: System.Xml.Linq.XAttribute CreateAttribute(System.Xml.Linq.XName, System.Object) in My.InternalXmlHelper (
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      a2
+                      type: System.String
+                    )
+                    Constant(
+                      
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  Constant(
+                    b2
+                    type: System.String
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            Call(
+              <NULL>
+              method: System.Xml.Linq.XAttribute CreateAttribute(System.Xml.Linq.XName, System.Object) in My.InternalXmlHelper (
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      a3
+                      type: System.String
+                    )
+                    Constant(
+                      
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  Constant(
+                    3
+                    type: System.Int32
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            Call(
+              <NULL>
+              method: System.Xml.Linq.XAttribute CreateAttribute(System.Xml.Linq.XName, System.Object) in My.InternalXmlHelper (
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      a4
+                      type: System.String
+                    )
+                    Constant(
+                      
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Constant(
+                  null
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                h
+                type: System.String
+              )
+              Constant(
+                http://roslyn
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            New(
+              Void .ctor(System.Xml.Linq.XName, System.Object)(
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      r
+                      type: System.String
+                    )
+                    Constant(
+                      http://www.w3.org/2000/xmlns/
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  Constant(
+                    http://roslyn
+                    type: System.String
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                w
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            Call(
+              <NULL>
+              method: System.Xml.Linq.XAttribute CreateAttribute(System.Xml.Linq.XName, System.Object) in My.InternalXmlHelper (
+                Call(
+                  <NULL>
+                  method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+                    Constant(
+                      w
+                      type: System.String
+                    )
+                    Constant(
+                      
+                      type: System.String
+                    )
+                  )
+                  type: System.Xml.Linq.XName
+                )
+                Convert(
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F2
+                    type: System.String
+                  )
+                  type: System.Object
+                )
+              )
+              type: System.Xml.Linq.XAttribute
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object)(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                x
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          Convert(
+            MemberAccess(
+              Constant(
+                Form1+_Closure$__20
+                type: Form1+_Closure$__20
+              )
+              -> $VB$Local_F2
+              type: System.String
+            )
+            type: System.Object
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                y
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L14
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L15
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L13
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F3
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L13
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor(System.Xml.Linq.XName, System.Object[])(
+          Call(
+            <NULL>
+            method: System.Xml.Linq.XName Get(System.String, System.String) in System.Xml.Linq.XName (
+              Constant(
+                z
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+            )
+            type: System.Xml.Linq.XName
+          )
+          NewArrayInit(
+            Convert(
+              MemberAccess(
+                Constant(
+                  Form1+_Closure$__20
+                  type: Form1+_Closure$__20
+                )
+                -> $VB$Local_F2
+                type: System.String
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L17
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L18
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L16
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F3
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              Call(
+                <NULL>
+                method: System.Xml.Linq.XElement RemoveNamespaceAttributes(System.String[], System.Xml.Linq.XNamespace[], System.Collections.Generic.List`1[System.Xml.Linq.XAttribute], System.Xml.Linq.XElement) in My.InternalXmlHelper (
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L17
+                    type: System.String[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_array$L18
+                    type: System.Xml.Linq.XNamespace[]
+                  )
+                  MemberAccess(
+                    MemberAccess(
+                      Constant(
+                        Form1+_Closure$__20
+                        type: Form1+_Closure$__20
+                      )
+                      -> $VB$NonLocal_$VB$Closure_21
+                      type: Form1+_Closure$__19
+                    )
+                    -> $VB$NonLocal_VB$t_ref$L16
+                    type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+                  )
+                  MemberAccess(
+                    Constant(
+                      Form1+_Closure$__20
+                      type: Form1+_Closure$__20
+                    )
+                    -> $VB$Local_F4
+                    type: System.Xml.Linq.XElement
+                  )
+                )
+                type: System.Xml.Linq.XElement
+              )
+              type: System.Object
+            )
+            Convert(
+              MemberAccess(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__20
+                    type: Form1+_Closure$__20
+                  )
+                  -> $VB$NonLocal_$VB$Closure_21
+                  type: Form1+_Closure$__19
+                )
+                -> $VB$NonLocal_VB$t_ref$L16
+                type: System.Collections.Generic.List`1[System.Xml.Linq.XAttribute]
+              )
+              type: System.Object
+            )
+            type: System.Object[]
+          )
+        )
+        type: System.Xml.Linq.XElement
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)

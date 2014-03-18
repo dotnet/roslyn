@@ -1,0 +1,861 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      Conditional(
+        Call(
+          <NULL>
+          method: Boolean op_True(System.Nullable`1[S1]) in S1 (
+            And(
+              And(
+                And(
+                  AndAlso(
+                    Convert(
+                      Parameter(
+                        x
+                        type: S1
+                      )
+                      Lifted
+                      LiftedToNull
+                      type: System.Nullable`1[S1]
+                    )
+                    Parameter(
+                      y
+                      type: System.Nullable`1[S1]
+                    )
+                    method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                    type: System.Nullable`1[S1]
+                  )
+                  AndAlso(
+                    Parameter(
+                      y
+                      type: System.Nullable`1[S1]
+                    )
+                    Convert(
+                      Parameter(
+                        x
+                        type: S1
+                      )
+                      Lifted
+                      LiftedToNull
+                      type: System.Nullable`1[S1]
+                    )
+                    method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                    type: System.Nullable`1[S1]
+                  )
+                  method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                  type: System.Nullable`1[S1]
+                )
+                AndAlso(
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S1]
+                  )
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S1]
+                  )
+                  method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                  type: System.Nullable`1[S1]
+                )
+                method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                type: System.Nullable`1[S1]
+              )
+              AndAlso(
+                Convert(
+                  Parameter(
+                    x
+                    type: S1
+                  )
+                  Lifted
+                  LiftedToNull
+                  type: System.Nullable`1[S1]
+                )
+                Convert(
+                  Parameter(
+                    x
+                    type: S1
+                  )
+                  Lifted
+                  LiftedToNull
+                  type: System.Nullable`1[S1]
+                )
+                method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                type: System.Nullable`1[S1]
+              )
+              method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+              type: System.Nullable`1[S1]
+            )
+          )
+          type: System.Boolean
+        )
+        Convert(
+          Parameter(
+            x
+            type: S1
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S1]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[S1]
+        )
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S1,System.Nullable`1[S1],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      Conditional(
+        Call(
+          <NULL>
+          method: Boolean op_True(System.Nullable`1[S1]) in S1 (
+            And(
+              And(
+                And(
+                  OrElse(
+                    Convert(
+                      Parameter(
+                        x
+                        type: S1
+                      )
+                      Lifted
+                      LiftedToNull
+                      type: System.Nullable`1[S1]
+                    )
+                    Parameter(
+                      y
+                      type: System.Nullable`1[S1]
+                    )
+                    Lifted
+                    LiftedToNull
+                    method: S1 op_BitwiseOr(S1, S1) in S1
+                    type: System.Nullable`1[S1]
+                  )
+                  OrElse(
+                    Parameter(
+                      y
+                      type: System.Nullable`1[S1]
+                    )
+                    Convert(
+                      Parameter(
+                        x
+                        type: S1
+                      )
+                      Lifted
+                      LiftedToNull
+                      type: System.Nullable`1[S1]
+                    )
+                    Lifted
+                    LiftedToNull
+                    method: S1 op_BitwiseOr(S1, S1) in S1
+                    type: System.Nullable`1[S1]
+                  )
+                  method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                  type: System.Nullable`1[S1]
+                )
+                OrElse(
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S1]
+                  )
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S1]
+                  )
+                  Lifted
+                  LiftedToNull
+                  method: S1 op_BitwiseOr(S1, S1) in S1
+                  type: System.Nullable`1[S1]
+                )
+                method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+                type: System.Nullable`1[S1]
+              )
+              Convert(
+                OrElse(
+                  Parameter(
+                    x
+                    type: S1
+                  )
+                  Parameter(
+                    x
+                    type: S1
+                  )
+                  method: S1 op_BitwiseOr(S1, S1) in S1
+                  type: S1
+                )
+                Lifted
+                LiftedToNull
+                type: System.Nullable`1[S1]
+              )
+              method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+              type: System.Nullable`1[S1]
+            )
+          )
+          type: System.Boolean
+        )
+        Convert(
+          Parameter(
+            x
+            type: S1
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S1]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[S1]
+        )
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S1,System.Nullable`1[S1],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S1
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S1]
+  )
+  body {
+    Convert(
+      AndAlso(
+        Conditional(
+          Call(
+            <NULL>
+            method: Boolean op_True(S1) in S1 (
+              Parameter(
+                x
+                type: S1
+              )
+            )
+            type: System.Boolean
+          )
+          Convert(
+            Parameter(
+              x
+              type: S1
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[S1]
+          )
+          Parameter(
+            y
+            type: System.Nullable`1[S1]
+          )
+          type: System.Nullable`1[S1]
+        )
+        Conditional(
+          Call(
+            <NULL>
+            method: Boolean op_True(System.Nullable`1[S1]) in S1 (
+              Parameter(
+                y
+                type: System.Nullable`1[S1]
+              )
+            )
+            type: System.Boolean
+          )
+          Convert(
+            Parameter(
+              x
+              type: S1
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[S1]
+          )
+          Parameter(
+            y
+            type: System.Nullable`1[S1]
+          )
+          type: System.Nullable`1[S1]
+        )
+        method: System.Nullable`1[S1] op_BitwiseAnd(System.Nullable`1[S1], System.Nullable`1[S1]) in S1
+        type: System.Nullable`1[S1]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S1,System.Nullable`1[S1],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          And(
+            And(
+              And(
+                AndAlso(
+                  Convert(
+                    Parameter(
+                      x
+                      type: S2
+                    )
+                    Lifted
+                    LiftedToNull
+                    type: System.Nullable`1[S2]
+                  )
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S2]
+                  )
+                  Lifted
+                  LiftedToNull
+                  method: S2 op_BitwiseAnd(S2, S2) in S2
+                  type: System.Nullable`1[S2]
+                )
+                AndAlso(
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S2]
+                  )
+                  Convert(
+                    Parameter(
+                      x
+                      type: S2
+                    )
+                    Lifted
+                    LiftedToNull
+                    type: System.Nullable`1[S2]
+                  )
+                  Lifted
+                  LiftedToNull
+                  method: S2 op_BitwiseAnd(S2, S2) in S2
+                  type: System.Nullable`1[S2]
+                )
+                Lifted
+                LiftedToNull
+                method: S2 op_BitwiseAnd(S2, S2) in S2
+                type: System.Nullable`1[S2]
+              )
+              AndAlso(
+                Parameter(
+                  y
+                  type: System.Nullable`1[S2]
+                )
+                Parameter(
+                  y
+                  type: System.Nullable`1[S2]
+                )
+                Lifted
+                LiftedToNull
+                method: S2 op_BitwiseAnd(S2, S2) in S2
+                type: System.Nullable`1[S2]
+              )
+              Lifted
+              LiftedToNull
+              method: S2 op_BitwiseAnd(S2, S2) in S2
+              type: System.Nullable`1[S2]
+            )
+            Convert(
+              AndAlso(
+                Parameter(
+                  x
+                  type: S2
+                )
+                Parameter(
+                  x
+                  type: S2
+                )
+                method: S2 op_BitwiseAnd(S2, S2) in S2
+                type: S2
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[S2]
+            )
+            Lifted
+            LiftedToNull
+            method: S2 op_BitwiseAnd(S2, S2) in S2
+            type: System.Nullable`1[S2]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[S2]
+              )
+              body {
+                Call(
+                  <NULL>
+                  method: Boolean op_True(S2) in S2 (
+                    Convert(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[S2]
+                      )
+                      Lifted
+                      type: S2
+                    )
+                  )
+                  type: System.Boolean
+                )
+              }
+              return type: System.Boolean
+              type: System.Func`2[System.Nullable`1[S2],System.Boolean]
+            )
+          type: System.Boolean
+        )
+        Convert(
+          Parameter(
+            x
+            type: S2
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S2]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[S2]
+        )
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S2,System.Nullable`1[S2],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          And(
+            And(
+              And(
+                OrElse(
+                  Convert(
+                    Parameter(
+                      x
+                      type: S2
+                    )
+                    Lifted
+                    LiftedToNull
+                    type: System.Nullable`1[S2]
+                  )
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S2]
+                  )
+                  Lifted
+                  LiftedToNull
+                  method: S2 op_BitwiseOr(S2, S2) in S2
+                  type: System.Nullable`1[S2]
+                )
+                OrElse(
+                  Parameter(
+                    y
+                    type: System.Nullable`1[S2]
+                  )
+                  Convert(
+                    Parameter(
+                      x
+                      type: S2
+                    )
+                    Lifted
+                    LiftedToNull
+                    type: System.Nullable`1[S2]
+                  )
+                  Lifted
+                  LiftedToNull
+                  method: S2 op_BitwiseOr(S2, S2) in S2
+                  type: System.Nullable`1[S2]
+                )
+                Lifted
+                LiftedToNull
+                method: S2 op_BitwiseAnd(S2, S2) in S2
+                type: System.Nullable`1[S2]
+              )
+              OrElse(
+                Parameter(
+                  y
+                  type: System.Nullable`1[S2]
+                )
+                Parameter(
+                  y
+                  type: System.Nullable`1[S2]
+                )
+                Lifted
+                LiftedToNull
+                method: S2 op_BitwiseOr(S2, S2) in S2
+                type: System.Nullable`1[S2]
+              )
+              Lifted
+              LiftedToNull
+              method: S2 op_BitwiseAnd(S2, S2) in S2
+              type: System.Nullable`1[S2]
+            )
+            Convert(
+              OrElse(
+                Parameter(
+                  x
+                  type: S2
+                )
+                Parameter(
+                  x
+                  type: S2
+                )
+                method: S2 op_BitwiseOr(S2, S2) in S2
+                type: S2
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[S2]
+            )
+            Lifted
+            LiftedToNull
+            method: S2 op_BitwiseAnd(S2, S2) in S2
+            type: System.Nullable`1[S2]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[S2]
+              )
+              body {
+                Call(
+                  <NULL>
+                  method: Boolean op_True(S2) in S2 (
+                    Convert(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[S2]
+                      )
+                      Lifted
+                      type: S2
+                    )
+                  )
+                  type: System.Boolean
+                )
+              }
+              return type: System.Boolean
+              type: System.Func`2[System.Nullable`1[S2],System.Boolean]
+            )
+          type: System.Boolean
+        )
+        Convert(
+          Parameter(
+            x
+            type: S2
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[S2]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[S2]
+        )
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S2,System.Nullable`1[S2],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: S2
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[S2]
+  )
+  body {
+    Convert(
+      AndAlso(
+        Conditional(
+          Call(
+            <NULL>
+            method: Boolean op_True(S2) in S2 (
+              Parameter(
+                x
+                type: S2
+              )
+            )
+            type: System.Boolean
+          )
+          Convert(
+            Parameter(
+              x
+              type: S2
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[S2]
+          )
+          Parameter(
+            y
+            type: System.Nullable`1[S2]
+          )
+          type: System.Nullable`1[S2]
+        )
+        Conditional(
+          Coalesce(
+            Parameter(
+              y
+              type: System.Nullable`1[S2]
+            )
+            Constant(
+              False
+              type: System.Boolean
+            )
+            conversion:
+              Lambda(
+                Parameter(
+                  CoalesceLHS
+                  type: System.Nullable`1[S2]
+                )
+                body {
+                  Call(
+                    <NULL>
+                    method: Boolean op_True(S2) in S2 (
+                      Convert(
+                        Parameter(
+                          CoalesceLHS
+                          type: System.Nullable`1[S2]
+                        )
+                        Lifted
+                        type: S2
+                      )
+                    )
+                    type: System.Boolean
+                  )
+                }
+                return type: System.Boolean
+                type: System.Func`2[System.Nullable`1[S2],System.Boolean]
+              )
+            type: System.Boolean
+          )
+          Convert(
+            Parameter(
+              x
+              type: S2
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[S2]
+          )
+          Parameter(
+            y
+            type: System.Nullable`1[S2]
+          )
+          type: System.Nullable`1[S2]
+        )
+        Lifted
+        LiftedToNull
+        method: S2 op_BitwiseAnd(S2, S2) in S2
+        type: System.Nullable`1[S2]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[S2,System.Nullable`1[S2],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: O1
+  )
+  Parameter(
+    y
+    type: O1
+  )
+  body {
+    Convert(
+      Conditional(
+        Call(
+          <NULL>
+          method: Boolean op_True(O1) in O1 (
+            AndAlso(
+              Parameter(
+                x
+                type: O1
+              )
+              Parameter(
+                y
+                type: O1
+              )
+              method: O1 op_BitwiseAnd(O1, O1) in O1
+              type: O1
+            )
+          )
+          type: System.Boolean
+        )
+        Parameter(
+          x
+          type: O1
+        )
+        Parameter(
+          y
+          type: O1
+        )
+        type: O1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[O1,O1,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: O1
+  )
+  Parameter(
+    y
+    type: O1
+  )
+  body {
+    Convert(
+      Conditional(
+        Call(
+          <NULL>
+          method: Boolean op_True(O1) in O1 (
+            OrElse(
+              Parameter(
+                x
+                type: O1
+              )
+              Parameter(
+                y
+                type: O1
+              )
+              method: O1 op_BitwiseOr(O1, O1) in O1
+              type: O1
+            )
+          )
+          type: System.Boolean
+        )
+        Parameter(
+          x
+          type: O1
+        )
+        Parameter(
+          y
+          type: O1
+        )
+        type: O1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[O1,O1,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: O1
+  )
+  Parameter(
+    y
+    type: O1
+  )
+  body {
+    Convert(
+      Conditional(
+        Call(
+          <NULL>
+          method: Boolean op_True(O1) in O1 (
+            Parameter(
+              x
+              type: O1
+            )
+          )
+          type: System.Boolean
+        )
+        Parameter(
+          x
+          type: O1
+        )
+        Parameter(
+          y
+          type: O1
+        )
+        type: O1
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[O1,O1,System.Object]
+)

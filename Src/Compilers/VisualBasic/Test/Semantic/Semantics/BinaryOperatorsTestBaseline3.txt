@@ -1,0 +1,141 @@
+﻿BC30038: Option Strict On prohibits operands of type Object for operator '+'.
+        Ob3 = (Ob1 + Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '+'.
+        Ob3 = (Ob1 + Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '-'.
+        Ob3 = (Ob1 - Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '-'.
+        Ob3 = (Ob1 - Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '*'.
+        Ob3 = (Ob1 * Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '*'.
+        Ob3 = (Ob1 * Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '/'.
+        Ob3 = (Ob1 / Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '/'.
+        Ob3 = (Ob1 / Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '\'.
+        Ob3 = (Ob1 \ Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '\'.
+        Ob3 = (Ob1 \ Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Mod'.
+        Ob3 = (Ob1 Mod Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Mod'.
+        Ob3 = (Ob1 Mod Ob2)
+                       ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '^'.
+        Ob3 = (Ob1 ^ Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '^'.
+        Ob3 = (Ob1 ^ Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<<'.
+        Ob3 = (Ob1 << Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<<'.
+        Ob3 = (Ob1 << Ob2)
+                      ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>>'.
+        Ob3 = (Ob1 >> Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>>'.
+        Ob3 = (Ob1 >> Ob2)
+                      ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'OrElse'.
+        Ob3 = (Ob1 OrElse Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'OrElse'.
+        Ob3 = (Ob1 OrElse Ob2)
+                          ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'AndAlso'.
+        Ob3 = (Ob1 AndAlso Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'AndAlso'.
+        Ob3 = (Ob1 AndAlso Ob2)
+                           ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '&'.
+        Ob3 = (Ob1 & Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '&'.
+        Ob3 = (Ob1 & Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Like'.
+        Ob3 = (Ob1 Like Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Like'.
+        Ob3 = (Ob1 Like Ob2)
+                        ~~~
+BC32013: Option Strict On disallows operands of type Object for operator '='. Use the 'Is' operator to test for object identity.
+        Ob3 = (Ob1 = Ob2)
+               ~~~
+BC32013: Option Strict On disallows operands of type Object for operator '='. Use the 'Is' operator to test for object identity.
+        Ob3 = (Ob1 = Ob2)
+                     ~~~
+BC32013: Option Strict On disallows operands of type Object for operator '<>'. Use the 'Is' operator to test for object identity.
+        Ob3 = (Ob1 <> Ob2)
+               ~~~
+BC32013: Option Strict On disallows operands of type Object for operator '<>'. Use the 'Is' operator to test for object identity.
+        Ob3 = (Ob1 <> Ob2)
+                      ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<='.
+        Ob3 = (Ob1 <= Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<='.
+        Ob3 = (Ob1 <= Ob2)
+                      ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>='.
+        Ob3 = (Ob1 >= Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>='.
+        Ob3 = (Ob1 >= Ob2)
+                      ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<'.
+        Ob3 = (Ob1 < Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '<'.
+        Ob3 = (Ob1 < Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>'.
+        Ob3 = (Ob1 > Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator '>'.
+        Ob3 = (Ob1 > Ob2)
+                     ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Xor'.
+        Ob3 = (Ob1 Xor Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Xor'.
+        Ob3 = (Ob1 Xor Ob2)
+                       ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'And'.
+        Ob3 = (Ob1 And Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'And'.
+        Ob3 = (Ob1 And Ob2)
+                       ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Or'.
+        Ob3 = (Ob1 Or Ob2)
+               ~~~
+BC30038: Option Strict On prohibits operands of type Object for operator 'Or'.
+        Ob3 = (Ob1 Or Ob2)
+                      ~~~
+BC31080: Operator '=' is not defined for types 'System.IComparable' and 'System.IComparable'. Use 'Is' operator to compare two reference types.
+        Ob3 = (i1 = i2)
+               ~~~~~~~
+BC31080: Operator '<>' is not defined for types 'System.IComparable' and 'System.IComparable'. Use 'Is' operator to compare two reference types.
+        Ob3 = (i1 <> i2)
+               ~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.IComparable' and 'System.IComparable'.
+        Ob3 = (i1 > i2)
+               ~~~~~~~

@@ -1,0 +1,1502 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
+{
+    public class BindingTests : CompilingTestBase
+    {
+        [Fact, WorkItem(539872)]
+        public void NoWRN_UnreachableCode()
+        {
+            var text = @"
+public class Cls
+{
+    public static int Main()
+    {
+        goto Label2;
+    Label1:
+        return (1);
+    Label2:
+        goto Label1;
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericMethodName()
+        {
+            var source =
+@"class A
+{
+    class B
+    {
+        static void M(System.Action a)
+        {
+            M(M1);
+            M(M2<object>);
+            M(M3<int>);
+        }
+        static void M1() { }
+        static void M2<T>() { }
+    }
+    static void M3<T>() { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeName()
+        {
+            var source =
+@"class A
+{
+    class B
+    {
+        static void M(System.Type t)
+        {
+            M(typeof(C<int>));
+            M(typeof(S<string, string>));
+            M(typeof(C<int, int>));
+        }
+        class C<T> { }
+    }
+    struct S<T, U> { }
+}
+class C<T, U> { }
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericTypeParameterName()
+        {
+            var source =
+@"class A<T>
+{
+    class B<U>
+    {
+        static void M<V>()
+        {
+            N(typeof(V));
+            N(typeof(U));
+            N(typeof(T));
+        }
+        static void N(System.Type t) { }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WrongMethodArity()
+        {
+            var source =
+@"class C
+{
+    static void M1<T>() { }
+    static void M2() { }
+    void M3<T>() { }
+    void M4() { }
+    void M()
+    {
+        M1<object, object>();
+        C.M1<object, object>();
+        M2<int>();
+        C.M2<int>();
+        M3<object, object>();
+        this.M3<object, object>();
+        M4<int>();
+        this.M4<int>();
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,9): error CS0305: Using the generic method 'C.M1<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method", "1").WithLocation(9, 9),
+                // (10,11): error CS0305: Using the generic method 'C.M1<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method", "1").WithLocation(10, 11),
+                // (11,9): error CS0308: The non-generic method 'C.M2()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M2<int>").WithArguments("C.M2()", "method").WithLocation(11, 9),
+                // (12,11): error CS0308: The non-generic method 'C.M2()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M2<int>").WithArguments("C.M2()", "method").WithLocation(12, 11),
+                // (13,9): error CS0305: Using the generic method 'C.M3<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method", "1").WithLocation(13, 9),
+                // (14,14): error CS0305: Using the generic method 'C.M3<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method", "1").WithLocation(14, 14),
+                // (15,9): error CS0308: The non-generic method 'C.M4()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M4<int>").WithArguments("C.M4()", "method").WithLocation(15, 9),
+                // (16,14): error CS0308: The non-generic method 'C.M4()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M4<int>").WithArguments("C.M4()", "method").WithLocation(16, 14));
+        }
+
+        [Fact]
+        public void AmbiguousInaccessibleMethod()
+        {
+            var source =
+@"class A
+{
+    protected void M1() { }
+    protected void M1(object o) { }
+    protected void M2(string s) { }
+    protected void M2(object o) { }
+}
+class B
+{
+    static void M(A a)
+    {
+        a.M1();
+        a.M2();
+        M(a.M1);
+        M(a.M2);
+    }
+    static void M(System.Action<object> a) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,11): error CS0122: 'A.M1()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("A.M1()").WithLocation(12, 11),
+                // (13,11): error CS0122: 'A.M2(string)' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "M2").WithArguments("A.M2(string)").WithLocation(13, 11),
+                // (14,13): error CS0122: 'A.M1()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("A.M1()").WithLocation(14, 13),
+                // (15,13): error CS0122: 'A.M2(string)' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "M2").WithArguments("A.M2(string)").WithLocation(15, 13));
+        }
+
+        /// <summary>
+        /// Should report inaccessible method, even when using
+        /// method as a delegate in an invalid context.
+        /// </summary>
+        [Fact]
+        public void InaccessibleMethodInvalidDelegateUse()
+        {
+            var source =
+@"class A
+{
+    protected object F() { return null; }
+}
+class B
+{
+    static void M(A a)
+    {
+        if (a.F != null)
+        {
+            M(a.F);
+            a.F.ToString();
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(9, 15),
+                // (11,17): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(11, 17),
+                // (12,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(12, 15));
+        }
+
+        /// <summary>
+        /// Methods should be resolved correctly even
+        /// in cases where a method group is not allowed.
+        /// </summary>
+        [Fact]
+        public void InvalidUseOfMethodGroup()
+        {
+            var source =
+@"class A
+{
+    internal object E() { return null; }
+    private object F() { return null; }
+}
+class B
+{
+    static void M(A a)
+    {
+        object o;
+        a.E += a.E;
+        if (a.E != null)
+        {
+            M(a.E);
+            a.E.ToString();
+            o = !a.E;
+            o = a.E ?? a.F;
+        }
+        a.F += a.F;
+        if (a.F != null)
+        {
+            M(a.F);
+            a.F.ToString();
+            o = !a.F;
+            o = (o != null) ? a.E : a.F;
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
+                // (12,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E != null").WithArguments("!=", "method group", "<null>").WithLocation(12, 13),
+                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),
+                // (15, 15): error CS0119: 'A.E()' is a 'method', which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("A.E()", "method").WithLocation(15, 15),
+                // (16,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!a.E").WithArguments("!", "method group").WithLocation(16, 17),
+                // (17,26): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(17, 26),
+                // (19,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 11),
+                // (19,18): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 18),
+                // (20,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(20, 15),
+                // (22,17): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(22, 17),
+                // (23,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(23, 15),
+                // (24,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(24, 20),
+                // (25,39): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(25, 39));
+        }
+
+        [WorkItem(528425)]
+        [Fact(Skip = "528425")]
+        public void InaccessibleAndAccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    void F() { }
+    internal void F(object o) { }
+    static void G() { }
+    internal static void G(object o) { }
+    void H(object o) { }
+}
+class B : A
+{
+    static void M(A a)
+    {
+        a.F(null);
+        a.F();
+        A.G();
+        M1(a.F);
+        M2(a.F);
+        Action<object> a1 = a.F;
+        Action a2 = a.F;
+    }
+    void M()
+    {
+        G();
+    }
+    static void M1(Action<object> a) { }
+    static void M2(Action a) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (15,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(15, 11),
+                // (16,11): error CS0122: 'A.G()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(16, 11),
+                // (18,12): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Action'
+                Diagnostic(ErrorCode.ERR_BadArgType, "a.F").WithArguments("1", "method group", "System.Action").WithLocation(18, 12),
+                // (20,23): error CS0122: 'A.F()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(20, 23),
+                // (24,9): error CS0122: 'A.G()' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(24, 9));
+        }
+
+        [Fact]
+        public void InaccessibleAndAccessibleAndAmbiguous()
+        {
+            var source =
+@"class A
+{
+    void F(string x) { }
+    void F(string x, string y) { }
+    internal void F(object x, string y) { }
+    internal void F(string x, object y) { }
+    void G(object x, string y) { }
+    internal void G(string x, object y) { }
+    static void M(A a, string s)
+    {
+        a.F(s, s); // no error
+    }
+}
+class B
+{
+    static void M(A a, string s, object o)
+    {
+        a.F(s, s); // accessible ambiguous
+        a.G(s, s); // accessible and inaccessible ambiguous, no error
+        a.G(o, o); // accessible and inaccessible invalid 
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.F(object, string)' and 'A.F(string, object)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "a.F").WithArguments("A.F(object, string)", "A.F(string, object)").WithLocation(18, 9),
+                // (20,13): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "string").WithLocation(20, 13));
+        }
+
+        [Fact]
+        public void InaccessibleAndAccessibleValid()
+        {
+            var source =
+@"class A
+{
+    void F(int i) { }
+    internal void F(long l) { }
+    static void M(A a)
+    {
+        a.F(1); // no error
+    }
+}
+class B
+{
+    static void M(A a)
+    {
+        a.F(1); // no error
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParenthesizedDelegate()
+        {
+            var source =
+@"class C
+{
+    System.Action<object> F = null;
+    void M()
+    {
+        ((this.F))(null);
+        (new C().F)(null, null);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(new C().F)").WithArguments("System.Action<object>", "2").WithLocation(7, 9));
+        }
+
+        /// <summary>
+        /// Report errors for invocation expressions for non-invocable expressions,
+        /// and bind arguments even though invocation expression was invalid.
+        /// </summary>
+        [Fact]
+        public void NonMethodsWithArgs()
+        {
+            var source =
+@"namespace N
+{
+    class C<T>
+    {
+        object F;
+        object P { get; set; }
+        void M()
+        {
+            N(a);
+            C<string>(b);
+            N.C<int>(c);
+            N.D(d);
+            T(e);
+            (typeof(C<int>))(f);
+            P(g) = F(h);
+            this.F(i) = (this).P(j);
+            null.M(k);
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,15): error CS0103: The name 'a' does not exist in the current context
+                //             N(a);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a"),
+                // (9,13): error CS0118: 'N' is a namespace but is used like a variable
+                //             N(a);
+                Diagnostic(ErrorCode.ERR_BadSKknown, "N").WithArguments("N", "namespace", "variable"),
+                // (10,23): error CS0103: The name 'b' does not exist in the current context
+                //             C<string>(b);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b"),
+                // (10,13): error CS1955: Non-invocable member 'N.C<T>' cannot be used like a method.
+                //             C<string>(b);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "C<string>").WithArguments("N.C<T>"),
+                // (11,22): error CS0103: The name 'c' does not exist in the current context
+                //             N.C<int>(c);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c"),
+                // (11,15): error CS1955: Non-invocable member 'N.C<T>' cannot be used like a method.
+                //             N.C<int>(c);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "C<int>").WithArguments("N.C<T>"),
+                // (12,17): error CS0103: The name 'd' does not exist in the current context
+                //             N.D(d);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d"),
+                // (12,13): error CS0234: The type or namespace name 'D' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                //             N.D(d);
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N.D").WithArguments("D", "N"),
+                // (13,15): error CS0103: The name 'e' does not exist in the current context
+                //             T(e);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e"),
+                // (13,13): error CS0103: The name 'T' does not exist in the current context
+                //             T(e);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "T").WithArguments("T"),
+                // (14,30): error CS0103: The name 'f' does not exist in the current context
+                //             (typeof(C<int>))(f);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f"),
+                // (14,13): error CS0149: Method name expected
+                //             (typeof(C<int>))(f);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "(typeof(C<int>))"),
+                // (15,15): error CS0103: The name 'g' does not exist in the current context
+                //             P(g) = F(h);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g"),
+                // (15,13): error CS1955: Non-invocable member 'N.C<T>.P' cannot be used like a method.
+                //             P(g) = F(h);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "P").WithArguments("N.C<T>.P"),
+                // (15,22): error CS0103: The name 'h' does not exist in the current context
+                //             P(g) = F(h);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h"),
+                // (15,20): error CS1955: Non-invocable member 'N.C<T>.F' cannot be used like a method.
+                //             P(g) = F(h);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "F").WithArguments("N.C<T>.F"),
+                // (16,20): error CS0103: The name 'i' does not exist in the current context
+                //             this.F(i) = (this).P(j);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i"),
+                // (16,18): error CS1955: Non-invocable member 'N.C<T>.F' cannot be used like a method.
+                //             this.F(i) = (this).P(j);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "F").WithArguments("N.C<T>.F"),
+                // (16,34): error CS0103: The name 'j' does not exist in the current context
+                //             this.F(i) = (this).P(j);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j"),
+                // (16,32): error CS1955: Non-invocable member 'N.C<T>.P' cannot be used like a method.
+                //             this.F(i) = (this).P(j);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "P").WithArguments("N.C<T>.P"),
+                // (17,20): error CS0103: The name 'k' does not exist in the current context
+                //             null.M(k);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "k").WithArguments("k"),
+                // (17,13): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+                //             null.M(k);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.M").WithArguments(".", "<null>"),
+                // (5,16): warning CS0649: Field 'N.C<T>.F' is never assigned to, and will always have its default value null
+                //         object F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("N.C<T>.F", "null")
+            );
+        }
+
+        [Fact]
+        public void SimpleDelegates()
+        {
+            var source =
+@"static class S
+{
+    public static void F(System.Action a) { }
+}
+class C
+{
+    void M()
+    {
+        S.F(this.M);
+        System.Action a = this.M;
+        S.F(a);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DelegatesFromOverloads()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void A(Action<object> a) { }
+    static void M(C c)
+    {
+        A(C.F);
+        A(c.G);
+        Action<object> a;
+        a = C.F;
+        a = c.G;
+    }
+    static void F() { }
+    static void F(object o) { }
+    void G(object o) { }
+    void G(object x, object y) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonViableDelegates()
+        {
+            var source =
+@"using System;
+class A
+{
+    static Action F = null;
+    Action G = null;
+}
+class B
+{
+    static void M(A a)
+    {
+        A.F(x);
+        a.G(y);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(    // (11,13): error CS0103: The name 'x' does not exist in the current context
+                //         A.F(x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"),
+                // (11,11): error CS0122: 'A.F' is inaccessible due to its protection level
+                //         A.F(x);
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F"),
+                // (12,13): error CS0103: The name 'y' does not exist in the current context
+                //         a.G(y);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y"),
+                // (12,11): error CS0122: 'A.G' is inaccessible due to its protection level
+                //         a.G(y);
+                Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G"),
+                // (4,19): warning CS0414: The field 'A.F' is assigned but its value is never used
+                //     static Action F = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A.F"),
+                // (5,12): warning CS0414: The field 'A.G' is assigned but its value is never used
+                //     Action G = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "G").WithArguments("A.G")
+            );
+        }
+
+        /// <summary>
+        /// Choose one method if overloaded methods are
+        /// equally invalid.
+        /// </summary>
+        [Fact]
+        public void ChooseOneMethodIfEquallyInvalid()
+        {
+            var source =
+@"internal static class S
+{
+    public static void M(double x, A y) { }
+    public static void M(double x, B y) { }
+}
+class A { }
+class B { }
+class C
+{
+    static void M()
+    {
+        S.M(1.0, null); // ambiguous
+        S.M(1.0, 2.0); // equally invalid
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'S.M(double, A)' and 'S.M(double, B)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S.M").WithArguments("S.M(double, A)", "S.M(double, B)").WithLocation(12, 9),
+                // (13,18): error CS1503: Argument 2: cannot convert from 'double' to 'A'
+                Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "A").WithLocation(13, 18));
+        }
+
+        [Fact]
+        public void ChooseExpandedFormIfBadArgCountAndBadArgument()
+        {
+            var source =
+@"class C
+{
+    static void M(object o)
+    {
+        F();
+        F(o);
+        F(1, o);
+        F(1, 2, o);
+    }
+    static void F(int i, params int[] args) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,9): error CS1501: No overload for method 'F' takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "F").WithArguments("F", "0").WithLocation(5, 9),
+                // (6,11): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 11),
+                // (7,14): error CS1503: Argument 2: cannot convert from 'object' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("2", "object", "int").WithLocation(7, 14),
+                // (8,17): error CS1503: Argument 3: cannot convert from 'object' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("3", "object", "int").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void AmbiguousAndBadArgument()
+        {
+            var source =
+@"class C
+{
+    static void F(int x, double y) { }
+    static void F(double x, int y) { }
+    static void M()
+    {
+        F(1, 2);
+        F(1.0, 2.0);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.F(int, double)' and 'C.F(double, int)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("C.F(int, double)", "C.F(double, int)").WithLocation(7, 9),
+                // (8,11): error CS1503: Argument 1: cannot convert from 'double' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "1.0").WithArguments("1", "double", "int").WithLocation(8, 11));
+        }
+
+        [WorkItem(541050)]
+        [Fact]
+        public void IncompleteDelegateDecl()
+        {
+            var source =
+@"namespace nms {
+
+delegate";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,9): error CS1031: Type expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_TypeExpected, ""),
+                // (3,9): error CS1001: Identifier expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
+                // (3,9): error CS1003: Syntax error, '(' expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", ""),
+                // (3,9): error CS1026: ) expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                // (3,9): error CS1002: ; expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
+                // (3,9): error CS1513: } expected
+                // delegate
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+        }
+
+        [WorkItem(541213)]
+        [Fact]
+        public void IncompleteElsePartInIfStmt()
+        {
+            var source =
+@"public class Test
+{
+    public static int Main(string [] args)
+    {
+        if (true)
+        {
+        }
+        else
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,13): error CS1733: Expected expression
+                //         else
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, ""),
+                // (9,1): error CS1002: ; expected
+                // 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
+                // (9,1): error CS1513: } expected
+                // 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
+                // (9,1): error CS1513: } expected
+                // 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
+                // (3,23): error CS0161: 'Test.Main(string[])': not all code paths return a value
+                //     public static int Main(string [] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Test.Main(string[])")
+                );
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest01()
+        {
+            var baseAssembly = CreateCompilationWithMscorlib(
+@"
+namespace BaseAssembly {
+    public class BaseClass {
+    }
+}
+", assemblyName: "BaseAssembly1").VerifyDiagnostics();
+
+            var derivedAssembly = CreateCompilationWithMscorlib(
+@"
+namespace DerivedAssembly {
+    public class DerivedClass: BaseAssembly.BaseClass {
+        public static int IntField = 123;
+    }
+}
+", assemblyName: "DerivedAssembly1", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
+
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = DerivedAssembly.DerivedClass; 
+public class Test
+{
+    static void Main()
+    {
+        int a = ClassAlias.IntField;
+        int b = ClassAlias.IntField;
+    }
+}
+", references: new List<MetadataReference>() { derivedAssembly.EmitToImageReference() })
+            .VerifyDiagnostics();
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(7,9): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest02()
+        {
+            var baseAssembly = CreateCompilationWithMscorlib(
+@"
+namespace BaseAssembly {
+    public class BaseClass {
+    }
+}
+", assemblyName: "BaseAssembly2").VerifyDiagnostics();
+
+            var derivedAssembly = CreateCompilationWithMscorlib(
+@"
+namespace DerivedAssembly {
+    public class DerivedClass: BaseAssembly.BaseClass {
+        public static int IntField = 123;
+    }
+}
+", assemblyName: "DerivedAssembly2", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
+
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = DerivedAssembly.DerivedClass; 
+public class Test
+{
+    static void Main()
+    {
+        ClassAlias a = new ClassAlias();
+        ClassAlias b = new ClassAlias();
+    }
+}
+", references: new List<MetadataReference>() { derivedAssembly.EmitToImageReference() })
+            .VerifyDiagnostics();
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(6,9): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest03()
+        {
+            var baseAssembly = CreateCompilationWithMscorlib(
+@"
+namespace BaseAssembly {
+    public class BaseClass {
+    }
+}
+", assemblyName: "BaseAssembly3").VerifyDiagnostics();
+
+            var derivedAssembly = CreateCompilationWithMscorlib(
+@"
+namespace DerivedAssembly {
+    public class DerivedClass: BaseAssembly.BaseClass {
+        public static int IntField = 123;
+    }
+}
+", assemblyName: "DerivedAssembly3", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
+
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = DerivedAssembly.DerivedClass; 
+public class Test
+{
+    ClassAlias a = null;
+    ClassAlias b = null;
+    ClassAlias m() { return null; }
+    void m2(ClassAlias p) { }
+}", references: new List<MetadataReference>() { derivedAssembly.EmitToImageReference() })
+            .VerifyDiagnostics(
+                // (5,16): warning CS0414: The field 'Test.a' is assigned but its value is never used
+                //     ClassAlias a = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("Test.a"),
+                // (6,16): warning CS0414: The field 'Test.b' is assigned but its value is never used
+                //     ClassAlias b = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "b").WithArguments("Test.b")
+            );
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(4,16): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest04()
+        {
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = Class1;
+public class Test
+{
+    void m()
+    {
+        int a = ClassAlias.Class1Foo();
+        int b = ClassAlias.Class1Foo();
+    }
+}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
+.VerifyDiagnostics(
+                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // using ClassAlias = Class1;
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+    // (7,28): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    //         int a = ClassAlias.Class1Foo();
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1Foo").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+    // (8,28): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    //         int b = ClassAlias.Class1Foo();
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1Foo").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+            );
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(8,28): error CS0117: 'Class1' does not contain a definition for 'Class1Foo'
+            // <fine-name>(9,28): error CS0117: 'Class1' does not contain a definition for 'Class1Foo'
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest05()
+        {
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = Class1;
+public class Test
+{
+    void m()
+    {
+        var a = new ClassAlias();
+        var b = new ClassAlias();
+    }
+}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
+.VerifyDiagnostics(
+                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // using ClassAlias = Class1;
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+            );
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(8,17): error CS0143: The type 'Class1' has no constructors defined
+            // <fine-name>(9,17): error CS0143: The type 'Class1' has no constructors defined
+
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest06()
+        {
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = Class1;
+public class Test
+{
+    ClassAlias a = null;
+    ClassAlias b = null;
+    ClassAlias m() { return null; }
+    void m2(ClassAlias p) { }
+}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
+.VerifyDiagnostics(
+                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // using ClassAlias = Class1;
+    Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (6,16): warning CS0414: The field 'Test.b' is assigned but its value is never used
+                //     ClassAlias b = null;
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "b").WithArguments("Test.b"),
+                // (5,16): warning CS0414: The field 'Test.a' is assigned but its value is never used
+                //     ClassAlias a = null;
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("Test.a")
+            );
+
+            // NOTE: Dev10 errors:
+            // <fine-name>(4,16): error CS1772: Type 'Class1' from assembly '...\NoPIAGenerics1-Asm1.dll' cannot be used across assembly boundaries because a type in its inheritance hierarchy has a generic type parameter that is an embedded interop type.
+            // <fine-name>(5,16): error CS1772: Type 'Class1' from assembly '...\NoPIAGenerics1-Asm1.dll' cannot be used across assembly boundaries because a type in its inheritance hierarchy has a generic type parameter that is an embedded interop type.
+            // <fine-name>(6,16): error CS1772: Type 'Class1' from assembly '...\NoPIAGenerics1-Asm1.dll' cannot be used across assembly boundaries because a type in its inheritance hierarchy has a generic type parameter that is an embedded interop type.
+            // <fine-name>(7,10): error CS1772: Type 'Class1' from assembly '...\NoPIAGenerics1-Asm1.dll' cannot be used across assembly boundaries because a type in its inheritance hierarchy has a generic type parameter that is an embedded interop type.
+        }
+
+        [WorkItem(541466)]
+        [Fact]
+        public void UseSiteErrorViaAliasTest07()
+        {
+            var testAssembly = CreateCompilationWithMscorlib(
+@"
+using ClassAlias = Class1;
+public class Test
+{
+    void m()
+    {
+        ClassAlias a = null;
+        ClassAlias b = null;
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(b);
+    }
+}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
+.VerifyDiagnostics(
+                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // using ClassAlias = Class1;
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (9,9): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                //         System.Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "System.Console.WriteLine").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (10,9): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                //         System.Console.WriteLine(b);
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "System.Console.WriteLine").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            // NOTE: Dev10 reports NO ERRORS
+        }
+
+        [WorkItem(541246)]
+        [Fact]
+        public void NamespaceQualifiedGenericTypeName()
+        {
+            var source =
+@"namespace N
+{
+    public class A<T>
+    {
+        public static T F;
+    }
+}
+class B
+{
+    static int G = N.A<int>.F;
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamespaceQualifiedGenericTypeNameWrongArity()
+        {
+            var source =
+@"namespace N
+{
+    public class A<T>
+    {
+        public static T F;
+    }
+
+    public class B 
+    { 
+        public static int F;
+    }
+    public class B<T1, T2> 
+    { 
+        public static System.Tuple<T1, T2> F;
+    }
+}
+class C
+{
+    static int TooMany = N.A<int, int>.F;
+    static int TooFew = N.A.F;
+    static int TooIndecisive = N.B<int>;
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (19,28): error CS0305: Using the generic type 'N.A<T>' requires '1' type arguments
+                // 
+                Diagnostic(ErrorCode.ERR_BadArity, "A<int, int>").WithArguments("N.A<T>", "type", "1"),
+                // (20,27): error CS0305: Using the generic type 'N.A<T>' requires '1' type arguments
+                // 
+                Diagnostic(ErrorCode.ERR_BadArity, "A").WithArguments("N.A<T>", "type", "1"),
+                // (21,34): error CS0308: The non-generic type 'N.B' cannot be used with type arguments
+                // 
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "B<int>").WithArguments("N.B", "type")
+                );
+        }
+
+        [WorkItem(541570)]
+        [Fact]
+        public void EnumNotMemberInConstructor()
+        {
+            var source =
+@"enum E { A }
+class C
+{
+    public C(E e = E.A) { }
+    public E E { get { return E.A; } }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [WorkItem(541638)]
+        [Fact]
+        public void KeywordAsLabelIdentifier()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+    @int1:
+        System.Console.WriteLine();
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,5): warning CS0164: This label has not been referenced
+                // 
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "@int1"));
+        }
+
+        [WorkItem(541677)]
+        [Fact]
+        public void AssignStaticEventToLocalVariable()
+        {
+            var source =
+@"delegate void Foo();
+class driver
+{
+    public static event Foo e;
+    static void Main(string[] args)
+    {
+        Foo x = e;
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        // Note: The locations for errors on generic methods are
+        // name only, while Dev11 uses name + type parameters.
+        [WorkItem(528743)]
+        [Fact]
+        public void GenericMethodLocation()
+        {
+            var source =
+@"interface I
+{
+    void M1<T>() where T : class;
+}
+class C : I
+{
+    public void M1<T>() { }
+    void M2<T>(this object o) { }
+    sealed void M3<T>() { }
+    internal static virtual void M4<T>() { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,17): error CS0425: The constraints for type parameter 'T' of method 'C.M1<T>()' must match the constraints for type parameter 'T' of interface method 'I.M1<T>()'. Consider using an explicit interface implementation instead.
+                //     public void M1<T>() { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M1").WithArguments("T", "C.M1<T>()", "T", "I.M1<T>()").WithLocation(7, 17),
+                // (8,10): error CS1105: Extension method must be static
+                //     void M2<T>(this object o) { }
+                Diagnostic(ErrorCode.ERR_BadExtensionMeth, "M2").WithLocation(8, 10),
+                // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
+                //     sealed void M3<T>() { }
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
+                // (10,34): error CS0112: A static member 'C.M4<T>()' cannot be marked as override, virtual, or abstract
+                //     internal static virtual void M4<T>() { }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
+        }
+
+        [WorkItem(542391)]
+        [Fact]
+        public void PartialMethodOptionalParameters()
+        {
+            var source =
+@"partial class C
+{
+    partial void M1(object o);
+    partial void M1(object o = null) { }
+    partial void M2(object o = null);
+    partial void M2(object o) { }
+    partial void M3(object o = null);
+    partial void M3(object o = null) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,28): warning CS1066: The default value specified for parameter 'o' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     partial void M1(object o = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "o").WithArguments("o"),
+                // (8,28): warning CS1066: The default value specified for parameter 'o' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     partial void M3(object o = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "o").WithArguments("o")
+                );
+        }
+
+        [Fact]
+        [WorkItem(598043)]
+        public void PartialMethodParameterNamesFromDefinition1()
+        {
+            var source = @"
+partial class C
+{
+    partial void F(int i);
+}
+
+partial class C
+{
+    partial void F(int j) { }
+}
+";
+            CompileAndVerify(source, options: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module => 
+            {
+                var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
+                Assert.Equal("i", method.Parameters[0].Name);
+            });
+        }
+
+        [Fact]
+        [WorkItem(598043)]
+        public void PartialMethodParameterNamesFromDefinition2()
+        {
+            var source = @"
+partial class C
+{
+    partial void F(int j) { }
+}
+
+partial class C
+{
+    partial void F(int i);
+}
+";
+            CompileAndVerify(source, options: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
+                Assert.Equal("i", method.Parameters[0].Name);
+            });
+        }
+
+        /// <summary>
+        /// Handle a mix of parameter errors for default values,
+        /// partial methods, and static parameter type.
+        /// </summary>
+        [Fact]
+        public void ParameterErrorsDefaultPartialMethodStaticType()
+        {
+            var source =
+@"static class S { }
+partial class C
+{
+    partial void M(S s = new A());
+    partial void M(S s = new B()) { }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,18): error CS0721: 'S': static types cannot be used as parameters
+                //     partial void M(S s = new A());
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S"),
+                // (5,18): error CS0721: 'S': static types cannot be used as parameters
+                //     partial void M(S s = new B()) { }
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S"),
+                // (5,30): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial void M(S s = new B()) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"),
+                // (5,22): error CS1750: A value of type 'B' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     partial void M(S s = new B()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("B", "S"),
+                // (5,22): warning CS1066: The default value specified for parameter 's' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     partial void M(S s = new B()) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "s").WithArguments("s"),
+                // (4,30): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial void M(S s = new A());
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A"),
+                // (4,22): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     partial void M(S s = new A());
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("A", "S")
+                );
+        }
+
+        [WorkItem(543349)]
+        [Fact]
+        public void Fixed()
+        {
+            var source =
+@"class C
+{
+    unsafe static void M(int[] arg)
+    {
+        fixed (int* ptr = arg) { }
+        fixed (int* ptr = arg) *ptr = 0;
+        fixed (int* ptr = arg) object o = null;
+    }
+}";
+            CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
+                // (7,32): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         fixed (int* ptr = arg) object o = null;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"));
+        }
+
+        [Fact, WorkItem(543426)]
+        void NestedInterfaceImplementationWithOuterGenericType()
+        {
+            CompileAndVerify(@"
+namespace System.ServiceModel
+{
+    class Pipeline<T>
+    {
+        interface IStage
+        {
+            void Process(T context);
+        }
+
+        class AsyncStage : IStage
+        {
+            void IStage.Process(T context) { }
+        }
+    }
+}");
+        }
+
+        /// <summary>
+        /// Error types should be allowed as constant types.
+        /// </summary>
+        [Fact]
+        public void ErrorTypeConst()
+        {
+            var source =
+@"class C
+{
+    const C1 F1 = 0;
+    const C2 F2 = null;
+    static void M()
+    {
+        const C3 c3 = 0;
+        const C4 c4 = null;
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,11): error CS0246: The type or namespace name 'C1' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C1").WithArguments("C1").WithLocation(3, 11),
+                // (4,11): error CS0246: The type or namespace name 'C2' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C2").WithArguments("C2").WithLocation(4, 11),
+                // (7,15): error CS0246: The type or namespace name 'C3' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C3").WithArguments("C3").WithLocation(7, 15),
+                // (8,15): error CS0246: The type or namespace name 'C4' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C4").WithArguments("C4").WithLocation(8, 15));
+        }
+
+        [WorkItem(543777)]
+        [Fact]
+        public void DefaultParameterAtEndOfFile()
+        {
+            var source =
+@"class C
+{
+    static void M(object o = null,";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,35): error CS1031: Type expected
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_TypeExpected, ""),
+
+                // Cascading:
+
+                // (3,35): error CS1001: Identifier expected
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
+                // (3,35): error CS1026: ) expected
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
+                // (3,35): error CS1002: ; expected
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
+                // (3,35): error CS1513: } expected
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
+                // (3,35): error CS1737: Optional parameters must appear after all required parameters
+                //     static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ""),
+                // (3,17): error CS0501: 'C.M(object, ?)' must declare a body because it is not
+                // marked abstract, extern, or partial static void M(object o = null,
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M(object, ?)"));
+        }
+
+        [WorkItem(543814)]
+        [Fact]
+        public void DuplicateNamedArgumentNullLiteral()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        M("""",
+            arg: 0,
+            arg: null);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,13): error CS1740: Named argument 'arg' cannot be specified multiple times
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13));
+        }
+
+        [WorkItem(543820)]
+        [Fact]
+        public void GenericAttributeClassWithMultipleParts()
+        {
+            var source =
+@"class C<T> { }
+class C<T> : System.Attribute { }";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
+                // (2,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute")
+                );
+        }
+
+        [WorkItem(543822)]
+        [Fact]
+        public void InterfaceWithPartialMethodExplicitImplementation()
+        {
+            var source =
+@"interface I
+{
+    partial void I.M();
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,20): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial void I.M();
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M"),
+                // (3,20): error CS0751: A partial method must be declared within a partial class or partial struct
+                //     partial void I.M();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M"),
+                // (3,20): error CS0541: 'I.M()': explicit interface declaration can only be declared in a class or struct
+                //     partial void I.M();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("I.M()")
+                );
+        }
+
+        [WorkItem(545208)]
+        [Fact]
+        public void PartialMethodInsidePartialInterface()
+        {
+            var source =
+@"public partial interface IF
+{
+    partial void Add();
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,18): error CS0751: A partial method must be declared within a partial class or partial struct
+                //    partial void Add();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Add")
+                );
+        }
+
+        [WorkItem(543827)]
+        [Fact]
+        public void StructConstructor()
+        {
+            var source =
+@"struct S
+{
+    private readonly object x;
+    private readonly object y;
+    S(object x, object y)
+    {
+        try
+        {
+            this.x = x;
+        }
+        finally
+        {
+            this.y = y;
+        }
+    }
+    S(S o) : this(o.x, o.y) {}
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [WorkItem(543827)]
+        [Fact]
+        public void StructVersusTryFinally()
+        {
+            var source =
+@"struct S
+{
+    private object x;
+    private object y;
+    static void M()
+    {
+        S s1;
+        try { s1.x = null; } finally { s1.y = null; }
+        S s2 = s1;
+        s1.x = s1.y; s1.y = s1.x;
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [WorkItem(544513)]
+        [Fact()]
+        public void AnonTypesPropSameNameDiffType()
+        {
+            var source =
+@"public class Test
+{
+    public static void Main()
+    {
+        var p1 = new { Price = 495.00 };
+        var p2 = new { Price = ""36.50"" };
+
+        p1 = p2;
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,14): error CS0029: Cannot implicitly convert type 'AnonymousType#1' to 'AnonymousType#2'
+                //        p1 = p2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p2").WithArguments("<anonymous type: string Price>", "<anonymous type: double Price>"));
+        }
+
+        [WorkItem(545869)]
+        [Fact]
+        public void TestSealedOverridenMembers()
+        {
+            CompileAndVerify(
+@"using System;
+
+internal abstract class Base
+{
+    public virtual int Property
+    {
+        get { return 0; }
+        protected set { }
+    }
+    protected virtual event EventHandler Event
+    {
+        add { } remove { }
+    }
+    protected abstract void Method();
+}
+
+internal sealed class Derived : Base
+{
+    public override int Property
+    {
+        get { return 1; }
+        protected set { }
+    }
+    protected override event EventHandler Event;
+    protected override void Method()  { }
+
+    void UseEvent() { Event(null, null); }
+}
+
+internal sealed class Derived2 : Base
+{
+    public override int Property
+    {
+        get; protected set;
+    }
+    protected override event EventHandler Event
+    {
+        add { } remove { }
+    }
+    protected override void Method() { }
+}
+
+class Program
+{
+    static void Main() { }
+}").VerifyDiagnostics();
+        }
+    }
+}

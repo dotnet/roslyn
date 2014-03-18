@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="ModulePropsImports">
+    <Import Project="$(ModuleToolsDirectory)\Microsoft.Modules.props" Condition="Exists('$(ModuleToolsDirectory)\Microsoft.Modules.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>429ec73d-d548-41f1-9ebb-31955842e77c</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Label="Configuration">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Label="Configuration">
+  </PropertyGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.props" />
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="ModuleProperties">
+    <ModuleFileName>GlobalAssemblyCacheHelpers.module</ModuleFileName>
+    <ModuleToolsVersion>0.2.1</ModuleToolsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="FusionAssemblyIdentity.cs" />
+    <None Include="GlobalAssemblyCache.cs" />
+    <None Include="GlobalAssemblyCacheHelpers.module" />
+  </ItemGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.targets" />
+  <ImportGroup Label="ModuleTargetsImports">
+    <Import Project="$(ModuleToolsDirectory)\Microsoft.Modules.targets" Condition="Exists('$(ModuleToolsDirectory)\Microsoft.Modules.targets')" />
+  </ImportGroup>
+</Project>

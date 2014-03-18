@@ -1,0 +1,375 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Diagnostics
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+    ' Rewriting for select case statement.
+    ' 
+    ' Select case statements can be rewritten as: Switch Table or an If list.
+    ' There are certain restrictions and heuristics for determining which approach
+    ' is being chosen for each select case statement. This determination
+    ' is done in Binder.RecommendSwitchTable method and the result is stored in
+    ' BoundSelectStatement.RecommendSwitchTable flag.
+
+    ' For switch table based approach we have an option of completely rewriting the switch header
+    ' and switch sections into simpler constructs, i.e. we can rewrite the select header
+    ' using bound conditional goto statements and the rewrite the case blocks into
+    ' bound labeleled statements.
+    ' However, all the logic for emitting the switch jump tables is language agnostic
+    ' and includes IL optimizations. Hence we delay the switch jump table generation
+    ' till the emit phase. This way we also get additional benefit of sharing this code
+    ' between both VB and C# compilers.
+
+    ' For integral type switch table based statements, we delay almost all the work
+    ' to the emit phase.
+
+    ' For string type switch table based statements, we need to determine if we are generating a hash
+    ' table based jump table or a non hash jump table, i.e. linear string comparisons
+    ' with each case clause string constant. We use the Dev10 C# compiler's heuristic to determine this
+    ' (see SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch() for details).
+    ' If we are generating a hash table based jump table, we use a simple customizable
+    ' hash function to hash the string constants corresponding to the case labels.
+    ' See SwitchStringJumpTableEmitter.ComputeStringHash().
+    ' We need to emit this function to compute the hash value into the compiler generated
+    ' <PrivateImplementationDetails> class. 
+    ' If we have at least one string type select case statement in a module that needs a
+    ' hash table based jump table, we generate a single public string hash sythesized method (SynthesizedStringSwitchHashMethod)
+    ' that is shared across the module.
+
+
+    ' CONSIDER: Ideally generating the SynthesizedStringSwitchHashMethod in <PrivateImplementationDetails>
+    ' CONSIDER: class must be done during code generation, as the lowering does not mention or use
+    ' CONSIDER: the hash function in any way.
+    ' CONSIDER: However this would mean that <PrivateImplementationDetails> class can have 
+    ' CONSIDER: different sets of methods during the code generation phase,
+    ' CONSIDER: which might be problematic if we want to make the emitter multithreaded?
+
+    Partial Friend NotInheritable Class LocalRewriter
+        Public Overrides Function VisitSelectStatement(node As BoundSelectStatement) As BoundNode
+            Return RewriteSelectStatement(node, node.Syntax, node.ExpressionStatement, node.ExprPlaceholderOpt, node.CaseBlocks, node.RecommendSwitchTable, node.ExitLabel)
+        End Function
+
+        Protected Function RewriteSelectStatement(
+            node As BoundSelectStatement,
+            syntaxNode As VisualBasicSyntaxNode,
+            selectExpressionStmt As BoundExpressionStatement,
+            exprPlaceholderOpt As BoundRValuePlaceholder,
+            caseBlocks As ImmutableArray(Of BoundCaseBlock),
+            recommendSwitchTable As Boolean,
+            exitLabel As LabelSymbol
+        ) As BoundNode
+            Dim statementBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
+
+            ' Rewrite select expression
+            Dim rewrittenSelectExpression As BoundExpression = Nothing
+            Dim tempLocals As ImmutableArray(Of LocalSymbol) = Nothing
+            Dim endSelectResumeLabel As BoundLabelStatement = Nothing
+
+            Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
+
+            Dim rewrittenSelectExprStmt = RewriteSelectExpression(generateUnstructuredExceptionHandlingResumeCode,
+                                                                  selectExpressionStmt,
+                                                                  rewrittenSelectExpression,
+                                                                  tempLocals,
+                                                                  statementBuilder,
+                                                                  caseBlocks,
+                                                                  recommendSwitchTable,
+                                                                  endSelectResumeLabel)
+
+            ' Add the select expression placeholder to placeholderReplacementMap
+            If exprPlaceholderOpt IsNot Nothing Then
+                AddPlaceholderReplacement(exprPlaceholderOpt, rewrittenSelectExpression)
+            Else
+                Debug.Assert(node.WasCompilerGenerated)
+            End If
+
+            ' Rewrite select statement
+            If Not caseBlocks.Any() Then
+                ' Add rewritten select expression statement.
+                statementBuilder.Add(rewrittenSelectExprStmt)
+
+            ElseIf recommendSwitchTable Then
+                If rewrittenSelectExpression.Type.IsStringType Then
+                    ' If we are emitting a hash table based string switch, then we need to create a
+                    ' SynthesizedStringSwitchHashMethod and add it to the compiler generated <PrivateImplementationDetails> class.
+                    EnsureStringHashFunction(node)
+                End If
+
+                statementBuilder.Add(node.Update(rewrittenSelectExprStmt, exprPlaceholderOpt, VisitList(caseBlocks), recommendSwitchTable:=True, exitLabel:=exitLabel))
+
+            Else
+                ' Rewrite select statement case blocks as IF List
+                statementBuilder.Add(RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom:=0))
+
+                ' Add label statement for exit label
+                statementBuilder.Add(New BoundLabelStatement(syntaxNode, exitLabel))
+            End If
+
+            If exprPlaceholderOpt IsNot Nothing Then
+                RemovePlaceholderReplacement(exprPlaceholderOpt)
+            End If
+
+            If Me.GenerateDebugInfo Then
+                ' Add End Select sequence point
+                Dim selectSyntax = DirectCast(syntaxNode, SelectBlockSyntax)
+                If selectSyntax IsNot Nothing Then
+                    statementBuilder.Add(New BoundSequencePoint(selectSyntax.EndSelectStatement, endSelectResumeLabel))
+                    endSelectResumeLabel = Nothing
+                End If
+            End If
+
+            If endSelectResumeLabel IsNot Nothing Then
+                statementBuilder.Add(endSelectResumeLabel)
+            End If
+
+            Return New BoundBlock(syntaxNode, Nothing, tempLocals, statementBuilder.ToImmutableAndFree()).MakeCompilerGenerated()
+        End Function
+
+        Private Sub EnsureStringHashFunction(node As BoundSelectStatement)
+            Dim selectCaseExpr = node.ExpressionStatement.Expression
+
+            ' Prefer embedded version of the member if present
+            Dim embeddedOperatorsType As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators)
+            Dim compareStringMember As WellKnownMember =
+                If(embeddedOperatorsType.IsErrorType AndAlso TypeOf embeddedOperatorsType Is MissingMetadataTypeSymbol,
+                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean,
+                   WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
+
+            Dim compareStringMethod = DirectCast(Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
+            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, compareStringMember, compareStringMethod)
+
+            Const stringCharsMember As SpecialMember = SpecialMember.System_String__Chars
+            Dim stringCharsMethod = DirectCast(ContainingAssembly.GetSpecialTypeMember(stringCharsMember), MethodSymbol)
+            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, stringCharsMember, stringCharsMethod)
+
+            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_Int32))
+            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_UInt32))
+            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_String))
+
+            If emitModule Is Nothing Then
+                Return
+            End If
+
+            If Not ShouldGenerateHashTableSwitch(emitModule, node) Then
+                Return
+            End If
+
+            ' If we have already generated this helper method, possibly for another select case
+            ' or on another thread, we don't need to regenerate it.
+            Dim privateImplClass = emitModule.GetPrivateImplClass(node.Syntax, diagnostics)
+            If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
+                Return
+            End If
+
+            Dim method = New SynthesizedStringSwitchHashMethod(emitModule.SourceModule, privateImplClass)
+            privateImplClass.TryAddSynthesizedMethod(method)
+        End Sub
+
+        Private Function RewriteSelectExpression(
+            generateUnstructuredExceptionHandlingResumeCode As Boolean,
+            selectExpressionStmt As BoundExpressionStatement,
+            <Out()> ByRef rewrittenSelectExpression As BoundExpression,
+            <Out()> ByRef tempLocals As ImmutableArray(Of LocalSymbol),
+            statementBuilder As ArrayBuilder(Of BoundStatement),
+            caseBlocks As ImmutableArray(Of BoundCaseBlock),
+            recommendSwitchTable As Boolean,
+            <Out()> ByRef endSelectResumeLabel As BoundLabelStatement
+        ) As BoundExpressionStatement
+
+            Debug.Assert(statementBuilder IsNot Nothing)
+            Debug.Assert(Not caseBlocks.IsDefault)
+
+            Dim selectExprStmtSyntax = selectExpressionStmt.Syntax
+            If Me.GenerateDebugInfo Then
+                ' Add select case begin sequence point
+                statementBuilder.Add(New BoundSequencePoint(selectExprStmtSyntax, Nothing))
+            End If
+
+            If generateUnstructuredExceptionHandlingResumeCode Then
+                RegisterUnstructuredExceptionHandlingResumeTarget(selectExprStmtSyntax, canThrow:=True, statements:=statementBuilder)
+                ' If the Select throws, a Resume Next should branch to the End Select.
+                endSelectResumeLabel = RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(selectExprStmtSyntax)
+            Else
+                endSelectResumeLabel = Nothing
+            End If
+
+
+            ' Rewrite select expression
+            rewrittenSelectExpression = VisitExpressionNode(selectExpressionStmt.Expression)
+
+            ' We will need to store the select case expression into a temporary local if we have at least one case block
+            ' and one of the following is true:
+            ' (1) We are generating If list based code.
+            ' (2) We are generating switch table based code and the select expression is not a bound local expression.
+            '     We need a local for this case because during codeGen we are going to perform a binary search with
+            '     select expression result as the key and might need to load the key multiple times.
+            Dim needTempLocal = caseBlocks.Any() AndAlso (Not recommendSwitchTable OrElse rewrittenSelectExpression.Kind <> BoundKind.Local)
+
+            If needTempLocal Then
+                Dim selectExprType = rewrittenSelectExpression.Type
+
+                ' Store the select expression result in a temp
+                Dim tempLocal = New TempLocalSymbol(Me.currentMethodOrLambda, selectExprType)
+                tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
+
+                Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)
+                statementBuilder.Add(New BoundAssignmentOperator(Syntax:=selectExprStmtSyntax,
+                                                                 Left:=boundTemp,
+                                                                 Right:=rewrittenSelectExpression,
+                                                                 suppressObjectClone:=True,
+                                                                 Type:=selectExprType).ToStatement().MakeCompilerGenerated())
+                rewrittenSelectExpression = boundTemp.MakeRValue()
+            Else
+
+                tempLocals = ImmutableArray(Of LocalSymbol).Empty
+            End If
+
+            Return selectExpressionStmt.Update(rewrittenSelectExpression)
+        End Function
+
+        ' Rewrite select statement case blocks as IF List
+        Private Function RewriteCaseBlocks(
+            generateUnstructuredExceptionHandlingResumeCode As Boolean,
+            caseBlocks As ImmutableArray(Of BoundCaseBlock),
+            startFrom As Integer
+        ) As BoundStatement
+            Debug.Assert(startFrom <= caseBlocks.Length)
+
+            If startFrom = caseBlocks.Length Then
+                Return Nothing
+            End If
+
+            Dim rewrittenStatement As BoundStatement
+
+            Dim curCaseBlock = caseBlocks(startFrom)
+
+            Debug.Assert(generateUnstructuredExceptionHandlingResumeCode = ShouldGenerateUnstructuredExceptionHandlingResumeCode(curCaseBlock))
+
+            Dim unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
+            Dim rewrittenCaseCondition As BoundExpression = RewriteCaseStatement(generateUnstructuredExceptionHandlingResumeCode, curCaseBlock.CaseStatement, unstructuredExceptionHandlingResumeTarget)
+            Dim rewrittenBody = DirectCast(VisitBlock(curCaseBlock.Body), BoundBlock)
+
+            If generateUnstructuredExceptionHandlingResumeCode AndAlso startFrom < caseBlocks.Length - 1 Then
+                ' Add a Resume entry to protect against fall-through to the next Case block.
+                rewrittenBody = AppendToBlock(rewrittenBody, RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(curCaseBlock.Syntax))
+            End If
+
+            If rewrittenCaseCondition Is Nothing Then
+                ' This must be a Case Else Block
+                Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseElseBlock)
+                Debug.Assert(Not curCaseBlock.CaseStatement.CaseClauses.Any())
+
+                ' Only the last block can be a Case Else block 
+                Debug.Assert(startFrom = caseBlocks.Length - 1)
+
+                ' Case Else statement needs a sequence point
+                If Me.GenerateDebugInfo Then
+                    rewrittenStatement = New BoundSequencePoint(curCaseBlock.CaseStatement.Syntax, rewrittenBody)
+                Else
+                    rewrittenStatement = rewrittenBody
+                End If
+            Else
+                Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseBlock)
+
+                rewrittenStatement = RewriteIfStatement(
+                    syntaxNode:=curCaseBlock.Syntax,
+                    conditionSyntax:=curCaseBlock.CaseStatement.Syntax,
+                    rewrittenCondition:=rewrittenCaseCondition,
+                    rewrittenConsequence:=rewrittenBody,
+                    rewrittenAlternative:=RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1),
+                    unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
+            End If
+
+            Return rewrittenStatement
+        End Function
+
+        ' Rewrite case statement as conditional expression
+        Private Function RewriteCaseStatement(
+            generateUnstructuredExceptionHandlingResumeCode As Boolean,
+            node As BoundCaseStatement,
+            <Out()> ByRef unstructuredExceptionHandlingResumeTarget As ImmutableArray(Of BoundStatement)
+        ) As BoundExpression
+            If node.CaseClauses.Any() Then
+                ' Case block
+                Debug.Assert(node.Syntax.Kind = SyntaxKind.CaseStatement)
+                Debug.Assert(node.ConditionOpt IsNot Nothing)
+                unstructuredExceptionHandlingResumeTarget = If(generateUnstructuredExceptionHandlingResumeCode,
+                                                               RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, canThrow:=True),
+                                                               Nothing)
+                Return VisitExpressionNode(node.ConditionOpt)
+            Else
+                ' Case Else block
+                Debug.Assert(node.Syntax.Kind = SyntaxKind.CaseElseStatement)
+                unstructuredExceptionHandlingResumeTarget = Nothing
+                Return Nothing
+            End If
+        End Function
+
+        ' Checks whether we are generating a hash table based string switch
+        Private Shared Function ShouldGenerateHashTableSwitch([module] As Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder, node As BoundSelectStatement) As Boolean
+            Debug.Assert(Not node.HasErrors)
+            Debug.Assert(node.ExpressionStatement.Expression.Type.IsStringType)
+            Debug.Assert(node.RecommendSwitchTable)
+
+            If Not [module].SupportsPrivateImplClass Then
+                Return False
+            End If
+
+            ' compute unique string constants from select clauses.
+            Dim uniqueStringConstants = New HashSet(Of ConstantValue)
+
+            For Each caseBlock In node.CaseBlocks
+                For Each caseClause In caseBlock.CaseStatement.CaseClauses
+                    Dim constant As ConstantValue = Nothing
+                    Select Case caseClause.Kind
+                        Case BoundKind.CaseValueClause
+                            Dim caseValueClause = DirectCast(caseClause, BoundCaseValueClause)
+
+                            Debug.Assert(caseValueClause.ValueOpt IsNot Nothing)
+                            Debug.Assert(caseValueClause.ConditionOpt Is Nothing)
+
+                            constant = caseValueClause.ValueOpt.ConstantValueOpt
+
+                        Case BoundKind.CaseRelationalClause
+                            Dim caseRelationalClause = DirectCast(caseClause, BoundCaseRelationalClause)
+
+                            Debug.Assert(caseRelationalClause.OperatorKind = BinaryOperatorKind.Equals)
+                            Debug.Assert(caseRelationalClause.OperandOpt IsNot Nothing)
+                            Debug.Assert(caseRelationalClause.ConditionOpt Is Nothing)
+
+                            constant = caseRelationalClause.OperandOpt.ConstantValueOpt
+
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)
+                    End Select
+
+                    Debug.Assert(constant IsNot Nothing)
+                    uniqueStringConstants.Add(constant)
+                Next
+            Next
+
+            Return SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch([module], uniqueStringConstants.Count)
+        End Function
+
+        Public Overrides Function VisitCaseBlock(node As BoundCaseBlock) As BoundNode
+            Dim rewritten = DirectCast(MyBase.VisitCaseBlock(node), BoundCaseBlock)
+            Dim rewrittenBody = rewritten.Body
+
+            ' Add a Resume entry to protect against fall-through to the next Case block.
+            If ShouldGenerateUnstructuredExceptionHandlingResumeCode(node) Then
+                rewrittenBody = AppendToBlock(rewrittenBody, RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(node.Syntax))
+            End If
+
+            Return rewritten.Update(rewritten.CaseStatement, rewrittenBody)
+        End Function
+
+    End Class
+End Namespace

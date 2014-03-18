@@ -1,0 +1,106 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Formatting
+{
+    internal abstract partial class AbstractTriviaDataFactory
+    {
+        private const int SpaceCacheSize = 10;
+        private const int LineBreakCacheSize = 5;
+        private const int IndentationLevelCacheSize = 20;
+
+        protected readonly TreeData TreeInfo;
+        protected readonly OptionSet OptionSet;
+
+        private readonly Whitespace[] spaces = new Whitespace[SpaceCacheSize];
+        private readonly Whitespace[,] whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+
+        protected AbstractTriviaDataFactory(TreeData treeInfo, OptionSet optionSet)
+        {
+            Contract.ThrowIfNull(treeInfo);
+            Contract.ThrowIfNull(optionSet);
+
+            this.TreeInfo = treeInfo;
+            this.OptionSet = optionSet;
+
+            for (int i = 0; i < SpaceCacheSize; i++)
+            {
+                this.spaces[i] = new Whitespace(this.OptionSet, space: i, elastic: false, language: treeInfo.Root.Language);
+            }
+        }
+
+        protected TriviaData GetSpaceTriviaData(int space, bool elastic = false)
+        {
+            Contract.ThrowIfFalse(space >= 0);
+
+            // if result has elastic trivia in them, never use cache
+            if (elastic)
+            {
+                return new Whitespace(this.OptionSet, space, elastic: true, language: this.TreeInfo.Root.Language);
+            }
+
+            if (space < SpaceCacheSize)
+            {
+                return this.spaces[space];
+            }
+
+            // create a new space
+            return new Whitespace(this.OptionSet, space, elastic: false, language: this.TreeInfo.Root.Language);
+        }
+
+        protected TriviaData GetWhitespaceTriviaData(int lineBreaks, int indentation, bool useTriviaAsItIs, bool elastic)
+        {
+            Contract.ThrowIfFalse(lineBreaks >= 0);
+            Contract.ThrowIfFalse(indentation >= 0);
+
+            // we can use cache
+            //  #1. if whitespace trivia don't have any elastic trivia and
+            //  #2. analysis (Item1) didnt find anything preventing us from using cache such as trailing whitespace before new line
+            //  #3. number of line breaks (Item2) are under cache capacity (line breaks)
+            //  #4. indenation (Item3) is aligned to indentation level
+            var canUseCache = !elastic &&
+                              useTriviaAsItIs &&
+                              lineBreaks > 0 &&
+                              lineBreaks <= LineBreakCacheSize &&
+                              indentation % this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language) == 0;
+
+            if (canUseCache)
+            {
+                int indentationLevel = indentation / this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language);
+                if (indentationLevel < IndentationLevelCacheSize)
+                {
+                    var lineIndex = lineBreaks - 1;
+                    EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
+                    return this.whitespaces[lineIndex, indentationLevel];
+                }
+            }
+
+            return
+                useTriviaAsItIs ?
+                    new Whitespace(this.OptionSet, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language) :
+                    new ModifiedWhitespace(this.OptionSet, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language);
+        }
+
+        private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
+        {
+            Contract.ThrowIfFalse(lineIndex >= 0 && lineIndex < LineBreakCacheSize);
+            Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < this.whitespaces.Length / this.whitespaces.Rank);
+
+            // set up caches
+            if (this.whitespaces[lineIndex, indentationLevel] == null)
+            {
+                var indentation = indentationLevel * this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language);
+                var triviaInfo = new Whitespace(this.OptionSet, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false, language: this.TreeInfo.Root.Language);
+                Interlocked.CompareExchange(ref this.whitespaces[lineIndex, indentationLevel], triviaInfo, null);
+            }
+        }
+
+        public abstract TriviaData CreateLeadingTrivia(SyntaxToken token);
+        public abstract TriviaData CreateTrailingTrivia(SyntaxToken token);
+        public abstract TriviaData Create(SyntaxToken token1, SyntaxToken token2);
+    }
+}

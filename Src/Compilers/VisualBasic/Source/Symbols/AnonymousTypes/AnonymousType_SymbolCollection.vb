@@ -1,0 +1,239 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Generic
+Imports System.Collections.ObjectModel
+Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.RuntimeMembers
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    Partial Friend NotInheritable Class AnonymousTypeManager
+
+        Public Function ReportMissingOrErroneousSymbols(diagnostics As DiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
+            Debug.Assert(hasClass OrElse hasDelegate)
+            Debug.Assert(Not hasKeys OrElse hasClass)
+
+            Dim hasErrors As Boolean = False
+
+            ' All symbols used with and without keys fields both for classes and delegates
+            ReportErrorOnSymbol(System_Object, diagnostics, hasErrors)
+            ReportErrorOnSymbol(System_Void, diagnostics, hasErrors)
+
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor))
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+
+            If hasDelegate Then
+                ' All symbols used for delegates.
+                ReportErrorOnSymbol(System_IntPtr, diagnostics, hasErrors)
+                ReportErrorOnSymbol(System_IAsyncResult, diagnostics, hasErrors)
+                ReportErrorOnSymbol(System_AsyncCallback, diagnostics, hasErrors)
+                ReportErrorOnSymbol(System_MulticastDelegate, diagnostics, hasErrors)
+
+                ReportErrorOnWellKnownMember(System_Diagnostics_DebuggerDisplayAttribute__Type,
+                                             WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
+                                             diagnostics, hasErrors)
+            End If
+
+            If hasClass Then
+                ' All symbols used with and without keys fields for classes
+                ReportErrorOnSymbol(System_Int32, diagnostics, hasErrors)
+                ReportErrorOnSymbol(System_String, diagnostics, hasErrors)
+
+                ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, hasErrors)
+                ReportErrorOnSpecialMember(System_String__Format, SpecialMember.System_String__Format, diagnostics, hasErrors)
+
+                ' Only symbols used if there are Key fields
+                If hasKeys Then
+                    ReportErrorOnSymbol(System_Boolean, diagnostics, hasErrors)
+                    ReportErrorOnSpecialMember(System_Object__GetHashCode, SpecialMember.System_Object__GetHashCode, diagnostics, hasErrors)
+                    ReportErrorOnSpecialMember(System_Object__Equals, SpecialMember.System_Object__Equals, diagnostics, hasErrors)
+
+                    ReportErrorOnSymbol(System_IEquatable_T, diagnostics, hasErrors)
+                    ReportErrorOnSymbol(System_IEquatable_T_Equals, diagnostics, hasErrors)
+                End If
+            End If
+
+            Return hasErrors
+        End Function
+
+        Private Shared Sub ReportErrorOnSymbol(symbol As Symbol, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+            If symbol IsNot Nothing Then
+                Dim errorInfo As DiagnosticInfo = symbol.GetUseSiteErrorInfo()
+                If errorInfo IsNot Nothing Then
+                    diagnostics.Add(errorInfo, NoLocation.Singleton)
+                    hasError = True
+                End If
+            End If
+        End Sub
+
+        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+            If symbol Is Nothing Then
+                Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
+                diagnostics.Add(ERRID.ERR_MissingRuntimeHelper, NoLocation.Singleton,
+                                CType(memberDescriptor.DeclaringTypeId, WellKnownType).GetMetadataName() & "." & memberDescriptor.Name)
+                hasError = True
+
+            Else
+                ReportErrorOnSymbol(symbol, diagnostics, hasError)
+                ReportErrorOnSymbol(symbol.ContainingType, diagnostics, hasError)
+            End If
+        End Sub
+
+        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+            If symbol Is Nothing Then
+                Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
+                diagnostics.Add(ERRID.ERR_MissingRuntimeHelper, NoLocation.Singleton,
+                                CType(memberDescriptor.DeclaringTypeId, SpecialType).GetMetadataName() & "." & memberDescriptor.Name)
+                hasError = True
+
+            Else
+                ReportErrorOnSymbol(symbol, diagnostics, hasError)
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Checks if all special and well-known symbols required for emitting anonymous types 
+        ''' provided exist, if not reports errors and returns True.
+        ''' </summary>
+        Private Function CheckAndReportMissingSymbols(anonymousTypes As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol), diagnostics As DiagnosticBag) As Boolean
+            Dim hasClass As Boolean = False
+            Dim hasDelegate As Boolean = False
+            Dim hasKeys As Boolean = False
+            For Each t In anonymousTypes
+                Select Case t.TypeKind
+                    Case TypeKind.Class
+                        hasClass = True
+                        If DirectCast(t, AnonymousTypeTemplateSymbol).HasAtLeastOneKeyField Then
+                            hasKeys = True
+                            If hasDelegate Then
+                                Exit For
+                            End If
+                        End If
+                    Case TypeKind.Delegate
+                        hasDelegate = True
+                        If hasKeys Then
+                            Exit For
+                        End If
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(t.TypeKind)
+                End Select
+            Next
+
+            Return If(hasClass OrElse hasDelegate, Me.ReportMissingOrErroneousSymbols(diagnostics, hasClass, hasDelegate, hasKeys), True)
+        End Function
+
+        Public ReadOnly Property System_Boolean As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_Boolean)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Int32 As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_Int32)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Object As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_Object)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_IntPtr As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_IntPtr)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_IAsyncResult As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_IAsyncResult)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_AsyncCallback As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_AsyncCallback)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_MulticastDelegate As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_MulticastDelegate)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_String As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_String)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Void As NamedTypeSymbol
+            Get
+                Return Compilation.GetSpecialType(SpecialType.System_Void)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_String__Format As MethodSymbol
+            Get
+                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_String__Format), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Object__ToString As MethodSymbol
+            Get
+                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__ToString), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor As MethodSymbol
+            Get
+                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Diagnostics_DebuggerDisplayAttribute__ctor As MethodSymbol
+            Get
+                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Diagnostics_DebuggerDisplayAttribute__Type As PropertySymbol
+            Get
+                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type), PropertySymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Object__GetHashCode As MethodSymbol
+            Get
+                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_Object__Equals As MethodSymbol
+            Get
+                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__Equals), MethodSymbol)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_IEquatable_T As NamedTypeSymbol
+            Get
+                Return Compilation.GetWellKnownType(WellKnownType.System_IEquatable_T)
+            End Get
+        End Property
+
+        Public ReadOnly Property System_IEquatable_T_Equals As MethodSymbol
+            Get
+                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_IEquatable_T__Equals), MethodSymbol)
+            End Get
+        End Property
+
+    End Class
+
+End Namespace

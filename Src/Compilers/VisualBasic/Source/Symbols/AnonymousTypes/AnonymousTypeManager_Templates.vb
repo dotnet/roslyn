@@ -1,0 +1,368 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Concurrent
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports System.Diagnostics
+Imports System.Threading
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    Partial Friend NotInheritable Class AnonymousTypeManager
+
+        ''' <summary> Cache of created anonymous types </summary>
+        Private _concurrentTypesCache As ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol) = Nothing
+
+        ''' <summary> Cache of created anonymous delegates </summary>
+        Private _concurrentDelegatesCache As ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol) = Nothing
+
+        ''' <summary> 
+        ''' We should not see new anonymous types from source after we finished emit phase. 
+        ''' If this field is true, the collection is sealed; in DEBUG it also is used to check the assertion.
+        ''' </summary>
+        Private _anonymousTypeTemplatesIsSealed As Integer = ThreeState.False
+
+        ''' <summary>
+        ''' Collection of anonymous type templates is sealed 
+        ''' </summary>
+        Friend ReadOnly Property AreTemplatesSealed As Boolean
+            Get
+                Return _anonymousTypeTemplatesIsSealed = ThreeState.True
+            End Get
+        End Property
+
+#If DEBUG Then
+        ''' <summary>
+        ''' Holds a collection of all the locations of anonymous types and delegates from source
+        ''' </summary>
+        Private _sourceLocationsSeen As New ConcurrentDictionary(Of Location, Boolean)
+#End If
+
+        <Conditional("DEBUG")>
+        Private Sub CheckSourceLocationSeen(anonymous As AnonymousTypeOrDelegatePublicSymbol)
+#If DEBUG Then
+            Dim location As Location = anonymous.Locations(0)
+            If location.IsInSource Then
+                If Me._anonymousTypeTemplatesIsSealed = ThreeState.True Then
+                    Debug.Assert(Me._sourceLocationsSeen.ContainsKey(location))
+                Else
+                    Me._sourceLocationsSeen.TryAdd(location, True)
+                End If
+            End If
+#End If
+        End Sub
+
+        Private ReadOnly Property AnonymousTypeTemplates As ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol)
+            Get
+                ' Lazily create a template types cache
+                If Me._concurrentTypesCache Is Nothing Then
+
+                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                    Dim previousCache = If(previousSubmission Is Nothing, Nothing,
+                                       previousSubmission.AnonymousTypeManager._concurrentTypesCache)
+
+                    Interlocked.CompareExchange(Me._concurrentTypesCache,
+                                            If(previousCache Is Nothing,
+                                               New ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol),
+                                               New ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol)(previousCache)),
+                                            Nothing)
+                End If
+
+                Return Me._concurrentTypesCache
+            End Get
+        End Property
+
+        Private ReadOnly Property AnonymousDelegateTemplates As ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol)
+            Get
+                If Me._concurrentDelegatesCache Is Nothing Then
+                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                    Dim previousCache = If(previousSubmission Is Nothing, Nothing,
+                                       previousSubmission.AnonymousTypeManager._concurrentDelegatesCache)
+
+                    Interlocked.CompareExchange(Me._concurrentDelegatesCache,
+                                            If(previousCache Is Nothing,
+                                               New ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol),
+                                               New ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol)(previousCache)),
+                                            Nothing)
+                End If
+
+                Return Me._concurrentDelegatesCache
+            End Get
+        End Property
+
+        ''' <summary> 
+        ''' Given anonymous type public symbol construct an anonymous type symbol to be used 
+        ''' in emit; the type symbol is created based on generic type generated for each 
+        ''' 'unique' anonymous type structure.
+        ''' </summary>
+        Private Function ConstructAnonymousTypeImplementationSymbol(anonymous As AnonymousTypePublicSymbol) As NamedTypeSymbol
+            CheckSourceLocationSeen(anonymous)
+
+            Dim typeDescr As AnonymousTypeDescriptor = anonymous.TypeDescriptor
+            Debug.Assert(typeDescr.IsGood)
+
+            ' Get anonymous type template
+            Dim template As AnonymousTypeTemplateSymbol = Nothing
+            Dim typeKey As String = typeDescr.Key
+
+            If Not AnonymousTypeTemplates.TryGetValue(typeKey, template) Then
+                template = AnonymousTypeTemplates.GetOrAdd(typeKey, New AnonymousTypeTemplateSymbol(Me, typeDescr))
+            End If
+
+            ' Adjust names in the template
+            If template.Manager Is Me Then
+                template.AdjustMetadataNames(typeDescr)
+            End If
+
+            ' Specialize anonymous type template with field types, adjusted names and locations
+            Dim typeArguments = typeDescr.Fields.SelectAsArray(Function(f) f.Type)
+            Return template.Construct(typeArguments)
+        End Function
+
+        ''' <summary> 
+        ''' Given anonymous delegate public symbol construct an anonymous type symbol to be 
+        ''' used in emit; the type symbol may be created based on generic type generated for 
+        ''' each 'unique' anonymous delegate structure OR if the delegate's signature is 
+        ''' 'Sub()' it will be an instance of NonGenericAnonymousDelegateSymbol type.
+        ''' </summary>
+        Private Function ConstructAnonymousDelegateImplementationSymbol(anonymous As AnonymousDelegatePublicSymbol) As NamedTypeSymbol
+            CheckSourceLocationSeen(anonymous)
+
+            Dim delegateDescr As AnonymousTypeDescriptor = anonymous.TypeDescriptor
+            Debug.Assert(delegateDescr.IsGood)
+            Dim parameters As ImmutableArray(Of AnonymousTypeField) = delegateDescr.Parameters
+
+            ' Get anonymous template
+            Dim template As AnonymousDelegateTemplateSymbol = Nothing
+            Dim delegateKey As String = delegateDescr.Key
+
+            If Not AnonymousDelegateTemplates.TryGetValue(delegateKey, template) Then
+                template = AnonymousDelegateTemplates.GetOrAdd(delegateKey, AnonymousDelegateTemplateSymbol.Create(Me, delegateDescr))
+            End If
+
+            ' Adjust names in the template
+            If template.Manager Is Me Then
+                template.AdjustMetadataNames(delegateDescr)
+            End If
+
+            ' 'template' may be an instance of NonGenericAnonymousDelegateSymbol if which case 
+            ' we can just return it, otherwise we need to construct type using the parameters
+            If template.Arity = 0 Then
+                Return template
+            End If
+
+            ' Specialize anonymous delegate template with parameter types, adjusted names and locations
+            Dim typeArguments() As TypeSymbol = New TypeSymbol(template.Arity - 1) {}
+            For index = 0 To template.Arity - 1
+                typeArguments(index) = parameters(index).Type
+            Next
+            Return template.Construct(typeArguments)
+        End Function
+
+        Private Sub AddFromCache(Of T As AnonymousTypeOrDelegateTemplateSymbol)(
+                            builder As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol),
+                            cache As ConcurrentDictionary(Of String, T))
+
+            If cache IsNot Nothing Then
+                For Each template In cache.Values
+                    If template.Manager Is Me Then
+                        builder.Add(template)
+                    End If
+                Next
+            End If
+        End Sub
+
+        Private Shared Function CreatePlaceholderTypeDescriptor(key As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey) As AnonymousTypeDescriptor
+            Dim names = key.Names.SelectAsArray(Function(n) New AnonymousTypeField(n, Location.None))
+            Return New AnonymousTypeDescriptor(names, Location.None, True)
+        End Function
+
+        ''' <summary>
+        ''' Resets numbering in anonymous type names and compiles the
+        ''' anonymous type methods. Also seals the collection of templates.
+        ''' </summary>
+        Public Sub AssignTemplatesNamesAndCompile(compiler As VisualBasicCompilation.MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As DiagnosticBag)
+
+            Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
+            If previousGeneration IsNot Nothing Then
+                ' Ensure all previous anonymous type templates are included so the
+                ' types are available for subsequent edit and continue generations.
+                For Each key In previousGeneration.AnonymousTypeMap.Keys
+                    Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) False)
+                    If key.IsDelegate Then
+                        AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
+                    Else
+                        AnonymousTypeTemplates.GetOrAdd(templateKey, Function(k) New AnonymousTypeTemplateSymbol(Me, CreatePlaceholderTypeDescriptor(key)))
+                    End If
+                Next
+            End If
+
+            ' Get all anonymous types owned by this manager
+            Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
+            GetAllCreatedTemplates(builder)
+
+            ' If the collection is not sealed yet we should assign new indexes 
+            ' to the created anonymous type and delegate templates
+            If _anonymousTypeTemplatesIsSealed <> ThreeState.True Then
+
+                ' Sort types and delegates using smallest location
+                builder.Sort(New AnonymousTypeComparer(Me.Compilation))
+
+                ' If we are emitting .NET module, include module's name into type's name to ensure
+                ' uniqueness across added modules.
+                Dim moduleId As String
+
+                If moduleBeingBuilt.OutputKind = OutputKind.NetModule Then
+                    moduleId = moduleBeingBuilt.Name
+                    Dim extension As String = OutputKind.NetModule.GetDefaultExtension()
+
+                    If moduleId.EndsWith(extension, StringComparison.OrdinalIgnoreCase) Then
+                        moduleId = moduleId.Substring(0, moduleId.Length - extension.Length)
+                    End If
+
+                    moduleId = "<" & moduleId.Replace("."c, "_"c) & ">"
+                Else
+                    moduleId = String.Empty
+                End If
+
+                Dim typeIndex = If(previousGeneration Is Nothing, 0, previousGeneration.GetNextAnonymousTypeIndex(fromDelegates:=False))
+                Dim delegateIndex = If(previousGeneration Is Nothing, 0, previousGeneration.GetNextAnonymousTypeIndex(fromDelegates:=True))
+                For Each template In builder
+                    Dim name As String = Nothing
+                    Dim index As Integer = 0
+                    If Not moduleBeingBuilt.TryGetAnonymousTypeName(template, name, index) Then
+                        Select Case template.TypeKind
+                            Case TypeKind.Delegate
+                                index = delegateIndex
+                                delegateIndex += 1
+                            Case TypeKind.Class
+                                index = typeIndex
+                                typeIndex += 1
+                            Case Else
+                                Throw ExceptionUtilities.UnexpectedValue(template.TypeKind)
+                        End Select
+                        Dim slotIndex = Compilation.GetSubmissionSlotIndex()
+                        name = GeneratedNames.MakeAnonymousTypeTemplateName(template.GeneratedNamePrefix, index, slotIndex, moduleId)
+                    End If
+                    ' normally it should only happen once, but in case there is a race
+                    ' NameAndIndex.set has an assert which guarantees that the
+                    ' template name provided is the same as the one already assigned
+                    template.NameAndIndex = New NameAndIndex(name, index)
+                Next
+
+                _anonymousTypeTemplatesIsSealed = ThreeState.True
+            End If
+
+            If builder.Count > 0 AndAlso Not Me.CheckAndReportMissingSymbols(builder, diagnostics) Then
+
+                ' Process all the templates
+                For newIndex = 0 To builder.Count - 1
+                    builder(newIndex).Accept(compiler)
+                Next
+            End If
+
+            builder.Free()
+        End Sub
+
+        Friend Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
+            Return DirectCast(type, AnonymousTypeOrDelegateTemplateSymbol).GetAnonymousTypeKey()
+        End Function
+
+        Friend Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+            Dim result = New Dictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+            Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
+            GetAllCreatedTemplates(builder)
+            For Each template In builder
+                Dim nameAndIndex = template.NameAndIndex
+                Dim key = template.GetAnonymousTypeKey()
+                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template)
+                result.Add(key, value)
+            Next
+            builder.Free()
+            Return result
+        End Function
+
+        Friend Shared Function IsAnonymousTypeTemplate(type As NamedTypeSymbol) As Boolean
+            Return TypeOf type Is AnonymousTypeOrDelegateTemplateSymbol
+        End Function
+
+        ''' <summary>
+        ''' Translates anonymous type public symbol into an implementation type symbol to be used in emit.
+        ''' </summary>
+        Friend Shared Function TranslateAnonymousTypeSymbol(type As NamedTypeSymbol) As NamedTypeSymbol
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(type.IsAnonymousType)
+
+            Dim anonymous = DirectCast(type, AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)
+            Return anonymous.MapToImplementationSymbol()
+        End Function
+
+        ''' <summary>
+        ''' Translates anonymous type method symbol into an implementation method symbol to be used in emit.
+        ''' </summary>
+        Friend Shared Function TranslateAnonymousTypeMethodSymbol(method As MethodSymbol) As MethodSymbol
+            Dim type = method.ContainingType
+            Debug.Assert(type.IsAnonymousType)
+
+            Dim anonymousType = DirectCast(type, AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)
+            Return anonymousType.MapMethodToImplementationSymbol(method)
+        End Function
+
+        ''' <summary> Returns all templates owned by this type manager </summary>
+        Friend ReadOnly Property AllCreatedTemplates As ImmutableArray(Of NamedTypeSymbol)
+            Get
+                ' NOTE: templates may not be sealed at this point in case metadata is being emitted without IL
+                Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
+                GetAllCreatedTemplates(builder)
+                Return StaticCast(Of NamedTypeSymbol).From(builder.ToImmutableAndFree())
+            End Get
+        End Property
+
+        Private Sub GetAllCreatedTemplates(builder As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol))
+            AddFromCache(builder, Me._concurrentTypesCache)
+            AddFromCache(builder, Me._concurrentDelegatesCache)
+        End Sub
+
+        Private NotInheritable Class AnonymousTypeComparer
+            Implements IComparer(Of AnonymousTypeOrDelegateTemplateSymbol)
+
+            Private ReadOnly _compilation As VisualBasicCompilation
+
+            Friend Sub New(compilation As VisualBasicCompilation)
+                Me._compilation = compilation
+            End Sub
+
+            Public Function Compare(x As AnonymousTypeOrDelegateTemplateSymbol, y As AnonymousTypeOrDelegateTemplateSymbol) As Integer Implements IComparer(Of AnonymousTypeOrDelegateTemplateSymbol).Compare
+                If x Is y Then
+                    Return 0
+                End If
+
+                ' We compare two anonymous type templates by comparing their smallest locations
+                ' NOTE: If anonymous type got to this phase it must have the location set
+                Dim result = CompareLocations(x.SmallestLocation, y.SmallestLocation)
+                If result = 0 Then
+                    ' Two templates may have same location if they are created indirectly (for example for queries) 
+                    ' and reference the same syntax node, in this case we also compare 'keys' of their descriptors
+                    result = x.TypeDescriptorKey.CompareTo(y.TypeDescriptorKey)
+                End If
+
+                Debug.Assert(result <> 0)
+                Return result
+            End Function
+
+            Private Function CompareLocations(x As Location, y As Location) As Integer
+                If x Is y Then
+                    Return 0
+                ElseIf x = Location.None Then
+                    Return -1
+                ElseIf y = Location.None Then
+                    Return 1
+                Else
+                    Return _compilation.CompareSourceLocations(x, y)
+                End If
+            End Function
+        End Class
+
+    End Class
+
+End Namespace

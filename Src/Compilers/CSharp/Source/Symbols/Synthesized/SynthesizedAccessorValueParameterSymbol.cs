@@ -1,0 +1,46 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    /// <summary>
+    /// Represents the compiler generated value parameter for property/event accessor.
+    /// This parameter has no source location/syntax, but may have attributes.
+    /// Attributes with 'param' target specifier on the accessor must be applied to the this parameter.
+    /// </summary>
+    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
+    {
+        // NOTE: hasByRefBeforeCustomModifiers is always false since RefKind is always None.
+        public SynthesizedAccessorValueParameterSymbol(SourceMethodSymbol accessor, TypeSymbol paramType, int ordinal, ImmutableArray<CustomModifier> customModifiers)
+            : base(accessor, ordinal, paramType, RefKind.None, customModifiers, false, ParameterSymbol.ValueParameterName, accessor.Locations,
+                   syntaxRef: null,
+                   defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
+                   isParams: false,
+                   isExtensionMethodThis: false)
+        {
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get { return true; }
+        }
+
+
+        protected override IAttributeTargetSymbol AttributeOwner
+        {
+            get { return (SourceMethodSymbol)this.ContainingSymbol; }
+        }
+
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // Bind the attributes on the accessor's attribute syntax list with "param" target specifier.
+            var accessor = (SourceMethodSymbol)this.ContainingSymbol;
+            return accessor.GetAttributeDeclarations();
+        }
+    }
+}

@@ -1,0 +1,240 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+    Friend Class PropertyGenerator
+        Inherits AbstractVisualBasicCodeGenerator
+
+        Private Shared Function LastPropertyOrField(Of TDeclaration As SyntaxNode)(
+                members As SyntaxList(Of TDeclaration)) As TDeclaration
+            Dim lastProperty = members.LastOrDefault(Function(m) m.VisualBasicKind = SyntaxKind.PropertyBlock OrElse m.VisualBasicKind = SyntaxKind.PropertyStatement)
+            Return If(lastProperty, LastField(members))
+        End Function
+
+        Friend Shared Function AddPropertyTo(destination As CompilationUnitSyntax,
+                            [property] As IPropertySymbol,
+                            options As CodeGenerationOptions,
+                            availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
+            Dim propertyDeclaration = GeneratePropertyDeclaration([property], CodeGenerationDestination.CompilationUnit, options)
+
+            Dim members = Insert(destination.Members, propertyDeclaration, options, availableIndices,
+                                 after:=AddressOf LastPropertyOrField, before:=AddressOf FirstMember)
+
+            Return destination.WithMembers(SyntaxFactory.List(members))
+        End Function
+
+        Friend Shared Function AddPropertyTo(destination As TypeBlockSyntax,
+                                    [property] As IPropertySymbol,
+                                    options As CodeGenerationOptions,
+                                    availableIndices As IList(Of Boolean)) As TypeBlockSyntax
+            Dim propertyDeclaration = GeneratePropertyDeclaration([property], GetDestination(destination), options)
+
+            Dim members = Insert(destination.Members, propertyDeclaration, options, availableIndices,
+                                 after:=AddressOf LastPropertyOrField, before:=AddressOf FirstMember)
+
+            ' Find the best place to put the field.  It should go after the last field if we already
+            ' have fields, or at the beginning of the file if we don't.
+            Return FixTerminators(destination.WithMembers(members))
+        End Function
+
+        Public Shared Function GeneratePropertyDeclaration([property] As IPropertySymbol,
+                                                           destination As CodeGenerationDestination,
+                                                           options As CodeGenerationOptions) As StatementSyntax
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)([property], options)
+            If reusableSyntax IsNot Nothing Then
+                Return reusableSyntax
+            End If
+
+            Dim declaration = GeneratePropertyDeclarationWorker([property], destination, options)
+
+            Return AddAnnotationsTo([property],
+                AddCleanupAnnotationsTo(
+                    ConditionallyAddDocumentationCommentTo(declaration, [property], options)))
+        End Function
+
+        Private Shared Function GeneratePropertyDeclarationWorker([property] As IPropertySymbol,
+                                                                  destination As CodeGenerationDestination,
+                                                                  options As CodeGenerationOptions) As StatementSyntax
+
+            Dim implementsClauseOpt = GenerateImplementsClause([property].ExplicitInterfaceImplementations.FirstOrDefault())
+
+            Dim parameterList = GeneratePropertyParameterList([property], options)
+            Dim asClause = GenerateAsClause([property], options)
+            Dim begin = SyntaxFactory.PropertyStatement(identifier:=[property].Name.ToIdentifierToken).
+                WithAttributeLists(AttributeGenerator.GenerateAttributeBlocks([property].GetAttributes(), options)).
+                WithModifiers(GenerateModifiers([property], destination, options, parameterList)).
+                WithParameterList(parameterList).
+                WithAsClause(asClause).
+                WithImplementsClause(implementsClauseOpt)
+
+            ' If it's abstract or an auto-prop without a backing field, then we make just a single
+            ' statement.
+            Dim getMethod = [property].GetMethod
+            Dim setMethod = [property].SetMethod
+            Dim hasStatements =
+                (getMethod IsNot Nothing AndAlso Not getMethod.IsAbstract) OrElse
+                (setMethod IsNot Nothing AndAlso Not setMethod.IsAbstract)
+
+            Dim hasNoBody =
+                Not options.GenerateMethodBodies OrElse
+                destination = CodeGenerationDestination.InterfaceType OrElse
+                [property].IsAbstract OrElse
+                Not hasStatements
+
+            If hasNoBody Then
+                Return begin
+            End If
+
+            Return SyntaxFactory.PropertyBlock(
+                begin,
+                accessors:=GenerateAccessorList([property], destination, options),
+                endPropertyStatement:=SyntaxFactory.EndPropertyStatement())
+        End Function
+
+        Private Shared Function GeneratePropertyParameterList([property] As IPropertySymbol, options As CodeGenerationOptions) As ParameterListSyntax
+            If [property].Parameters.IsDefault OrElse [property].Parameters.Length = 0 Then
+                Return Nothing
+            End If
+
+            Return ParameterGenerator.GenerateParameterList([property].Parameters, options)
+        End Function
+
+        Private Shared Function GenerateAccessorList([property] As IPropertySymbol,
+                                                     destination As CodeGenerationDestination,
+                                                     options As CodeGenerationOptions) As SyntaxList(Of AccessorBlockSyntax)
+            Dim accessors = New List(Of AccessorBlockSyntax) From {
+                GenerateAccessor([property], [property].GetMethod, isGetter:=True, destination:=destination, options:=options),
+                GenerateAccessor([property], [property].SetMethod, isGetter:=False, destination:=destination, options:=options)
+            }
+
+            Return SyntaxFactory.List(accessors.WhereNotNull())
+        End Function
+
+        Private Shared Function GenerateAccessor([property] As IPropertySymbol,
+                                                 accessor As IMethodSymbol,
+                                                 isGetter As Boolean,
+                                                 destination As CodeGenerationDestination,
+                                                 options As CodeGenerationOptions) As AccessorBlockSyntax
+            If accessor Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim statementKind = If(isGetter, SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement)
+            Dim blockKind = If(isGetter, SyntaxKind.PropertyGetBlock, SyntaxKind.PropertySetBlock)
+
+            If isGetter Then
+                Return SyntaxFactory.PropertyGetBlock(
+                    SyntaxFactory.GetAccessorStatement().WithModifiers(GenerateAccessorModifiers([property], accessor, destination, options)),
+                    GenerateAccessorStatements(accessor),
+                    SyntaxFactory.EndGetStatement())
+            Else
+                Return SyntaxFactory.PropertySetBlock(
+                    SyntaxFactory.SetAccessorStatement() _
+                          .WithModifiers(GenerateAccessorModifiers([property], accessor, destination, options)) _
+                          .WithParameterList(SyntaxFactory.ParameterList(parameters:=SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Parameter(identifier:=SyntaxFactory.ModifiedIdentifier("value")).WithAsClause(SyntaxFactory.SimpleAsClause(type:=[property].Type.GenerateTypeSyntax()))))),
+                    GenerateAccessorStatements(accessor),
+                    SyntaxFactory.EndSetStatement())
+            End If
+        End Function
+
+        Private Shared Function GenerateAccessorStatements(accessor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
+            Dim statementsOpt = CodeGenerationMethodInfo.GetStatements(accessor)
+            If statementsOpt IsNot Nothing Then
+                Return SyntaxFactory.List(statementsOpt.OfType(Of StatementSyntax))
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Private Shared Function GenerateAccessorModifiers([property] As IPropertySymbol,
+                                                           accessor As IMethodSymbol,
+                                                           destination As CodeGenerationDestination,
+                                                           options As CodeGenerationOptions) As SyntaxTokenList
+            If accessor.DeclaredAccessibility = Accessibility.NotApplicable OrElse
+               accessor.DeclaredAccessibility = [property].DeclaredAccessibility Then
+                Return New SyntaxTokenList()
+            End If
+
+            Dim modifiers = New List(Of SyntaxToken)()
+            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, destination, options, Accessibility.Public)
+            Return SyntaxFactory.TokenList(modifiers)
+        End Function
+
+        Private Shared Function GenerateModifiers([property] As IPropertySymbol,
+                                                  destination As CodeGenerationDestination,
+                                                  options As CodeGenerationOptions,
+                                                  parameterList As ParameterListSyntax) As SyntaxTokenList
+            Dim tokens = New List(Of SyntaxToken)()
+
+            If [property].IsIndexer Then
+                Dim hasRequiredParameter = parameterList IsNot Nothing AndAlso parameterList.Parameters.Any(AddressOf IsRequired)
+                If hasRequiredParameter Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
+                End If
+            End If
+
+            If destination <> CodeGenerationDestination.InterfaceType Then
+                AddAccessibilityModifiers([property].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+
+                If [property].IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                End If
+
+                If CodeGenerationPropertyInfo.GetIsNew([property]) Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
+                End If
+
+                If [property].IsVirtual Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
+                End If
+
+                If [property].IsOverride Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
+                End If
+
+                If [property].IsAbstract Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                End If
+
+                If [property].IsSealed Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
+                End If
+            End If
+
+            If [property].GetMethod Is Nothing AndAlso
+               [property].SetMethod IsNot Nothing Then
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
+            End If
+
+            If [property].SetMethod Is Nothing AndAlso
+               [property].GetMethod IsNot Nothing Then
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+            End If
+
+            Return SyntaxFactory.TokenList(tokens)
+        End Function
+
+        Private Shared Function IsRequired(parameter As ParameterSyntax) As Boolean
+            Return parameter.Modifiers.Count = 0 OrElse
+                parameter.Modifiers.Any(SyntaxKind.ByValKeyword) OrElse
+                parameter.Modifiers.Any(SyntaxKind.ByRefKeyword)
+        End Function
+
+        Private Shared Function GenerateAsClause([property] As IPropertySymbol, options As CodeGenerationOptions) As AsClauseSyntax
+            Dim attributes = If([property].GetMethod IsNot Nothing,
+                                AttributeGenerator.GenerateAttributeBlocks([property].GetMethod.GetReturnTypeAttributes(), options),
+                                Nothing)
+            Return SyntaxFactory.SimpleAsClause(attributes, [property].Type.GenerateTypeSyntax())
+        End Function
+    End Class
+End Namespace

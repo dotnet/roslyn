@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="ModulePropsImports">
+    <Import Project="$(ModuleToolsDirectory)\Microsoft.Modules.props" Condition="Exists('$(ModuleToolsDirectory)\Microsoft.Modules.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>D10C08BD-D074-4F73-8157-4B282FAD2E1D</ProjectGuid>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Label="Configuration">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Label="Configuration">
+  </PropertyGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.props" />
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="ModuleProperties">
+    <ModuleFileName>Microsoft.CodeAnalysis.Toolset.Open.module</ModuleFileName>
+    <ModuleToolsVersion>0.2.1</ModuleToolsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Microsoft.CodeAnalysis.Toolset.Open.module" />
+    <None Include="Strong Name Keys\35MSSharedLib1024.snk" />
+    <None Include="Strong Name Keys\RoslynInternalKey.Private.snk" />
+    <None Include="Strong Name Keys\RoslynInternalKey.Public.snk" />
+    <None Include="StyleCop\Settings.StyleCop" />
+    <None Include="StyleCop\VisualStudio.Settings.StyleCop" />
+    <None Include="Targets\GenerateAssemblyInfo.targets" />
+    <None Include="Targets\GenerateCompilerInternals.targets" />
+    <None Include="Targets\GenerateInternalsVisibleTo.targets" />
+    <None Include="Targets\GenerateVersionInfoResourceFile.targets" />
+    <None Include="Targets\VSL.Imports.targets" />
+    <None Include="Targets\VSL.Settings.targets" />
+  </ItemGroup>
+  <Import Project="$(ModuleToolsDirectory)\Project\ModuleProject.targets" />
+  <ImportGroup Label="ModuleTargetsImports">
+    <Import Project="$(ModuleToolsDirectory)\Microsoft.Modules.targets" Condition="Exists('$(ModuleToolsDirectory)\Microsoft.Modules.targets')" />
+  </ImportGroup>
+</Project>

@@ -1,0 +1,76 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    ''' <summary>
+    ''' Represents a backing field of WithEvents property. 
+    ''' Attributes applied on the property syntax are applied on the backing field.
+    ''' </summary>
+    Friend NotInheritable Class SourceWithEventsBackingFieldSymbol
+        Inherits SourceMemberFieldSymbol
+
+        Private m_property As SourcePropertySymbol
+
+        Public Sub New([property] As SourcePropertySymbol,
+                       syntaxRef As SyntaxReference,
+                       name As String)
+
+            MyBase.New([property].ContainingSourceType,
+                       syntaxRef,
+                       name,
+                       SourceMemberFlags.AccessibilityPrivate Or If([property].IsShared, SourceMemberFlags.Shared, SourceMemberFlags.None))
+
+            m_property = [property]
+        End Sub
+
+        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+            Get
+                Return m_property
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
+            Get
+                Return ImmutableArray(Of SyntaxReference).Empty
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
+            Get
+                Return m_property
+            End Get
+        End Property
+
+        Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(attributes)
+
+            Dim compilation = m_property.DeclaringCompilation
+
+            Debug.Assert(Not Me.ContainingType.IsImplicitlyDeclared)
+
+            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+
+            AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute())
+
+            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+               WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
+               ImmutableArray.Create(New TypedConstant(compilation.GetSpecialType(SpecialType.System_String),
+                                                               TypedConstantKind.Primitive,
+                                                               AssociatedPropertyOrEvent.Name))))
+        End Sub
+    End Class
+End Namespace

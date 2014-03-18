@@ -1,0 +1,206 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+namespace Microsoft.CodeAnalysis.InternalUtilities
+{
+    /// <summary>
+    /// Cache with a fixed size that evictes the least recently used members.
+    /// Thread-safe.
+    /// </summary>
+    internal class ConcurrentLruCache<K, V>
+    {
+        private readonly int capacity;
+
+        private struct CacheValue
+        {
+            public V Value;
+            public LinkedListNode<K> Node;
+        }
+
+        private readonly Dictionary<K, CacheValue> cache;
+        private readonly LinkedList<K> nodeList;
+        // This is a naive course-grained lock, it can probably be optimized
+        private readonly object lockObject = new object();
+
+        public ConcurrentLruCache(int capacity)
+        {
+            if (capacity <= 0)
+            {
+                throw new ArgumentOutOfRangeException("capacity");
+            }
+            this.capacity = capacity;
+            cache = new Dictionary<K, CacheValue>(capacity);
+            nodeList = new LinkedList<K>();
+        }
+
+        /// <summary>
+        /// Create cache from an array. The cache capacity will be the size
+        /// of the array. All elements of the array will be added to the 
+        /// cache. If any duplicate keys are found in the array a
+        /// <see cref="ArgumentException"/> will be thrown.
+        /// </summary>
+        public ConcurrentLruCache(KeyValuePair<K, V>[] array)
+            : this(array.Length)
+        {
+            foreach (var kvp in array)
+            {
+                this.UnsafeAdd(kvp.Key, kvp.Value, true);
+            }
+        }
+
+        /// <summary>
+        /// For testing. Very expensive.
+        /// </summary>
+        internal IEnumerable<KeyValuePair<K, V>> TestingEnumerable
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    var copy = new KeyValuePair<K, V>[cache.Count];
+                    int index = 0;
+                    foreach (K key in nodeList)
+                    {
+                        copy[index++] = new KeyValuePair<K, V>(key,
+                                                               cache[key].Value);
+                    }
+                    return copy;
+                }
+            }
+        }
+
+        public void Add(K key, V value)
+        {
+            lock (lockObject)
+            {
+                UnsafeAdd(key, value, true);
+            }
+        }
+
+        private void MoveNodeToTop(LinkedListNode<K> node)
+        {
+            if (!object.ReferenceEquals(nodeList.First, node))
+            {
+                nodeList.Remove(node);
+                nodeList.AddFirst(node);
+            }
+        }
+
+        /// <summary>
+        /// Expects non-empty cache. Does not lock.
+        /// </summary>
+        private void UnsafeEvictLastNode()
+        {
+            Debug.Assert(capacity > 0);
+            var lastNode = nodeList.Last;
+            nodeList.Remove(lastNode);
+            cache.Remove(lastNode.Value);
+        }
+
+        private void UnsafeAddNodeToTop(K key, V value)
+        {
+            var node = new LinkedListNode<K>(key);
+            cache.Add(key, new CacheValue { Node = node, Value = value });
+            nodeList.AddFirst(node);
+        }
+
+        /// <summary>
+        /// Doesn't lock.
+        /// </summary>
+        private void UnsafeAdd(K key, V value, bool throwExceptionIfKeyExists)
+        {
+            CacheValue result;
+            if (cache.TryGetValue(key, out result))
+            {
+                if (throwExceptionIfKeyExists)
+                {
+                    throw new ArgumentException("Key already exists", "key");
+                }
+                else if (!result.Value.Equals(value))
+                {
+                    result.Value = value;
+                    cache[key] = result;
+                    MoveNodeToTop(result.Node);
+                }
+            }
+            else
+            {
+                if (cache.Count == capacity)
+                {
+                    UnsafeEvictLastNode();
+                }
+                UnsafeAddNodeToTop(key, value);
+            }
+        }
+
+        public V this[K key]
+        {
+            get
+            {
+                V value;
+                if (TryGetValue(key, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    throw new KeyNotFoundException();
+                }
+            }
+            set
+            {
+                lock (lockObject)
+                {
+                    UnsafeAdd(key, value, false);
+                }
+            }
+        }
+
+        public bool TryGetValue(K key, out V value)
+        {
+            lock (lockObject)
+            {
+                return UnsafeTryGetValue(key, out value);
+            }
+        }
+
+        /// <summary>
+        /// Doesn't lock.
+        /// </summary>
+        public bool UnsafeTryGetValue(K key, out V value)
+        {
+            CacheValue result;
+            if (cache.TryGetValue(key, out result))
+            {
+                MoveNodeToTop(result.Node);
+                value = result.Value;
+                return true;
+            }
+            else
+            {
+                value = default(V);
+                return false;
+            }
+        }
+
+        public V GetOrAdd(K key, V value)
+        {
+            lock (lockObject)
+            {
+                V result;
+                if (UnsafeTryGetValue(key, out result))
+                {
+                    return result;
+                }
+                else
+                {
+                    UnsafeAdd(key, value, true);
+                    return value;
+                }
+            }
+        }
+    }
+}

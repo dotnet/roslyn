@@ -1,0 +1,79 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Test.Utilities
+{
+    public class ThrowingDiagnosticAnalyzer<TSyntaxKind> : TestDiagnosticAnalyzer<TSyntaxKind>
+    {
+        public class DeliberateException : Exception
+        {
+            public override string Message
+            {
+                get { return "If this goes unhandled, our diagnostics engine is susceptible to malicious analyzers"; }
+            }
+        }
+
+        private readonly List<string> throwOnList = new List<string>();
+
+        public bool Thrown { get; private set; }
+
+        public void ThrowOn(string method)
+        {
+            throwOnList.Add(method);
+        }
+
+        protected override void OnInterfaceMember(SyntaxNode node, ISymbol symbol, string methodName)
+        {
+            if (throwOnList.Contains(methodName))
+            {
+                Thrown = true;
+                throw new DeliberateException();
+            }
+        }
+
+        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Compilation compilation)
+        {
+            var handled = new bool?[AllInterfaceMemberNames.Length];
+            for (int i = 0; i < AllInterfaceMemberNames.Length; i++)
+            {
+                var method = AllInterfaceMemberNames[i];
+                var analyzer = new ThrowingDiagnosticAnalyzer<TSyntaxKind>();
+                analyzer.ThrowOn(method);
+                try
+                {
+                    var diagnosticIds = AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, CancellationToken.None).Select(d => d.Id).Distinct();
+                    handled[i] = analyzer.Thrown ? true : (bool?)null;
+                    if (analyzer.Thrown)
+                    {
+                        Assert.Equal(diagnosticIds.Single(), "AnalyzerDriver");
+                    }
+                    else
+                    {
+                        Assert.False(diagnosticIds.Any());
+                    }
+                }
+                catch (DeliberateException)
+                {
+                    handled[i] = false;
+                }
+            }
+
+            var membersHandled = AllInterfaceMemberNames.Zip(handled, (m, h) => new { Member = m, Handled = h });
+            Assert.True(!handled.Any(h => h == false) && handled.Any(h => true), Environment.NewLine +
+                "  Exceptions thrown by analyzers in these members were *NOT* handled:" + Environment.NewLine + string.Join(Environment.NewLine, membersHandled.Where(mh => mh.Handled == false).Select(mh => mh.Member)) + Environment.NewLine + Environment.NewLine +
+                "  Exceptions thrown from these members were handled gracefully:"       + Environment.NewLine + string.Join(Environment.NewLine, membersHandled.Where(mh => mh.Handled == true) .Select(mh => mh.Member)) + Environment.NewLine + Environment.NewLine +
+                "  These members were not called/accessed by analyzer engine:"          + Environment.NewLine + string.Join(Environment.NewLine, membersHandled.Where(mh => mh.Handled == null) .Select(mh => mh.Member)));
+        }
+    }
+}

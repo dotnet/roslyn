@@ -1,0 +1,157 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Str1]
+  )
+  body {
+    Convert(
+      Coalesce(
+        Parameter(
+          x
+          type: System.Nullable`1[Str1]
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        conversion:
+          Lambda(
+            Parameter(
+              CoalesceLHS
+              type: System.Nullable`1[Str1]
+            )
+            body {
+              Convert(
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[Str1]
+                    )
+                    Lifted
+                    type: Str1
+                  )
+                  method: System.String op_Explicit(Str1) in Str1
+                  type: System.String
+                )
+                method: Boolean ToBoolean(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+                type: System.Boolean
+              )
+            }
+            return type: System.Boolean
+            type: System.Func`2[System.Nullable`1[Str1],System.Boolean]
+          )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Str1],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Str1]
+  )
+  body {
+    Convert(
+      Coalesce(
+        Parameter(
+          x
+          type: System.Nullable`1[Str1]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[Str1]
+        )
+        type: System.Nullable`1[Str1]
+      )
+      Lifted
+      LiftedToNull
+      method: Str2 op_Explicit(Str1) in Str1
+      type: System.Nullable`1[Str2]
+    )
+  }
+  return type: System.Nullable`1[Str2]
+  type: System.Func`2[System.Nullable`1[Str1],System.Nullable`1[Str2]]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Str1]
+  )
+  body {
+    Convert(
+      Convert(
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[Str1]
+          )
+          Constant(
+            null
+            type: System.Nullable`1[Str1]
+          )
+          type: System.Nullable`1[Str1]
+        )
+        Lifted
+        type: Str1
+      )
+      method: Str2 op_Explicit(Str1) in Str1
+      type: Str2
+    )
+  }
+  return type: Str2
+  type: System.Func`2[System.Nullable`1[Str1],Str2]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[Str2]
+  )
+  body {
+    Convert(
+      Coalesce(
+        Parameter(
+          x
+          type: System.Nullable`1[Str2]
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        conversion:
+          Lambda(
+            Parameter(
+              CoalesceLHS
+              type: System.Nullable`1[Str2]
+            )
+            body {
+              Convert(
+                Convert(
+                  Parameter(
+                    CoalesceLHS
+                    type: System.Nullable`1[Str2]
+                  )
+                  method: System.String op_Explicit(System.Nullable`1[Str2]) in Str2
+                  type: System.String
+                )
+                method: Boolean ToBoolean(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+                type: System.Boolean
+              )
+            }
+            return type: System.Boolean
+            type: System.Func`2[System.Nullable`1[Str2],System.Boolean]
+          )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[Str2],System.Object]
+)

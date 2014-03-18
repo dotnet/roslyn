@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ErrorWhileReadingSpecifiedConfigFile" xml:space="preserve">
+    <value>An error occured while reading the specified configuration file: {0}</value>
+  </data>
+  <data name="RenameSymbolIsNotFromSource" xml:space="preserve">
+    <value>Symbol "{0}" is not from source.</value>
+  </data>
+  <data name="InvalidDocumentationCommentId" xml:space="preserve">
+    <value>Documentation comment id must start with E, F, M, N, P or T</value>
+  </data>
+  <data name="CycleDetectedInExtensions" xml:space="preserve">
+    <value>Cycle detected in extensions</value>
+  </data>
+  <data name="InvalidDestinationNode" xml:space="preserve">
+    <value>Destination type must be a {0}.</value>
+  </data>
+  <data name="InvalidDestinationNode2" xml:space="preserve">
+    <value>Destination type must be a {0} or a {1}.</value>
+  </data>
+  <data name="InvalidDestinationNode3" xml:space="preserve">
+    <value>Destination type must be a {0}, {1} or {2}.</value>
+  </data>
+  <data name="CouldNotFindLocationToGen" xml:space="preserve">
+    <value>Could not find location to generation symbol into.</value>
+  </data>
+  <data name="InvalidLocationForCodeGen" xml:space="preserve">
+    <value>No location provided to add statements to.</value>
+  </data>
+  <data name="InvalidNonSourceLocationForCodeGen" xml:space="preserve">
+    <value>Destination location was not in source.</value>
+  </data>
+  <data name="DestinationLocationFromDifferentTree" xml:space="preserve">
+    <value>Destination location was from a different tree.</value>
+  </data>
+  <data name="NodeIsOfTheWrongType" xml:space="preserve">
+    <value>Node is of the wrong type.</value>
+  </data>
+  <data name="LocationMustBeNullOrFromSource" xml:space="preserve">
+    <value>Location must be null or from source.</value>
+  </data>
+  <data name="DuplicateSourceFileInProject" xml:space="preserve">
+    <value>Duplicate source file '{0}' in project '{1}'</value>
+  </data>
+  <data name="RemovingProjectsNotSupported" xml:space="preserve">
+    <value>Removing projects not supported in ApplyChanges.</value>
+  </data>
+  <data name="AddingProjectsNotSupported" xml:space="preserve">
+    <value>Adding projects not supported in ApplyChanges.</value>
+  </data>
+  <data name="WorkspaceIsNotEmpty" xml:space="preserve">
+    <value>Workspace is not empty.</value>
+  </data>
+  <data name="ProjectOrDocumentNotInWorkspace" xml:space="preserve">
+    <value>'{0}' is not part of the workspace.</value>
+  </data>
+  <data name="ProjectOrDocumentAlreadyInWorkspace" xml:space="preserve">
+    <value>'{0}' is already part of the workspace.</value>
+  </data>
+  <data name="ProjectNotReferenced" xml:space="preserve">
+    <value>'{0}' is not referenced.</value>
+  </data>
+  <data name="ProjectAlreadyReferenced" xml:space="preserve">
+    <value>'{0}' is already referenced.</value>
+  </data>
+  <data name="CausesCircularProjectReference" xml:space="preserve">
+    <value>Adding project reference from '{0}' to '{1}' will cause a circular reference.</value>
+  </data>
+  <data name="MetadataIsNotReferenced" xml:space="preserve">
+    <value>Metadata is not referenced.</value>
+  </data>
+  <data name="MetadataIsAlreadyReferenced" xml:space="preserve">
+    <value>Metadata is already referenced.</value>
+  </data>
+  <data name="DocumentVersionIsDifferent" xml:space="preserve">
+    <value>The specified document is not a version of this document.</value>
+  </data>
+  <data name="DocumentNotInProject" xml:space="preserve">
+    <value>The project does not contain the specified document.</value>
+  </data>
+  <data name="UnsupportedLanguage" xml:space="preserve">
+    <value>The language '{0}' is not supported.</value>
+  </data>
+  <data name="ProjectAlreadyInSolution" xml:space="preserve">
+    <value>The solution already contains the specified project.</value>
+  </data>
+  <data name="ProjectNotInSolution" xml:space="preserve">
+    <value>The solution does not contain the specified project.</value>
+  </data>
+  <data name="ProjectDirectlyReferencesTargetProject" xml:space="preserve">
+    <value>The project already references the target project.</value>
+  </data>
+  <data name="ProjectTransitivelyReferencesTargetProject" xml:space="preserve">
+    <value>The project already transitively references the target project.</value>
+  </data>
+  <data name="DocumentAlreadyInSolution" xml:space="preserve">
+    <value>The solution already contains the specified document.</value>
+  </data>
+  <data name="DocumentNotInSolution" xml:space="preserve">
+    <value>The solution does not contain the specified document.</value>
+  </data>
+  <data name="TemporaryStorageCannotBeWrittenMultipleTimes" xml:space="preserve">
+    <value>Temporary storage cannot be written more than once.</value>
+  </data>
+  <data name="DocumentIsNotOpen" xml:space="preserve">
+    <value>'{0}' is not open.</value>
+  </data>
+  <data name="InvalidLanguageNameOption" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="InvalidLanguageNameOption2" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="FileWasExternallyModified" xml:space="preserve">
+    <value>File was externally modified: {0}.</value>
+  </data>
+  <data name="UnrecognizedProjectType" xml:space="preserve">
+    <value>Unrecognized project type.</value>
+  </data>
+  <data name="UnrecognizedLanguageName" xml:space="preserve">
+    <value>Unrecognized language name.</value>
+  </data>
+  <data name="CantResolveMetadataReference" xml:space="preserve">
+    <value>Can't resolve metadata reference: '{0}'.</value>
+  </data>
+  <data name="InvalidProjectBlockInSolutionFile" xml:space="preserve">
+    <value>Invalid project block, expected "=" after Project.</value>
+  </data>
+  <data name="InvalidProjectBlockInSolutionFile2" xml:space="preserve">
+    <value>Invalid project block, expected "," after project name.</value>
+  </data>
+  <data name="InvalidProjectBlockInSolutionFile3" xml:space="preserve">
+    <value>Invalid project block, expected "," after project path.</value>
+  </data>
+  <data name="InvalidProjectBlockInSolutionFile4" xml:space="preserve">
+    <value>Expected {0}.</value>
+  </data>
+  <data name="StringIsNullOrEmpty" xml:space="preserve">
+    <value>"{0}" must be a non-null and non-empty string.</value>
+  </data>
+  <data name="MissingHeaderInSolutionFile" xml:space="preserve">
+    <value>Expected header: "{0}".</value>
+  </data>
+  <data name="MissingEndOfFileInSolutionFile" xml:space="preserve">
+    <value>Expected end-of-file.</value>
+  </data>
+  <data name="MissingLineInSolutionFile" xml:space="preserve">
+    <value>Expected {0} line.</value>
+  </data>
+  <data name="InvalidSubmissionReference" xml:space="preserve">
+    <value>This submission already references another submission project.</value>
+  </data>
+  <data name="ProjectContainsOpenDocuments" xml:space="preserve">
+    <value>{0} still contains open documents.</value>
+  </data>
+  <data name="DocumentIsOpen" xml:space="preserve">
+    <value>{0} is still open.</value>
+  </data>
+  <data name="DuplicateKey" xml:space="preserve">
+    <value>An element with the same key but a different value already exists.</value>
+  </data>
+  <data name="ArraysWithMoreThanOneDimensionCannotBeSerialized" xml:space="preserve">
+    <value>Arrays with more than one dimension cannot be serialized.</value>
+  </data>
+  <data name="ValueTooLargeToBeRepresented" xml:space="preserve">
+    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
+  </data>
+  <data name="PathMustBeAbsolute" xml:space="preserve">
+    <value>Specified path must be absolute.</value>
+  </data>
+  <data name="CastIsRedundant" xml:space="preserve">
+    <value>Cast is redundant.</value>
+  </data>
+  <data name="NameCanBeSimplified" xml:space="preserve">
+    <value>Name can be simplified.</value>
+  </data>
+  <data name="UnknownIdentifier" xml:space="preserve">
+    <value>Unknown identifier.</value>
+  </data>
+  <data name="RemoveUnnecessaryImportsOrUsings" xml:space="preserve">
+    <value>Remove Unnecessary Imports/Usings.</value>
+  </data>
+  <data name="CannotCodeGenUnsupportedOperator" xml:space="preserve">
+    <value>Cannot generate code for unsupported operator '{0}'</value>
+  </data>
+  <data name="InvalidParameterCountForBinaryOperator" xml:space="preserve">
+    <value>Invalid number of parameters for binary operator.</value>
+  </data>
+  <data name="InvalidParameterCountForUnaryOperator" xml:space="preserve">
+    <value>Invalid number of parameters for unary operator.</value>
+  </data>
+</root>

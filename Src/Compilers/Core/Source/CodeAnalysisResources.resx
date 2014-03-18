@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="OutputKindNotSupported" xml:space="preserve">
+    <value>Output kind not supported.</value>
+  </data>
+  <data name="PathReturnedByResolveMetadataFileMustBeAbsolute" xml:space="preserve">
+    <value>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</value>
+  </data>
+  <data name="AssemblyMustHaveAtLeastOneModule" xml:space="preserve">
+    <value>Assembly must have at least one module.</value>
+  </data>
+  <data name="ModuleCopyCannotBeUsedToCreateAssemblyMetadata" xml:space="preserve">
+    <value>Module copy can't be used to create an assembly metadata.</value>
+  </data>
+  <data name="Unresolved" xml:space="preserve">
+    <value>Unresolved: </value>
+  </data>
+  <data name="Assembly" xml:space="preserve">
+    <value>assembly</value>
+  </data>
+  <data name="Class1" xml:space="preserve">
+    <value>class</value>
+  </data>
+  <data name="Constructor" xml:space="preserve">
+    <value>constructor</value>
+  </data>
+  <data name="Delegate1" xml:space="preserve">
+    <value>delegate</value>
+  </data>
+  <data name="Enum1" xml:space="preserve">
+    <value>enum</value>
+  </data>
+  <data name="Event1" xml:space="preserve">
+    <value>event</value>
+  </data>
+  <data name="Field" xml:space="preserve">
+    <value>field</value>
+  </data>
+  <data name="TypeParameter" xml:space="preserve">
+    <value>type parameter</value>
+  </data>
+  <data name="Interface1" xml:space="preserve">
+    <value>interface</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>method</value>
+  </data>
+  <data name="Module" xml:space="preserve">
+    <value>module</value>
+  </data>
+  <data name="Parameter" xml:space="preserve">
+    <value>parameter</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>property, indexer</value>
+  </data>
+  <data name="Return1" xml:space="preserve">
+    <value>return</value>
+  </data>
+  <data name="Struct1" xml:space="preserve">
+    <value>struct</value>
+  </data>
+  <data name="CannotCreateReferenceToSubmission" xml:space="preserve">
+    <value>Can't create a reference to a submission.</value>
+  </data>
+  <data name="CannotCreateReferenceToModule" xml:space="preserve">
+    <value>Can't create a reference to a module.</value>
+  </data>
+  <data name="InMemoryAssembly" xml:space="preserve">
+    <value>&lt;in-memory assembly&gt;</value>
+  </data>
+  <data name="InMemoryModule" xml:space="preserve">
+    <value>&lt;in-memory module&gt;</value>
+  </data>
+  <data name="SizeHasToBePositive" xml:space="preserve">
+    <value>Size has to be positive.</value>
+  </data>
+  <data name="AssemblyFileNotFound" xml:space="preserve">
+    <value>Assembly file not found</value>
+  </data>
+  <data name="CannotEmbedInteropTypesFromModule" xml:space="preserve">
+    <value>Can't embed interop types from module.</value>
+  </data>
+  <data name="CannotAliasModule" xml:space="preserve">
+    <value>Can't alias a module.</value>
+  </data>
+  <data name="InvalidAlias" xml:space="preserve">
+    <value>Invalid alias.</value>
+  </data>
+  <data name="GetMetadataMustReturnInstance" xml:space="preserve">
+    <value>{0}.GetMetadata() must return an instance of {1}.</value>
+  </data>
+  <data name="ValueTooLargeToBeRepresented" xml:space="preserve">
+    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
+  </data>
+  <data name="ArraysWithMoreThanOneDimensionCannotBeSerialized" xml:space="preserve">
+    <value>Arrays with more than one dimension cannot be serialized.</value>
+  </data>
+  <data name="InvalidAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: '{0}'</value>
+  </data>
+  <data name="AbsolutePathExpected" xml:space="preserve">
+    <value>Absolute path expected.</value>
+  </data>
+  <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
+    <value>Compilation options must not have errors.</value>
+  </data>
+  <data name="ReturnTypeCannotBeValuePointerbyRefOrOpen" xml:space="preserve">
+    <value>Return type can't be a value type, pointer, by-ref or open generic type</value>
+  </data>
+  <data name="ReturnTypeCannotBeVoidByRefOrOpen" xml:space="preserve">
+    <value>Return type can't be void, by-ref or open generic type</value>
+  </data>
+  <data name="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission" xml:space="preserve">
+    <value>Type must be same as host object type of previous submission.</value>
+  </data>
+  <data name="PreviousSubmissionHasErrors" xml:space="preserve">
+    <value>Previous submission has errors.</value>
+  </data>
+  <data name="InvalidOutputKindForSubmission" xml:space="preserve">
+    <value>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</value>
+  </data>
+  <data name="InvalidCompilationOptions" xml:space="preserve">
+    <value>Invalid compilation options -- submission can't be signed.</value>
+  </data>
+  <data name="ResourceStreamProviderShouldReturnNonNullStream" xml:space="preserve">
+    <value>Resource stream provider should return non-null stream.</value>
+  </data>
+  <data name="FileResolverShouldReturnReadableNonNullStream" xml:space="preserve">
+    <value>File resolver should return readable non-null stream.</value>
+  </data>
+  <data name="EmptyOrInvalidResourceName" xml:space="preserve">
+    <value>Empty or invalid resource name</value>
+  </data>
+  <data name="EmptyOrInvalidFileName" xml:space="preserve">
+    <value>Empty or invalid file name</value>
+  </data>
+  <data name="ResourceDataProviderShouldReturnNonNullStream" xml:space="preserve">
+    <value>Resource data provider should return non-null stream</value>
+  </data>
+  <data name="FileNotFound" xml:space="preserve">
+    <value>File not found.</value>
+  </data>
+  <data name="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute" xml:space="preserve">
+    <value>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</value>
+  </data>
+  <data name="TypeMustBeASubclassOfSyntaxAnnotation" xml:space="preserve">
+    <value>type must be a subclass of SyntaxAnnotation.</value>
+  </data>
+  <data name="InvalidModuleName" xml:space="preserve">
+    <value>Invalid module name specified in metadata module '{0}': '{1}'</value>
+  </data>
+  <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
+    <value>File size exceeds maximum allowed size of a valid metadata file.</value>
+  </data>
+  <data name="NameCannotBeEmpty" xml:space="preserve">
+    <value>Name cannot be empty.</value>
+  </data>
+  <data name="NameCannotStartWithWhitespace" xml:space="preserve">
+    <value>Name cannot start with whitespace.</value>
+  </data>
+  <data name="NameContainsInvalidCharacter" xml:space="preserve">
+    <value>Name contains invalid characters.</value>
+  </data>
+  <data name="SpanDoesNotIncludeStartOfLine" xml:space="preserve">
+    <value>The span does not include the start of a line.</value>
+  </data>
+  <data name="SpanDoesNotIncludeEndOfLine" xml:space="preserve">
+    <value>Then span does not include the end of a line.</value>
+  </data>
+  <data name="StartMustNotBeNegative" xml:space="preserve">
+    <value>'start' must not be negative</value>
+  </data>
+  <data name="EndMustNotBeLessThanStart" xml:space="preserve">
+    <value>'end' must not be less than 'start'</value>
+  </data>
+  <data name="InvalidContentType" xml:space="preserve">
+    <value>Invalid content type</value>
+  </data>
+  <data name="ExpectedNonEmptyPublicKey" xml:space="preserve">
+    <value>Expected non-empty public key</value>
+  </data>
+  <data name="InvalidSizeOfPublicKeyToken" xml:space="preserve">
+    <value>Invalid size of public key token.</value>
+  </data>
+  <data name="InvalidCharactersInAssemblyName" xml:space="preserve">
+    <value>Invalid characters in assembly name</value>
+  </data>
+  <data name="InvalidCharactersInAssemblyCultureName" xml:space="preserve">
+    <value>Invalid characters in assembly culture name</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
+  </data>
+  <data name="InvalidSHA1Hash" xml:space="preserve">
+    <value>Invalid SHA1 hash.</value>
+  </data>
+  <data name="CoffResourceInvalidRelocation" xml:space="preserve">
+    <value>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</value>
+  </data>
+  <data name="CoffResourceInvalidSectionSize" xml:space="preserve">
+    <value>Win32 resources, assumed to be in COFF object format, have an invalid section size.</value>
+  </data>
+  <data name="CoffResourceInvalidSymbol" xml:space="preserve">
+    <value>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</value>
+  </data>
+  <data name="CoffResourceMissingSection" xml:space="preserve">
+    <value>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</value>
+  </data>
+  <data name="IconStreamUnexpectedFormat" xml:space="preserve">
+    <value>Icon stream is not in the expected format.</value>
+  </data>
+  <data name="InvalidCultureName" xml:space="preserve">
+    <value>Invalid culture name: '{0}'</value>
+  </data>
+  <data name="WinRTIdentityCantBeRetargetable" xml:space="preserve">
+    <value>WindowsRuntime identity can't be retargetable</value>
+  </data>
+  <data name="PEImageNotAvailable" xml:space="preserve">
+    <value>PE image not available.</value>
+  </data>
+  <data name="AssemblySigningNotSupported" xml:space="preserve">
+    <value>Assembly signing not supported.</value>
+  </data>
+  <data name="RuleSetSchemaViolation" xml:space="preserve">
+    <value>The file does not conform to the rule set schema - {0}</value>
+  </data>
+  <data name="FailedToResolveRuleSetName" xml:space="preserve">
+    <value>Could not locate the rule set file '{0}'.</value>
+  </data>
+  <data name="InvalidRuleSetInclude" xml:space="preserve">
+    <value>An error occurred while loading the included rule set file {0} - {1}</value>
+  </data>
+  <data name="CompilerAnalyzerFailure" xml:space="preserve">
+    <value>Compiler Analyzer Failure</value>
+  </data>
+  <data name="CompilerAnalyzerThrows" xml:space="preserve">
+    <value>The Compiler Analyzer '{0}' threw an exception with message '{1}'.</value>
+  </data>
+</root>

@@ -1,0 +1,4356 @@
+﻿BC30452: Operator '+' is not defined for types 'Date' and 'Boolean'.
+        result = Da + BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Boolean'.
+        result = Da + BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'SByte'.
+        result = Da + SB
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Byte'.
+        result = Da + By
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Short'.
+        result = Da + Sh
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'UShort'.
+        result = Da + US
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Integer'.
+        result = Da + [In]
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'UInteger'.
+        result = Da + UI
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Long'.
+        result = Da + Lo
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'ULong'.
+        result = Da + UL
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Decimal'.
+        result = Da + De
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Single'.
+        result = Da + Si
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Double'.
+        result = Da + [Do]
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da + Tc
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Date' and 'Char'.
+        result = Da + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Boolean'.
+        result = Ch + BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Boolean'.
+        result = Ch + BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'SByte'.
+        result = Ch + SB
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Byte'.
+        result = Ch + By
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Short'.
+        result = Ch + Sh
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'UShort'.
+        result = Ch + US
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Integer'.
+        result = Ch + [In]
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'UInteger'.
+        result = Ch + UI
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Long'.
+        result = Ch + Lo
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'ULong'.
+        result = Ch + UL
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Decimal'.
+        result = Ch + De
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Single'.
+        result = Ch + Si
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Double'.
+        result = Ch + [Do]
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch + Tc
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char' and 'Date'.
+        result = Ch + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse + Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse + Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue + Da
+                 ~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue + Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'SByte' and 'Date'.
+        result = SB + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'SByte' and 'Char'.
+        result = SB + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Byte' and 'Date'.
+        result = By + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Byte' and 'Char'.
+        result = By + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Short' and 'Date'.
+        result = Sh + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Short' and 'Char'.
+        result = Sh + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'UShort' and 'Date'.
+        result = US + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'UShort' and 'Char'.
+        result = US + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Integer' and 'Date'.
+        result = [In] + Da
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Integer' and 'Char'.
+        result = [In] + Ch
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'UInteger' and 'Date'.
+        result = UI + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'UInteger' and 'Char'.
+        result = UI + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Long' and 'Date'.
+        result = Lo + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Long' and 'Char'.
+        result = Lo + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'ULong' and 'Date'.
+        result = UL + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'ULong' and 'Char'.
+        result = UL + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Decimal' and 'Date'.
+        result = De + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Decimal' and 'Char'.
+        result = De + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Single' and 'Date'.
+        result = Si + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Single' and 'Char'.
+        result = Si + Ch
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'Double' and 'Date'.
+        result = [Do] + Da
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Double' and 'Char'.
+        result = [Do] + Ch
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc + Da
+                 ~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc + Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Boolean'.
+        result = Da - BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Boolean'.
+        result = Da - BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'SByte'.
+        result = Da - SB
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Byte'.
+        result = Da - By
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Short'.
+        result = Da - Sh
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'UShort'.
+        result = Da - US
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Integer'.
+        result = Da - [In]
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'UInteger'.
+        result = Da - UI
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Long'.
+        result = Da - Lo
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'ULong'.
+        result = Da - UL
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Decimal'.
+        result = Da - De
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Single'.
+        result = Da - Si
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Double'.
+        result = Da - [Do]
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'String'.
+        result = Da - St
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Object'.
+        result = Da - Ob
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da - Tc
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Char'.
+        result = Da - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Date' and 'Char()'.
+        result = Da - ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Boolean'.
+        result = Ch - BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Boolean'.
+        result = Ch - BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'SByte'.
+        result = Ch - SB
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Byte'.
+        result = Ch - By
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Short'.
+        result = Ch - Sh
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'UShort'.
+        result = Ch - US
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Integer'.
+        result = Ch - [In]
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'UInteger'.
+        result = Ch - UI
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Long'.
+        result = Ch - Lo
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'ULong'.
+        result = Ch - UL
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Decimal'.
+        result = Ch - De
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Single'.
+        result = Ch - Si
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Double'.
+        result = Ch - [Do]
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'String'.
+        result = Ch - St
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Object'.
+        result = Ch - Ob
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch - Tc
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Date'.
+        result = Ch - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Char'.
+        result = Ch - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char' and 'Char()'.
+        result = Ch - ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char()' and 'Char'.
+        result = ChArray - Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse - Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse - Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue - Da
+                 ~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue - Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'SByte' and 'Date'.
+        result = SB - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'SByte' and 'Char'.
+        result = SB - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Byte' and 'Date'.
+        result = By - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Byte' and 'Char'.
+        result = By - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Short' and 'Date'.
+        result = Sh - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Short' and 'Char'.
+        result = Sh - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'UShort' and 'Date'.
+        result = US - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'UShort' and 'Char'.
+        result = US - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Integer' and 'Date'.
+        result = [In] - Da
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Integer' and 'Char'.
+        result = [In] - Ch
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'UInteger' and 'Date'.
+        result = UI - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'UInteger' and 'Char'.
+        result = UI - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Long' and 'Date'.
+        result = Lo - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Long' and 'Char'.
+        result = Lo - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'ULong' and 'Date'.
+        result = UL - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'ULong' and 'Char'.
+        result = UL - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Decimal' and 'Date'.
+        result = De - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Decimal' and 'Char'.
+        result = De - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Single' and 'Date'.
+        result = Si - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Single' and 'Char'.
+        result = Si - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Double' and 'Date'.
+        result = [Do] - Da
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Double' and 'Char'.
+        result = [Do] - Ch
+                 ~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'String' and 'Date'.
+        result = St - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'String' and 'Char'.
+        result = St - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Object' and 'Date'.
+        result = Ob - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'Object' and 'Char'.
+        result = Ob - Ch
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc - Da
+                 ~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc - Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Boolean'.
+        result = Da * BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Boolean'.
+        result = Da * BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'SByte'.
+        result = Da * SB
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Byte'.
+        result = Da * By
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Short'.
+        result = Da * Sh
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'UShort'.
+        result = Da * US
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Integer'.
+        result = Da * [In]
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'UInteger'.
+        result = Da * UI
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Long'.
+        result = Da * Lo
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'ULong'.
+        result = Da * UL
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Decimal'.
+        result = Da * De
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Single'.
+        result = Da * Si
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Double'.
+        result = Da * [Do]
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'String'.
+        result = Da * St
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Object'.
+        result = Da * Ob
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da * Tc
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Date'.
+        result = Da * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Char'.
+        result = Da * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Date' and 'Char()'.
+        result = Da * ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Boolean'.
+        result = Ch * BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Boolean'.
+        result = Ch * BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'SByte'.
+        result = Ch * SB
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Byte'.
+        result = Ch * By
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Short'.
+        result = Ch * Sh
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'UShort'.
+        result = Ch * US
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Integer'.
+        result = Ch * [In]
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'UInteger'.
+        result = Ch * UI
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Long'.
+        result = Ch * Lo
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'ULong'.
+        result = Ch * UL
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Decimal'.
+        result = Ch * De
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Single'.
+        result = Ch * Si
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Double'.
+        result = Ch * [Do]
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'String'.
+        result = Ch * St
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Object'.
+        result = Ch * Ob
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch * Tc
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Date'.
+        result = Ch * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Char'.
+        result = Ch * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char' and 'Char()'.
+        result = Ch * ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char()' and 'Date'.
+        result = ChArray * Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char()' and 'Char'.
+        result = ChArray * Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse * Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse * Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue * Da
+                 ~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue * Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'SByte' and 'Date'.
+        result = SB * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'SByte' and 'Char'.
+        result = SB * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Byte' and 'Date'.
+        result = By * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Byte' and 'Char'.
+        result = By * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Short' and 'Date'.
+        result = Sh * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Short' and 'Char'.
+        result = Sh * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'UShort' and 'Date'.
+        result = US * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'UShort' and 'Char'.
+        result = US * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Integer' and 'Date'.
+        result = [In] * Da
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Integer' and 'Char'.
+        result = [In] * Ch
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'UInteger' and 'Date'.
+        result = UI * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'UInteger' and 'Char'.
+        result = UI * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Long' and 'Date'.
+        result = Lo * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Long' and 'Char'.
+        result = Lo * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'ULong' and 'Date'.
+        result = UL * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'ULong' and 'Char'.
+        result = UL * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Decimal' and 'Date'.
+        result = De * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Decimal' and 'Char'.
+        result = De * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Single' and 'Date'.
+        result = Si * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Single' and 'Char'.
+        result = Si * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Double' and 'Date'.
+        result = [Do] * Da
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Double' and 'Char'.
+        result = [Do] * Ch
+                 ~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'String' and 'Date'.
+        result = St * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'String' and 'Char'.
+        result = St * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Object' and 'Date'.
+        result = Ob * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'Object' and 'Char'.
+        result = Ob * Ch
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc * Da
+                 ~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc * Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Boolean'.
+        result = Da / BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Boolean'.
+        result = Da / BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'SByte'.
+        result = Da / SB
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Byte'.
+        result = Da / By
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Short'.
+        result = Da / Sh
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'UShort'.
+        result = Da / US
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Integer'.
+        result = Da / [In]
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'UInteger'.
+        result = Da / UI
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Long'.
+        result = Da / Lo
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'ULong'.
+        result = Da / UL
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Decimal'.
+        result = Da / De
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Single'.
+        result = Da / Si
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Double'.
+        result = Da / [Do]
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'String'.
+        result = Da / St
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Object'.
+        result = Da / Ob
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da / Tc
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Date'.
+        result = Da / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Char'.
+        result = Da / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Date' and 'Char()'.
+        result = Da / ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Boolean'.
+        result = Ch / BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Boolean'.
+        result = Ch / BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'SByte'.
+        result = Ch / SB
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Byte'.
+        result = Ch / By
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Short'.
+        result = Ch / Sh
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'UShort'.
+        result = Ch / US
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Integer'.
+        result = Ch / [In]
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'UInteger'.
+        result = Ch / UI
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Long'.
+        result = Ch / Lo
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'ULong'.
+        result = Ch / UL
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Decimal'.
+        result = Ch / De
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Single'.
+        result = Ch / Si
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Double'.
+        result = Ch / [Do]
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'String'.
+        result = Ch / St
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Object'.
+        result = Ch / Ob
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch / Tc
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Date'.
+        result = Ch / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Char'.
+        result = Ch / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char' and 'Char()'.
+        result = Ch / ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char()' and 'Date'.
+        result = ChArray / Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char()' and 'Char'.
+        result = ChArray / Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse / Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse / Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue / Da
+                 ~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue / Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'SByte' and 'Date'.
+        result = SB / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'SByte' and 'Char'.
+        result = SB / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Byte' and 'Date'.
+        result = By / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Byte' and 'Char'.
+        result = By / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Short' and 'Date'.
+        result = Sh / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Short' and 'Char'.
+        result = Sh / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'UShort' and 'Date'.
+        result = US / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'UShort' and 'Char'.
+        result = US / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Integer' and 'Date'.
+        result = [In] / Da
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Integer' and 'Char'.
+        result = [In] / Ch
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'UInteger' and 'Date'.
+        result = UI / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'UInteger' and 'Char'.
+        result = UI / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Long' and 'Date'.
+        result = Lo / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Long' and 'Char'.
+        result = Lo / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'ULong' and 'Date'.
+        result = UL / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'ULong' and 'Char'.
+        result = UL / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Decimal' and 'Date'.
+        result = De / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Decimal' and 'Char'.
+        result = De / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Single' and 'Date'.
+        result = Si / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Single' and 'Char'.
+        result = Si / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Double' and 'Date'.
+        result = [Do] / Da
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Double' and 'Char'.
+        result = [Do] / Ch
+                 ~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'String' and 'Date'.
+        result = St / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'String' and 'Char'.
+        result = St / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Object' and 'Date'.
+        result = Ob / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'Object' and 'Char'.
+        result = Ob / Ch
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc / Da
+                 ~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc / Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Boolean'.
+        result = Da \ BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'SByte'.
+        result = Da \ SB
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Byte'.
+        result = Da \ By
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Short'.
+        result = Da \ Sh
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'UShort'.
+        result = Da \ US
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Integer'.
+        result = Da \ [In]
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'UInteger'.
+        result = Da \ UI
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Long'.
+        result = Da \ Lo
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'ULong'.
+        result = Da \ UL
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Decimal'.
+        result = Da \ De
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Single'.
+        result = Da \ Si
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Double'.
+        result = Da \ [Do]
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'String'.
+        result = Da \ St
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Object'.
+        result = Da \ Ob
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da \ Tc
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Date'.
+        result = Da \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Char'.
+        result = Da \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Date' and 'Char()'.
+        result = Da \ ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Boolean'.
+        result = Ch \ BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'SByte'.
+        result = Ch \ SB
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Byte'.
+        result = Ch \ By
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Short'.
+        result = Ch \ Sh
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'UShort'.
+        result = Ch \ US
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Integer'.
+        result = Ch \ [In]
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'UInteger'.
+        result = Ch \ UI
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Long'.
+        result = Ch \ Lo
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'ULong'.
+        result = Ch \ UL
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Decimal'.
+        result = Ch \ De
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Single'.
+        result = Ch \ Si
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Double'.
+        result = Ch \ [Do]
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'String'.
+        result = Ch \ St
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Object'.
+        result = Ch \ Ob
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch \ Tc
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Date'.
+        result = Ch \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Char'.
+        result = Ch \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char' and 'Char()'.
+        result = Ch \ ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char()' and 'Date'.
+        result = ChArray \ Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char()' and 'Char'.
+        result = ChArray \ Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse \ Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse \ Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue \ Da
+                 ~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue \ Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'SByte' and 'Date'.
+        result = SB \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'SByte' and 'Char'.
+        result = SB \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Byte' and 'Date'.
+        result = By \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Byte' and 'Char'.
+        result = By \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Short' and 'Date'.
+        result = Sh \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Short' and 'Char'.
+        result = Sh \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'UShort' and 'Date'.
+        result = US \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'UShort' and 'Char'.
+        result = US \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Integer' and 'Date'.
+        result = [In] \ Da
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Integer' and 'Char'.
+        result = [In] \ Ch
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'UInteger' and 'Date'.
+        result = UI \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'UInteger' and 'Char'.
+        result = UI \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Long' and 'Date'.
+        result = Lo \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Long' and 'Char'.
+        result = Lo \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'ULong' and 'Date'.
+        result = UL \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'ULong' and 'Char'.
+        result = UL \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Decimal' and 'Date'.
+        result = De \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Decimal' and 'Char'.
+        result = De \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Single' and 'Date'.
+        result = Si \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Single' and 'Char'.
+        result = Si \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Double' and 'Date'.
+        result = [Do] \ Da
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Double' and 'Char'.
+        result = [Do] \ Ch
+                 ~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'String' and 'Date'.
+        result = St \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'String' and 'Char'.
+        result = St \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Object' and 'Date'.
+        result = Ob \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'Object' and 'Char'.
+        result = Ob \ Ch
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc \ Da
+                 ~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc \ Ch
+                 ~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Boolean'.
+        result = Da Mod BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'SByte'.
+        result = Da Mod SB
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Byte'.
+        result = Da Mod By
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Short'.
+        result = Da Mod Sh
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'UShort'.
+        result = Da Mod US
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Integer'.
+        result = Da Mod [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'UInteger'.
+        result = Da Mod UI
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Long'.
+        result = Da Mod Lo
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'ULong'.
+        result = Da Mod UL
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Decimal'.
+        result = Da Mod De
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Single'.
+        result = Da Mod Si
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Double'.
+        result = Da Mod [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'String'.
+        result = Da Mod St
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Object'.
+        result = Da Mod Ob
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da Mod Tc
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Date'.
+        result = Da Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Char'.
+        result = Da Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Date' and 'Char()'.
+        result = Da Mod ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Boolean'.
+        result = Ch Mod BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'SByte'.
+        result = Ch Mod SB
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Byte'.
+        result = Ch Mod By
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Short'.
+        result = Ch Mod Sh
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'UShort'.
+        result = Ch Mod US
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Integer'.
+        result = Ch Mod [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'UInteger'.
+        result = Ch Mod UI
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Long'.
+        result = Ch Mod Lo
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'ULong'.
+        result = Ch Mod UL
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Decimal'.
+        result = Ch Mod De
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Single'.
+        result = Ch Mod Si
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Double'.
+        result = Ch Mod [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'String'.
+        result = Ch Mod St
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Object'.
+        result = Ch Mod Ob
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch Mod Tc
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Date'.
+        result = Ch Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Char'.
+        result = Ch Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char' and 'Char()'.
+        result = Ch Mod ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char()' and 'Date'.
+        result = ChArray Mod Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char()' and 'Char'.
+        result = ChArray Mod Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse Mod Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse Mod Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue Mod Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue Mod Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'SByte' and 'Date'.
+        result = SB Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'SByte' and 'Char'.
+        result = SB Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Byte' and 'Date'.
+        result = By Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Byte' and 'Char'.
+        result = By Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Short' and 'Date'.
+        result = Sh Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Short' and 'Char'.
+        result = Sh Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'UShort' and 'Date'.
+        result = US Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'UShort' and 'Char'.
+        result = US Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Integer' and 'Date'.
+        result = [In] Mod Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Integer' and 'Char'.
+        result = [In] Mod Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'UInteger' and 'Date'.
+        result = UI Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'UInteger' and 'Char'.
+        result = UI Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Long' and 'Date'.
+        result = Lo Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Long' and 'Char'.
+        result = Lo Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'ULong' and 'Date'.
+        result = UL Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'ULong' and 'Char'.
+        result = UL Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Decimal' and 'Date'.
+        result = De Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Decimal' and 'Char'.
+        result = De Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Single' and 'Date'.
+        result = Si Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Single' and 'Char'.
+        result = Si Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Double' and 'Date'.
+        result = [Do] Mod Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Double' and 'Char'.
+        result = [Do] Mod Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'String' and 'Date'.
+        result = St Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'String' and 'Char'.
+        result = St Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Object' and 'Date'.
+        result = Ob Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Object' and 'Char'.
+        result = Ob Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc Mod Da
+                 ~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc Mod Ch
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Boolean'.
+        result = Da ^ BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Boolean'.
+        result = Da ^ BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'SByte'.
+        result = Da ^ SB
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Byte'.
+        result = Da ^ By
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Short'.
+        result = Da ^ Sh
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'UShort'.
+        result = Da ^ US
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Integer'.
+        result = Da ^ [In]
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'UInteger'.
+        result = Da ^ UI
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Long'.
+        result = Da ^ Lo
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'ULong'.
+        result = Da ^ UL
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Decimal'.
+        result = Da ^ De
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Single'.
+        result = Da ^ Si
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Double'.
+        result = Da ^ [Do]
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'String'.
+        result = Da ^ St
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Object'.
+        result = Da ^ Ob
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da ^ Tc
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Date'.
+        result = Da ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Char'.
+        result = Da ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Date' and 'Char()'.
+        result = Da ^ ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Boolean'.
+        result = Ch ^ BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Boolean'.
+        result = Ch ^ BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'SByte'.
+        result = Ch ^ SB
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Byte'.
+        result = Ch ^ By
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Short'.
+        result = Ch ^ Sh
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'UShort'.
+        result = Ch ^ US
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Integer'.
+        result = Ch ^ [In]
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'UInteger'.
+        result = Ch ^ UI
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Long'.
+        result = Ch ^ Lo
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'ULong'.
+        result = Ch ^ UL
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Decimal'.
+        result = Ch ^ De
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Single'.
+        result = Ch ^ Si
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Double'.
+        result = Ch ^ [Do]
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'String'.
+        result = Ch ^ St
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Object'.
+        result = Ch ^ Ob
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch ^ Tc
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Date'.
+        result = Ch ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Char'.
+        result = Ch ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char' and 'Char()'.
+        result = Ch ^ ChArray
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char()' and 'Date'.
+        result = ChArray ^ Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char()' and 'Char'.
+        result = ChArray ^ Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse ^ Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse ^ Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue ^ Da
+                 ~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue ^ Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'SByte' and 'Date'.
+        result = SB ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'SByte' and 'Char'.
+        result = SB ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Byte' and 'Date'.
+        result = By ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Byte' and 'Char'.
+        result = By ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Short' and 'Date'.
+        result = Sh ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Short' and 'Char'.
+        result = Sh ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'UShort' and 'Date'.
+        result = US ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'UShort' and 'Char'.
+        result = US ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Integer' and 'Date'.
+        result = [In] ^ Da
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Integer' and 'Char'.
+        result = [In] ^ Ch
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'UInteger' and 'Date'.
+        result = UI ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'UInteger' and 'Char'.
+        result = UI ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Long' and 'Date'.
+        result = Lo ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Long' and 'Char'.
+        result = Lo ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'ULong' and 'Date'.
+        result = UL ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'ULong' and 'Char'.
+        result = UL ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Decimal' and 'Date'.
+        result = De ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Decimal' and 'Char'.
+        result = De ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Single' and 'Date'.
+        result = Si ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Single' and 'Char'.
+        result = Si ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Double' and 'Date'.
+        result = [Do] ^ Da
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Double' and 'Char'.
+        result = [Do] ^ Ch
+                 ~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'String' and 'Date'.
+        result = St ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'String' and 'Char'.
+        result = St ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Object' and 'Date'.
+        result = Ob ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'Object' and 'Char'.
+        result = Ob ^ Ch
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc ^ Da
+                 ~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc ^ Ch
+                 ~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Boolean'.
+        result = Da << BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Boolean'.
+        result = Da << BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'SByte'.
+        result = Da << SB
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Byte'.
+        result = Da << By
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Short'.
+        result = Da << Sh
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'UShort'.
+        result = Da << US
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Integer'.
+        result = Da << [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'UInteger'.
+        result = Da << UI
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Long'.
+        result = Da << Lo
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'ULong'.
+        result = Da << UL
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Decimal'.
+        result = Da << De
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Single'.
+        result = Da << Si
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Double'.
+        result = Da << [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'String'.
+        result = Da << St
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Object'.
+        result = Da << Ob
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da << Tc
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Date'.
+        result = Da << Da
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Char'.
+        result = Da << Ch
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Date' and 'Char()'.
+        result = Da << ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Boolean'.
+        result = Ch << BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Boolean'.
+        result = Ch << BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'SByte'.
+        result = Ch << SB
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Byte'.
+        result = Ch << By
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Short'.
+        result = Ch << Sh
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'UShort'.
+        result = Ch << US
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Integer'.
+        result = Ch << [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'UInteger'.
+        result = Ch << UI
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Long'.
+        result = Ch << Lo
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'ULong'.
+        result = Ch << UL
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Decimal'.
+        result = Ch << De
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Single'.
+        result = Ch << Si
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Double'.
+        result = Ch << [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'String'.
+        result = Ch << St
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Object'.
+        result = Ch << Ob
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch << Tc
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Date'.
+        result = Ch << Da
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Char'.
+        result = Ch << Ch
+                 ~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char' and 'Char()'.
+        result = Ch << ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Boolean'.
+        result = Da >> BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Boolean'.
+        result = Da >> BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'SByte'.
+        result = Da >> SB
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Byte'.
+        result = Da >> By
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Short'.
+        result = Da >> Sh
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'UShort'.
+        result = Da >> US
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Integer'.
+        result = Da >> [In]
+                 ~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'UInteger'.
+        result = Da >> UI
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Long'.
+        result = Da >> Lo
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'ULong'.
+        result = Da >> UL
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Decimal'.
+        result = Da >> De
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Single'.
+        result = Da >> Si
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Double'.
+        result = Da >> [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'String'.
+        result = Da >> St
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Object'.
+        result = Da >> Ob
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da >> Tc
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Date'.
+        result = Da >> Da
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Char'.
+        result = Da >> Ch
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Date' and 'Char()'.
+        result = Da >> ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch >> BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch >> BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'SByte'.
+        result = Ch >> SB
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Byte'.
+        result = Ch >> By
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Short'.
+        result = Ch >> Sh
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'UShort'.
+        result = Ch >> US
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Integer'.
+        result = Ch >> [In]
+                 ~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'UInteger'.
+        result = Ch >> UI
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Long'.
+        result = Ch >> Lo
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'ULong'.
+        result = Ch >> UL
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Decimal'.
+        result = Ch >> De
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Single'.
+        result = Ch >> Si
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Double'.
+        result = Ch >> [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'String'.
+        result = Ch >> St
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Object'.
+        result = Ch >> Ob
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch >> Tc
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Date'.
+        result = Ch >> Da
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Char'.
+        result = Ch >> Ch
+                 ~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char' and 'Char()'.
+        result = Ch >> ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Boolean'.
+        result = Da OrElse BoFalse
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Boolean'.
+        result = Da OrElse BoTrue
+                 ~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'SByte'.
+        result = Da OrElse SB
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Byte'.
+        result = Da OrElse By
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Short'.
+        result = Da OrElse Sh
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'UShort'.
+        result = Da OrElse US
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Integer'.
+        result = Da OrElse [In]
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'UInteger'.
+        result = Da OrElse UI
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Long'.
+        result = Da OrElse Lo
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'ULong'.
+        result = Da OrElse UL
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Decimal'.
+        result = Da OrElse De
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Single'.
+        result = Da OrElse Si
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Double'.
+        result = Da OrElse [Do]
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'String'.
+        result = Da OrElse St
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Object'.
+        result = Da OrElse Ob
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da OrElse Tc
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Date'.
+        result = Da OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Char'.
+        result = Da OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Date' and 'Char()'.
+        result = Da OrElse ChArray
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Boolean'.
+        result = Ch OrElse BoFalse
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Boolean'.
+        result = Ch OrElse BoTrue
+                 ~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'SByte'.
+        result = Ch OrElse SB
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Byte'.
+        result = Ch OrElse By
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Short'.
+        result = Ch OrElse Sh
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'UShort'.
+        result = Ch OrElse US
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Integer'.
+        result = Ch OrElse [In]
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'UInteger'.
+        result = Ch OrElse UI
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Long'.
+        result = Ch OrElse Lo
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'ULong'.
+        result = Ch OrElse UL
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Decimal'.
+        result = Ch OrElse De
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Single'.
+        result = Ch OrElse Si
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Double'.
+        result = Ch OrElse [Do]
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'String'.
+        result = Ch OrElse St
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Object'.
+        result = Ch OrElse Ob
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch OrElse Tc
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Date'.
+        result = Ch OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Char'.
+        result = Ch OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char' and 'Char()'.
+        result = Ch OrElse ChArray
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char()' and 'Date'.
+        result = ChArray OrElse Da
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char()' and 'Char'.
+        result = ChArray OrElse Ch
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse OrElse Da
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse OrElse Ch
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue OrElse Da
+                 ~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue OrElse Ch
+                 ~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'SByte' and 'Date'.
+        result = SB OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'SByte' and 'Char'.
+        result = SB OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Byte' and 'Date'.
+        result = By OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Byte' and 'Char'.
+        result = By OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Short' and 'Date'.
+        result = Sh OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Short' and 'Char'.
+        result = Sh OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'UShort' and 'Date'.
+        result = US OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'UShort' and 'Char'.
+        result = US OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Integer' and 'Date'.
+        result = [In] OrElse Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Integer' and 'Char'.
+        result = [In] OrElse Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'UInteger' and 'Date'.
+        result = UI OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'UInteger' and 'Char'.
+        result = UI OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Long' and 'Date'.
+        result = Lo OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Long' and 'Char'.
+        result = Lo OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'ULong' and 'Date'.
+        result = UL OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'ULong' and 'Char'.
+        result = UL OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Decimal' and 'Date'.
+        result = De OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Decimal' and 'Char'.
+        result = De OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Single' and 'Date'.
+        result = Si OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Single' and 'Char'.
+        result = Si OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Double' and 'Date'.
+        result = [Do] OrElse Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Double' and 'Char'.
+        result = [Do] OrElse Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'String' and 'Date'.
+        result = St OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'String' and 'Char'.
+        result = St OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Object' and 'Date'.
+        result = Ob OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Object' and 'Char'.
+        result = Ob OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc OrElse Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc OrElse Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Boolean'.
+        result = Da AndAlso BoFalse
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Boolean'.
+        result = Da AndAlso BoTrue
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'SByte'.
+        result = Da AndAlso SB
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Byte'.
+        result = Da AndAlso By
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Short'.
+        result = Da AndAlso Sh
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'UShort'.
+        result = Da AndAlso US
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Integer'.
+        result = Da AndAlso [In]
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'UInteger'.
+        result = Da AndAlso UI
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Long'.
+        result = Da AndAlso Lo
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'ULong'.
+        result = Da AndAlso UL
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Decimal'.
+        result = Da AndAlso De
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Single'.
+        result = Da AndAlso Si
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Double'.
+        result = Da AndAlso [Do]
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'String'.
+        result = Da AndAlso St
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Object'.
+        result = Da AndAlso Ob
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da AndAlso Tc
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Date'.
+        result = Da AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Char'.
+        result = Da AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Date' and 'Char()'.
+        result = Da AndAlso ChArray
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Boolean'.
+        result = Ch AndAlso BoFalse
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Boolean'.
+        result = Ch AndAlso BoTrue
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'SByte'.
+        result = Ch AndAlso SB
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Byte'.
+        result = Ch AndAlso By
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Short'.
+        result = Ch AndAlso Sh
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'UShort'.
+        result = Ch AndAlso US
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Integer'.
+        result = Ch AndAlso [In]
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'UInteger'.
+        result = Ch AndAlso UI
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Long'.
+        result = Ch AndAlso Lo
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'ULong'.
+        result = Ch AndAlso UL
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Decimal'.
+        result = Ch AndAlso De
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Single'.
+        result = Ch AndAlso Si
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Double'.
+        result = Ch AndAlso [Do]
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'String'.
+        result = Ch AndAlso St
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Object'.
+        result = Ch AndAlso Ob
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch AndAlso Tc
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Date'.
+        result = Ch AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Char'.
+        result = Ch AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char' and 'Char()'.
+        result = Ch AndAlso ChArray
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char()' and 'Date'.
+        result = ChArray AndAlso Da
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char()' and 'Char'.
+        result = ChArray AndAlso Ch
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse AndAlso Da
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse AndAlso Ch
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue AndAlso Da
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue AndAlso Ch
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'SByte' and 'Date'.
+        result = SB AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'SByte' and 'Char'.
+        result = SB AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Byte' and 'Date'.
+        result = By AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Byte' and 'Char'.
+        result = By AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Short' and 'Date'.
+        result = Sh AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Short' and 'Char'.
+        result = Sh AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'UShort' and 'Date'.
+        result = US AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'UShort' and 'Char'.
+        result = US AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Integer' and 'Date'.
+        result = [In] AndAlso Da
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Integer' and 'Char'.
+        result = [In] AndAlso Ch
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'UInteger' and 'Date'.
+        result = UI AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'UInteger' and 'Char'.
+        result = UI AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Long' and 'Date'.
+        result = Lo AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Long' and 'Char'.
+        result = Lo AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'ULong' and 'Date'.
+        result = UL AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'ULong' and 'Char'.
+        result = UL AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Decimal' and 'Date'.
+        result = De AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Decimal' and 'Char'.
+        result = De AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Single' and 'Date'.
+        result = Si AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Single' and 'Char'.
+        result = Si AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Double' and 'Date'.
+        result = [Do] AndAlso Da
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Double' and 'Char'.
+        result = [Do] AndAlso Ch
+                 ~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'String' and 'Date'.
+        result = St AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'String' and 'Char'.
+        result = St AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Object' and 'Date'.
+        result = Ob AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Object' and 'Char'.
+        result = Ob AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc AndAlso Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc AndAlso Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Boolean'.
+        result = Da = BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Boolean'.
+        result = Da = BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'SByte'.
+        result = Da = SB
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Byte'.
+        result = Da = By
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Short'.
+        result = Da = Sh
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'UShort'.
+        result = Da = US
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Integer'.
+        result = Da = [In]
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'UInteger'.
+        result = Da = UI
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Long'.
+        result = Da = Lo
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'ULong'.
+        result = Da = UL
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Decimal'.
+        result = Da = De
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Single'.
+        result = Da = Si
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Double'.
+        result = Da = [Do]
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da = Tc
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Date' and 'Char'.
+        result = Da = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch = BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch = BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'SByte'.
+        result = Ch = SB
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Byte'.
+        result = Ch = By
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Short'.
+        result = Ch = Sh
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'UShort'.
+        result = Ch = US
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Integer'.
+        result = Ch = [In]
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'UInteger'.
+        result = Ch = UI
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Long'.
+        result = Ch = Lo
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'ULong'.
+        result = Ch = UL
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Decimal'.
+        result = Ch = De
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Single'.
+        result = Ch = Si
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Double'.
+        result = Ch = [Do]
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch = Tc
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char' and 'Date'.
+        result = Ch = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse = Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse = Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue = Da
+                 ~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue = Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'SByte' and 'Date'.
+        result = SB = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'SByte' and 'Char'.
+        result = SB = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Byte' and 'Date'.
+        result = By = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Byte' and 'Char'.
+        result = By = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Short' and 'Date'.
+        result = Sh = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Short' and 'Char'.
+        result = Sh = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'UShort' and 'Date'.
+        result = US = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'UShort' and 'Char'.
+        result = US = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Integer' and 'Date'.
+        result = [In] = Da
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Integer' and 'Char'.
+        result = [In] = Ch
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'UInteger' and 'Date'.
+        result = UI = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'UInteger' and 'Char'.
+        result = UI = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Long' and 'Date'.
+        result = Lo = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Long' and 'Char'.
+        result = Lo = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'ULong' and 'Date'.
+        result = UL = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'ULong' and 'Char'.
+        result = UL = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Decimal' and 'Date'.
+        result = De = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Decimal' and 'Char'.
+        result = De = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Single' and 'Date'.
+        result = Si = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Single' and 'Char'.
+        result = Si = Ch
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'Double' and 'Date'.
+        result = [Do] = Da
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Double' and 'Char'.
+        result = [Do] = Ch
+                 ~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc = Da
+                 ~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc = Ch
+                 ~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Boolean'.
+        result = Da <> BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Boolean'.
+        result = Da <> BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'SByte'.
+        result = Da <> SB
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Byte'.
+        result = Da <> By
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Short'.
+        result = Da <> Sh
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'UShort'.
+        result = Da <> US
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Integer'.
+        result = Da <> [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'UInteger'.
+        result = Da <> UI
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Long'.
+        result = Da <> Lo
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'ULong'.
+        result = Da <> UL
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Decimal'.
+        result = Da <> De
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Single'.
+        result = Da <> Si
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Double'.
+        result = Da <> [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da <> Tc
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Date' and 'Char'.
+        result = Da <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch <> BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch <> BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'SByte'.
+        result = Ch <> SB
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Byte'.
+        result = Ch <> By
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Short'.
+        result = Ch <> Sh
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'UShort'.
+        result = Ch <> US
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Integer'.
+        result = Ch <> [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'UInteger'.
+        result = Ch <> UI
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Long'.
+        result = Ch <> Lo
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'ULong'.
+        result = Ch <> UL
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Decimal'.
+        result = Ch <> De
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Single'.
+        result = Ch <> Si
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Double'.
+        result = Ch <> [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch <> Tc
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char' and 'Date'.
+        result = Ch <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse <> Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse <> Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue <> Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue <> Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'SByte' and 'Date'.
+        result = SB <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'SByte' and 'Char'.
+        result = SB <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Byte' and 'Date'.
+        result = By <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Byte' and 'Char'.
+        result = By <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Short' and 'Date'.
+        result = Sh <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Short' and 'Char'.
+        result = Sh <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'UShort' and 'Date'.
+        result = US <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'UShort' and 'Char'.
+        result = US <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Integer' and 'Date'.
+        result = [In] <> Da
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Integer' and 'Char'.
+        result = [In] <> Ch
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'UInteger' and 'Date'.
+        result = UI <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'UInteger' and 'Char'.
+        result = UI <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Long' and 'Date'.
+        result = Lo <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Long' and 'Char'.
+        result = Lo <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'ULong' and 'Date'.
+        result = UL <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'ULong' and 'Char'.
+        result = UL <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Decimal' and 'Date'.
+        result = De <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Decimal' and 'Char'.
+        result = De <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Single' and 'Date'.
+        result = Si <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Single' and 'Char'.
+        result = Si <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Double' and 'Date'.
+        result = [Do] <> Da
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Double' and 'Char'.
+        result = [Do] <> Ch
+                 ~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc <> Da
+                 ~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc <> Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Boolean'.
+        result = Da <= BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Boolean'.
+        result = Da <= BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'SByte'.
+        result = Da <= SB
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Byte'.
+        result = Da <= By
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Short'.
+        result = Da <= Sh
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'UShort'.
+        result = Da <= US
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Integer'.
+        result = Da <= [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'UInteger'.
+        result = Da <= UI
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Long'.
+        result = Da <= Lo
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'ULong'.
+        result = Da <= UL
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Decimal'.
+        result = Da <= De
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Single'.
+        result = Da <= Si
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Double'.
+        result = Da <= [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da <= Tc
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Date' and 'Char'.
+        result = Da <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch <= BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch <= BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'SByte'.
+        result = Ch <= SB
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Byte'.
+        result = Ch <= By
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Short'.
+        result = Ch <= Sh
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'UShort'.
+        result = Ch <= US
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Integer'.
+        result = Ch <= [In]
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'UInteger'.
+        result = Ch <= UI
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Long'.
+        result = Ch <= Lo
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'ULong'.
+        result = Ch <= UL
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Decimal'.
+        result = Ch <= De
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Single'.
+        result = Ch <= Si
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Double'.
+        result = Ch <= [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch <= Tc
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char' and 'Date'.
+        result = Ch <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse <= Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse <= Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue <= Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue <= Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'SByte' and 'Date'.
+        result = SB <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'SByte' and 'Char'.
+        result = SB <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Byte' and 'Date'.
+        result = By <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Byte' and 'Char'.
+        result = By <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Short' and 'Date'.
+        result = Sh <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Short' and 'Char'.
+        result = Sh <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'UShort' and 'Date'.
+        result = US <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'UShort' and 'Char'.
+        result = US <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Integer' and 'Date'.
+        result = [In] <= Da
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Integer' and 'Char'.
+        result = [In] <= Ch
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'UInteger' and 'Date'.
+        result = UI <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'UInteger' and 'Char'.
+        result = UI <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Long' and 'Date'.
+        result = Lo <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Long' and 'Char'.
+        result = Lo <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'ULong' and 'Date'.
+        result = UL <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'ULong' and 'Char'.
+        result = UL <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Decimal' and 'Date'.
+        result = De <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Decimal' and 'Char'.
+        result = De <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Single' and 'Date'.
+        result = Si <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Single' and 'Char'.
+        result = Si <= Ch
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Double' and 'Date'.
+        result = [Do] <= Da
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Double' and 'Char'.
+        result = [Do] <= Ch
+                 ~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc <= Da
+                 ~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc <= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Boolean'.
+        result = Da >= BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Boolean'.
+        result = Da >= BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'SByte'.
+        result = Da >= SB
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Byte'.
+        result = Da >= By
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Short'.
+        result = Da >= Sh
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'UShort'.
+        result = Da >= US
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Integer'.
+        result = Da >= [In]
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'UInteger'.
+        result = Da >= UI
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Long'.
+        result = Da >= Lo
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'ULong'.
+        result = Da >= UL
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Decimal'.
+        result = Da >= De
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Single'.
+        result = Da >= Si
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Double'.
+        result = Da >= [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da >= Tc
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Date' and 'Char'.
+        result = Da >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch >= BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Boolean'.
+        result = Ch >= BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'SByte'.
+        result = Ch >= SB
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Byte'.
+        result = Ch >= By
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Short'.
+        result = Ch >= Sh
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'UShort'.
+        result = Ch >= US
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Integer'.
+        result = Ch >= [In]
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'UInteger'.
+        result = Ch >= UI
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Long'.
+        result = Ch >= Lo
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'ULong'.
+        result = Ch >= UL
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Decimal'.
+        result = Ch >= De
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Single'.
+        result = Ch >= Si
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Double'.
+        result = Ch >= [Do]
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch >= Tc
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char' and 'Date'.
+        result = Ch >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse >= Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse >= Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue >= Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue >= Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'SByte' and 'Date'.
+        result = SB >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'SByte' and 'Char'.
+        result = SB >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Byte' and 'Date'.
+        result = By >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Byte' and 'Char'.
+        result = By >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Short' and 'Date'.
+        result = Sh >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Short' and 'Char'.
+        result = Sh >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'UShort' and 'Date'.
+        result = US >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'UShort' and 'Char'.
+        result = US >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Integer' and 'Date'.
+        result = [In] >= Da
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Integer' and 'Char'.
+        result = [In] >= Ch
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'UInteger' and 'Date'.
+        result = UI >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'UInteger' and 'Char'.
+        result = UI >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Long' and 'Date'.
+        result = Lo >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Long' and 'Char'.
+        result = Lo >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'ULong' and 'Date'.
+        result = UL >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'ULong' and 'Char'.
+        result = UL >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Decimal' and 'Date'.
+        result = De >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Decimal' and 'Char'.
+        result = De >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Single' and 'Date'.
+        result = Si >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Single' and 'Char'.
+        result = Si >= Ch
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Double' and 'Date'.
+        result = [Do] >= Da
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Double' and 'Char'.
+        result = [Do] >= Ch
+                 ~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc >= Da
+                 ~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc >= Ch
+                 ~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Boolean'.
+        result = Da < BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Boolean'.
+        result = Da < BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'SByte'.
+        result = Da < SB
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Byte'.
+        result = Da < By
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Short'.
+        result = Da < Sh
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'UShort'.
+        result = Da < US
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Integer'.
+        result = Da < [In]
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'UInteger'.
+        result = Da < UI
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Long'.
+        result = Da < Lo
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'ULong'.
+        result = Da < UL
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Decimal'.
+        result = Da < De
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Single'.
+        result = Da < Si
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Double'.
+        result = Da < [Do]
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da < Tc
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Date' and 'Char'.
+        result = Da < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Boolean'.
+        result = Ch < BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Boolean'.
+        result = Ch < BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'SByte'.
+        result = Ch < SB
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Byte'.
+        result = Ch < By
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Short'.
+        result = Ch < Sh
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'UShort'.
+        result = Ch < US
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Integer'.
+        result = Ch < [In]
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'UInteger'.
+        result = Ch < UI
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Long'.
+        result = Ch < Lo
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'ULong'.
+        result = Ch < UL
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Decimal'.
+        result = Ch < De
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Single'.
+        result = Ch < Si
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Double'.
+        result = Ch < [Do]
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch < Tc
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char' and 'Date'.
+        result = Ch < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse < Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse < Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue < Da
+                 ~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue < Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'SByte' and 'Date'.
+        result = SB < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'SByte' and 'Char'.
+        result = SB < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Byte' and 'Date'.
+        result = By < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Byte' and 'Char'.
+        result = By < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Short' and 'Date'.
+        result = Sh < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Short' and 'Char'.
+        result = Sh < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'UShort' and 'Date'.
+        result = US < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'UShort' and 'Char'.
+        result = US < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Integer' and 'Date'.
+        result = [In] < Da
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Integer' and 'Char'.
+        result = [In] < Ch
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'UInteger' and 'Date'.
+        result = UI < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'UInteger' and 'Char'.
+        result = UI < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Long' and 'Date'.
+        result = Lo < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Long' and 'Char'.
+        result = Lo < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'ULong' and 'Date'.
+        result = UL < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'ULong' and 'Char'.
+        result = UL < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Decimal' and 'Date'.
+        result = De < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Decimal' and 'Char'.
+        result = De < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Single' and 'Date'.
+        result = Si < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Single' and 'Char'.
+        result = Si < Ch
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'Double' and 'Date'.
+        result = [Do] < Da
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Double' and 'Char'.
+        result = [Do] < Ch
+                 ~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc < Da
+                 ~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc < Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Boolean'.
+        result = Da > BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Boolean'.
+        result = Da > BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'SByte'.
+        result = Da > SB
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Byte'.
+        result = Da > By
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Short'.
+        result = Da > Sh
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'UShort'.
+        result = Da > US
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Integer'.
+        result = Da > [In]
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'UInteger'.
+        result = Da > UI
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Long'.
+        result = Da > Lo
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'ULong'.
+        result = Da > UL
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Decimal'.
+        result = Da > De
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Single'.
+        result = Da > Si
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Double'.
+        result = Da > [Do]
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da > Tc
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Date' and 'Char'.
+        result = Da > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch > BoFalse
+                 ~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Boolean'.
+        result = Ch > BoTrue
+                 ~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'SByte'.
+        result = Ch > SB
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Byte'.
+        result = Ch > By
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Short'.
+        result = Ch > Sh
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'UShort'.
+        result = Ch > US
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Integer'.
+        result = Ch > [In]
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'UInteger'.
+        result = Ch > UI
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Long'.
+        result = Ch > Lo
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'ULong'.
+        result = Ch > UL
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Decimal'.
+        result = Ch > De
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Single'.
+        result = Ch > Si
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Double'.
+        result = Ch > [Do]
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch > Tc
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char' and 'Date'.
+        result = Ch > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse > Da
+                 ~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse > Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue > Da
+                 ~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue > Ch
+                 ~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'SByte' and 'Date'.
+        result = SB > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'SByte' and 'Char'.
+        result = SB > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Byte' and 'Date'.
+        result = By > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Byte' and 'Char'.
+        result = By > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Short' and 'Date'.
+        result = Sh > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Short' and 'Char'.
+        result = Sh > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'UShort' and 'Date'.
+        result = US > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'UShort' and 'Char'.
+        result = US > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Integer' and 'Date'.
+        result = [In] > Da
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Integer' and 'Char'.
+        result = [In] > Ch
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'UInteger' and 'Date'.
+        result = UI > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'UInteger' and 'Char'.
+        result = UI > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Long' and 'Date'.
+        result = Lo > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Long' and 'Char'.
+        result = Lo > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'ULong' and 'Date'.
+        result = UL > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'ULong' and 'Char'.
+        result = UL > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Decimal' and 'Date'.
+        result = De > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Decimal' and 'Char'.
+        result = De > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Single' and 'Date'.
+        result = Si > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Single' and 'Char'.
+        result = Si > Ch
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'Double' and 'Date'.
+        result = [Do] > Da
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Double' and 'Char'.
+        result = [Do] > Ch
+                 ~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc > Da
+                 ~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc > Ch
+                 ~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Boolean'.
+        result = Da Xor BoFalse
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Boolean'.
+        result = Da Xor BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'SByte'.
+        result = Da Xor SB
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Byte'.
+        result = Da Xor By
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Short'.
+        result = Da Xor Sh
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'UShort'.
+        result = Da Xor US
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Integer'.
+        result = Da Xor [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'UInteger'.
+        result = Da Xor UI
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Long'.
+        result = Da Xor Lo
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'ULong'.
+        result = Da Xor UL
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Decimal'.
+        result = Da Xor De
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Single'.
+        result = Da Xor Si
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Double'.
+        result = Da Xor [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'String'.
+        result = Da Xor St
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Object'.
+        result = Da Xor Ob
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da Xor Tc
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Date'.
+        result = Da Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Char'.
+        result = Da Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Date' and 'Char()'.
+        result = Da Xor ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Boolean'.
+        result = Ch Xor BoFalse
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Boolean'.
+        result = Ch Xor BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'SByte'.
+        result = Ch Xor SB
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Byte'.
+        result = Ch Xor By
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Short'.
+        result = Ch Xor Sh
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'UShort'.
+        result = Ch Xor US
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Integer'.
+        result = Ch Xor [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'UInteger'.
+        result = Ch Xor UI
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Long'.
+        result = Ch Xor Lo
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'ULong'.
+        result = Ch Xor UL
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Decimal'.
+        result = Ch Xor De
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Single'.
+        result = Ch Xor Si
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Double'.
+        result = Ch Xor [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'String'.
+        result = Ch Xor St
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Object'.
+        result = Ch Xor Ob
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch Xor Tc
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Date'.
+        result = Ch Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Char'.
+        result = Ch Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char' and 'Char()'.
+        result = Ch Xor ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char()' and 'Date'.
+        result = ChArray Xor Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char()' and 'Char'.
+        result = ChArray Xor Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse Xor Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse Xor Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue Xor Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue Xor Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'SByte' and 'Date'.
+        result = SB Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'SByte' and 'Char'.
+        result = SB Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Byte' and 'Date'.
+        result = By Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Byte' and 'Char'.
+        result = By Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Short' and 'Date'.
+        result = Sh Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Short' and 'Char'.
+        result = Sh Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'UShort' and 'Date'.
+        result = US Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'UShort' and 'Char'.
+        result = US Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Integer' and 'Date'.
+        result = [In] Xor Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Integer' and 'Char'.
+        result = [In] Xor Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'UInteger' and 'Date'.
+        result = UI Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'UInteger' and 'Char'.
+        result = UI Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Long' and 'Date'.
+        result = Lo Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Long' and 'Char'.
+        result = Lo Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'ULong' and 'Date'.
+        result = UL Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'ULong' and 'Char'.
+        result = UL Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Decimal' and 'Date'.
+        result = De Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Decimal' and 'Char'.
+        result = De Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Single' and 'Date'.
+        result = Si Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Single' and 'Char'.
+        result = Si Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Double' and 'Date'.
+        result = [Do] Xor Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Double' and 'Char'.
+        result = [Do] Xor Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'String' and 'Date'.
+        result = St Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'String' and 'Char'.
+        result = St Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Object' and 'Date'.
+        result = Ob Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Object' and 'Char'.
+        result = Ob Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc Xor Da
+                 ~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc Xor Ch
+                 ~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Boolean'.
+        result = Da Or BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Boolean'.
+        result = Da Or BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'SByte'.
+        result = Da Or SB
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Byte'.
+        result = Da Or By
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Short'.
+        result = Da Or Sh
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'UShort'.
+        result = Da Or US
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Integer'.
+        result = Da Or [In]
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'UInteger'.
+        result = Da Or UI
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Long'.
+        result = Da Or Lo
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'ULong'.
+        result = Da Or UL
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Decimal'.
+        result = Da Or De
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Single'.
+        result = Da Or Si
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Double'.
+        result = Da Or [Do]
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'String'.
+        result = Da Or St
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Object'.
+        result = Da Or Ob
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da Or Tc
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Date'.
+        result = Da Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Char'.
+        result = Da Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Date' and 'Char()'.
+        result = Da Or ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Boolean'.
+        result = Ch Or BoFalse
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Boolean'.
+        result = Ch Or BoTrue
+                 ~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'SByte'.
+        result = Ch Or SB
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Byte'.
+        result = Ch Or By
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Short'.
+        result = Ch Or Sh
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'UShort'.
+        result = Ch Or US
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Integer'.
+        result = Ch Or [In]
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'UInteger'.
+        result = Ch Or UI
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Long'.
+        result = Ch Or Lo
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'ULong'.
+        result = Ch Or UL
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Decimal'.
+        result = Ch Or De
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Single'.
+        result = Ch Or Si
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Double'.
+        result = Ch Or [Do]
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'String'.
+        result = Ch Or St
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Object'.
+        result = Ch Or Ob
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch Or Tc
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Date'.
+        result = Ch Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Char'.
+        result = Ch Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char' and 'Char()'.
+        result = Ch Or ChArray
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char()' and 'Date'.
+        result = ChArray Or Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char()' and 'Char'.
+        result = ChArray Or Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse Or Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse Or Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue Or Da
+                 ~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue Or Ch
+                 ~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'SByte' and 'Date'.
+        result = SB Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'SByte' and 'Char'.
+        result = SB Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Byte' and 'Date'.
+        result = By Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Byte' and 'Char'.
+        result = By Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Short' and 'Date'.
+        result = Sh Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Short' and 'Char'.
+        result = Sh Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'UShort' and 'Date'.
+        result = US Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'UShort' and 'Char'.
+        result = US Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Integer' and 'Date'.
+        result = [In] Or Da
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Integer' and 'Char'.
+        result = [In] Or Ch
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'UInteger' and 'Date'.
+        result = UI Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'UInteger' and 'Char'.
+        result = UI Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Long' and 'Date'.
+        result = Lo Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Long' and 'Char'.
+        result = Lo Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'ULong' and 'Date'.
+        result = UL Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'ULong' and 'Char'.
+        result = UL Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Decimal' and 'Date'.
+        result = De Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Decimal' and 'Char'.
+        result = De Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Single' and 'Date'.
+        result = Si Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Single' and 'Char'.
+        result = Si Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Double' and 'Date'.
+        result = [Do] Or Da
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Double' and 'Char'.
+        result = [Do] Or Ch
+                 ~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'String' and 'Date'.
+        result = St Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'String' and 'Char'.
+        result = St Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Object' and 'Date'.
+        result = Ob Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Object' and 'Char'.
+        result = Ob Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc Or Da
+                 ~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc Or Ch
+                 ~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Boolean'.
+        result = Da And BoFalse
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Boolean'.
+        result = Da And BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'SByte'.
+        result = Da And SB
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Byte'.
+        result = Da And By
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Short'.
+        result = Da And Sh
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'UShort'.
+        result = Da And US
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Integer'.
+        result = Da And [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'UInteger'.
+        result = Da And UI
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Long'.
+        result = Da And Lo
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'ULong'.
+        result = Da And UL
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Decimal'.
+        result = Da And De
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Single'.
+        result = Da And Si
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Double'.
+        result = Da And [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'String'.
+        result = Da And St
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Object'.
+        result = Da And Ob
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'System.TypeCode'.
+        result = Da And Tc
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Date'.
+        result = Da And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Char'.
+        result = Da And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Date' and 'Char()'.
+        result = Da And ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Boolean'.
+        result = Ch And BoFalse
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Boolean'.
+        result = Ch And BoTrue
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'SByte'.
+        result = Ch And SB
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Byte'.
+        result = Ch And By
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Short'.
+        result = Ch And Sh
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'UShort'.
+        result = Ch And US
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Integer'.
+        result = Ch And [In]
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'UInteger'.
+        result = Ch And UI
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Long'.
+        result = Ch And Lo
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'ULong'.
+        result = Ch And UL
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Decimal'.
+        result = Ch And De
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Single'.
+        result = Ch And Si
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Double'.
+        result = Ch And [Do]
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'String'.
+        result = Ch And St
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Object'.
+        result = Ch And Ob
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'System.TypeCode'.
+        result = Ch And Tc
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Date'.
+        result = Ch And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Char'.
+        result = Ch And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char' and 'Char()'.
+        result = Ch And ChArray
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char()' and 'Date'.
+        result = ChArray And Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char()' and 'Char'.
+        result = ChArray And Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Boolean' and 'Date'.
+        result = BoFalse And Da
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Boolean' and 'Char'.
+        result = BoFalse And Ch
+                 ~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Boolean' and 'Date'.
+        result = BoTrue And Da
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Boolean' and 'Char'.
+        result = BoTrue And Ch
+                 ~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'SByte' and 'Date'.
+        result = SB And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'SByte' and 'Char'.
+        result = SB And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Byte' and 'Date'.
+        result = By And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Byte' and 'Char'.
+        result = By And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Short' and 'Date'.
+        result = Sh And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Short' and 'Char'.
+        result = Sh And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'UShort' and 'Date'.
+        result = US And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'UShort' and 'Char'.
+        result = US And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Integer' and 'Date'.
+        result = [In] And Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Integer' and 'Char'.
+        result = [In] And Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'UInteger' and 'Date'.
+        result = UI And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'UInteger' and 'Char'.
+        result = UI And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Long' and 'Date'.
+        result = Lo And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Long' and 'Char'.
+        result = Lo And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'ULong' and 'Date'.
+        result = UL And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'ULong' and 'Char'.
+        result = UL And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Decimal' and 'Date'.
+        result = De And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Decimal' and 'Char'.
+        result = De And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Single' and 'Date'.
+        result = Si And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Single' and 'Char'.
+        result = Si And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Double' and 'Date'.
+        result = [Do] And Da
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Double' and 'Char'.
+        result = [Do] And Ch
+                 ~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'String' and 'Date'.
+        result = St And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'String' and 'Char'.
+        result = St And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Object' and 'Date'.
+        result = Ob And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Object' and 'Char'.
+        result = Ob And Ch
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.TypeCode' and 'Date'.
+        result = Tc And Da
+                 ~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.TypeCode' and 'Char'.
+        result = Tc And Ch
+                 ~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] + DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing + DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value + Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value + DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value + [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] - DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'String' and 'System.DBNull'.
+        result = St - DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing - DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value - Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value - DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value - [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value - St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] * DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'String' and 'System.DBNull'.
+        result = St * DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing * DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value * Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value * DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value * [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value * St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] / DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'String' and 'System.DBNull'.
+        result = St / DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing / DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value / Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value / DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value / [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value / St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] \ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'String' and 'System.DBNull'.
+        result = St \ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing \ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value \ Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value \ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value \ [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value \ St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] Mod DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'String' and 'System.DBNull'.
+        result = St Mod DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing Mod DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Mod Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Mod DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value Mod [In]
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value Mod St
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] ^ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'String' and 'System.DBNull'.
+        result = St ^ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing ^ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value ^ Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value ^ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value ^ [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value ^ St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] << DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'String' and 'System.DBNull'.
+        result = St << DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Integer' and 'System.DBNull'.
+        result = Nothing << DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value << Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value << DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value << [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value << St
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] >> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'String' and 'System.DBNull'.
+        result = St >> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Integer' and 'System.DBNull'.
+        result = Nothing >> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value >> Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value >> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value >> [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value >> St
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] OrElse DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'String' and 'System.DBNull'.
+        result = St OrElse DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing OrElse DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value OrElse Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value OrElse DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value OrElse [In]
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value OrElse St
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] AndAlso DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'String' and 'System.DBNull'.
+        result = St AndAlso DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing AndAlso DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value AndAlso Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value AndAlso DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value AndAlso [In]
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value AndAlso St
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '&' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value & DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] Like DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'String' and 'System.DBNull'.
+        result = St Like DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'String' and 'System.DBNull'.
+        result = Nothing Like DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value Like Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Like DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value Like [In]
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value Like St
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] = DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing = DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value = Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value = DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value = [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] <> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing <> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value <> Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value <> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value <> [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] <= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'String' and 'System.DBNull'.
+        result = St <= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing <= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value <= Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value <= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value <= [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value <= St
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] >= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'String' and 'System.DBNull'.
+        result = St >= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing >= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value >= Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value >= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value >= [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value >= St
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] < DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'String' and 'System.DBNull'.
+        result = St < DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing < DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value < Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value < DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value < [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value < St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] > DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'String' and 'System.DBNull'.
+        result = St > DBNull.Value
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing > DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value > Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value > DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value > [In]
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value > St
+                 ~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] Xor DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'String' and 'System.DBNull'.
+        result = St Xor DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing Xor DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Xor Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Xor DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value Xor [In]
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value Xor St
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] Or DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'String' and 'System.DBNull'.
+        result = St Or DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing Or DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Or Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value Or DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value Or [In]
+                 ~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value Or St
+                 ~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Integer' and 'System.DBNull'.
+        result = [In] And DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'String' and 'System.DBNull'.
+        result = St And DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = Nothing And DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value And Nothing
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'System.DBNull'.
+        result = DBNull.Value And DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'Integer'.
+        result = DBNull.Value And [In]
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'String'.
+        result = DBNull.Value And St
+                 ~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray + DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '+' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value + ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray - DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '-' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value - ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray * DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '*' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value * ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray / DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '/' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value / ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray \ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '\' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value \ ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray Mod DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Mod' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value Mod ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray ^ DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '^' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value ^ ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray << DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<<' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value << ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray >> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>>' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value >> ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray OrElse DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value OrElse ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray AndAlso DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'AndAlso' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value AndAlso ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray Like DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Like' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value Like ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray = DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value = ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray <> DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<>' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value <> ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray <= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<=' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value <= ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray >= DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>=' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value >= ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray < DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '<' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value < ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray > DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '>' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value > ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray Xor DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Xor' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value Xor ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray Or DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'Or' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value Or ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'Char()' and 'System.DBNull'.
+        result = ChArray And DBNull.Value
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator 'And' is not defined for types 'System.DBNull' and 'Char()'.
+        result = DBNull.Value And ChArray
+                 ~~~~~~~~~~~~~~~~~~~~~~~~

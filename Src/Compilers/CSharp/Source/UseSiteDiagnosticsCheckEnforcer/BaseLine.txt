@@ -1,0 +1,5 @@
+    .get instance class Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol::get_BaseType()
+    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol> Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol::get_Interfaces()
+    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol> Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol::get_AllInterfaces()
+    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol> Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol::get_TypeArguments()
+    .get instance valuetype [System.Collections.Immutable]System.Collections.Immutable.ImmutableArray`1<class Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol> Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol::get_ConstraintTypes()

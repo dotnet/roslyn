@@ -1,0 +1,621 @@
+﻿Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> n1
+          type: System.Double
+        )
+        method: Class1 op_Implicit(Double) in Form1+Class1
+        type: Form1+Class1
+      )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: Form1+Class1
+          )
+          body {
+            ConvertChecked(
+              Parameter(
+                CoalesceLHS
+                type: Form1+Class1
+              )
+              method: System.Nullable`1[System.UInt64] op_Implicit(Class1) in Form1+Class1
+              type: System.Nullable`1[System.UInt64]
+            )
+          }
+          return type: System.Nullable`1[System.UInt64]
+          type: System.Func`2[Form1+Class1,System.Nullable`1[System.UInt64]]
+        )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      MemberAccess(
+        <NULL>
+        -> n1
+        type: System.Double
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[System.UInt64]
+          )
+          body {
+            Convert(
+              ConvertChecked(
+                Parameter(
+                  CoalesceLHS
+                  type: System.Nullable`1[System.UInt64]
+                )
+                method: UInt64 op_Explicit(System.Nullable`1[System.UInt64]) in System.Nullable`1[System.UInt64]
+                type: System.UInt64
+              )
+              type: System.Double
+            )
+          }
+          return type: System.Double
+          type: System.Func`2[System.Nullable`1[System.UInt64],System.Double]
+        )
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`1[System.Double]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      MemberAccess(
+        <NULL>
+        -> n3
+        type: System.Nullable`1[System.Decimal]
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[System.UInt64]
+          )
+          body {
+            Convert(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt64]
+              )
+              Lifted
+              LiftedToNull
+              method: System.Decimal op_Implicit(UInt64) in System.Decimal
+              type: System.Nullable`1[System.Decimal]
+            )
+          }
+          return type: System.Nullable`1[System.Decimal]
+          type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.Decimal]]
+        )
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      ConvertChecked(
+        MemberAccess(
+          <NULL>
+          -> s2
+          type: System.Nullable`1[Form1+Struct1]
+        )
+        Lifted
+        LiftedToNull
+        method: UInt64 op_Implicit(Struct1) in Form1+Struct1
+        type: System.Nullable`1[System.UInt64]
+      )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      MemberAccess(
+        <NULL>
+        -> s1
+        type: Form1+Struct1
+      )
+      type: Form1+Struct1
+    )
+  }
+  return type: Form1+Struct1
+  type: System.Func`1[Form1+Struct1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      type: System.Nullable`1[Form1+Struct1]
+    )
+  }
+  return type: System.Nullable`1[Form1+Struct1]
+  type: System.Func`1[System.Nullable`1[Form1+Struct1]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      MemberAccess(
+        <NULL>
+        -> n1
+        type: System.Double
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[Form1+Struct1]
+          )
+          body {
+            Convert(
+              ConvertChecked(
+                Convert(
+                  Parameter(
+                    CoalesceLHS
+                    type: System.Nullable`1[Form1+Struct1]
+                  )
+                  Lifted
+                  type: Form1+Struct1
+                )
+                method: UInt64 op_Implicit(Struct1) in Form1+Struct1
+                type: System.UInt64
+              )
+              type: System.Double
+            )
+          }
+          return type: System.Double
+          type: System.Func`2[System.Nullable`1[Form1+Struct1],System.Double]
+        )
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`1[System.Double]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[Form1+Struct1]
+          )
+          body {
+            ConvertChecked(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[Form1+Struct1]
+              )
+              Lifted
+              LiftedToNull
+              method: UInt64 op_Implicit(Struct1) in Form1+Struct1
+              type: System.Nullable`1[System.UInt64]
+            )
+          }
+          return type: System.Nullable`1[System.UInt64]
+          type: System.Func`2[System.Nullable`1[Form1+Struct1],System.Nullable`1[System.UInt64]]
+        )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> i1
+        type: Form1+Interface1
+      )
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> c2
+          type: Form1+Class2
+        )
+        type: Form1+Interface1
+      )
+      type: Form1+Interface1
+    )
+  }
+  return type: Form1+Interface1
+  type: System.Func`1[Form1+Interface1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c2
+        type: Form1+Class2
+      )
+      MemberAccess(
+        <NULL>
+        -> i1
+        type: Form1+Interface1
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: Form1+Class2
+          )
+          body {
+            Convert(
+              Parameter(
+                CoalesceLHS
+                type: Form1+Class2
+              )
+              type: Form1+Interface1
+            )
+          }
+          return type: Form1+Interface1
+          type: System.Func`2[Form1+Class2,Form1+Interface1]
+        )
+      type: Form1+Interface1
+    )
+  }
+  return type: Form1+Interface1
+  type: System.Func`1[Form1+Interface1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c2
+        type: Form1+Class2
+      )
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: Form1+Class2
+          )
+          body {
+            Convert(
+              Parameter(
+                CoalesceLHS
+                type: Form1+Class2
+              )
+              type: Form1+Class1
+            )
+          }
+          return type: Form1+Class1
+          type: System.Func`2[Form1+Class2,Form1+Class1]
+        )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> c1
+        type: Form1+Class1
+      )
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> c2
+          type: Form1+Class2
+        )
+        type: Form1+Class1
+      )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> i1
+        type: Form1+Interface1
+      )
+      Convert(
+        Convert(
+          MemberAccess(
+            <NULL>
+            -> s1
+            type: Form1+Struct1
+          )
+          type: System.Object
+        )
+        type: Form1+Interface1
+      )
+      type: Form1+Interface1
+    )
+  }
+  return type: Form1+Interface1
+  type: System.Func`1[Form1+Interface1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> s2
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      MemberAccess(
+        <NULL>
+        -> i1
+        type: Form1+Interface1
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[Form1+Struct1]
+          )
+          body {
+            Convert(
+              Convert(
+                Convert(
+                  Parameter(
+                    CoalesceLHS
+                    type: System.Nullable`1[Form1+Struct1]
+                  )
+                  method: Struct1 op_Explicit(System.Nullable`1[Form1+Struct1]) in System.Nullable`1[Form1+Struct1]
+                  type: Form1+Struct1
+                )
+                type: System.Object
+              )
+              type: Form1+Interface1
+            )
+          }
+          return type: Form1+Interface1
+          type: System.Func`2[System.Nullable`1[Form1+Struct1],Form1+Interface1]
+        )
+      type: Form1+Interface1
+    )
+  }
+  return type: Form1+Interface1
+  type: System.Func`1[Form1+Interface1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      ConvertChecked(
+        MemberAccess(
+          <NULL>
+          -> n4
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt64]
+      )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        <NULL>
+        -> n4
+        type: System.Nullable`1[System.UInt32]
+      )
+      MemberAccess(
+        <NULL>
+        -> n2
+        type: System.Nullable`1[System.UInt64]
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[System.UInt32]
+          )
+          body {
+            ConvertChecked(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt32]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.UInt64]
+            )
+          }
+          return type: System.Nullable`1[System.UInt64]
+          type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.UInt64]]
+        )
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`1[System.Nullable`1[System.UInt64]]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      Convert(
+        MemberAccess(
+          <NULL>
+          -> n2
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean ToBoolean(UInt64) in System.Convert
+        type: System.Nullable`1[System.Boolean]
+      )
+      Constant(
+        False
+        type: System.Boolean
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)

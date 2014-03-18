@@ -1,0 +1,616 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System
+Imports System.Collections.Generic
+Imports System.Diagnostics
+Imports System.Linq
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
+
+    Partial Class CodeGenerator
+
+        Private Sub EmitUnaryOperatorExpression(expression As BoundUnaryOperator, used As Boolean)
+            Debug.Assert((expression.OperatorKind And Not UnaryOperatorKind.IntrinsicOpMask) = 0 AndAlso expression.OperatorKind <> 0)
+
+            If Not used AndAlso Not OperatorHasSideEffects(expression) Then
+                EmitExpression(expression.Operand, used:=False)
+                Return
+            End If
+
+            Select Case expression.OperatorKind
+                Case UnaryOperatorKind.Minus
+
+                    ' If overflow checking is on, we must subtract from zero because Neg doesn't
+                    ' check for overflow.
+                    Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
+                    Dim useCheckedSubtraction As Boolean = (expression.Checked AndAlso
+                                                     (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse
+                                                      targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64))
+
+                    If useCheckedSubtraction Then
+                        ' Generate the zero const first.
+                        _builder.EmitOpCode(ILOpCode.Ldc_i4_0)
+
+                        If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64 Then
+                            _builder.EmitOpCode(ILOpCode.Conv_i8)
+                        End If
+                    End If
+
+                    EmitExpression(expression.Operand, used:=True)
+
+                    If useCheckedSubtraction Then
+                        _builder.EmitOpCode(ILOpCode.Sub_ovf)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Neg)
+                    End If
+
+                    ' The result of the math operation has either 4 or 8 byte width.
+                    ' For 1 and 2 byte widths, convert the value back to the original type.
+                    DowncastResultOfArithmeticOperation(targetPrimitiveType, expression.Checked)
+
+                Case UnaryOperatorKind.Not
+
+                    If expression.Type.IsBooleanType() Then
+                        ' ISSUE: Will this emit 0 for false and 1 for true or can it leave non-zero on the stack without mapping it to 1?
+                        '        Dev10 code gen made sure there is either 0 or 1 on the stack after this operation.
+                        EmitCondExpr(expression.Operand, sense:=False)
+                    Else
+                        EmitExpression(expression.Operand, used:=True)
+                        _builder.EmitOpCode(ILOpCode.Not)
+
+                        ' Since the CLR will generate a 4-byte result from the Not operation, we
+                        ' need to convert back to ui1 or ui2 because they are unsigned
+                        ' CONSIDER cambecc (8-2-2000): no need to generate a Convert for each of n consecutive
+                        '                              Not operations
+                        Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
+                        If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt8 OrElse
+                           targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt16 Then
+
+                            _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.UInt32,
+                                                            targetPrimitiveType, False)
+                        End If
+                    End If
+
+                Case UnaryOperatorKind.Plus
+                    EmitExpression(expression.Operand, used:=True)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expression.OperatorKind)
+            End Select
+
+            EmitPopIfUnused(used)
+        End Sub
+
+        Private Shared Function OperatorHasSideEffects(expression As BoundUnaryOperator) As Boolean
+            If expression.Checked AndAlso
+               expression.OperatorKind = UnaryOperatorKind.Minus AndAlso
+               expression.Type.IsIntegralType() Then
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        Private Sub EmitBinaryOperatorExpression(expression As BoundBinaryOperator, used As Boolean)
+
+            Dim operationKind = expression.OperatorKind
+            Dim shortCircuit As Boolean = operationKind = BinaryOperatorKind.AndAlso OrElse operationKind = BinaryOperatorKind.OrElse
+
+            If Not used AndAlso Not shortCircuit AndAlso Not OperatorHasSideEffects(expression) Then
+                EmitExpression(expression.Left, False)
+                EmitExpression(expression.Right, False)
+                Return
+            End If
+
+            Select Case (operationKind And BinaryOperatorKind.OpMask)
+                Case BinaryOperatorKind.Add,
+                     BinaryOperatorKind.Subtract,
+                     BinaryOperatorKind.Multiply,
+                     BinaryOperatorKind.Modulo,
+                     BinaryOperatorKind.Divide,
+                     BinaryOperatorKind.IntegerDivide,
+                     BinaryOperatorKind.LeftShift,
+                     BinaryOperatorKind.RightShift
+                    EmitBinaryArithOperator(expression)
+
+                Case BinaryOperatorKind.OrElse,
+                     BinaryOperatorKind.AndAlso,
+                     BinaryOperatorKind.Equals,
+                     BinaryOperatorKind.NotEquals,
+                     BinaryOperatorKind.LessThanOrEqual,
+                     BinaryOperatorKind.GreaterThanOrEqual,
+                     BinaryOperatorKind.LessThan,
+                     BinaryOperatorKind.GreaterThan,
+                     BinaryOperatorKind.Is,
+                     BinaryOperatorKind.IsNot
+
+                    EmitBinaryCondOperator(expression, True)
+
+                Case BinaryOperatorKind.And
+                    EmitExpression(expression.Left, True)
+                    EmitExpression(expression.Right, True)
+                    _builder.EmitOpCode(ILOpCode.And)
+
+                Case BinaryOperatorKind.Xor
+                    EmitExpression(expression.Left, True)
+                    EmitExpression(expression.Right, True)
+                    _builder.EmitOpCode(ILOpCode.Xor)
+
+                Case BinaryOperatorKind.Or
+                    EmitExpression(expression.Left, True)
+                    EmitExpression(expression.Right, True)
+                    _builder.EmitOpCode(ILOpCode.Or)
+
+                Case Else
+                    ' BinaryOperatorKind.Power, BinaryOperatorKind.Like and BinaryOperatorKind.Concatenate should go here.
+                    Throw ExceptionUtilities.UnexpectedValue(operationKind)
+            End Select
+
+            EmitPopIfUnused(used)
+        End Sub
+
+        Private Function OperatorHasSideEffects(expression As BoundBinaryOperator) As Boolean
+            Dim type = expression.OperatorKind And BinaryOperatorKind.OpMask
+
+            Select Case type
+                Case BinaryOperatorKind.Divide,
+                     BinaryOperatorKind.Modulo,
+                     BinaryOperatorKind.IntegerDivide
+                    Return True
+
+                Case BinaryOperatorKind.Multiply,
+                     BinaryOperatorKind.Add,
+                     BinaryOperatorKind.Subtract
+                    Return expression.Checked AndAlso expression.Type.IsIntegralType()
+
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Sub EmitBinaryArithOperator(expression As BoundBinaryOperator)
+
+            EmitExpression(expression.Left, True)
+            EmitExpression(expression.Right, True)
+
+            Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
+            Dim opKind = expression.OperatorKind And BinaryOperatorKind.OpMask
+
+            Select Case opKind
+                Case BinaryOperatorKind.Multiply
+
+                    If expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        _builder.EmitOpCode(ILOpCode.Mul_ovf)
+
+                    ElseIf expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        _builder.EmitOpCode(ILOpCode.Mul_ovf_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Mul)
+                    End If
+
+                Case BinaryOperatorKind.Modulo
+                    If targetPrimitiveType.IsUnsigned() Then
+                        _builder.EmitOpCode(ILOpCode.Rem_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.[Rem])
+                    End If
+
+                Case BinaryOperatorKind.Add
+                    If expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        _builder.EmitOpCode(ILOpCode.Add_ovf)
+
+                    ElseIf expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        _builder.EmitOpCode(ILOpCode.Add_ovf_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Add)
+                    End If
+
+                Case BinaryOperatorKind.Subtract
+                    If expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int64) Then
+                        _builder.EmitOpCode(ILOpCode.Sub_ovf)
+
+                    ElseIf expression.Checked AndAlso
+                        (targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt32 OrElse targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt64) Then
+                        _builder.EmitOpCode(ILOpCode.Sub_ovf_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Sub)
+                    End If
+
+                Case BinaryOperatorKind.Divide,
+                     BinaryOperatorKind.IntegerDivide
+
+                    If targetPrimitiveType.IsUnsigned() Then
+                        _builder.EmitOpCode(ILOpCode.Div_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Div)
+                    End If
+
+                Case BinaryOperatorKind.LeftShift
+
+                    ' And the right operand with mask corresponding the left operand type
+                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode.Int32)
+                    'mask RHS if not a constant or too large
+                    Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
+                    Dim shiftConst = expression.Right.ConstantValueOpt
+                    If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMax Then
+                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax))
+                        _builder.EmitOpCode(ILOpCode.And)
+                    End If
+
+                    _builder.EmitOpCode(ILOpCode.Shl)
+
+                Case BinaryOperatorKind.RightShift
+
+                    ' And the right operand with mask corresponding the left operand type
+                    Debug.Assert(expression.Right.Type.PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode.Int32)
+
+                    'mask RHS if not a constant or too large
+                    Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
+                    Dim shiftConst = expression.Right.ConstantValueOpt
+                    If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMax Then
+                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax))
+                        _builder.EmitOpCode(ILOpCode.And)
+                    End If
+
+                    If targetPrimitiveType.IsUnsigned() Then
+                        _builder.EmitOpCode(ILOpCode.Shr_un)
+                    Else
+                        _builder.EmitOpCode(ILOpCode.Shr)
+                    End If
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
+            End Select
+
+            ' The result of the math operation has either 4 or 8 byte width.
+            ' For 1 and 2 byte widths, convert the value back to the original type.
+            DowncastResultOfArithmeticOperation(targetPrimitiveType, expression.Checked AndAlso
+                                                    opKind <> BinaryOperatorKind.LeftShift AndAlso
+                                                    opKind <> BinaryOperatorKind.RightShift)
+
+        End Sub
+
+        Private Sub DowncastResultOfArithmeticOperation(
+            targetPrimitiveType As Microsoft.Cci.PrimitiveTypeCode,
+            isChecked As Boolean
+        )
+            ' The result of the math operation has either 4 or 8 byte width.
+            ' For 1 and 2 byte widths, convert the value back to the original type.
+            If targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int8 OrElse
+               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt8 OrElse
+               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.Int16 OrElse
+               targetPrimitiveType = Microsoft.Cci.PrimitiveTypeCode.UInt16 Then
+
+                _builder.EmitNumericConversion(
+                                                If(targetPrimitiveType.IsUnsigned(),
+                                                   Microsoft.Cci.PrimitiveTypeCode.UInt32,
+                                                   Microsoft.Cci.PrimitiveTypeCode.Int32),
+                                                targetPrimitiveType, isChecked)
+            End If
+
+        End Sub
+
+        Public Shared Function GetShiftSizeMask(leftOperandType As TypeSymbol) As Integer
+            Dim result As Integer
+
+            Select Case leftOperandType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode
+                Case Microsoft.Cci.PrimitiveTypeCode.Int8,
+                     Microsoft.Cci.PrimitiveTypeCode.UInt8
+                    result = &H7
+                Case Microsoft.Cci.PrimitiveTypeCode.Int16,
+                     Microsoft.Cci.PrimitiveTypeCode.UInt16
+                    result = &HF
+                Case Microsoft.Cci.PrimitiveTypeCode.UInt32,
+                     Microsoft.Cci.PrimitiveTypeCode.Int32
+                    result = &H1F
+                Case Microsoft.Cci.PrimitiveTypeCode.UInt64,
+                     Microsoft.Cci.PrimitiveTypeCode.Int64
+                    result = &H3F
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(leftOperandType.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode)
+            End Select
+
+            Return result
+        End Function
+
+        Public Shared Function GetShiftSizeMask(leftOperandType As System.TypeCode) As Integer
+            Dim result As Integer
+
+            Select Case leftOperandType
+                Case TypeCode.SByte,
+                     TypeCode.Byte
+                    result = &H7
+                Case TypeCode.Int16,
+                     TypeCode.UInt16
+                    result = &HF
+                Case TypeCode.UInt32,
+                     TypeCode.Int32
+                    result = &H1F
+                Case TypeCode.UInt64,
+                     TypeCode.Int64
+                    result = &H3F
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(leftOperandType)
+            End Select
+
+            Return result
+        End Function
+
+        Private Sub EmitShortCircuitingOperator(condition As BoundBinaryOperator, sense As Boolean, stopSense As Boolean, stopValue As Boolean)
+            ' we generate:
+            '
+            ' gotoif (a == stopSense) fallThrough
+            ' b == sense
+            ' goto labEnd
+            ' fallThrough:
+            ' stopValue
+            ' labEnd:
+            ' AND OR
+            ' +- ------ -----
+            ' stopSense | !sense sense
+            ' stopValue | 0 1
+            Dim fallThrough As Object = Nothing
+
+            EmitCondBranch(condition.Left, fallThrough, stopSense)
+            EmitCondExpr(condition.Right, sense)
+
+            ' if fallthrough was not initialized, no one is going to take that branch
+            ' and we are done with Right on the stack
+            If fallThrough Is Nothing Then
+                Return
+            End If
+
+            Dim labEnd = New Object
+            _builder.EmitBranch(ILOpCode.Br, labEnd)
+
+            ' if we get to FallThrough we should not have Right on the stack. Adjust for that.
+            _builder.AdjustStack(-1)
+
+            _builder.MarkLabel(fallThrough)
+            _builder.EmitBoolConstant(stopValue)
+            _builder.MarkLabel(labEnd)
+        End Sub
+
+        'NOTE: odd positions assume inverted sense
+        Private Shared ReadOnly CompOpCodes As ILOpCode() = New ILOpCode() {ILOpCode.Clt, ILOpCode.Cgt, ILOpCode.Cgt, ILOpCode.Clt, ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un, ILOpCode.Clt, ILOpCode.Cgt_un, ILOpCode.Cgt, ILOpCode.Clt_un}
+
+        'NOTE: The result of this should be a boolean on the stack.
+        Private Sub EmitBinaryCondOperator(binOp As BoundBinaryOperator, sense As Boolean)
+            Dim andOrSense As Boolean = sense
+            Dim opIdx As Integer
+            Dim opKind = (binOp.OperatorKind And BinaryOperatorKind.OpMask)
+            Dim operandType = binOp.Left.Type
+
+            Debug.Assert(operandType IsNot Nothing OrElse (binOp.Left.IsNothingLiteral() AndAlso (opKind = BinaryOperatorKind.Is OrElse opKind = BinaryOperatorKind.IsNot)))
+
+            If operandType IsNot Nothing AndAlso operandType.IsBooleanType() Then
+                ' Since VB True is -1 but is stored as 1 in IL, relational operations on Boolean must
+                ' be reversed to yield the correct results. Note that = and <> do not need reversal.
+                Select Case opKind
+                    Case BinaryOperatorKind.LessThan
+                        opKind = BinaryOperatorKind.GreaterThan
+                    Case BinaryOperatorKind.LessThanOrEqual
+                        opKind = BinaryOperatorKind.GreaterThanOrEqual
+                    Case BinaryOperatorKind.GreaterThan
+                        opKind = BinaryOperatorKind.LessThan
+                    Case BinaryOperatorKind.GreaterThanOrEqual
+                        opKind = BinaryOperatorKind.LessThanOrEqual
+                End Select
+            End If
+
+            Select Case opKind
+                Case BinaryOperatorKind.OrElse
+                    andOrSense = Not andOrSense
+                    GoTo BinaryOperatorKindLogicalAnd
+
+                Case BinaryOperatorKind.AndAlso
+BinaryOperatorKindLogicalAnd:
+
+                    Debug.Assert(binOp.Left.Type.SpecialType = SpecialType.System_Boolean)
+                    Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
+
+                    If Not andOrSense Then
+                        EmitShortCircuitingOperator(binOp, sense, sense, True)
+                    Else
+                        EmitShortCircuitingOperator(binOp, sense, Not sense, False)
+                    End If
+                    Return
+
+                Case BinaryOperatorKind.IsNot
+                    ValidateReferenceEqualityOperands(binOp)
+                    GoTo BinaryOperatorKindNotEqual
+
+                Case BinaryOperatorKind.Is
+                    ValidateReferenceEqualityOperands(binOp)
+                    GoTo BinaryOperatorKindEqual
+
+                Case BinaryOperatorKind.NotEquals
+BinaryOperatorKindNotEqual:
+                    sense = Not sense
+                    GoTo BinaryOperatorKindEqual
+
+                Case BinaryOperatorKind.Equals
+BinaryOperatorKindEqual:
+
+                    Dim constant = binOp.Left.ConstantValueOpt
+                    Dim comparand = binOp.Right
+
+                    If constant Is Nothing Then
+                        constant = comparand.ConstantValueOpt
+                        comparand = binOp.Left
+                    End If
+
+                    If constant IsNot Nothing Then
+                        If constant.IsDefaultValue Then
+                            If Not constant.IsFloating Then
+                                If sense Then
+                                    EmitIsNullOrZero(comparand, constant)
+                                Else
+                                    '  obj != null/0   for pointers and integral numerics is emitted as cgt.un
+                                    EmitIsNotNullOrZero(comparand, constant)
+                                End If
+                                Return
+                            End If
+                        ElseIf constant.IsBoolean Then
+                            ' treat  "x = True" ==> "x"
+                            EmitExpression(comparand, True)
+                            EmitIsSense(sense)
+                            Return
+                        End If
+                    End If
+
+                    EmitBinaryCondOperatorHelper(ILOpCode.Ceq, binOp.Left, binOp.Right, sense)
+                    Return
+
+                Case BinaryOperatorKind.Or
+                    Debug.Assert(binOp.Left.Type.SpecialType = SpecialType.System_Boolean)
+                    Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
+
+                    EmitBinaryCondOperatorHelper(ILOpCode.Or, binOp.Left, binOp.Right, sense)
+                    Return
+
+                Case BinaryOperatorKind.And
+                    Debug.Assert(binOp.Left.Type.SpecialType = SpecialType.System_Boolean)
+                    Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
+
+                    EmitBinaryCondOperatorHelper(ILOpCode.And, binOp.Left, binOp.Right, sense)
+                    Return
+
+                Case BinaryOperatorKind.Xor
+                    Debug.Assert(binOp.Left.Type.SpecialType = SpecialType.System_Boolean)
+                    Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
+
+                    ' Xor is equivalent to not equal.
+                    If (sense) Then
+                        EmitBinaryCondOperatorHelper(ILOpCode.Xor, binOp.Left, binOp.Right, True)
+                    Else
+                        EmitBinaryCondOperatorHelper(ILOpCode.Ceq, binOp.Left, binOp.Right, True)
+                    End If
+
+                    Return
+
+                Case BinaryOperatorKind.LessThan
+                    opIdx = 0
+
+                Case BinaryOperatorKind.LessThanOrEqual
+                    opIdx = 1
+                    sense = Not sense
+
+                Case BinaryOperatorKind.GreaterThan
+                    opIdx = 2
+
+                Case BinaryOperatorKind.GreaterThanOrEqual
+                    opIdx = 3
+                    sense = Not sense
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
+            End Select
+
+            If operandType IsNot Nothing Then
+                If operandType.IsUnsignedIntegralType() Then
+                    opIdx += 4
+                Else
+                    If operandType.IsFloatingType() Then
+                        opIdx += 8
+                    End If
+                End If
+            End If
+
+            EmitBinaryCondOperatorHelper(CompOpCodes(opIdx), binOp.Left, binOp.Right, sense)
+
+            Return
+        End Sub
+
+        Private Sub EmitIsNotNullOrZero(comparand As BoundExpression, nullOrZero As ConstantValue)
+            EmitExpression(comparand, True)
+
+            Dim comparandType = comparand.Type
+            If comparandType.IsReferenceType AndAlso Not IsVerifierReference(comparandType) Then
+                EmitBox(comparandType, comparand.Syntax)
+            End If
+
+            _builder.EmitConstantValue(nullOrZero)
+            _builder.EmitOpCode(ILOpCode.Cgt_un)
+        End Sub
+
+        Private Sub EmitIsNullOrZero(comparand As BoundExpression, nullOrZero As ConstantValue)
+            EmitExpression(comparand, True)
+
+            Dim comparandType = comparand.Type
+            If comparandType.IsReferenceType AndAlso Not IsVerifierReference(comparandType) Then
+                EmitBox(comparandType, comparand.Syntax)
+            End If
+
+            _builder.EmitConstantValue(nullOrZero)
+            _builder.EmitOpCode(ILOpCode.Ceq)
+        End Sub
+
+        Private Sub EmitBinaryCondOperatorHelper(opCode As ILOpCode,
+                                                 left As BoundExpression,
+                                                 right As BoundExpression,
+                                                 sense As Boolean)
+            EmitExpression(left, True)
+            EmitExpression(right, True)
+            _builder.EmitOpCode(opCode)
+            EmitIsSense(sense)
+        End Sub
+
+        ' generate a conditional (ie, boolean) expression...
+        ' this will leave a value on the stack which conforms to sense, ie:(condition == sense)
+        Private Function EmitCondExpr(condition As BoundExpression, sense As Boolean) As ConstResKind
+            While condition.Kind = BoundKind.UnaryOperator
+                Dim unOp = DirectCast(condition, BoundUnaryOperator)
+                Debug.Assert(unOp.OperatorKind = UnaryOperatorKind.Not AndAlso unOp.Type.IsBooleanType())
+                condition = unOp.Operand
+                sense = Not sense
+            End While
+
+            Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
+
+            If Not _noOptimizations AndAlso condition.IsConstant Then
+                Dim constValue = condition.ConstantValueOpt
+                Debug.Assert(constValue.IsBoolean)
+                Dim constant = constValue.BooleanValue
+
+                _builder.EmitBoolConstant(constant = sense)
+                Return (If(constant = sense, ConstResKind.ConstTrue, ConstResKind.ConstFalse))
+            End If
+
+            If condition.Kind = BoundKind.BinaryOperator Then
+                Dim binOp = DirectCast(condition, BoundBinaryOperator)
+                EmitBinaryCondOperator(binOp, sense)
+                Return ConstResKind.NotAConst
+            End If
+
+            EmitExpression(condition, True)
+            EmitIsSense(sense)
+
+            Return ConstResKind.NotAConst
+        End Function
+
+        ' emits IsTrue/IsFalse according to the sense
+        ' IsTrue actually does nothing
+        Private Sub EmitIsSense(sense As Boolean)
+            If Not sense Then
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0)
+                _builder.EmitOpCode(ILOpCode.Ceq)
+            End If
+        End Sub
+
+    End Class
+
+End Namespace
+

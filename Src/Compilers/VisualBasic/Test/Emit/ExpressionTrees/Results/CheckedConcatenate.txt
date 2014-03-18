@@ -1,0 +1,7301 @@
+﻿-=-=-=-=-=-=-=-=- SByte & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.SByte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- SByte + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.SByte
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.SByte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & SByte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.SByte
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.SByte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + SByte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.SByte
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.SByte
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.SByte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- SByte? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.SByte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.SByte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.SByte]
+                      )
+                      method: SByte op_Explicit(System.Nullable`1[System.SByte]) in System.Nullable`1[System.SByte]
+                      type: System.SByte
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.SByte],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.SByte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- SByte? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.SByte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & SByte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.SByte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.SByte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.SByte]
+                      )
+                      method: SByte op_Explicit(System.Nullable`1[System.SByte]) in System.Nullable`1[System.SByte]
+                      type: System.SByte
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.SByte],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.SByte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + SByte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.SByte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_SByte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_SByte
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_SByte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_SByte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_SByte
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_SByte
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_SByte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_SByte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_SByte
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_SByte
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_SByte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_SByte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_SByte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_SByte]
+                      )
+                      method: E_SByte op_Explicit(System.Nullable`1[E_SByte]) in System.Nullable`1[E_SByte]
+                      type: E_SByte
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_SByte],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_SByte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_SByte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_SByte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_SByte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_SByte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_SByte]
+                      )
+                      method: E_SByte op_Explicit(System.Nullable`1[E_SByte]) in System.Nullable`1[E_SByte]
+                      type: E_SByte
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_SByte],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_SByte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_SByte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_SByte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Byte & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Byte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Byte + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Byte
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Byte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Byte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Byte
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Byte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Byte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Byte
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Byte
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Byte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Byte? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Byte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Byte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Byte]
+                    )
+                    method: Byte op_Explicit(System.Nullable`1[System.Byte]) in System.Nullable`1[System.Byte]
+                    type: System.Byte
+                  )
+                  method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Byte],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Byte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Byte? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Byte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Byte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Byte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Byte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Byte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Byte]
+                    )
+                    method: Byte op_Explicit(System.Nullable`1[System.Byte]) in System.Nullable`1[System.Byte]
+                    type: System.Byte
+                  )
+                  method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Byte],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Byte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Byte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Byte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Byte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_Byte
+            )
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Byte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_Byte
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Byte,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Byte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Byte
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_Byte
+            )
+            type: System.Byte
+          )
+          method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Byte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Byte => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Byte
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_Byte
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Byte,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Byte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Byte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Byte]
+                      )
+                      method: E_Byte op_Explicit(System.Nullable`1[E_Byte]) in System.Nullable`1[E_Byte]
+                      type: E_Byte
+                    )
+                    type: System.Byte
+                  )
+                  method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Byte],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Byte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_Byte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Byte],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Byte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_Byte]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Byte]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Byte]
+                      )
+                      method: E_Byte op_Explicit(System.Nullable`1[E_Byte]) in System.Nullable`1[E_Byte]
+                      type: E_Byte
+                    )
+                    type: System.Byte
+                  )
+                  method: System.String ToString(Byte) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Byte],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Byte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Byte? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Byte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Byte],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Short & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: System.Int16
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int16,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Short + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Int16
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int16,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Short => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int16
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: System.Int16
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int16,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Short => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int16
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Int16
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int16,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Short? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Int16]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int16]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.Int16]
+                      )
+                      method: Int16 op_Explicit(System.Nullable`1[System.Int16]) in System.Nullable`1[System.Int16]
+                      type: System.Int16
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int16],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int16],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Short? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int16]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int16],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Short? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Int16]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int16]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.Int16]
+                      )
+                      method: Int16 op_Explicit(System.Nullable`1[System.Int16]) in System.Nullable`1[System.Int16]
+                      type: System.Int16
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int16],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int16],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Short? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Int16]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int16],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Short & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_Short
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Short,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Short + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_Short
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Short,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Short => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Short
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_Short
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Short,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Short => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Short
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_Short
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Short,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Short]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Short]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Short]
+                      )
+                      method: E_Short op_Explicit(System.Nullable`1[E_Short]) in System.Nullable`1[E_Short]
+                      type: E_Short
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Short],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Short],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_Short]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Short],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Short? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_Short]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Short]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Short]
+                      )
+                      method: E_Short op_Explicit(System.Nullable`1[E_Short]) in System.Nullable`1[E_Short]
+                      type: E_Short
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Short],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Short],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Short? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Short]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Short],System.String]
+)
+
+-=-=-=-=-=-=-=-=- UShort & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: System.UInt16
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.UInt16,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UShort + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.UInt16
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.UInt16,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & UShort => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.UInt16
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: System.UInt16
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.UInt16,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + UShort => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.UInt16
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.UInt16
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.UInt16,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UShort? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.UInt16]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt16]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.UInt16]
+                      )
+                      method: UInt16 op_Explicit(System.Nullable`1[System.UInt16]) in System.Nullable`1[System.UInt16]
+                      type: System.UInt16
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.UInt16],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.UInt16],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UShort? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.UInt16]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.UInt16],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & UShort? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.UInt16]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt16]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[System.UInt16]
+                      )
+                      method: UInt16 op_Explicit(System.Nullable`1[System.UInt16]) in System.Nullable`1[System.UInt16]
+                      type: System.UInt16
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.UInt16],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt16],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + UShort? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.UInt16]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt16],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_UShort
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_UShort,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_UShort
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_UShort,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_UShort => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UShort
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_UShort
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_UShort,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_UShort => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UShort
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_UShort
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_UShort,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UShort]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_UShort]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_UShort]
+                      )
+                      method: E_UShort op_Explicit(System.Nullable`1[E_UShort]) in System.Nullable`1[E_UShort]
+                      type: E_UShort
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_UShort],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_UShort],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_UShort]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_UShort],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_UShort? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_UShort]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_UShort]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_UShort]
+                      )
+                      method: E_UShort op_Explicit(System.Nullable`1[E_UShort]) in System.Nullable`1[E_UShort]
+                      type: E_UShort
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_UShort],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_UShort],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_UShort? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_UShort]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_UShort],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Integer & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int32,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Integer + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Int32
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int32,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Integer => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int32
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int32,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Integer => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int32
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Int32
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int32,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Integer? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Int32]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int32]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Int32]
+                    )
+                    method: Int32 op_Explicit(System.Nullable`1[System.Int32]) in System.Nullable`1[System.Int32]
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int32],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int32],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Integer? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int32]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int32],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Integer? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Int32]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int32]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Int32]
+                    )
+                    method: Int32 op_Explicit(System.Nullable`1[System.Int32]) in System.Nullable`1[System.Int32]
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int32],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int32],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Integer? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Int32]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int32],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_Integer
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Integer,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_Integer
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Integer,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Integer => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Integer
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_Integer
+            )
+            type: System.Int32
+          )
+          method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Integer,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Integer => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Integer
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_Integer
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Integer,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Integer]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Integer]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Integer]
+                      )
+                      method: E_Integer op_Explicit(System.Nullable`1[E_Integer]) in System.Nullable`1[E_Integer]
+                      type: E_Integer
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Integer],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Integer],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_Integer]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Integer],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Integer? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_Integer]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Integer]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Integer]
+                      )
+                      method: E_Integer op_Explicit(System.Nullable`1[E_Integer]) in System.Nullable`1[E_Integer]
+                      type: E_Integer
+                    )
+                    type: System.Int32
+                  )
+                  method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Integer],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Integer],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Integer? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Integer]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Integer],System.String]
+)
+
+-=-=-=-=-=-=-=-=- UInteger & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.UInt32,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UInteger + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.UInt32
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.UInt32,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & UInteger => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.UInt32
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.UInt32,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + UInteger => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.UInt32
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.UInt32
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.UInt32,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.UInt32]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt32]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.UInt32]
+                    )
+                    method: UInt32 op_Explicit(System.Nullable`1[System.UInt32]) in System.Nullable`1[System.UInt32]
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.UInt32],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.UInt32],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.UInt32]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.UInt32],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & UInteger? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.UInt32]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.UInt32]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.UInt32]
+                    )
+                    method: UInt32 op_Explicit(System.Nullable`1[System.UInt32]) in System.Nullable`1[System.UInt32]
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.UInt32],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt32],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + UInteger? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.UInt32]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.UInt32],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_UInteger
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_UInteger,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_UInteger
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_UInteger,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_UInteger => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UInteger
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_UInteger
+            )
+            type: System.UInt32
+          )
+          method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_UInteger,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_UInteger => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_UInteger
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_UInteger
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_UInteger,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UInteger]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_UInteger]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_UInteger]
+                      )
+                      method: E_UInteger op_Explicit(System.Nullable`1[E_UInteger]) in System.Nullable`1[E_UInteger]
+                      type: E_UInteger
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_UInteger],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_UInteger],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_UInteger]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_UInteger],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_UInteger? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_UInteger]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_UInteger]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_UInteger]
+                      )
+                      method: E_UInteger op_Explicit(System.Nullable`1[E_UInteger]) in System.Nullable`1[E_UInteger]
+                      type: E_UInteger
+                    )
+                    type: System.UInt32
+                  )
+                  method: System.String ToString(UInt32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_UInteger],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_UInteger],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_UInteger? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_UInteger]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_UInteger],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Long & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int64,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Long + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Int64
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Int64,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Long => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int64
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int64,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Long => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Int64
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Int64
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Int64,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Long? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Int64]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int64]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Int64]
+                    )
+                    method: Int64 op_Explicit(System.Nullable`1[System.Int64]) in System.Nullable`1[System.Int64]
+                    type: System.Int64
+                  )
+                  method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int64],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int64],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Long? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Int64]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Int64],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Long? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Int64]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Int64]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Int64]
+                    )
+                    method: Int64 op_Explicit(System.Nullable`1[System.Int64]) in System.Nullable`1[System.Int64]
+                    type: System.Int64
+                  )
+                  method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Int64],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int64],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Long? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Int64]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Int64],System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Long & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          ConvertChecked(
+            Parameter(
+              x
+              type: E_Long
+            )
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Long,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Long + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: E_Long
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[E_Long,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Long => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Long
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          ConvertChecked(
+            Parameter(
+              y
+              type: E_Long
+            )
+            type: System.Int64
+          )
+          method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Long,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Long => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: E_Long
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: E_Long
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,E_Long,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Long]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Long]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Long]
+                      )
+                      method: E_Long op_Explicit(System.Nullable`1[E_Long]) in System.Nullable`1[E_Long]
+                      type: E_Long
+                    )
+                    type: System.Int64
+                  )
+                  method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Long],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Long],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[E_Long]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[E_Long],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & E_Long? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[E_Long]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[E_Long]
+              )
+              body {
+                Convert(
+                  ConvertChecked(
+                    ConvertChecked(
+                      Parameter(
+                        CoalesceLHS
+                        type: System.Nullable`1[E_Long]
+                      )
+                      method: E_Long op_Explicit(System.Nullable`1[E_Long]) in System.Nullable`1[E_Long]
+                      type: E_Long
+                    )
+                    type: System.Int64
+                  )
+                  method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[E_Long],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Long],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + E_Long? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[E_Long]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[E_Long],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Boolean & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Boolean
+          )
+          method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Boolean,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Boolean + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Negate(
+          Convert(
+            Parameter(
+              x
+              type: System.Boolean
+            )
+            type: System.Double
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Boolean,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Boolean => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Boolean
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Boolean
+          )
+          method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Boolean,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Boolean => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Negate(
+          Convert(
+            Parameter(
+              y
+              type: System.Boolean
+            )
+            type: System.Double
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Boolean,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Boolean]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Boolean]
+                    )
+                    method: Boolean op_Explicit(System.Nullable`1[System.Boolean]) in System.Nullable`1[System.Boolean]
+                    type: System.Boolean
+                  )
+                  method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Boolean],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Negate(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[System.Boolean]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Double]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Boolean? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Boolean]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Boolean]
+                    )
+                    method: Boolean op_Explicit(System.Nullable`1[System.Boolean]) in System.Nullable`1[System.Boolean]
+                    type: System.Boolean
+                  )
+                  method: System.String ToString(Boolean) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Boolean],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Boolean],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Boolean? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Negate(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.Boolean]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Double]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Boolean],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Single & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Single
+          )
+          method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Single,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Single + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Single
+          )
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Single,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Single => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Single
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Single
+          )
+          method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Single,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Single => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Single
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Single
+          )
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Single,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Single? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Single]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Single]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Single]
+                    )
+                    method: Single op_Explicit(System.Nullable`1[System.Single]) in System.Nullable`1[System.Single]
+                    type: System.Single
+                  )
+                  method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Single],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Single],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Single? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Single]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Single],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Single? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Single]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Single]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Single]
+                    )
+                    method: Single op_Explicit(System.Nullable`1[System.Single]) in System.Nullable`1[System.Single]
+                    type: System.Single
+                  )
+                  method: System.String ToString(Single) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Single],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Single],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Single? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Single]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Single],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Double & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Double
+          )
+          method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Double,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Double + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Parameter(
+          x
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Double,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Double => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Double
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Double
+          )
+          method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Double,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Double => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Double
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Parameter(
+          y
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Double,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Double? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Double]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Double]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Double]
+                    )
+                    method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+                    type: System.Double
+                  )
+                  method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Double],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Double],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Double? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Double],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Double? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Double]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Double]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Double]
+                    )
+                    method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+                    type: System.Double
+                  )
+                  method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Double],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Double],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Double? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Parameter(
+            y
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Double],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Decimal & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.Decimal
+          )
+          method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Decimal,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Decimal + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.Decimal
+          )
+          method: Double op_Explicit(System.Decimal) in System.Decimal
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Decimal,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Decimal => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Decimal
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Decimal
+          )
+          method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Decimal,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Decimal => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Decimal
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Decimal
+          )
+          method: Double op_Explicit(System.Decimal) in System.Decimal
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Decimal,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Decimal]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Decimal]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Decimal]
+                    )
+                    method: System.Decimal op_Explicit(System.Nullable`1[System.Decimal]) in System.Nullable`1[System.Decimal]
+                    type: System.Decimal
+                  )
+                  method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Decimal],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Decimal],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Decimal]
+            )
+            Lifted
+            LiftedToNull
+            method: Double op_Explicit(System.Decimal) in System.Decimal
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.Decimal],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Decimal? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.Decimal]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.Decimal]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.Decimal]
+                    )
+                    method: System.Decimal op_Explicit(System.Nullable`1[System.Decimal]) in System.Nullable`1[System.Decimal]
+                    type: System.Decimal
+                  )
+                  method: System.String ToString(System.Decimal) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.Decimal],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Decimal],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Decimal? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      Convert(
+        Add(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.String
+              )
+              method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.Double
+            )
+            method: System.Nullable`1[System.Double] op_Implicit(Double) in System.Nullable`1[System.Double]
+            type: System.Nullable`1[System.Double]
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.Decimal]
+            )
+            Lifted
+            LiftedToNull
+            method: Double op_Explicit(System.Decimal) in System.Decimal
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Double]
+        )
+        method: Double op_Explicit(System.Nullable`1[System.Double]) in System.Nullable`1[System.Double]
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.Decimal],System.String]
+)
+
+-=-=-=-=-=-=-=-=- Date & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.DateTime,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Date + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.DateTime,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Date => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.DateTime,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Date => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.DateTime,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Date? & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.DateTime]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.DateTime]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.DateTime]
+                    )
+                    method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+                    type: System.DateTime
+                  )
+                  method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.DateTime],System.String]
+            )
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Date? + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.DateTime]
+            )
+            method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Date? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Coalesce(
+          Parameter(
+            y
+            type: System.Nullable`1[System.DateTime]
+          )
+          Constant(
+            null
+            type: System.String
+          )
+          conversion:
+            Lambda(
+              Parameter(
+                CoalesceLHS
+                type: System.Nullable`1[System.DateTime]
+              )
+              body {
+                Convert(
+                  Convert(
+                    Parameter(
+                      CoalesceLHS
+                      type: System.Nullable`1[System.DateTime]
+                    )
+                    method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+                    type: System.DateTime
+                  )
+                  method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+                  type: System.String
+                )
+              }
+              return type: System.String
+              type: System.Func`2[System.Nullable`1[System.DateTime],System.String]
+            )
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.DateTime],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Date? => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.Nullable`1[System.DateTime]
+            )
+            method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+            type: System.DateTime
+          )
+          method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Nullable`1[System.DateTime],System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.String Concat(System.String, System.String) in System.String (
+        Parameter(
+          x
+          type: System.String
+        )
+        Parameter(
+          y
+          type: System.String
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Object & String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object ConcatenateObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators (
+          Parameter(
+            x
+            type: System.Object
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.String
+            )
+            type: System.Object
+          )
+        )
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Object,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Object + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Add(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        method: System.Object AddObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.Object,System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String & Object => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.Object ConcatenateObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators (
+          Convert(
+            Parameter(
+              x
+              type: System.String
+            )
+            type: System.Object
+          )
+          Parameter(
+            y
+            type: System.Object
+          )
+        )
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- String + Object => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Add(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        method: System.Object AddObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`3[System.String,System.Object,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Object & Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object ConcatenateObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Object,System.Object]
+)

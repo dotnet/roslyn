@@ -1,0 +1,291 @@
+﻿Lambda(
+  body {
+    Call(
+      <NULL>
+      method: Int32 Foo[Struct1](System.Nullable`1[Form1+Struct1]) in Form1 (
+        Constant(
+          null
+          type: System.Nullable`1[Form1+Struct1]
+        )
+      )
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`1[System.Int32]
+)
+
+Result: 0
+Lambda(
+  body {
+    Lambda(
+      body {
+        Convert(
+          Call(
+            <NULL>
+            method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
+              Constant(
+                System.Func`2[System.Object,System.Boolean]
+                type: System.Type
+              )
+              Convert(
+                Invoke(
+                  Conditional(
+                    Constant(
+                      True
+                      type: System.Boolean
+                    )
+                    Lambda(
+                      body {
+                        Lambda(
+                          Parameter(
+                            s
+                            type: System.Object
+                          )
+                          body {
+                            Constant(
+                              True
+                              type: System.Boolean
+                            )
+                          }
+                          return type: System.Boolean
+                          type: VB$AnonymousDelegate_1`2[System.Object,System.Boolean]
+                        )
+                      }
+                      return type: VB$AnonymousDelegate_1`2[System.Object,System.Boolean]
+                      type: VB$AnonymousDelegate_0`1[VB$AnonymousDelegate_1`2[System.Object,System.Boolean]]
+                    )
+                    Lambda(
+                      body {
+                        Lambda(
+                          Parameter(
+                            a0
+                            type: System.Object
+                          )
+                          body {
+                            Invoke(
+                              Lambda(
+                                body {
+                                  Constant(
+                                    False
+                                    type: System.Boolean
+                                  )
+                                }
+                                return type: System.Boolean
+                                type: VB$AnonymousDelegate_0`1[System.Boolean]
+                              )
+                              (
+                              )
+                              type: System.Boolean
+                            )
+                          }
+                          return type: System.Boolean
+                          type: VB$AnonymousDelegate_1`2[System.Object,System.Boolean]
+                        )
+                      }
+                      return type: VB$AnonymousDelegate_1`2[System.Object,System.Boolean]
+                      type: VB$AnonymousDelegate_0`1[VB$AnonymousDelegate_1`2[System.Object,System.Boolean]]
+                    )
+                    type: VB$AnonymousDelegate_0`1[VB$AnonymousDelegate_1`2[System.Object,System.Boolean]]
+                  )
+                  (
+                  )
+                  type: VB$AnonymousDelegate_1`2[System.Object,System.Boolean]
+                )
+                type: System.Object
+              )
+              Constant(
+                Boolean Invoke(System.Object)
+                type: System.Reflection.MethodInfo
+              )
+              Constant(
+                False
+                type: System.Boolean
+              )
+            )
+            type: System.Delegate
+          )
+          type: System.Func`2[System.Object,System.Boolean]
+        )
+      }
+      return type: System.Func`2[System.Object,System.Boolean]
+      type: System.Func`1[System.Func`2[System.Object,System.Boolean]]
+    )
+  }
+  return type: System.Func`1[System.Func`2[System.Object,System.Boolean]]
+  type: System.Func`1[System.Func`1[System.Func`2[System.Object,System.Boolean]]]
+)
+
+Result: True
+Lambda(
+  body {
+    Lambda(
+      body {
+        Convert(
+          Invoke(
+            Conditional(
+              Constant(
+                True
+                type: System.Boolean
+              )
+              Lambda(
+                body {
+                  Constant(
+                    1
+                    type: System.Double
+                  )
+                }
+                return type: System.Double
+                type: VB$AnonymousDelegate_0`1[System.Double]
+              )
+              Lambda(
+                body {
+                  Constant(
+                    5
+                    type: System.Double
+                  )
+                }
+                return type: System.Double
+                type: VB$AnonymousDelegate_0`1[System.Double]
+              )
+              type: VB$AnonymousDelegate_0`1[System.Double]
+            )
+            (
+            )
+            type: System.Double
+          )
+          method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.String
+        )
+      }
+      return type: System.String
+      type: System.Func`1[System.String]
+    )
+  }
+  return type: System.Func`1[System.String]
+  type: System.Func`1[System.Func`1[System.String]]
+)
+
+Result: 1
+Lambda(
+  body {
+    Lambda(
+      body {
+        ConvertChecked(
+          Invoke(
+            Conditional(
+              Constant(
+                True
+                type: System.Boolean
+              )
+              Lambda(
+                body {
+                  Constant(
+                    1
+                    type: System.UInt32
+                  )
+                }
+                return type: System.UInt32
+                type: VB$AnonymousDelegate_0`1[System.UInt32]
+              )
+              Lambda(
+                body {
+                  Constant(
+                    1
+                    type: System.UInt32
+                  )
+                }
+                return type: System.UInt32
+                type: VB$AnonymousDelegate_0`1[System.UInt32]
+              )
+              type: VB$AnonymousDelegate_0`1[System.UInt32]
+            )
+            (
+            )
+            type: System.UInt32
+          )
+          type: System.Int64
+        )
+      }
+      return type: System.Int64
+      type: System.Func`1[System.Int64]
+    )
+  }
+  return type: System.Func`1[System.Int64]
+  type: System.Func`1[System.Func`1[System.Int64]]
+)
+
+Result: 1
+Lambda(
+  body {
+    Lambda(
+      Parameter(
+        a0
+        type: System.String
+      )
+      body {
+        Invoke(
+          Conditional(
+            Constant(
+              True
+              type: System.Boolean
+            )
+            Lambda(
+              body {
+                Constant(
+                  1
+                  type: System.Double
+                )
+              }
+              return type: System.Double
+              type: VB$AnonymousDelegate_0`1[System.Double]
+            )
+            Lambda(
+              body {
+                Constant(
+                  5
+                  type: System.Double
+                )
+              }
+              return type: System.Double
+              type: VB$AnonymousDelegate_0`1[System.Double]
+            )
+            type: VB$AnonymousDelegate_0`1[System.Double]
+          )
+          (
+          )
+          type: System.Double
+        )
+      }
+      return type: System.Void
+      type: System.Action`1[System.String]
+    )
+  }
+  return type: System.Action`1[System.String]
+  type: System.Func`1[System.Action`1[System.String]]
+)
+
+Lambda(
+  body {
+    Lambda(
+      body {
+        Call(
+          <NULL>
+          method: Void Foo(Int32) in Form1 (
+            Constant(
+              0
+              type: System.Int32
+            )
+          )
+          type: System.Void
+        )
+      }
+      return type: System.Void
+      type: System.Action
+    )
+  }
+  return type: System.Action
+  type: System.Func`1[System.Action]
+)
+
+Printed From 'Sub Foo(ByVal x As Integer)'

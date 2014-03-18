@@ -1,0 +1,282 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Invoke(
+      Lambda(
+        Parameter(
+          a
+          type: System.Object
+        )
+        body {
+          Parameter(
+            a
+            type: System.Object
+          )
+        }
+        return type: System.Object
+        type: VB$AnonymousDelegate_0`2[System.Object,System.Object]
+      )
+      (
+        Convert(
+          ArrayLength(
+            NewArrayBounds(
+              Constant(
+                12
+                type: System.Int32
+              )
+              type: System.String[]
+            )
+            type: System.Int32
+          )
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Invoke(
+      Lambda(
+        Parameter(
+          a
+          type: System.Object
+        )
+        body {
+          Parameter(
+            a
+            type: System.Object
+          )
+        }
+        return type: System.Object
+        type: VB$AnonymousDelegate_0`2[System.Object,System.Object]
+      )
+      (
+        Convert(
+          Call(
+            NewArrayBounds(
+              Constant(
+                12
+                type: System.Int32
+              )
+              type: System.String[]
+            )
+            method: Int64 get_LongLength() in System.Array (
+            )
+            type: System.Int64
+          )
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Invoke(
+      Lambda(
+        Parameter(
+          a
+          type: System.Object
+        )
+        body {
+          Parameter(
+            a
+            type: System.Object
+          )
+        }
+        return type: System.Object
+        type: VB$AnonymousDelegate_0`2[System.Object,System.Object]
+      )
+      (
+        Convert(
+          ArrayIndex(
+            NewArrayInit(
+              Convert(
+                Parameter(
+                  x
+                  type: System.Int32
+                )
+                method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                type: System.String
+              )
+              Parameter(
+                y
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+              type: System.String[]
+            )
+            Parameter(
+              x
+              type: System.Int32
+            )
+            type: System.String
+          )
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Invoke(
+      Lambda(
+        Parameter(
+          a
+          type: System.Object
+        )
+        body {
+          Parameter(
+            a
+            type: System.Object
+          )
+        }
+        return type: System.Object
+        type: VB$AnonymousDelegate_0`2[System.Object,System.Object]
+      )
+      (
+        Convert(
+          ArrayIndex(
+            NewArrayInit(
+              Convert(
+                Parameter(
+                  x
+                  type: System.Int32
+                )
+                method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                type: System.String
+              )
+              Parameter(
+                y
+                type: System.String
+              )
+              Constant(
+                
+                type: System.String
+              )
+              type: System.String[]
+            )
+            Parameter(
+              x
+              type: System.Int32
+            )
+            type: System.String
+          )
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Invoke(
+      Lambda(
+        Parameter(
+          a
+          type: System.Object
+        )
+        body {
+          Parameter(
+            a
+            type: System.Object
+          )
+        }
+        return type: System.Object
+        type: VB$AnonymousDelegate_0`2[System.Object,System.Object]
+      )
+      (
+        Convert(
+          Call(
+            NewArrayBounds(
+              Constant(
+                2
+                type: System.Int32
+              )
+              Constant(
+                3
+                type: System.Int32
+              )
+              type: System.String[,]
+            )
+            method: System.String Get(Int32, Int32) in System.String[,] (
+              Parameter(
+                x
+                type: System.Int32
+              )
+              Constant(
+                0
+                type: System.Int32
+              )
+            )
+            type: System.String
+          )
+          type: System.Object
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)

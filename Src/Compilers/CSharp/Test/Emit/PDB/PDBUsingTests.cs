@@ -1,0 +1,1645 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+{
+    public class PDBUsingTests : CSharpTestBase
+    {
+        #region Helpers
+
+        private static CSharpCompilation CreateDummyCompilation(string assemblyName)
+        {
+            return CreateCompilationWithMscorlib(
+                "public class C { }",
+                assemblyName: assemblyName,
+                compOptions: TestOptions.Dll);
+        }
+
+        #endregion
+        
+        [Fact]
+        public void TestUsings()
+        {
+            var text = @"
+using System;
+
+class A { void M() { } }
+
+namespace X
+{
+    using System.IO;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using System.Threading;
+
+        class C { void M() { } }
+    }
+}
+";
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.IO"" />
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System.IO"" />
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestNamespaceAliases()
+        {
+            var text = @"
+using P = System;
+
+class A { void M() { } }
+
+namespace X
+{
+    using Q = System.IO;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using R = System.Threading;
+
+        class C { void M() { } }
+    }
+}
+";
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""Q"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""P"" target=""System"" kind=""namespace"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""P"" target=""System"" kind=""namespace"" />
+      </scope>
+    </method>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System"" kind=""namespace"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestTypeAliases1()
+        {
+            var text = @"
+using P = System.String;
+
+class A { void M() { } }
+
+namespace X
+{
+    using Q = System.Int32;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using R = System.Char;
+
+        class C { void M() { } }
+    }
+}
+";
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestTypeAliases2()
+        {
+            var text = @"
+using P = System.Collections.Generic.List<int>;
+
+class A { void M() { } }
+
+namespace X
+{
+    using Q = System.Collections.Generic.List<System.Collections.Generic.List<char>>;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        using P = System.Char; //hides previous P
+
+        class C { void M() { } }
+    }
+}
+";
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestExternAliases()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+
+            var text = @"
+extern alias P;
+
+class A { void M() { } }
+
+namespace X
+{
+    extern alias Q;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        extern alias R;
+
+        class C { void M() { } }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text,
+                assemblyName: GetUniqueName(),
+                compOptions: TestOptions.Dll,
+                references: new [] 
+                { 
+                    new CSharpCompilationReference(dummyCompilation1, "P") , 
+                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
+                    new CSharpCompilationReference(dummyCompilation3, "R") 
+                });
+            compilation.VerifyDiagnostics(
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias P;"),
+                // (8,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Q;"),
+                // (14,9): info CS8020: Unused extern alias.
+                //         extern alias R;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias R;"));
+
+            //CONSIDER: Dev10 puts the <externinfo>s on A.M
+            string actual = GetPdbXml(compilation);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""P"" />
+        <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""Q"" />
+        <extern alias=""P"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""R"" />
+        <extern alias=""Q"" />
+        <extern alias=""P"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestExternAliasesInUsing()
+        {
+            CSharpCompilation libComp = CreateCompilationWithMscorlib(@"
+namespace N
+{
+    public class A { }
+}", assemblyName: "Lib");
+
+            var text = @"
+extern alias P;
+using P::N;
+using Q = P::N.A;
+using R = P::N;
+using global::N;
+using S = global::N.B;
+using T = global::N;
+
+namespace N
+{
+    class B { void M() { } }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text,
+                assemblyName: "Test",
+                compOptions: TestOptions.Dll,
+                references: new[] { new CSharpCompilationReference(libComp, "P") });
+            compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
+
+            string actual = GetPdbXml(compilation);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""N.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""0"" />
+          <namespace usingCount=""7"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""12"" start_column=""24"" end_row=""12"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""12"" start_column=""26"" end_row=""12"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""P"" />
+        <namespace qualifier=""P"" name=""N"" />
+        <namespace name=""N"" />
+        <alias name=""Q"" target=""N.A, Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""R"" qualifier=""P"" target=""N"" kind=""namespace"" />
+        <alias name=""S"" target=""N.B, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""T"" target=""N"" kind=""namespace"" />
+        <externinfo alias=""P"" assembly=""Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestNamespacesAndAliases()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+
+            var text = @"
+extern alias P;
+using System;
+using AU1 = System;
+using AT1 = System.Char;
+
+class A { void M() { } }
+
+namespace X
+{
+    extern alias Q;
+    using AU2 = System.IO;
+    using AT2 = System.IO.Directory;
+    using System.IO;
+
+    class B { void M() { } }
+
+    namespace Y
+    {
+        extern alias R;
+        using AT3 = System.Text.StringBuilder;
+        using System.Text;
+        using AU3 = System.Text;
+
+        class C { void M() { } }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text,
+                assemblyName: GetUniqueName(),
+                compOptions: TestOptions.Dll,
+                references: new[] 
+                { 
+                    new CSharpCompilationReference(dummyCompilation1, "P") , 
+                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
+                    new CSharpCompilationReference(dummyCompilation3, "R") 
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias P;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (13,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (14,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.IO;"),
+                // (11,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Q;"),
+                // (21,9): info CS8019: Unnecessary using directive.
+                //         using AT3 = System.Text.StringBuilder;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
+                // (22,9): info CS8019: Unnecessary using directive.
+                //         using System.Text;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Text;"),
+                // (23,9): info CS8019: Unnecessary using directive.
+                //         using AU3 = System.Text;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU3 = System.Text;"),
+                // (20,9): info CS8020: Unused extern alias.
+                //         extern alias R;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias R;"));
+
+            //CONSIDER: Dev10 puts the <externinfo>s on A.M
+            string actual = GetPdbXml(compilation);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""A"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""4"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""20"" end_row=""7"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""7"" start_column=""22"" end_row=""7"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+    <method containingType=""X.B"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""24"" end_row=""16"" end_column=""25"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""26"" end_row=""16"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""Q"" />
+        <namespace name=""System.IO"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""25"" start_column=""28"" end_row=""25"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""25"" start_column=""30"" end_row=""25"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""R"" />
+        <namespace name=""System.Text"" />
+        <alias name=""AT3"" target=""System.Text.StringBuilder, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
+        <extern alias=""Q"" />
+        <namespace name=""System.IO"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestPartialTypeInOneFile()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+
+            var text1 = @"
+extern alias P;
+using System;
+using AU1 = System;
+using AT1 = System.Char;
+
+namespace X
+{
+    extern alias Q;
+    using AU2 = System.IO;
+    using AT2 = System.IO.Directory;
+    using System.IO;
+
+    partial class C
+    {
+        partial void M();
+        void N1() { }
+    }
+}
+
+namespace X
+{
+    extern alias R;
+    using AU3 = System.Threading;
+    using AT3 = System.Threading.Thread;
+    using System.Threading;
+
+    partial class C
+    {
+        partial void M() { }
+        void N2() { }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(
+                text1,
+                assemblyName: GetUniqueName(),
+                compOptions: TestOptions.Dll,
+                references: new[] 
+                { 
+                    new CSharpCompilationReference(dummyCompilation1, "P"), 
+                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
+                    new CSharpCompilationReference(dummyCompilation3, "R"), 
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias P;"),
+                // (24,5): info CS8019: Unnecessary using directive.
+                //     using AU3 = System.Threading;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU3 = System.Threading;"),
+                // (25,5): info CS8019: Unnecessary using directive.
+                //     using AT3 = System.Threading.Thread;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT3 = System.Threading.Thread;"),
+                // (26,5): info CS8019: Unnecessary using directive.
+                //     using System.Threading;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading;"),
+                // (23,5): info CS8020: Unused extern alias.
+                //     extern alias R;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias R;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.IO;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Q;"));
+
+            string actual = GetPdbXml(compilation);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""30"" start_column=""26"" end_row=""30"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""30"" start_column=""28"" end_row=""30"" end_column=""29"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""R"" />
+        <namespace name=""System.Threading"" />
+        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""AT3"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+    <method containingType=""X.C"" name=""N1"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""Q"" />
+        <namespace name=""System.IO"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.C"" name=""N2"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""31"" start_column=""19"" end_row=""31"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""31"" start_column=""21"" end_row=""31"" end_column=""22"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""R"" />
+        <namespace name=""System.Threading"" />
+        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""AT3"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestPartialTypeInTwoFiles()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+            CSharpCompilation dummyCompilation4 = CreateDummyCompilation("d");
+
+            var text1 = @"
+extern alias P;
+using System;
+using AU1 = System;
+using AT1 = System.Char;
+
+namespace X
+{
+    extern alias Q;
+    using AU2 = System.IO;
+    using AT2 = System.IO.Directory;
+    using System.IO;
+
+    partial class C
+    {
+        partial void M();
+        void N1() { }
+    }
+}
+";
+
+            var text2 = @"
+extern alias R;
+using System.Text;
+using AU3 = System.Text;
+using AT3 = System.Text.StringBuilder;
+
+namespace X
+{
+    extern alias S;
+    using AU4 = System.Threading;
+    using AT4 = System.Threading.Thread;
+    using System.Threading;
+
+    partial class C
+    {
+        partial void M() { }
+        void N2() { }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(
+                new string[] { text1, text2 },
+                assemblyName: GetUniqueName(),
+                compOptions: TestOptions.Dll,
+                references: new[] 
+                { 
+                    new CSharpCompilationReference(dummyCompilation1, "P"), 
+                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
+                    new CSharpCompilationReference(dummyCompilation3, "R"), 
+                    new CSharpCompilationReference(dummyCompilation4, "S"), 
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias P;"),
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System.Text;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Text;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU3 = System.Text;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU3 = System.Text;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT3 = System.Text.StringBuilder;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias R;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias R;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.IO;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU4 = System.Threading;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AU4 = System.Threading;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Q;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT4 = System.Threading.Thread;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using AT4 = System.Threading.Thread;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.Threading;
+                Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Threading;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias S;
+                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias S;"));
+
+            string actual = GetPdbXml(compilation);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""16"" start_column=""26"" end_row=""16"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""S"" />
+        <namespace name=""System.Threading"" />
+        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""AT4"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""R"" />
+        <namespace name=""System.Text"" />
+        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
+        <alias name=""AT3"" target=""System.Text.StringBuilder, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""S"" assembly=""d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+    <method containingType=""X.C"" name=""N1"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""Q"" />
+        <namespace name=""System.IO"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
+        <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""P"" />
+        <namespace name=""System"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
+        <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+    <method containingType=""X.C"" name=""N2"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""2"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""4"" />
+          <namespace usingCount=""4"" />
+        </using>
+        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <extern alias=""S"" />
+        <namespace name=""System.Threading"" />
+        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""AT4"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <extern alias=""R"" />
+        <namespace name=""System.Text"" />
+        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
+        <alias name=""AT3"" target=""System.Text.StringBuilder, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestSynthesizedConstructors()
+        {
+            var text = @"
+namespace X
+{
+    using System;
+
+    partial class C
+    {
+        int x = 1;
+        static int sx = 1;
+    }
+}
+
+namespace X
+{
+    using System.IO;
+
+    partial class C
+    {
+        int y = 1;
+        static int sy = 1;
+    }
+}
+";
+
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""X.C"" name="".cctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0x6"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0xd"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""X.C"" name="".ctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""X.C"" methodName="".cctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0x7"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""19"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestFieldInitializerLambdas()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    int x = new int[2].Count(x => { return x % 3 == 0; });
+    static bool sx = new int[2].Any(x => 
+    {
+        return x % 2 == 0; 
+    });
+}
+";
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""&lt;.cctor&gt;b__0"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""&lt;.ctor&gt;b__1"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name="".cctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x1d"">
+        <namespace name=""System.Linq"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name="".ctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestAccessors()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    int P1 { get; set; }
+    int P2 { get { return 0; } set { } }
+    int this[int x] { get { return 0; } set { } }
+    event System.Action E1;
+    event System.Action E2 { add { } remove { } }
+}
+";
+
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_P1"" parameterNames="""">
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""14"" end_row=""6"" end_column=""18"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""set_P1"" parameterNames=""value"">
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""19"" end_row=""6"" end_column=""23"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""get_P2"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""18"" end_row=""7"" end_column=""19"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""7"" start_column=""20"" end_row=""7"" end_column=""29"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""7"" start_column=""30"" end_row=""7"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x7"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name=""set_P2"" parameterNames=""value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""36"" end_row=""7"" end_column=""37"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""7"" start_column=""38"" end_row=""7"" end_column=""39"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""add_E2"" parameterNames=""value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""34"" end_row=""10"" end_column=""35"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""36"" end_row=""10"" end_column=""37"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""remove_E2"" parameterNames=""value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""45"" end_row=""10"" end_column=""46"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""47"" end_row=""10"" end_column=""48"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""27"" end_row=""8"" end_column=""28"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""8"" start_column=""29"" end_row=""8"" end_column=""38"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""8"" start_column=""39"" end_row=""8"" end_column=""40"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C"" name=""set_Item"" parameterNames=""x, value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""45"" end_row=""8"" end_column=""46"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""8"" start_column=""47"" end_row=""8"" end_column=""48"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestSynthesizedSealedAccessors()
+        {
+            var text = @"
+using System;
+
+class Base
+{
+    public virtual int P { get; set; }
+}
+
+class Derived : Base
+{
+    public sealed override int P { set { } } //have to synthesize a sealed getter
+}
+";
+
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""Base"" name=""get_P"" parameterNames="""">
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""28"" end_row=""6"" end_column=""32"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""Base"" name=""set_P"" parameterNames=""value"">
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""33"" end_row=""6"" end_column=""37"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""Derived"" name=""set_P"" parameterNames=""value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""11"" start_column=""40"" end_row=""11"" end_column=""41"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""11"" start_column=""42"" end_row=""11"" end_column=""43"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void TestSynthesizedExplicitImplementation()
+        {
+            var text = @"
+using System.Runtime.CompilerServices;
+
+interface I1
+{
+    [IndexerName(""A"")]
+    int this[int x] { get; set; }
+}
+
+interface I2
+{
+    [IndexerName(""B"")]
+    int this[int x] { get; set; }
+}
+
+class C : I1, I2
+{
+    public int this[int x] { get { return 0; } set { } }
+}
+";
+
+            string actual = GetPdbXml(text, TestOptions.Dll);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""18"" start_column=""34"" end_row=""18"" end_column=""35"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""18"" start_column=""36"" end_row=""18"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""18"" start_column=""46"" end_row=""18"" end_column=""47"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x7"">
+        <namespace name=""System.Runtime.CompilerServices"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name=""set_Item"" parameterNames=""x, value"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_Item"" parameterNames=""x"" />
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""18"" start_column=""52"" end_row=""18"" end_column=""53"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""18"" start_column=""54"" end_row=""18"" end_column=""55"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+
+            AssertXmlEqual(expected, actual);
+        }
+
+        [WorkItem(692496)]
+        [Fact]
+        public void SequencePointOnUsingExpression()
+        {
+            var source = @"
+using System;
+
+public class Test : IDisposable
+{
+    static void Main()
+    {
+        using (new Test())
+        {
+        }
+    }
+
+    public void Dispose() { }
+}
+";
+            var expectedXml = @"
+<symbols>
+  <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""6"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x7"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x8"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0xb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x1c"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+            
+            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.Exe, "Test.Main"));
+        }
+
+        [Fact]
+        public void TestNestedType()
+        {
+            var libSource = @"
+public class Outer
+{
+    public class Inner
+    {
+    }
+}
+";
+
+            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
+
+            var source = @"
+using I = Outer.Inner;
+
+public class Test
+{
+    static void Main()
+    {
+    }
+}
+";
+            var expectedXml = @"
+<symbols>
+  <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""I"" target=""Outer+Inner, Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+
+            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.Exe, "Test.Main", references: new[] { libRef }));
+        }
+
+        [Fact]
+        public void TestVerbatimIdentifiers()
+        {
+            var source = @"
+using @namespace;
+using @object = @namespace;
+using @string = @namespace.@class<@namespace.@interface>.@struct;
+
+namespace @namespace
+{
+    public class @class<T>
+    {
+        public struct @struct
+        {
+        }
+    }
+
+    public interface @interface
+    {
+    }
+}
+
+class Test { static void Main() { } }
+";
+            // As in dev12, we drop all '@'s.
+            var expectedXml = @"
+<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""3"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""20"" start_column=""35"" end_row=""20"" end_column=""36"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x1"">
+        <namespace name=""namespace"" />
+        <alias name=""object"" target=""namespace"" kind=""namespace"" />
+        <alias name=""string"" target=""namespace.class`1+struct[[namespace.interface, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "Test");
+            AssertXmlEqual(expectedXml, GetPdbXml(comp, "Test.Main"));
+        }
+
+        [WorkItem(842479)]
+        [Fact]
+        public void UsingExternAlias()
+        {
+            var libSource = "public class C { }";
+            var libRef = new MetadataImageReference(CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToArray(), alias: "Q");
+
+            var source = @"
+extern alias Q;
+using R = Q;
+using Q;
+
+namespace N
+{
+    using S = R;
+    using R;
+
+    class D
+    {
+        static void Main() { }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
+
+            var expectedXml = @"
+<symbols>
+  <methods>
+    <method containingType=""N.D"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+          <namespace usingCount=""2"" />
+          <namespace usingCount=""3"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""13"" start_column=""30"" end_row=""13"" end_column=""31"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x1"">
+        <namespace qualifier=""Q"" name="""" />
+        <alias name=""S"" qualifier=""Q"" target="""" kind=""namespace"" />
+        <extern alias=""Q"" />
+        <namespace qualifier=""Q"" name="""" />
+        <alias name=""R"" qualifier=""Q"" target="""" kind=""namespace"" />
+        <externinfo alias=""Q"" assembly=""Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+
+            AssertXmlEqual(expectedXml, GetPdbXml(comp, "N.D.Main"));
+        }
+
+        [WorkItem(842478)]
+        [Fact]
+        public void AliasIncludingDynamic()
+        {
+            var source = @"
+using AD = System.Action<dynamic>;
+
+class D
+{
+    static void Main() { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            var expectedXml = @"
+<symbols>
+  <methods>
+    <method containingType=""D"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""26"" end_row=""6"" end_column=""27"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x1"">
+        <alias name=""AD"" target=""System.Action`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>";
+
+            AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+        }
+    }
+}

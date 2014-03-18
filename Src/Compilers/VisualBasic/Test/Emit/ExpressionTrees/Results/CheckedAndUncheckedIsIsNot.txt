@@ -1,0 +1,391 @@
+﻿-=-=-=-=-=-=-=-=- String Is String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Equal(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String Is String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Equal(
+      Convert(
+        Parameter(
+          x
+          type: System.String
+        )
+        type: System.Object
+      )
+      Convert(
+        Parameter(
+          y
+          type: System.String
+        )
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Is String => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Equal(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`3[System.String,System.String,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      NotEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot String => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    NotEqual(
+      Convert(
+        Parameter(
+          x
+          type: System.String
+        )
+        type: System.Object
+      )
+      Convert(
+        Parameter(
+          y
+          type: System.String
+        )
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.String,System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot String => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      NotEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`3[System.String,System.String,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Parameter(
+        y
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Object => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`3[System.Object,System.Object,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Object => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Parameter(
+        y
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`3[System.Object,System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Object => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`3[System.Object,System.Object,System.Nullable`1[System.Boolean]]
+)

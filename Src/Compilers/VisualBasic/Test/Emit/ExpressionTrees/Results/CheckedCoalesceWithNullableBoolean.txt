@@ -1,0 +1,510 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Coalesce(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          AndAlso(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Boolean]
+            )
+            Parameter(
+              y
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Conditional(
+        Convert(
+          AndAlso(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Boolean]
+            )
+            Parameter(
+              y
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Boolean]
+          )
+          Lifted
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  Parameter(
+    y
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          AndAlso(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Boolean]
+            )
+            Convert(
+              Parameter(
+                y
+                type: System.Boolean
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.Boolean],System.Boolean,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Conditional(
+        Coalesce(
+          AndAlso(
+            Convert(
+              Parameter(
+                x
+                type: System.Boolean
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Boolean]
+            )
+            Parameter(
+              y
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Boolean]
+          )
+          Constant(
+            False
+            type: System.Boolean
+          )
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Boolean,System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  Parameter(
+    y
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Conditional(
+        AndAlso(
+          Parameter(
+            x
+            type: System.Boolean
+          )
+          Parameter(
+            y
+            type: System.Boolean
+          )
+          type: System.Boolean
+        )
+        Constant(
+          True
+          type: System.Boolean
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Boolean,System.Boolean,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  body {
+    Coalesce(
+      Constant(
+        const
+        type: System.String
+      )
+      Convert(
+        Parameter(
+          x
+          type: System.Int32
+        )
+        type: System.Object
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.String
+          )
+          body {
+            Convert(
+              Parameter(
+                CoalesceLHS
+                type: System.String
+              )
+              type: System.Object
+            )
+          }
+          return type: System.Object
+          type: System.Func`2[System.String,System.Object]
+        )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Int32,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Coalesce(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int32]
+      )
+      Convert(
+        Constant(
+          const
+          type: System.String
+        )
+        type: System.Object
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[System.Int32]
+          )
+          body {
+            Convert(
+              ConvertChecked(
+                Parameter(
+                  CoalesceLHS
+                  type: System.Nullable`1[System.Int32]
+                )
+                method: Int32 op_Explicit(System.Nullable`1[System.Int32]) in System.Nullable`1[System.Int32]
+                type: System.Int32
+              )
+              type: System.Object
+            )
+          }
+          return type: System.Object
+          type: System.Func`2[System.Nullable`1[System.Int32],System.Object]
+        )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Coalesce(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Boolean]
+      )
+      Convert(
+        Constant(
+          const
+          type: System.String
+        )
+        type: System.Object
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: System.Nullable`1[System.Boolean]
+          )
+          body {
+            Convert(
+              Convert(
+                Parameter(
+                  CoalesceLHS
+                  type: System.Nullable`1[System.Boolean]
+                )
+                method: Boolean op_Explicit(System.Nullable`1[System.Boolean]) in System.Nullable`1[System.Boolean]
+                type: System.Boolean
+              )
+              type: System.Object
+            )
+          }
+          return type: System.Object
+          type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+        )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Coalesce(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Convert(
+          Constant(
+            const
+            type: System.String
+          )
+          type: System.Object
+        )
+        conversion:
+          Lambda(
+            Parameter(
+              CoalesceLHS
+              type: System.Nullable`1[System.Boolean]
+            )
+            body {
+              Convert(
+                Convert(
+                  Parameter(
+                    CoalesceLHS
+                    type: System.Nullable`1[System.Boolean]
+                  )
+                  method: Boolean op_Explicit(System.Nullable`1[System.Boolean]) in System.Nullable`1[System.Boolean]
+                  type: System.Boolean
+                )
+                type: System.Object
+              )
+            }
+            return type: System.Object
+            type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+          )
+        type: System.Object
+      )
+      method: System.String ToString(System.Object) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.String]
+)

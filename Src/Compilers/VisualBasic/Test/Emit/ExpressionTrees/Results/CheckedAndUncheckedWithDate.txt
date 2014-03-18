@@ -1,0 +1,1809 @@
+﻿-=-=-=-=-=-=-=-=- String > Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? > String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.String
+            )
+            method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.DateTime
+          )
+          method: System.Nullable`1[System.DateTime] op_Implicit(System.DateTime) in System.Nullable`1[System.DateTime]
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date > Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectGreater(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object > Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectGreater(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Nullable`1[System.DateTime]
+          )
+          Lifted
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date > Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date > Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? > Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? > Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      GreaterThan(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date < String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      LessThan(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.DateTime
+        )
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String < Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      LessThan(
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.String
+            )
+            method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.DateTime
+          )
+          method: System.Nullable`1[System.DateTime] op_Implicit(System.DateTime) in System.Nullable`1[System.DateTime]
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object < Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectLess(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? < Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectLess(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.DateTime]
+          )
+          Lifted
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date < Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      LessThan(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date < Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      LessThan(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? < Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      LessThan(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? < Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      LessThan(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThan(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String <= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? <= String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Convert(
+            Parameter(
+              y
+              type: System.String
+            )
+            method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.DateTime
+          )
+          method: System.Nullable`1[System.DateTime] op_Implicit(System.DateTime) in System.Nullable`1[System.DateTime]
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date <= Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectLessEqual(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object <= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectLessEqual(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.Nullable`1[System.DateTime]
+          )
+          Lifted
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date <= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date <= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? <= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? <= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      LessThanOrEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_LessThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date >= String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.DateTime
+        )
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String >= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Convert(
+          Convert(
+            Parameter(
+              x
+              type: System.String
+            )
+            method: System.DateTime ToDate(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.DateTime
+          )
+          method: System.Nullable`1[System.DateTime] op_Implicit(System.DateTime) in System.Nullable`1[System.DateTime]
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object >= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectGreaterEqual(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Parameter(
+          x
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? >= Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Call(
+      <NULL>
+      method: System.Object CompareObjectGreaterEqual(System.Object, System.Object, Boolean) in Microsoft.VisualBasic.CompilerServices.Operators (
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.DateTime]
+          )
+          Lifted
+          type: System.Object
+        )
+        Parameter(
+          y
+          type: System.Object
+        )
+        Constant(
+          False
+          type: System.Boolean
+        )
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date >= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date >= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? >= Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? >= Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      GreaterThanOrEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: Boolean op_GreaterThanOrEqual(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String + Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Parameter(
+            x
+            type: System.String
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.String,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? + String => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[System.DateTime]
+              )
+              method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+          Parameter(
+            y
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date + Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Object
+  )
+  body {
+    Add(
+      Convert(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        type: System.Object
+      )
+      Parameter(
+        y
+        type: System.Object
+      )
+      method: System.Object AddObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object + Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Add(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Convert(
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        type: System.Object
+      )
+      method: System.Object AddObject(System.Object, System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Object,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date + Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Convert(
+            Parameter(
+              x
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date + Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Convert(
+            Parameter(
+              x
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.DateTime]
+              )
+              method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? + Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[System.DateTime]
+              )
+              method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+          Convert(
+            Parameter(
+              y
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? + Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Call(
+        <NULL>
+        method: System.String Concat(System.String, System.String) in System.String (
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[System.DateTime]
+              )
+              method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+          Convert(
+            Convert(
+              Parameter(
+                y
+                type: System.Nullable`1[System.DateTime]
+              )
+              method: System.DateTime op_Explicit(System.Nullable`1[System.DateTime]) in System.Nullable`1[System.DateTime]
+              type: System.DateTime
+            )
+            method: System.String ToString(System.DateTime) in Microsoft.VisualBasic.CompilerServices.Conversions
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date - Date => TimeSpan -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Subtract(
+      Parameter(
+        x
+        type: System.DateTime
+      )
+      Parameter(
+        y
+        type: System.DateTime
+      )
+      method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+      type: System.TimeSpan
+    )
+  }
+  return type: System.TimeSpan
+  type: System.Func`3[System.DateTime,System.DateTime,System.TimeSpan]
+)
+
+-=-=-=-=-=-=-=-=- Date - Date? => TimeSpan -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Subtract(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.TimeSpan]
+      )
+      Lifted
+      type: System.TimeSpan
+    )
+  }
+  return type: System.TimeSpan
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.TimeSpan]
+)
+
+-=-=-=-=-=-=-=-=- Date? - Date => TimeSpan? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Subtract(
+      Parameter(
+        x
+        type: System.Nullable`1[System.DateTime]
+      )
+      Convert(
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.DateTime]
+      )
+      Lifted
+      LiftedToNull
+      method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+      type: System.Nullable`1[System.TimeSpan]
+    )
+  }
+  return type: System.Nullable`1[System.TimeSpan]
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Nullable`1[System.TimeSpan]]
+)
+
+-=-=-=-=-=-=-=-=- Date? - Date? => TimeSpan? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Subtract(
+      Parameter(
+        x
+        type: System.Nullable`1[System.DateTime]
+      )
+      Parameter(
+        y
+        type: System.Nullable`1[System.DateTime]
+      )
+      Lifted
+      LiftedToNull
+      method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+      type: System.Nullable`1[System.TimeSpan]
+    )
+  }
+  return type: System.Nullable`1[System.TimeSpan]
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Nullable`1[System.TimeSpan]]
+)
+
+-=-=-=-=-=-=-=-=- Date? - Date? => TimeSpan -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Subtract(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.TimeSpan]
+      )
+      Lifted
+      type: System.TimeSpan
+    )
+  }
+  return type: System.TimeSpan
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.TimeSpan]
+)
+
+-=-=-=-=-=-=-=-=- Date - Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Subtract(
+        Parameter(
+          x
+          type: System.DateTime
+        )
+        Parameter(
+          y
+          type: System.DateTime
+        )
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.TimeSpan
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date - Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.DateTime
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Subtract(
+        Convert(
+          Parameter(
+            x
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.TimeSpan]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.DateTime,System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? - Date => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.DateTime
+  )
+  body {
+    Convert(
+      Subtract(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.DateTime
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.TimeSpan]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.DateTime,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? - Date? => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  Parameter(
+    y
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Subtract(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Parameter(
+          y
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        LiftedToNull
+        method: System.TimeSpan op_Subtraction(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Nullable`1[System.TimeSpan]
+      )
+      Lifted
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Nullable`1[System.DateTime],System.Nullable`1[System.DateTime],System.Object]
+)

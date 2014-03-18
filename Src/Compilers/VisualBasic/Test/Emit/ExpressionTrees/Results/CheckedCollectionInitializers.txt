@@ -1,0 +1,524 @@
+﻿Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      ListInit(
+        New(
+          Void .ctor()(
+          )
+          type: System.Collections.Generic.List`1[System.String]
+        )
+        {
+          ElementInit(
+            Void Add(System.String)
+            Convert(
+              Parameter(
+                x
+                type: System.Int32
+              )
+              method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.String
+            )
+          )
+          ElementInit(
+            Void Add(System.String)
+            Constant(
+              a
+              type: System.String
+            )
+          )
+          ElementInit(
+            Void Add(System.String)
+            Call(
+              Parameter(
+                y
+                type: System.String
+              )
+              method: System.String ToString() in System.String (
+              )
+              type: System.String
+            )
+          )
+        }
+        type: System.Collections.Generic.List`1[System.String]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      ListInit(
+        New(
+          Void .ctor()(
+          )
+          type: System.Collections.Generic.List`1[System.Object]
+        )
+        {
+          ElementInit(
+            Void Add(System.Object)
+            Convert(
+              NewArrayInit(
+                Parameter(
+                  x
+                  type: System.Int32
+                )
+                type: System.Int32[]
+              )
+              type: System.Object
+            )
+          )
+          ElementInit(
+            Void Add(System.Object)
+            Convert(
+              Constant(
+                a
+                type: System.String
+              )
+              type: System.Object
+            )
+          )
+        }
+        type: System.Collections.Generic.List`1[System.Object]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      ListInit(
+        New(
+          <.ctor>(
+          )
+          type: Custom
+        )
+        {
+          ElementInit(
+            Void Add(System.Object)
+            Convert(
+              NewArrayInit(
+                Parameter(
+                  x
+                  type: System.Int32
+                )
+                type: System.Int32[]
+              )
+              type: System.Object
+            )
+          )
+          ElementInit(
+            Void Add(System.String, System.Object)
+            Convert(
+              Parameter(
+                x
+                type: System.Int32
+              )
+              method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+              type: System.String
+            )
+            Convert(
+              NewArrayInit(
+                Constant(
+                  a
+                  type: System.String
+                )
+                type: System.String[]
+              )
+              type: System.Object
+            )
+          )
+        }
+        type: Custom
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      ListInit(
+        New(
+          Void .ctor()(
+          )
+          type: System.Collections.Generic.List`1[System.Collections.Generic.List`1[System.String]]
+        )
+        {
+          ElementInit(
+            Void Add(System.Collections.Generic.List`1[System.String])
+            ListInit(
+              New(
+                Void .ctor()(
+                )
+                type: System.Collections.Generic.List`1[System.String]
+              )
+              {
+                ElementInit(
+                  Void Add(System.String)
+                  Constant(
+                    Hello
+                    type: System.String
+                  )
+                )
+                ElementInit(
+                  Void Add(System.String)
+                  Constant(
+                     
+                    type: System.String
+                  )
+                )
+              }
+              type: System.Collections.Generic.List`1[System.String]
+            )
+          )
+          ElementInit(
+            Void Add(System.Collections.Generic.List`1[System.String])
+            ListInit(
+              New(
+                Void .ctor()(
+                )
+                type: System.Collections.Generic.List`1[System.String]
+              )
+              {
+                ElementInit(
+                  Void Add(System.String)
+                  Constant(
+                    World!
+                    type: System.String
+                  )
+                )
+              }
+              type: System.Collections.Generic.List`1[System.String]
+            )
+          )
+        }
+        type: System.Collections.Generic.List`1[System.Collections.Generic.List`1[System.String]]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      ListInit(
+        New(
+          Void .ctor()(
+          )
+          type: System.Collections.Generic.List`1[System.Action]
+        )
+        {
+          ElementInit(
+            Void Add(System.Action)
+            Lambda(
+              body {
+                Call(
+                  <NULL>
+                  method: Void Write(System.String) in System.Console (
+                    Constant(
+                      hello
+                      type: System.String
+                    )
+                  )
+                  type: System.Void
+                )
+              }
+              return type: System.Void
+              type: System.Action
+            )
+          )
+          ElementInit(
+            Void Add(System.Action)
+            Lambda(
+              body {
+                Call(
+                  <NULL>
+                  method: Void Write(System.String) in System.Console (
+                    Constant(
+                      world
+                      type: System.String
+                    )
+                  )
+                  type: System.Void
+                )
+              }
+              return type: System.Void
+              type: System.Action
+            )
+          )
+        }
+        type: System.Collections.Generic.List`1[System.Action]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor()(
+            )
+            type: Clazz
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: Custom[] F
+            expression: {
+              NewArrayInit(
+                ListInit(
+                  New(
+                    <.ctor>(
+                    )
+                    type: Custom
+                  )
+                  {
+                    ElementInit(
+                      Void Add(System.Object)
+                      Convert(
+                        NewArrayInit(
+                          Parameter(
+                            x
+                            type: System.Int32
+                          )
+                          type: System.Int32[]
+                        )
+                        type: System.Object
+                      )
+                    )
+                    ElementInit(
+                      Void Add(System.String, System.Object)
+                      Convert(
+                        Parameter(
+                          x
+                          type: System.Int32
+                        )
+                        method: System.String ToString(Int32) in Microsoft.VisualBasic.CompilerServices.Conversions
+                        type: System.String
+                      )
+                      Convert(
+                        NewArrayInit(
+                          Constant(
+                            a
+                            type: System.String
+                          )
+                          type: System.String[]
+                        )
+                        type: System.Object
+                      )
+                    )
+                  }
+                  type: Custom
+                )
+                ListInit(
+                  New(
+                    <.ctor>(
+                    )
+                    type: Custom
+                  )
+                  {
+                    ElementInit(
+                      Void Add(System.Object)
+                      Convert(
+                        NewArrayInit(
+                          Parameter(
+                            x
+                            type: System.Int32
+                          )
+                          type: System.Int32[]
+                        )
+                        type: System.Object
+                      )
+                    )
+                  }
+                  type: Custom
+                )
+                New(
+                  <.ctor>(
+                  )
+                  type: Custom
+                )
+                type: Custom[]
+              )
+            }
+          )
+          MemberAssignment(
+            member: System.Collections.Generic.List`1[System.Object] P
+            expression: {
+              ListInit(
+                New(
+                  Void .ctor()(
+                  )
+                  type: System.Collections.Generic.List`1[System.Object]
+                )
+                {
+                  ElementInit(
+                    Void Add(System.Object)
+                    Convert(
+                      ListInit(
+                        New(
+                          Void .ctor()(
+                          )
+                          type: System.Collections.Generic.List`1[System.Action]
+                        )
+                        {
+                          ElementInit(
+                            Void Add(System.Action)
+                            Lambda(
+                              body {
+                                Call(
+                                  <NULL>
+                                  method: Void Write(System.String) in System.Console (
+                                    Constant(
+                                      hello
+                                      type: System.String
+                                    )
+                                  )
+                                  type: System.Void
+                                )
+                              }
+                              return type: System.Void
+                              type: System.Action
+                            )
+                          )
+                          ElementInit(
+                            Void Add(System.Action)
+                            Lambda(
+                              body {
+                                Call(
+                                  <NULL>
+                                  method: Void Write(System.String) in System.Console (
+                                    Constant(
+                                      world
+                                      type: System.String
+                                    )
+                                  )
+                                  type: System.Void
+                                )
+                              }
+                              return type: System.Void
+                              type: System.Action
+                            )
+                          )
+                        }
+                        type: System.Collections.Generic.List`1[System.Action]
+                      )
+                      type: System.Object
+                    )
+                  )
+                }
+                type: System.Collections.Generic.List`1[System.Object]
+              )
+            }
+          )
+        type: Clazz
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  Parameter(
+    y
+    type: System.String
+  )
+  body {
+    Convert(
+      NewArrayInit(
+        Convert(
+          Parameter(
+            x
+            type: System.Int32
+          )
+          type: System.Object
+        )
+        Convert(
+          Parameter(
+            y
+            type: System.String
+          )
+          type: System.Object
+        )
+        type: System.Object[]
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`3[System.Int32,System.String,System.Object]
+)

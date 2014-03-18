@@ -1,0 +1,311 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    internal partial class SymbolDisplayVisitor
+    {
+        private bool TryAddAlias(
+            INamespaceOrTypeSymbol symbol,
+            ArrayBuilder<SymbolDisplayPart> builder)
+        {
+            var alias = GetAliasSymbol(symbol);
+            if (alias != null)
+            {
+                // We must verify that the alias actually binds back to the thing it's aliasing.
+                // It's possible there's another symbol with the same name as the alias that binds
+                // first
+                var aliasName = alias.Name;
+
+                var boundSymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: aliasName);
+
+                if (boundSymbols.Length == 1)
+                {
+                    var boundAlias = boundSymbols[0] as AliasSymbol;
+                    if ((object)boundAlias != null && alias.Target.Equals(symbol))
+                    {
+                        builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, alias, aliasName));
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        protected override bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
+        {
+            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            var startNode = token.Parent;
+
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax);
+        }
+
+        private void MinimallyQualify(INamespaceSymbol symbol)
+        {
+            // only the global namespace does not have a containing namespace
+            Debug.Assert(symbol.ContainingNamespace != null || symbol.IsGlobalNamespace);
+
+            // NOTE(cyrusn): We only call this once we've already checked if there is an alias that
+            // corresponds to this namespace. 
+
+            if (symbol.IsGlobalNamespace)
+            {
+                // nothing to add for global namespace itself
+                return;
+            }
+
+            // Check if the name of this namespace binds to the same namespace symbol.  If so,
+            // then that's all we need to add.  Otherwise, we will add the minimally qualified
+            // version of our parent, and then add ourselves to that.
+            var symbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
+                ? semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name)
+                : semanticModelOpt.LookupSymbols(positionOpt, name: symbol.Name);
+            var firstSymbol = symbols.OfType<ISymbol>().FirstOrDefault();
+            if (symbols.Length != 1 ||
+                firstSymbol == null ||
+                !firstSymbol.Equals(symbol))
+            {
+                // Just the name alone didn't bind properly.  Add our minimally qualified parent (if
+                // we have one), a dot, and then our name.
+                var containingNamespace = symbol.ContainingNamespace == null
+                    ? null
+                    : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
+                if (containingNamespace != null)
+                {
+                    if (containingNamespace.IsGlobalNamespace)
+                    {
+                        Debug.Assert(format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included ||
+                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Omitted ||
+                                          format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
+
+                        if (format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included)
+                        {
+                            AddGlobalNamespace(containingNamespace);
+                            AddPunctuation(SyntaxKind.ColonColonToken);
+                        }
+                    }
+                    else
+                    {
+                        containingNamespace.Accept(this.NotFirstVisitor);
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
+                }
+            }
+
+            // If we bound properly, then we'll just add our name.
+            builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, symbol.Name));
+        }
+
+        private void MinimallyQualify(INamedTypeSymbol symbol)
+        {
+            // NOTE(cyrusn): We only call this once we've already checked if there is an alias or
+            // special type that corresponds to this type.
+            //
+            // We first start by trying to bind just our name and type arguments.  If they bind to
+            // the symbol that we were constructed from, then we have our minimal name. Otherwise,
+            // we get the minimal name of our parent, add a dot, and then add ourselves.
+
+            // TODO(cyrusn): This code needs to see if type is an attribute and if it can be shown 
+            // in simplified form here.
+
+            if (!symbol.IsAnonymousType)
+            {
+                if (!NameBoundSuccessfullyToSameSymbol(symbol))
+                {
+                    // Just the name alone didn't bind properly.  Add our minimally qualified parent (if
+                    // we have one), a dot, and then our name.
+                    if (IncludeNamedType(symbol.ContainingType))
+                    {
+                        symbol.ContainingType.Accept(this.NotFirstVisitor);
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
+                    else
+                    {
+                        var containingNamespace = symbol.ContainingNamespace == null
+                            ? null
+                            : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
+                        if (containingNamespace != null)
+                        {
+                            if (containingNamespace.IsGlobalNamespace)
+                            {
+                                // Error symbols are put into the global namespace if the compiler has
+                                // no better guess for it, so we shouldn't go spitting it everywhere.
+                                if (symbol.TypeKind != TypeKind.Error)
+                                {
+                                    AddKeyword(SyntaxKind.GlobalKeyword);
+                                    AddPunctuation(SyntaxKind.ColonColonToken);
+                                }
+                            }
+                            else
+                            {
+                                containingNamespace.Accept(this.NotFirstVisitor);
+                                AddPunctuation(SyntaxKind.DotToken);
+                            }
+                        }
+                    }
+                }
+            }
+
+            AddNameAndTypeArgumentsOrParameters(symbol);
+        }
+
+        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> CreateAliasMap()
+        {
+            if (!this.IsMinimizing)
+            {
+                return SpecializedCollections.EmptyDictionary<INamespaceOrTypeSymbol, IAliasSymbol>();
+            }
+
+            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            var startNode = token.Parent;
+
+            // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
+            // aliases that are higher up than this block.  Using aliases declared in a block of
+            // usings are not usable from within that same block.
+            var usingDirective = GetAncestorOrThis<UsingDirectiveSyntax>(startNode);
+            if (usingDirective != null)
+            {
+                startNode = usingDirective.Parent.Parent;
+            }
+
+            var usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
+                .SelectMany(n => n.Usings)
+                .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
+                .Where(u => u.Alias != null)
+                .Select(u => semanticModelOpt.GetDeclaredSymbol(u) as IAliasSymbol)
+                .Where(u => u != null);
+
+            var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
+            foreach (var alias in usingAliases)
+            {
+                if (!builder.ContainsKey(alias.Target))
+                {
+                    builder.Add(alias.Target, alias);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private ITypeSymbol GetRangeVariableType(IRangeVariableSymbol symbol)
+        {
+            ITypeSymbol type = null;
+
+            if (this.IsMinimizing && !symbol.Locations.IsEmpty)
+            {
+                var location = symbol.Locations.First();
+                if (location.IsInSource && location.SourceTree == semanticModelOpt.SyntaxTree)
+                {
+                    var token = location.SourceTree.GetRoot().FindToken(positionOpt);
+                    var queryBody = GetQueryBody(token);
+                    if (queryBody != null)
+                    {
+                        // To heuristically determining the type of the range variable in a from
+                        // clause, we speculatively bind the name of the variable in the select
+                        // or group clause of the query body.
+                        var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
+                        type = semanticModelOpt.GetSpeculativeTypeInfo(
+                            queryBody.SelectOrGroup.Span.End - 1, identifierName, SpeculativeBindingOption.BindAsExpression).Type;
+                    }
+
+                    var identifier = token.Parent as IdentifierNameSyntax;
+                    if (identifier != null)
+                    {
+                        type = semanticModelOpt.GetTypeInfo(identifier).Type;
+                    }
+                }
+            }
+
+            return type;
+        }
+
+        private static QueryBodySyntax GetQueryBody(SyntaxToken token)
+        {
+            var fromClause = token.Parent as FromClauseSyntax;
+            if (fromClause != null && fromClause.Identifier == token)
+            {
+                // To heuristically determining the type of the range variable in a from
+                // clause, we speculatively bind the name of the variable in the select
+                // or group clause of the query body.
+                return fromClause.Parent as QueryBodySyntax ?? ((QueryExpressionSyntax)fromClause.Parent).Body;
+            }
+
+            var letClause = token.Parent as LetClauseSyntax;
+            if (letClause != null && letClause.Identifier == token)
+            {
+                return letClause.Parent as QueryBodySyntax;
+            }
+
+            var joinClause = token.Parent as JoinClauseSyntax;
+            if (joinClause != null && joinClause.Identifier == token)
+            {
+                return joinClause.Parent as QueryBodySyntax;
+            }
+
+            return null;
+        }
+
+        private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
+        {
+            if (this.IsMinimizing &&
+                format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&
+                semanticModelOpt.Compilation.IsAttributeType(symbol))
+            {
+                string nameWithoutAttributeSuffix;
+                if (symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix))
+                {
+                    var token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix);
+                    if (token.IsKind(SyntaxKind.IdentifierToken))
+                    {
+                        symbolName = nameWithoutAttributeSuffix;
+                    }
+                }
+            }
+
+            return symbolName;
+        }
+
+        private static T GetAncestorOrThis<T>(SyntaxNode node) where T : SyntaxNode
+        {
+            return GetAncestorsOrThis<T>(node).FirstOrDefault();
+        }
+
+        private static IEnumerable<T> GetAncestorsOrThis<T>(SyntaxNode node) where T : SyntaxNode
+        {
+            return node == null
+                ? SpecializedCollections.EmptyEnumerable<T>()
+                : node.AncestorsAndSelf().OfType<T>();
+        }
+
+        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> AliasMap
+        {
+            get
+            {
+                var map = lazyAliasMap;
+                if (map != null)
+                {
+                    return map;
+                }
+
+                map = CreateAliasMap();
+                return Interlocked.CompareExchange(ref lazyAliasMap, map, null) ?? map;
+            }
+        }
+
+        private IAliasSymbol GetAliasSymbol(INamespaceOrTypeSymbol symbol)
+        {
+            IAliasSymbol result;
+            return AliasMap.TryGetValue(symbol, out result) ? result : null;
+        }
+    }
+}

@@ -1,0 +1,64 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    ''' <summary>
+    ''' Represents a compiler generated backing field for an event.
+    ''' </summary>
+    Friend NotInheritable Class SynthesizedEventBackingFieldSymbol
+        Inherits SynthesizedBackingFieldBase(Of SourceEventSymbol)
+
+        Private _lazyType As TypeSymbol
+
+        Public Sub New(propertyOrEvent As SourceEventSymbol, name As String, isShared As Boolean)
+            MyBase.New(propertyOrEvent, name, isShared)
+        End Sub
+
+        ''' <summary>
+        ''' <see cref="System.NonSerializedAttribute"/> applied on an event and determines serializability of its backing field.
+        ''' </summary>
+        Friend Overrides ReadOnly Property IsNotSerialized As Boolean
+            Get
+                Dim eventData = _propertyOrEvent.GetDecodedWellKnownAttributeData()
+                Return eventData IsNot Nothing AndAlso eventData.HasNonSerializedAttribute
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property Type As TypeSymbol
+            Get
+                If _lazyType Is Nothing Then
+
+                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim result = _propertyOrEvent.Type
+
+                    If _propertyOrEvent.IsWindowsRuntimeEvent Then
+                        Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
+                        Dim info = Binder.GetUseSiteErrorForWellKnownType(tokenType)
+                        If info IsNot Nothing Then
+                            diagnostics.Add(info, _propertyOrEvent.Locations(0))
+                        End If
+                        result = tokenType.Construct(result)
+                    End If
+
+                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyType, result, diagnostics, CompilationStage.Declare)
+                    diagnostics.Free()
+                End If
+
+                Debug.Assert(_lazyType IsNot Nothing)
+                Return _lazyType
+            End Get
+        End Property
+
+        Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
+            MyBase.GenerateDeclarationErrors(cancellationToken)
+
+            cancellationToken.ThrowIfCancellationRequested()
+            Dim unusedType = Me.Type
+        End Sub
+    End Class
+End Namespace

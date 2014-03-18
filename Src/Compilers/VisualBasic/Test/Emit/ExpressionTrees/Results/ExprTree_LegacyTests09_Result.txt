@@ -1,0 +1,259 @@
+﻿Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1`1[Form1+Struct1]
+          type: Form1+_Closure$__1`1[Form1+Struct1]
+        )
+        -> $VB$Local_x
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Convert(
+        Constant(
+          null
+          type: System.Object
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      type: System.Nullable`1[Form1+Struct1]
+    )
+  }
+  return type: System.Nullable`1[Form1+Struct1]
+  type: System.Func`1[System.Nullable`1[Form1+Struct1]]
+)
+
+Lambda(
+  body {
+    Equal(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1`1[Form1+Struct1]
+          type: Form1+_Closure$__1`1[Form1+Struct1]
+        )
+        -> $VB$Local_x
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Lifted
+      method: Boolean op_Equality(Struct1, Struct1) in Form1+Struct1
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1`1[Form1+Struct1]
+          type: Form1+_Closure$__1`1[Form1+Struct1]
+        )
+        -> $VB$Local_x
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Convert(
+        Constant(
+          null
+          type: System.Object
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      type: System.Nullable`1[Form1+Struct1]
+    )
+  }
+  return type: System.Nullable`1[Form1+Struct1]
+  type: System.Func`1[System.Nullable`1[Form1+Struct1]]
+)
+
+Lambda(
+  body {
+    Equal(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1`1[Form1+Struct1]
+          type: Form1+_Closure$__1`1[Form1+Struct1]
+        )
+        -> $VB$Local_x
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[Form1+Struct1]
+      )
+      Lifted
+      method: Boolean op_Equality(Struct1, Struct1) in Form1+Struct1
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__3`1[Form1+Class2]
+          type: Form1+_Closure$__3`1[Form1+Class2]
+        )
+        -> $VB$Local_y
+        type: Form1+Class2
+      )
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__3`1[Form1+Class2]
+          type: Form1+_Closure$__3`1[Form1+Class2]
+        )
+        -> $VB$Local_c1
+        type: Form1+Class1
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: Form1+Class2
+          )
+          body {
+            Convert(
+              Convert(
+                Parameter(
+                  CoalesceLHS
+                  type: Form1+Class2
+                )
+                type: System.Object
+              )
+              type: Form1+Class1
+            )
+          }
+          return type: Form1+Class1
+          type: System.Func`2[Form1+Class2,Form1+Class1]
+        )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__3`1[Form1+Class2]
+          type: Form1+_Closure$__3`1[Form1+Class2]
+        )
+        -> $VB$Local_y
+        type: Form1+Class2
+      )
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__3`1[Form1+Class2]
+          type: Form1+_Closure$__3`1[Form1+Class2]
+        )
+        -> $VB$Local_c1
+        type: Form1+Class1
+      )
+      conversion:
+        Lambda(
+          Parameter(
+            CoalesceLHS
+            type: Form1+Class2
+          )
+          body {
+            Convert(
+              Convert(
+                Parameter(
+                  CoalesceLHS
+                  type: Form1+Class2
+                )
+                type: System.Object
+              )
+              type: Form1+Class1
+            )
+          }
+          return type: Form1+Class1
+          type: System.Func`2[Form1+Class2,Form1+Class1]
+        )
+      type: Form1+Class1
+    )
+  }
+  return type: Form1+Class1
+  type: System.Func`1[Form1+Class1]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+          type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+        )
+        -> $VB$Local_z1
+        type: Form1+Class2
+      )
+      Convert(
+        Convert(
+          MemberAccess(
+            Constant(
+              Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+              type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+            )
+            -> $VB$Local_z2
+            type: Form1+Class2
+          )
+          type: System.Object
+        )
+        type: Form1+Class2
+      )
+      type: Form1+Class2
+    )
+  }
+  return type: Form1+Class2
+  type: System.Func`1[Form1+Class2]
+)
+
+Lambda(
+  body {
+    Coalesce(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+          type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+        )
+        -> $VB$Local_z1
+        type: Form1+Class2
+      )
+      Convert(
+        Convert(
+          MemberAccess(
+            Constant(
+              Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+              type: Form1+_Closure$__6`2[Form1+Class2,Form1+Class2]
+            )
+            -> $VB$Local_z2
+            type: Form1+Class2
+          )
+          type: System.Object
+        )
+        type: Form1+Class2
+      )
+      type: Form1+Class2
+    )
+  }
+  return type: Form1+Class2
+  type: System.Func`1[Form1+Class2]
+)

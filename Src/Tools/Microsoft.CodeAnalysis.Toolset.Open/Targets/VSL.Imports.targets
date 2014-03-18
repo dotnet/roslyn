@@ -1,0 +1,206 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- This file is imported by all projects at the end of the project files -->
+
+  <!-- Update common properties -->
+  <PropertyGroup>
+    <OutputPath>$(OutDir)</OutputPath>
+    <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'VB' AND '$(AssemblyName)' != ''">$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'CSharp' AND '$(AssemblyName)' != ''">$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    <RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
+  </PropertyGroup>
+
+  <!-- settings for strong name signing -->
+  <Choose>
+    <When Condition="'$(SignAssembly)' == 'true'">
+      <Choose>
+        <!-- Shipping binaries in an "official" build are delay-signed with the MS key; later, the signing
+             system will finish the strong-name signing. -->
+        <When Condition="'$(NonShipping)' != 'true' AND ('$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true')">
+          <PropertyGroup>
+            <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
+            <DelaySign>true</DelaySign>
+            <PublicKey>0024000004800000940000000602000000240000525341310004000001000100b5fc90e7027f67871e773a8fde8938c81dd402ba65b9201d60593e96c492651e889cc13f1415ebb53fac1131ae0bd333c5ee6021672d9718ea31a8aebd0da0072f25d87dba6fc90ffd598ed4da35e44c398c454307e8e33b8426143daec9f596836f97c8f74750e5975c64e2189f45def46b2a2b1247adc3652bf5c308055da9</PublicKey>
+            <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
+          </PropertyGroup>
+        </When>
+        
+        <!-- Non-shipping binaries in "official" builds, and any binary in an "unofficial" build, are simply
+             signed with the Roslyn internal key. -->
+        <Otherwise>
+          <PropertyGroup>
+            <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
+            <DelaySign>false</DelaySign>
+            <PublicKey>$(RoslynInternalKey)</PublicKey>
+            <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp'" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+  <Import Project="$(WixTargetsPath)" Condition="'$(ProjectLanguage)' == 'WiX'" />
+
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      CopyCppOutputBackToIntDir;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <!-- A task for C++ projects to copy their output back under obj\Debug or the like. This is slightly hacky. -->
+  <Target
+    Name="CopyCppOutputBackToIntDir" Condition="'$(ProjectLanguage)' == 'C++'">
+
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)$(TargetName).pdb')" />
+  </Target>
+
+  <!-- ====================================================================================
+  
+         Support for building Roslyn with Roslyn compilers
+
+       ==================================================================================== -->
+
+  <!-- In case of a build through the VS UI we need to use our own ToolExes because the UsingTask solution only works 
+       for building through msbuild.exe. -->
+  <!-- In case we want rvbc2 and rcsc2 be used in a msbuild run, we can override the behavior by using 
+       /p:UseRoslynCommandLineCompilers=true on the command line -->
+  <PropertyGroup Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND ('$(BuildingInsideVisualStudio)' == 'true' OR '$(UseRoslynCommandLineCompilers)' == 'true')">
+    <CscToolPath>$(DogfoodCompilerDir)</CscToolPath>
+    <CscToolExe>rcsc2.exe</CscToolExe>
+
+    <VbcToolPath>$(DogfoodCompilerDir)</VbcToolPath> 
+    <VbcToolExe>rvbc2.exe</VbcToolExe>  
+  </PropertyGroup>
+  
+  <!-- The path might contain spaces (e.g. "Program Files (x86)" which gets automatically escaped in this task and will fail when the path 
+       is resolved. Unescaping fixes this for the local file system. -->
+  <UsingTask Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND '$(BuildingInsideVisualStudio)' != 'true' AND '$(UseRoslynCommandLineCompilers)' != 'true'"
+             AssemblyFile="$([MSBuild]::Unescape($(DogfoodCompilerDir)))\Roslyn.Compilers.BuildTasks.dll"             
+             TaskName="Csc"/>
+
+  <UsingTask Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND '$(BuildingInsideVisualStudio)' != 'true' AND '$(UseRoslynCommandLineCompilers)' != 'true'"
+             AssemblyFile="$([MSBuild]::Unescape($(DogfoodCompilerDir)))\Roslyn.Compilers.BuildTasks.dll"             
+             TaskName="Vbc"/>    
+
+  <ItemGroup>
+    <CSharpCompilerFiles Include="$(OutDir)\rcsc.exe;$(OutDir)\Microsoft.CodeAnalysis.CSharp.dll;$(OutDir)\Microsoft.CodeAnalysis.dll;$(OutDir)\VBCSCompiler.exe;$(OutDir)\Roslyn.Compilers.BuildTasks.dll"/>
+    <VBCompilerFiles Include="$(OutDir)\rvbc.exe;$(OutDir)\Microsoft.CodeAnalysis.VisualBasic.dll;$(OutDir)\Microsoft.CodeAnalysis.dll;$(OutDir)\VBCSCompiler.exe;$(OutDir)\Roslyn.Compilers.BuildTasks.dll"/>
+    <BothCompilerFiles Include="@(CSharpCompilerFiles);@(VBCompilerFiles)"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true'">
+    <CustomAdditionalCompileInputs Include="@(BothCompilerFiles-> '$(DogfoodCompilerDir)\%(filename)%(extension)')"/>
+  </ItemGroup>
+
+  <!-- ====================================================================================
+       
+         Set LARGEADDRESSAWARE bit
+       
+       ==================================================================================== -->
+
+  <Target Name="SetLargeAddressAwareBit" Condition="'$(OutputType)' == 'Exe' AND '$(LargeAddressAware)' == 'true' AND Exists('$(IntermediateOutputPath)\$(TargetFileName)')" 
+          BeforeTargets="AfterCompile" DependsOnTargets="CoreCompile">
+    <Exec Command="&quot;$(EditBinToolPath)&quot; /NOLOGO /LARGEADDRESSAWARE &quot;$(IntermediateOutputPath)\$(TargetFileName)&quot;" />
+  </Target>
+
+  <!-- Verify some build flags are correct -->
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);VerifyBuildFlags</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <Target Name="VerifyBuildFlags">
+    <Error Condition="'$(RealSignBuild)' == 'true' AND '$(BuildVersion)' == '42.42.42.42'"
+           Text="Must specify a build version in order to real sign a build." />
+  </Target>
+  
+  <!-- ====================================================================================
+  
+         Ensure we rebuild if we do a build with a different strong name key
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <CompileDependsOn>$(CompileDependsOn);CreateFakeInputForStrongNameKey</CompileDependsOn>
+    <GeneratedEmptyFakeInputForStrongNameKeyFile>$(IntermediateOutputPath)GeneratedStrongNameKey$(DefaultLanguageSourceExtension)</GeneratedEmptyFakeInputForStrongNameKeyFile>
+  </PropertyGroup>
+
+  <Target Name="CreateFakeInputForStrongNameKey"
+          Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'">
+    <PropertyGroup>
+      <ExpectedContentsForFakeInputForStrongNameKey Condition="'$(ProjectLanguage)' == 'CSharp'">// $(PublicKeyToken). See VSL.Imports for an explanation of this file.</ExpectedContentsForFakeInputForStrongNameKey>
+      <ExpectedContentsForFakeInputForStrongNameKey Condition="'$(ProjectLanguage)' == 'VB'">' $(PublicKeyToken). See VSL.Imports for an explanation of this file.</ExpectedContentsForFakeInputForStrongNameKey>
+    </PropertyGroup>
+
+    <ReadLinesFromFile File="$(GeneratedEmptyFakeInputForStrongNameKeyFile)">
+      <Output TaskParameter="Lines" ItemName="FakeInputForStrongNameKey" />
+    </ReadLinesFromFile>
+
+    <WriteLinesToFile File="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" Overwrite="true" Lines="$(ExpectedContentsForFakeInputForStrongNameKey)" Condition="'@(FakeInputForStrongNameKey)' != '$(ExpectedContentsForFakeInputForStrongNameKey)'" />
+
+    <ItemGroup>
+      <FileWrites Include="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" />
+      <Compile Include="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" />
+    </ItemGroup>
+  </Target>
+  
+  <!-- ====================================================================================
+  
+         Support for a IncludeInVSIXLocalOnly Content metadata
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="IncludeVsixLocalOnlyItems">
+    <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
+    <ItemGroup>
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)'=='true' AND '%(Content.VSIXSubPath)'==''">
+        <!-- Sets VSIXSubPath for content items that are nonlinked files -->
+        <VSIXSubPath Condition="'%(Content.Link)'==''">%(Content.RelativeDir)</VSIXSubPath>
+        <!-- Sets VSIXSubPath for content items that are linked files -->
+        <VSIXSubPath Condition="'%(Content.Link)'!=''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
+      </VSIXSourceItemLocalOnly>
+    
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)'=='true' AND '%(Content.VSIXSubPath)'!=''" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ====================================================================================
+       
+         Generation of AssemblyVersion attributes from the BuildVersion property
+       
+       ==================================================================================== -->
+
+  <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
+  <Import Project="GenerateVersionInfoResourceFile.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+
+  <!-- ====================================================================================
+       
+         Generation of InternalsVisibleTo attributes from the project
+       
+       ==================================================================================== -->
+
+  <Import Project="GenerateInternalsVisibleTo.targets" />
+
+  <!-- ====================================================================================
+       
+         Generation of syntax models, syntax model tests, and bound trees from xml files
+       
+       ==================================================================================== -->
+
+  <Import Project="GenerateCompilerInternals.targets" />
+
+  <!-- ====================================================================================
+       
+         VSSDK
+       
+       ==================================================================================== -->
+  
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
+</Project>

@@ -1,0 +1,3717 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<Tree Root="SyntaxNode">
+  <PredefinedNode Name="CSharpSyntaxNode" Base="SyntaxNode"/>
+  <PredefinedNode Name="SyntaxToken" Base="CSharpSyntaxNode"/>
+  <PredefinedNode Name="StructuredTriviaSyntax" Base="CSharpSyntaxNode"/>
+  <!-- Names -->
+  <AbstractNode Name="NameSyntax" Base="TypeSyntax">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <AbstractNode Name="SimpleNameSyntax" Base="NameSyntax">
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>SyntaxToken representing the identifier of the simple name.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken" />
+    </Field>
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent simple name syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="IdentifierNameSyntax" Base="SimpleNameSyntax">
+    <Kind Name="IdentifierName"/>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+      <Kind Name="GlobalKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the keyword for the kind of the identifier name.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for identifier name.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IdentifierNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="QualifiedNameSyntax" Base="NameSyntax">
+    <Kind Name="QualifiedName"/>
+    <Field Name="Left" Type="NameSyntax">
+      <PropertyComment>
+        <summary>NameSyntax node representing the name on the left side of the dot token of the qualified name.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the dot.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Right" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the qualified name.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for qualified name.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an QualifiedNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="GenericNameSyntax" Base="SimpleNameSyntax">
+    <Kind Name="GenericName"/>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the name of the identifier of the generic name.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="TypeArgumentList" Type="TypeArgumentListSyntax">
+      <PropertyComment>
+        <summary>TypeArgumentListSyntax node representing the list of type arguments of the generic name.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for generic name.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an GenericNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TypeArgumentListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="TypeArgumentList"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken" />
+      <PropertyComment>
+        <summary>SyntaxToken representing less than.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;TypeSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of TypeSyntax node representing the type arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing greater than.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for type argument list.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an TypeArgumentListSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="AliasQualifiedNameSyntax" Base="NameSyntax">
+    <Kind Name="AliasQualifiedName"/>
+    <Field Name="Alias" Type="IdentifierNameSyntax">
+      <PropertyComment>
+        <summary>IdentifierNameSyntax node representing the name of the alias</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonColonToken" Type="SyntaxToken">
+      <Kind Name="ColonColonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing colon colon.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the name that is being alias qualified.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for alias qualified name.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an AliasQualifiedNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <!-- Type names -->
+  <AbstractNode Name="TypeSyntax" Base="ExpressionSyntax">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent type syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="PredefinedTypeSyntax" Base="TypeSyntax">
+    <Kind Name="PredefinedType"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="BoolKeyword"/>
+      <Kind Name="ByteKeyword"/>
+      <Kind Name="SByteKeyword"/>
+      <Kind Name="IntKeyword"/>
+      <Kind Name="UIntKeyword"/>
+      <Kind Name="ShortKeyword"/>
+      <Kind Name="UShortKeyword"/>
+      <Kind Name="LongKeyword"/>
+      <Kind Name="ULongKeyword"/>
+      <Kind Name="FloatKeyword"/>
+      <Kind Name="DoubleKeyword"/>
+      <Kind Name="DecimalKeyword"/>
+      <Kind Name="StringKeyword"/>
+      <Kind Name="CharKeyword"/>
+      <Kind Name="ObjectKeyword"/>
+      <Kind Name="VoidKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken which represents the keyword corresponding to the predefined type.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for predefined types.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an PredefinedTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ArrayTypeSyntax" Base="TypeSyntax">
+    <Kind Name="ArrayType"/>
+    <Field Name="ElementType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax node representing the type of the element of the array.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="RankSpecifiers" Type="SyntaxList&lt;ArrayRankSpecifierSyntax&gt;">
+      <PropertyComment>
+        <summary>SyntaxList of ArrayRankSpecifierSyntax nodes representing the list of rank specifiers for the array.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for the array type.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ArrayTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ArrayRankSpecifierSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="ArrayRankSpecifier" />
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Sizes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+  </Node>
+  <Node Name="PointerTypeSyntax" Base="TypeSyntax">
+    <Kind Name="PointerType"/>
+    <Field Name="ElementType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax node that represents the element type of the pointer.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the asterisk.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for pointer type.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an PointerTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="NullableTypeSyntax" Base="TypeSyntax">
+    <Kind Name="NullableType"/>
+    <Field Name="ElementType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax node representing the type of the element.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a nullable type.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an NullableTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
+    <Kind Name="OmittedTypeArgument"/>
+    <Field Name="OmittedTypeArgumentToken" Type="SyntaxToken">
+      <Kind Name="OmittedTypeArgumentToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the omitted type argument.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents a placeholder in the type argument list of an unbound generic type.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an OmittedTypeArgumentSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <!-- Expressions -->
+  <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="ParenthesizedExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ParenthesizedExpression"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression enclosed within the parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for parenthesized expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ParenthesizedExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="PrefixUnaryExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="UnaryPlusExpression"/>
+    <Kind Name="UnaryMinusExpression"/>
+    <Kind Name="BitwiseNotExpression"/>
+    <Kind Name="LogicalNotExpression"/>
+    <Kind Name="PreIncrementExpression"/>
+    <Kind Name="PreDecrementExpression"/>
+    <Kind Name="AddressOfExpression"/>
+    <Kind Name="PointerIndirectionExpression"/>
+    <Kind Name="AwaitExpression"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="PlusToken"/>
+      <Kind Name="MinusToken"/>
+      <Kind Name="TildeToken"/>
+      <Kind Name="ExclamationToken"/>
+      <Kind Name="PlusPlusToken"/>
+      <Kind Name="MinusMinusToken"/>
+      <Kind Name="AmpersandToken"/>
+      <Kind Name="AsteriskToken"/>
+      <Kind Name="AwaitKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Operand" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax representing the operand of the prefix unary expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for prefix unary expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an PrefixUnaryExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="PostfixUnaryExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="PostIncrementExpression"/>
+    <Kind Name="PostDecrementExpression"/>
+    <Field Name="Operand" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="PlusPlusToken"/>
+      <Kind Name="MinusMinusToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for postfix unary expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an PostfixUnaryExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SimpleMemberAccessExpression"/>
+    <Kind Name="PointerMemberAccessExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <Kind Name="MinusGreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for member access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an MemberAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="BinaryExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="AddExpression"/>
+    <Kind Name="SubtractExpression"/>
+    <Kind Name="MultiplyExpression"/>
+    <Kind Name="DivideExpression"/>
+    <Kind Name="ModuloExpression"/>
+    <Kind Name="LeftShiftExpression"/>
+    <Kind Name="RightShiftExpression"/>
+    <Kind Name="LogicalOrExpression"/>
+    <Kind Name="LogicalAndExpression"/>
+    <Kind Name="BitwiseOrExpression"/>
+    <Kind Name="BitwiseAndExpression"/>
+    <Kind Name="ExclusiveOrExpression"/>
+    <Kind Name="EqualsExpression"/>
+    <Kind Name="NotEqualsExpression"/>
+    <Kind Name="LessThanExpression"/>
+    <Kind Name="LessThanOrEqualExpression"/>
+    <Kind Name="GreaterThanExpression"/>
+    <Kind Name="GreaterThanOrEqualExpression"/>
+    <Kind Name="IsExpression"/>
+    <Kind Name="AsExpression"/>
+    <Kind Name="CoalesceExpression"/>
+    <Kind Name="SimpleAssignmentExpression"/>
+    <Kind Name="AddAssignmentExpression"/>
+    <Kind Name="SubtractAssignmentExpression"/>
+    <Kind Name="MultiplyAssignmentExpression"/>
+    <Kind Name="DivideAssignmentExpression"/>
+    <Kind Name="ModuloAssignmentExpression"/>
+    <Kind Name="AndAssignmentExpression"/>
+    <Kind Name="ExclusiveOrAssignmentExpression"/>
+    <Kind Name="OrAssignmentExpression"/>
+    <Kind Name="LeftShiftAssignmentExpression"/>
+    <Kind Name="RightShiftAssignmentExpression"/>
+    <Field Name="Left" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the binary operator.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="PlusToken"/>
+      <Kind Name="MinusToken"/>
+      <Kind Name="AsteriskToken"/>
+      <Kind Name="SlashToken"/>
+      <Kind Name="PercentToken"/>
+      <Kind Name="LessThanLessThanToken"/>
+      <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="BarBarToken"/>
+      <Kind Name="AmpersandAmpersandToken"/>
+      <Kind Name="BarToken"/>
+      <Kind Name="AmpersandToken"/>
+      <Kind Name="CaretToken"/>
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <Kind Name="IsKeyword"/>
+      <Kind Name="AsKeyword"/>
+      <Kind Name="QuestionQuestionToken"/>
+      <Kind Name="EqualsToken"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the binary expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Right" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the right of the binary operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents an expression that has a binary operator.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an BinaryExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ConditionalExpression"/>
+    <Field Name="Condition" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the condition of the conditional expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="WhenTrue" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression to be executed when the condition is true.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken">
+        <PropertyComment>
+          <summary>SyntaxToken representing the colon.</summary>
+        </PropertyComment>
+      </Kind>
+    </Field>
+    <Field Name="WhenFalse" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression to be executed when the condition is false.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for conditional expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ConditionalExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <AbstractNode Name="InstanceExpressionSyntax" Base="ExpressionSyntax">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent instance expression syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="ThisExpressionSyntax" Base="InstanceExpressionSyntax">
+    <Kind Name="ThisExpression"/>
+    <Field Name="Token" Type="SyntaxToken">
+      <Kind Name="ThisKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the this keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a this expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ThisExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="BaseExpressionSyntax" Base="InstanceExpressionSyntax">
+    <Kind Name="BaseExpression"/>
+    <Field Name="Token" Type="SyntaxToken">
+      <Kind Name="BaseKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the base keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a base expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an BaseExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="LiteralExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ArgListExpression"/>
+    <Kind Name="NumericLiteralExpression"/>
+    <Kind Name="StringLiteralExpression"/>
+    <Kind Name="CharacterLiteralExpression"/>
+    <Kind Name="TrueLiteralExpression"/>
+    <Kind Name="FalseLiteralExpression"/>
+    <Kind Name="NullLiteralExpression"/>
+    <Field Name="Token" Type="SyntaxToken">
+      <Kind Name="ArgListKeyword"/>
+      <Kind Name="NumericLiteralToken"/>
+      <Kind Name="StringLiteralToken"/>
+      <Kind Name="CharacterLiteralToken"/>
+      <Kind Name="TrueKeyword"/>
+      <Kind Name="FalseKeyword"/>
+      <Kind Name="NullKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a literal expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an LiteralExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="MakeRefExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="MakeRefExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="MakeRefKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the MakeRefKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Argument of the primary function.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for MakeRef expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an MakeRefExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="RefTypeExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RefTypeExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="RefTypeKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the RefTypeKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Argument of the primary function.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for RefType expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an RefTypeExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="RefValueExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RefValueExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="RefValueKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the RefValueKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Typed reference expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Comma" Type="SyntaxToken">
+      <Kind Name="CommaToken"/>
+      <PropertyComment>
+        <summary>Comma separating the arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The type of the value.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for RefValue expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an RefValueExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="CheckedExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="CheckedExpression"/>
+    <Kind Name="UncheckedExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="CheckedKeyword"/>
+      <Kind Name="UncheckedKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the checked or unchecked keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Argument of the primary function.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for Checked or Unchecked expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an CheckedExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="DefaultExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="DefaultExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="DefaultKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the DefaultKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Argument of the primary function.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for Default expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an DefaultExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TypeOfExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="TypeOfExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="TypeOfKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the TypeOfKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The expression to return type of.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for TypeOf expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an TypeOfExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="SizeOfExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SizeOfExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="SizeOfKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the SizeOfKeyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Argument of the primary function.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for SizeOf expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an SizeOfExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="InvocationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="InvocationExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression part of the invocation.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax">
+      <PropertyComment>
+        <summary>ArgumentListSyntax node representing the list of arguments of the invocation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for invocation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an InvocationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ElementAccessExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ElementAccessExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression which is accessing the element.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
+      <PropertyComment>
+        <summary>BracketedArgumentListSyntax node representing the list of arguments of the element access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for element access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ElementAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <AbstractNode Name="BaseArgumentListSyntax" Base="CSharpSyntaxNode">
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ArgumentSyntax nodes representing the list of arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent argument list syntax nodes are derived. This is an abstract class.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="ArgumentListSyntax" Base="BaseArgumentListSyntax">
+    <Kind Name="ArgumentList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for the list of arguments.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ArgumentListSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="BracketedArgumentListSyntax" Base="BaseArgumentListSyntax">
+    <Kind Name="BracketedArgumentList"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for bracketed argument list.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an BracketedArgumentListSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ArgumentSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="Argument"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true">
+      <PropertyComment>
+        <summary>NameColonSyntax node representing the optional name arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+      <Kind Name="OutKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the optional ref or out keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the argument.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for argument.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ArgumentSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="NameColonSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="NameColon"/>
+    <Field Name="Name" Type="IdentifierNameSyntax">
+      <Kind Name="IdentifierName"/>
+      <PropertyComment>
+        <summary>IdentifierNameSyntax representing the identifer name.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing colon.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for name colon syntax.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an NameColonSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="CastExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="CastExpression"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax node representing the type the expression is being casted to.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression that is being casted.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for cast expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an CastExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="AnonymousMethodExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="AnonymousMethodExpression"/>
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AsyncKeyword"/>
+      <PropertyComment>
+        <summary>Gets the "async" token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="DelegateKeyword" Type="SyntaxToken">
+      <Kind Name="DelegateKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the delegate keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true">
+      <PropertyComment>
+        <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Block" Type="BlockSyntax">
+      <PropertyComment>
+        <summary>BlockSyntax node representing the body of the anonymous method.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for anonymous method expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an AnonymousMethodExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="SimpleLambdaExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SimpleLambdaExpression"/>
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AsyncKeyword"/>
+      <PropertyComment>
+        <summary>Gets the "async" token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Parameter" Type="ParameterSyntax">
+      <Kind Name="Parameter"/>
+      <PropertyComment>
+        <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArrowToken" Type="SyntaxToken">
+      <!-- should be EqualsGreaterThanToken -->
+      <Kind Name="EqualsGreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing equals greater than.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode">
+      <PropertyComment>
+        <summary>SyntaxNode representing the body of the lambda expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a simple lambda expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an SimpleLambdaExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ParenthesizedLambdaExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ParenthesizedLambdaExpression"/>
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AsyncKeyword"/>
+      <PropertyComment>
+        <summary>Gets the "async" token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax">
+      <PropertyComment>
+        <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArrowToken" Type="SyntaxToken">
+      <!-- should be EqualsGreaterThanToken -->
+      <Kind Name="EqualsGreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing equals greater than.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode">
+      <PropertyComment>
+        <summary>SyntaxNode representing the body of the lambda expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ParenthesizedLambdaExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="InitializerExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ObjectInitializerExpression"/>
+    <Kind Name="CollectionInitializerExpression"/>
+    <Kind Name="ArrayInitializerExpression"/>
+    <Kind Name="ComplexElementInitializerExpression"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close brace.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for initializer expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an InitializerExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ObjectCreationExpression"/>
+    <Field Name="NewKeyword" Type="SyntaxToken">
+      <Kind Name="NewKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the new keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax representing the type of the object being created.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true">
+      <PropertyComment>
+        <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for object creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ObjectCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="AnonymousObjectMemberDeclaratorSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="AnonymousObjectMemberDeclarator"/>
+    <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true">
+      <PropertyComment>
+        <summary>NameEqualsSyntax representing the optional name of the property being initialized.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax representing the value the property is initialized with.</summary>
+      </PropertyComment>
+    </Field>
+    <FactoryComment>
+      <summary>Creates an AnonymousObjectPropertyInitializerSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="AnonymousObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="AnonymousObjectCreationExpression"/>
+    <Field Name="NewKeyword" Type="SyntaxToken">
+      <Kind Name="NewKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the new keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of AnonymousObjectPropertyInitializerSyntax representing the list of object property initializers.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close brace.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for anonymous object creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an AnonymousObjectCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ArrayCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ArrayCreationExpression"/>
+    <Field Name="NewKeyword" Type="SyntaxToken">
+      <Kind Name="NewKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the new keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="ArrayTypeSyntax">
+      <PropertyComment>
+        <summary>ArrayTypeSyntax node representing the type of the array.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax node representing the initializer of the array creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for array creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ArrayCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ImplicitArrayCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ImplicitArrayCreationExpression"/>
+    <Field Name="NewKeyword" Type="SyntaxToken">
+      <Kind Name="NewKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the new keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Commas" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>SyntaxList of SyntaxToken representing the commas in the implicit array creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for implicit array creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ImplicitArrayCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="StackAllocArrayCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="StackAllocArrayCreationExpression"/>
+    <Field Name="StackAllocKeyword" Type="SyntaxToken">
+      <Kind Name="StackAllocKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the stackalloc keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an StackAllocArrayCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <Node Name="QueryExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="QueryExpression"/>
+    <Field Name="FromClause" Type="FromClauseSyntax"/>
+    <Field Name="Body" Type="QueryBodySyntax"/>
+  </Node>
+  <Node Name="QueryBodySyntax" Base="CSharpSyntaxNode">
+    <Kind Name="QueryBody"/>
+    <Field Name="Clauses" Type="SyntaxList&lt;QueryClauseSyntax&gt;"/>
+    <Field Name="SelectOrGroup" Type="SelectOrGroupClauseSyntax"/>
+    <Field Name="Continuation" Type="QueryContinuationSyntax" Optional="true"/>
+  </Node>
+  <Node Name="FromClauseSyntax" Base="QueryClauseSyntax">
+    <Kind Name="FromClause"/>
+    <Field Name="FromKeyword" Type="SyntaxToken">
+      <Kind Name="FromKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="InKeyword" Type="SyntaxToken">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="LetClauseSyntax" Base="QueryClauseSyntax">
+    <Kind Name="LetClause"/>
+    <Field Name="LetKeyword" Type="SyntaxToken">
+      <Kind Name="LetKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="JoinClauseSyntax" Base="QueryClauseSyntax">
+    <Kind Name="JoinClause"/>
+    <Field Name="JoinKeyword" Type="SyntaxToken">
+      <Kind Name="JoinKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="InKeyword" Type="SyntaxToken">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="InExpression" Type="ExpressionSyntax"/>
+    <Field Name="OnKeyword" Type="SyntaxToken">
+      <Kind Name="OnKeyword"/>
+    </Field>
+    <Field Name="LeftExpression" Type="ExpressionSyntax"/>
+    <Field Name="EqualsKeyword" Type="SyntaxToken">
+      <Kind Name="EqualsKeyword"/>
+    </Field>
+    <Field Name="RightExpression" Type="ExpressionSyntax"/>
+    <Field Name="Into" Type="JoinIntoClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="JoinIntoClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="JoinIntoClause"/>
+    <Field Name="IntoKeyword" Type="SyntaxToken">
+      <Kind Name="IntoKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="WhereClauseSyntax" Base="QueryClauseSyntax">
+    <Kind Name="WhereClause"/>
+    <Field Name="WhereKeyword" Type="SyntaxToken">
+      <Kind Name="WhereKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="OrderByClauseSyntax" Base="QueryClauseSyntax">
+    <Kind Name="OrderByClause"/>
+    <Field Name="OrderByKeyword" Type="SyntaxToken">
+      <Kind Name="OrderByKeyword"/>
+    </Field>
+    <Field Name="Orderings" Type="SeparatedSyntaxList&lt;OrderingSyntax&gt;"/>
+  </Node>
+  <Node Name="OrderingSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="AscendingOrdering"/>
+    <Kind Name="DescendingOrdering"/>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="AscendingOrDescendingKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AscendingKeyword"/>
+      <Kind Name="DescendingKeyword"/>
+    </Field>
+  </Node>
+  <Node Name="SelectClauseSyntax" Base="SelectOrGroupClauseSyntax">
+    <Kind Name="SelectClause"/>
+    <Field Name="SelectKeyword" Type="SyntaxToken">
+      <Kind Name="SelectKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="GroupClauseSyntax" Base="SelectOrGroupClauseSyntax">
+    <Kind Name="GroupClause"/>
+    <Field Name="GroupKeyword" Type="SyntaxToken">
+      <Kind Name="GroupKeyword"/>
+    </Field>
+    <Field Name="GroupExpression" Type="ExpressionSyntax"/>
+    <Field Name="ByKeyword" Type="SyntaxToken">
+      <Kind Name="ByKeyword"/>
+    </Field>
+    <Field Name="ByExpression" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="QueryContinuationSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="QueryContinuation"/>
+    <Field Name="IntoKeyword" Type="SyntaxToken">
+      <Kind Name="IntoKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="Body" Type="QueryBodySyntax"/>
+  </Node>
+  <Node Name="OmittedArraySizeExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="OmittedArraySizeExpression"/>
+    <Field Name="OmittedArraySizeExpressionToken" Type="SyntaxToken">
+      <Kind Name="OmittedArraySizeExpressionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the omitted array size expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents a placeholder in an array size list.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an OmittedArraySizeExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <!-- Statements -->
+  <Node Name="GlobalStatementSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="GlobalStatement"/>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <AbstractNode Name="StatementSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Represents the base class for all statements syntax classes.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="BlockSyntax" Base="StatementSyntax">
+    <Kind Name="Block"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LocalDeclarationStatement"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="VariableDeclaration"/>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
+  </Node>
+  <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="VariableDeclarator"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="ArgumentList" Type="BracketedArgumentListSyntax" Optional="true"/>
+    <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="EqualsValueClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="EqualsValueClause"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Value" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ExpressionStatement"/>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="EmptyStatementSyntax" Base="StatementSyntax">
+    <Kind Name="EmptyStatement"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="LabeledStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LabeledStatement"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+    <TypeComment>
+      <summary>Represents a labeled statement syntax.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a LabeledStatementSyntax node</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="GotoStatementSyntax" Base="StatementSyntax">
+    <Kind Name="GotoStatement"/>
+    <Kind Name="GotoCaseStatement"/>
+    <Kind Name="GotoDefaultStatement"/>
+    <Field Name="GotoKeyword" Type="SyntaxToken">
+      <Kind Name="GotoKeyword"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the goto keyword.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CaseOrDefaultKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="CaseKeyword"/>
+      <Kind Name="DefaultKeyword"/>
+      <ProprtyComment>
+        <summary>
+          Gets a SyntaxToken that represents the case or default keywords if any exists.
+        </summary>
+      </ProprtyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>
+          Gets a constant expression for a goto case statement.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the semi-colon at the end of the statement.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>
+        Represents a goto statement syntax
+      </summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>
+        Creates a GotoStatementSyntax node.
+      </summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="BreakStatementSyntax" Base="StatementSyntax">
+    <Kind Name="BreakStatement"/>
+    <Field Name="BreakKeyword" Type="SyntaxToken">
+      <Kind Name="BreakKeyword"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ContinueStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ContinueStatement"/>
+    <Field Name="ContinueKeyword" Type="SyntaxToken">
+      <Kind Name="ContinueKeyword"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ReturnStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ReturnStatement"/>
+    <Field Name="ReturnKeyword" Type="SyntaxToken">
+      <Kind Name="ReturnKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ThrowStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ThrowStatement"/>
+    <Field Name="ThrowKeyword" Type="SyntaxToken">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="YieldStatementSyntax" Base="StatementSyntax">
+    <Kind Name="YieldReturnStatement"/>
+    <Kind Name="YieldBreakStatement"/>
+    <Field Name="YieldKeyword" Type="SyntaxToken">
+      <Kind Name="YieldKeyword"/>
+    </Field>
+    <Field Name="ReturnOrBreakKeyword" Type="SyntaxToken">
+      <Kind Name="ReturnKeyword"/>
+      <Kind Name="BreakKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="WhileStatementSyntax" Base="StatementSyntax">
+    <Kind Name="WhileStatement"/>
+    <Field Name="WhileKeyword" Type="SyntaxToken">
+      <Kind Name="WhileKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="DoStatementSyntax" Base="StatementSyntax">
+    <Kind Name="DoStatement"/>
+    <Field Name="DoKeyword" Type="SyntaxToken">
+      <Kind Name="DoKeyword"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+    <Field Name="WhileKeyword" Type="SyntaxToken">
+      <Kind Name="WhileKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ForStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ForStatement"/>
+    <Field Name="ForKeyword" Type="SyntaxToken">
+      <Kind Name="ForKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
+    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    <Field Name="FirstSemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="SecondSemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <Field Name="Incrementors" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="ForEachStatementSyntax" Base="StatementSyntax">
+    <Kind Name="ForEachStatement"/>
+    <Field Name="ForEachKeyword" Type="SyntaxToken">
+      <Kind Name="ForEachKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="InKeyword" Type="SyntaxToken">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="UsingStatementSyntax" Base="StatementSyntax">
+    <Kind Name="UsingStatement"/>
+    <Field Name="UsingKeyword" Type="SyntaxToken">
+      <Kind Name="UsingKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="FixedStatementSyntax" Base="StatementSyntax">
+    <Kind Name="FixedStatement"/>
+    <Field Name="FixedKeyword" Type="SyntaxToken">
+      <Kind Name="FixedKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="CheckedStatementSyntax" Base="StatementSyntax">
+    <Kind Name="CheckedStatement"/>
+    <Kind Name="UncheckedStatement"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="CheckedKeyword"/>
+      <Kind Name="UncheckedKeyword"/>
+    </Field>
+    <Field Name="Block" Type="BlockSyntax"/>
+  </Node>
+  <Node Name="UnsafeStatementSyntax" Base="StatementSyntax">
+    <Kind Name="UnsafeStatement"/>
+    <Field Name="UnsafeKeyword" Type="SyntaxToken">
+      <Kind Name="UnsafeKeyword"/>
+    </Field>
+    <Field Name="Block" Type="BlockSyntax"/>
+  </Node>
+  <Node Name="LockStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LockStatement"/>
+    <Field Name="LockKeyword" Type="SyntaxToken">
+      <Kind Name="LockKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+  </Node>
+  <Node Name="IfStatementSyntax" Base="StatementSyntax">
+    <Kind Name="IfStatement"/>
+    <Field Name="IfKeyword" Type="SyntaxToken">
+      <Kind Name="IfKeyword"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the if keyword.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the open parenthesis before the if statement's condition expression.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>
+          Gets an ExpressionSyntax that represents the condition of the if statement.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the close parenthesis after the if statement's condition expression.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax">
+      <PropertyComment>
+        <summary>
+          Gets a StatementSyntax the represents the statement to be executed when the condition is true.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Else" Type="ElseClauseSyntax" Optional="true">
+      <PropertyComment>
+        <summary>
+          Gets an ElseClauseSyntax that represents the statement to be executed when the condition is false if such statement exists.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>
+        Represents an if statement syntax.
+      </summary>
+    </TypeComment>
+    <FactoryComment>
+      <summmary>Creates an IfStatementSyntax node</summmary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ElseClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="ElseClause"/>
+    <Field Name="ElseKeyword" Type="SyntaxToken">
+      <Kind Name="ElseKeyword"/>
+      <PropertyComment>
+        <summary>
+          Gets a syntax token
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Statement" Type="StatementSyntax"/>
+    <TypeComment>
+      <summary>Represents an else statement syntax.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a ElseClauseSyntax node</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="SwitchStatementSyntax" Base="StatementSyntax">
+    <Kind Name="SwitchStatement"/>
+    <Field Name="SwitchKeyword" Type="SyntaxToken">
+      <Kind Name="SwitchKeyword"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the switch keyword.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>
+          Gets an ExpressionSyntax representing the expression of the switch statement.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the open braces preceding the switch sections.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Sections" Type="SyntaxList&lt;SwitchSectionSyntax&gt;">
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxList of SwitchSectionSyntax's that represents the switch sections of the switch statement.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Represents a switch statement syntax.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a SwitchStatementSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="SwitchSectionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SwitchSection"/>
+    <Field Name="Labels" Type="SyntaxList&lt;SwitchLabelSyntax&gt;">
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxList of SwitchLabelSyntax's the represents the possible labels that control can transfer to within the section.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;">
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxList of StatementSyntax's the represents the statements to be executed when control transfer to a label the belongs to the section.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Represents a switch section syntax of a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a SwitchSectionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="SwitchLabelSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="CaseSwitchLabel"/>
+    <Kind Name="DefaultSwitchLabel"/>
+    <Field Name="CaseOrDefaultKeyword" Type="SyntaxToken">
+      <Kind Name="CaseKeyword"/>
+      <Kind Name="DefaultKeyword"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents a case or default keywords that belongs to a switch label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Value" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>
+          Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label. For default label the property returns null.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>
+          Gets a SyntaxToken that represents the colon that terminates the switch label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Represents a switch label within a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a SwitchLabelSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TryStatementSyntax" Base="StatementSyntax">
+    <Kind Name="TryStatement"/>
+    <Field Name="TryKeyword" Type="SyntaxToken">
+      <Kind Name="TryKeyword"/>
+    </Field>
+    <Field Name="Block" Type="BlockSyntax"/>
+    <Field Name="Catches" Type="SyntaxList&lt;CatchClauseSyntax&gt;"/>
+    <Field Name="Finally" Type="FinallyClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="CatchClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="CatchClause"/>
+    <Field Name="CatchKeyword" Type="SyntaxToken">
+      <Kind Name="CatchKeyword"/>
+    </Field>
+    <Field Name="Declaration" Type="CatchDeclarationSyntax" Optional="true"/>
+    <Field Name="Filter" Type="CatchFilterClauseSyntax" Optional="true"/>
+    <Field Name="Block" Type="BlockSyntax"/>
+  </Node>
+  <Node Name="CatchDeclarationSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="CatchDeclaration"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="CatchFilterClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="CatchFilterClause"/>
+    <Field Name="IfKeyword" Type="SyntaxToken">
+      <Kind Name="IfKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="FilterExpression" Type="ExpressionSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="FinallyClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="FinallyClause"/>
+    <Field Name="FinallyKeyword" Type="SyntaxToken">
+      <Kind Name="FinallyKeyword"/>
+    </Field>
+    <Field Name="Block" Type="BlockSyntax"/>
+  </Node>
+  <!-- Declarations -->
+  <Node Name="CompilationUnitSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="CompilationUnit"/>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+    <Field Name="EndOfFileToken" Type="SyntaxToken">
+      <Kind Name="EndOfFileToken"/>
+    </Field>
+  </Node>
+  <Node Name="ExternAliasDirectiveSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="ExternAliasDirective"/>
+    <Field Name="ExternKeyword" Type="SyntaxToken">
+      <Kind Name="ExternKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the extern keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AliasKeyword" Type="SyntaxToken">
+      <Kind Name="AliasKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the alias keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the semicolon token.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>
+        Represents an ExternAlias directive syntax, e.g. &quot;extern alias MyAlias;&quot; with specifying &quot;/r:MyAlias=SomeAssembly.dll &quot; on the compiler command line.
+      </summary>
+    </TypeComment>
+    <FactoryComment>
+      <summmary>Creates an ExternAliasDirectiveSyntax node</summmary>
+    </FactoryComment>
+  </Node>
+  <Node Name="UsingDirectiveSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="UsingDirective"/>
+    <Field Name="UsingKeyword" Type="SyntaxToken">
+      <Kind Name="UsingKeyword"/>
+    </Field>
+    <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="MemberDeclarationSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Member declaration syntax.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="NamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="NamespaceDeclaration"/>
+    <Field Name="NamespaceKeyword" Type="SyntaxToken">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="AttributeListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Class representing one or more attributes applied to a language construct.</summary>
+    </TypeComment>
+    <Kind Name="AttributeList"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>Gets the open bracket token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true"/>
+    <PropertyComment>
+      <summary>Gets the optional construct targeted by the attribute.</summary>
+    </PropertyComment>
+    <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>Gets the close bracket token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="AttributeTargetSpecifierSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Class representing what language construct an attribute targets.</summary>
+    </TypeComment>
+    <Kind Name="AttributeTargetSpecifier"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>Gets the colon token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="AttributeSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Attribute syntax.</summary>
+    </TypeComment>
+    <Kind Name="Attribute"/>
+    <Field Name="Name" Type="NameSyntax">
+      <PropertyComment>
+        <summary>Gets the name.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ArgumentList" Type="AttributeArgumentListSyntax" Optional="true"/>
+  </Node>
+  <Node Name="AttributeArgumentListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Attribute argument list syntax.</summary>
+    </TypeComment>
+    <Kind Name="AttributeArgumentList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open paren token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;AttributeArgumentSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the arguments syntax list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close paren token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="AttributeArgumentSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Attribute argument syntax.</summary>
+    </TypeComment>
+    <Kind Name="AttributeArgument"/>
+    <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Gets the expression.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="NameEqualsSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Class representing an identifier name followed by an equals token.</summary>
+    </TypeComment>
+    <Kind Name="NameEquals"/>
+    <Field Name="Name" Type="IdentifierNameSyntax">
+      <PropertyComment>
+        <summary>Gets the identifier name.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierName"/>
+    </Field>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+  </Node>
+  <Node Name="TypeParameterListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Type parameter list syntax.</summary>
+    </TypeComment>
+    <Kind Name="TypeParameterList"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the &lt; token.</summary>
+      </PropertyComment>
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;TypeParameterSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the &gt; token.</summary>
+      </PropertyComment>
+      <Kind Name="GreaterThanToken"/>
+    </Field>
+  </Node>
+  <Node Name="TypeParameterSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Type parameter syntax.</summary>
+    </TypeComment>
+    <Kind Name="TypeParameter"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="VarianceKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="InKeyword"/>
+      <Kind Name="OutKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="BaseTypeDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Base class for type declaration syntax.</summary>
+    </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the base type list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open brace token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close brace token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </AbstractNode>
+  <AbstractNode Name="TypeDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Base class for type declaration syntax (class, struct, interface).</summary>
+    </TypeComment>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the type constraint list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the member declarations.</summary>
+      </PropertyComment>
+    </Field>
+  </AbstractNode>
+  <Node Name="ClassDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Class type declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="ClassDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <PropertyComment>
+        <summary>Gets the class keyword token.</summary>
+      </PropertyComment>
+      <Kind Name="ClassKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Struct type declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="StructDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <PropertyComment>
+        <summary>Gets the struct keyword token.</summary>
+      </PropertyComment>
+      <Kind Name="StructKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="InterfaceDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Interface type declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="InterfaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <PropertyComment>
+        <summary>Gets the interface keyword token.</summary>
+      </PropertyComment>
+      <Kind Name="InterfaceKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="EnumDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Enum type declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="EnumDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="EnumKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the enum keyword token.</summary>
+      </PropertyComment>
+      <Kind Name="EnumKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true">
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the members declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="DelegateDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Delegate declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="DelegateDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="DelegateKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "delegate" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="DelegateKeyword"/>
+    </Field>
+    <Field Name="ReturnType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the return type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the constraint clause list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="EnumMemberDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="EnumMemberDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="EqualsValue" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="BaseListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Base list syntax.</summary>
+    </TypeComment>
+    <Kind Name="BaseList"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the colon token.</summary>
+      </PropertyComment>
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Types" Type="SeparatedSyntaxList&lt;TypeSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the base type references.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Type parameter constraint clause.</summary>
+    </TypeComment>
+    <Kind Name="TypeParameterConstraintClause"/>
+    <Field Name="WhereKeyword" Type="SyntaxToken">
+      <Kind Name="WhereKeyword"/>
+    </Field>
+    <Field Name="Name" Type="IdentifierNameSyntax">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierName"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the colon token.</summary>
+      </PropertyComment>
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Constraints" Type="SeparatedSyntaxList&lt;TypeParameterConstraintSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the constraints list.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <AbstractNode Name="TypeParameterConstraintSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Base type for type parameter constraint syntax.</summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="ConstructorConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Constructor constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="ConstructorConstraint"/>
+    <Field Name="NewKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "new" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="NewKeyword"/>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open paren keyword.</summary>
+      </PropertyComment>
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close paren keyword.</summary>
+      </PropertyComment>
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="ClassOrStructConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Base type for class or struct constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="ClassConstraint"/>
+    <Kind Name="StructConstraint"/>
+    <Field Name="ClassOrStructKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the constraint keyword ("class" or "struct").</summary>
+      </PropertyComment>
+      <Kind Name="ClassKeyword"/>
+      <Kind Name="StructKeyword"/>
+    </Field>
+  </Node>
+  <Node Name="TypeConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Type constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="TypeConstraint"/>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the type syntax.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </AbstractNode>
+  <Node Name="FieldDeclarationSyntax" Base="BaseFieldDeclarationSyntax">
+    <Kind Name="FieldDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="EventFieldDeclarationSyntax" Base="BaseFieldDeclarationSyntax">
+    <Kind Name="EventFieldDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="EventKeyword" Type="SyntaxToken">
+      <Kind Name="EventKeyword"/>
+    </Field>
+    <Field Name="Declaration" Type="VariableDeclarationSyntax" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ExplicitInterfaceSpecifierSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="ExplicitInterfaceSpecifier"/>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="BaseMethodDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Base type for method declaration syntax.</summary>
+    </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="BlockSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </AbstractNode>
+  <Node Name="MethodDeclarationSyntax" Base="BaseMethodDeclarationSyntax">
+    <TypeComment>
+      <summary>Method declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="MethodDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ReturnType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the return type syntax.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the constraint clause list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="OperatorDeclarationSyntax" Base="BaseMethodDeclarationSyntax">
+    <!-- should be multiple kinds? -->
+    <TypeComment>
+      <summary>Operator declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="OperatorDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ReturnType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the return type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "operator" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the operator token.</summary>
+      </PropertyComment>
+      <Kind Name="PlusToken"/>
+      <Kind Name="MinusToken"/>
+      <Kind Name="ExclamationToken"/>
+      <Kind Name="TildeToken"/>
+      <Kind Name="PlusPlusToken"/>
+      <Kind Name="MinusMinusToken"/>
+      <Kind Name="AsteriskToken"/>
+      <Kind Name="SlashToken"/>
+      <Kind Name="PercentToken"/>
+      <Kind Name="LessThanLessThanToken"/>
+      <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="BarToken"/>
+      <Kind Name="AmpersandToken"/>
+      <Kind Name="CaretToken"/>
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <Kind Name="FalseKeyword"/>
+      <Kind Name="TrueKeyword"/>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConversionOperatorDeclarationSyntax" Base="BaseMethodDeclarationSyntax">
+    <!-- should be split into two kinds-->
+    <TypeComment>
+      <summary>Conversion operator declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="ConversionOperatorDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ImplicitOrExplicitKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "implicit" or "explicit" token.</summary>
+      </PropertyComment>
+      <Kind Name="ImplicitKeyword"/>
+      <Kind Name="ExplicitKeyword"/>
+    </Field>
+    <Field Name="OperatorKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "operator" token.</summary>
+      </PropertyComment>
+      <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConstructorDeclarationSyntax" Base="BaseMethodDeclarationSyntax">
+    <TypeComment>
+      <summary>Constructor declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="ConstructorDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
+    <Field Name="Initializer" Type="ConstructorInitializerSyntax" Optional="true"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConstructorInitializerSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Constructor initializer syntax.</summary>
+    </TypeComment>
+    <Kind Name="BaseConstructorInitializer"/>
+    <Kind Name="ThisConstructorInitializer"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the colon token.</summary>
+      </PropertyComment>
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="ThisOrBaseKeyword" Type="SyntaxToken" >
+      <PropertyComment>
+        <summary>Gets the "this" or "base" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="BaseKeyword"/>
+      <Kind Name="ThisKeyword"/>
+    </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax"/>
+  </Node>
+  <Node Name="DestructorDeclarationSyntax" Base="BaseMethodDeclarationSyntax">
+    <TypeComment>
+      <summary>Destructor declaration syntax.</summary>
+    </TypeComment>
+    <Kind Name="DestructorDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="TildeToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the tilde token.</summary>
+      </PropertyComment>
+      <Kind Name="TildeToken"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="BasePropertyDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Base type for property declaration syntax.</summary>
+    </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the type syntax.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional explicit interface specifier.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AccessorList" Type="AccessorListSyntax">
+    </Field>
+  </AbstractNode>
+  <Node Name="PropertyDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
+    <Kind Name="PropertyDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+  </Node>
+  <Node Name="EventDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
+    <Kind Name="EventDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="EventKeyword" Type="SyntaxToken">
+      <Kind Name="EventKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+  </Node>
+  <Node Name="IndexerDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
+    <Kind Name="IndexerDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true" Override="true"/>
+    <Field Name="ThisKeyword" Type="SyntaxToken">
+      <Kind Name="ThisKeyword"/>
+    </Field>
+    <Field Name="ParameterList" Type="BracketedParameterListSyntax">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+  </Node>
+  <Node Name="AccessorListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="AccessorList"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Accessors" Type="SyntaxList&lt;AccessorDeclarationSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="AccessorDeclarationSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="GetAccessorDeclaration"/>
+    <Kind Name="SetAccessorDeclaration"/>
+    <Kind Name="AddAccessorDeclaration"/>
+    <Kind Name="RemoveAccessorDeclaration"/>
+    <Kind Name="UnknownAccessorDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="GetKeyword"/>
+      <Kind Name="SetKeyword"/>
+      <Kind Name="AddKeyword"/>
+      <Kind Name="RemoveKeyword"/>
+      <Kind Name="IdentifierToken"/>
+      <PropertyComment>
+        <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="BlockSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="BaseParameterListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Base type for parameter list syntax.</summary>
+    </TypeComment>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+  </AbstractNode>
+  <Node Name="ParameterListSyntax" Base="BaseParameterListSyntax">
+    <TypeComment>
+      <summary>Parameter list syntax.</summary>
+    </TypeComment>
+    <Kind Name="ParameterList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open paren token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" Override="true"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close paren token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="BracketedParameterListSyntax" Base="BaseParameterListSyntax">
+    <TypeComment>
+      <summary>Parameter list syntax with surrounding brackets.</summary>
+    </TypeComment>
+    <Kind Name="BracketedParameterList"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open bracket token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" Override="true"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close bracket token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+  </Node>
+  <Node Name="ParameterSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Parameter syntax.</summary>
+    </TypeComment>
+    <Kind Name="Parameter"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+      <Kind Name="ArgListKeyword"/>
+    </Field>
+    <Field Name="Default" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="IncompleteMember"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+  </Node>
+  <Node Name="SkippedTokensTriviaSyntax" Base="StructuredTriviaSyntax">
+    <Kind Name="SkippedTokensTrivia"/>
+    <Field Name="Tokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+  </Node>
+  <!--
+  <Node Name="BadNamespaceMemberDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="BadNamespaceMemberDeclaration"/>
+    <Field Name="Nodes" Type="SyntaxNodeOrTokenList"/>
+  </Node>
+  -->
+  <!-- Xml -->
+  <Node Name="DocumentationCommentTriviaSyntax" Base="StructuredTriviaSyntax">
+    <Kind Name="SingleLineDocumentationCommentTrivia"/>
+    <Kind Name="MultiLineDocumentationCommentTrivia"/>
+    <Field Name="Content" Type="SyntaxList&lt;XmlNodeSyntax&gt;"/>
+    <Field Name="EndOfComment" Type="SyntaxToken">
+      <!-- should be renamed to EndOfCommentToken -->
+      <Kind Name="EndOfDocumentationCommentToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="CrefSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>
+        A symbol referenced by a cref attribute (e.g. in a &lt;see&gt; or &lt;seealso&gt; documentation comment tag).
+        For example, the M in &lt;see cref="M" /&gt;.
+      </summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="TypeCrefSyntax" Base="CrefSyntax">
+    <TypeComment>
+      <summary>
+        A symbol reference that definitely refers to a type.
+        For example, "int", "A::B", "A.B", "A&lt;T&gt;", but not "M()" (has parameter list) or "this" (indexer).
+        NOTE: TypeCrefSyntax, QualifiedCrefSyntax, and MemberCrefSyntax overlap.  The syntax in a TypeCrefSyntax
+        will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
+        might be a non-type member.
+      </summary>
+    </TypeComment>
+    <Kind Name="TypeCref"/>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
+  <Node Name="QualifiedCrefSyntax" Base="CrefSyntax">
+    <TypeComment>
+      <summary>
+        A symbol reference to a type or non-type member that is qualified by an enclosing type or namespace.
+        For example, cref="System.String.ToString()".
+        NOTE: TypeCrefSyntax, QualifiedCrefSyntax, and MemberCrefSyntax overlap.  The syntax in a TypeCrefSyntax
+        will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
+        might be a non-type member.
+      </summary>
+    </TypeComment>
+    <Kind Name="QualifiedCref"/>
+    <Field Name="Container" Type="TypeSyntax"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+    </Field>
+    <Field Name="Member" Type="MemberCrefSyntax"/>
+  </Node>
+  <AbstractNode Name="MemberCrefSyntax" Base="CrefSyntax">
+    <TypeComment>
+      <summary>
+        The unqualified part of a CrefSyntax.
+        For example, "ToString()" in "object.ToString()".
+        NOTE: TypeCrefSyntax, QualifiedCrefSyntax, and MemberCrefSyntax overlap.  The syntax in a TypeCrefSyntax
+        will always be bound as type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the symbol
+        might be a non-type member.
+      </summary>
+    </TypeComment>
+  </AbstractNode>
+  <Node Name="NameMemberCrefSyntax" Base="MemberCrefSyntax">
+    <TypeComment>
+      <summary>
+        A MemberCrefSyntax specified by a name (an identifier, predefined type keyword, or an alias-qualified name,
+        with an optional type parameter list) and an optional parameter list.
+        For example, "M", "M&lt;T&gt;" or "M(int)".
+        Also, "A::B()" or "string()".
+      </summary>
+    </TypeComment>
+    <Kind Name="NameMemberCref"/>
+    <Field Name="Name" Type="TypeSyntax"/>
+    <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
+  </Node>
+  <Node Name="IndexerMemberCrefSyntax" Base="MemberCrefSyntax">
+    <TypeComment>
+      <summary>
+        A MemberCrefSyntax specified by a this keyword and an optional parameter list.
+        For example, "this" or "this[int]".
+      </summary>
+    </TypeComment>
+    <Kind Name="IndexerMemberCref"/>
+    <Field Name="ThisKeyword" Type="SyntaxToken">
+      <Kind Name="ThisKeyword"/>
+    </Field>
+    <Field Name="Parameters" Type="CrefBracketedParameterListSyntax" Optional="true"/>
+  </Node>
+  <Node Name="OperatorMemberCrefSyntax" Base="MemberCrefSyntax">
+    <TypeComment>
+      <summary>
+        A MemberCrefSyntax specified by an operator keyword, an operator symbol and an optional parameter list.
+        For example, "operator +" or "operator -[int]".
+        NOTE: the operator must be overloadable.
+      </summary>
+    </TypeComment>
+    <Kind Name="OperatorMemberCref"/>
+    <Field Name="OperatorKeyword" Type="SyntaxToken">
+      <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the operator token.</summary>
+      </PropertyComment>
+      <Kind Name="PlusToken"/>
+      <Kind Name="MinusToken"/>
+      <Kind Name="ExclamationToken"/>
+      <Kind Name="TildeToken"/>
+      <Kind Name="PlusPlusToken"/>
+      <Kind Name="MinusMinusToken"/>
+      <Kind Name="AsteriskToken"/>
+      <Kind Name="SlashToken"/>
+      <Kind Name="PercentToken"/>
+      <Kind Name="LessThanLessThanToken"/>
+      <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="BarToken"/>
+      <Kind Name="AmpersandToken"/>
+      <Kind Name="CaretToken"/>
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <Kind Name="FalseKeyword"/>
+      <Kind Name="TrueKeyword"/>
+    </Field>
+    <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
+  </Node>
+  <Node Name="ConversionOperatorMemberCrefSyntax" Base="MemberCrefSyntax">
+    <TypeComment>
+      <summary>
+        A MemberCrefSyntax specified by an implicit or explicit keyword, an operator keyword, a destination type, and an optional parameter list.
+        For example, "implicit operator int" or "explicit operator MyType(int)".
+      </summary>
+    </TypeComment>
+    <Kind Name="ConversionOperatorMemberCref"/>
+    <Field Name="ImplicitOrExplicitKeyword" Type="SyntaxToken">
+      <Kind Name="ImplicitKeyword"/>
+      <Kind Name="ExplicitKeyword"/>
+    </Field>
+    <Field Name="OperatorKeyword" Type="SyntaxToken">
+      <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
+  </Node>
+  <AbstractNode Name="BaseCrefParameterListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>
+        A list of cref parameters with surrounding punctuation.
+        Unlike regular parameters, cref parameters do not have names.
+      </summary>
+    </TypeComment>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;CrefParameterSyntax&gt;">
+      <PropertyComment>
+        <summary>Gets the parameter list.</summary>
+      </PropertyComment>
+    </Field>
+  </AbstractNode>
+  <Node Name="CrefParameterListSyntax" Base="BaseCrefParameterListSyntax">
+    <TypeComment>
+      <summary>
+        A parenthesized list of cref parameters.
+      </summary>
+    </TypeComment>
+    <Kind Name="CrefParameterList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open paren token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;CrefParameterSyntax&gt;" Override="true"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close paren token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="CrefBracketedParameterListSyntax" Base="BaseCrefParameterListSyntax">
+    <TypeComment>
+      <summary>
+        A bracketed list of cref parameters.
+      </summary>
+    </TypeComment>
+    <Kind Name="CrefBracketedParameterList"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open bracket token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;CrefParameterSyntax&gt;" Override="true"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close bracket token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+  </Node>
+  <Node Name="CrefParameterSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>
+        An element of a BaseCrefParameterListSyntax.
+        Unlike a regular parameter, a cref parameter has only an optional ref or out keyword and a type -
+        there is no name and there are no attributes or other modifiers.
+      </summary>
+    </TypeComment>
+    <Kind Name="CrefParameter"/>
+    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+      <Kind Name="OutKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax"/>
+  </Node>
+  <AbstractNode Name="XmlNodeSyntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <Node Name="XmlElementSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlElement"/>
+    <Field Name="StartTag" Type="XmlElementStartTagSyntax"/>
+    <Field Name="Content" Type="SyntaxList&lt;XmlNodeSyntax&gt;"/>
+    <Field Name="EndTag" Type="XmlElementEndTagSyntax"/>
+  </Node>
+  <Node Name="XmlElementStartTagSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="XmlElementStartTag"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="Name" Type="XmlNameSyntax"/>
+    <Field Name="Attributes" Type="SyntaxList&lt;XmlAttributeSyntax&gt;"/>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlElementEndTagSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="XmlElementEndTag"/>
+    <Field Name="LessThanSlashToken" Type="SyntaxToken">
+      <Kind Name="LessThanSlashToken"/>
+    </Field>
+    <Field Name="Name" Type="XmlNameSyntax"/>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlEmptyElementSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlEmptyElement"/>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+    </Field>
+    <Field Name="Name" Type="XmlNameSyntax"/>
+    <Field Name="Attributes" Type="SyntaxList&lt;XmlAttributeSyntax&gt;"/>
+    <Field Name="SlashGreaterThanToken" Type="SyntaxToken">
+      <Kind Name="SlashGreaterThanToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlNameSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="XmlName"/>
+    <Field Name="Prefix" Type="XmlPrefixSyntax" Optional="true"/>
+    <Field Name="LocalName" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlPrefixSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="XmlPrefix"/>
+    <Field Name="Prefix" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="XmlAttributeSyntax" Base="CSharpSyntaxNode">
+    <Field Name="Name" Type="XmlNameSyntax"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="StartQuoteToken" Type="SyntaxToken">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+    <Field Name="EndQuoteToken" Type="SyntaxToken">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+  </AbstractNode>
+  <Node Name="XmlTextAttributeSyntax" Base="XmlAttributeSyntax">
+    <Kind Name="XmlTextAttribute"/>
+    <Field Name="Name" Type="XmlNameSyntax" Override="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="StartQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <!-- XmlTextLiteralToken or XmlEntityLiteralToken-->
+    <Field Name="EndQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlCrefAttributeSyntax" Base="XmlAttributeSyntax">
+    <Kind Name="XmlCrefAttribute"/>
+    <Field Name="Name" Type="XmlNameSyntax" Override="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="StartQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+    <Field Name="Cref" Type="CrefSyntax"/>
+    <Field Name="EndQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlNameAttributeSyntax" Base="XmlAttributeSyntax">
+    <Kind Name="XmlNameAttribute"/>
+    <Field Name="Name" Type="XmlNameSyntax" Override="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="StartQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+    <Field Name="Identifier" Type="IdentifierNameSyntax" />
+    <Field Name="EndQuoteToken" Type="SyntaxToken" Override="true">
+      <Kind Name="SingleQuoteToken"/>
+      <Kind Name="DoubleQuoteToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlTextSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlText"/>
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <!-- XmlTextLiteralToken or XmlEntityLiteralToken-->
+  </Node>
+  <Node Name="XmlCDataSectionSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlCDataSection"/>
+    <Field Name="StartCDataToken" Type="SyntaxToken">
+      <Kind Name="XmlCDataStartToken"/>
+    </Field>
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <!-- XmlTextLiteralToken only -->
+    <Field Name="EndCDataToken" Type="SyntaxToken">
+      <Kind Name="XmlCDataEndToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlProcessingInstructionSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlProcessingInstruction"/>
+    <Field Name="StartProcessingInstructionToken" Type="SyntaxToken">
+      <Kind Name="XmlProcessingInstructionStartToken"/>
+    </Field>
+    <Field Name="Name" Type="XmlNameSyntax" />
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <!-- XmlTextLiteralToken only -->
+    <Field Name="EndProcessingInstructionToken" Type="SyntaxToken">
+      <Kind Name="XmlProcessingInstructionEndToken"/>
+    </Field>
+  </Node>
+  <Node Name="XmlCommentSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlComment"/>
+    <Field Name="LessThanExclamationMinusMinusToken" Type="SyntaxToken">
+      <Kind Name="XmlCommentStartToken"/>
+    </Field>
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <!-- XmlTextLiteralToken only -->
+    <Field Name="MinusMinusGreaterThanToken" Type="SyntaxToken">
+      <Kind Name="XmlCommentEndToken"/>
+    </Field>
+  </Node>
+  <!-- 
+  <Node Name="XmlProcessingInstructionSyntax" Base="XmlNodeSyntax">
+    <Kind Name="XmlProcessingInstruction"/>
+    <Field Name="LessThanQuestionToken" Type="SyntaxToken"/>
+    <Field Name="TextTokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="QuestionGreaterThanToken" Type="SyntaxToken"/>
+  </Node>
+  -->
+  <!-- Preprocessor -->
+  <AbstractNode Name="DirectiveTriviaSyntax" Base="StructuredTriviaSyntax">
+    <Field Name="IsActive" Type="bool"/>
+    <Field Name="HashToken" Type="SyntaxToken">
+      <Kind Name="HashToken" />
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken">
+      <Kind Name="EndOfDirectiveToken" />
+    </Field>
+  </AbstractNode>
+  <AbstractNode Name="BranchingDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Field Name="BranchTaken" Type="bool"/>
+  </AbstractNode>
+  <AbstractNode Name="ConditionalDirectiveTriviaSyntax" Base="BranchingDirectiveTriviaSyntax">
+    <Field Name="Condition" Type="ExpressionSyntax"/>
+    <Field Name="ConditionValue" Type="bool"/>
+  </AbstractNode>
+  <Node Name="IfDirectiveTriviaSyntax" Base="ConditionalDirectiveTriviaSyntax">
+    <Kind Name="IfDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="IfKeyword" Type="SyntaxToken">
+      <Kind Name="IfKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+    <Field Name="BranchTaken" Type="bool" Override="true"/>
+    <Field Name="ConditionValue" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ElifDirectiveTriviaSyntax" Base="ConditionalDirectiveTriviaSyntax">
+    <Kind Name="ElifDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ElifKeyword" Type="SyntaxToken">
+      <Kind Name="ElifKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+    <Field Name="BranchTaken" Type="bool" Override="true"/>
+    <Field Name="ConditionValue" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ElseDirectiveTriviaSyntax" Base="BranchingDirectiveTriviaSyntax">
+    <Kind Name="ElseDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ElseKeyword" Type="SyntaxToken">
+      <Kind Name="ElseKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+    <Field Name="BranchTaken" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="EndIfDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="EndIfDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="EndIfKeyword" Type="SyntaxToken">
+      <Kind Name="EndIfKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="RegionDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="RegionDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="RegionKeyword" Type="SyntaxToken">
+      <Kind Name="RegionKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="EndRegionDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="EndRegionDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="EndRegionKeyword" Type="SyntaxToken">
+      <Kind Name="EndRegionKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ErrorDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="ErrorDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ErrorKeyword" Type="SyntaxToken">
+      <Kind Name="ErrorKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="WarningDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="WarningDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="WarningKeyword" Type="SyntaxToken">
+      <Kind Name="WarningKeyword"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="BadDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="BadDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" />
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="DefineDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="DefineDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="DefineKeyword" Type="SyntaxToken">
+      <Kind Name="DefineKeyword"/>
+    </Field>
+    <Field Name="Name" Type="SyntaxToken">
+      <!-- should be identifier -->
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="UndefDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="UndefDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="UndefKeyword" Type="SyntaxToken">
+      <Kind Name="UndefKeyword"/>
+    </Field>
+    <Field Name="Name" Type="SyntaxToken">
+      <!-- should be identifier -->
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LineDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="LineDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LineKeyword" Type="SyntaxToken">
+      <Kind Name="LineKeyword"/>
+    </Field>
+    <Field Name="Line" Type="SyntaxToken">
+      <Kind Name="NumericLiteralToken"/>
+      <Kind Name="DefaultKeyword"/>
+      <Kind Name="HiddenKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken" Optional="true">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="PragmaWarningDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="PragmaWarningDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="PragmaKeyword" Type="SyntaxToken">
+      <Kind Name="PragmaKeyword"/>
+    </Field>
+    <Field Name="WarningKeyword" Type="SyntaxToken">
+      <Kind Name="WarningKeyword"/>
+    </Field>
+    <Field Name="DisableOrRestoreKeyword" Type="SyntaxToken">
+      <Kind Name="DisableKeyword"/>
+      <Kind Name="RestoreKeyword"/>
+    </Field>
+    <Field Name="ErrorCodes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="PragmaChecksumDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="PragmaChecksumDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="PragmaKeyword" Type="SyntaxToken">
+      <Kind Name="PragmaKeyword"/>
+    </Field>
+    <Field Name="ChecksumKeyword" Type="SyntaxToken">
+      <Kind Name="ChecksumKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="Guid" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="Bytes" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ReferenceDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="ReferenceDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ReferenceKeyword" Type="SyntaxToken">
+      <Kind Name="ReferenceKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+</Tree>

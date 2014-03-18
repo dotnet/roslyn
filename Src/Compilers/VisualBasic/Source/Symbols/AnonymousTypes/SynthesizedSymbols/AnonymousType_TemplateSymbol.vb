@@ -1,0 +1,188 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Generic
+Imports System.Collections.Immutable
+Imports System.Threading
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+    Partial Friend NotInheritable Class AnonymousTypeManager
+
+        Private NotInheritable Class AnonymousTypeTemplateSymbol
+            Inherits AnonymousTypeOrDelegateTemplateSymbol
+
+            Private ReadOnly m_properties As ImmutableArray(Of AnonymousTypePropertySymbol)
+            Private ReadOnly m_members As ImmutableArray(Of Symbol)
+            Private ReadOnly m_interfaces As ImmutableArray(Of NamedTypeSymbol)
+            Friend ReadOnly HasAtLeastOneKeyField As Boolean
+
+            Public Sub New(manager As AnonymousTypeManager,
+                           typeDescr As AnonymousTypeDescriptor)
+                MyBase.New(manager, typeDescr)
+
+                Dim fieldsCount As Integer = typeDescr.Fields.Length
+
+                Dim methodMembersBuilder = ArrayBuilder(Of Symbol).GetInstance()
+                Dim otherMembersBuilder = ArrayBuilder(Of Symbol).GetInstance()
+
+                ' The array storing property symbols to be used in 
+                ' generation of constructor and other methods
+                Dim propertiesArray = New AnonymousTypePropertySymbol(fieldsCount - 1) {}
+
+                ' Anonymous types with at least one Key field are being generated slightly different
+                HasAtLeastOneKeyField = False
+
+                '  Process fields
+                For fieldIndex = 0 To fieldsCount - 1
+
+                    Dim field As AnonymousTypeField = typeDescr.Fields(fieldIndex)
+                    If field.IsKey Then
+                        HasAtLeastOneKeyField = True
+                    End If
+
+                    ' Add a property
+                    Dim [property] As New AnonymousTypePropertySymbol(Me, field, fieldIndex, Me.TypeParameters(fieldIndex))
+                    propertiesArray(fieldIndex) = [property]
+
+                    ' Property related symbols
+                    otherMembersBuilder.Add([property])
+                    methodMembersBuilder.Add([property].GetMethod)
+                    If [property].SetMethod IsNot Nothing Then
+                        methodMembersBuilder.Add([property].SetMethod)
+                    End If
+
+                    otherMembersBuilder.Add([property].AssociatedField)
+                Next
+
+                m_properties = propertiesArray.AsImmutableOrNull()
+
+                ' Add a constructor
+                methodMembersBuilder.Add(New AnonymousTypeConstructorSymbol(Me))
+                ' Add 'ToString'
+                methodMembersBuilder.Add(New AnonymousTypeToStringMethodSymbol(Me))
+
+                ' Add optional members
+                If HasAtLeastOneKeyField AndAlso Me.Manager.System_IEquatable_T_Equals IsNot Nothing Then
+
+                    ' Add 'GetHashCode'
+                    methodMembersBuilder.Add(New AnonymousTypeGetHashCodeMethodSymbol(Me))
+
+                    ' Add optional 'Inherits IEquatable'
+                    Dim equatableInterface As NamedTypeSymbol = Me.Manager.System_IEquatable_T.Construct(ImmutableArray.Create(Of TypeSymbol)(Me))
+                    m_interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
+
+                    ' Add 'IEquatable.Equals'
+                    Dim method As Symbol = DirectCast(equatableInterface, SubstitutedNamedType).GetMemberForDefinition(Me.Manager.System_IEquatable_T_Equals)
+                    Dim iEquatableEquals As MethodSymbol = New AnonymousType_IEquatable_EqualsMethodSymbol(Me, DirectCast(method, MethodSymbol))
+                    methodMembersBuilder.Add(iEquatableEquals)
+
+                    ' Add 'Equals'
+                    methodMembersBuilder.Add(New AnonymousTypeEqualsMethodSymbol(Me, iEquatableEquals))
+
+                Else
+                    m_interfaces = ImmutableArray(Of NamedTypeSymbol).Empty
+                End If
+
+                methodMembersBuilder.AddRange(otherMembersBuilder)
+                otherMembersBuilder.Free()
+                m_members = methodMembersBuilder.ToImmutableAndFree()
+
+            End Sub
+
+            Friend Overrides Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
+                Dim names = m_properties.SelectAsArray(Function(p) p.Name)
+                Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(names)
+            End Function
+
+            Friend Overrides ReadOnly Property GeneratedNamePrefix As String
+                Get
+                    Return GeneratedNames.AnonymousTypeTemplateNamePrefix
+                End Get
+            End Property
+
+            Public ReadOnly Property Properties As ImmutableArray(Of AnonymousTypePropertySymbol)
+                Get
+                    Return Me.m_properties
+                End Get
+            End Property
+
+            Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
+                Return m_members
+            End Function
+
+            Friend Overrides Iterator Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
+                For Each m In GetMembers()
+                    If m.Kind = SymbolKind.Field Then
+                        Yield DirectCast(m, FieldSymbol)
+                    End If
+                Next
+            End Function
+
+            Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+                Return Me.Manager.System_Object
+            End Function
+
+            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+                Return m_interfaces
+            End Function
+
+            Public Overrides ReadOnly Property TypeKind As TypeKind
+                Get
+                    Return TypeKind.Class
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsInterface As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides Sub AddSynthesizedAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(attributes)
+
+                ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
+                AddSynthesizedAttribute(attributes, Manager.Compilation.SynthesizeAttribute(
+                    WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+
+                ' VB emits this attribute regardless of /debug settings (unlike C#, which only emits it for /debug:full)
+                ' Attribute: System.Diagnostics.DebuggerDisplayAttribute("a={a}, b={b}, c={c}, ...")
+                AddSynthesizedAttribute(attributes, SynthesizeDebuggerDisplayAttribute())
+            End Sub
+
+            Private Function SynthesizeDebuggerDisplayAttribute() As SynthesizedAttributeData
+                ' VB doesn't allow empty anon types
+                Debug.Assert(Me.Properties.Length > 0)
+
+                Dim builder = PooledStringBuilder.GetInstance()
+                Dim sb = builder.Builder
+                Dim displayCount As Integer = Math.Min(Me.Properties.Length, 4)
+
+                For fieldIndex = 0 To displayCount - 1
+                    Dim fieldName As String = Me.Properties(fieldIndex).Name
+                    If fieldIndex > 0 Then
+                        sb.Append(", ")
+                    End If
+
+                    sb.Append(fieldName)
+                    sb.Append("={")
+                    sb.Append(fieldName)
+                    sb.Append("}")
+                Next
+
+                If Me.Properties.Length > displayCount Then
+                    sb.Append(", ...")
+                End If
+
+                Return Manager.Compilation.SynthesizeAttribute(
+                    WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
+                    ImmutableArray.Create(New TypedConstant(Manager.System_String, TypedConstantKind.Primitive, builder.ToStringAndFree())))
+            End Function
+
+        End Class
+    End Class
+End Namespace
+
+

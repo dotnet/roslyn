@@ -1,0 +1,117 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    internal struct ArgumentAnalysisResult
+    {
+        public readonly ImmutableArray<int> ArgsToParamsOpt;
+        public readonly int ArgumentPosition;
+        public readonly int ParameterPosition;
+        public readonly ArgumentAnalysisResultKind Kind;
+
+        public int ParameterFromArgument(int arg)
+        {
+            Debug.Assert(arg >= 0);
+            if (ArgsToParamsOpt.IsDefault)
+            {
+                return arg;
+            }
+            Debug.Assert(arg < ArgsToParamsOpt.Length);
+            return ArgsToParamsOpt[arg];
+        }
+
+        private ArgumentAnalysisResult(ArgumentAnalysisResultKind kind,
+                                    int argumentPosition,
+                                    int parameterPosition,
+                                    ImmutableArray<int> argsToParamsOpt)
+        {
+            this.Kind = kind;
+            this.ArgumentPosition = argumentPosition;
+            this.ParameterPosition = parameterPosition;
+            this.ArgsToParamsOpt = argsToParamsOpt;
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                return this.Kind < ArgumentAnalysisResultKind.FirstInvalid;
+            }
+        }
+
+        public static ArgumentAnalysisResult NameUsedForPositional(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NameUsedForPositional, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
+        public static ArgumentAnalysisResult NoCorrespondingParameter(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NoCorrespondingParameter, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
+        public static ArgumentAnalysisResult NoCorrespondingNamedParameter(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NoCorrespondingNamedParameter, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
+        public static ArgumentAnalysisResult RequiredParameterMissing(int parameterPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.RequiredParameterMissing, 0, parameterPosition, default(ImmutableArray<int>));
+        }
+
+        public static ArgumentAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.Normal, 0, 0, argsToParamsOpt);
+        }
+
+        public static ArgumentAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.Expanded, 0, 0, argsToParamsOpt);
+        }
+
+#if DEBUG        
+        private string Dump()
+        {
+            string s = "";
+            switch (Kind)
+            {
+                case ArgumentAnalysisResultKind.Normal:
+                    s += "Valid in normal form.";
+                    break;
+                case ArgumentAnalysisResultKind.Expanded:
+                    s += "Valid in expanded form.";
+                    break;
+                case ArgumentAnalysisResultKind.NameUsedForPositional:
+                    s += "Invalid because argument " + ArgumentPosition + " had a name.";
+                    break;
+                case ArgumentAnalysisResultKind.NoCorrespondingParameter:
+                    s += "Invalid because argument " + ArgumentPosition + " has no corresponding parameter.";
+                    break;
+                case ArgumentAnalysisResultKind.NoCorrespondingNamedParameter:
+                    s += "Invalid because named argument " + ArgumentPosition + " has no corresponding parameter.";
+                    break;
+                case ArgumentAnalysisResultKind.RequiredParameterMissing:
+                    s += "Invalid because parameter " + ParameterPosition + " has no corresponding argument.";
+                    break;
+            }
+
+            if (!ArgsToParamsOpt.IsDefault)
+            {
+                for (int i = 0; i < ArgsToParamsOpt.Length; ++i)
+                {
+                    s += "\nArgument " + i + " corresponds to parameter " + ArgsToParamsOpt[i];
+                }
+            }
+
+            return s;
+        }
+#endif
+
+    }
+}

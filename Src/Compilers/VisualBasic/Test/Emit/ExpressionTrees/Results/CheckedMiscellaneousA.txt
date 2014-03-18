@@ -1,0 +1,263 @@
+﻿Lambda(
+  body {
+    Convert(
+      Call(
+        Constant(
+          Clazz`1[C]
+          type: Clazz`1[C]
+        )
+        method: System.String ToString() in System.Object (
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      New(
+        Void .ctor()(
+        )
+        type: C
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Convert(
+      MemberInit(
+        NewExpression(
+          New(
+            Void .ctor()(
+            )
+            type: C
+          )
+        )
+        bindings:
+          MemberAssignment(
+            member: System.Object P
+            expression: {
+              Convert(
+                New(
+                  Void .ctor()(
+                  )
+                  type: C
+                )
+                type: System.Object
+              )
+            }
+          )
+        type: C
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+Lambda(
+  body {
+    Default(
+      type: C
+    )
+  }
+  return type: C
+  type: System.Func`1[C]
+)
+
+Lambda(
+  body {
+    Lambda(
+      body {
+        Call(
+          Constant(
+            Clazz`1[C]
+            type: Clazz`1[C]
+          )
+          method: Void add_EV(EVEventHandler) in Clazz`1[C] (
+            Constant(
+              null
+              type: Clazz`1+EVEventHandler[C]
+            )
+          )
+          type: System.Void
+        )
+      }
+      return type: System.Void
+      type: System.Action
+    )
+  }
+  return type: System.Action
+  type: System.Func`1[System.Action]
+)
+
+Lambda(
+  body {
+    Lambda(
+      body {
+        Call(
+          Constant(
+            Clazz`1[C]
+            type: Clazz`1[C]
+          )
+          method: Void remove_EV(EVEventHandler) in Clazz`1[C] (
+            Constant(
+              null
+              type: Clazz`1+EVEventHandler[C]
+            )
+          )
+          type: System.Void
+        )
+      }
+      return type: System.Void
+      type: System.Action
+    )
+  }
+  return type: System.Action
+  type: System.Func`1[System.Action]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Equal(
+        TypeIs(
+          Constant(
+            Clazz`1[C]
+            type: Clazz`1[C]
+          )
+          Type Operand: System.Object
+          type: System.Boolean
+        )
+        TypeIs(
+          Parameter(
+            x
+            type: System.String
+          )
+          Type Operand: System.String
+          type: System.Boolean
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Call(
+        Constant(
+          Clazz`1[C]
+          type: Clazz`1[C]
+        )
+        method: System.String get_IND(System.String) in Clazz`1[C] (
+          Parameter(
+            x
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Call(
+        New(
+          Void .ctor()(
+          )
+          type: Clazz`1[C]
+        )
+        method: System.String get_IND(System.String) in Clazz`1[C] (
+          Parameter(
+            x
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: Clazz`1[C]
+  )
+  body {
+    Convert(
+      Call(
+        Parameter(
+          x
+          type: Clazz`1[C]
+        )
+        method: System.String get_IND(System.String) in Clazz`1[C] (
+          Constant(
+            aaa
+            type: System.String
+          )
+        )
+        type: System.String
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[Clazz`1[C],System.Object]
+)
+
+Lambda(
+  Parameter(
+    x
+    type: C
+  )
+  body {
+    MemberAccess(
+      Parameter(
+        x
+        type: C
+      )
+      -> P
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[C,System.Object]
+)

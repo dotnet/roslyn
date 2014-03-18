@@ -1,0 +1,152 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
+using System.Collections.Generic;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    partial class IteratorMethodToClassRewriter
+    {
+        /// <summary>
+        /// Analyses method body for yields in try blocks and labels that they contain.
+        /// </summary>
+        private class YieldsInTryAnalysis : LabelCollector
+        {
+            // all try blocks with yields in them and complete set of lables inside those trys
+            // NOTE: non-yielding Trys are transparently ignored - i.e. their labels are included
+            //       in the label set of the nearest yielding-try parent  
+            private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> labelsInYieldingTrys;
+
+            // transient accumulators.
+            private bool seenYield;
+
+            public YieldsInTryAnalysis(BoundStatement body)
+            {
+                this.seenYield = false;
+                this.Visit(body);
+            }
+
+            /// <summary>
+            /// Returns true if given try or any of its nested trys contain yields
+            /// </summary>
+            public bool ContainsYields(BoundTryStatement statement)
+            {
+                return labelsInYieldingTrys != null && labelsInYieldingTrys.ContainsKey(statement);
+            }
+
+            /// <summary>
+            /// Returns true if body contains yield returns within try blocks.
+            /// </summary>
+            public bool ContainsYieldsInTrys()
+            {
+                return labelsInYieldingTrys != null;
+            }
+
+            /// <summary>
+            /// Labels reachable from within this frame without invoking its finally. 
+            /// null if there are none such labels.
+            /// </summary>
+            internal HashSet<LabelSymbol> Labels(BoundTryStatement statement)
+            {
+                return labelsInYieldingTrys[statement];
+            }
+
+            public override BoundNode VisitTryStatement(BoundTryStatement node)
+            {
+                var origSeenYield = this.seenYield;
+                var origLabels = this.currentLabels;
+
+                // sibling Trys do not see each other's yields
+                this.seenYield = false;
+                this.currentLabels = null;
+
+                base.VisitTryStatement(node);
+
+                if (this.seenYield)
+                {
+                    // this try yields !
+
+                    var yieldingTryLabels = this.labelsInYieldingTrys;
+                    if (yieldingTryLabels == null)
+                    {
+                        this.labelsInYieldingTrys = yieldingTryLabels = new Dictionary<BoundTryStatement, HashSet<LabelSymbol>>();
+                    }
+
+                    yieldingTryLabels.Add(node, currentLabels);
+                    currentLabels = origLabels;
+                }
+                else
+                {
+                    // this is a boring non-yielding try
+
+                    // currentLabels = currentLabels U origLabels ;
+                    if (currentLabels == null)
+                    {
+                        currentLabels = origLabels;
+                    }
+                    else if (origLabels != null)
+                    {
+                        currentLabels.UnionWith(origLabels);
+                    }
+                }
+
+                this.seenYield = this.seenYield | origSeenYield;
+                return null;
+            }
+
+            public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+            {
+                this.seenYield = true;
+                return base.VisitYieldReturnStatement(node);
+            }
+
+            public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
+            {
+                // expressions cannot contain labels, branches or yields.
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Analyses method body for labels.
+    /// </summary>
+    internal abstract class LabelCollector : BoundTreeWalker
+    {
+        // transient accumulator.
+        protected HashSet<LabelSymbol> currentLabels;
+
+        public override BoundNode VisitLabelStatement(BoundLabelStatement node)
+        {
+            CollectLabel(node.Label);
+            return base.VisitLabelStatement(node);
+        }
+
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
+        {
+            CollectLabel(node.ConstantTargetOpt);
+            CollectLabel(node.BreakLabel);
+            return base.VisitSwitchStatement(node);
+        }
+
+        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
+        {
+            CollectLabel(node.Label);
+            return base.VisitSwitchLabel(node);
+        }
+
+        private void CollectLabel(LabelSymbol label)
+        {
+            if ((object)label != null)
+            {
+                var currentLabels = this.currentLabels;
+                if (currentLabels == null)
+                {
+                    this.currentLabels = currentLabels = new HashSet<LabelSymbol>();
+                }
+                currentLabels.Add(label);
+            }
+        }
+    }
+}

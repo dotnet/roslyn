@@ -1,0 +1,72 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend Class Symbol
+
+        ''' <summary>
+        ''' Determine if two methods have the same signature according to section 4.1.1 of the VB language spec.
+        ''' The name, number of type parameters, and number and types of the method's non-optional parameters are
+        ''' considered. ByRef/Byval, parameter names, returns type, constraints, or optional parameters are not considered.
+        ''' </summary>
+        Friend Shared Function HaveSameSignature(method1 As MethodSymbol, method2 As MethodSymbol) As Boolean
+            Dim comparisonResults As SymbolComparisonResults = MethodSignatureComparer.DetailedCompare(
+                method1,
+                method2,
+                SymbolComparisonResults.AllMismatches And Not SymbolComparisonResults.MismatchesForConflictingMethods)
+            Return comparisonResults = 0
+        End Function
+
+        Friend Shared Function HaveSameSignatureAndConstraintsAndReturnType(method1 As MethodSymbol, method2 As MethodSymbol) As Boolean
+            Return MethodSignatureComparer.VisualBasicSignatureAndConstraintsAndReturnTypeComparer.Equals(method1, method2)
+        End Function
+
+        ''' <summary>
+        ''' Checks if <paramref name="symbol"/> is accessible from within type <paramref name="within"/>.  
+        ''' </summary>
+        ''' <param name="symbol">The symbol for the accessibility check.</param>
+        ''' <param name="within">The type to use as a context for the check.</param>
+        ''' <param name="throughTypeOpt">
+        ''' The type of an expression that <paramref name="symbol"/> is accessed off of, if any.
+        ''' This is needed to properly check accessibility of protected members.
+        ''' </param>
+        ''' <returns></returns>
+        Public Shared Function IsSymbolAccessible(symbol As Symbol,
+                                                  within As NamedTypeSymbol,
+                                                  Optional throughTypeOpt As NamedTypeSymbol = Nothing) As Boolean
+            If symbol Is Nothing Then
+                Throw New ArgumentNullException("symbol")
+            End If
+
+            If within Is Nothing Then
+                Throw New ArgumentNullException("within")
+            End If
+
+            Return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, useSiteDiagnostics:=Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Checks if <paramref name="symbol"/> is accessible from within the assembly <paramref name="within"/>', but outside any 
+        ''' type. Protected members are deemed inaccessible.
+        ''' </summary>
+        ''' <param name="symbol">The symbol to check accessibility.</param>
+        ''' <param name="within">The assembly to check accessibility within.</param>
+        ''' <returns>True if symbol is acessible. False otherwise.</returns>
+        Public Shared Function IsSymbolAccessible(symbol As Symbol,
+                                                  within As AssemblySymbol) As Boolean
+            If symbol Is Nothing Then
+                Throw New ArgumentNullException("symbol")
+            End If
+
+            If within Is Nothing Then
+                Throw New ArgumentNullException("within")
+            End If
+
+            Return AccessCheck.IsSymbolAccessible(symbol, within, useSiteDiagnostics:=Nothing)
+        End Function
+
+    End Class
+End Namespace

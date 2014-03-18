@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props" Condition="Exists('..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props')" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
+    <AssemblyName>Roslyn.Compilers.UnitTests</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StyleCopEnabled>false</StyleCopEnabled>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>FusionAssemblyIdentity.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
+      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CSharp\Source\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.vbproj">
+      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\Source\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MSBuildTasks\MSBuildTasks.csproj">
+      <Project>{AC2BE224-FB28-40D4-B174-63CABDD488ED}</Project>
+      <Name>MSBuildTasks</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="xunit.abstractions">
+      <HintPath>..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2.assert">
+      <HintPath>..\..\..\packages\xunit.assert.2.0.0-alpha-build2576\lib\net45\xunit2.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit2">
+      <HintPath>..\..\..\packages\xunit.core.2.0.0-alpha-build2576\lib\net45\xunit2.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.Metadata.1.0.8-alpha\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.Immutable.1.1.18-beta\lib\portable-net45+win8+wp8\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
+      <HintPath>..\..\..\packages\Microsoft.CodeAnalysis.TestResources.0.6.0.0\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Reflection.Primitives" />
+    <Reference Include="System.IO" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="CachingLookupTests.cs" />
+    <Compile Include="Collections\BitArrayTests.cs" />
+    <Compile Include="Collections\CachingFactoryTests.cs" />
+    <Compile Include="Collections\EnumerableExtensionsTests.cs" />
+    <Compile Include="Collections\IdentifierCollectionTests.cs" />
+    <Compile Include="Collections\ReadOnlyArrayTests.cs" />
+    <Compile Include="Collections\SmallDictionaryTests.cs" />
+    <Compile Include="CommonCommandLineParserTests.cs" />
+    <Compile Include="CommonCompilationOptionsTests.cs" />
+    <Compile Include="CommonParseOptionsTests.cs" />
+    <Compile Include="CommonSyntaxTests.cs" />
+    <Compile Include="CommonTypedConstantTests.cs" />
+    <Compile Include="CorLibTypesTests.cs" />
+    <Compile Include="DiagnosticBagTests.cs" />
+    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
+    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
+    <Compile Include="Diagnostics\SuppressMessageTargetSymbolResolverTests.cs" />
+    <Compile Include="DiffUtilTests.cs" />
+    <Compile Include="Emit\EmitBaselineTests.cs" />
+    <Compile Include="FileLinePositionSpanTests.cs" />
+    <Compile Include="FileResolverTests.cs" />
+    <Compile Include="FileUtilitiesTests.cs" />
+    <Compile Include="InternalUtilities\ConcurrentLruCacheTests.cs" />
+    <Compile Include="InternalUtilities\EnumerableExtensionsTests.cs" />
+    <Compile Include="InternalUtilities\OneOrManyTests.cs" />
+    <Compile Include="InternalUtilities\WeakListTests.cs" />
+    <Compile Include="LinePositionTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityComparerTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityDisplayNameTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityTestBase.cs" />
+    <Compile Include="MetadataReferences\AssemblyIdentityTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyMetadataTests.cs" />
+    <Compile Include="MetadataReferences\AssemblyPortabilityPolicyTests.cs" />
+    <Compile Include="MetadataReferences\FusionAssemblyIdentityComparer.cs" />
+    <Compile Include="MetadataReferences\FusionAssemblyIdentityTests.cs" />
+    <Compile Include="MetadataReferences\FusionAssemblyPortabilityPolicy.cs" />
+    <Compile Include="MetadataReferences\MetadataHelpersTests.cs" />
+    <Compile Include="MetadataReferences\MetadataNameLimitTests.cs" />
+    <Compile Include="MetadataReferences\MetadataReferencePropertiesTests.cs" />
+    <Compile Include="MetadataReferences\MetadataReferenceTests.cs" />
+    <Compile Include="MetadataReferences\ModuleMetadataTests.cs" />
+    <Compile Include="MetadataReferences\ModuleNoPiaTests.cs" />
+    <Compile Include="ObjectSerializationTests.cs" />
+    <Compile Include="PEWriter\InstructionOperandTypesTests.cs" />
+    <Compile Include="ResourceDescriptionTests.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="StringTableTests.cs" />
+    <Compile Include="StrongNameProviderTests.cs" />
+    <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\StringText_LineTest.cs" />
+    <Compile Include="Text\StringTextTest.cs" />
+    <Compile Include="Text\StringTextTest_BigEndianUnicode.cs" />
+    <Compile Include="Text\StringTextTest_Unicode.cs" />
+    <Compile Include="Text\StringTextTest_UTF8.cs" />
+    <Compile Include="Text\StringTextTest_UTF8NoBOM.cs" />
+    <Compile Include="Text\StringTextTests_Default.cs" />
+    <Compile Include="Text\TextChangeRangeTest.cs" />
+    <Compile Include="Text\TextChangeTests.cs" />
+    <Compile Include="Text\TextLineCollectionTests.cs" />
+    <Compile Include="Text\TextSpanTest.cs" />
+    <Compile Include="Text\TextUtilitiesTests.cs" />
+    <Compile Include="VersionHelperTests.cs" />
+    <Compile Include="Win32Res.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\default.win32manifest" />
+    <None Include="Resources\nativeWithStringIDsAndTypesAndIntTypes.res" />
+    <None Include="Resources\Roslyn.ico.blah" />
+    <None Include="Resources\VerResourceBuiltByRC.RES" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MetadataReader\CPPClassLibrary2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+</Project>

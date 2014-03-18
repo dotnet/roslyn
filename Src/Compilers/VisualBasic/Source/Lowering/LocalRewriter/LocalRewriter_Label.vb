@@ -1,0 +1,49 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Diagnostics
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+
+Namespace Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend NotInheritable Class LocalRewriter
+        Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
+            Dim statement = DirectCast(MyBase.VisitLabelStatement(node), BoundStatement)
+
+            ' Keep track of line number if need to.
+            If currentLineTemporary IsNot Nothing AndAlso currentMethodOrLambda Is topMethod AndAlso
+               Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement Then
+                Dim labelSyntax = DirectCast(node.Syntax, LabelStatementSyntax)
+
+                If labelSyntax.LabelToken.VisualBasicKind = SyntaxKind.IntegerLiteralToken Then
+
+                    Dim lineNumber As Integer = 0
+
+                    Integer.TryParse(labelSyntax.LabelToken.ValueText, lineNumber)
+                    Dim trackLineNumber As BoundStatement = New BoundAssignmentOperator(node.Syntax,
+                                                                                        New BoundLocal(node.Syntax, currentLineTemporary, currentLineTemporary.Type),
+                                                                                        New BoundLiteral(node.Syntax, ConstantValue.Create(lineNumber), currentLineTemporary.Type),
+                                                                                        suppressObjectClone:=True).ToStatement()
+
+                    ' Need to update resume state when we track line numbers for labels.
+                    If ShouldGenerateUnstructuredExceptionHandlingResumeCode(node) Then
+                        trackLineNumber = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, trackLineNumber, canThrow:=False)
+                    End If
+
+                    statement = New BoundStatementList(node.Syntax, ImmutableArray.Create(statement, trackLineNumber))
+                End If
+            End If
+
+            ' only labels from the source get their sequence points here
+            ' synthetic labels are the responsibility of whoever created them
+            If node.Label.IsFromCompilation(compilationState.Compilation) Then
+                statement = MarkStatementWithSequencePoint(statement)
+            End If
+
+            Return statement
+        End Function
+    End Class
+End Namespace

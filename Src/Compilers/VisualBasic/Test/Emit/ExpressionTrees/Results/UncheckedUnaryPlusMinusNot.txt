@@ -1,0 +1,3075 @@
+﻿-=-=-=-=-=-=-=-=- + SByte => SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  body {
+    Parameter(
+      x
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`2[System.SByte,System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- + SByte? => SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- + E_SByte => E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_SByte
+        )
+        type: System.SByte
+      )
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`2[E_SByte,E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- + E_SByte? => E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_SByte]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.SByte]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- + Byte => Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  body {
+    Parameter(
+      x
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`2[System.Byte,System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- + Byte? => Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- + E_Byte => E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_Byte
+        )
+        type: System.Byte
+      )
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`2[E_Byte,E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- + E_Byte? => E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Byte]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Byte]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- + Short => Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  body {
+    Parameter(
+      x
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`2[System.Int16,System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- + Short? => Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- + E_Short => E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_Short
+        )
+        type: System.Int16
+      )
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`2[E_Short,E_Short]
+)
+
+-=-=-=-=-=-=-=-=- + E_Short? => E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Short]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`2[System.Nullable`1[E_Short],System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- + UShort => UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  body {
+    Parameter(
+      x
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`2[System.UInt16,System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- + UShort? => UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- + E_UShort => E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_UShort
+        )
+        type: System.UInt16
+      )
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`2[E_UShort,E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- + E_UShort? => E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UShort]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- + Integer => Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  body {
+    Parameter(
+      x
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- + Integer? => Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- + E_Integer => E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_Integer
+        )
+        type: System.Int32
+      )
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`2[E_Integer,E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- + E_Integer? => E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Integer]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- + UInteger => UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  body {
+    Parameter(
+      x
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`2[System.UInt32,System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- + UInteger? => UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- + E_UInteger => E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_UInteger
+        )
+        type: System.UInt32
+      )
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`2[E_UInteger,E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- + E_UInteger? => E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UInteger]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- + Long => Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  body {
+    Parameter(
+      x
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`2[System.Int64,System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- + Long? => Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- + E_Long => E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_Long
+        )
+        type: System.Int64
+      )
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`2[E_Long,E_Long]
+)
+
+-=-=-=-=-=-=-=-=- + E_Long? => E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Long]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`2[System.Nullable`1[E_Long],System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- + ULong => ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt64
+  )
+  body {
+    Parameter(
+      x
+      type: System.UInt64
+    )
+  }
+  return type: System.UInt64
+  type: System.Func`2[System.UInt64,System.UInt64]
+)
+
+-=-=-=-=-=-=-=-=- + ULong? => ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.UInt64]]
+)
+
+-=-=-=-=-=-=-=-=- + E_ULong => E_ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_ULong
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: E_ULong
+        )
+        type: System.UInt64
+      )
+      type: E_ULong
+    )
+  }
+  return type: E_ULong
+  type: System.Func`2[E_ULong,E_ULong]
+)
+
+-=-=-=-=-=-=-=-=- + E_ULong? => E_ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.Nullable`1[E_ULong]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_ULong]
+    )
+  }
+  return type: System.Nullable`1[E_ULong]
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Nullable`1[E_ULong]]
+)
+
+-=-=-=-=-=-=-=-=- + Boolean => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Parameter(
+              x
+              type: System.Boolean
+            )
+            type: System.Int16
+          )
+          type: System.Int16
+        )
+        type: System.Int32
+      )
+      method: Boolean ToBoolean(Int32) in System.Convert
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Boolean,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- + Boolean? => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Parameter(
+              x
+              type: System.Nullable`1[System.Boolean]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Int16]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      method: Boolean ToBoolean(Int32) in System.Convert
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- + Single => Single -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  body {
+    Parameter(
+      x
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`2[System.Single,System.Single]
+)
+
+-=-=-=-=-=-=-=-=- + Single? => Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`2[System.Nullable`1[System.Single],System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- + Double => Double -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  body {
+    Parameter(
+      x
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`2[System.Double,System.Double]
+)
+
+-=-=-=-=-=-=-=-=- + Double? => Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`2[System.Nullable`1[System.Double],System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- + Decimal => Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  body {
+    Parameter(
+      x
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`2[System.Decimal,System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- + Decimal? => Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Parameter(
+      x
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- + String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Convert(
+        Parameter(
+          x
+          type: System.String
+        )
+        method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- + Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    UnaryPlus(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.Object PlusObject(System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- - SByte => SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.SByte
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`2[System.SByte,System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- - SByte? => SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.SByte]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- - E_SByte => E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: E_SByte
+              )
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          type: System.Int32
+        )
+        type: System.SByte
+      )
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`2[E_SByte,E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- - E_SByte? => E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_SByte]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Int32]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.SByte]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- - Byte => Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Byte
+          )
+          type: System.Int16
+        )
+        type: System.Int16
+      )
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`2[System.Byte,System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- - Byte? => Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Byte]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- - E_Byte => E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_Byte
+          )
+          type: System.Int16
+        )
+        type: System.Int16
+      )
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`2[E_Byte,E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- - E_Byte? => E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Byte]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- - Short => Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Int16
+      )
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`2[System.Int16,System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- - Short? => Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- - E_Short => E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_Short
+          )
+          type: System.Int16
+        )
+        type: System.Int16
+      )
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`2[E_Short,E_Short]
+)
+
+-=-=-=-=-=-=-=-=- - E_Short? => E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Short]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`2[System.Nullable`1[E_Short],System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- - UShort => UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.UInt16
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`2[System.UInt16,System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- - UShort? => UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.UInt16]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- - E_UShort => E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_UShort
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`2[E_UShort,E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- - E_UShort? => E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UShort]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- - Integer => Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Int32
+      )
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- - Integer? => Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- - E_Integer => E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_Integer
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`2[E_Integer,E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- - E_Integer? => E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Integer]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- - UInteger => UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.UInt32
+          )
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`2[System.UInt32,System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- - UInteger? => UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.UInt32]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- - E_UInteger => E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_UInteger
+          )
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`2[E_UInteger,E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- - E_UInteger? => E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UInteger]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- - Long => Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Int64
+      )
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`2[System.Int64,System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- - Long? => Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- - E_Long => E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: E_Long
+          )
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`2[E_Long,E_Long]
+)
+
+-=-=-=-=-=-=-=-=- - E_Long? => E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Long]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`2[System.Nullable`1[E_Long],System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- - ULong => ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt64
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.UInt64
+          )
+          method: System.Decimal op_Implicit(UInt64) in System.Decimal
+          type: System.Decimal
+        )
+        method: System.Decimal Negate(System.Decimal) in System.Decimal
+        type: System.Decimal
+      )
+      method: UInt64 op_Explicit(System.Decimal) in System.Decimal
+      type: System.UInt64
+    )
+  }
+  return type: System.UInt64
+  type: System.Func`2[System.UInt64,System.UInt64]
+)
+
+-=-=-=-=-=-=-=-=- - ULong? => ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.UInt64]
+          )
+          Lifted
+          LiftedToNull
+          method: System.Decimal op_Implicit(UInt64) in System.Decimal
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        LiftedToNull
+        method: System.Decimal Negate(System.Decimal) in System.Decimal
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: UInt64 op_Explicit(System.Decimal) in System.Decimal
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.UInt64]]
+)
+
+-=-=-=-=-=-=-=-=- - E_ULong => E_ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_ULong
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: E_ULong
+              )
+              type: System.UInt64
+            )
+            method: System.Decimal op_Implicit(UInt64) in System.Decimal
+            type: System.Decimal
+          )
+          method: System.Decimal Negate(System.Decimal) in System.Decimal
+          type: System.Decimal
+        )
+        method: UInt64 op_Explicit(System.Decimal) in System.Decimal
+        type: System.UInt64
+      )
+      type: E_ULong
+    )
+  }
+  return type: E_ULong
+  type: System.Func`2[E_ULong,E_ULong]
+)
+
+-=-=-=-=-=-=-=-=- - E_ULong? => E_ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_ULong]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.UInt64]
+            )
+            Lifted
+            LiftedToNull
+            method: System.Decimal op_Implicit(UInt64) in System.Decimal
+            type: System.Nullable`1[System.Decimal]
+          )
+          Lifted
+          LiftedToNull
+          method: System.Decimal Negate(System.Decimal) in System.Decimal
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        LiftedToNull
+        method: UInt64 op_Explicit(System.Decimal) in System.Decimal
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_ULong]
+    )
+  }
+  return type: System.Nullable`1[E_ULong]
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Nullable`1[E_ULong]]
+)
+
+-=-=-=-=-=-=-=-=- - Boolean => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Negate(
+            Convert(
+              Parameter(
+                x
+                type: System.Boolean
+              )
+              type: System.Int16
+            )
+            type: System.Int16
+          )
+          type: System.Int16
+        )
+        type: System.Int32
+      )
+      method: Boolean ToBoolean(Int32) in System.Convert
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Boolean,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- - Boolean? => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Convert(
+        Negate(
+          Negate(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[System.Boolean]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Int16]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Int16]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      method: Boolean ToBoolean(Int32) in System.Convert
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- - Single => Single -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Single
+      )
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`2[System.Single,System.Single]
+)
+
+-=-=-=-=-=-=-=-=- - Single? => Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Single]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`2[System.Nullable`1[System.Single],System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- - Double => Double -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Double
+      )
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`2[System.Double,System.Double]
+)
+
+-=-=-=-=-=-=-=-=- - Double? => Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Double]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`2[System.Nullable`1[System.Double],System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- - Decimal => Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Decimal
+      )
+      method: System.Decimal Negate(System.Decimal) in System.Decimal
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`2[System.Decimal,System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- - Decimal? => Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal Negate(System.Decimal) in System.Decimal
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- - String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Negate(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Double ToDouble(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Double
+        )
+        type: System.Double
+      )
+      method: System.String ToString(Double) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- - Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Negate(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.Object NegateObject(System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Not SByte => SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.SByte
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.SByte
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`2[System.SByte,System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- Not SByte? => SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.SByte]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_SByte => E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_SByte
+  )
+  body {
+    Convert(
+      Convert(
+        Not(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: E_SByte
+              )
+              type: System.SByte
+            )
+            type: System.Int32
+          )
+          type: System.Int32
+        )
+        type: System.SByte
+      )
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`2[E_SByte,E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- Not E_SByte? => E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Convert(
+        Not(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_SByte]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.SByte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Int32]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.SByte]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- Not Byte => Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Byte
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Byte
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`2[System.Byte,System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- Not Byte? => Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Byte]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Byte => E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Byte
+  )
+  body {
+    Convert(
+      Convert(
+        Not(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: E_Byte
+              )
+              type: System.Byte
+            )
+            type: System.Int32
+          )
+          type: System.Int32
+        )
+        type: System.Byte
+      )
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`2[E_Byte,E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Byte? => E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Convert(
+        Not(
+          Convert(
+            Convert(
+              Parameter(
+                x
+                type: System.Nullable`1[E_Byte]
+              )
+              Lifted
+              LiftedToNull
+              type: System.Nullable`1[System.Byte]
+            )
+            Lifted
+            LiftedToNull
+            type: System.Nullable`1[System.Int32]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Byte]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- Not Short => Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int16
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Int16
+      )
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`2[System.Int16,System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- Not Short? => Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Short => E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Short
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_Short
+          )
+          type: System.Int16
+        )
+        type: System.Int16
+      )
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`2[E_Short,E_Short]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Short? => E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Short]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`2[System.Nullable`1[E_Short],System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- Not UShort => UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt16
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.UInt16
+      )
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`2[System.UInt16,System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- Not UShort? => UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_UShort => E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UShort
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_UShort
+          )
+          type: System.UInt16
+        )
+        type: System.UInt16
+      )
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`2[E_UShort,E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- Not E_UShort? => E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UShort]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.UInt16]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt16]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- Not Integer => Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int32
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Int32
+      )
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`2[System.Int32,System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- Not Integer? => Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Integer => E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Integer
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_Integer
+          )
+          type: System.Int32
+        )
+        type: System.Int32
+      )
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`2[E_Integer,E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Integer? => E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Integer]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- Not UInteger => UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt32
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.UInt32
+      )
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`2[System.UInt32,System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- Not UInteger? => UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_UInteger => E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_UInteger
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_UInteger
+          )
+          type: System.UInt32
+        )
+        type: System.UInt32
+      )
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`2[E_UInteger,E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- Not E_UInteger? => E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_UInteger]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt32]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- Not Long => Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Int64
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Int64
+      )
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`2[System.Int64,System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- Not Long? => Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Long => E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_Long
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_Long
+          )
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`2[E_Long,E_Long]
+)
+
+-=-=-=-=-=-=-=-=- Not E_Long? => E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_Long]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`2[System.Nullable`1[E_Long],System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- Not ULong => ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.UInt64
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.UInt64
+      )
+      type: System.UInt64
+    )
+  }
+  return type: System.UInt64
+  type: System.Func`2[System.UInt64,System.UInt64]
+)
+
+-=-=-=-=-=-=-=-=- Not ULong? => ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.UInt64]
+    )
+  }
+  return type: System.Nullable`1[System.UInt64]
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.UInt64]]
+)
+
+-=-=-=-=-=-=-=-=- Not E_ULong => E_ULong -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: E_ULong
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: E_ULong
+          )
+          type: System.UInt64
+        )
+        type: System.UInt64
+      )
+      type: E_ULong
+    )
+  }
+  return type: E_ULong
+  type: System.Func`2[E_ULong,E_ULong]
+)
+
+-=-=-=-=-=-=-=-=- Not E_ULong? => E_ULong? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[E_ULong]
+          )
+          Lifted
+          LiftedToNull
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[E_ULong]
+    )
+  }
+  return type: System.Nullable`1[E_ULong]
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Nullable`1[E_ULong]]
+)
+
+-=-=-=-=-=-=-=-=- Not Boolean => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Boolean
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Boolean
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Boolean,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Not Boolean? => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Not Single => Single -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Single
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Single
+          )
+          method: Int64 ToInt64(Single) in System.Convert
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`2[System.Single,System.Single]
+)
+
+-=-=-=-=-=-=-=-=- Not Single? => Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Single]
+          )
+          Lifted
+          LiftedToNull
+          method: Int64 ToInt64(Single) in System.Convert
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`2[System.Nullable`1[System.Single],System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- Not Double => Double -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Double
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Double
+          )
+          method: Int64 ToInt64(Double) in System.Convert
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`2[System.Double,System.Double]
+)
+
+-=-=-=-=-=-=-=-=- Not Double? => Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Double]
+          )
+          Lifted
+          LiftedToNull
+          method: Int64 ToInt64(Double) in System.Convert
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`2[System.Nullable`1[System.Double],System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- Not Decimal => Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Decimal
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Decimal
+          )
+          method: Int64 op_Explicit(System.Decimal) in System.Decimal
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      method: System.Decimal op_Implicit(Int64) in System.Decimal
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`2[System.Decimal,System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- Not Decimal? => Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.Nullable`1[System.Decimal]
+          )
+          Lifted
+          LiftedToNull
+          method: Int64 op_Explicit(System.Decimal) in System.Decimal
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        LiftedToNull
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      LiftedToNull
+      method: System.Decimal op_Implicit(Int64) in System.Decimal
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- Not String => String -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Not(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          method: Int64 ToLong(System.String) in Microsoft.VisualBasic.CompilerServices.Conversions
+          type: System.Int64
+        )
+        type: System.Int64
+      )
+      method: System.String ToString(Int64) in Microsoft.VisualBasic.CompilerServices.Conversions
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+-=-=-=-=-=-=-=-=- Not Object => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Not(
+      Parameter(
+        x
+        type: System.Object
+      )
+      method: System.Object NotObject(System.Object) in Microsoft.VisualBasic.CompilerServices.Operators
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)

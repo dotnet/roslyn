@@ -1,0 +1,290 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    /// <summary>
+    /// A MergedNamespaceSymbol represents a namespace that merges the contents of two or more other
+    /// namespaces. Any sub-namespaces with the same names are also merged if they have two or more
+    /// instances.
+    /// 
+    /// Merged namespaces are used to merged the symbols from multiple metadata modules and the
+    /// source "module" into a single symbol tree that represents all the available symbols. The
+    /// compiler resolves names against this merged set of symbols.
+    /// 
+    /// Typically there will not be very many merged namespaces in a Compilation: only the root
+    /// namespaces and namespaces that are used in multiple referenced modules. (Microsoft, System,
+    /// System.Xml, System.Diagnostics, System.Threading, ...)
+    /// </summary>
+    internal sealed class MergedNamespaceSymbol : NamespaceSymbol
+    {
+        private readonly NamespaceExtent extent;
+        private readonly ImmutableArray<NamespaceSymbol> namespacesToMerge;
+        private readonly NamespaceSymbol containingNamespace;
+
+        // used when this namespace is constructed as the result of an extern alias directive
+        private readonly string nameOpt;
+
+        // The cachedLookup caches results of lookups on the constituent namespaces so that
+        // subsequent lookups for the same name are much faster than having to ask each of the
+        // constituent namespaces.
+        private readonly CachingDictionary<string, Symbol> cachedLookup;
+
+        // GetMembers() is repeatedly called on merged namespaces in some IDE scenarios.
+        // This caches the result that is built by asking the 'cachedLookup' for a concatenated
+        // view of all of its values.
+        private ImmutableArray<Symbol> allMembers;
+
+        /// <summary>
+        /// Create a possibly merged namespace symbol. If only a single namespace is passed it, it
+        /// is just returned directly. If two or more namespaces are passed in, then a new merged
+        /// namespace is created with the given extent and container.
+        /// </summary>
+        /// <param name="extent">The namespace extent to use, IF a merged namespace is created.</param>
+        /// <param name="containingNamespace">The containing namespace to used, IF a merged
+        /// namespace is created.</param>
+        /// <param name="namespacesToMerge">One or more namespaces to merged. If just one, then it
+        /// is returned. The merged namespace symbol may hold onto the array.</param>
+        /// <param name="nameOpt">An optional name to give the resulting namespace.</param>
+        /// <returns>A namespace symbol representing the merged namespace.</returns>
+        internal static NamespaceSymbol Create(
+            NamespaceExtent extent,
+            NamespaceSymbol containingNamespace,
+            ImmutableArray<NamespaceSymbol> namespacesToMerge,
+            string nameOpt = null)
+        {
+            // Currently, if we are just merging 1 namespace, we just return the namespace itself.
+            // This is by far the most efficient, because it means that we don't create merged
+            // namespaces (which have a fair amount of memory overhead) unless there is actual
+            // merging going on. However, it means that the child namespace of a Compilation extent
+            // namespace may be a Module extent namespace, and the containing of that module extent
+            // namespace will be another module extent namespace. This is basically no different
+            // than type members of namespaces, so it shouldn't be TOO unexpected.
+
+            // EDMAURER if the caller is supplying a name, then produce the merged namespace with
+            // the new name even if only a single namespace was provided. This behavior was introduced
+            // to support nice extern alias error reporting.
+
+            Debug.Assert(namespacesToMerge.Length != 0);
+
+            return (namespacesToMerge.Length == 1 && nameOpt == null)
+                ? namespacesToMerge[0]
+                : new MergedNamespaceSymbol(extent, containingNamespace, namespacesToMerge, nameOpt);
+        }
+
+        // Constructor. Use static Create method to create instances.
+        private MergedNamespaceSymbol(NamespaceExtent extent, NamespaceSymbol containingNamespace, ImmutableArray<NamespaceSymbol> namespacesToMerge, string nameOpt)
+        {
+            this.extent = extent;
+            this.namespacesToMerge = namespacesToMerge;
+            this.containingNamespace = containingNamespace;
+            this.cachedLookup = new CachingDictionary<string, Symbol>(SlowGetChildrenOfName, SlowGetChildNames, EqualityComparer<string>.Default);
+            this.nameOpt = nameOpt;
+
+#if DEBUG
+            // We shouldn't merged namespaces that are already merged.
+            foreach (NamespaceSymbol ns in namespacesToMerge)
+            {
+                Debug.Assert(ns.ConstituentNamespaces.Length == 1);
+            }
+#endif
+        }
+
+        internal NamespaceSymbol GetConstituentForCompilation(CSharpCompilation compilation)
+        {
+            //return namespacesToMerge.FirstOrDefault(n => n.IsFromSource);
+            //Replace above code with that below to eliminate allocation of array enumerator.
+
+            foreach (var n in namespacesToMerge)
+            {
+                if (n.IsFromCompilation(compilation))
+                    return n;
+            }
+
+            return null;
+        }
+
+        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        {
+            foreach (var part in namespacesToMerge)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                part.ForceComplete(locationOpt, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// Method that is called from the CachingLookup to lookup the children of a given name.
+        /// Looks in all the constituent namespaces.
+        /// </summary>
+        private ImmutableArray<Symbol> SlowGetChildrenOfName(string name)
+        {
+            ArrayBuilder<NamespaceSymbol> namespaceSymbols = null;
+            var otherSymbols = ArrayBuilder<Symbol>.GetInstance();
+
+            // Accumulate all the child namespaces and types.
+            foreach (NamespaceSymbol namespaceSymbol in namespacesToMerge)
+            {
+                foreach (Symbol childSymbol in namespaceSymbol.GetMembers(name))
+                {
+                    if (childSymbol.Kind == SymbolKind.Namespace)
+                    {
+                        namespaceSymbols = namespaceSymbols ?? ArrayBuilder<NamespaceSymbol>.GetInstance();
+                        namespaceSymbols.Add((NamespaceSymbol)childSymbol);
+                    }
+                    else
+                    {
+                        otherSymbols.Add(childSymbol);
+                    }
+                }
+            }
+
+            if (namespaceSymbols != null)
+            {
+                otherSymbols.Add(MergedNamespaceSymbol.Create(extent, this, namespaceSymbols.ToImmutableAndFree()));
+            }
+
+            return otherSymbols.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Method that is called from the CachingLookup to get all child names. Looks in all
+        /// constituent namespaces.
+        /// </summary>
+        private HashSet<string> SlowGetChildNames(IEqualityComparer<string> comparer)
+        {
+            var childNames = new HashSet<string>(comparer);
+
+            foreach (var ns in namespacesToMerge)
+            {
+                foreach (var child in ns.GetMembersUnordered())
+                {
+                    childNames.Add(child.Name);
+                }
+            }
+
+            return childNames;
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return nameOpt ?? namespacesToMerge[0].Name;
+            }
+        }
+
+        internal override NamespaceExtent Extent
+        {
+            get
+            {
+                return extent;
+            }
+        }
+
+        public override ImmutableArray<NamespaceSymbol> ConstituentNamespaces
+        {
+            get
+            {
+                return namespacesToMerge;
+            }
+        }
+
+        public override ImmutableArray<Symbol> GetMembers()
+        {
+            // Return all the elements from every IGrouping in the ILookup.
+            if (allMembers.IsDefault)
+            {
+                var builder = ArrayBuilder<Symbol>.GetInstance();
+                cachedLookup.AddValues(builder);
+                allMembers = builder.ToImmutableAndFree();
+            }
+
+            return allMembers;
+        }
+
+        public override ImmutableArray<Symbol> GetMembers(string name)
+        {
+            return cachedLookup[name];
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
+        {
+            return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembersUnordered().OfType<NamedTypeSymbol>());
+        }
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
+        {
+            return ImmutableArray.CreateRange<NamedTypeSymbol>(GetMembers().OfType<NamedTypeSymbol>());
+        }
+
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        {
+            // TODO - This is really ineffecient. Creating a new array on each lookup needs to fixed!
+            return ImmutableArray.CreateRange<NamedTypeSymbol>(cachedLookup[name].OfType<NamedTypeSymbol>());
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                return containingNamespace;
+            }
+        }
+
+        public override AssemblySymbol ContainingAssembly
+        {
+            get
+            {
+                if (extent.Kind == NamespaceKind.Module)
+                {
+                    return extent.Module.ContainingAssembly;
+                }
+                else if (extent.Kind == NamespaceKind.Assembly)
+                {
+                    return extent.Assembly;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public override ImmutableArray<Location> Locations
+        {
+            // Merge the locations of all constituent namespaces.
+            get
+            {
+                //TODO: cache
+                return namespacesToMerge.SelectMany(namespaceSymbol => namespaceSymbol.Locations).AsImmutable();
+            }
+        }
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return namespacesToMerge.SelectMany(namespaceSymbol => namespaceSymbol.DeclaringSyntaxReferences).AsImmutable();
+            }
+        }
+
+        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string name, int arity, LookupOptions options)
+        {
+            foreach (NamespaceSymbol namespaceSymbol in namespacesToMerge)
+            {
+                namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
+            }
+        }
+    }
+}

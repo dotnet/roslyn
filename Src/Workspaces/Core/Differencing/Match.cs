@@ -1,0 +1,383 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Differencing
+{
+    public sealed partial class Match<TNode>
+    {
+        private const double ExactMatchDistance = 0.0;
+        private const double EpsilonDistance = 0.00001;
+        private const double MatchingDistance1 = 0.5;
+        private const double MatchingDistance2 = 1.0;
+        private const double MatchingDistance3 = 1.5;
+        private const double MaxDistance = 2.0;
+
+        private readonly TreeComparer<TNode> comparer;
+        private readonly TNode root1;
+        private readonly TNode root2;
+
+        private readonly Dictionary<TNode, TNode> oneToTwo;
+        private readonly Dictionary<TNode, TNode> twoToOne;
+
+        internal Match(TNode root1, TNode root2, TreeComparer<TNode> nodeComparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
+        {
+            this.root1 = root1;
+            this.root2 = root2;
+            this.comparer = nodeComparer;
+
+            int labelCount = nodeComparer.LabelCount;
+
+            // calculate chains (not including root node):
+            int count1, count2;
+            List<TNode>[] nodes1, nodes2;
+            CategorizeNodesByLabels(root1, labelCount, out nodes1, out count1);
+            CategorizeNodesByLabels(root2, labelCount, out nodes2, out count2);
+
+            // calculate match:
+            this.oneToTwo = new Dictionary<TNode, TNode>(count1);
+            this.twoToOne = new Dictionary<TNode, TNode>(count2);
+
+            if (knownMatches != null)
+            {
+                foreach (var knownMatch in knownMatches)
+                {
+                    if (comparer.GetLabel(knownMatch.Key) != comparer.GetLabel(knownMatch.Value))
+                    {
+                        throw new ArgumentException(string.Format("Matching nodes '{0}' and '{1}' must have the same label.".NeedsLocalization(), knownMatch.Key, knownMatch.Value), "knownMatches");
+                    }
+
+                    if (!comparer.TreesEqual(knownMatch.Key, root1))
+                    {
+                        throw new ArgumentException(string.Format("Node '{0}' must be contained in the old tree.".NeedsLocalization(), knownMatch.Key), "knownMatches");
+                    }
+
+                    if (!comparer.TreesEqual(knownMatch.Value, root2))
+                    {
+                        throw new ArgumentException(string.Format("Node '{0}' must be contained in the new tree.".NeedsLocalization(), knownMatch.Value), "knownMatches");
+                    }
+
+                    if (!oneToTwo.ContainsKey(knownMatch.Key))
+                    {
+                        Add(knownMatch.Key, knownMatch.Value);
+                    }
+                }
+            }
+
+            ComputeMatch(nodes1, nodes2);
+        }
+
+        private void CategorizeNodesByLabels(
+            TNode root,
+            int labelCount,
+            out List<TNode>[] nodes,
+            out int totalCount)
+        {
+            nodes = new List<TNode>[labelCount];
+            int count = 0;
+
+            foreach (TNode node in comparer.GetDescendants(root))
+            {
+                int label = comparer.GetLabel(node);
+                if (label < 0 || label >= labelCount)
+                {
+                    throw new InvalidOperationException(string.Format("Label for node '{0}' is invalid, it must be within [0, {1}).".NeedsLocalization(), node, labelCount));
+                }
+
+                var list = nodes[label];
+                if (list == null)
+                {
+                    nodes[label] = list = new List<TNode>();
+                }
+
+                list.Add(node);
+                count++;
+            }
+
+            totalCount = count;
+        }
+
+        private void ComputeMatch(List<TNode>[] nodes1, List<TNode>[] nodes2)
+        {
+            Debug.Assert(nodes1.Length == nodes2.Length);
+
+            // Root nodes always match but they might have been added as knownMatches
+            if (!HasPartnerInTree2(root1))
+            {
+                Add(root1, root2);
+            }
+
+            // --- The original FastMatch algorithm ---
+            // 
+            // For each leaf label l, and then for each internal node label l do:
+            // a) S1 := chain T1(l)
+            // b) S2 := chain T2(l)
+            // c) lcs := LCS(S1, S2, Equal)
+            // d) For each pair of nodes (x,y) in lcs add (x,y) to M.
+            // e) Pair unmatched nodes with label l as in Algorithm Match, adding matches to M:
+            //    For each unmatched node x in T1, if there is an unmatched node y in T2 such that equal(x,y) 
+            //    then add (x,y) to M.
+            //
+            // equal(x,y) is defined as follows:
+            //   x, y are leafs => equal(x,y) := label(x) == label(y) && compare(value(x), value(y)) <= f
+            //   x, y are nodes => equal(x,y) := label(x) == label(y) && |common(x,y)| / max(|x|, |y|) > t 
+            // where f, t are constants.
+            //
+            // --- Actual implementation ---
+            //
+            // We also categorize nodes by their labels, but then we proceed differently:
+            // 
+            // 1) A label may be marked "tied to parent". Let x, y have both label l and l is "tied to parent".
+            //    Then (x,y) can be in M only if (parent(x), parent(y)) in M.
+            //    Thus we require labels of children tied to a parent to be preceeded by all their possible parent labels.
+            //
+            // 2) Rather than defining function equal in terms of constants f and t, which are hard to get right,
+            //    we try to match multiple times with different threashold for node distance.
+            //    The comparer defines the distance [0..1] between two nodes and it can do so by analyzing 
+            //    the node structure and value. The comparer can tune the distance specifically for each node kind.
+            //    We first try to match nodes of the same labels to the exactly matching or almost matching counterpars.
+            //    The we keep increasing the threashold and keep adding matches. 
+
+            for (int l = 0; l < nodes1.Length; l++)
+            {
+                if (nodes1[l] != null && nodes2[l] != null)
+                {
+                    ComputeMatchForLabel(l, nodes1[l], nodes2[l]);
+                }
+            }
+        }
+
+        private void ComputeMatchForLabel(int label, List<TNode> s1, List<TNode> s2)
+        {
+            int tiedToAncestor = comparer.TiedToAncestor(label);
+
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, EpsilonDistance);     // almost exact match
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance1);   // ok match
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance2);   // ok match
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance3);   // ok match 
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MaxDistance);         // any match
+        }
+
+        private void ComputeMatchForLabel(List<TNode> s1, List<TNode> s2, int tiedToAncestor, double maxAcceptableDistance)
+        {
+            // Obviously, the algorithm below is O(n^2). However, in the common case, the 2 lists will
+            // be sequences that exactly match. The purpose of "firstNonMatch2" is to reduce the complexity
+            // to O(n) in this case. Basically, the pointer is the 1st non-matched node in the list of nodes of tree2
+            // with the given label. 
+            // Whenever we match to firstNonMatch2 we set firstNonMatch2 to the subsequent node.
+            // So in the case of totally matching sequences, we process them in O(n) - 
+            // both node1 and firstNonMatch2 will be advanced simultaneously.
+
+            int count1 = s1.Count;
+            int count2 = s2.Count;
+            int firstNonMatch2 = 0;
+
+            for (int i1 = 0; i1 < count1; i1++)
+            {
+                TNode node1 = s1[i1];
+
+                // Skip this guy if it already has a partner
+                if (HasPartnerInTree2(node1))
+                {
+                    continue;
+                }
+
+                // Find node2 that matches node1 the best, i.e. has minimal distance.
+
+                double bestDistance = MaxDistance;
+                TNode bestMatch = default(TNode);
+                bool matched = false;
+                int i2;
+                for (i2 = firstNonMatch2; i2 < count2; i2++)
+                {
+                    TNode node2 = s2[i2];
+
+                    // Skip this guy if it already has a partner
+                    if (HasPartnerInTree1(node2))
+                    {
+                        continue;
+                    }
+
+                    // this requires parents to be processed before their children:
+                    if (tiedToAncestor > 0)
+                    {
+                        // TODO (tomat): For nodes tied to their parents, 
+                        // consider avoding matching them to all other nodes of the same label.
+                        // Rather we should only match them with their siblings that share the same parent.
+
+                        var ancestor1 = comparer.GetAncestor(node1, tiedToAncestor);
+                        var ancestor2 = comparer.GetAncestor(node2, tiedToAncestor);
+
+                        Debug.Assert(comparer.GetLabel(ancestor1) < comparer.GetLabel(node1));
+
+                        if (!Contains(ancestor1, ancestor2))
+                        {
+                            continue;
+                        }
+                    }
+
+                    // We know that
+                    // 1. (node1, node2) not in M
+                    // 2. Both of their parents are matched to the same parent (or are not matched)
+                    //
+                    // Now, we have no other choice than comparing the node "values"
+                    // and looking for the one with the smaller distance.
+
+                    double distance = comparer.GetDistance(node1, node2);
+                    if (distance < bestDistance)
+                    {
+                        matched = true;
+                        bestMatch = node2;
+                        bestDistance = distance;
+
+                        // We only stop if we've got an exact match. This is to resolve the problem
+                        // of entities with identical names(name is often used as the "value" of a
+                        // node) but with different "sub-values" (e.g. two locals may have the same name
+                        // but different types. Since the type is not part of the value, we don't want
+                        // to stop looking for the best match if we don't have an exact match).
+                        if (distance == ExactMatchDistance)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (matched && bestDistance <= maxAcceptableDistance)
+                {
+                    Add(node1, bestMatch);
+
+                    // If we exactly matched to firstNonMatch2 we can advance it.
+                    if (i2 == firstNonMatch2)
+                    {
+                        firstNonMatch2 = i2 + 1;
+                    }
+                }
+            }
+        }
+
+        internal void Add(TNode node1, TNode node2)
+        {
+            Debug.Assert(comparer.TreesEqual(node1, root1));
+            Debug.Assert(comparer.TreesEqual(node2, root2));
+
+            oneToTwo.Add(node1, node2);
+            twoToOne.Add(node2, node1);
+        }
+
+        internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)
+        {
+            bool result = twoToOne.TryGetValue(node2, out partner1);
+            Debug.Assert(comparer.TreesEqual(node2, root2));
+            Debug.Assert(!result || comparer.TreesEqual(partner1, root1));
+            return result;
+        }
+
+        internal bool HasPartnerInTree1(TNode node2)
+        {
+            Debug.Assert(comparer.TreesEqual(node2, root2));
+            return twoToOne.ContainsKey(node2);
+        }
+
+        internal bool TryGetPartnerInTree2(TNode node1, out TNode partner2)
+        {
+            bool result = oneToTwo.TryGetValue(node1, out partner2);
+            Debug.Assert(comparer.TreesEqual(node1, root1));
+            Debug.Assert(!result || comparer.TreesEqual(partner2, root2));
+            return result;
+        }
+
+        internal bool HasPartnerInTree2(TNode node1)
+        {
+            Debug.Assert(comparer.TreesEqual(node1, root1));
+            return oneToTwo.ContainsKey(node1);
+        }
+
+        internal bool Contains(TNode node1, TNode node2)
+        {
+            Debug.Assert(comparer.TreesEqual(node2, root2));
+
+            TNode partner2;
+            return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
+        }
+
+        public TreeComparer<TNode> Comparer
+        {
+            get
+            {
+                return comparer;
+            }
+        }
+
+        public TNode OldRoot
+        {
+            get
+            {
+                return root1;
+            }
+        }
+
+        public TNode NewRoot
+        {
+            get
+            {
+                return root2;
+            }
+        }
+
+        public IEnumerable<KeyValuePair<TNode, TNode>> Matches
+        {
+            get
+            {
+                return new ReadOnlyDictionary<TNode, TNode>(oneToTwo);
+            }
+        }
+
+        public bool TryGetNewNode(TNode oldNode, out TNode newNode)
+        {
+            return oneToTwo.TryGetValue(oldNode, out newNode);
+        }
+
+        public bool TryGetOldNode(TNode newNode, out TNode oldNode)
+        {
+            return twoToOne.TryGetValue(newNode, out oldNode);
+        }
+
+        /// <summary>
+        /// Returns an edit script (a sequence of edits) that transform <see cref="OldRoot"/> subtree 
+        /// to <see cref="NewRoot"/> subtree.
+        /// </summary>
+        public EditScript<TNode> GetTreeEdits()
+        {
+            return new EditScript<TNode>(this);
+        }
+
+        /// <summary>
+        /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>
+        /// to a sequence of nodes <paramref name="newNodes"/>. 
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="oldNodes"/> or <paramref name="newNodes"/> is a null reference.</exception>
+        public IEnumerable<Edit<TNode>> GetSequenceEdits(IEnumerable<TNode> oldNodes, IEnumerable<TNode> newNodes)
+        {
+            if (oldNodes == null)
+            {
+                throw new ArgumentNullException("oldNodes");
+            }
+
+            if (newNodes == null)
+            {
+                throw new ArgumentNullException("newNodes");
+            }
+
+            var oldList = (oldNodes as IReadOnlyList<TNode>) ?? oldNodes.ToList();
+            var newList = (newNodes as IReadOnlyList<TNode>) ?? newNodes.ToList();
+
+            return new LongestCommonSubsequence(this).GetEdits(oldList, newList);
+        }
+    }
+}

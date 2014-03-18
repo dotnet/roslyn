@@ -1,0 +1,1173 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+    Friend Module TypeSymbolExtensions
+
+        <Extension()>
+        Public Function IsNullableType(this As TypeSymbol) As Boolean
+            Dim original = TryCast(this.OriginalDefinition, TypeSymbol)
+
+            Return original IsNot Nothing AndAlso original.SpecialType = SpecialType.System_Nullable_T
+        End Function
+
+        <Extension()>
+        Public Function IsNullableOfBoolean(this As TypeSymbol) As Boolean
+            Return this.IsNullableType() AndAlso this.GetNullableUnderlyingType().IsBooleanType()
+        End Function
+
+        <Extension()>
+        Public Function GetNullableUnderlyingType(type As TypeSymbol) As TypeSymbol
+            Debug.Assert(type.IsNullableType)
+            Return (DirectCast(type, NamedTypeSymbol)).TypeArgumentsNoUseSiteDiagnostics(0)
+        End Function
+
+        <Extension()>
+        Public Function GetNullableUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
+            Debug.Assert(type IsNot Nothing)
+
+            If type.IsNullableType() Then
+                Return type.GetNullableUnderlyingType()
+            End If
+
+            Return type
+        End Function
+
+        <Extension()>
+        Public Function GetEnumUnderlyingType(type As TypeSymbol) As TypeSymbol
+            Debug.Assert(type IsNot Nothing)
+
+            If type.IsEnumType() Then
+                Return DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
+            End If
+
+            Return Nothing
+        End Function
+
+        <Extension()>
+        Public Function GetEnumUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
+            Return If(GetEnumUnderlyingType(type), type)
+        End Function
+
+        <Extension()>
+        Friend Function IsEnumType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.TypeKind = TypeKind.Enum
+        End Function
+
+        <Extension()>
+        Friend Function IsValidEnumUnderlyingType(type As TypeSymbol) As Boolean
+            Return type.SpecialType.IsValidEnumUnderlyingType
+        End Function
+
+        <Extension()>
+        Friend Function IsClassOrInterfaceType(type As TypeSymbol) As Boolean
+            Return type.IsClassType OrElse type.IsInterfaceType
+        End Function
+
+        <Extension()>
+        Friend Function IsInterfaceType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.Kind = SymbolKind.NamedType AndAlso DirectCast(type, NamedTypeSymbol).IsInterface
+        End Function
+
+        <Extension()>
+        Friend Function IsClassType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.TypeKind = TypeKind.Class
+        End Function
+
+        <Extension()>
+        Friend Function IsStructureType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.TypeKind = TypeKind.Structure
+        End Function
+
+        <Extension()>
+        Friend Function IsModuleType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.TypeKind = TypeKind.Module
+        End Function
+
+        <Extension()>
+        Friend Function IsErrorType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.Kind = SymbolKind.ErrorType
+        End Function
+
+        <Extension()>
+        Friend Function IsArrayType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.Kind = SymbolKind.ArrayType
+        End Function
+
+        <Extension()>
+        Friend Function IsCharArrayRankOne(type As TypeSymbol) As Boolean
+            If type.IsArrayType() Then
+                Dim array = DirectCast(type, ArrayTypeSymbol)
+
+                If array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
+        Friend Function IsDBNullType(type As TypeSymbol) As Boolean
+            ' Based on Dev10 codebase, only BindBinaryOperator is going to use
+            ' this method. The System.DBNull type isn't guaranteed to be defined in the core 
+            ' library. It should be acceptable just to check the name of the type to avoid adding
+            ' this type into WellKnownTypes and passing compilation into this method.
+            ' Note, the comparison should be case-sensitive, similar to metadata resolution.
+            Const [namespace] As String = "System"
+            Const name As String = "DBNull"
+
+            If type.SpecialType = SpecialType.None AndAlso
+               type.Kind = SymbolKind.NamedType AndAlso
+               String.Equals(type.Name, name, StringComparison.Ordinal) Then
+
+                Dim namedType = DirectCast(type, NamedTypeSymbol)
+                If namedType.HasNameQualifier([namespace], StringComparison.Ordinal) Then
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
+        Friend Function IsMicrosoftVisualBasicCollection(type As TypeSymbol) As Boolean
+            ' Based on Dev10 codebase, only ApplyConversion is going to use
+            ' this method. 
+            ' Note, the comparison should be case-sensitive, similar to metadata resolution.
+            Const [namespace] As String = "Microsoft.VisualBasic"
+            Const name As String = "Collection"
+
+            If type.SpecialType = SpecialType.None AndAlso
+               type.Kind = SymbolKind.NamedType AndAlso
+               String.Equals(type.Name, name, StringComparison.Ordinal) Then
+
+                Dim namedType = DirectCast(type, NamedTypeSymbol)
+                If namedType.HasNameQualifier([namespace], StringComparison.Ordinal) Then
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
+        Friend Function IsTypeParameter(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.Kind = SymbolKind.TypeParameter
+        End Function
+
+        <Extension()>
+        Friend Function IsDelegateType(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+            Return type.TypeKind = TypeKind.Delegate
+        End Function
+
+        <Extension()>
+        Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+
+            If t1 Is t2 Then
+                Return True
+            End If
+
+            Dim kind = t1.Kind
+
+            If kind <> t2.Kind Then
+                Return False
+            End If
+
+            ' Custom modifiers can be inside arrays, pointers and generic instantiations (VB doesn't support pointers)
+            If kind = SymbolKind.ArrayType Then
+                Dim array1 = DirectCast(t1, ArrayTypeSymbol)
+                Dim array2 = DirectCast(t2, ArrayTypeSymbol)
+
+                Return array1.Rank = array2.Rank AndAlso
+                       array1.ElementType.IsSameTypeIgnoringCustomModifiers(array2.ElementType)
+
+            ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
+                Return AnonymousTypeManager.EqualsIgnoringCustomModifiers(t1, t2)
+
+            ElseIf kind = SymbolKind.NamedType OrElse kind = SymbolKind.ErrorType Then
+                Dim t1IsDefinition = t1.IsDefinition
+                Dim t2IsDefinition = t2.IsDefinition
+
+                If (t1IsDefinition <> t2IsDefinition) Then
+                    Return False
+                End If
+
+                If Not t1IsDefinition Then ' This is a generic instantiation
+
+                    If t1.OriginalDefinition IsNot t2.OriginalDefinition Then
+                        Return False ' different definition
+                    End If
+
+                    ' Compare arguments for this type and all containing types
+                    Dim container1 As NamedTypeSymbol = DirectCast(t1, NamedTypeSymbol)
+                    Dim container2 As NamedTypeSymbol = DirectCast(t2, NamedTypeSymbol)
+
+                    Do
+                        Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
+                        Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
+
+                        For i As Integer = 0 To args1.Length - 1 Step 1
+                            If Not args1(i).IsSameTypeIgnoringCustomModifiers(args2(i)) Then
+                                Return False
+                            End If
+                        Next
+
+                        container1 = container1.ContainingType
+                        container2 = container2.ContainingType
+
+                        If container1 Is Nothing OrElse
+                           container1 Is container2 Then ' Shortcut
+                            Exit Do
+                        End If
+                    Loop
+
+                    Return True
+                End If
+            End If
+
+            Return (t1 = t2)
+        End Function
+
+        <Extension()>
+        Public Function GetSpecialTypeSafe(this As TypeSymbol) As SpecialType
+            Return If(this IsNot Nothing, this.SpecialType, SpecialType.None)
+        End Function
+
+        <Extension()>
+        Public Function IsNumericType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsNumericType()
+        End Function
+
+        <Extension()>
+        Public Function IsIntegralType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsIntegralType()
+        End Function
+
+        <Extension()>
+        Public Function IsUnsignedIntegralType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsUnsignedIntegralType()
+        End Function
+
+        <Extension()>
+        Public Function IsSignedIntegralType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsSignedIntegralType()
+        End Function
+
+        <Extension()>
+        Public Function IsFloatingType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsFloatingType()
+        End Function
+
+        <Extension()>
+        Public Function IsSingleType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Single
+        End Function
+
+        <Extension()>
+        Public Function IsDoubleType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Double
+        End Function
+
+        <Extension()>
+        Public Function IsBooleanType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Boolean
+        End Function
+
+        <Extension()>
+        Public Function IsCharType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Char
+        End Function
+
+        <Extension()>
+        Public Function IsStringType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_String
+        End Function
+
+        <Extension()>
+        Public Function IsObjectType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Object
+        End Function
+
+        <Extension()>
+        Public Function IsStrictSupertypeOfConcreteDelegate(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsStrictSupertypeOfConcreteDelegate()
+        End Function
+
+        <Extension()>
+        Public Function IsVoidType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Void
+        End Function
+
+        <Extension()>
+        Public Function IsDecimalType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_Decimal
+        End Function
+
+        <Extension()>
+        Public Function IsDateTimeType(this As TypeSymbol) As Boolean
+            Return this.SpecialType = SpecialType.System_DateTime
+        End Function
+
+        <Extension()>
+        Public Function IsRestrictedType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsRestrictedType()
+        End Function
+
+        <Extension()>
+        Public Function IsRestrictedArrayType(this As TypeSymbol, <Out> ByRef restrictedType As TypeSymbol) As Boolean
+            If this.Kind = SymbolKind.ArrayType Then
+                Return this.IsRestrictedTypeOrArrayType(restrictedType)
+            End If
+
+            restrictedType = Nothing
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsRestrictedTypeOrArrayType(this As TypeSymbol, <Out> ByRef restrictedType As TypeSymbol) As Boolean
+            While this.Kind = SymbolKind.ArrayType
+                this = DirectCast(this, ArrayTypeSymbol).ElementType
+            End While
+
+            If this.IsRestrictedType() Then
+                restrictedType = this
+                Return True
+            End If
+
+            restrictedType = Nothing
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsIntrinsicType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsIntrinsicType()
+        End Function
+
+        <Extension()>
+        Public Function IsIntrinsicValueType(this As TypeSymbol) As Boolean
+            Return this.SpecialType.IsIntrinsicValueType()
+        End Function
+
+        ''' <summary>
+        ''' Return true if nothing can inherit or implement this type.
+        ''' </summary>
+        <Extension()>
+        Public Function IsNotInheritable(this As TypeSymbol) As Boolean
+            Select Case this.TypeKind
+                Case TypeKind.ArrayType, TypeKind.Delegate, TypeKind.Enum, TypeKind.Structure, TypeKind.Module
+                    Return True
+                Case TypeKind.Interface, TypeKind.TypeParameter, TypeKind.Unknown
+                    Return False
+                Case TypeKind.Error, TypeKind.Class, TypeKind.Submission
+                    Return DirectCast(this, NamedTypeSymbol).IsNotInheritable
+                Case Else
+                    Debug.Fail("Unexpected type kind")
+                    Return False
+            End Select
+        End Function
+
+        <Extension()>
+        Public Function CorrespondingConstantValueTypeDiscriminator(this As TypeSymbol) As ConstantValueTypeDiscriminator
+            If this Is Nothing Then
+                Return ConstantValueTypeDiscriminator.Nothing
+            End If
+
+            this = this.GetEnumUnderlyingTypeOrSelf()
+
+            Select Case this.SpecialType
+                Case SpecialType.System_Boolean
+                    Return ConstantValueTypeDiscriminator.Boolean
+                Case SpecialType.System_Byte
+                    Return ConstantValueTypeDiscriminator.Byte
+                Case SpecialType.System_SByte
+                    Return ConstantValueTypeDiscriminator.SByte
+                Case SpecialType.System_Int16
+                    Return ConstantValueTypeDiscriminator.Int16
+                Case SpecialType.System_UInt16
+                    Return ConstantValueTypeDiscriminator.UInt16
+                Case SpecialType.System_Int32
+                    Return ConstantValueTypeDiscriminator.Int32
+                Case SpecialType.System_UInt32
+                    Return ConstantValueTypeDiscriminator.UInt32
+                Case SpecialType.System_Int64
+                    Return ConstantValueTypeDiscriminator.Int64
+                Case SpecialType.System_UInt64
+                    Return ConstantValueTypeDiscriminator.UInt64
+                Case SpecialType.System_Single
+                    Return ConstantValueTypeDiscriminator.Single
+                Case SpecialType.System_Double
+                    Return ConstantValueTypeDiscriminator.Double
+                Case SpecialType.System_Decimal
+                    Return ConstantValueTypeDiscriminator.Decimal
+                Case SpecialType.System_DateTime
+                    Return ConstantValueTypeDiscriminator.DateTime
+                Case SpecialType.System_Char
+                    Return ConstantValueTypeDiscriminator.Char
+                Case SpecialType.System_String
+                    Return ConstantValueTypeDiscriminator.String
+                Case Else
+                    If Not this.IsTypeParameter() AndAlso this.IsReferenceType() Then
+                        Return ConstantValueTypeDiscriminator.Nothing
+                    End If
+
+                    Return ConstantValueTypeDiscriminator.Bad
+            End Select
+        End Function
+
+        <Extension()>
+        Public Function IsValidForConstantValue(this As TypeSymbol, value As ConstantValue) As Boolean
+            Dim discriminator = this.CorrespondingConstantValueTypeDiscriminator()
+
+            Return discriminator <> ConstantValueTypeDiscriminator.Bad AndAlso discriminator = value.Discriminator OrElse
+                (value.Discriminator = ConstantValueTypeDiscriminator.Nothing AndAlso this.IsStringType())
+        End Function
+
+        <Extension()>
+        Public Function AllowsCompileTimeConversions(this As TypeSymbol) As Boolean
+            Return TypeAllowsCompileTimeConversions(this.CorrespondingConstantValueTypeDiscriminator())
+        End Function
+
+        <Extension()>
+        Public Function AllowsCompileTimeOperations(this As TypeSymbol) As Boolean
+            Return TypeAllowsCompileTimeOperations(this.CorrespondingConstantValueTypeDiscriminator())
+        End Function
+
+        <Extension()>
+        Public Function CanContainUserDefinedOperators(this As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+
+            If this.Kind = SymbolKind.TypeParameter Then
+                For Each constraint In DirectCast(this, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    If CanContainUserDefinedOperators(constraint, useSiteDiagnostics) Then
+                        Return True
+                    End If
+                Next
+            Else
+                If this.Kind = SymbolKind.NamedType AndAlso Not DirectCast(this, NamedTypeSymbol).IsInterface Then
+                    ' Dev10 #564475 Dig into Nullable types to make sure we don't look for user defined
+                    '                          operators between two intrinsic types. For example, Decimal has
+                    '                          user defined operators, which should be shadowed by intrinsic conversions
+                    '                          even if intrinsic conversion results in compilation error.
+                    Dim underlyingType As TypeSymbol = this.GetNullableUnderlyingTypeOrSelf().GetEnumUnderlyingTypeOrSelf()
+                    If Not (underlyingType.IsIntrinsicType() OrElse underlyingType.IsObjectType()) Then
+                        Return True
+                    End If
+                End If
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function TypeToIndex(type As TypeSymbol) As Integer?
+            Return type.SpecialType.TypeToIndex()
+        End Function
+
+        ''' <summary>
+        ''' Dig through possibly jugged array type to the ultimate element type
+        ''' </summary>
+        <Extension()>
+        Public Function DigThroughArrayType(possiblyArrayType As TypeSymbol) As TypeSymbol
+
+            Do
+                If possiblyArrayType.Kind = SymbolKind.ArrayType Then
+                    possiblyArrayType = DirectCast(possiblyArrayType, ArrayTypeSymbol).ElementType
+                Else
+                    Return possiblyArrayType
+                End If
+            Loop
+        End Function
+
+        ' Determine if "inner" is the same type, or nested within, "outer"
+        <Extension()>
+        Public Function IsSameOrNestedWithin(inner As NamedTypeSymbol, outer As NamedTypeSymbol) As Boolean
+            Do
+                If inner = outer Then
+                    Return True
+                End If
+
+                inner = inner.ContainingType
+            Loop While inner IsNot Nothing
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Dim seenUseSiteDiagnostics As Boolean = False
+
+            For Each [interface] In subType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                If [interface].OriginalDefinition.GetUseSiteErrorInfo() IsNot Nothing Then
+                    seenUseSiteDiagnostics = True
+                End If
+
+                If [interface].IsInterface AndAlso
+                   [interface] = superInterface Then
+
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Sub AddUseSiteDiagnostics(
+            type As TypeSymbol,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
+            Dim errorInfo As DiagnosticInfo = type.GetUseSiteErrorInfo()
+
+            If errorInfo IsNot Nothing Then
+                If useSiteDiagnostics Is Nothing Then
+                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
+                End If
+
+                useSiteDiagnostics.Add(errorInfo)
+            End If
+        End Sub
+
+        <Extension()>
+        Public Sub AddUseSiteDiagnosticsForBaseDefinitions(
+            source As TypeSymbol,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
+            Dim current As TypeSymbol = source
+
+            Do
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            Loop While current IsNot Nothing
+        End Sub
+
+        <Extension()>
+        Public Sub AddConstraintsUseSiteDiagnostics(
+            type As TypeParameterSymbol,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        )
+            Dim errorInfo As DiagnosticInfo = type.GetConstraintsUseSiteErrorInfo()
+
+            If errorInfo IsNot Nothing Then
+                If useSiteDiagnostics Is Nothing Then
+                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
+                End If
+
+                useSiteDiagnostics.Add(errorInfo)
+            End If
+        End Sub
+
+        <Extension()>
+        Public Function IsBaseTypeOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Dim current As TypeSymbol = subType
+
+            While current IsNot Nothing
+                If current IsNot subType Then
+                    current.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                End If
+
+                If current = superType Then
+                    Return True
+                End If
+
+                current = current.BaseTypeNoUseSiteDiagnostics
+            End While
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsOrDerivedFrom(derivedType As NamedTypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Dim current = derivedType
+            While current IsNot Nothing
+                If current.IsSameTypeIgnoringCustomModifiers(baseType) Then
+                    Return True
+                End If
+
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            End While
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsOrDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Debug.Assert(Not baseType.IsInterfaceType()) ' Not checking interfaces below.
+
+            While (derivedType IsNot Nothing)
+                Select Case derivedType.TypeKind
+                    Case TypeKind.ArrayType
+                        derivedType = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    Case TypeKind.TypeParameter
+                        ' Use GetNonInterfaceConstraint rather than GetClassConstraint
+                        ' in case the well-known type is a specific structure or enum.
+                        derivedType = DirectCast(derivedType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics)
+                    Case Else
+                        Return DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFrom(baseType, useSiteDiagnostics)
+                End Select
+            End While
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsOrDerivedFromWellKnownClass(derivedType As TypeSymbol, wellKnownBaseType As WellKnownType, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Return derivedType.IsOrDerivedFrom(compilation.GetWellKnownType(wellKnownBaseType), useSiteDiagnostics)
+        End Function
+
+        ''' <summary>
+        ''' Returns true if <paramref name="type" /> is/inherits from/implements IEnumerable(Of U), and U is/inherits from/implements <paramref name="typeArgument" />
+        ''' </summary>
+        ''' <param name="type">The type to check compatibility for.</param>
+        ''' <param name="typeArgument">The type argument for IEnumerable(Of ...)</param>
+        ''' <returns><c>True</c> if type can be assigned to a IEnumerable(Of <para>typeArgument</para>); otherwise <c>False</c>.</returns>
+        ''' <remarks>This is not a general purpose helper.</remarks>
+        <Extension()>
+        Public Function IsCompatibleWithGenericIEnumerableOfType(type As TypeSymbol, typeArgument As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            If typeArgument.IsErrorType Then
+                Return False
+            End If
+
+            ' get the containing assembly of the type argument to get special types later on. In case of an array type
+            ' we need to dig into the element type.
+            Dim typeWithContainingAssembly = typeArgument
+            Do While typeWithContainingAssembly.IsArrayType
+                typeWithContainingAssembly = DirectCast(typeWithContainingAssembly, ArrayTypeSymbol).ElementType
+            Loop
+
+            If typeWithContainingAssembly.IsErrorType Then
+                Return False
+            End If
+
+            ' to figure out if a type is derived from IEnumerable(Of XContainer) it's not enough to check if the conversion from the type to
+            ' IEnumerable(Of XContainer) because IEnumerable may come from framework 3.5 or below and does not support variance which would classify
+            ' a conversion from IEnumerable(Of XElement) to IEnumerable(Of XContainer) as "NarrowingReference".
+            ' Therefore we are doing the variance check manually (like Dev11, see TypeHelpers.cpp, IsCompatibleWithGenericEnumerableType)
+            Dim genericIEnumerable = typeWithContainingAssembly.ContainingAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+            Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
+
+            ' first find all implementations of IEnumerable(Of T)
+            If Binder.IsOrInheritsFromOrImplementsInterface(type, genericIEnumerable, useSiteDiagnostics, matchingInterfaces) Then
+                If Not matchingInterfaces.IsEmpty Then
+
+                    ' now check if the type argument is compatible with the given type
+                    For Each matchingInterface In matchingInterfaces
+                        Call Global.System.Diagnostics.Debug.Assert(matchingInterface.Arity = 1)
+                        Dim matchingTypeArgument = matchingInterface.TypeArgumentWithDefinitionUseSiteDiagnostics(0, useSiteDiagnostics)
+
+                        If matchingTypeArgument.IsErrorType Then
+                            Return False
+                        End If
+
+                        Dim conversion = Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.ClassifyDirectCastConversion(matchingTypeArgument, typeArgument, useSiteDiagnostics)
+                        If Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.IsWideningConversion(conversion) Then
+                            Return True
+                        End If
+                    Next
+                End If
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsOrImplementsIEnumerableOfXElement(type As TypeSymbol, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            Dim xmlType = compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement)
+            Return type.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics)
+        End Function
+
+        <Extension()>
+        Public Function IsBaseTypeOrInterfaceOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            If superType.IsInterfaceType() Then
+                Return subType.ImplementsInterface(superType, useSiteDiagnostics)
+            Else
+                Return superType.IsBaseTypeOf(subType, useSiteDiagnostics)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Determines whether the given type is valid for a const field.
+        ''' VB Spec 9.5: The type of a constant may only be a primitive type or Object
+        ''' </summary>
+        ''' <param name="fieldType">The type of the field.</param><returns>
+        '''   <c>true</c> if type is valid for a const field; otherwise, <c>false</c>.
+        ''' </returns>
+        <Extension()>
+        Friend Function IsValidTypeForConstField(fieldType As TypeSymbol) As Boolean
+            Return fieldType.IsIntrinsicType() OrElse
+                    fieldType.SpecialType = SpecialType.System_Object OrElse
+                    fieldType.TypeKind = TypeKind.Enum
+        End Function
+
+        <Extension()>
+        Friend Sub CollectReferencedTypeParameters(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol))
+            VisitType(this, AddIfTypeParameterFunc, typeParameters)
+        End Sub
+
+        Private ReadOnly AddIfTypeParameterFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf AddIfTypeParameter
+
+        Private Function AddIfTypeParameter(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
+            If type.TypeKind = TypeKind.TypeParameter Then
+                typeParameters.Add(DirectCast(type, TypeParameterSymbol))
+            End If
+            Return False
+        End Function
+
+        <Extension()>
+        Friend Function ReferencesTypeParameterNotInTheSet(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
+            Dim typeParameter = VisitType(this, IsTypeParameterNotInSetFunc, typeParameters)
+            Return typeParameter IsNot Nothing
+        End Function
+
+        Private ReadOnly IsTypeParameterNotInSetFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf IsTypeParameterNotInSet
+
+        Private Function IsTypeParameterNotInSet(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
+            Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
+                Not typeParameters.Contains(DirectCast(type, TypeParameterSymbol))
+        End Function
+
+        <Extension()>
+        Friend Function ReferencesMethodsTypeParameter(this As TypeSymbol, method As MethodSymbol) As Boolean
+            Dim typeParameter = VisitType(this, IsMethodTypeParameterFunc, method)
+            Return typeParameter IsNot Nothing
+        End Function
+
+        Private ReadOnly IsMethodTypeParameterFunc As Func(Of TypeSymbol, MethodSymbol, Boolean) = AddressOf IsMethodTypeParameter
+
+        Private Function IsMethodTypeParameter(type As TypeSymbol, method As MethodSymbol) As Boolean
+            Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
+                type.ContainingSymbol.Equals(method)
+        End Function
+
+        <Extension()>
+        Public Function IsUnboundGenericType(this As TypeSymbol) As Boolean
+            Dim namedType = TryCast(this, NamedTypeSymbol)
+            Return namedType IsNot Nothing AndAlso namedType.IsUnboundGenericType
+        End Function
+
+        <Extension()>
+        Friend Function IsOrRefersToTypeParameter(this As TypeSymbol) As Boolean
+            Dim typeParameter = VisitType(this, IsTypeParameterFunc, Nothing)
+            Return typeParameter IsNot Nothing
+        End Function
+
+        Private ReadOnly IsTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
+
+        ''' <summary>
+        ''' Visit the given type and, in the case of compound types, visit all "sub type"
+        ''' (such as A in A(), or { A(Of T), T, U } in A(Of T).B(Of U)) invoking 'predicate'
+        ''' with the type and 'arg' at each sub type. If the predicate returns true for any type,
+        ''' traversal stops and that type is returned from this method. Otherwise if traversal
+        ''' completes without the predicate returning true for any type, this method returns null.
+        ''' </summary>
+        <Extension()>
+        Friend Function VisitType(Of T)(this As TypeSymbol, predicate As Func(Of TypeSymbol, T, Boolean), arg As T) As TypeSymbol
+
+            Select Case this.Kind
+                Case SymbolKind.TypeParameter
+                    If predicate(this, arg) Then
+                        Return this
+                    End If
+
+                Case SymbolKind.ArrayType
+                    If predicate(this, arg) Then
+                        Return this
+                    End If
+
+                    Return DirectCast(this, ArrayTypeSymbol).ElementType.VisitType(predicate, arg)
+
+                Case SymbolKind.NamedType, SymbolKind.ErrorType
+                    Dim typeToCheck = DirectCast(this, NamedTypeSymbol)
+
+                    Do
+                        If predicate(typeToCheck, arg) Then
+                            Return typeToCheck
+                        End If
+
+                        For Each typeArg In typeToCheck.TypeArgumentsNoUseSiteDiagnostics
+                            Dim result = typeArg.VisitType(predicate, arg)
+                            If result IsNot Nothing Then
+                                Return result
+                            End If
+                        Next
+
+                        typeToCheck = typeToCheck.ContainingType
+                    Loop While typeToCheck IsNot Nothing
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(this.Kind)
+
+            End Select
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Determines if the type is a valid type for a custom attribute argument
+        ''' </summary>
+        ''' <param name="type"></param>
+        ''' <param name="compilation"></param>
+        ''' <returns></returns>
+        ''' <remarks>
+        '''  The only valid types are 
+        ''' 1. primitive types except date and decimal, 
+        ''' 2. object, system.type, public enumerated types
+        ''' 3. one dimensional arrays of (1) and (2) above
+        ''' </remarks>
+        <Extension()>
+        Public Function IsValidTypeForAttributeArgument(type As TypeSymbol, compilation As VisualBasicCompilation) As Boolean
+            If type Is Nothing Then
+                Return False
+            End If
+
+            If type.IsArrayType Then
+                Dim arrayType = DirectCast(type, ArrayTypeSymbol)
+                If arrayType.Rank <> 1 Then
+                    Return False
+                End If
+                type = arrayType.ElementType
+            End If
+
+            Return type.GetEnumUnderlyingTypeOrSelf.SpecialType.IsValidTypeForAttributeArgument() OrElse
+                type = compilation.GetWellKnownType(WellKnownType.System_Type) ' don't call the version with diagnostics
+        End Function
+
+        <Extension()>
+        Public Function IsValidTypeForSwitchTable(type As TypeSymbol) As Boolean
+            Debug.Assert(type IsNot Nothing)
+
+            type = type.GetNullableUnderlyingTypeOrSelf()
+            type = type.GetEnumUnderlyingTypeOrSelf()
+
+            Return type.SpecialType.IsValidTypeForSwitchTable()
+        End Function
+
+        <Extension()>
+        Public Function IsIntrinsicOrEnumType(type As TypeSymbol) As Boolean
+            Return type IsNot Nothing AndAlso (type.GetEnumUnderlyingTypeOrSelf().IsIntrinsicType())
+        End Function
+
+        ''' <summary>
+        ''' Add this instance to the set of checked types. Returns True
+        ''' if this type was added, False if the type was already in the set.
+        ''' </summary>
+        <Extension()>
+        Public Function MarkCheckedIfNecessary(type As TypeSymbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As Boolean
+            If checkedTypes Is Nothing Then
+                checkedTypes = New HashSet(Of TypeSymbol)()
+            End If
+
+            Return checkedTypes.Add(type)
+        End Function
+
+        ''' <summary> Checks for validity of type arguments passed to Construct(...) method </summary>
+        <Extension()>
+        Friend Sub CheckTypeArguments(typeArguments As ImmutableArray(Of TypeSymbol), expectedCount As Integer)
+            If typeArguments.IsDefault Then
+                Throw New Global.System.ArgumentNullException("typeArguments")
+            End If
+
+            For Each typeArg In typeArguments
+                If typeArg Is Nothing Then
+                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, "typeArguments")
+                End If
+            Next
+
+            If typeArguments.Length = 0 OrElse typeArguments.Length <> expectedCount Then
+                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, "typeArguments")
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Returns Nothing for identity substitution.
+        ''' </summary>
+        <Extension()>
+        Friend Function TransformToCanonicalFormFor(
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            genericType As SubstitutedNamedType.SpecializedGenericType
+        ) As ImmutableArray(Of TypeSymbol)
+            Return TransformToCanonicalFormFor(typeArguments, genericType, genericType.TypeParameters)
+        End Function
+
+        ''' <summary>
+        ''' Returns Nothing for identity substitution.
+        ''' </summary>
+        <Extension()>
+        Friend Function TransformToCanonicalFormFor(
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            genericMethod As SubstitutedMethodSymbol.SpecializedGenericMethod
+        ) As ImmutableArray(Of TypeSymbol)
+            Return TransformToCanonicalFormFor(typeArguments, genericMethod, genericMethod.TypeParameters)
+        End Function
+
+        Private Function TransformToCanonicalFormFor(
+            typeArguments As ImmutableArray(Of TypeSymbol),
+            specializedGenericTypeOrMethod As Symbol,
+            specializedTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+        ) As ImmutableArray(Of TypeSymbol)
+
+            ' Check for type arguments equal to type parameters of this type,
+            ' but not contained by it ("cross-pollination"). Replace them with 
+            ' this type type parameters.
+            Dim newTypeArguments As TypeSymbol() = Nothing
+            Dim i As Integer = 0
+            Dim typeArgument As TypeSymbol
+
+            Do
+                typeArgument = typeArguments(i)
+
+                If typeArgument.IsTypeParameter() AndAlso Not typeArgument.IsDefinition Then
+                    Dim container As Symbol = typeArgument.ContainingSymbol
+
+                    If container IsNot specializedGenericTypeOrMethod AndAlso container.Equals(specializedGenericTypeOrMethod) Then
+                        newTypeArguments = typeArguments.ToArray()
+                        Exit Do
+                    End If
+                End If
+
+                i += 1
+            Loop While i < typeArguments.Length
+
+            If newTypeArguments IsNot Nothing Then
+                newTypeArguments(i) = specializedTypeParameters(DirectCast(typeArgument, TypeParameterSymbol).Ordinal)
+                Debug.Assert(newTypeArguments(i).Equals(typeArgument))
+
+                i += 1
+                While i < typeArguments.Length
+                    typeArgument = typeArguments(i)
+
+                    If typeArgument.IsTypeParameter() AndAlso Not typeArgument.IsDefinition Then
+                        Dim container As Symbol = typeArgument.ContainingSymbol
+
+                        If container IsNot specializedGenericTypeOrMethod AndAlso container.Equals(specializedGenericTypeOrMethod) Then
+                            newTypeArguments(i) = specializedTypeParameters(DirectCast(typeArgument, TypeParameterSymbol).Ordinal)
+                            Debug.Assert(newTypeArguments(i).Equals(typeArgument))
+                        End If
+                    End If
+
+                    i += 1
+                End While
+
+                typeArguments = newTypeArguments.AsImmutableOrNull()
+            End If
+
+            ' Check for identity substitution.
+            For i = 0 To specializedTypeParameters.Length - 1
+                If specializedTypeParameters(i) IsNot typeArguments(i) Then
+                    Return typeArguments ' Not an identity substitution
+                End If
+            Next
+
+            ' identity substitution
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Is this type System.Linq.Expressions.Expression(Of T) for some delegate type T. If so, return the type
+        ''' argument, else return nothing.
+        ''' The passed-in compilation is used to find the well-known-type System.Linq.Expressions.Expression(Of T).
+        ''' </summary>
+        <Extension>
+        Public Function ExpressionTargetDelegate(type As TypeSymbol, compilation As VisualBasicCompilation) As NamedTypeSymbol
+            If type.TypeKind = TypeKind.Class Then
+                Dim namedType = DirectCast(type, NamedTypeSymbol)
+
+                ' Note that if the compilation doesn't have the Expression(Of T) well-known type, then the below test just fails correctly.
+                If namedType.Arity = 1 AndAlso namedType.OriginalDefinition = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                    Dim typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics(0)
+                    If typeArgument.TypeKind = TypeKind.Delegate Then
+                        Return DirectCast(typeArgument, NamedTypeSymbol)
+                    End If
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' If the passed in type is a delegate type D, return D.
+        ''' If the passed in type is a System.Linq.Expressions.Expression(Of D) for a delegate type D, return D.
+        ''' Else return Nothing
+        ''' </summary>
+        <Extension>
+        Public Function DelegateOrExpressionDelegate(type As TypeSymbol, binder As Binder) As NamedTypeSymbol
+            If type.TypeKind = TypeKind.Delegate Then
+                Return DirectCast(type, NamedTypeSymbol)
+            Else
+                Return type.ExpressionTargetDelegate(binder.Compilation)
+            End If
+        End Function
+
+        ''' <summary>
+        ''' If the passed in type is a delegate type D, return D and set wasExpression to False
+        ''' If the passed in type is a System.Linq.Expressions.Expression(Of D) for a delegate type D, return D and set wasExpression to True
+        ''' Else return Nothing and set wasExpression to False
+        ''' </summary>
+        <Extension>
+        Public Function DelegateOrExpressionDelegate(type As TypeSymbol, binder As Binder, ByRef wasExpression As Boolean) As NamedTypeSymbol
+            If type.TypeKind = TypeKind.Delegate Then
+                wasExpression = False
+                Return DirectCast(type, NamedTypeSymbol)
+            Else
+                Dim expressionArg = ExpressionTargetDelegate(type, binder.Compilation)
+                wasExpression = (expressionArg IsNot Nothing)
+                Return expressionArg
+            End If
+        End Function
+
+        ''' <summary>
+        ''' If the passed in type is a System.Linq.Expressions.Expression(Of D) for a delegate type D, return True
+        ''' </summary>
+        <Extension>
+        Public Function IsExpressionTree(type As TypeSymbol, binder As Binder) As Boolean
+            Return type.ExpressionTargetDelegate(binder.Compilation) IsNot Nothing
+        End Function
+
+        <Extension>
+        Public Function IsExtensibleInterfaceNoUseSiteDiagnostics(type As TypeSymbol) As Boolean
+            Return type.IsInterfaceType() AndAlso DirectCast(type, NamedTypeSymbol).IsExtensibleInterfaceNoUseSiteDiagnostics
+        End Function
+
+        <Extension>
+        Public Function GetNativeCompilerVType(type As TypeSymbol) As String
+            Return If(type.SpecialType.GetNativeCompilerVType(),
+                      If(type.IsTypeParameter, "t_generic",
+                          If(type.IsArrayType, "t_array",
+                             If(type.IsValueType, "t_struct", "t_ref"))))
+
+        End Function
+
+        <Extension>
+        Public Function IsVerifierReference(type As TypeSymbol) As Boolean
+            'Type parameters are not considered references.
+            If type.TypeKind = TypeKind.TypeParameter Then
+                Return False
+            End If
+            Return type.IsReferenceType
+        End Function
+
+        <Extension>
+        Public Function IsVerifierValue(type As TypeSymbol) As Boolean
+            If type.TypeKind = TypeKind.TypeParameter Then
+                Return False
+            End If
+            Return type.IsValueType
+        End Function
+
+        <Extension>
+        Public Function IsPrimitiveType(t As TypeSymbol) As Boolean
+            Return t.SpecialType.IsPrimitiveType
+        End Function
+
+        <Extension>
+        Public Function IsTopLevelType(type As NamedTypeSymbol) As Boolean
+            Return type.ContainingType Is Nothing
+        End Function
+
+        ''' <summary>
+        ''' Return all of the type parameters in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Function GetAllTypeParameters(type As NamedTypeSymbol) As ImmutableArray(Of TypeParameterSymbol)
+            Dim typeParameters = type.TypeParameters
+
+            While True
+                type = type.ContainingType
+                If type Is Nothing Then
+                    Exit While
+                End If
+                typeParameters = type.TypeParameters.Concat(typeParameters)
+            End While
+
+            Return typeParameters
+        End Function
+
+        ''' <summary>
+        ''' Return all of the type arguments in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Function GetAllTypeArguments(type As NamedTypeSymbol) As ImmutableArray(Of TypeSymbol)
+            Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
+
+            While True
+                type = type.ContainingType
+                If type Is Nothing Then
+                    Exit While
+                End If
+                typeArguments = type.TypeArgumentsNoUseSiteDiagnostics.Concat(typeArguments)
+            End While
+
+            Return typeArguments
+        End Function
+
+        ''' <summary>
+        ''' Return true if the fully qualified name of the type's containing symbol
+        ''' matches the given name. This method avoids string concatenations
+        ''' in the common case where the type is a top-level type.
+        ''' </summary>
+        <Extension>
+        Friend Function HasNameQualifier(type As NamedTypeSymbol, qualifiedName As String, comparison As StringComparison) As Boolean
+            Dim container = type.ContainingSymbol
+            If container.Kind <> SymbolKind.Namespace Then
+                ' Nested type. For simplicity, compare qualified name to SymbolDisplay result.
+                Return String.Equals(container.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), qualifiedName, comparison)
+            End If
+
+            Dim emittedName = type.GetEmittedNamespaceName()
+            If emittedName IsNot Nothing Then
+                Return String.Equals(qualifiedName, emittedName, comparison)
+            End If
+
+            Dim [namespace] = DirectCast(container, NamespaceSymbol)
+            If [namespace].IsGlobalNamespace Then
+                Return qualifiedName.Length = 0
+            End If
+
+            Return HasNamespaceName([namespace], qualifiedName, comparison, length:=qualifiedName.Length)
+        End Function
+
+        Private Function HasNamespaceName([namespace] As NamespaceSymbol, namespaceName As String, comparison As StringComparison, length As Integer) As Boolean
+            If length = 0 Then
+                Return False
+            End If
+
+            Dim container = [namespace].ContainingNamespace
+            Dim separator = namespaceName.LastIndexOf("."c, length - 1, length)
+            Dim offset = 0
+            If separator >= 0 Then
+                If container.IsGlobalNamespace Then
+                    Return False
+                End If
+
+                If Not HasNamespaceName(container, namespaceName, comparison, length:=separator) Then
+                    Return False
+                End If
+
+                Dim n = separator + 1
+                offset = n
+                length -= n
+
+            ElseIf Not container.IsGlobalNamespace Then
+                Return False
+            End If
+
+            Dim name = [namespace].Name
+            Return (name.Length = length) AndAlso (String.Compare(name, 0, namespaceName, offset, length, comparison) = 0)
+        End Function
+
+    End Module
+
+End Namespace
+

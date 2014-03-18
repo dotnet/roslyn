@@ -1,0 +1,1565 @@
+﻿-=-=-=-=-=-=-=-=- Nothing -> SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`1[System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, SByte) -> SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`1[System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, SByte) -> SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.SByte
+    )
+  }
+  return type: System.SByte
+  type: System.Func`1[System.SByte]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`1[System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, SByte?) -> SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`1[System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, SByte?) -> SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.SByte]
+    )
+  }
+  return type: System.Nullable`1[System.SByte]
+  type: System.Func`1[System.Nullable`1[System.SByte]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`1[E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_SByte) -> E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`1[E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_SByte) -> E_SByte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_SByte
+    )
+  }
+  return type: E_SByte
+  type: System.Func`1[E_SByte]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`1[System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_SByte?) -> E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`1[System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_SByte?) -> E_SByte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_SByte]
+    )
+  }
+  return type: System.Nullable`1[E_SByte]
+  type: System.Func`1[System.Nullable`1[E_SByte]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`1[System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Byte) -> Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`1[System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Byte) -> Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Byte
+    )
+  }
+  return type: System.Byte
+  type: System.Func`1[System.Byte]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`1[System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Byte?) -> Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`1[System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Byte?) -> Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Byte]
+    )
+  }
+  return type: System.Nullable`1[System.Byte]
+  type: System.Func`1[System.Nullable`1[System.Byte]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`1[E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Byte) -> E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`1[E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Byte) -> E_Byte -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Byte
+    )
+  }
+  return type: E_Byte
+  type: System.Func`1[E_Byte]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`1[System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Byte?) -> E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`1[System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Byte?) -> E_Byte? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Byte]
+    )
+  }
+  return type: System.Nullable`1[E_Byte]
+  type: System.Func`1[System.Nullable`1[E_Byte]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`1[System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Short) -> Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`1[System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Short) -> Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int16
+    )
+  }
+  return type: System.Int16
+  type: System.Func`1[System.Int16]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`1[System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Short?) -> Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`1[System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Short?) -> Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int16]
+    )
+  }
+  return type: System.Nullable`1[System.Int16]
+  type: System.Func`1[System.Nullable`1[System.Int16]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`1[E_Short]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Short) -> E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`1[E_Short]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Short) -> E_Short -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Short
+    )
+  }
+  return type: E_Short
+  type: System.Func`1[E_Short]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`1[System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Short?) -> E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`1[System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Short?) -> E_Short? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Short]
+    )
+  }
+  return type: System.Nullable`1[E_Short]
+  type: System.Func`1[System.Nullable`1[E_Short]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`1[System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, UShort) -> UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`1[System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, UShort) -> UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt16
+    )
+  }
+  return type: System.UInt16
+  type: System.Func`1[System.UInt16]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`1[System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, UShort?) -> UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`1[System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, UShort?) -> UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt16]
+    )
+  }
+  return type: System.Nullable`1[System.UInt16]
+  type: System.Func`1[System.Nullable`1[System.UInt16]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`1[E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_UShort) -> E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`1[E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_UShort) -> E_UShort -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UShort
+    )
+  }
+  return type: E_UShort
+  type: System.Func`1[E_UShort]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`1[System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_UShort?) -> E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`1[System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_UShort?) -> E_UShort? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UShort]
+    )
+  }
+  return type: System.Nullable`1[E_UShort]
+  type: System.Func`1[System.Nullable`1[E_UShort]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`1[System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Integer) -> Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`1[System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Integer) -> Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int32
+    )
+  }
+  return type: System.Int32
+  type: System.Func`1[System.Int32]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`1[System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Integer?) -> Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`1[System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Integer?) -> Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int32]
+    )
+  }
+  return type: System.Nullable`1[System.Int32]
+  type: System.Func`1[System.Nullable`1[System.Int32]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`1[E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Integer) -> E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`1[E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Integer) -> E_Integer -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Integer
+    )
+  }
+  return type: E_Integer
+  type: System.Func`1[E_Integer]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`1[System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Integer?) -> E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`1[System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Integer?) -> E_Integer? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Integer]
+    )
+  }
+  return type: System.Nullable`1[E_Integer]
+  type: System.Func`1[System.Nullable`1[E_Integer]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`1[System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, UInteger) -> UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`1[System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, UInteger) -> UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.UInt32
+    )
+  }
+  return type: System.UInt32
+  type: System.Func`1[System.UInt32]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`1[System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, UInteger?) -> UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`1[System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, UInteger?) -> UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.UInt32]
+    )
+  }
+  return type: System.Nullable`1[System.UInt32]
+  type: System.Func`1[System.Nullable`1[System.UInt32]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`1[E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_UInteger) -> E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`1[E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_UInteger) -> E_UInteger -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_UInteger
+    )
+  }
+  return type: E_UInteger
+  type: System.Func`1[E_UInteger]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`1[System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_UInteger?) -> E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`1[System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_UInteger?) -> E_UInteger? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_UInteger]
+    )
+  }
+  return type: System.Nullable`1[E_UInteger]
+  type: System.Func`1[System.Nullable`1[E_UInteger]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`1[System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Long) -> Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`1[System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Long) -> Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Int64
+    )
+  }
+  return type: System.Int64
+  type: System.Func`1[System.Int64]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`1[System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Long?) -> Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`1[System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Long?) -> Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Int64]
+    )
+  }
+  return type: System.Nullable`1[System.Int64]
+  type: System.Func`1[System.Nullable`1[System.Int64]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`1[E_Long]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Long) -> E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`1[E_Long]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Long) -> E_Long -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      Dummy
+      type: E_Long
+    )
+  }
+  return type: E_Long
+  type: System.Func`1[E_Long]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`1[System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, E_Long?) -> E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`1[System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, E_Long?) -> E_Long? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[E_Long]
+    )
+  }
+  return type: System.Nullable`1[E_Long]
+  type: System.Func`1[System.Nullable`1[E_Long]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      False
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Boolean) -> Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      False
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Boolean) -> Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      False
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`1[System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`1[System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Boolean?) -> Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`1[System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Boolean?) -> Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`1[System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Single -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`1[System.Single]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Single) -> Single -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`1[System.Single]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Single) -> Single -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Single
+    )
+  }
+  return type: System.Single
+  type: System.Func`1[System.Single]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`1[System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Single?) -> Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`1[System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Single?) -> Single? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Single]
+    )
+  }
+  return type: System.Nullable`1[System.Single]
+  type: System.Func`1[System.Nullable`1[System.Single]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Double -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`1[System.Double]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Double) -> Double -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`1[System.Double]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Double) -> Double -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Double
+    )
+  }
+  return type: System.Double
+  type: System.Func`1[System.Double]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`1[System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Double?) -> Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`1[System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Double?) -> Double? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Double]
+    )
+  }
+  return type: System.Nullable`1[System.Double]
+  type: System.Func`1[System.Nullable`1[System.Double]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`1[System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Decimal) -> Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`1[System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Decimal) -> Decimal -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      0
+      type: System.Decimal
+    )
+  }
+  return type: System.Decimal
+  type: System.Func`1[System.Decimal]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Decimal?) -> Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Decimal?) -> Decimal? -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Nullable`1[System.Decimal]
+    )
+  }
+  return type: System.Nullable`1[System.Decimal]
+  type: System.Func`1[System.Nullable`1[System.Decimal]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`1[System.String]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`1[System.String]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`1[System.String]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`1[Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`1[Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`1[Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`1[Struct1]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`1[Struct1]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Struct1) -> Struct1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct1
+    )
+  }
+  return type: Struct1
+  type: System.Func`1[Struct1]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Clazz2(Of Clazz1, String) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz2`2[Clazz1,System.String]
+    )
+  }
+  return type: Clazz2`2[Clazz1,System.String]
+  type: System.Func`1[Clazz2`2[Clazz1,System.String]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Clazz2(Of Clazz1, String)) -> Clazz2(Of Clazz1, String) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz2`2[Clazz1,System.String]
+    )
+  }
+  return type: Clazz2`2[Clazz1,System.String]
+  type: System.Func`1[Clazz2`2[Clazz1,System.String]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Clazz2(Of Clazz1, String)) -> Clazz2(Of Clazz1, String) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz2`2[Clazz1,System.String]
+    )
+  }
+  return type: Clazz2`2[Clazz1,System.String]
+  type: System.Func`1[Clazz2`2[Clazz1,System.String]]
+)
+
+-=-=-=-=-=-=-=-=- Nothing -> Struct2(Of Struct1) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct2`1[Struct1]
+    )
+  }
+  return type: Struct2`1[Struct1]
+  type: System.Func`1[Struct2`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- CType(Nothing, Struct2(Of Struct1)) -> Struct2(Of Struct1) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct2`1[Struct1]
+    )
+  }
+  return type: Struct2`1[Struct1]
+  type: System.Func`1[Struct2`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- DirectCast(Nothing, Struct2(Of Struct1)) -> Struct2(Of Struct1) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    New(
+      <.ctor>(
+      )
+      type: Struct2`1[Struct1]
+    )
+  }
+  return type: Struct2`1[Struct1]
+  type: System.Func`1[Struct2`1[Struct1]]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Nothing, String) -> String -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`1[System.String]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Nothing, Object) -> Object -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`1[System.Object]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Nothing, Clazz1) -> Clazz1 -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz1
+    )
+  }
+  return type: Clazz1
+  type: System.Func`1[Clazz1]
+)
+
+-=-=-=-=-=-=-=-=- TryCast(Nothing, Clazz2(Of Clazz1, String)) -> Clazz2(Of Clazz1, String) -=-=-=-=-=-=-=-=-
+Lambda(
+  body {
+    Constant(
+      null
+      type: Clazz2`2[Clazz1,System.String]
+    )
+  }
+  return type: Clazz2`2[Clazz1,System.String]
+  type: System.Func`1[Clazz2`2[Clazz1,System.String]]
+)

@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<!-- XML Schema for Parse Tree definition files. This file defines the allowable schema for 
+the definition of VB parse tree nodes. -->
+
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:group name="DescriptionAndEquivalents">
+    <!-- An optional description, followed by a sequence of optional lm-equiv and native-equiv -->
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="description" type="xs:string" />
+
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element  name="lm-equiv">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="name" type="xs:string" use="required" />
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="native-equiv">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="name" type="xs:string" use="required" />
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:sequence>
+  </xs:group>
+  
+  <!-- "define-parse-tree" is the root node. It has several attributes, but currently only one child element, "definitions". 
+  Attributes:
+    namespace - the name of the namespace to generator code into [required]
+    visitor - the name of the visitor class [optional]
+    factory-class - the name of the factory class
+    -->
+  <xs:element name="define-parse-tree">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- The "definitions" element encloses the definitions of multiple "node-structure", "enumeration", and "node-kind-alias" nodes. -->
+        <xs:element name="definitions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:choice maxOccurs="unbounded">
+                
+                <!-- The "node-structure" element is the workhorse element. It defines a single parse tree node class.
+                Attributes:
+                   name - the name of the class [required]
+                   parent - the parent of the class [optional, only the root node can leave it off]
+                   abstract - if true, this is an abstract class that is never instantiated, only used as a base class.
+                   partial - if true, make this a partial class [optional]
+                   token-root - sets this at the root of all tokens. Exactly one structure must have this.
+                   trivia-root - sets this at the root of all trivate. zero or structure must have this.
+                   default-trailing-triva - can be "space", "newline"; indicates default trailing trivia
+                             to add for the simplified factory method.
+                   no-factory - if true, no factory method is auto-generated.
+                Sub-Elements:
+                   description - description of the structure [optional]
+                   lm-equiv - equivalent node structure in Language Model [multiple allowed]
+                   native-equiv - equivalent node structure in native parse tress [multiple allowed]
+                   spec-section - section of the spec
+                   grammar - grammar non-terminal name
+                   node-kind - defines a member of the NodeKind enumeration that corresponds to this kind. [multiple allowed]
+                   field - defines a field of some intrinsic type (int, string, ...) [multiple allowed]
+                   child - defines a child node [multiple allowed]
+                -->
+                <xs:element minOccurs="0" maxOccurs="unbounded" name="node-structure">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:group ref="DescriptionAndEquivalents"/>
+                      
+                      <!-- A spec-section element defines the cross-reference to the language spec. -->
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="spec-section" type="xs:string" />
+
+                      <!-- A grammar element defins the grammar non-terminal -->
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="grammar" type="xs:string" />
+
+                      <!-- A node-kind defines an element of the NodeKind enumeration that refers to this node.
+                      At least one is required, unless the node-structure is marked abstract, in which case none are allowed. 
+                      Attributes:
+                         name - name of the enumerator [required]
+                         token-text - if this is a token, the default text for this token.
+                         no-factory - if true, no factory method is generated for this kind.
+                      Sub-Elements:
+                         description - description of the kind [optional]
+                         lm-equiv - equivalent enumerator in Language Model [multiple allowed]
+                         native-equiv - equivalent enumerator in native parse tress [multiple allowed]
+                        -->
+                      
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="node-kind">
+                        
+                              <xs:complexType>
+                                  <xs:sequence>
+                                  <xs:group ref="DescriptionAndEquivalents"/>
+                                      <xs:element minOccurs="0" maxOccurs="1" name="child">
+                                          <xs:complexType>
+                                              <xs:attribute name="name" type="xs:string" use="required" />
+                                              <xs:attribute name="kind" type="xs:string" use="required" />
+                                          </xs:complexType>
+                                      </xs:element>
+                                  </xs:sequence>
+                                  <xs:attribute name="name" type="xs:string" use="required" />
+                                  <xs:attribute name="token-text" type="xs:string" use="optional" />
+                                  <xs:attribute name="no-factory" type="xs:boolean" use="optional" />
+                              </xs:complexType>
+                 
+                      </xs:element>
+                      
+                      
+                      <!-- A "field" elements defines a field of the node-structure that is not a child node. 
+                      Attributes:
+                         name - name of the field [required] 
+                         type - type of the field (boolean, text, character, int32, uint32, int64, uint64, float32, float64, datetime, decimal,
+                                  or an enumeration name) [required] 
+                      Sub-Elements:
+                         description - description of the field [optional]
+                         lm-equiv - equivalent field in Language Model [multiple allowed]
+                         native-equiv - equivalent field in native parse tress [multiple allowed]
+                      -->
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="field">
+                        <xs:complexType>
+                          <xs:group ref="DescriptionAndEquivalents"/>
+
+                          <xs:attribute name="name" type="xs:string" use="required" />
+                          <xs:attribute name="type" type="xs:string" use="required" />
+                        </xs:complexType>
+                      </xs:element>
+                      
+                      <!-- A "child" element defines a child node of the node-structure 
+                      Attributes:
+                        name - name of the field [required]
+                        kind - the kind of the field. This is one of the following: [required]
+                             A node-kind name. 
+                             a node-kind-alias name.
+                             @ followed by a node-structure name
+                             multiple of the above separated by "|"
+                        order - (float, default 0). Set the order in which this child occurs. Useful for relating ordering
+                           between base and derived classes.
+                        optional - (boolean, default false) If true, this child is optional.
+                        list - (boolean, default false) If true, the child is a list of the kinds of nodes.
+                        separator-kind - used only if list is true.
+                             Indicates the list is a separated list, and this is the kind of the separators.
+                        separator-name - used only if separator-kind is set
+                             Gives the name of the separators list
+                        optional-elements - used only if list if true
+                             Indicates the elements of the list are optional; some might be null.
+                        no-constructor - (boolean, default false) If true, this child is not included in the constructor or factory.  A separate method
+                             is provided for adding this child.                             
+                             
+                       Sub-Elements:
+                         description - description of the child [optional]
+                         lm-equiv - equivalent child in Language Model [multiple allowed]
+                         native-equiv - equivalent child in native parse tress [multiple allowed]
+                       
+                      -->
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="child">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:group ref="DescriptionAndEquivalents"/>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="kind">
+                                        <xs:complexType>
+                                            <xs:attribute name="name" type="xs:string" use="required" />
+                                            <xs:attribute name="node-kind" type="xs:string" use="required" />
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                                <xs:attribute name="kind" type="xs:string" use="optional" />
+                                <xs:attribute name="list" type="xs:boolean" use="optional" />
+                                <xs:attribute name="order" type="xs:float" use="optional" />
+                                <xs:attribute name="optional" type="xs:boolean" use="optional" />
+                                <xs:attribute name="optional-elements" type="xs:boolean" use="optional" />
+                                <xs:attribute name="separator-kind" type="xs:string" use="optional" />
+                                <xs:attribute name="separator-name" type="xs:string" use="optional" />
+                                <xs:attribute name="not-in-factory" type="xs:boolean" use="optional" />
+                                <xs:attribute name="generate-with" type="xs:boolean" use="optional" />
+                                                    </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="parent" type="xs:string" use="optional" />
+                    <xs:attribute name="abstract" type="xs:boolean" use="optional" />
+                    <xs:attribute name="partial" type="xs:boolean" use="optional" />
+                    <xs:attribute name="token-root" type="xs:boolean" use="optional" />
+                    <xs:attribute name="trivia-root" type="xs:boolean" use="optional" />
+                    <xs:attribute name="default-trailing-trivia" type="xs:string" use="optional" />
+                    <xs:attribute name="no-factory" type="xs:boolean" use="optional" />
+                    <xs:attribute name="has-default-factory" type="xs:boolean" use="optional" />
+                  </xs:complexType>
+                </xs:element>
+                
+                <!-- A "node-kind-alias" defines an alias for a kind descriptor.  The name of the alias
+                can be used anywhere a node-kind can be used.
+                
+                Attributes:
+                  name: name of the alias
+                  alias: what it aliases. This is a node-kind string defined in the same way as the "kind" attribute on a "child".
+                  -->
+                <xs:element minOccurs="0" maxOccurs="unbounded" name="node-kind-alias">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element minOccurs="0" name="description" type="xs:string" />
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="alias" type="xs:string" use="required" />
+                  </xs:complexType>
+                </xs:element>
+                
+                <!-- "enumeration" defines an enumeration type that can be used as the type of a field.
+                Attributes:
+                   name - name of the enumeration [required]
+                   flags - (boolean, default false) If true, indicates this is a bitflags style enumeration.
+                Elements:
+                   description - description of the enumerations [optional]
+                   lm-equiv - equivalent enumeration in Language Model [multiple allowed]
+                   native-equiv - equivalent enumeration in native parse tress [multiple allowed]
+                   enumerator - an enumerator in the enumeration.
+                -->
+                <xs:element minOccurs="0" maxOccurs="unbounded" name="enumeration">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:group ref="DescriptionAndEquivalents"/>
+
+                      <xs:element name="enumerators">
+                        <xs:complexType>
+                          <xs:sequence>
+                            <!-- enumerator defins one enumeration in an enumeration
+                            Attributes:
+                              name - name of the enumerator [required]
+                              hexvalue - hex value of the enumerator [optional]
+                            Elements:
+                              description - description of the enumerator [optional]
+                              lm-equiv - equivalent enumerator in Language Model [multiple allowed]
+                              native-equiv - equivalent enumerator in native parse tress [multiple allowed]
+                            -->
+                            <xs:element maxOccurs="unbounded" name="enumerator">
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:group ref="DescriptionAndEquivalents"/>
+                                </xs:sequence>
+                                
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                                <xs:attribute name="hexvalue" type="HexInteger" use="optional" />
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                    
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="flags" type="xs:boolean" use="optional" />
+                  </xs:complexType>
+                </xs:element>
+              </xs:choice>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      
+      <xs:attribute name="namespace" type="xs:string" use="required" />
+      <xs:attribute name="visitor" type="xs:string" use="optional" />
+      <xs:attribute name="rewrite-visitor" type="xs:string" use="optional" />
+      <xs:attribute name="factory-class" type="xs:string" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="HexInteger">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-zA-Z]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,0 +1,309 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    /// <summary>
+    /// An error type, used to represent the type of a type binding
+    /// operation when binding fails.
+    /// </summary>
+    internal sealed class ExtendedErrorTypeSymbol : ErrorTypeSymbol
+    {
+        private readonly string name;
+        private readonly int arity;
+        private readonly DiagnosticInfo errorInfo;
+        private readonly NamespaceOrTypeSymbol containingSymbol;
+        private readonly bool unreported;
+        public readonly bool VariableUsedBeforeDeclaration;
+        private readonly ImmutableArray<Symbol> candidateSymbols;  // Best guess at what user meant, but was wrong.
+        private readonly LookupResultKind resultKind; // why the guessSymbols were wrong.
+
+        internal ExtendedErrorTypeSymbol(CSharpCompilation compilation, string name, int arity, DiagnosticInfo errorInfo, bool unreported = false, bool variableUsedBeforeDeclaration = false)
+            : this(compilation.Assembly.GlobalNamespace, name, arity, errorInfo, unreported, variableUsedBeforeDeclaration)
+        {
+        }
+
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, string name, int arity, DiagnosticInfo errorInfo, bool unreported = false, bool variableUsedBeforeDeclaration = false)
+        {
+            Debug.Assert(((object)containingSymbol == null) ||
+                (containingSymbol.Kind == SymbolKind.Namespace) ||
+                (containingSymbol.Kind == SymbolKind.NamedType) ||
+                (containingSymbol.Kind == SymbolKind.ErrorType));
+
+            Debug.Assert(name != null);
+            Debug.Assert(unreported == false || errorInfo != null);
+
+            this.name = name;
+            this.errorInfo = errorInfo;
+            this.containingSymbol = containingSymbol;
+            this.arity = arity;
+            this.unreported = unreported;
+            this.VariableUsedBeforeDeclaration = variableUsedBeforeDeclaration;
+            this.resultKind = LookupResultKind.Empty;
+        }
+
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol guessSymbol, LookupResultKind resultKind, DiagnosticInfo errorInfo, bool unreported = false)
+            : this(guessSymbol.ContainingNamespaceOrType(), guessSymbol, resultKind, errorInfo, unreported)
+        {
+        }
+
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, Symbol guessSymbol, LookupResultKind resultKind, DiagnosticInfo errorInfo, bool unreported = false)
+            : this(containingSymbol, ImmutableArray.Create<Symbol>(guessSymbol), resultKind, errorInfo, GetArity(guessSymbol), unreported)
+        {
+        }
+
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, ImmutableArray<Symbol> candidateSymbols, LookupResultKind resultKind, DiagnosticInfo errorInfo, int arity, bool unreported = false)
+            : this(containingSymbol, candidateSymbols[0].Name, arity, errorInfo, unreported)
+        {
+            this.candidateSymbols = UnwrapErrorCandidates(candidateSymbols);
+            this.resultKind = resultKind;
+            Debug.Assert(candidateSymbols.IsEmpty || resultKind != LookupResultKind.Viable, "Shouldn't use LookupResultKind.Viable with candidate symbols");
+        }
+
+        private static ImmutableArray<Symbol> UnwrapErrorCandidates(ImmutableArray<Symbol> candidateSymbols)
+        {
+            var candidate = candidateSymbols.IsEmpty ? null : candidateSymbols[0] as ErrorTypeSymbol;
+            return ((object)candidate != null && !candidate.CandidateSymbols.IsEmpty) ? candidate.CandidateSymbols : candidateSymbols;
+        }
+
+        internal override DiagnosticInfo ErrorInfo
+        {
+            get
+            {
+                return errorInfo;
+            }
+        }
+
+        internal override LookupResultKind ResultKind
+        {
+            get
+            {
+                return this.resultKind;
+            }
+        }
+
+        public override ImmutableArray<Symbol> CandidateSymbols
+        {
+            get
+            {
+                return this.candidateSymbols.IsDefault
+                    ? ImmutableArray<Symbol>.Empty
+                    : this.candidateSymbols;
+            }
+        }
+
+        internal override bool Unreported
+        {
+            get { return unreported; }
+        }
+
+        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        {
+            if (unreported)
+            {
+                return this.ErrorInfo;
+            }
+
+            return null;
+        }
+
+        public override int Arity
+        {
+            get
+            {
+                return arity;
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return arity > 0;
+            }
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                return containingSymbol;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
+
+        public override NamedTypeSymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
+            }
+        }
+
+        // public override SymbolKind Kind { get { return SymbolKind.Error; } }
+        public override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray<Location>.Empty;
+            }
+        }
+
+        public override NamedTypeSymbol ConstructedFrom
+        {
+            get
+            {
+                return this;
+            }
+        }
+
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        {
+            return null;
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        /// <summary>
+        /// If (we believe) we know which symbol the user intended, then we should retain that information
+        /// in the corresponding error symbol - it can be useful for deciding how to handle the error.
+        /// For example, we might want to know whether (we believe) the error type was supposed to be an
+        /// interface, so that we can put it in a derived type's interface list, rather than in the base
+        /// type slot.
+        /// 
+        /// Sometimes we will return the original definition of the intended symbol.  For example, if we see 
+        /// <![CDATA[IFoo<int>]]> and we have an IFoo with a different arity or accessibility 
+        /// (e.g. <![CDATA[IFoo<int>]]> was constructed from an error symbol based on <![CDATA[IFoo<T>]]>), 
+        /// then we'll return <![CDATA[IFoo<T>]]>, rather than trying to construct a corresponding closed
+        /// type (which may not be difficult/possible in the case of nested types or mismatched arities).
+        /// 
+        /// NOTE: Any non-null type symbol returned is guaranteed not to be an error type.
+        /// </summary>
+        /// <remarks>
+        /// TypeSymbolExtensions.GetNonErrorGuess is a more discoverable version of this functionality.
+        /// However, the real definition is in this class so that it can access the private field 
+        /// nonErrorGuessType.
+        /// </remarks>
+        internal static TypeSymbol ExtractNonErrorType(TypeSymbol oldSymbol)
+        {
+            if ((object)oldSymbol == null || oldSymbol.TypeKind != TypeKind.Error)
+            {
+                return oldSymbol;
+            }
+
+            // At this point, we know that oldSymbol is a non-null type symbol with kind error.
+            // Hence, it is either an ErrorTypeSymbol or it has an ErrorTypeSymbol as its
+            // original definition.  In the former case, it is its own original definition.
+            // Thus, if there's a CSErrorTypeSymbol in there somewhere, it's returned by
+            // OriginalDefinition.
+            ExtendedErrorTypeSymbol oldError = oldSymbol.OriginalDefinition as ExtendedErrorTypeSymbol;
+
+            // If the original definition isn't a CSErrorTypeSymbol, then we don't know how to
+            // pull out a non-error type.  If it is, then if there is a unambiguous type inside it,
+            // use that.
+            if ((object)oldError != null && !oldError.candidateSymbols.IsDefault && oldError.candidateSymbols.Length == 1)
+            {
+                TypeSymbol type = oldError.candidateSymbols[0] as TypeSymbol;
+                if ((object)type != null)
+                    return type.GetNonErrorGuess();
+            }
+
+            return null;
+        }
+
+        // Get the type kind of a symbol, going to candidates if possible.
+        internal static TypeKind ExtractNonErrorTypeKind(TypeSymbol oldSymbol)
+        {
+            if (oldSymbol.TypeKind != TypeKind.Error)
+            {
+                return oldSymbol.TypeKind;
+            }
+
+            // At this point, we know that oldSymbol is a non-null type symbol with kind error.
+            // Hence, it is either an ErrorTypeSymbol or it has an ErrorTypeSymbol as its
+            // original definition.  In the former case, it is its own original definition.
+            // Thus, if there's a CSErrorTypeSymbol in there somewhere, it's returned by
+            // OriginalDefinition.
+            ExtendedErrorTypeSymbol oldError = oldSymbol.OriginalDefinition as ExtendedErrorTypeSymbol;
+
+            // If the original definition isn't a CSErrorTypeSymbol, then we don't know how to
+            // pull out a non-error type.  If it is, then if there is a unambiguous type inside it,
+            // use that.
+            TypeKind commonTypeKind = TypeKind.Error;
+            if ((object)oldError != null && !oldError.candidateSymbols.IsDefault && oldError.candidateSymbols.Length > 0)
+            {
+                foreach (Symbol sym in oldError.candidateSymbols)
+                {
+                    TypeSymbol type = sym as TypeSymbol;
+                    if ((object)type != null && type.TypeKind != TypeKind.Error)
+                    {
+                        if (commonTypeKind == TypeKind.Error)
+                            commonTypeKind = type.TypeKind;
+                        else if (commonTypeKind != type.TypeKind)
+                            return TypeKind.Error;  // no common kind.
+                    }
+                }
+            }
+
+            return commonTypeKind;
+        }
+
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        {
+            if (ReferenceEquals(this, t2))
+            {
+                return true;
+            }
+
+            var other = t2 as ExtendedErrorTypeSymbol;
+            if ((object)other == null || this.unreported || other.unreported)
+            {
+                return false;
+            }
+
+            return
+                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiers, ignoreDynamic) :
+                 (object)this.ContainingSymbol == null ? (object)other.ContainingSymbol == null : this.ContainingSymbol.Equals(other.ContainingSymbol)) &&
+                this.Name == other.Name && this.Arity == other.Arity;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.Arity,
+                        Hash.Combine((object)this.ContainingSymbol != null ? this.ContainingSymbol.GetHashCode() : 0,
+                                     this.Name != null ? this.Name.GetHashCode() : 0));
+        }
+
+        private static int GetArity(Symbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
+                    return ((NamedTypeSymbol)symbol).Arity;
+                case SymbolKind.Method:
+                    return ((MethodSymbol)symbol).Arity;
+                default:
+                    return 0;
+            }
+        }
+    }
+}

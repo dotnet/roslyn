@@ -1,0 +1,101 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    internal sealed partial class LocalRewriter
+    {
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            return VisitPropertyAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitPropertyAccess(BoundPropertyAccess node, bool isLeftOfAssignment)
+        {
+            var rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+            return MakePropertyAccess(node.Syntax, rewrittenReceiverOpt, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
+        }
+
+        private BoundExpression MakePropertyAccess(
+            CSharpSyntaxNode syntax,
+            BoundExpression rewrittenReceiverOpt,
+            PropertySymbol propertySymbol,
+            LookupResultKind resultKind,
+            TypeSymbol type,
+            bool isLeftOfAssignment,
+            BoundPropertyAccess oldNodeOpt = null)
+        {
+            // check for System.Array.[Length|LongLength] on a single dimensional array,
+            // we have a special node for such cases.
+            if (rewrittenReceiverOpt != null && rewrittenReceiverOpt.Type.IsArray())
+            {
+                var asArrayType = (ArrayTypeSymbol)rewrittenReceiverOpt.Type;
+                if (asArrayType.Rank == 1)
+                {
+                    // NOTE: we are not interested in potential badness of Array.Length property.
+                    // If it is bad reference compare will not succeed.
+                    if (ReferenceEquals(propertySymbol, compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
+                        !inExpressionLambda && ReferenceEquals(propertySymbol, compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
+                    {
+                        return new BoundArrayLength(syntax, rewrittenReceiverOpt, type);
+                    }
+                }
+            }
+
+            if (isLeftOfAssignment)
+            {
+                // This is a property set access. We return a BoundPropertyAccess node here.
+                // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+
+                return oldNodeOpt != null ?
+                    oldNodeOpt.Update(rewrittenReceiverOpt, propertySymbol, resultKind, type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiverOpt, propertySymbol, resultKind, type);
+            }
+            else
+            {
+                // This is a property get access
+                return MakePropertyGetAccess(syntax, rewrittenReceiverOpt, propertySymbol, oldNodeOpt);
+            }
+        }
+
+        private BoundExpression MakePropertyGetAccess(CSharpSyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
+        {
+            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, null, oldNodeOpt);
+        }
+
+        private BoundExpression MakePropertyGetAccess(
+            CSharpSyntaxNode syntax,
+            BoundExpression rewrittenReceiver,
+            PropertySymbol property,
+            ImmutableArray<BoundExpression> rewrittenArguments,
+            MethodSymbol getMethodOpt = null,
+            BoundPropertyAccess oldNodeOpt = null)
+        {
+            if (inExpressionLambda && rewrittenArguments.IsEmpty)
+            {
+                return oldNodeOpt != null ?
+                    oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.Type);
+            }
+            else
+            {
+                var getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
+
+                Debug.Assert((object)getMethod != null);
+                Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
+                Debug.Assert(((object)getMethodOpt == null) || ReferenceEquals(getMethod, getMethodOpt));
+
+                return BoundCall.Synthesized(
+                    syntax,
+                    rewrittenReceiver,
+                    getMethod,
+                    rewrittenArguments);
+            }
+        }
+    }
+}

@@ -1,0 +1,136 @@
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Namespace Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend MustInherit Class BoundTreeVisitor(Of A, R)
+        Protected Sub New()
+        End Sub
+
+        Public Overridable Function Visit(node As BoundNode, arg As A) As R
+            If node Is Nothing Then
+                Return Nothing
+            End If
+            ' around 50 cases inlined here to allow the JIT to generate good code.
+            Select Case node.Kind
+                Case BoundKind.OmittedArgument
+                    Return VisitOmittedArgument(CType(node, BoundOmittedArgument), arg)
+                Case BoundKind.Parenthesized
+                    Return VisitParenthesized(CType(node, BoundParenthesized), arg)
+                Case BoundKind.ArrayAccess
+                    Return VisitArrayAccess(CType(node, BoundArrayAccess), arg)
+                Case BoundKind.TypeExpression
+                    Return VisitTypeExpression(CType(node, BoundTypeExpression), arg)
+                Case BoundKind.NamespaceExpression
+                    Return VisitNamespaceExpression(CType(node, BoundNamespaceExpression), arg)
+                Case BoundKind.UnaryOperator
+                    Return VisitUnaryOperator(CType(node, BoundUnaryOperator), arg)
+                Case BoundKind.BinaryOperator
+                    Return VisitBinaryOperator(CType(node, BoundBinaryOperator), arg)
+                Case BoundKind.AssignmentOperator
+                    Return VisitAssignmentOperator(CType(node, BoundAssignmentOperator), arg)
+                Case BoundKind.TernaryConditionalExpression
+                    Return VisitTernaryConditionalExpression(CType(node, BoundTernaryConditionalExpression), arg)
+                Case BoundKind.BinaryConditionalExpression
+                    Return VisitBinaryConditionalExpression(CType(node, BoundBinaryConditionalExpression), arg)
+                Case BoundKind.Conversion
+                    Return VisitConversion(CType(node, BoundConversion), arg)
+                Case BoundKind.DirectCast
+                    Return VisitDirectCast(CType(node, BoundDirectCast), arg)
+                Case BoundKind.TryCast
+                    Return VisitTryCast(CType(node, BoundTryCast), arg)
+                Case BoundKind.TypeOf
+                    Return VisitTypeOf(CType(node, BoundTypeOf), arg)
+                Case BoundKind.SequencePoint
+                    Return VisitSequencePoint(CType(node, BoundSequencePoint), arg)
+                Case BoundKind.SequencePointWithSpan
+                    Return VisitSequencePointWithSpan(CType(node, BoundSequencePointWithSpan), arg)
+                Case BoundKind.NoOpStatement
+                    Return VisitNoOpStatement(CType(node, BoundNoOpStatement), arg)
+                Case BoundKind.MethodGroup
+                    Return VisitMethodGroup(CType(node, BoundMethodGroup), arg)
+                Case BoundKind.PropertyGroup
+                    Return VisitPropertyGroup(CType(node, BoundPropertyGroup), arg)
+                Case BoundKind.ReturnStatement
+                    Return VisitReturnStatement(CType(node, BoundReturnStatement), arg)
+                Case BoundKind.Call
+                    Return VisitCall(CType(node, BoundCall), arg)
+                Case BoundKind.ObjectCreationExpression
+                    Return VisitObjectCreationExpression(CType(node, BoundObjectCreationExpression), arg)
+                Case BoundKind.DelegateCreationExpression
+                    Return VisitDelegateCreationExpression(CType(node, BoundDelegateCreationExpression), arg)
+                Case BoundKind.FieldAccess
+                    Return VisitFieldAccess(CType(node, BoundFieldAccess), arg)
+                Case BoundKind.PropertyAccess
+                    Return VisitPropertyAccess(CType(node, BoundPropertyAccess), arg)
+                Case BoundKind.Block
+                    Return VisitBlock(CType(node, BoundBlock), arg)
+                Case BoundKind.LocalDeclaration
+                    Return VisitLocalDeclaration(CType(node, BoundLocalDeclaration), arg)
+                Case BoundKind.FieldOrPropertyInitializer
+                    Return VisitFieldOrPropertyInitializer(CType(node, BoundFieldOrPropertyInitializer), arg)
+                Case BoundKind.Sequence
+                    Return VisitSequence(CType(node, BoundSequence), arg)
+                Case BoundKind.ExpressionStatement
+                    Return VisitExpressionStatement(CType(node, BoundExpressionStatement), arg)
+                Case BoundKind.IfStatement
+                    Return VisitIfStatement(CType(node, BoundIfStatement), arg)
+                Case BoundKind.ForToStatement
+                    Return VisitForToStatement(CType(node, BoundForToStatement), arg)
+                Case BoundKind.ExitStatement
+                    Return VisitExitStatement(CType(node, BoundExitStatement), arg)
+                Case BoundKind.ContinueStatement
+                    Return VisitContinueStatement(CType(node, BoundContinueStatement), arg)
+                Case BoundKind.TryStatement
+                    Return VisitTryStatement(CType(node, BoundTryStatement), arg)
+                Case BoundKind.CatchBlock
+                    Return VisitCatchBlock(CType(node, BoundCatchBlock), arg)
+                Case BoundKind.Literal
+                    Return VisitLiteral(CType(node, BoundLiteral), arg)
+                Case BoundKind.MeReference
+                    Return VisitMeReference(CType(node, BoundMeReference), arg)
+                Case BoundKind.Local
+                    Return VisitLocal(CType(node, BoundLocal), arg)
+                Case BoundKind.Parameter
+                    Return VisitParameter(CType(node, BoundParameter), arg)
+                Case BoundKind.ByRefArgumentPlaceholder
+                    Return VisitByRefArgumentPlaceholder(CType(node, BoundByRefArgumentPlaceholder), arg)
+                Case BoundKind.ByRefArgumentWithCopyBack
+                    Return VisitByRefArgumentWithCopyBack(CType(node, BoundByRefArgumentWithCopyBack), arg)
+                Case BoundKind.LabelStatement
+                    Return VisitLabelStatement(CType(node, BoundLabelStatement), arg)
+                Case BoundKind.GotoStatement
+                    Return VisitGotoStatement(CType(node, BoundGotoStatement), arg)
+                Case BoundKind.StatementList
+                    Return VisitStatementList(CType(node, BoundStatementList), arg)
+                Case BoundKind.ConditionalGoto
+                    Return VisitConditionalGoto(CType(node, BoundConditionalGoto), arg)
+                Case BoundKind.Lambda
+                    Return VisitLambda(CType(node, BoundLambda), arg)
+            End Select
+            Return VisitInternal(node, arg)
+        End Function
+
+        Public Overridable Function DefaultVisit(node As BoundNode, arg As A) As R
+            Return Nothing
+        End Function
+    End Class
+
+    Partial Friend MustInherit Class BoundTreeVisitor
+        Protected Sub New()
+        End Sub
+
+        Public Overridable Function Visit(node As BoundNode) As BoundNode
+            If node IsNot Nothing Then
+                Return node.Accept(Me)
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Overridable Function DefaultVisit(node As BoundNode) As BoundNode
+            Return Nothing
+        End Function
+    End Class
+End Namespace

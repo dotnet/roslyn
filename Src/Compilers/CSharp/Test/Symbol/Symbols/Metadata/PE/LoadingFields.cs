@@ -1,0 +1,109 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
+{
+    public class LoadingFields : CSharpTestBase
+    {
+        [Fact]
+        public void Test1()
+        {
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
+            {
+                TestReferences.SymbolsTests.Fields.CSFields.dll,
+                TestReferences.SymbolsTests.Fields.VBFields.dll,
+                TestReferences.NetFx.v4_0_21006.mscorlib
+            }, 
+            options: TestOptions.DllAlwaysImportInternals);
+
+            var module1 = assemblies[0].Modules[0];
+            var module2 = assemblies[1].Modules[0];
+            var module3 = assemblies[2].Modules[0];
+
+            var vbFields = module2.GlobalNamespace.GetTypeMembers("VBFields").Single();
+            var csFields = module1.GlobalNamespace.GetTypeMembers("CSFields").Single();
+
+            var f1 = (FieldSymbol)vbFields.GetMembers("F1").Single();
+            var f2 = (FieldSymbol)vbFields.GetMembers("F2").Single();
+            var f3 = (FieldSymbol)vbFields.GetMembers("F3").Single();
+            var f4 = (FieldSymbol)vbFields.GetMembers("F4").Single();
+            var f5 = (FieldSymbol)vbFields.GetMembers("F5").Single();
+            var f6 = (FieldSymbol)csFields.GetMembers("F6").Single();
+
+            Assert.Equal("F1", f1.Name); 
+            Assert.Same(vbFields.TypeParameters[0], f1.Type);
+            Assert.False(f1.IsAbstract);
+            Assert.False(f1.IsConst);
+            Assert.True(f1.IsDefinition);
+            Assert.False(f1.IsExtern);
+            Assert.False(f1.IsOverride);
+            Assert.False(f1.IsReadOnly);
+            Assert.False(f1.IsSealed);
+            Assert.True(f1.IsStatic);
+            Assert.False(f1.IsVirtual);
+            Assert.False(f1.IsVolatile);
+            Assert.Equal(SymbolKind.Field, f1.Kind);
+            Assert.Equal(module2.Locations, f1.Locations);
+            Assert.Same(f1, f1.OriginalDefinition);
+            Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+            Assert.Same(vbFields, f1.ContainingSymbol);
+            Assert.Equal(0, f1.CustomModifiers.Length);
+
+            Assert.Equal("F2", f2.Name);
+            Assert.Same(((PEModuleSymbol)module2).GetCorLibType(SpecialType.System_Int32), f2.Type);
+            Assert.False(f2.IsConst);
+            Assert.True(f2.IsReadOnly);
+            Assert.False(f2.IsStatic);
+            Assert.False(f2.IsVolatile);
+            Assert.Equal(Accessibility.Protected, f2.DeclaredAccessibility);
+            Assert.Equal(0, f2.CustomModifiers.Length);
+
+            Assert.Equal("F3", f3.Name);
+            Assert.False(f3.IsConst);
+            Assert.False(f3.IsReadOnly);
+            Assert.False(f3.IsStatic);
+            Assert.False(f3.IsVolatile);
+            Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+            Assert.Equal(0, f3.CustomModifiers.Length);
+
+            Assert.Equal("F4", f4.Name);
+            Assert.False(f4.IsConst);
+            Assert.False(f4.IsReadOnly);
+            Assert.False(f4.IsStatic);
+            Assert.False(f4.IsVolatile);
+            Assert.Equal(Accessibility.ProtectedOrInternal, f4.DeclaredAccessibility);
+            Assert.Equal(0, f4.CustomModifiers.Length);
+
+            Assert.Equal("F5", f5.Name);
+            Assert.True(f5.IsConst);
+            Assert.False(f5.IsReadOnly);
+            Assert.True(f5.IsStatic);
+            Assert.False(f5.IsVolatile);
+            Assert.Equal(Accessibility.Protected, f5.DeclaredAccessibility);
+            Assert.Equal(0, f5.CustomModifiers.Length);
+
+            Assert.Equal("F6", f6.Name);
+            Assert.False(f6.IsConst);
+            Assert.False(f6.IsReadOnly);
+            Assert.False(f6.IsStatic);
+            Assert.True(f6.IsVolatile);
+            Assert.Equal(1, f6.CustomModifiers.Length);
+
+            CustomModifier mod = f6.CustomModifiers[0];
+
+            Assert.False(mod.IsOptional);
+            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", mod.Modifier.ToTestDisplayString());
+
+            Assert.Equal(SymbolKind.NamedType, csFields.GetMembers("FFF").Single().Kind);
+            Assert.Equal(SymbolKind.Field, csFields.GetMembers("Fff").Single().Kind);
+            Assert.Equal(SymbolKind.Method, csFields.GetMembers("FfF").Single().Kind);
+        }
+    }
+}

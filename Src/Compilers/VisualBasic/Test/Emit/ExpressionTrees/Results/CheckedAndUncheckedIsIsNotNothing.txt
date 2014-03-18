@@ -1,0 +1,3698 @@
+﻿-=-=-=-=-=-=-=-=- SByte? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- SByte? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.SByte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.SByte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- SByte? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_SByte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_SByte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Byte? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Byte? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Byte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Byte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Byte? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Byte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Byte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Short? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Short? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int16]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Short? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Short]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Short]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Short],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Short]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Short]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Short],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Short]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Short]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Short],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- UShort? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- UShort? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt16]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt16]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UShort? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UShort]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UShort]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_UShort]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_UShort]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UShort]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UShort]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Integer? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Integer? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int32]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Integer? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Integer]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Integer]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Integer]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Integer]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Integer]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Integer]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt32]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt32]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UInteger]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UInteger]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_UInteger]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_UInteger]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UInteger]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UInteger]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Long? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Long? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int64]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Long? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Long]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Long]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Long],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Long]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Long]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Long],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Long]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Long]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Long],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- ULong? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- ULong? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt64]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- ULong? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_ULong]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_ULong]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[E_ULong]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_ULong]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[E_ULong]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_ULong]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Boolean]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Boolean]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Boolean]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Single? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Single]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Single]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Single],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Single? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Single]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Single]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Single],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Single? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Single]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Single]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Single],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Double? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Double]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Double]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Double],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Double? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Double]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Double]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Double],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Double? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Double]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Double]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Double],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Decimal]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        method: Boolean op_Equality(System.Decimal, System.Decimal) in System.Decimal
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Decimal]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      method: Boolean op_Equality(System.Decimal, System.Decimal) in System.Decimal
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Decimal]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        method: Boolean op_Equality(System.Decimal, System.Decimal) in System.Decimal
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Date? Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        method: Boolean op_Equality(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Nullable`1[System.DateTime]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.DateTime]
+      )
+      Lifted
+      method: Boolean op_Equality(System.DateTime, System.DateTime) in System.DateTime
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Date? Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        method: Boolean op_Equality(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- String Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Equal(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Equal(
+      Convert(
+        Parameter(
+          x
+          type: System.String
+        )
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      Equal(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.String,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Equal(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object Is Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      Equal(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Object,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- SByte? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- SByte? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.SByte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.SByte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- SByte? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.SByte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.SByte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_SByte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_SByte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_SByte? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_SByte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_SByte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_SByte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_SByte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Byte? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Byte? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Byte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Byte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Byte? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Byte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Byte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Byte]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Byte]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Byte? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Byte]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Byte]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Byte]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Byte],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Short? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Short? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int16]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int16]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Short? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int16]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int16],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Short]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Short]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Short],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Short]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Short]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Short],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Short? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Short]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Short]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Short]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Short],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- UShort? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- UShort? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt16]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt16]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UShort? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt16]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt16]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt16]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt16],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UShort]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UShort]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_UShort]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_UShort]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UShort? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UShort]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UShort]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UShort]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_UShort],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Integer? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Integer? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int32]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int32]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Integer? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int32]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int32],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Integer]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Integer]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Integer]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Integer]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Integer? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Integer]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Integer]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Integer]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Integer],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt32]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt32]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- UInteger? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt32]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt32]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt32]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt32],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UInteger]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UInteger]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_UInteger]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_UInteger]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_UInteger? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_UInteger]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_UInteger]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_UInteger]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_UInteger],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Long? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Long? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Int64]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Int64]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Long? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Int64]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Int64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Int64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Int64],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Long]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Long]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_Long],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_Long]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_Long]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_Long],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_Long? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_Long]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_Long]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_Long]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_Long],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- ULong? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- ULong? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.UInt64]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.UInt64]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- ULong? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.UInt64]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.UInt64]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.UInt64]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.UInt64],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_ULong]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_ULong]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[E_ULong]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[E_ULong]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- E_ULong? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[E_ULong]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[E_ULong]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[E_ULong]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[E_ULong],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Boolean]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Boolean]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Boolean]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Boolean? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Boolean]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Boolean]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Boolean]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Boolean],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Single? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Single]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Single]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Single],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Single? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Single]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Single]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Single],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Single? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Single]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Single]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Single]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Single],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Double? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Double]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Double]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Double],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Double? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Double]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Double]
+      )
+      Lifted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Double],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Double? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Double]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Double]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Double]
+        )
+        Lifted
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Double],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Decimal]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        method: Boolean op_Inequality(System.Decimal, System.Decimal) in System.Decimal
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.Decimal]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.Decimal]
+      )
+      Lifted
+      method: Boolean op_Inequality(System.Decimal, System.Decimal) in System.Decimal
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Decimal? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.Decimal]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.Decimal]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.Decimal]
+        )
+        Lifted
+        method: Boolean op_Inequality(System.Decimal, System.Decimal) in System.Decimal
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.Decimal],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Date? IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        method: Boolean op_Inequality(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Date? IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Nullable`1[System.DateTime]
+      )
+      Constant(
+        null
+        type: System.Nullable`1[System.DateTime]
+      )
+      Lifted
+      method: Boolean op_Inequality(System.DateTime, System.DateTime) in System.DateTime
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Date? IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Nullable`1[System.DateTime]
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Nullable`1[System.DateTime]
+        )
+        Constant(
+          null
+          type: System.Nullable`1[System.DateTime]
+        )
+        Lifted
+        method: Boolean op_Inequality(System.DateTime, System.DateTime) in System.DateTime
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Nullable`1[System.DateTime],System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      NotEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.String,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    NotEqual(
+      Convert(
+        Parameter(
+          x
+          type: System.String
+        )
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- String IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.String
+  )
+  body {
+    Convert(
+      NotEqual(
+        Convert(
+          Parameter(
+            x
+            type: System.String
+          )
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.String,System.Nullable`1[System.Boolean]]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Nothing => Object -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      type: System.Object
+    )
+  }
+  return type: System.Object
+  type: System.Func`2[System.Object,System.Object]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Nothing => Boolean -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    NotEqual(
+      Parameter(
+        x
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.Object,System.Boolean]
+)
+
+-=-=-=-=-=-=-=-=- Object IsNot Nothing => Boolean? -=-=-=-=-=-=-=-=-
+Lambda(
+  Parameter(
+    x
+    type: System.Object
+  )
+  body {
+    Convert(
+      NotEqual(
+        Parameter(
+          x
+          type: System.Object
+        )
+        Constant(
+          null
+          type: System.Object
+        )
+        type: System.Boolean
+      )
+      Lifted
+      LiftedToNull
+      type: System.Nullable`1[System.Boolean]
+    )
+  }
+  return type: System.Nullable`1[System.Boolean]
+  type: System.Func`2[System.Object,System.Nullable`1[System.Boolean]]
+)
+

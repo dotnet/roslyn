@@ -1,0 +1,400 @@
+﻿Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Equal(
+      Convert(
+        Convert(
+          Call(
+            <NULL>
+            method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
+              Constant(
+                Form1+DeleSub
+                type: System.Type
+              )
+              Constant(
+                null
+                type: System.Object
+              )
+              Constant(
+                Void Sub1(Int32)
+                type: System.Reflection.MethodInfo
+              )
+              Constant(
+                False
+                type: System.Boolean
+              )
+            )
+            type: System.Delegate
+          )
+          type: Form1+DeleSub
+        )
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Equal(
+      Convert(
+        Convert(
+          Call(
+            <NULL>
+            method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
+              Constant(
+                Form1+DeleFunc
+                type: System.Type
+              )
+              Convert(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
+                  )
+                  -> $VB$Local_c1
+                  type: Form1+Class1
+                )
+                type: System.Object
+              )
+              Constant(
+                Boolean Func1(DeleSub)
+                type: System.Reflection.MethodInfo
+              )
+              Constant(
+                False
+                type: System.Boolean
+              )
+            )
+            type: System.Delegate
+          )
+          type: Form1+DeleFunc
+        )
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Invoke(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1
+          type: Form1+_Closure$__1
+        )
+        -> $VB$Local_d2
+        type: Form1+DeleFunc
+      )
+      (
+        MemberAccess(
+          Constant(
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
+          )
+          -> $VB$Local_d1
+          type: Form1+DeleSub
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Invoke(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1
+          type: Form1+_Closure$__1
+        )
+        -> $VB$Local_d2
+        type: Form1+DeleFunc
+      )
+      (
+        MemberAccess(
+          Constant(
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
+          )
+          -> $VB$Local_d1
+          type: Form1+DeleSub
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    MemberAccess(
+      Call(
+        MemberAccess(
+          Constant(
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
+          )
+          -> $VB$Local_d2
+          type: Form1+DeleFunc
+        )
+        method: System.IAsyncResult BeginInvoke(DeleSub, System.AsyncCallback, System.Object) in Form1+DeleFunc (
+          MemberAccess(
+            Constant(
+              Form1+_Closure$__1
+              type: Form1+_Closure$__1
+            )
+            -> $VB$Local_d1
+            type: Form1+DeleSub
+          )
+          MemberAccess(
+            Constant(
+              Form1+_Closure$__1
+              type: Form1+_Closure$__1
+            )
+            -> $VB$Local_callback
+            type: System.AsyncCallback
+          )
+          Constant(
+            null
+            type: System.Object
+          )
+        )
+        type: System.IAsyncResult
+      )
+      -> IsCompleted
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Equal(
+      Convert(
+        Convert(
+          Call(
+            <NULL>
+            method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
+              Constant(
+                Form1+DeleFunc
+                type: System.Type
+              )
+              Convert(
+                MemberAccess(
+                  Constant(
+                    Form1+_Closure$__1
+                    type: Form1+_Closure$__1
+                  )
+                  -> $VB$Local_c1
+                  type: Form1+Class1
+                )
+                type: System.Object
+              )
+              Constant(
+                Boolean ExtensionMethod1(Class1, DeleSub)
+                type: System.Reflection.MethodInfo
+              )
+              Constant(
+                False
+                type: System.Boolean
+              )
+            )
+            type: System.Delegate
+          )
+          type: Form1+DeleFunc
+        )
+        type: System.Object
+      )
+      Constant(
+        null
+        type: System.Object
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Invoke(
+      MemberAccess(
+        Constant(
+          Form1+_Closure$__1
+          type: Form1+_Closure$__1
+        )
+        -> $VB$Local_d3
+        type: Form1+DeleFunc
+      )
+      (
+        MemberAccess(
+          Constant(
+            Form1+_Closure$__1
+            type: Form1+_Closure$__1
+          )
+          -> $VB$Local_d1
+          type: Form1+DeleSub
+        )
+      )
+      type: System.Boolean
+    )
+  }
+  return type: System.Boolean
+  type: System.Func`2[System.String,System.Boolean]
+)
+
+Lambda(
+  Parameter(
+    s
+    type: System.String
+  )
+  body {
+    Parameter(
+      s
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.String,System.String]
+)
