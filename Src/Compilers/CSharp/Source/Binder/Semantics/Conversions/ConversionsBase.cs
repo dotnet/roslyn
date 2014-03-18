@@ -114,60 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determines if a class, struct or interface (the base type) is identical to or
-        /// a base type of the derived type, considering only the declarations. 
-        /// </summary>
-        /// <remarks>
-        /// Object is NOT considered a base of an interface but is considered as base of a struct. 
-        /// </remarks>
-        public static bool IsBaseDefinitionOfDefinition(NamedTypeSymbol derivedType, NamedTypeSymbol baseType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            // For example, if class C<string> implements IEnumerable<D<string>>, then IEnumerable<T> is a 
-            // "base definition" of C<T>.
-            Debug.Assert((object)derivedType != null);
-            Debug.Assert((object)baseType != null);
-            Debug.Assert(derivedType.IsDefinition);
-            Debug.Assert(baseType.IsDefinition);
-            Debug.Assert(!derivedType.IsEnumType());
-            Debug.Assert(!baseType.IsEnumType());
-
-            if (derivedType == baseType)
-            {
-                return true;      // identity.
-            }
-
-            // refactoring error tolerance:  structs and delegates can be base classes in error
-            // scenarios so we cannot filter on whether or not the base is marked as sealed.
-
-            if (baseType.IsInterfaceType())
-            {
-                // any implemented interface's original definition is 'baseType'
-                foreach (var iface in derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
-                {
-                    if (iface.OriginalDefinition == baseType)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            else
-            {
-                // any base class's original definition is 'baseType'
-                for (var type = derivedType.BaseTypeOriginalDefinition(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeOriginalDefinition(ref useSiteDiagnostics))
-                {
-                    if (type == baseType)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Determines if the source type is convertible to the destination type via
         /// any conversion: implicit, explicit, user-defined or built-in.
         /// </summary>
@@ -1804,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (var type = t.EffectiveBaseClass(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (type == source)
+                    if (HasIdentityConversion(type, source))
                     {
                         return true;
                     }
@@ -2002,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var iface in this.corLibrary.GetDeclaredSpecialType(SpecialType.System_Array).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (iface == source)
+                    if (HasIdentityConversion(iface, source))
                     {
                         return true;
                     }

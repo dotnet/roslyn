@@ -5354,6 +5354,51 @@ public class B<V> : A<EG<dynamic>> where V : EG<object>
         }
 
         [Fact]
+        public void TypeParameter_DynamicConversions()
+        {
+            string source = @"
+using System;
+
+public class EG<T> : Exception { }
+
+public abstract class A<T>
+{
+    public abstract void M<U>() where U : T;
+}
+
+public class B<V> : A<EG<dynamic>> where V : EG<object>
+{
+    public override void M<U>()
+    {
+        V v = default(V);
+        U u = default(U);
+
+        // implicit
+        EG<dynamic> egd = v;
+        // implicit
+        egd = u;
+
+        //explicit
+        v = (V)egd;
+        //explicit
+        u = (U)egd;
+
+        //implicit array
+        V[] va = null;        
+        EG<dynamic>[] egda = va;
+
+        // explicit array
+        va = (V[])egda;      
+    }
+
+    void Foo() { } 
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+        }
+
+
+        [Fact]
         public void CS0160ERR_UnreachableCatch_TypeParameter_Dynamic2()
         {
             string source = @"
