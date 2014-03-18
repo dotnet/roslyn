@@ -3068,13 +3068,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // So if the current type is a class-type (or an effective base type of a generic parameter) 
                     // that derives from the previous type the current catch is unreachable.
 
-                    if (previousBlock.ExceptionFilterOpt == null && (object)previousType != null && !previousType.IsErrorType() && !previousType.IsTypeParameter())
+                    if (previousBlock.ExceptionFilterOpt == null && (object)previousType != null && !previousType.IsErrorType())
                     {
-                        if ((object)effectiveType != null)
+                        if ((object)type != null)
                         {
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                            if (effectiveType.IsEqualToOrDerivedFrom(previousType, ignoreDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics))
+                            if (Conversions.HasIdentityOrImplicitReferenceConversion(type, previousType, ref useSiteDiagnostics))
                             {
                                 // "A previous catch clause already catches all exceptions of this or of a super type ('{0}')"
                                 Error(diagnostics, ErrorCode.ERR_UnreachableCatch, declaration.Type, previousType);

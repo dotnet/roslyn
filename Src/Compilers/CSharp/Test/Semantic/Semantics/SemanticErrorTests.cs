@@ -21645,5 +21645,40 @@ Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("Program.M<A.B>(I<A.B>)")
                 );
         }
 
+        [WorkItem(630799)]
+        [Fact]
+        public void Bug630799()
+        {
+            var text = @"
+using System;
+ 
+class Program
+{
+    static void Foo<T,S>() where T : S where S : Exception
+    {
+        try
+        {
+        }
+        catch(S e)
+        {
+        }
+        catch(T e)
+        {
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (14,15): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('S')
+    //         catch(T e)
+    Diagnostic(ErrorCode.ERR_UnreachableCatch, "T").WithArguments("S").WithLocation(14, 15),
+    // (11,17): warning CS0168: The variable 'e' is declared but never used
+    //         catch(S e)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(11, 17),
+    // (14,17): warning CS0168: The variable 'e' is declared but never used
+    //         catch(T e)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(14, 17)
+    );
+        }
     }
 }

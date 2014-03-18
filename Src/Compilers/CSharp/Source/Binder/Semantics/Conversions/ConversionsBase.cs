@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // * From T to its effective base class C.
             var effectiveBaseClass = source.EffectiveBaseClass(ref useSiteDiagnostics);
-            if (destination == effectiveBaseClass)
+            if (HasIdentityConversion(effectiveBaseClass, destination))
             {
                 return true;
             }
