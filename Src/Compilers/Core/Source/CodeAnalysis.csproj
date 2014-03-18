@@ -308,7 +308,7 @@
     <Compile Include="NonPortable\CLRHost\ICLRStrongName.cs" />
     <Compile Include="NonPortable\CLRHost\IEnumUnknown.cs" />
     <Compile Include="NonPortable\CLRHost\STARTUP_FLAGS.cs" />
-    <Compile Include="NonPortable\CommandLine\CommandLineAnalyzer.cs" />
+    <Compile Include="NonPortable\DiagnosticAnalyzerAssembly.cs" />
     <Compile Include="NonPortable\CommandLine\CommandLineReference.cs" />
     <Compile Include="NonPortable\CommandLine\CommandLineSourceFile.cs" />
     <Compile Include="NonPortable\CommandLine\CommonCommandLineArguments.cs" />

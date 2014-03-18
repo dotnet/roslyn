@@ -1656,23 +1656,23 @@ a.vb
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
         Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).Analyzer)
+        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:foo.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
         Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).Analyzer)
+        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:""foo.dll""", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
         Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).Analyzer)
+        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
         Assert.Equal(2, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).Analyzer)
-        Assert.Equal("bar.dll", parsedArgs.Analyzers(1).Analyzer)
+        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
+        Assert.Equal("bar.dll", parsedArgs.Analyzers(1).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("a", ":<file_list>"))

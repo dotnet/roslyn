@@ -3,14 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Represents a set of rules as specified in a rulset file.
     /// </summary>
-    internal class RuleSet
+    public class RuleSet
     {
         private readonly string filePath;
         /// <summary>
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the effective ruleset after resolving all the included rulesets.
         /// </summary>
-        public RuleSet GetEffectiveRuleSet()
+        private RuleSet GetEffectiveRuleSet()
         {
             var effectiveGeneralOption = generalDiagnosticOption;
             var effectiveSpecificOptions = new Dictionary<string, ReportDiagnostic>();
@@ -209,6 +212,70 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Parses the ruleset file at the given <paramref name="rulesetFileFullPath"/> and returns the following diagnostic options from the parsed file:
+        /// 1) A map of <paramref name="specificDiagnosticOptions"/> from rule ID to <see cref="ReportDiagnostic"/> option.
+        /// 2) A global <see cref="ReportDiagnostic"/> option for all rules in the ruleset file.
+        /// </summary>
+        public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        {
+            specificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+            if (rulesetFileFullPath == null)
+            {
+                return ReportDiagnostic.Default;
+            }
+
+            return GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, rulesetFileFullPath, null, null);
+        }
+
+        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string path, string baseDirectory, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        {
+            var resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+            if (resolvedPath == null)
+            {
+                if (diagnosticsOpt != null && messageProviderOpt != null)
+                {
+                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.FTL_InputFileNameTooLong, path));
+                }
+
+                return ReportDiagnostic.Default;
+            }
+
+            return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, resolvedPath, diagnosticsOpt, messageProviderOpt);
+        }
+
+        private static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string resolvedPath, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        {
+            Debug.Assert(resolvedPath != null);
+
+            var generalDiagnosticOption = ReportDiagnostic.Default;
+            try
+            {
+                var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(resolvedPath);
+                generalDiagnosticOption = ruleSet.GeneralDiagnosticOption;
+                foreach (var rule in ruleSet.SpecificDiagnosticOptions)
+                {
+                    diagnosticOptions.Add(rule.Key, rule.Value);
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                if (diagnosticsOpt != null && messageProviderOpt != null)
+                {
+                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, CodeAnalysisResources.FileNotFound));
+                }
+            }
+            catch (InvalidRuleSetException e)
+            {
+                if (diagnosticsOpt != null && messageProviderOpt != null)
+                {
+                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, e.Message));
+                }
+            }
+
+            return generalDiagnosticOption;
         }
     }
 }

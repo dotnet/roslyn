@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -751,33 +752,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic> diagnostics, string path, string baseDirectory)
         {
-            var generalDiagnosticOption = ReportDiagnostic.Default;
-            var resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
-            if (resolvedPath == null)
-            {
-                diagnostics.Add(Diagnostic.Create(messageProvider, messageProvider.FTL_InputFileNameTooLong, path));
-                return generalDiagnosticOption;
-            }
-
-            try
-            {
-                var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(resolvedPath);
-                generalDiagnosticOption = ruleSet.GeneralDiagnosticOption;
-                foreach (var rule in ruleSet.SpecificDiagnosticOptions)
-                {
-                    diagnosticOptions.Add(rule.Key, rule.Value);
-                }
-            }
-            catch (FileNotFoundException)
-            {
-                diagnostics.Add(Diagnostic.Create(messageProvider, messageProvider.ERR_CantReadRulesetFile, resolvedPath, CodeAnalysisResources.FileNotFound));
-            }
-            catch (Exception e)
-            {
-                diagnostics.Add(Diagnostic.Create(messageProvider, messageProvider.ERR_CantReadRulesetFile, resolvedPath, e.Message));
-            }
-
-            return generalDiagnosticOption;
+            return RuleSet.GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, path, baseDirectory, diagnostics, this.messageProvider);
         }
 
         /// <summary>

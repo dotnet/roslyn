@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Encoding codepage = null;
                 var defines = ArrayBuilder<string>.GetInstance();
                 List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
-                List<CommandLineAnalyzer> analyzers = new List<CommandLineAnalyzer>();
+                List<DiagnosticAnalyzerAssembly> analyzers = new List<DiagnosticAnalyzerAssembly>();
                 List<string> libPaths = new List<string>();
                 List<string> keyFileSearchPaths = new List<string>();
                 List<string> usings = new List<string>();
@@ -846,11 +846,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (string.IsNullOrEmpty(unquoted))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
-                        }
+                                }
                                 else
                                 {
                                     generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, diagnostics, unquoted, baseDirectory);
-                    }
+                                }
                                 continue;
                         }
                     }
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<CommandLineAnalyzer> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
+        private IEnumerable<DiagnosticAnalyzerAssembly> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1226,13 +1226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                 yield break;
-        }
+            }
 
             List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
 
             foreach (string path in paths)
             {
-                yield return new CommandLineAnalyzer(path);
+                yield return new DiagnosticAnalyzerAssembly(path);
             }
         }
 

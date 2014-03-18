@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a Include tag in a RuleSet file.
     /// </summary>
-    internal class RuleSetInclude
+    public class RuleSetInclude
     {
         private readonly string includePath;
         /// <summary>

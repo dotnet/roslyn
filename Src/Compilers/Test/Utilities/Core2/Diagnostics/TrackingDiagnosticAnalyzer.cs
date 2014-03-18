@@ -67,9 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyAllInterfaceMembersWereCalled()
         {
-            var expectedMembers = AllInterfaceMemberNames.Where(m => m != "SupportedDiagnostics");
             var actualMembers = callLog.Select(e => e.CallerName).Distinct();
-            AssertSequenceEqual(expectedMembers, actualMembers);
+            AssertSequenceEqual(AllInterfaceMemberNames, actualMembers);
         }
 
         public void VerifyAnalyzeSymbolCalledForAllSymbolKinds()

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves analyzers stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
-        protected List<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, TouchedFileLogger touchedFiles)
+        private ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, TouchedFileLogger touchedFiles)
         {
             List<IDiagnosticAnalyzer> analyzers = new List<IDiagnosticAnalyzer>();
 
@@ -131,59 +131,7 @@ namespace Microsoft.CodeAnalysis
                                     baseDirectory,
                                     touchedFiles);
 
-            foreach (CommandLineAnalyzer cmdLineAnalyzer in Arguments.Analyzers)
-            {
-                var analyzersFromAssembly = cmdLineAnalyzer.Resolve(fileResolver, diagnostics, MessageProvider);
-                if (analyzersFromAssembly != null)
-                {
-                    // If there are no analyzers in this assembly, let the user know.
-                    if (analyzersFromAssembly.IsEmpty())
-                    {
-                        diagnostics.Add(new DiagnosticInfo(MessageProvider, MessageProvider.WRN_NoAnalyzerInAssembly, cmdLineAnalyzer.Analyzer));
-                    }
-                    else
-                    {
-                        foreach (var analyzer in analyzersFromAssembly)
-                        {
-                            if (!AreAllDiagnosticsSuppressed(analyzer, Arguments.CompilationOptions.SpecificDiagnosticOptions))
-                            {
-                                analyzers.Add(analyzer);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return analyzers;
-        }
-
-        /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// </summary>
-        protected bool AreAllDiagnosticsSuppressed(IDiagnosticAnalyzer analyzer, IReadOnlyDictionary<string, ReportDiagnostic> diagnosticOptions)
-        {
-            var supportedDiagnostics = analyzer.SupportedDiagnostics;
-
-            foreach (var diag in supportedDiagnostics)
-            {
-                if (diagnosticOptions.ContainsKey(diag.Id))
-                {
-                    if (diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, fileResolver, Arguments.CompilationOptions, diagnostics, MessageProvider);
         }
 
         /// <summary>

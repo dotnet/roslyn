@@ -76,7 +76,14 @@ namespace Microsoft.CodeAnalysis
 
             using (XmlReader xmlReader = XmlReader.Create(filePath, settings))
             {
-                ruleSetDocument.Load(xmlReader);
+                try
+                {
+                    ruleSetDocument.Load(xmlReader);
+                }
+                catch (XmlException e)
+                {
+                    throw new InvalidRuleSetException(e.Message);
+                }
 
                 // Find the top level rule set node
                 XmlNodeList nodeList = ruleSetDocument.GetElementsByTagName(RuleSetNodeName);
