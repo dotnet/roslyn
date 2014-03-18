@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis
             get { return this.solutionServices.Workspace; }
         }
 
-        internal IWorkspaceServiceProvider WorkspaceServices
-        {
-            get { return this.solutionServices.WorkspaceServices; }
-        }
-
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
@@ -170,10 +165,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public VersionStamp Version
         {
-            get
-            {
-                return this.version;
-            }
+            get { return this.version; }
         }
 
         /// <summary>
@@ -308,12 +300,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the project in this solution with the specified project ID. This may cause the project details to be
-        /// loaded from disk and computed.
+        /// Gets the project in this solution with the specified project ID. 
         /// 
         /// If the id is not an id of a project that is part of this solution the method returns null.
         /// </summary>
-        public Project GetProject(ProjectId projectId, CancellationToken cancellationToken = default(CancellationToken))
+        public Project GetProject(ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -360,7 +351,7 @@ namespace Microsoft.CodeAnalysis
                     var mdref = compilation.GetMetadataReference(assemblySymbol);
                     if (mdref != null && metadataReferenceToProjectMap.TryGetValue(mdref, out id))
                     {
-                        return this.GetProject(id, cancellationToken);
+                        return this.GetProject(id);
                     }
                 }
             }

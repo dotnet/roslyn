@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds, CancellationToken cancellationToken)
         {
-            foreach (var language in projectIds.Select(p => solution.GetProject(p, cancellationToken).Language).Distinct())
+            foreach (var language in projectIds.Select(p => solution.GetProject(p).Language).Distinct())
             {
                 var renameRewriterLanguageService = LanguageService.GetService<IRenameRewriterLanguageService>(solution.Workspace, language);
                 var syntaxFactsLanguageService = LanguageService.GetService<ISyntaxFactsService>(solution.Workspace, language);

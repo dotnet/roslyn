@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
-        protected internal virtual bool SupportsPartialSemantics
+        protected internal virtual bool PartialSemanticsEnabled
         {
             get { return false; }
         }
@@ -228,76 +228,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a project reference to a project.
-        /// 
-        /// Override this method to implement the capability of adding project references.
-        /// </summary>
-        protected virtual void AddProjectReference(ProjectId projectId, ProjectReference projectReference)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called during ApplyChanges to remove a project reference from a project.
-        /// 
-        /// Override this method to implement the capability of removing project references.
-        /// </summary>
-        protected virtual void RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called during ApplyChanges to add a metadata reference to a project.
-        /// 
-        /// Override this method to implement the capability of adding metadata references.
-        /// </summary>
-        protected virtual void AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called during ApplyChanges to remove a metadata reference from a project.
-        /// 
-        /// Override this method to implement the capability of removing metadata references.
-        /// </summary>
-        protected virtual void RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called during ApplyChanges to add a new document to a project.
-        /// 
-        /// Override this method to implement the capability of adding documents.
-        /// </summary>
-        protected virtual void AddDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called during ApplyChanges to remove a document from a project.
-        /// 
-        /// Override this method to implement the capability of removing documents.
-        /// </summary>
-        protected virtual void RemoveDocument(DocumentId documentId)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// This method is called to change the text of a document.
-        /// 
-        /// Override this method to implement the capability of changing document text.
-        /// </summary>
-        protected virtual void ChangedDocumentText(DocumentId id, SourceText text)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
         /// Disposes this workspace. The workspace can longer be used after it is disposed.
         /// </summary>
         public void Dispose()
@@ -315,6 +245,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        #region Host API
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>
@@ -332,8 +263,6 @@ namespace Microsoft.CodeAnalysis
             solutionInfo.Projects.Do(p => OnProjectAdded(p, silent: true));
 
             var newSolution = this.CurrentSolution;
-
-            this.RegisterSolution(solutionInfo);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
         }
@@ -419,14 +348,11 @@ namespace Microsoft.CodeAnalysis
 
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(oldSolution.AddProject(projectInfo));
-            this.RegisterProjectAndDocuments(projectInfo);
 
             if (!silent)
             {
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectId);
             }
-
-            // NOTE: don't add documents and references directly, they are deferred.
         }
 
         /// <summary>
@@ -443,46 +369,11 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
                 var newSolution = oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo);
 
-                // register all the documents & project
-                this.RegisterProjectAndDocuments(reloadedProjectInfo);
-
                 newSolution = this.AdjustReloadedProject(oldSolution.GetProject(projectId), newSolution.GetProject(projectId)).Solution;
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
             }
-        }
-
-        private void RegisterProjectAndDocuments(ProjectInfo projectInfo)
-        {
-            foreach (var doc in projectInfo.Documents)
-            {
-                this.RegisterDocument(doc);
-            }
-
-            this.RegisterProject(projectInfo);
-        }
-
-        /// <summary>
-        /// This method is called when a document is first observed.
-        /// </summary>
-        protected virtual void RegisterDocument(DocumentInfo documentInfo)
-        {
-        }
-
-        /// <summary>
-        /// This method is called when a project if first observed, either when it is first added or accessed.
-        /// </summary>
-        protected virtual void RegisterProject(ProjectInfo projectInfo)
-        {
-        }
-
-        /// <summary>
-        /// This method is called when a solution is first observed.
-        /// </summary>
-        /// <param name="solutionInfo"></param>
-        protected virtual void RegisterSolution(SolutionInfo solutionInfo)
-        {
         }
 
         /// <summary>
@@ -659,9 +550,6 @@ namespace Microsoft.CodeAnalysis
                 CheckDocumentIsNotInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
-
-                RegisterDocument(documentInfo);
-
                 var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
@@ -681,9 +569,6 @@ namespace Microsoft.CodeAnalysis
                 CheckDocumentIsInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
-
-                RegisterDocument(newDocumentInfo);
-
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentReloaded, oldSolution, newSolution, documentId: documentId);
@@ -774,7 +659,9 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
+        #endregion
 
+        #region Apply Changes
         /// <summary>
         /// Determines if the specific kind of change is supported by the ApplyChanges method.
         /// </summary>
@@ -930,6 +817,77 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
             Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to add a project reference to a project.
+        /// 
+        /// Override this method to implement the capability of adding project references.
+        /// </summary>
+        protected virtual void AddProjectReference(ProjectId projectId, ProjectReference projectReference)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to remove a project reference from a project.
+        /// 
+        /// Override this method to implement the capability of removing project references.
+        /// </summary>
+        protected virtual void RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to add a metadata reference to a project.
+        /// 
+        /// Override this method to implement the capability of adding metadata references.
+        /// </summary>
+        protected virtual void AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to remove a metadata reference from a project.
+        /// 
+        /// Override this method to implement the capability of removing metadata references.
+        /// </summary>
+        protected virtual void RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to add a new document to a project.
+        /// 
+        /// Override this method to implement the capability of adding documents.
+        /// </summary>
+        protected virtual void AddDocument(DocumentId documentId, IEnumerable<string> folders, string name, SourceText text = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to remove a document from a project.
+        /// 
+        /// Override this method to implement the capability of removing documents.
+        /// </summary>
+        protected virtual void RemoveDocument(DocumentId documentId)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called to change the text of a document.
+        /// 
+        /// Override this method to implement the capability of changing document text.
+        /// </summary>
+        protected virtual void ChangedDocumentText(DocumentId id, SourceText text)
+        {
+            throw new NotSupportedException();
+        }
+        #endregion
 
         #region Checks and Asserts
         /// <summary>
