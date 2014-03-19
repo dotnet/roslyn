@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var fieldDeclaration = GetFieldDeclaration(this.SyntaxNode);
-                return fieldDeclaration.Location.SourceSpan.IntersectsWith(definedWithinSpan.Value);
+                return fieldDeclaration.SyntaxTree.HasCompilationUnitRoot && fieldDeclaration.Span.IntersectsWith(definedWithinSpan.Value);
             }
 
             return false;

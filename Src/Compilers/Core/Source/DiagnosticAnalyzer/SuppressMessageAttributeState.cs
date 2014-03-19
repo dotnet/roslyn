@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var node in symbol.DeclaringSyntaxReferences)
                 {
                     var warningStateMap = allSuppressionsBySyntaxTree.GetOrAdd(node.SyntaxTree, new WarningStateMap());
-                    warningStateMap.AddSuppression(id, node.Location.SourceSpan);
+                    warningStateMap.AddSuppression(id, node.Span);
                 }
             }
         }

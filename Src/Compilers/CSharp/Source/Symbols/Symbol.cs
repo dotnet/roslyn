@@ -668,10 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var location = syntaxRef.Location;
-                if (location.IsInSource &&
-                    location.SourceTree == tree &&
-                    (!definedWithinSpan.HasValue || location.SourceSpan.IntersectsWith(definedWithinSpan.Value)))
+                if (syntaxRef.SyntaxTree == tree &&
+                    (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)))
                 {
                     return true;
                 }

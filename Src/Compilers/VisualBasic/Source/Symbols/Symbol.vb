@@ -782,10 +782,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each syntaxRef In Me.DeclaringSyntaxReferences
                 cancellationToken.ThrowIfCancellationRequested()
 
-                Dim location = syntaxRef.Location
-                If location.IsInSource AndAlso
-                    location.SourceTree Is tree AndAlso
-                    (Not definedWithinSpan.HasValue OrElse location.SourceSpan.IntersectsWith(definedWithinSpan.Value)) Then
+                If syntaxRef.SyntaxTree Is tree AndAlso
+                    (Not definedWithinSpan.HasValue OrElse syntaxRef.Span.IntersectsWith(definedWithinSpan.Value)) Then
                     Return True
                 End If
             Next

@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(Of Location)(Me._syntaxReference.Location)
+                Return ImmutableArray.Create(Of Location)(Me._syntaxReference.GetLocation())
             End Get
         End Property
 

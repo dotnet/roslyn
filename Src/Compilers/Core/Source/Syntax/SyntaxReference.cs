@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// More performant than GetSyntax().GetLocation().
         /// </remarks>
-        internal Location Location
+        internal Location GetLocation()
         {
-            get { return this.SyntaxTree.GetLocation(this.Span); }
+            return this.SyntaxTree.GetLocation(this.Span);
         }
     }
 }

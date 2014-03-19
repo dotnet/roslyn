@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (!singleInitializer.Field.IsMetadataConstant)
                                 {
                                     // CS8028: '{0}': a class with the ComImport attribute cannot specify field initializers.
-                                    diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.Location, this.Name);
+                                    diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.GetLocation(), this.Name);
                                 }
                             }
                         }
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             foreach (var singleInitializer in initializerGroup)
                             {
                                 // CS8028: '{0}': a class with the ComImport attribute cannot specify field initializers.
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.Location, this.Name);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.GetLocation(), this.Name);
                             }
                         }
                     }

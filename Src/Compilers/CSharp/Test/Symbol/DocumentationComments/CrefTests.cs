@@ -1552,7 +1552,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.IsFromCompilation(compilation));
             AssertEx.None(actualTypeParameters, p => p.IsImplicitlyDeclared);
             AssertEx.All(actualTypeParameters, p => p.Variance == VarianceKind.None);
-            AssertEx.All(actualTypeParameters, p => p.Locations.Single() == p.DeclaringSyntaxReferences.Single().Location);
+            AssertEx.All(actualTypeParameters, p => p.Locations.Single() == p.DeclaringSyntaxReferences.Single().GetLocation());
             AssertEx.None(actualTypeParameters, p => p.HasValueTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);

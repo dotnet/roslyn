@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<Location>(this.declaringSyntax.Location);
+                return ImmutableArray.Create<Location>(this.declaringSyntax.GetLocation());
             }
         }
 
