@@ -675,6 +675,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithGeneralDiagnosticOption(value)
         End Function
 
+        Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)) As CompilationOptions
+            Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+        End Function
+
+        Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As CompilationOptions
+            Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+        End Function
+
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different report warning specified.
         ''' </summary>

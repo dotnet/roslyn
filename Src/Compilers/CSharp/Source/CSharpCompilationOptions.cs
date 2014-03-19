@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.Features = features.AsImmutableOrEmpty();
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
-            }
+        }
 
         private CSharpCompilationOptions(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -368,6 +368,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithGeneralDiagnosticOption(value);
         }
 
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        {
+            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+        }
+
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions)
+        {
+            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+        }
+
         public new CSharpCompilationOptions WithGeneralDiagnosticOption(ReportDiagnostic value)
         {
             if (this.GeneralDiagnosticOption == value)
@@ -378,12 +388,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { GeneralDiagnosticOption = value };
         }
 
-        public CSharpCompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> values)
+        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> values)
         {
             if (values == null)
-        {
+            {
                 values = ImmutableDictionary<string, ReportDiagnostic>.Empty;
-        }
+            }
 
             if (this.SpecificDiagnosticOptions == values)
             {
@@ -393,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values };
         }
 
-        public CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values)
+        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values)
         {
             return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
         }

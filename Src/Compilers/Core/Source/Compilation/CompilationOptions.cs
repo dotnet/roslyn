@@ -389,6 +389,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new options instance with the specified diagnostic-specific options.
+        /// </summary>
+        public CompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> value)
+        {
+            return CommonWithSpecificDiagnosticOptions(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the specified diagnostic-specific options.
+        /// </summary>
+        public CompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> value)
+        {
+            return CommonWithSpecificDiagnosticOptions(value);
+        }
+
+        /// <summary>
         /// Creates a new options instance with the specified output kind.
         /// </summary>
         public CompilationOptions WithOutputKind(OutputKind kind)
@@ -451,7 +467,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithMetadataReferenceProvider(MetadataReferenceProvider provider);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
-        protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value);
+        protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
+        protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
 
         /// <summary>
         /// Performs validation of options compatibilities and generates diagnostics if needed
