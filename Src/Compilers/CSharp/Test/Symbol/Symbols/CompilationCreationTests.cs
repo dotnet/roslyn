@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3866,7 +3866,7 @@ class Module1
             }
         }
 
-        private sealed class Resolver : TestFileResolver
+        private sealed class Resolver : TestMetadataReferenceResolver
         {
             private readonly string data, core, system;
 
@@ -3922,7 +3922,7 @@ System.Diagnostics.Process.GetCurrentProcess();
             var compilation = CSharpCompilation.Create("foo",
                 syntaxTrees: trees,
                 references: new[] { MscorlibRef },
-                options: TestOptions.Dll.WithFileResolver(new Resolver(data, core, system)));
+                options: TestOptions.Dll.WithMetadataReferenceResolver(new Resolver(data, core, system)).WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
             var boundRefs = compilation.Assembly.BoundReferences();
 
@@ -3958,7 +3958,9 @@ System.Diagnostics.Process.GetCurrentProcess();
             var compilation = CSharpCompilation.Create("foo",
                 syntaxTrees: trees,
                 references: new[] { mscorlibRef },
-                options: TestOptions.Dll.WithFileResolver(new Resolver(data, core, system)));
+                options: TestOptions.Dll
+                    .WithMetadataReferenceResolver(new Resolver(data, core, system))
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
             compilation.VerifyDiagnostics(
                 // (3,1): error CS0006: Metadata file '~!@#$%^&*():\?/' could not be found
@@ -3987,13 +3989,9 @@ System.Diagnostics.Process.GetCurrentProcess();
                 var path = fullPath == ResolvedPath ? targetDll : fullPath;
                 return new MetadataFileReference(path, properties);
             }
-
-            public override void ClearCache()
-            {
-            }
         }
 
-        private class DummyRelativePathResolver : TestFileResolver
+        private class DummyRelativePathResolver : TestMetadataReferenceResolver
         {
             public override string ResolveMetadataFile(string path, string basePath)
             {
@@ -4021,7 +4019,7 @@ class C : Metadata.ICSPropImpl { }";
                 {
                     Parse(source, options: TestOptions.Script) 
                 },
-                options: TestOptions.Dll.WithFileResolver(resolver).WithMetadataReferenceProvider(provider));
+                options: TestOptions.Dll.WithMetadataReferenceResolver(resolver).WithMetadataReferenceProvider(provider));
 
             compilation.VerifyDiagnostics();
         }
@@ -4039,11 +4037,29 @@ class C : Metadata.ICSPropImpl { }";
 ", Path.Combine(dir, "a.csx"), options: TestOptions.Script),
             };
 
-            var compilation = CSharpCompilation.Create("foo",
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef });
+            var compilation = CSharpCompilation.Create(
+                "foo",
+                trees,
+                new[] { MscorlibRef },
+                TestOptions.Dll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompilationWithReferenceDirective_NoResolver()
+        {
+            var compilation = CSharpCompilation.Create("foo",
+                new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", "a.csx", TestOptions.Script) },
+                new[] { MscorlibRef },
+                TestOptions.Dll.WithMetadataReferenceResolver(null));
+
+            compilation.VerifyDiagnostics(
+                // a.csx(1,1): error CS7099: Metadata references not supported.
+                // #r "bar"
+                Diagnostic(ErrorCode.ERR_MetadataReferencesNotSupported, @"#r ""bar"""));
         }
 
         [Fact]
@@ -4061,7 +4077,10 @@ class C : Metadata.ICSPropImpl { }";
 
             var compilation = CSharpCompilation.Create("foo",
                 syntaxTrees: trees,
-                references: new[] { MscorlibRef });
+                references: new[] { MscorlibRef },
+                options: TestOptions.Dll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
             compilation.VerifyDiagnostics();
         }
@@ -4081,9 +4100,13 @@ class C : Metadata.ICSPropImpl { }";
 ", Path.Combine(dir, "a.csx"), options: TestOptions.Script),
             };
 
-            var compilation = CSharpCompilation.Create("foo",
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef });
+            var compilation = CSharpCompilation.Create(
+                "foo",
+                trees,
+                new[] { MscorlibRef },
+                TestOptions.Dll
+                    .WithMetadataReferenceResolver(MetadataFileReferenceResolver.Default)
+                    .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
             compilation.VerifyDiagnostics();
         }

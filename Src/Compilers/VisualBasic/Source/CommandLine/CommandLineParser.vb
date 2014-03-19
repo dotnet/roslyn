@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -1288,7 +1288,7 @@ lVbRuntimePlus:
             ' /r:"quotes"in"the"middle
             Return ParseSeparatedPaths(value).
                    Select(Function(path)
-                              Dim isAssemblyName = IsInteractive AndAlso Not FileResolver.IsFilePath(path)
+                              Dim isAssemblyName = IsInteractive AndAlso Not MetadataFileReferenceResolver.IsFilePath(path)
                               Return New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes), isAssemblyName)
                           End Function)
         End Function

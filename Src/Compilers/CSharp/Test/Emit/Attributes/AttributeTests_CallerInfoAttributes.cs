@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1431,7 +1432,7 @@ partial class A
                     SyntaxFactory.ParseSyntaxTree(source4, @"       "),
                 },
                 new[] { SystemRef },
-                TestOptions.Exe.WithFileResolver(new FileResolver(new string[0], baseDirectory: null)));
+                TestOptions.Exe.WithSourceReferenceResolver(SourceFileResolver.Default));
 
             CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
@@ -1491,7 +1492,7 @@ partial class A { static void Main5() { Log(); } }
                     SyntaxFactory.ParseSyntaxTree(source5, @"C:\x.cs"),
                 },
                 new[] { SystemRef },
-                TestOptions.Exe.WithFileResolver(new FileResolver(new string[0], baseDirectory: @"C:\A\B")));
+                TestOptions.Exe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
             CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'

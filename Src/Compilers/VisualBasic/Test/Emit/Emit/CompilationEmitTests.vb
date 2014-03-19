@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -1017,7 +1017,7 @@ Imports System
                 Assert.Equal(expected.ActionFlags, actual.Action)
                 Assert.Equal(GetExpectedParentToken(metadataReader, expected), actual.Parent)
 
-                Dim actualPermissionSetBytes = MetadataReader.GetBytes(actual.PermissionSet)
+                Dim actualPermissionSetBytes = metadataReader.GetBytes(actual.PermissionSet)
                 Dim actualPermissionSet = New String(actualPermissionSetBytes.Select(Function(b) ChrW(b)).ToArray())
 
                 Assert.Equal(expected.PermissionSet, actualPermissionSet)
@@ -2025,12 +2025,12 @@ End Class
 </compilation>
 
             Dim syntaxTree = CreateParseTree(source)
-            Dim resolver = New FileResolver(ImmutableArray.Create(Of String)(), tempDir.Path)
+            Dim resolver = New XmlFileResolver(tempDir.Path)
             Dim comp = VisualBasicCompilation.Create(
                 GetUniqueName(),
                 {syntaxTree},
                 {MscorlibRef},
-                OptionsDll.WithFileResolver(resolver))
+                OptionsDll.WithXmlReferenceResolver(resolver))
 
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments(
@@ -2075,11 +2075,29 @@ end class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options:=Options.OptionsDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File"),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=nothing").WithArguments("<empty>", "File"))
+        End Sub
+
+        <Fact>
+        Public Sub PermissionSetAttribute_NoResolver()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+imports System.Security.Permissions
+
+&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistantFile.xml")&gt;
+public class AClass 
+end class
+    </file>
+</compilation>
+
+            CreateCompilationWithMscorlib(source, options:=Options.OptionsDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
+                Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(3, 46))
         End Sub
 
         <WorkItem(546074)>
@@ -2170,7 +2188,7 @@ End Class
                     GetUniqueName(),
                     {syntaxTree},
                     {MscorlibRef},
-                    Options.OptionsDll.WithFileResolver(New FileResolver(ImmutableArray.Create(Of String)(), Path.GetDirectoryName(filePath))))
+                    Options.OptionsDll.WithXmlReferenceResolver(New XmlFileResolver(Path.GetDirectoryName(filePath))))
 
                 comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments(
                     "Deny",

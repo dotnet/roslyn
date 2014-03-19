@@ -35,23 +35,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
+        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="metadataReferenceResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
         /// </summary>
-        public static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver)
+        public static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, MetadataFileReferenceResolver metadataReferenceResolver)
         {
-            return ResolveAnalyzerAssemblies(analyzerAssemblies, fileResolver, null, null);
+            return ResolveAnalyzerAssemblies(analyzerAssemblies, metadataReferenceResolver, null, null);
         }
 
         /// <summary>
-        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
+        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="metadataReferenceResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
         /// </summary>
-        internal static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, MetadataFileReferenceResolver metadataReferenceResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
 
             foreach (DiagnosticAnalyzerAssembly analyzerAssembly in analyzerAssemblies)
             {
-                analyzerAssembly.ResolveAnalyzerAssembly(builder, fileResolver, diagnosticsOpt, messageProviderOpt);
+                analyzerAssembly.ResolveAnalyzerAssembly(builder, metadataReferenceResolver, diagnosticsOpt, messageProviderOpt);
             }
 
             return builder.ToImmutable();
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis
         /// Resolves the diagnostic analyzer assembly path to a <see cref="IEnumerable{IDiagnosticAnalyzer}"/> using given file resolver.
         /// </summary>
         /// <param name="builder">Builder to add the diagnostic analyzers from the assembly.</param>
-        /// <param name="fileResolver">The file resolver to use for assembly name and relative path resolution.</param>
+        /// <param name="metadataReferenceResolver">The file resolver to use for assembly name and relative path resolution.</param>
         /// <param name="diagnosticsOpt">Optional diagnostics list for storing diagnostics.</param>
         /// <param name="messageProviderOpt">Optional <see cref="CommonMessageProvider"/> for generating diagnostics.</param>
-        private void ResolveAnalyzerAssembly(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, FileResolver fileResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        private void ResolveAnalyzerAssembly(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, MetadataFileReferenceResolver metadataReferenceResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
-            Debug.Assert(fileResolver != null);
+            Debug.Assert(metadataReferenceResolver != null);
 
-            string fullPath = fileResolver.ResolveMetadataFileChecked(this.assemblyPath, baseFilePath: null);
+            string fullPath = metadataReferenceResolver.ResolveMetadataFileChecked(this.assemblyPath, baseFilePath: null);
             if (fullPath == null)
             {
                 if (diagnosticsOpt != null && messageProviderOpt != null)

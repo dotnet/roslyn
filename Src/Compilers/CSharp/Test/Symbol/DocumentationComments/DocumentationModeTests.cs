@@ -376,7 +376,11 @@ partial class Partial {{ }}
             var trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, includeElement, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateCompilationWithMscorlib(trees, assemblyName: "Test");
+            var comp = CreateCompilationWithMscorlib(
+                trees, 
+                compOptions: TestOptions.Dll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                assemblyName: "Test");
+
             comp.VerifyDiagnostics(makeExpectedDiagnostics(includeElement));
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);

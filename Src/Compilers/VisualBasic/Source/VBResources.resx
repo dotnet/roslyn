@@ -215,6 +215,9 @@
   <data name="ERR_LibNotFound" xml:space="preserve">
     <value>could not find library '{0}'</value>
   </data>
+  <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
+    <value>Metadata references not supported.</value>
+  </data>  
   <data name="ERR_IconFileAndWin32ResFile" xml:space="preserve">
     <value>cannot specify both /win32icon and /win32resource</value>
   </data>
@@ -3730,7 +3733,7 @@
     <value>Unable to include XML fragment '{0}' of file '{1}'.</value>
   </data>
   <data name="WRN_XMLDocBadFormedXML" xml:space="preserve">
-    <value>Badly formed XML. File '{0}' cannot be included.</value>
+    <value>Unable to include XML fragment '{1}' of file '{0}'. {2}</value>
   </data>
   <data name="WRN_InterfaceConversion2" xml:space="preserve">
     <value>Runtime errors might occur when converting '{0}' to '{1}'.</value>

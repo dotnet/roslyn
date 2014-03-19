@@ -69,33 +69,33 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
 
-        internal virtual MetadataReferenceProvider GetMetadataProvider()
+        internal virtual MetadataFileReferenceProvider GetMetadataProvider()
         {
-            return MetadataReferenceProvider.Default;
+            return MetadataFileReferenceProvider.Default;
         }
 
         /// <summary>
         /// Resolves metadata references stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
         internal List<MetadataReference> ResolveMetadataReferences(
-            MetadataReferenceProvider metadataProvider,
+            MetadataFileReferenceProvider metadataProvider,
             List<DiagnosticInfo> diagnostics,
             AssemblyIdentityComparer assemblyIdentityComparer,
             TouchedFileLogger touchedFiles,
-            out FileResolver referenceDirectiveResolver)
+            out MetadataFileReferenceResolver referenceDirectiveResolver)
         {
             using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
             {
                 string baseDirectory = Arguments.BaseDirectory;
                 ImmutableArray<string> absoluteReferencePaths = MakeAbsolute(Arguments.ReferencePaths, baseDirectory);
 
-                FileResolver externalReferenceResolver = new FileResolver(
+                var externalReferenceResolver = new MetadataFileReferenceResolver(
                     absoluteReferencePaths,
                     baseDirectory,
                     touchedFiles);
 
                 List<MetadataReference> resolved = new List<MetadataReference>();
-                ResolveMetadataReferencesFromArguments(metadataProvider, diagnostics, externalReferenceResolver, resolved);
+                ResolveMetadataReferencesFromArguments(externalReferenceResolver, metadataProvider, diagnostics, resolved);
 
                 if (Arguments.IsInteractive)
                 {
@@ -125,19 +125,15 @@ namespace Microsoft.CodeAnalysis
 
             string baseDirectory = Arguments.BaseDirectory;
             ImmutableArray<string> absoluteReferencePaths = MakeAbsolute(Arguments.ReferencePaths, baseDirectory);
+            var referenceResolver = new MetadataFileReferenceResolver(absoluteReferencePaths, baseDirectory, touchedFiles);
 
-            var fileResolver = new FileResolver(
-                                    absoluteReferencePaths,
-                                    baseDirectory,
-                                    touchedFiles);
-
-            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, fileResolver, diagnostics, MessageProvider);
+            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, referenceResolver, diagnostics, MessageProvider);
         }
 
         /// <summary>
         /// Returns false if there were unresolved references in arguments, true otherwise.
         /// </summary>
-        protected virtual bool ResolveMetadataReferencesFromArguments(MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnostics, FileResolver externalReferenceResolver, List<MetadataReference> resolved)
+        protected virtual bool ResolveMetadataReferencesFromArguments(MetadataFileReferenceResolver externalReferenceResolver, MetadataFileReferenceProvider metadataProvider, List<DiagnosticInfo> diagnostics, List<MetadataReference> resolved)
         {
             bool result = true;
 
@@ -548,6 +544,7 @@ namespace Microsoft.CodeAnalysis
                             case DiagnosticSeverity.Error:
                                 sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
                                 break;
+
                             case DiagnosticSeverity.Warning:
                                 if (diagnostic.IsWarningAsError)
                                 {
@@ -558,9 +555,11 @@ namespace Microsoft.CodeAnalysis
                                     sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
                                 }
                                 break;
+
                             case DiagnosticSeverity.None:
                             case DiagnosticSeverity.Info:
                                 break;
+
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
                             }
@@ -576,12 +575,15 @@ namespace Microsoft.CodeAnalysis
                             case ReportDiagnostic.Suppress:
                                 sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
                                 break;
+
                             case ReportDiagnostic.Error:
                                 sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASERRORS_NUMBERS, code);       // Warning as errors
                                 break;
+
                             case ReportDiagnostic.Warn:
                                 sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASWARNINGS_NUMBERS, code);     // Warning as warnings
                                 break;
+
                             default:
                                 break;
                             }

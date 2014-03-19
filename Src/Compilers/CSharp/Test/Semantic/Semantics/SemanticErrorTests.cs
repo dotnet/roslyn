@@ -19893,6 +19893,29 @@ namespace MySpace
         }
 
         [Fact]
+        public void CS1589WRN_NoResolver()
+        {
+            var text = @"
+/// <include file='CS1589.doc' path='MyDocs/MyMembers[@name=""test""]/' />   // CS1589
+class Test
+{
+    public static void Main()
+    {
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(
+                new[] { Parse(text, options: TestOptions.RegularWithDocumentationComments) },
+                compOptions: TestOptions.Dll.WithXmlReferenceResolver(null));
+
+            c.VerifyDiagnostics(
+                // (2,5): warning CS1589: Unable to include XML fragment 'MyDocs/MyMembers[@name="test"]/' of file 'CS1589.doc' -- References to XML documents are not supported.
+                // /// <include file='CS1589.doc' path='MyDocs/MyMembers[@name="test"]/' />   // CS1589
+                Diagnostic(ErrorCode.WRN_FailedInclude, @"<include file='CS1589.doc' path='MyDocs/MyMembers[@name=""test""]/' />").
+                    WithArguments("CS1589.doc", @"MyDocs/MyMembers[@name=""test""]/", "References to XML documents are not supported."));
+        }
+
+        [Fact]
         public void CS1589WRN_FailedInclude()
         {
             var text = @"
@@ -19908,7 +19931,7 @@ class Test
                 // (2,5): warning CS1589: Unable to include XML fragment 'MyDocs/MyMembers[@name="test"]/' of file 'CS1589.doc' -- Unable to find the specified file.
                 // /// <include file='CS1589.doc' path='MyDocs/MyMembers[@name="test"]/' />   // CS1589
                 Diagnostic(ErrorCode.WRN_FailedInclude, @"<include file='CS1589.doc' path='MyDocs/MyMembers[@name=""test""]/' />").
-                    WithArguments("CS1589.doc", @"MyDocs/MyMembers[@name=""test""]/", "Unable to find the specified file."));
+                    WithArguments("CS1589.doc", @"MyDocs/MyMembers[@name=""test""]/", "File not found."));
         }
 
         [Fact]

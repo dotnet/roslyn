@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
@@ -8,12 +9,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LocationTests
         Inherits TestBase
 
-        Private Shared ReadOnly _resolver As New Resolver()
+        Private Shared ReadOnly _resolver As New TestSourceResolver()
 
-        Private Class Resolver
-            Inherits TestFileResolver
+        Private Class TestSourceResolver
+            Inherits SourceFileResolver
 
-            Friend Overrides Function NormalizePath(path As String, basePath As String) As String
+            Sub New()
+                MyBase.New(ImmutableArray(Of String).Empty, Nothing)
+            End Sub
+
+            Public Overrides Function NormalizePath(path As String, basePath As String) As String
                 Return String.Format("[{0};{1}]", path, basePath)
             End Function
         End Class

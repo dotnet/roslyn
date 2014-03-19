@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -845,7 +845,9 @@ public class E : bar::C { }
                         t3 = Parse("#r \"Foo\"", options: TestOptions.Script),
                     },
                     references: new MetadataReference[] { MscorlibRef, r1, r2 },
-                    options: TestOptions.Dll.WithFileResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } }))
+                    options: TestOptions.Dll.
+                        WithMetadataReferenceResolver(new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } })).
+                        WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default)
                 );
 
                 // no diagnostics expected, all duplicate references should be ignored as they all refer to the same file:
@@ -923,7 +925,7 @@ public class E : bar::C { }
         {
         }
 
-        private class ErroneousReferenceResolver : TestFileResolver
+        private class ErroneousReferenceResolver : TestMetadataReferenceResolver
         {
             public ErroneousReferenceResolver()
             {
@@ -1222,7 +1224,7 @@ public class A
             compilation.VerifyDiagnostics();
         }
 
-        private class ReferenceResolver1 : TestFileResolver
+        private class ReferenceResolver1 : TestMetadataReferenceResolver
         {
             public readonly string path1, path2;
 
@@ -1278,7 +1280,9 @@ public class A
                         Parse("#r \"1\"", options: TestOptions.Script),
                         Parse("#r \"2.dll\"", options: TestOptions.Script),
                     },
-                    options: TestOptions.Dll.WithFileResolver(resolver));
+                    options: TestOptions.Dll
+                        .WithMetadataReferenceResolver(resolver)
+                        .WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default));
 
                 Assert.NotNull(c1.Assembly); // force creation of SourceAssemblySymbol
 
@@ -1300,7 +1304,9 @@ public class A
         {
             using (MetadataCache.LockAndClean())
             {
-                var resolver = new ErroneousReferenceResolver();
+                var options = TestOptions.Dll.
+                    WithMetadataReferenceResolver(new ErroneousReferenceResolver()).
+                    WithMetadataReferenceProvider(MetadataFileReferenceProvider.Default);
 
                 foreach (var tree in new[] 
                 {
@@ -1309,7 +1315,7 @@ public class A
                     Parse("#r \"rec\"", options: TestOptions.Script),
                 })
                 {
-                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: TestOptions.Dll.WithFileResolver(resolver));
+                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
                     Assert.Throws<TestException>(() => { var a = c.Assembly; });
                 }
 
@@ -1318,7 +1324,7 @@ public class A
                     Parse("#r \"relative.dll\"", options: TestOptions.Script),
                 })
                 {
-                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: TestOptions.Dll.WithFileResolver(resolver));
+                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
                     Assert.Throws<InvalidOperationException>(() => { var a = c.Assembly; });
                 }
             }
@@ -1347,7 +1353,7 @@ public class A
                 var c1 = CSharpCompilation.Create("c",
                     syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
                     options: TestOptions.Dll.
-                        WithFileResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
+                        WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } })).
                         WithMetadataReferenceProvider(provider));
 
                 Assert.Throws<TestException>(() => { var a = c1.Assembly; });
@@ -1356,7 +1362,7 @@ public class A
                     references: new[] { MscorlibRef },
                     syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
                     options: TestOptions.Dll.
-                        WithFileResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
+                        WithMetadataReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } })).
                         WithMetadataReferenceProvider(provider));
 
                 c2.VerifyDiagnostics(

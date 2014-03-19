@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -1577,14 +1577,26 @@ public class TestClass
         }
 
         [Fact]
-        public void ReferenceManagerReuse_WithFileResolver()
+        public void ReferenceManagerReuse_WithMetadataReferenceResolver()
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.Dll);
 
-            var c2 = c1.WithOptions(TestOptions.Dll.WithFileResolver(new FileResolver(ImmutableArray.Create<string>(), null)));
+            var c2 = c1.WithOptions(TestOptions.Dll.WithMetadataReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray.Create<string>(), null)));
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            var c3 = c1.WithOptions(TestOptions.Dll.WithFileResolver(c1.Options.FileResolver));
+            var c3 = c1.WithOptions(TestOptions.Dll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver));
+            Assert.True(c1.ReferenceManagerEquals(c3));
+        }
+
+        [Fact]
+        public void ReferenceManagerReuse_WithXmlFileResolver()
+        {
+            var c1 = CSharpCompilation.Create("c", options: TestOptions.Dll);
+
+            var c2 = c1.WithOptions(TestOptions.Dll.WithXmlReferenceResolver(new XmlFileResolver(null)));
+            Assert.False(c1.ReferenceManagerEquals(c2));
+
+            var c3 = c1.WithOptions(TestOptions.Dll.WithXmlReferenceResolver(c1.Options.XmlReferenceResolver));
             Assert.True(c1.ReferenceManagerEquals(c3));
         }
 
@@ -1593,7 +1605,7 @@ public class TestClass
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.Dll);
 
-            var c2 = c1.WithOptions(TestOptions.Dll.WithMetadataReferenceProvider(new MetadataReferenceProvider()));
+            var c2 = c1.WithOptions(TestOptions.Dll.WithMetadataReferenceProvider(new MetadataFileReferenceProvider()));
             Assert.False(c1.ReferenceManagerEquals(c2));
 
             var c3 = c1.WithOptions(TestOptions.Dll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider));
@@ -1715,7 +1727,7 @@ class C { }", options: TestOptions.Script);
             var as1 = ars.ReplaceSyntaxTree(tr, ts);
             Assert.False(ars.ReferenceManagerEquals(as1));
         }
-
+        
         private sealed class EvolvingTestReference : PortableExecutableReference
         {
             private readonly IEnumerator<Metadata> metadataSequence;
@@ -1896,13 +1908,15 @@ public class C { public static FrameworkName Foo() { return null; }}";
             MemoryStream o = SerializeToStream(TestOptions.Dll);
             var dt = (CSharpCompilationOptions)DeserializeFromStream(o);
 
-            // the resolvers are not serializable
+            // resolvers are not serializable
             dt = dt.
-                WithFileResolver(options.FileResolver).
+                WithMetadataReferenceResolver(options.MetadataReferenceResolver).
                 WithMetadataReferenceProvider(options.MetadataReferenceProvider).
+                WithXmlReferenceResolver(options.XmlReferenceResolver).
+                WithSourceReferenceResolver(options.SourceReferenceResolver).
                 WithAssemblyIdentityComparer(options.AssemblyIdentityComparer).
                 WithStrongNameProvider(options.StrongNameProvider);
-
+            
             Assert.Equal(TestOptions.Dll, dt);
         }
         

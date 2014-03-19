@@ -159,16 +159,28 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
 
         /// <summary>
-        /// Translates a resolved assembly reference path to a path to the file that can be opened by the compiler.
-        /// <see cref="MetadataReferenceProvider.Default"/> if not specified.
+        /// Translates a resolved assembly reference path to an actual <see cref="PortableExecutableReference"/>.
+        /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
         /// </summary>
         public MetadataReferenceProvider MetadataReferenceProvider { get; protected set; }
 
         /// <summary>
-        /// Gets the resolver for resolving file references for the compilation.
-        /// <see cref="FileResolver.Default"/> if not specified.
+        /// Resolves paths to metadata references specified in source via #r directives.
+        /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
         /// </summary>
-        public FileResolver FileResolver { get; protected set; }
+        public MetadataReferenceResolver MetadataReferenceResolver { get; protected set; }
+
+        /// <summary>
+        /// Gets the resolver for resolving XML document references for the compilation.
+        /// Null if the compilation is not allowed to contain XML file references, such as XML doc comment include tags and permission sets stored in an XML file.
+        /// </summary>
+        public XmlReferenceResolver XmlReferenceResolver { get; protected set; }
+
+        /// <summary>
+        /// Gets the resolver for resolving source document references for the compilation.
+        /// Null if the compilation is not allowed to contain source file references, such as #line pragmas and #load directives.
+        /// </summary>
+        public SourceReferenceResolver SourceReferenceResolver { get; protected set; }
 
         /// <summary>
         /// Provides strong name and signature the source assembly.
@@ -205,7 +217,9 @@ namespace Microsoft.CodeAnalysis
             DebugInformationKind debugInformationKind,
             SubsystemVersion subsystemVersion,
             bool concurrentBuild,
-            FileResolver fileResolver,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
             MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
@@ -214,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             Initialize(
                 outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, 
                 baseAddress, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, 
-                subsystemVersion, concurrentBuild, fileResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, 
+                subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, 
                 metadataImportOptions);
         }
 
@@ -238,7 +252,9 @@ namespace Microsoft.CodeAnalysis
             DebugInformationKind debugInformationKind,
             SubsystemVersion subsystemVersion,
             bool concurrentBuild,
-            FileResolver fileResolver,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
             MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
@@ -263,12 +279,14 @@ namespace Microsoft.CodeAnalysis
             this.Optimize = optimize;
             this.ConcurrentBuild = concurrentBuild;
             this.SubsystemVersion = subsystemVersion;
-            this.FileResolver = fileResolver ?? FileResolver.Default;
-            this.MetadataReferenceProvider = metadataReferenceProvider ?? MetadataReferenceProvider.Default;
+            this.XmlReferenceResolver = xmlReferenceResolver;
+            this.SourceReferenceResolver = sourceReferenceResolver;
+            this.MetadataReferenceResolver = metadataReferenceResolver;
+            this.MetadataReferenceProvider = metadataReferenceProvider;
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
-
+            
             this.lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
                 var builder = ArrayBuilder<Diagnostic>.GetInstance();
@@ -299,8 +317,10 @@ namespace Microsoft.CodeAnalysis
                 debugInformationKind: (DebugInformationKind)info.GetInt32(DebugInformationKindString),
                 subsystemVersion: (SubsystemVersion)info.GetValue(SubsystemVersionString, typeof(SubsystemVersion)),
                 concurrentBuild: info.GetBoolean(ConcurrentBuildString),
-                fileResolver: FileResolver.Default,
-                metadataReferenceProvider: MetadataReferenceProvider.Default,
+                xmlReferenceResolver: XmlFileResolver.Default,
+                sourceReferenceResolver: SourceFileResolver.Default,
+                metadataReferenceResolver: MetadataFileReferenceResolver.Default,
+                metadataReferenceProvider: MetadataFileReferenceProvider.Default,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                 strongNameProvider: new DesktopStrongNameProvider(),
                 metadataImportOptions: (MetadataImportOptions)info.GetByte(metadataImportOptionsString));
@@ -338,7 +358,8 @@ namespace Microsoft.CodeAnalysis
             // Can reuse even if StrongNameProvider changes. When resolving a cyclic reference only the simple name is considered, not the strong name.
             return this.MetadataImportOptions == other.MetadataImportOptions
                 && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
-                && object.Equals(this.FileResolver, other.FileResolver)
+                && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
+                && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
                 && object.Equals(this.MetadataReferenceProvider, other.MetadataReferenceProvider)
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
@@ -391,16 +412,24 @@ namespace Microsoft.CodeAnalysis
             return CommonWithOptimizations(enabled);
         }
 
-        protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value);
-
-        public CompilationOptions WithFileResolver(FileResolver resolver)
+        public CompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
-            return CommonWithFileResolver(resolver);
+            return CommonWithXmlReferenceResolver(resolver);
+        }
+
+        public CompilationOptions WithSourceReferenceResolver(SourceReferenceResolver resolver)
+        {
+            return CommonWithSourceReferenceResolver(resolver);
         }
 
         public CompilationOptions WithMetadataReferenceProvider(MetadataReferenceProvider provider)
         {
             return CommonWithMetadataReferenceProvider(provider);
+        }
+
+        public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver resolver)
+        {
+            return CommonWithMetadataReferenceResolver(resolver);
         }
 
         public CompilationOptions WithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
@@ -416,10 +445,13 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizations(bool enabled);
-        protected abstract CompilationOptions CommonWithFileResolver(FileResolver resolver);
+        protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver);
+        protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver);
+        protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceProvider(MetadataReferenceProvider provider);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
+        protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value);
 
         /// <summary>
         /// Performs validation of options compatibilities and generates diagnostics if needed
@@ -467,7 +499,9 @@ namespace Microsoft.CodeAnalysis
                    this.SubsystemVersion.Equals(other.SubsystemVersion) &&
                    this.WarningLevel == other.WarningLevel &&
                    object.Equals(this.MetadataReferenceProvider, other.MetadataReferenceProvider) &&
-                   object.Equals(this.FileResolver, other.FileResolver) &&
+                   object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver) &&
+                   object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
+                   object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
 
@@ -498,10 +532,12 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(Hash.CombineValues(this.SpecificDiagnosticOptions),
                    Hash.Combine(this.SubsystemVersion.GetHashCode(),
                    Hash.Combine(this.WarningLevel,
+                   Hash.Combine(this.MetadataReferenceResolver,
                    Hash.Combine(this.MetadataReferenceProvider,
-                   Hash.Combine(this.FileResolver,
+                   Hash.Combine(this.XmlReferenceResolver,
+                   Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

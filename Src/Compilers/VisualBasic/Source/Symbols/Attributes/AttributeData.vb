@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -363,7 +363,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' resolve file prop path
                     Dim fileName = DirectCast(namedArg.Value.Value, String)
-                    resolvedFilePath = compilation.Options.FileResolver.ResolveXmlFile(fileName, baseFilePath:=Nothing)
+                    Dim resolver = compilation.Options.XmlReferenceResolver
+                    resolvedFilePath = If(resolver IsNot Nothing, resolver.ResolveReference(fileName, baseFilePath:=Nothing), Nothing)
 
                     If resolvedFilePath Is Nothing Then
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static int CacheMissCount { get; private set; }
 
-        public DocumentationCommentIncludeCache(FileResolver resolver)
+        public DocumentationCommentIncludeCache(XmlReferenceResolver resolver)
             : base(Size,
                    key => MakeValue(resolver, key),
                    KeyHashCode,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException"></exception>
         /// <exception cref="XmlException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        private static KeyValuePair<string, XDocument> MakeValue(FileResolver resolver, string resolvedPath)
+        private static KeyValuePair<string, XDocument> MakeValue(XmlReferenceResolver resolver, string resolvedPath)
         {
             CacheMissCount++;
 

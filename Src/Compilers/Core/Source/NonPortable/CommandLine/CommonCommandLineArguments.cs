@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -195,12 +195,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves metadata references stored in <see cref="P:MetadataReferences"/> using given file resolver and metadata provider.
         /// </summary>
-        /// <param name="fileResolver">The file resolver to use for assembly name and relative path resolution, or null to use a default.</param>
-        /// <param name="metadataProvider">Uses to create metadata references from resolved full paths, or null to use a default.</param>
+        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution, or null to use a default.</param>
+        /// <param name="metadataProvider"><see cref="MetadataReferenceProvider"/> to read metadata resolved paths, or null to use a default.</param>
         /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
-        public IEnumerable<MetadataReference> ResolveMetadataReferences(FileResolver fileResolver = null, MetadataReferenceProvider metadataProvider = null)
+        public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataFileReferenceResolver metadataResolver = null, MetadataReferenceProvider metadataProvider = null)
         {
-            return ResolveMetadataReferences(fileResolver, metadataProvider, diagnosticsOpt: null, messageProviderOpt: null);
+            return ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt: null, messageProviderOpt: null);
         }
 
         /// <summary>
@@ -209,21 +209,21 @@ namespace Microsoft.CodeAnalysis
         /// reports appropriate diagnostics.
         /// Otherwise, if <paramref name="diagnosticsOpt"/> is null, the exceptions are unhandled.
         /// </summary>
-        internal IEnumerable<MetadataReference> ResolveMetadataReferences(FileResolver fileResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataFileReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
-            if (fileResolver == null)
+            if (metadataResolver == null)
             {
-                fileResolver = new FileResolver(ReferencePaths, BaseDirectory);
+                metadataResolver = new MetadataFileReferenceResolver(ReferencePaths, BaseDirectory, touchedFiles: null);
             }
 
             if (metadataProvider == null)
             {
-                metadataProvider = MetadataReferenceProvider.Default;
+                metadataProvider = MetadataFileReferenceProvider.Default;
             }
 
             foreach (CommandLineReference cmdLineReference in MetadataReferences)
             {
-                yield return cmdLineReference.Resolve(fileResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
+                yield return cmdLineReference.Resolve(metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,6 +10,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class CheckSumTest : CSharpTestBase
     {
+        private static CSharpCompilation CreateCompilationWithChecksums(string source, string filePath, string baseDirectory)
+        {
+            return CSharpCompilation.Create(
+                GetUniqueName(),
+                new[] { ParseWithChecksum(source, filePath) },
+                new[] { MscorlibRef },
+                TestOptions.Dll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
+        }
+
         [Fact]
         public void CheckSumPragmaClashesSameTree()
         {
@@ -48,11 +57,10 @@ class C
                 VerifyDiagnostics(
                 // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A798}" "ab007f1d23d9"
-    Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A798}"" ""ab007f1d23d9""").WithArguments("bogus1.cs"),
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A798}"" ""ab007f1d23d9""").WithArguments("bogus1.cs"),
                 // (22,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d8"
-    Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d8""").WithArguments("bogus1.cs")
-                );
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d8""").WithArguments("bogus1.cs"));
         }
 
         [Fact]
@@ -84,17 +92,16 @@ class C
                 VerifyDiagnostics(
                 // (11,71): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d"
-    Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""ab007f1d23d"""),
+                Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""ab007f1d23d"""),
                 // (14,30): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A79}" "ab007f1d23d9"
-    Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""{406EA660-64CF-4C82-B6F0-42D48172A79}"""),
+                Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""{406EA660-64CF-4C82-B6F0-42D48172A79}"""),
                 // (6,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
-    Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus1.cs"),
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus1.cs"),
                 // (7,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" ""
-    Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" """"").WithArguments("bogus1.cs")
-                );
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" """"").WithArguments("bogus1.cs"));
         }
 
         [Fact]
@@ -136,8 +143,7 @@ class C1
                 VerifyDiagnostics(
                 // (11,1): warning CS1697: Different checksum values given for 'bogus.cs'
                 // #pragma checksum "bogus.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
-    Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus.cs")
-                );
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus.cs"));
         }
 
         [Fact]
@@ -209,15 +215,6 @@ int y = 1;
             PDBTests.AssertXmlEqual(expected, actual);
         }
 
-        private static CSharpCompilation CreateCompilationWithBaseDirectory(string source, string filePath, string baseDirectory)
-        {
-            return CSharpCompilation.Create(
-                GetUniqueName(), 
-                new[] { ParseWithChecksum(source, filePath) }, 
-                new[] { MscorlibRef },
-                TestOptions.Dll.WithFileResolver(new FileResolver(ImmutableArray.Create<string>(), baseDirectory)));
-        }
-
         [WorkItem(729235)]
         [Fact]
         public void NormalizedPath_Tree()
@@ -232,7 +229,7 @@ class C
 ";
 
 
-            var comp = CreateCompilationWithBaseDirectory(source, "b.cs", @"b:\base");
+            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
             string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify the value of name attribute in file element.
@@ -251,6 +248,47 @@ class C
       <sequencepoints total=""2"">
         <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""1"" />
         <entry il_offset=""0x1"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""1"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>";
+
+            PDBTests.AssertXmlEqual(expected, actual);
+        }
+
+        [Fact]
+        public void NoResolver()
+        {
+            var comp = CSharpCompilation.Create(
+                GetUniqueName(),
+                new[] { ParseWithChecksum(@"
+#pragma checksum ""a\..\a.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d5""
+#line 10 ""a\..\a.cs""
+class C { void M() { } }
+
+", @"C:\a\..\b.cs") },
+                new[] { MscorlibRef },
+                TestOptions.Dll.WithSourceReferenceResolver(null));
+
+            string actual = PDBTests.GetPdbXml(comp, "C.M");
+
+            // Verify the value of name attribute in file element.
+            string expected = @"
+<symbols>
+  <files>
+    <file id=""1"" name=""a\..\a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""2"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""20"" end_row=""10"" end_column=""21"" file_ref=""1"" />
+        <entry il_offset=""0x1"" start_row=""10"" start_column=""22"" end_row=""10"" end_column=""23"" file_ref=""1"" />
       </sequencepoints>
       <locals />
     </method>
@@ -284,7 +322,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithBaseDirectory(source, "b.cs", @"b:\base");
+            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
             string actual = PDBTests.GetPdbXml(comp, "C.M");
 
             // Verify the fact that there's a single file element for "line.cs" and it has an absolute path.
@@ -350,7 +388,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithBaseDirectory(source, "file.cs", @"b:\base");
+            var comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
             comp.VerifyDiagnostics();
             string actual = PDBTests.GetPdbXml(comp, "C.M");
 
@@ -411,7 +449,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithBaseDirectory(source, "file.cs", null);
+            var comp = CreateCompilationWithChecksums(source, "file.cs", null);
             comp.VerifyDiagnostics();
             string actual = PDBTests.GetPdbXml(comp, "C.M");
 

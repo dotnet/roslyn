@@ -404,6 +404,9 @@
   <data name="ERR_NoMetadataFile" xml:space="preserve">
     <value>Metadata file '{0}' could not be found</value>
   </data>
+  <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
+    <value>Metadata references not supported.</value>
+  </data>
   <data name="FTL_MetadataCantOpenFile" xml:space="preserve">
     <value>Metadata file '{0}' could not be opened -- {1}</value>
   </data>

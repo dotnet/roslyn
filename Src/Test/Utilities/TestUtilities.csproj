@@ -136,7 +136,7 @@
     <Compile Include="TempFile.cs" />
     <Compile Include="TempRoot.cs" />
     <Compile Include="TestBase.cs" />
-    <Compile Include="TestFileResolver.cs" />
+    <Compile Include="TestMetadataReferenceResolver.cs" />
     <Compile Include="TestHelpers.cs" />
     <Compile Include="TestMessageProvider.cs" />
     <Compile Include="TestResource.Designer.cs">

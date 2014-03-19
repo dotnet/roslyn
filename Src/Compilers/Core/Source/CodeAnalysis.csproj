@@ -125,7 +125,8 @@
     <Compile Include="Compilation\DebugInformationKind.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
-    <Compile Include="Compilation\FileResolver.cs" />
+    <Compile Include="Compilation\SourceReferenceResolver.cs" />
+    <Compile Include="Compilation\XmlReferenceResolver.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
     <Compile Include="Compilation\PreprocessingSymbolInfo.cs" />
@@ -292,6 +293,7 @@
     <Compile Include="MetadataReference\MetadataReference.cs" />
     <Compile Include="MetadataReference\MetadataReferenceProperties.cs" />
     <Compile Include="MetadataReference\MetadataReferenceProvider.cs" />
+    <Compile Include="MetadataReference\MetadataReferenceResolver.cs" />
     <Compile Include="MetadataReference\ModuleMetadata.cs" />
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
@@ -329,8 +331,12 @@
     <Compile Include="NonPortable\IVsSQM.cs" />
     <Compile Include="NonPortable\MetadataCache.cs" />
     <Compile Include="NonPortable\MetadataFileReference.cs" />
+    <Compile Include="NonPortable\MetadataFileReferenceProvider.cs" />
+    <Compile Include="NonPortable\MetadataFileReferenceResolver.cs" />
     <Compile Include="NonPortable\ModuleMetadata.FromFile.cs" />
+    <Compile Include="NonPortable\SourceFileResolver.cs" />
     <Compile Include="NonPortable\SqmServiceProvider.cs" />
+    <Compile Include="NonPortable\XmlFileResolver.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
     <Compile Include="PEWriter\AliasForType.cs" />

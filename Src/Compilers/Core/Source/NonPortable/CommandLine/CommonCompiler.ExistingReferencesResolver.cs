@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// When scripts are included into a project we don't want #r's to reference other assemblies than those 
         /// specified explicitly in the project references.
         /// </summary>
-        internal sealed class ExistingReferencesResolver : FileResolver
+        internal sealed class ExistingReferencesResolver : MetadataFileReferenceResolver
         {
             private readonly ImmutableArray<MetadataFileReference> availableReferences;
             private readonly AssemblyIdentityComparer assemblyIdentityComparer;

@@ -322,15 +322,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File resolver should return readable non-null stream..
-        /// </summary>
-        internal static string FileResolverShouldReturnReadableNonNullStream {
-            get {
-                return ResourceManager.GetString("FileResolverShouldReturnReadableNonNullStream", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to File size exceeds maximum allowed size of a valid metadata file..
         /// </summary>
         internal static string FileSizeExceedsMaximumAllowed {
@@ -547,6 +538,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Normalized path must be non-empty..
+        /// </summary>
+        internal static string NormalizedPathMustBeNonEmpty {
+            get {
+                return ResourceManager.GetString("NormalizedPathMustBeNonEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Output kind not supported..
         /// </summary>
         internal static string OutputKindNotSupported {
@@ -606,6 +606,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property {
             get {
                 return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference resolver should return readable non-null stream..
+        /// </summary>
+        internal static string ReferenceResolverShouldReturnReadableNonNullStream {
+            get {
+                return ResourceManager.GetString("ReferenceResolverShouldReturnReadableNonNullStream", resourceCulture);
             }
         }
         
@@ -768,6 +777,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string WinRTIdentityCantBeRetargetable {
             get {
                 return ResourceManager.GetString("WinRTIdentityCantBeRetargetable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to References to XML documents are not supported..
+        /// </summary>
+        internal static string XmlReferencesNotSupported {
+            get {
+                return ResourceManager.GetString("XmlReferencesNotSupported", resourceCulture);
             }
         }
     }

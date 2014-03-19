@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                 // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
 
-                bool isAssemblyName = IsInteractive && !FileResolver.IsFilePath(path);
+                bool isAssemblyName = IsInteractive && !MetadataFileReferenceResolver.IsFilePath(path);
                 yield return new CommandLineReference(path, new MetadataReferenceProperties(MetadataImageKind.Assembly, alias, embedInteropTypes), isAssemblyName);
             }
         }

@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilationWithMscorlib(
                 new[] { Parse(text, options: TestOptions.RegularWithDocumentationComments) },
                 references: references,
-                compOptions: compOptions,
+                compOptions: (compOptions ?? TestOptions.Dll).WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: assemblyName);
         }
 

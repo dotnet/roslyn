@@ -5308,6 +5308,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Metadata references not supported..
+        /// </summary>
+        internal static string ERR_MetadataReferencesNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_MetadataReferencesNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No overload for &apos;{0}&apos; matches delegate &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_MethDelegateMismatch {

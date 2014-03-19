@@ -4297,7 +4297,9 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { ParseWithChecksum(text1, @"C:\Folder1\Folder2\Test1.cs") }, compOptions: TestOptions.Dll);
+            var compilation = CreateCompilationWithMscorlib(
+                new[] { ParseWithChecksum(text1, @"C:\Folder1\Folder2\Test1.cs") }, 
+                compOptions: TestOptions.Dll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
             string actual = GetPdbXml(compilation);
 

@@ -1014,11 +1014,17 @@ namespace Microsoft.CodeAnalysis
 
         internal string NormalizeDebugDocumentPath(string path, string basePath)
         {
+            var resolver = compilation.Options.SourceReferenceResolver;
+            if (resolver == null)
+            {
+                return path;
+            }
+
             var key = ValueTuple.Create(path, basePath);
             string normalizedPath;
             if (!normalizedPathsCache.TryGetValue(key, out normalizedPath))
             {
-                normalizedPath = compilation.Options.FileResolver.NormalizePath(path, basePath);
+                normalizedPath = resolver.NormalizePath(path, basePath);
                 normalizedPathsCache.TryAdd(key, normalizedPath);
             }
 

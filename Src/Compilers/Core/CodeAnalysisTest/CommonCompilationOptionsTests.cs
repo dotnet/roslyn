@@ -28,21 +28,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "DelaySign",
                 "Errors",
                 "FileAlignment",
-                "FileResolver",
                 "GeneralDiagnosticOption",
                 "HighEntropyVirtualAddressSpace",
                 "MainTypeName",
                 "MetadataImportOptions",
                 "MetadataReferenceProvider",
+                "MetadataReferenceResolver",
                 "ModuleName",
                 "Optimize",
                 "OutputKind",
                 "Platform",
                 "ScriptClassName",
+                "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",
                 "StrongNameProvider",
                 "SubsystemVersion",
-                "WarningLevel");
+                "WarningLevel",
+                "XmlReferenceResolver");
         }
     }
 }

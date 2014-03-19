@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -89,9 +89,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Read the file contents at the resolved file path into a byte array.
             // May throw PermissionSetFileReadException, which is handled in Compilation.Emit.
+            var resolver = context.ModuleBuilder.CommonCompilation.Options.XmlReferenceResolver;
+
+            // If the resolver isn't available we won't get here since we had to use it to resolve the path.
+            Debug.Assert(resolver != null);
+
             try
             {
-                using (Stream stream = context.ModuleBuilder.CommonCompilation.Options.FileResolver.OpenReadChecked(resolvedPermissionSetFilePath))
+                using (Stream stream = resolver.OpenReadChecked(resolvedPermissionSetFilePath))
                 {
                     // Convert the byte array contents into a string in hexa-decimal format.
                     hexFileContent = ConvertToHex(stream);
@@ -180,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             public string ArgumentName { get { return HexPropertyName; } }
             public Cci.IMetadataExpression ArgumentValue { get { return this.value; } }
             public bool IsField { get { return false; } }
-
+            
             Cci.ITypeReference Cci.IMetadataExpression.Type { get { return this.type; } }
 
             void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)

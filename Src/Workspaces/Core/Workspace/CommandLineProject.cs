@@ -31,12 +31,13 @@ namespace Microsoft.CodeAnalysis
             var commandLineArguments = commandLineArgumentsFactory.CreateCommandLineArguments(commandLineArgs, projectDirectory, isInteractive: false);
 
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
-            var fileResolver = new FileResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-
+            var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
+            var referenceProvider = workspace.CurrentSolution.MetadataReferenceProvider;
+            var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
             // resolve all references, ignore those that can't be resolved
-            var boundReferences = commandLineArguments.ResolveMetadataReferences(fileResolver, workspace.CurrentSolution.MetadataReferenceProvider);
+            var boundReferences = commandLineArguments.ResolveMetadataReferences(referenceResolver, referenceProvider);
             var unresolved = boundReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
             if (unresolved != null)
             {
@@ -109,9 +110,11 @@ namespace Microsoft.CodeAnalysis
                 assemblyName,
                 language: language,
                 compilationOptions: commandLineArguments.CompilationOptions
-                    .WithFileResolver(fileResolver)
+                    .WithXmlReferenceResolver(xmlFileResolver)
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
-                    .WithStrongNameProvider(strongNameProvider),
+                    .WithStrongNameProvider(strongNameProvider)
+                    .WithMetadataReferenceResolver(referenceResolver)
+                    .WithMetadataReferenceProvider(referenceProvider),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: docs,
                 metadataReferences: boundReferences);

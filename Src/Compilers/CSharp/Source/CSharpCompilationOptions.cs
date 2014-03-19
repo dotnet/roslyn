@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -66,14 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool concurrentBuild = true,
-            FileResolver fileResolver = null,
+            XmlReferenceResolver xmlReferenceResolver = null,
+            SourceReferenceResolver sourceReferenceResolver = null,
+            MetadataReferenceResolver metadataReferenceResolver = null,
             MetadataReferenceProvider metadataReferenceProvider = null,
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimize, checkOverflow, allowUnsafe,
             cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
-                   fileResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: null)
+                   xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: null)
         {
         }
 
@@ -101,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SubsystemVersion subsystemVersion,
             string runtimeMetadataVersion,
             bool concurrentBuild,
-            FileResolver fileResolver,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
             MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IEnumerable<string> features)
             : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, baseAddress,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
-                   subsystemVersion, concurrentBuild, fileResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions)
+                   subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions)
         {
             Initialize(usings, allowUnsafe, features, runtimeMetadataVersion);
         }
@@ -137,7 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             subsystemVersion: other.SubsystemVersion,
             runtimeMetadataVersion: other.RuntimeMetadataVersion,
             concurrentBuild: other.ConcurrentBuild,
-            fileResolver: other.FileResolver,
+            xmlReferenceResolver: other.XmlReferenceResolver,
+            sourceReferenceResolver: other.SourceReferenceResolver,
+            metadataReferenceResolver: other.MetadataReferenceResolver,
             metadataReferenceProvider: other.MetadataReferenceProvider,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
@@ -437,22 +443,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { RuntimeMetadataVersion = version };
         }
 
-        public new CSharpCompilationOptions WithFileResolver(FileResolver resolver)
+        public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
-            resolver = resolver ?? FileResolver.Default;
-
-            if (ReferenceEquals(resolver, this.FileResolver))
+            if (ReferenceEquals(resolver, this.XmlReferenceResolver))
             {
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { FileResolver = resolver };
+            return new CSharpCompilationOptions(this) { XmlReferenceResolver = resolver };
+        }
+
+        public new CSharpCompilationOptions WithSourceReferenceResolver(SourceReferenceResolver resolver)
+        {
+            if (ReferenceEquals(resolver, this.SourceReferenceResolver))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { SourceReferenceResolver = resolver };
+        }
+
+        public new CSharpCompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver resolver)
+        {
+            if (ReferenceEquals(resolver, this.MetadataReferenceResolver))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { MetadataReferenceResolver = resolver };
         }
 
         public new CSharpCompilationOptions WithMetadataReferenceProvider(MetadataReferenceProvider provider)
         {
-            provider = provider ?? MetadataReferenceProvider.Default;
-
             if (ReferenceEquals(provider, this.MetadataReferenceProvider))
             {
                 return this;
@@ -503,9 +525,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyIdentityComparer(comparer);
         }
 
-        protected override CompilationOptions CommonWithFileResolver(FileResolver resolver)
+        protected override CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
-            return WithFileResolver(resolver);
+            return WithXmlReferenceResolver(resolver);
+        }
+
+        protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver)
+        {
+            return WithSourceReferenceResolver(resolver);
+        }
+
+        protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver)
+        {
+            return WithMetadataReferenceResolver(resolver);
         }
 
         protected override CompilationOptions CommonWithMetadataReferenceProvider(MetadataReferenceProvider provider)

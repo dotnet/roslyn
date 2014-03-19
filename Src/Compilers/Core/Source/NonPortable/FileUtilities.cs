@@ -234,22 +234,40 @@ namespace Roslyn.Utilities
         /// Normalizes an absolute path.
         /// </summary>
         /// <param name="path">Path to normalize.</param>
-        /// <exception cref="ArgumentException"/>
-        /// <exception cref="System.Security.SecurityException"/>
-        /// <exception cref="ArgumentNullException"/>
-        /// <exception cref="NotSupportedException"/>
-        /// <exception cref="PathTooLongException"/>
+        /// <exception cref="IOException"/>
         /// <returns>Normalized path.</returns>
         internal static string NormalizeAbsolutePath(string path)
         {
             // we can only call GetFullPath on an absolute path to avoid dependency on process state (current directory):
             Debug.Assert(PathUtilities.IsAbsolute(path));
-            return Path.GetFullPath(path);
+
+            try
+            {
+                return Path.GetFullPath(path);
+            }
+            catch (ArgumentException e)
+            {
+                throw new IOException(e.Message, e);
+            }
+            catch (System.Security.SecurityException e)
+            {
+                throw new IOException(e.Message, e);
+            }
+            catch (NotSupportedException e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
+
+        internal static string NormalizeDirectoryPath(string path)
+        {
+            return NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
         internal static string TryNormalizeAbsolutePath(string path)
         {
             Debug.Assert(PathUtilities.IsAbsolute(path));
+
             try
             {
                 return Path.GetFullPath(path);
@@ -257,6 +275,26 @@ namespace Roslyn.Utilities
             catch
             {
                 return null;
+            }
+        }
+
+        internal static FileStream OpenRead(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
+            try
+            {
+                // Use FileShare.Delete to support files that are opened with DeleteOnClose option.
+                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            }
+            catch (Exception e)
+            {
+                if (e is IOException)
+                {
+                    throw;
+                }
+
+                throw new IOException(e.Message, e);
             }
         }
 

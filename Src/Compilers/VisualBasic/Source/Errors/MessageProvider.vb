@@ -217,6 +217,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MetadataReferencesNotSupported As Integer
+            Get
+                Return ERRID.ERR_MetadataReferencesNotSupported
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_LinkedNetmoduleMetadataMustProvideFullPEImage As Integer
             Get
                 Return ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage
@@ -225,14 +231,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Sub ReportDuplicateMetadataReferenceStrong(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
             diagnostics.Add(ERRID.ERR_DuplicateReferenceStrong,
-                            DirectCast(location, location),
+                            DirectCast(location, Location),
                             If(reference.Display, identity.GetDisplayName()),
                             If(equivalentReference.Display, equivalentIdentity.GetDisplayName()))
         End Sub
 
         Public Overrides Sub ReportDuplicateMetadataReferenceWeak(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
             diagnostics.Add(ERRID.ERR_DuplicateReference2,
-                            DirectCast(location, location),
+                            DirectCast(location, Location),
                             identity.Name,
                             If(equivalentReference.Display, equivalentIdentity.GetDisplayName()))
         End Sub
@@ -314,37 +320,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Overrides Sub ReportInvalidAttributeArgument(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, attribute As AttributeData)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(parameterIndex).GetLocation(), attribute.AttributeClass)
         End Sub
 
         Public Overrides Sub ReportInvalidNamedArgument(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, namedArgumentIndex As Integer, attributeClass As ITypeSymbol, parameterName As String)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(namedArgumentIndex).GetLocation(), attributeClass)
         End Sub
 
         Public Overrides Sub ReportParameterNotValidForType(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, namedArgumentIndex As Integer)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_ParameterNotValidForType, node.ArgumentList.Arguments(namedArgumentIndex).GetLocation())
         End Sub
 
         Public Overrides Sub ReportMarshalUnmanagedTypeNotValidForFields(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, unmanagedTypeName As String, attribute As AttributeData)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_MarshalUnmanagedTypeNotValidForFields, node.ArgumentList.Arguments(parameterIndex).GetLocation(), unmanagedTypeName)
         End Sub
 
         Public Overrides Sub ReportMarshalUnmanagedTypeOnlyValidForFields(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, unmanagedTypeName As String, attribute As AttributeData)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_MarshalUnmanagedTypeOnlyValidForFields, node.ArgumentList.Arguments(parameterIndex).GetLocation(), unmanagedTypeName)
         End Sub
 
         Public Overrides Sub ReportAttributeParameterRequired(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterName As String)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_AttributeParameterRequired1, node.Name.GetLocation(), parameterName)
         End Sub
 
         Public Overrides Sub ReportAttributeParameterRequired(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterName1 As String, parameterName2 As String)
-            Dim node = DirectCast(attributeSyntax, attributeSyntax)
+            Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_AttributeParameterRequired2, node.Name.GetLocation(), parameterName1, parameterName2)
         End Sub
 

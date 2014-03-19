@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -10,6 +10,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
     Public Class ChecksumTests
         Inherits BasicTestBase
+
+        Private Shared Function CreateCompilationWithChecksums(source As XCData, filePath As String, baseDirectory As String) As VisualBasicCompilation
+
+            Dim tree As SyntaxTree
+            Using stream = New MemoryStream
+                Using writer = New StreamWriter(stream)
+                    writer.Write(source.Value)
+                    writer.Flush()
+                    stream.Position = 0
+                    Dim text = New EncodedStringText(stream, encodingOpt:=Nothing)
+                    tree = VisualBasicSyntaxTree.ParseText(text, filePath)
+                End Using
+            End Using
+
+            Dim resolver As New SourceFileResolver(ImmutableArray(Of String).Empty, baseDirectory)
+            Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, Options.UnoptimizedDll.WithSourceReferenceResolver(resolver))
+        End Function
+
 
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
@@ -161,23 +179,6 @@ End Class
 
         End Sub
 
-        Private Shared Function CreateCompilationWithBaseDirectory(source As XCData, filePath As String, baseDirectory As String) As VisualBasicCompilation
-
-            Dim tree As SyntaxTree
-            Using stream = New MemoryStream
-                Using writer = New StreamWriter(stream)
-                    writer.Write(source.Value)
-                    writer.Flush()
-                    stream.Position = 0
-                    Dim text = New EncodedStringText(stream, encodingOpt:=Nothing)
-                    tree = VisualBasicSyntaxTree.ParseText(text, filePath)
-                End Using
-            End Using
-
-            Dim resolver As New FileResolver(ImmutableArray.Create(Of String)(), baseDirectory)
-            Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, Options.UnoptimizedDll.WithFileResolver(resolver))
-        End Function
-
         <WorkItem(729235)>
         <Fact>
         Public Sub NormalizedPath_Tree()
@@ -188,7 +189,7 @@ Class C
 End Class
 ]]>
 
-            Dim comp = CreateCompilationWithBaseDirectory(source, "b.vb", "b:\base")
+            Dim comp = CreateCompilationWithChecksums(source, "b.vb", "b:\base")
             Dim actual = PDBTests.GetPdbXml(comp, "C.M")
 
             ' Only actually care about value of name attribute in file element.
@@ -240,7 +241,7 @@ Class C
 End Class
 ]]>
 
-            Dim comp = CreateCompilationWithBaseDirectory(source, "b.vb", "b:\base")
+            Dim comp = CreateCompilationWithChecksums(source, "b.vb", "b:\base")
             Dim actual = PDBTests.GetPdbXml(comp, "C.M")
 
             ' Care about the fact that there's a single file element for "line.vb" and it has an absolute path.
@@ -306,7 +307,7 @@ Class C
 End Class
 ]]>
 
-            Dim comp = CreateCompilationWithBaseDirectory(source, "file.vb", "b:\base")
+            Dim comp = CreateCompilationWithChecksums(source, "file.vb", "b:\base")
             Dim actual = PDBTests.GetPdbXml(comp, "C.M")
 
             ' Care about the fact that all pragmas are referenced, even though the paths differ before normalization.
@@ -364,7 +365,7 @@ Class C
 End Class
 ]]>
 
-            Dim comp = CreateCompilationWithBaseDirectory(source, "file.vb", Nothing)
+            Dim comp = CreateCompilationWithChecksums(source, "file.vb", Nothing)
             Dim actual = PDBTests.GetPdbXml(comp, "C.M")
 
             ' Verify that nothing blew up.

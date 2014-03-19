@@ -1442,13 +1442,35 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReferenceManagerReuse_WithFileResolver()
+        Public Sub ReferenceManagerReuse_WithXmlFileResolver()
             Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
 
-            Dim c2 = c1.WithOptions(OptionsDll.WithFileResolver(New FileResolver(ImmutableArray.Create(Of String)(), Nothing)))
+            Dim c2 = c1.WithOptions(OptionsDll.WithXmlReferenceResolver(New XmlFileResolver(Nothing)))
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-            Dim c3 = c1.WithOptions(OptionsDll.WithFileResolver(c1.Options.FileResolver))
+            Dim c3 = c1.WithOptions(OptionsDll.WithXmlReferenceResolver(c1.Options.XmlReferenceResolver))
+            Assert.True(c1.ReferenceManagerEquals(c3))
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithMetadataReferenceResolver()
+            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+
+            Dim c2 = c1.WithOptions(OptionsDll.WithMetadataReferenceResolver(New MetadataFileReferenceResolver(ImmutableArray.Create(Of String)(), Nothing)))
+            Assert.False(c1.ReferenceManagerEquals(c2))
+
+            Dim c3 = c1.WithOptions(OptionsDll.WithMetadataReferenceResolver(c1.Options.MetadataReferenceResolver))
+            Assert.True(c1.ReferenceManagerEquals(c3))
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithMetadataReferenceProvider()
+            Dim c1 = VisualBasicCompilation.Create("c", options:=OptionsDll)
+
+            Dim c2 = c1.WithOptions(OptionsDll.WithMetadataReferenceProvider(New MetadataFileReferenceProvider()))
+            Assert.False(c1.ReferenceManagerEquals(c2))
+
+            Dim c3 = c1.WithOptions(OptionsDll.WithMetadataReferenceProvider(c1.Options.MetadataReferenceProvider))
             Assert.True(c1.ReferenceManagerEquals(c3))
         End Sub
 

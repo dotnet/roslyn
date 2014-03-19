@@ -330,9 +330,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 Else
                                     commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
-                                                                    ERRID.WRN_XMLDocIllegalTagOnElement2,
-                                                                    elementName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                        ERRID.WRN_XMLDocIllegalTagOnElement2,
+                                                                        elementName,
+                                                                        Me._tagsSupport.SymbolName)
                                 End If
                             End If
 
@@ -476,16 +476,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim xpathValue As String = pathAttr.Value
                         Dim filePathValue As String = fileAttr.Value
 
-                        Dim resolvedFilePath As String = _compilation.Options.FileResolver.ResolveXmlFile(filePathValue, currentXmlFilePath)
+                        Dim resolver = _compilation.Options.XmlReferenceResolver
+                        If resolver Is Nothing Then
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, CodeAnalysisResources.XmlReferencesNotSupported)
+                            Return New XNode() {New XComment(commentMessage)}
+                        End If
 
+                        Dim resolvedFilePath As String = resolver.ResolveReference(filePathValue, currentXmlFilePath)
                         If resolvedFilePath Is Nothing Then
-                            ' file reference from 'file' attribute value was not resolved with ResolveXmlFile(...)
-                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue)
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, CodeAnalysisResources.FileNotFound)
                             Return New XNode() {New XComment(commentMessage)}
                         End If
 
                         If _includedFileCache Is Nothing Then
-                            _includedFileCache = New DocumentationCommentIncludeCache(_compilation.Options.FileResolver)
+                            _includedFileCache = New DocumentationCommentIncludeCache(_compilation.Options.XmlReferenceResolver)
                         End If
 
                         Try
@@ -494,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Try
                                 doc = _includedFileCache.GetOrMakeDocument(resolvedFilePath)
                             Catch e As IOException
-                                commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue)
+                                commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, e.Message)
                                 Return New XNode() {New XComment(commentMessage)}
                             End Try
 

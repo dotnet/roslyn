@@ -62,7 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="optimize">An optional parameter to enabled/disable optimization. </param>
         ''' <param name="subsystemVersion">An optional parameter to specify an alternate subsystem version. <see cref="Microsoft.CodeAnalysis.SubsystemVersion"/> Specifies the minimum version of the subsystem on which the generated executable file can run, thereby determining the versions of Windows on which the executable file can run. Most commonly, this option ensures that the executable file can leverage particular security features that aren�t available with older versions of Windows.</param>
         ''' <param name="parseOptions">An optional parameter to specify the parse options. <see cref="VisualBasicParseOptions"/></param>
-        ''' <param name="fileResolver">An optional parameter to specify the <see cref="FileResolver"/>.</param>
+        ''' <param name="xmlReferenceResolver">An optional parameter to specify the XML file resolver.</param>
+        ''' <param name="sourceReferenceResolver">An optional parameter to specify the source file resolver.</param>
+        ''' <param name="metadataReferenceResolver">An optional parameter the <see cref="MetadataReferenceResolver"/>.</param>
         ''' <param name="metadataReferenceProvider">An optional parameter the <see cref="MetadataReferenceProvider"/>.</param>
         ''' <param name="assemblyIdentityComparer">An optional parameter the <see cref="AssemblyIdentityComparer"/>.</param>
         ''' <param name="strongNameProvider">An optional parameter the <see cref="StrongNameProvider"/>.</param>
@@ -93,7 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional debugInformationKind As DebugInformationKind = DebugInformationKind.None,
             Optional subsystemVersion As SubsystemVersion = Nothing,
             Optional concurrentBuild As Boolean = True,
-            Optional fileResolver As FileResolver = Nothing,
+            Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
+            Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
+            Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
             Optional metadataReferenceProvider As MetadataReferenceProvider = Nothing,
             Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
             Optional strongNameProvider As StrongNameProvider = Nothing)
@@ -125,7 +129,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugInformationKind,
                 subsystemVersion,
                 concurrentBuild,
-                fileResolver,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
                 metadataReferenceProvider,
                 assemblyIdentityComparer,
                 strongNameProvider,
@@ -160,7 +166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugInformationKind As DebugInformationKind,
             subsystemVersion As SubsystemVersion,
             concurrentBuild As Boolean,
-            fileResolver As FileResolver,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
             metadataReferenceProvider As MetadataReferenceProvider,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -186,7 +194,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugInformationKind:=debugInformationKind,
                 subsystemVersion:=subsystemVersion,
                 concurrentBuild:=concurrentBuild,
-                fileResolver:=fileResolver,
+                xmlReferenceResolver:=xmlReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                metadataReferenceResolver:=metadataReferenceResolver,
                 metadataReferenceProvider:=metadataReferenceProvider,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
@@ -224,7 +234,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugInformationKind:=other.DebugInformationKind,
                 subsystemVersion:=other.SubsystemVersion,
                 concurrentBuild:=other.ConcurrentBuild,
-                fileResolver:=other.FileResolver,
+                xmlReferenceResolver:=other.XmlReferenceResolver,
+                sourceReferenceResolver:=other.SourceReferenceResolver,
+                metadataReferenceResolver:=other.MetadataReferenceResolver,
                 metadataReferenceProvider:=other.MetadataReferenceProvider,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
@@ -762,19 +774,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {._parseOptions = options}
         End Function
 
-        Public Shadows Function WithFileResolver(resolver As FileResolver) As VisualBasicCompilationOptions
-            resolver = If(resolver, FileResolver.Default)
-
-            If resolver Is Me.FileResolver Then
+        Public Shadows Function WithXmlReferenceResolver(resolver As XmlReferenceResolver) As VisualBasicCompilationOptions
+            If resolver Is Me.XmlReferenceResolver Then
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.FileResolver = resolver}
+            Return New VisualBasicCompilationOptions(Me) With {.XmlReferenceResolver = resolver}
+        End Function
+
+        Public Shadows Function WithSourceReferenceResolver(resolver As SourceReferenceResolver) As VisualBasicCompilationOptions
+            If resolver Is Me.SourceReferenceResolver Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.SourceReferenceResolver = resolver}
+        End Function
+
+        Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VisualBasicCompilationOptions
+            If resolver Is Me.MetadataReferenceResolver Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.MetadataReferenceResolver = resolver}
         End Function
 
         Public Shadows Function WithMetadataReferenceProvider(provider As MetadataReferenceProvider) As VisualBasicCompilationOptions
-            provider = If(provider, MetadataReferenceProvider.Default)
-
             If provider Is Me.MetadataReferenceProvider Then
                 Return Me
             End If
@@ -816,8 +840,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyIdentityComparer(comparer)
         End Function
 
-        Protected Overrides Function CommonWithFileResolver(resolver As FileResolver) As CompilationOptions
-            Return WithFileResolver(resolver)
+        Protected Overrides Function CommonWithXmlReferenceResolver(resolver As XmlReferenceResolver) As CompilationOptions
+            Return WithXmlReferenceResolver(resolver)
+        End Function
+
+        Protected Overrides Function CommonWithSourceReferenceResolver(resolver As SourceReferenceResolver) As CompilationOptions
+            Return WithSourceReferenceResolver(resolver)
+        End Function
+
+        Protected Overrides Function CommonWithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As CompilationOptions
+            Return WithMetadataReferenceResolver(resolver)
         End Function
 
         Protected Overrides Function CommonWithMetadataReferenceProvider(provider As MetadataReferenceProvider) As CompilationOptions

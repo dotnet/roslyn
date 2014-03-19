@@ -2943,7 +2943,7 @@ ProduceBoundNode:
                             End If
                         Else
                             Debug.Assert(isCallerFilePath)
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.FileResolver))
+                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
                         End If
 
                         If callerInfoValue IsNot Nothing Then

@@ -25,16 +25,15 @@ namespace Microsoft.CodeAnalysis
         /// The path shall not be null.
         /// 
         /// The file doesn't need to exist on disk. The path is opaque for the compiler.
-        /// The only requirement on the path format is that the implementation of <see cref="FileResolver"/> 
-        /// passed to the compilation that contains the tree understands it.
+        /// The only requirement on the path format is that the implementations of 
+        /// <see cref="SourceReferenceResolver"/>, <see cref="XmlReferenceResolver"/> and <see cref="MetadataReferenceResolver"/> 
+        /// passed to the compilation that contains the tree understand it.
         /// 
         /// Clients must also not assume that the values of this property are unique
         /// within a Compilation.
         /// 
-        /// The path is used in two important ways:
+        /// The path is used as follows:
         ///    - When debug information is emitted, this path is embedded in the debug information.
-        ///    - When the GetLineSpan function on the SyntaxTree is called, it is used as the file path
-        ///      in the returned FileLinePositionSpan.
         ///    - When resolving and normalizing relative paths in #r, #load, #line/#ExternalSource, 
         ///      #pragma checksum, #ExternalChecksum directives, XML doc comment include elements, etc.
         /// </remarks>
@@ -228,10 +227,15 @@ namespace Microsoft.CodeAnalysis
         /// Unlike Dev12 we do account for #line and #ExternalSource directives when determining value for 
         /// <see cref="System.Runtime.CompilerServices.CallerFilePathAttribute"/>.
         /// </remarks>
-        internal string GetDisplayPath(TextSpan span, FileResolver resolver)
+        internal string GetDisplayPath(TextSpan span, SourceReferenceResolver resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
-            return resolver.NormalizePath(mappedSpan.Path, basePath: mappedSpan.HasMappedPath ? FilePath : null);
+            if (resolver == null)
+            {
+                return mappedSpan.Path;
+            }
+
+            return resolver.NormalizePathChecked(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -158,13 +159,8 @@ namespace Roslyn.Utilities
 
             var directory = Path.GetDirectoryName(filePath);
 
-            var frameworkOrReferencePaths = GetReferencePaths().Concat(GetFrameworkPaths()).Select(dir => NormalizePath(dir));
+            var frameworkOrReferencePaths = GetReferencePaths().Concat(GetFrameworkPaths()).Select(FileUtilities.NormalizeDirectoryPath);
             return frameworkOrReferencePaths.Any(dir => directory.StartsWith(dir, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static string NormalizePath(string path)
-        {
-            return FileUtilities.NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 }

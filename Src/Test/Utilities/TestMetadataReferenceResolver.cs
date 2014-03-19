@@ -1,12 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
@@ -15,16 +12,16 @@ namespace Roslyn.Test.Utilities
     /// File resolver that doesn't resolve any relative paths. 
     /// Tests should subclass and specify only as much context as necessary to test specific scenarios.
     /// </summary>
-    internal abstract class TestFileResolver : FileResolver
+    internal abstract class TestMetadataReferenceResolver : MetadataFileReferenceResolver
     {
-        public TestFileResolver()
-            : base(assemblySearchPaths: ImmutableArray.Create<string>(),
+        public TestMetadataReferenceResolver()
+            : base(searchPaths: ImmutableArray.Create<string>(),
                    baseDirectory: null)
         {
         }
     }
 
-    internal class MappingReferenceResolver : TestFileResolver
+    internal class MappingReferenceResolver : TestMetadataReferenceResolver
     {
         private readonly Dictionary<string, string> assemblyNames;
         private readonly Dictionary<string, string> files;
@@ -53,12 +50,12 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    public class VirtualizedFileResolver : FileResolver
+    public class VirtualizedReferenceResolver : MetadataFileReferenceResolver
     {
         private readonly Dictionary<string, string> assemblyNames;
         private readonly HashSet<string> existingFullPaths;
 
-        public VirtualizedFileResolver(
+        public VirtualizedReferenceResolver(
             Dictionary<string, string> assemblyNames = null, 
             IEnumerable<string> existingFullPaths = null, 
             string baseDirectory = null,
@@ -75,7 +72,7 @@ namespace Roslyn.Test.Utilities
             return assemblyNames != null && assemblyNames.TryGetValue(assemblyName, out result) ? result : null;
         }
 
-        internal override bool FileExists(string fullPath)
+        protected override bool FileExists(string fullPath)
         {
             return fullPath != null && existingFullPaths != null && existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
         }

@@ -109,6 +109,11 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int ERR_MetadataReferencesNotSupported
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override int ERR_PublicKeyFileFailure
         {
             get { throw new NotImplementedException(); }

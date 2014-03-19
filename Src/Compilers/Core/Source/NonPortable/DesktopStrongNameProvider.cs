@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFiles.AddRead(path);
                     }
 
-                    return FileUtilities.NormalizeAbsolutePath(path);
+                    return FileUtilities.TryNormalizeAbsolutePath(path);
                 }
 
                 return path;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFiles.AddRead(combinedPath);
                     }
 
-                    return FileUtilities.NormalizeAbsolutePath(combinedPath);
+                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
                 }
             }
 

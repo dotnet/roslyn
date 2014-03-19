@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 dotted
             };
             
-            var resolver = new VirtualizedFileResolver(
+            var resolver = new VirtualizedReferenceResolver(
                 existingFullPaths: fs,
                 assemblySearchPaths: ImmutableArray.Create<string>(),
                 baseDirectory: subdir);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             };
 
             // with no search paths
-            var resolver = new VirtualizedFileResolver(
+            var resolver = new VirtualizedReferenceResolver(
                 existingFullPaths: fs,
                 baseDirectory: subdir);
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
-            var resolverSP = new VirtualizedFileResolver(
+            var resolverSP = new VirtualizedReferenceResolver(
                 existingFullPaths: fs,
                 assemblySearchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
                 baseDirectory: @"C:\foo");
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
-            var resolverNullBase = new VirtualizedFileResolver(
+            var resolverNullBase = new VirtualizedReferenceResolver(
                 existingFullPaths: fs,
                 baseDirectory: null);
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
-            var resolverNullBaseSP = new VirtualizedFileResolver(
+            var resolverNullBaseSP = new VirtualizedReferenceResolver(
                 existingFullPaths: fs,
                 assemblySearchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
                 baseDirectory: null);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = dir1.CreateFile("f.dll").Path;
             var f2 = dir2.CreateFile("f.dll").Path;
 
-            var resolver = new FileResolver(
+            var resolver = new MetadataFileReferenceResolver(
                 ImmutableArray.Create(dir1.Path, dir2.Path),
                 baseDirectory: null);
 

@@ -6567,6 +6567,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Metadata references not supported..
+        '''</summary>
+        Friend ReadOnly Property ERR_MetadataReferencesNotSupported() As String
+            Get
+                Return ResourceManager.GetString("ERR_MetadataReferencesNotSupported", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}.{1}&apos; cannot be implemented more than once..
         '''</summary>
         Friend ReadOnly Property ERR_MethodAlreadyImplemented2() As String
@@ -12999,7 +13008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Badly formed XML. File &apos;{0}&apos; cannot be included..
+        '''  Looks up a localized string similar to Unable to include XML fragment &apos;{1}&apos; of file &apos;{0}&apos;. {2}.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadFormedXML() As String
             Get

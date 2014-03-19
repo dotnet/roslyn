@@ -23,10 +23,19 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
+            // TODO: remove full path normalization
             if (fullPath != null)
             {
                 CompilerPathUtilities.RequireAbsolutePath(fullPath, "fullPath");
-                this.fullPath = FileUtilities.NormalizeAbsolutePath(fullPath);
+
+                try
+                {
+                    this.fullPath = Path.GetFullPath(fullPath);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException(e.Message, "fullPath");
+                }
             }
 
             this.lazyDocumentation = initialDocumentation;

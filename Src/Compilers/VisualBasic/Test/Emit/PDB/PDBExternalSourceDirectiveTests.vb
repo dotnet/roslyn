@@ -879,7 +879,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                     source,
-                    OptionsDll.WithOptimizations(False))
+                    OptionsDll.WithOptimizations(False).WithSourceReferenceResolver(SourceFileResolver.Default))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 

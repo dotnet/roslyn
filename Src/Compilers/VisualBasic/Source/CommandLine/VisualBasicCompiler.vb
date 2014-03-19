@@ -103,8 +103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagnostics = New List(Of DiagnosticInfo)()
 
-            Dim referenceDirectiveResolver As FileResolver = Nothing
-            Dim metadataProvider As MetadataReferenceProvider = GetMetadataProvider()
+            Dim referenceDirectiveResolver As MetadataFileReferenceResolver = Nothing
+            Dim metadataProvider As MetadataFileReferenceProvider = GetMetadataProvider()
 
             Dim resolvedReferences = ResolveMetadataReferences(metadataProvider, diagnostics, Nothing, touchedFilesLogger, referenceDirectiveResolver)
             If PrintErrors(diagnostics, consoleOutput) Then
@@ -116,16 +116,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim strongNameProvider = New DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger)
+            Dim xmlFileResolver = New XmlFileResolver(Arguments.BaseDirectory)
+
+            ' TODO: support for #load search paths
+            Dim sourceFileResolver = New SourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory)
 
             Dim result = VisualBasicCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,
                  Arguments.CompilationOptions.
-                     WithFileResolver(referenceDirectiveResolver).
+                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithMetadataReferenceProvider(metadataProvider).
                      WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default).
-                     WithStrongNameProvider(strongNameProvider))
+                     WithStrongNameProvider(strongNameProvider).
+                     WithXmlReferenceResolver(xmlFileResolver).
+                     WithSourceReferenceResolver(sourceFileResolver))
 
             If PrintErrors(result.GetParseDiagnostics(), consoleOutput) Then
                 Return Nothing
@@ -163,12 +169,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function ResolveMetadataReferencesFromArguments(
-            metadataProvider As MetadataReferenceProvider,
+            externalReferenceResolver As MetadataFileReferenceResolver,
+            metadataProvider As MetadataFileReferenceProvider,
             diagnostics As List(Of DiagnosticInfo),
-            externalReferenceResolver As FileResolver,
             resolved As List(Of MetadataReference)
         ) As Boolean
-            If MyBase.ResolveMetadataReferencesFromArguments(metadataProvider, diagnostics, externalReferenceResolver, resolved) Then
+            If MyBase.ResolveMetadataReferencesFromArguments(externalReferenceResolver, metadataProvider, diagnostics, resolved) Then
 
                 ' If there were no references, don't try to add default Cor library reference.
                 If Arguments.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then

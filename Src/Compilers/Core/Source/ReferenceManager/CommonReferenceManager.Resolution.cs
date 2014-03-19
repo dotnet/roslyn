@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -641,6 +641,12 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var referenceDirective in compilation.ReferenceDirectives)
                 {
+                    if (compilation.Options.MetadataReferenceResolver == null || compilation.Options.MetadataReferenceProvider == null)
+                    {
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataReferencesNotSupported, referenceDirective.Location));
+                        break;
+                    }
+
                     // we already successfully bound #r with the same value:
                     if (boundReferenceDirectives != null && boundReferenceDirectives.ContainsKey(referenceDirective.File))
                     {
@@ -844,13 +850,17 @@ namespace Microsoft.CodeAnalysis
             var tree = location.SourceTree;
             string basePath = (tree != null && tree.FilePath.Length > 0) ? tree.FilePath : null;
 
-            string fullPath = compilation.Options.FileResolver.ResolveMetadataReference(reference, basePath);
-            if (fullPath == null)
+            // checked earlier:
+            Debug.Assert(compilation.Options.MetadataReferenceResolver != null);
+            Debug.Assert(compilation.Options.MetadataReferenceProvider != null);
+
+            string resolvedPath = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath);
+            if (resolvedPath == null)
             {
                 return null;
             }
 
-            return compilation.Options.MetadataReferenceProvider.GetReference(fullPath);
+            return compilation.Options.MetadataReferenceProvider.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
         }
 
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(

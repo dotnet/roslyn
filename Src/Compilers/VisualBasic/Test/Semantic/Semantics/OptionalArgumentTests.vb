@@ -1864,7 +1864,7 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source4, "       ")
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                Options.OptionsExe.WithFileResolver(New FileResolver({}, baseDirectory:=Nothing)))
+                Options.OptionsExe.WithSourceReferenceResolver(SourceFileResolver.Default))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: 'C:\filename'
@@ -1945,7 +1945,7 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source5, "C:\x.vb")
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                Options.OptionsExe.WithFileResolver(New FileResolver({}, baseDirectory:="C:\A\B")))
+                Options.OptionsExe.WithSourceReferenceResolver(New SourceFileResolver({}, baseDirectory:="C:\A\B")))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: 'C:\filename'

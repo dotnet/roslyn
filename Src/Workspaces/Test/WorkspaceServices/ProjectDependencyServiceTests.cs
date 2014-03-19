@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -55,7 +55,7 @@ public class X
             Assert.False(ps.CompilationOptions.CheckOverflow);
             CompilationOptions co = new CSharp.CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, checkOverflow: true);            
             workspace.OnCompilationOptionsChanged(project1, co);
-
+            
             ps = workspace.CurrentSolution.GetProject(project1);
             Assert.Equal(startCount + 1, ps.MetadataReferences.Count);
             Assert.Equal(ps.AssemblyName, "ChangedP1");

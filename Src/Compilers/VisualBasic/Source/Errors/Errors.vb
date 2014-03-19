@@ -1650,6 +1650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_EnCNoPIAReference = 37230
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 37231
         ERR_CantReadRulesetFile = 37232
+        ERR_MetadataReferencesNotSupported = 37233
 
         ERR_LastPlusOne
 

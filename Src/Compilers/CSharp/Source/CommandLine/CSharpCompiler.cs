@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -151,9 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            MetadataReferenceProvider metadataProvider = GetMetadataProvider();
-            FileResolver referenceDirectiveResolver;
+            var metadataProvider = GetMetadataProvider();
+            var xmlFileResolver = new XmlFileResolver(Arguments.BaseDirectory);
+            var sourceFileResolver = new SourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory);
 
+            MetadataFileReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
             if (PrintErrors(diagnostics, consoleOutput))
             {
@@ -162,15 +165,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var strongNameProvider = new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger);
 
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var compilation = CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
                 resolvedReferences,
                 Arguments.CompilationOptions.
-                    WithFileResolver(referenceDirectiveResolver).
+                    WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithMetadataReferenceProvider(metadataProvider).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                    WithStrongNameProvider(strongNameProvider));
+                    WithStrongNameProvider(strongNameProvider).
+                    WithXmlReferenceResolver(xmlFileResolver).
+                    WithSourceReferenceResolver(sourceFileResolver));
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             if (PrintErrors(compilation.GetParseDiagnostics(), consoleOutput))

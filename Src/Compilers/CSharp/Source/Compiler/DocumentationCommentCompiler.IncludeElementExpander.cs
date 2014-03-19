@@ -304,19 +304,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string xpathValue = pathAttr.Value;
                     string filePathValue = fileAttr.Value;
 
-                    string resolvedFilePath = compilation.Options.FileResolver.ResolveXmlFile(filePathValue, currentXmlFilePath);
+                    var resolver = compilation.Options.XmlReferenceResolver;
+                    if (resolver == null)
+                    {
+                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, CodeAnalysisResources.XmlReferencesNotSupported);
+                        commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLFAILEDINCLUDE);
+                        return null;
+                    }
+
+                    string resolvedFilePath = resolver.ResolveReference(filePathValue, currentXmlFilePath);
 
                     if (resolvedFilePath == null)
                     {
                         // NOTE: same behavior as IOException.
-                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new FileNotFoundException().Message);
+                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, CodeAnalysisResources.FileNotFound);
                         commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLFAILEDINCLUDE);
                         return null;
                     }
 
                     if (includedFileCache == null)
                     {
-                        includedFileCache = new DocumentationCommentIncludeCache(compilation.Options.FileResolver);
+                        includedFileCache = new DocumentationCommentIncludeCache(resolver);
                     }
 
                     try

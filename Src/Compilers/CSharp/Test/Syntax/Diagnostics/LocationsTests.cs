@@ -1,5 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -9,13 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocationsTests : TestBase
     {
-        private static readonly FileResolver resolver = new Resolver();
+        private static readonly TestSourceResolver resolver = new TestSourceResolver();
 
-        private class Resolver : TestFileResolver
+        private class TestSourceResolver : SourceFileResolver
         {
-            internal override string NormalizePath(string path, string basePath)
+            public TestSourceResolver()
+                : base(ImmutableArray<string>.Empty, null)
             {
-                return string.Format("[{0};{1}]", path, basePath);
+            }
+
+            public override string NormalizePath(string path, string baseFilePath)
+            {
+                return string.Format("[{0};{1}]", path, baseFilePath);
             }
         }
 
@@ -113,7 +121,7 @@ int f;
 #endif
 int a;
 }";
-            FileResolver resolver = new Resolver();
+            var resolver = new TestSourceResolver();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "foo.cs");
 
@@ -144,7 +152,7 @@ int w;
 #line 40
 int v;
 }";
-            FileResolver resolver = new Resolver();
+            var resolver = new TestSourceResolver();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, "c:\\foo.cs");
 

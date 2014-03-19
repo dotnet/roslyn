@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!this.HasErrors);
 
                 // CLI spec (Partition II Metadata), section 21.11 "DeclSecurity : 0x0E" states:
-                // SPEC:    If the attribute’s type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
+                // SPEC:    If the attribute's type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
                 // SPEC:    it is a security custom attribute and requires special treatment.
 
                 // NOTE:    The native C# compiler violates the above and considers only those attributes whose type derives from
@@ -413,7 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // resolve file prop path
                     var fileName = (string)namedArg.Value.Value;
-                    resolvedFilePath = compilation.Options.FileResolver.ResolveXmlFile(fileName, baseFilePath: null);
+                    var resolver = compilation.Options.XmlReferenceResolver;
+
+                    resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
 
                     if (resolvedFilePath == null)
                     {

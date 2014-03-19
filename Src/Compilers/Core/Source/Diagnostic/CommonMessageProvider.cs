@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ErrorOpeningAssemblyFile { get; }
         public abstract int ERR_ErrorOpeningModuleFile { get; }
         public abstract int ERR_MetadataFileNotFound { get; }
+        public abstract int ERR_MetadataReferencesNotSupported { get; }
         public abstract int ERR_LinkedNetmoduleMetadataMustProvideFullPEImage { get; }
 
         public abstract void ReportDuplicateMetadataReferenceStrong(DiagnosticBag diagnostics, Location location, MetadataReference reference, AssemblyIdentity identity, MetadataReference equivalentReference, AssemblyIdentity equivalentIdentity);

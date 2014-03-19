@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException("syntaxTree")
             End If
 
-            Dim vbtree = TryCast(syntaxTree, syntaxTree)
+            Dim vbtree = TryCast(syntaxTree, SyntaxTree)
             Return vbtree IsNot Nothing AndAlso m_rootNamespaces.ContainsKey(vbtree)
         End Function
 
@@ -1200,7 +1200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException("namespaceSymbol")
             End If
 
-            Dim vbNs = TryCast(namespaceSymbol, namespaceSymbol)
+            Dim vbNs = TryCast(namespaceSymbol, NamespaceSymbol)
             If vbNs IsNot Nothing AndAlso vbNs.Extent.Kind = NamespaceKind.Compilation AndAlso vbNs.Extent.Compilation Is Me Then
                 ' If we already have a namespace with the right extent, use that.
                 Return vbNs
@@ -1215,7 +1215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Get the child namespace of the given name, if any.
-                Return containingNs.GetMembers(namespaceSymbol.Name).OfType(Of namespaceSymbol)().FirstOrDefault()
+                Return containingNs.GetMembers(namespaceSymbol.Name).OfType(Of NamespaceSymbol)().FirstOrDefault()
             End If
         End Function
 
@@ -1278,7 +1278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
-                        If mainType Is Nothing OrElse (mainType.TypeKind <> TYPEKIND.Class AndAlso mainType.TypeKind <> TYPEKIND.Structure AndAlso mainType.TypeKind <> TYPEKIND.Module) Then
+                        If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
                             diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
                             Return
                         End If
@@ -1297,8 +1297,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' could be in a base class and that it could be hidden by a non-method member
                         ' named "Main".
 
-                        Dim binder As binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
-                        Dim lookupResult As lookupResult = lookupResult.GetInstance()
+                        Dim binder As Binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
+                        Dim lookupResult As LookupResult = LookupResult.GetInstance()
                         Dim entryPointLookupOptions As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods
                         binder.LookupMember(lookupResult, mainType, WellKnownMemberNames.EntryPointMethodName, arity:=0, options:=entryPointLookupOptions, useSiteDiagnostics:=Nothing)
 
@@ -1390,7 +1390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(sourceMethod IsNot Nothing)
 
                             If sourceMethod IsNot Nothing Then
-                                Dim location As location = sourceMethod.NonMergedLocation
+                                Dim location As Location = sourceMethod.NonMergedLocation
                                 Debug.Assert(location IsNot Nothing)
 
                                 If location IsNot Nothing Then
@@ -1877,7 +1877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasError As Boolean = False
             Dim hasWarnAsError As Boolean = False
 
-            For Each diagnostic As diagnostic In incoming
+            For Each diagnostic As Diagnostic In incoming
                 ' Filter void diagnostics so that our callers don't have to perform resolution
                 ' (which might copy the list of diagnostics).
                 If (diagnostic.Severity = InternalDiagnosticSeverity.Void) Then

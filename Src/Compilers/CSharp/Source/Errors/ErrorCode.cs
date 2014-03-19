@@ -1214,8 +1214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EnCNoPIAReference = 7096,
         ERR_EnCNoDynamicOperation = 7097,
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
+        ERR_MetadataReferencesNotSupported = 7099,
 
-        // ERR_NotYetImplementedInRoslyn = 8000,
         WRN_UnimplementedCommandLineSwitch = 8001,
         ERR_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,

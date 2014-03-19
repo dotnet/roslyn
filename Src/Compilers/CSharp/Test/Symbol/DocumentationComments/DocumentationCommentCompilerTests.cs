@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2381,8 +2381,8 @@ class C {{ }}
 class C { }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var fileResolver = new FileResolver(ImmutableArray.Create<string>(), rootDir.Path);
-            var comp = CSharpCompilation.Create("Test", new[] { tree }, new [] { MscorlibRef }, TestOptions.Dll.WithFileResolver(fileResolver));
+            var resolver = new XmlFileResolver(rootDir.Path);
+            var comp = CSharpCompilation.Create("Test", new[] { tree }, new [] { MscorlibRef }, TestOptions.Dll.WithXmlReferenceResolver(resolver));
             var actual = GetDocumentationCommentText(comp);
 
             var expected = (@"
@@ -2499,9 +2499,9 @@ class C { }
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var actual = GetDocumentationCommentText(comp,
-                // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- Unable to find the specified file.
+                // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- File not found.
                 // /// <include file='file' path='path'/>
-                Diagnostic(ErrorCode.WRN_FailedInclude, "<include file='file' path='path'/>").WithArguments("file", "path", "Unable to find the specified file."));
+                Diagnostic(ErrorCode.WRN_FailedInclude, "<include file='file' path='path'/>").WithArguments("file", "path", "File not found."));
             var expected = (@"
 <?xml version=""1.0""?>
 <doc>
@@ -2535,8 +2535,8 @@ class C {{ }}
 
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
             var actual = GetDocumentationCommentText(comp,
-                // 56e57d80-44fc-4e2c-b839-0bf3d9c830b7.xml(3,6): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- Unable to find the specified file.
-                Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments("file", "path", "Unable to find the specified file."));
+                // 56e57d80-44fc-4e2c-b839-0bf3d9c830b7.xml(3,6): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- File not found.
+                Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments("file", "path", "File not found."));
 
             // NOTE: the whitespace is external to the selected nodes, so it's not included.
             var expected = (@"
@@ -5858,7 +5858,7 @@ class C { }
                 // (2,5): warning CS1589: Unable to include XML fragment 'hello' of file '' -- Unable to find the specified file.
                 Diagnostic(ErrorCode.WRN_FailedInclude,
                 @"<include file='file://" + xmlFile.Path + @"' path='hello'/>").
-                WithArguments("file://" + xmlFile.Path, "hello", "Unable to find the specified file.").WithLocation(2, 5));
+                WithArguments("file://" + xmlFile.Path, "hello", "File not found.").WithLocation(2, 5));
         }
 
         [Fact]
@@ -5878,7 +5878,10 @@ class C { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath), assemblyName: "Test");
+            var comp = CreateCompilationWithMscorlib(
+                Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath), 
+                compOptions: TestOptions.Dll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default), 
+                assemblyName: "Test");
 
             var actual = GetDocumentationCommentText(comp);
 

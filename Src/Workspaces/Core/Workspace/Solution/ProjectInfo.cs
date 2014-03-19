@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// The metadata references initially defined for the project.
         /// </summary>
         public IReadOnlyList<MetadataReference> MetadataReferences { get; private set; }
-        
+
         /// <summary>
         /// True if this is a submission project for interactive sessions.
         /// </summary>

@@ -17,6 +17,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Shared ReadOnly OptionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
 
         <Fact>
+        Public Sub NoXmlResolver()
+            Dim sources =
+<compilation name="DocumentationMode">
+    <file name="a.vb">
+        <![CDATA[
+''' <summary> <include file='abc' path='def' /> </summary>
+Class C
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(
+                sources,
+                options:=Options.OptionsDll.WithXmlReferenceResolver(Nothing),
+                parseOptions:=Options.OptionsRegular.WithDocumentationMode(DocumentationMode.Parse))
+
+            compilation.VerifyDiagnostics()
+
+            CheckXmlDocument(compilation, expectedDocXml:=
+<xml>
+    <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+DocumentationMode
+</name>
+</assembly>
+<members>
+<member name="T:C">
+ <summary> <!--warning BC42321: Unable to include XML fragment 'def' of file 'abc'. References to XML documents are not supported.--> </summary>
+</member>
+</members>
+</doc>
+]]>
+</xml>)
+
+        End Sub
+
+        <Fact>
         Public Sub DocumentationMode_None()
             Dim sources =
 <compilation name="DocumentationMode">
@@ -28,7 +69,7 @@ Imports System
 Module Module0
 End Module
 ]]>
-    </file>
+                                                          </file>
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4384,8 +4425,8 @@ AssemblyName
  <summary cref="!:     a b "/>
 </member>
 <member name="F:C`2.FLD">
- <!--warning BC42321: Badly formed XML. File ' a.vb' cannot be included.-->
- <!--warning BC42321: Badly formed XML. File 'a.vb' cannot be included.-->
+ <!--warning BC42321: Unable to include XML fragment ' c:\ww ' of file ' a.vb'. File not found.-->
+ <!--warning BC42321: Unable to include XML fragment 'c:\ww' of file 'a.vb'. File not found.-->
 </member>
 <member name="F:C`2.FLD2">
  <mysummary cref="M:C`2.SSS(System.Int32)"></mysummary>
@@ -4527,8 +4568,8 @@ AssemblyName
  <summary cref="!:     a b "/>
 </member>
 <member name="F:C`2.FLD">
- <!--warning BC42321: Badly formed XML. File ' a.vb' cannot be included.-->
- <!--warning BC42321: Badly formed XML. File 'a.vb' cannot be included.-->
+ <!--warning BC42321: Unable to include XML fragment ' c:\ww ' of file ' a.vb'. File not found.-->
+ <!--warning BC42321: Unable to include XML fragment 'c:\ww' of file 'a.vb'. File not found.-->
 </member>
 <member name="F:C`2.FLD2">
  <mysummary cref="M:C`2.SSS(System.Int32)"></mysummary>
@@ -7412,7 +7453,7 @@ AssemblyName
 <members>
 <member name="T:C">
  <summary> 
- <!--warning BC42321: Badly formed XML. File '**FILE**5' cannot be included.-->
+ <!--warning BC42321: Unable to include XML fragment '//target' of file '**FILE**5'. File not found.-->
  </summary>
 </member>
 </members>
@@ -7445,7 +7486,7 @@ End Class
     </file>
 </compilation>
 
-            Using _stream = New FileStream(xmlFile.ToString, FileMode.Open, FileAccess.ReadWrite)
+            Using _stream = New FileStream(xmlFile.Path, FileMode.Open, FileAccess.ReadWrite)
 
                 CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(xmlSource, xmlFile),
     <error></error>,
@@ -7461,7 +7502,7 @@ AssemblyName
 <members>
 <member name="T:C">
  <summary> 
- <!--warning BC42321: Badly formed XML. File '**FILE**' cannot be included.-->
+ <!--warning BC42321: Unable to include XML fragment '//target' of file '**FILE**'. The process cannot access the file '**FILE**' because it is being used by another process.-->
  </summary>
 </member>
 </members>
@@ -11730,6 +11771,8 @@ End Class
             Assert.Equal(expectedXmlText, metadataSymbol.GetDocumentationCommentXml())
         End Sub
 
+#Region "Helpers"
+
         Private Structure AliasInfo
             Public Name As String
             Public Target As String
@@ -11962,7 +12005,10 @@ End Class
                        DocumentationMode.Diagnose,
                        DocumentationMode.Parse))
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, parseOptions:=parseOptions, additionalRefs:=additionalRefs)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources,
+                                                                        additionalRefs,
+                                                                        Options.OptionsDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                                                                        parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
 
@@ -12001,5 +12047,7 @@ End Class
                 End Using
             End Using
         End Sub
+
+#End Region
     End Class
 End Namespace

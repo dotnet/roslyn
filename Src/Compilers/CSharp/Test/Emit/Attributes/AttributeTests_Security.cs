@@ -1,12 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1393,13 +1391,12 @@ public class MyClass
     }
 }";
             var syntaxTree = Parse(source);
-            var resolver = new FileResolver(new string[0], tempDir.Path);
-
+            var resolver = new XmlFileResolver(tempDir.Path);
             var compilation = CSharpCompilation.Create(
                 GetUniqueName(),
                 new[] { syntaxTree },
                 new[] { MscorlibRef },
-                TestOptions.Dll.WithFileResolver(resolver));
+                TestOptions.Dll.WithXmlReferenceResolver(resolver));
 
             compilation.VerifyDiagnostics(
                 // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
@@ -1483,7 +1480,7 @@ public class MyClass
                     GetUniqueName(),
                     new[] { syntaxTree },
                     new[] { MscorlibRef },
-                    TestOptions.Dll.WithFileResolver(new FileResolver(ImmutableArray.Create<string>(), tempDir.Path)));
+                    TestOptions.Dll.WithXmlReferenceResolver(new XmlFileResolver(tempDir.Path)));
 
                 comp.VerifyDiagnostics(
                     // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
