@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis
 
         public SourceCodeKind SourceCodeKind
         {
-            get { return this.ParseOptions.Kind; }
+            get
+            {
+                return this.ParseOptions == null ? SourceCodeKind.Regular : this.ParseOptions.Kind;
+            }
         }
     }
 }
