@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
                 case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_StringOrNumericLiteralExpected:
                     return 1;
                 default:
                     return 0;

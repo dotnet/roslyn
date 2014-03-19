@@ -96,8 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (currentDirective.ErrorCodes[x].IsMissing || currentDirective.ErrorCodes[x].ContainsDiagnostics)
                             continue;
 
-                        int errorCode = (int)((LiteralExpressionSyntax)currentDirective.ErrorCodes[x]).Token.Value;
-                        string errorId = MessageProvider.Instance.GetIdForErrorCode(errorCode);
+                        var token = ((LiteralExpressionSyntax)currentDirective.ErrorCodes[x]).Token;
+                        string errorId = token.CSharpKind() == SyntaxKind.NumericLiteralToken ?
+                            MessageProvider.Instance.GetIdForErrorCode((int)token.Value) :
+                            (string)token.Value;
 
                         // Update the state of this error code with the current directive state
                         accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItem(errorId, directiveState);

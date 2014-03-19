@@ -10600,6 +10600,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to String or numeric literal expected.
+        /// </summary>
+        internal static string WRN_StringOrNumericLiteralExpected {
+            get {
+                return ResourceManager.GetString("WRN_StringOrNumericLiteralExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {

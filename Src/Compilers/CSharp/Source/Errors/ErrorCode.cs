@@ -644,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DottedTypeNameNotFoundInNSFwd = 1069,
         ERR_SingleTypeNameNotFoundFwd = 1070,
         //ERR_NoSuchMemberOnNoPIAType = 1071,   //EE
+        WRN_StringOrNumericLiteralExpected = 1072,
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,

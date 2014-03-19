@@ -3779,4 +3779,7 @@
   <data name="OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>
   </data>
+  <data name="WRN_StringOrNumericLiteralExpected" xml:space="preserve">
+    <value>String or numeric literal expected</value>
+  </data>
 </root>

@@ -92,7 +92,7 @@ class C { }
             ParserErrorMessageTests.ParseAndValidate(source,
                 Diagnostic(ErrorCode.WRN_IllegalPragma, ""),
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
-                Diagnostic(ErrorCode.WRN_InvalidNumber, "foo"),
+                Diagnostic(ErrorCode.WRN_StringOrNumericLiteralExpected, "foo"),
                 Diagnostic(ErrorCode.WRN_BadWarningNumber, "0").WithArguments("0"),
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, ""),
                 Diagnostic(ErrorCode.WRN_IllegalPPChecksum, ""),

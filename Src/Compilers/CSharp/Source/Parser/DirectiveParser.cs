@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -374,32 +374,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword)
                 {
                     style = this.EatToken();
-                    var codes = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
+                    var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
                     while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
                     {
-                        var code = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_InvalidNumber, reportError: isActive);
-                        if (isActive && !code.IsMissing)
+                        SyntaxToken id;
+                        ExpressionSyntax idExpression;
+
+                        if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken || this.CurrentToken.Kind == SyntaxKind.StringLiteralToken)
                         {
-                            int value = (int)code.Value;
-                            if (ErrorFacts.GetSeverity((ErrorCode)value) != DiagnosticSeverity.Warning)
+                            id = this.EatToken();
+                            if (isActive)
                             {
-                                code = this.AddError(code, ErrorCode.WRN_BadWarningNumber, value);
+                                if (id.Kind == SyntaxKind.NumericLiteralToken)
+                                {
+                                    int compilerWarningNumber = (int)id.Value;
+                                    if (ErrorFacts.GetSeverity((ErrorCode)compilerWarningNumber) != DiagnosticSeverity.Warning)
+                                    {
+                                        id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, compilerWarningNumber);
+                                    }
+                                }
+                                else
+                                {
+                                    string value = (string)id.Value;
+                                    var messageProvider = MessageProvider.Instance;
+                                    if (value.StartsWith(messageProvider.CodePrefix))
+                                    {
+                                        // For diagnostic IDs of the form "CS[0-9]*", verify the error code is that of a warning
+                                        int compilerWarningNumber;
+                                        if (int.TryParse(value.Substring(messageProvider.CodePrefix.Length), out compilerWarningNumber) &&
+                                            (messageProvider.GetIdForErrorCode(compilerWarningNumber) != value ||
+                                            ErrorFacts.GetSeverity((ErrorCode)compilerWarningNumber) != DiagnosticSeverity.Warning))
+                                        {
+                                            id = this.AddError(id, ErrorCode.WRN_BadWarningNumber, value);
+                                        }
+                                    }
+                                }
                             }
+
+                            var expressionKind = id.Kind == SyntaxKind.NumericLiteralToken ? SyntaxKind.NumericLiteralExpression : SyntaxKind.StringLiteralExpression;
+                            idExpression = SyntaxFactory.LiteralExpression(expressionKind, id);
+                        }
+                        else
+                        {
+                            id = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_StringOrNumericLiteralExpected, reportError: isActive);
+                            idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
                         }
 
-                        hasError = hasError || code.ContainsDiagnostics;
-                        codes.Add(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, code));
+                        hasError = hasError || id.ContainsDiagnostics;
+                        ids.Add(idExpression);
 
                         if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
                         {
                             break;
                         }
 
-                        codes.AddSeparator(this.EatToken());
+                        ids.AddSeparator(this.EatToken());
                     }
 
                     var end = this.ParseEndOfDirective(hasError || !isActive, afterPragma: true);
-                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, codes.ToList(), end, isActive);
+                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, ids.ToList(), end, isActive);
                 }
                 else
                 {
