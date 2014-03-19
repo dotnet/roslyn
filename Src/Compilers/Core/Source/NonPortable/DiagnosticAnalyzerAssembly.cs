@@ -35,19 +35,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and
-        /// returns the effective <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies for the given <paramref name="options"/>.
+        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
         /// </summary>
-        public static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver, CompilationOptions options)
+        public static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver)
         {
-            return ResolveAnalyzerAssemblies(analyzerAssemblies, fileResolver, options, null, null);
+            return ResolveAnalyzerAssemblies(analyzerAssemblies, fileResolver, null, null);
         }
 
         /// <summary>
-        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and
-        /// returns the effective <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies for the given <paramref name="options"/>.
+        /// Resolves the given <paramref name="analyzerAssemblies"/> with the given <paramref name="fileResolver"/> and returns the <see cref="IEnumerable{IDiagnosticAnalyzer}"/> defined in the resolved assemblies.
         /// </summary>
-        internal static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver, CompilationOptions options, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzerAssemblies(ImmutableArray<DiagnosticAnalyzerAssembly> analyzerAssemblies, FileResolver fileResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
 
@@ -80,11 +78,11 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                ResolveAnalyzerAssemblies(builder, fullPath, this.assemblyPath, diagnosticsOpt, messageProviderOpt);
+                ResolveAnalyzerAssembly(builder, fullPath, this.assemblyPath, diagnosticsOpt, messageProviderOpt);
             }
         }
 
-        private static void ResolveAnalyzerAssemblies(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, string fullPath, string analyzerAssemblyPathForDiagnostic, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        private static void ResolveAnalyzerAssembly(ImmutableArray<IDiagnosticAnalyzer>.Builder builder, string fullPath, string analyzerAssemblyPathForDiagnostic, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             // Using Assembly.LoadFrom to load into the Load-From context. This ensures that:
             // 1 . The analyzer and it's dependencies don't have to be in the probing path of this process

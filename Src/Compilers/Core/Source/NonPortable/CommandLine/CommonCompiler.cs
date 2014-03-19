@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                                     baseDirectory,
                                     touchedFiles);
 
-            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, fileResolver, Arguments.CompilationOptions, diagnostics, MessageProvider);
+            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, fileResolver, diagnostics, MessageProvider);
         }
 
         /// <summary>
