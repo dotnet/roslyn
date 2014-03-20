@@ -47,6 +47,7 @@
     <BuildDependsOn>
       $(BuildDependsOn);
       CopyCppOutputBackToIntDir;
+      DeployToPreviewPackageFolders;
     </BuildDependsOn>
   </PropertyGroup>
 
@@ -147,6 +148,29 @@
     </ItemGroup>
   </Target>
   
+  <!-- ====================================================================================
+  
+        Deploy binary to Preview Package folders
+
+    ==================================================================================== -->
+    
+  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true'">
+    <ItemGroup>
+      <FilesToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt)" />
+      <ConfigsToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt).Config" />
+      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache" />
+    </ItemGroup>
+
+    <Message Text="Source: @(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')"/>
+    <Message Text="Config: @(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension).Config')"/>
+    <Message Text="Dest: @(FilesToCopy)"/>
+    <Message Text="Delete: @(FilesToDelete)"/>
+
+    <Copy SourceFiles="@(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(FilesToCopy)" />
+    <Copy SourceFiles="@(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(ConfigsToCopy)" />
+    <Delete Files="@(FilesToDelete)" />
+  </Target>
+
   <!-- ====================================================================================
   
          Support for a IncludeInVSIXLocalOnly Content metadata
