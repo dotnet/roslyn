@@ -568,7 +568,7 @@ a.vb
         Assert.Equal(expectedNoManifest, parsedArgs.NoWin32Manifest)
     End Sub
 
-    <Fact>
+    <Fact(Skip:="909417")>
     Public Sub ParseResourceDescription()
         Dim diags = New List(Of Diagnostic)()
         Dim desc As ResourceDescription

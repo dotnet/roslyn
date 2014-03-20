@@ -457,7 +457,7 @@ d.cs
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
         }
 
-        [Fact]
+        [Fact(Skip = "909417")]
         public void ParseResources()
         {
             var diags = new List<Diagnostic>();
