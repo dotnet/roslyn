@@ -118,13 +118,11 @@ It's unlikely we'll ever have more than 99 signed builds a day.
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB'">VB</ProjectLanguage>
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vcxproj' OR '$(Language)' == 'C++'">C++</ProjectLanguage>
-    <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.wixproj'">WiX</ProjectLanguage>
   </PropertyGroup>
 
   <!-- Common project settings -->
   <PropertyGroup>
     <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
-
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StyleCopOverrideSettingsFile Condition="'$(StyleCopOverrideSettingsFile)' == ''">$(VSLToolsPath)\StyleCop\Settings.StyleCop</StyleCopOverrideSettingsFile>
@@ -142,38 +140,11 @@ It's unlikely we'll ever have more than 99 signed builds a day.
 
   <PropertyGroup>
     <!-- Capture the root, so we'll always have it even if we're building to a sub-folder -->
-    <!-- TODO: choose a less crappy name -->
     <VSLOutDir>$(OutDir)</VSLOutDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
     <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
-  </PropertyGroup>
-
-  <Choose>
-    <When Condition="'$(Configuration)'=='DogfoodDebug' OR '$(Configuration)'=='DogfoodRelease'">
-      <PropertyGroup>
-        <!-- In the dogfood configurations, we'll pick up the binaries from program files (X86) -->
-        <DogfoodCompilerDir>$([System.Environment]::GetFolderPath(SpecialFolder.ProgramFilesX86))\Microsoft Roslyn CTP\Binaries</DogfoodCompilerDir>
-
-        <!-- enable dogfooding for this configuration -->
-        <LiveLive>true</LiveLive>
-
-        <!-- Reuse settings of old configuration -->
-        <Configuration>$(Configuration.Replace("Dogfood",""))</Configuration>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <!-- otherwise they come from binaries\$(configuration)\dogfood -->
-        <DogfoodCompilerDir>$(OutDir)\Dogfood</DogfoodCompilerDir>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
-  <!-- Components folder -->
-  <PropertyGroup>
-    <ComponentsDir>$(VSLOutDir)\Components</ComponentsDir>
   </PropertyGroup>
 
   <Choose>
@@ -187,9 +158,6 @@ It's unlikely we'll ever have more than 99 signed builds a day.
         <OptionStrict>On</OptionStrict>
         <RootNamespace></RootNamespace>
         <VBRuntime>Embed</VBRuntime>
-        <!-- disable the "already implemented by the base class" warning. Roslyn no longer emits this,
-             so we do it for back compat if we build on the old compilers -->
-        <NoWarn>42015</NoWarn>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
@@ -246,25 +214,9 @@ It's unlikely we'll ever have more than 99 signed builds a day.
         <!-- Put intermediate outputs in the same place as managed projects for sanity -->
         <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
 
-        <!-- This is a little strange. Our only C++ project is totally native, but if we don't 
-             specify a TFV of 4.5, it prompts for upgrade. So, add this to shut up the
-             upgrader. -->
-        <TargetFrameworkVersion Condition="'$(VisualStudioVersion)' == '11.0'">v4.5</TargetFrameworkVersion>
-
         <!-- We just always want to build with whatever toolset matches the VS you're building with -->
         <PlatformToolset Condition="'$(VisualStudioVersion)' == '11.0'">v110</PlatformToolset>
         <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
-      </PropertyGroup>
-    </When>
-
-    <!-- WiX specific settings -->
-    <When Condition="'$(ProjectLanguage)' == 'WiX'">
-      <PropertyGroup>
-        <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-        <LinkerAdditionalOptions>-b binaries=$(OutDir)</LinkerAdditionalOptions>
-
-        <DefineConstants>$(DefineConstants);BuildVersion=$(BuildVersion)</DefineConstants>
-
       </PropertyGroup>
     </When>
   </Choose>
@@ -281,15 +233,4 @@ It's unlikely we'll ever have more than 99 signed builds a day.
 
     <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
   </PropertyGroup>
-
-  <!-- Code Analysis settings -->
-
-  <!-- 
-    Disabling this until we can enable it without creating warnings 
-  <PropertyGroup Condition="'$(Nonshipping)' != 'true'">
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
-  -->
 </Project>
