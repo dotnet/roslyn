@@ -9820,19 +9820,19 @@ namespace basic068One.basic068Three
 
         [WorkItem(542489)]
         [Fact]
-        public void PartialMethodOnlyHasDeclarButNotImplement()
+        public void PartialMethodOnlyHasDeclareButNotImplement()
         {
             string source = @"using System;
 partial class program
 {
     static void Main(string[] args)
     {
-        foo(name: string.Empty, age: 1, sex: 1 > 2);
+        foo(name: string.Empty, age: 1, gender: 1 > 2);
     }
 }
 partial class program
 {
-    static partial void foo(string name, int age, bool sex);
+    static partial void foo(string name, int age, bool gender);
 }
 ";
             CompileAndVerify(source, emitPdb: true);

@@ -529,8 +529,8 @@ d.cs
             Assert.Equal("someFile.foo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName,pubic", baseDirectory, diags, embedded: false);
-            diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("pubic"));
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName,public", baseDirectory, diags, embedded: false);
+            diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("public"));
             Assert.Null(desc);
             diags.Clear();
 

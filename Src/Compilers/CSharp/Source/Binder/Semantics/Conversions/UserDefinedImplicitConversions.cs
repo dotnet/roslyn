@@ -706,11 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:        any one of these types, requiring 20 calls to AnalyzeImplicitUserDefinedConversion.
             // NOTE:    2)  Native compiler's approach: Native compiler implements this by walking through all the implicit user defined operators
             // NOTE:        from the source type to a valid switch governing type, as per (2), and determining if there is a unique best.
-            // NOTE:        This part is that piece of code doesn't call into the code for analying user defined implicit conversion, but does the
+            // NOTE:        This part is that piece of code doesn't call into the code for analyzing user defined implicit conversion, but does the
             // NOTE:        analysis of applicable lifted/normal forms itself. This makes it very difficult to maintain and is bug prone.
             // NOTE:        See the SPEC VIOLATION comment later in this method for one of the cases where it gets the analysis wrong and violates the
             // NOTE:        language specification.
-            // NOTE:    3)  Use an approach similar to native compiler's approach, but call into the common code for analying user defined implicit conversion.
+            // NOTE:    3)  Use an approach similar to native compiler's approach, but call into the common code for analyzing user defined implicit conversion.
 
 
             // NOTE:    We choose approach (3) and implement it as a slight variation of AnalyzeImplicitUserDefinedConversion as follows:
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!exactConversionResult.HasValue)
                     {
                         // NOTE:    As mentioned in the comments at the start of this function, native compiler doesn't call into
-                        // NOTE:    the code for analying user defined implicit conversion, i.e. MostSpecificConversionOperator,
+                        // NOTE:    the code for analyzing user defined implicit conversion, i.e. MostSpecificConversionOperator,
                         // NOTE:    but does the analysis of applicable lifted/normal forms itself.
                         // NOTE:    This introduces a SPEC VIOLATION for the following test in the native compiler:
 

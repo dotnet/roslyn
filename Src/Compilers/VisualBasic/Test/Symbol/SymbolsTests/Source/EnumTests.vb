@@ -523,12 +523,12 @@ ValueE
     <file name="a.vb">
 Imports System
 Class c1
-    Private Enum Sex As Byte
+    Private Enum Gender As Byte
         Male = 2
     End Enum
 
     Public Shared Sub Main(args As String())
-        Dim s As Sex = 0
+        Dim s As Gender = 0
         Console.WriteLine(s)
         s = -0
         Console.WriteLine(s)
@@ -614,20 +614,20 @@ End Enum
 <compilation name="C">
     <file name="a.vb">
 Namespace ns
-    Enum Sex
+    Enum Gender
         Male
     End Enum
 End Namespace
 Structure B
-    Private Enum Sex
+    Private Enum Gender
         Male
     End Enum
 End Structure
     </file>
 </compilation>
 
-            VerifyEnumsValue(text, "ns.Sex", 0)
-            VerifyEnumsValue(text, "B.Sex", 0)
+            VerifyEnumsValue(text, "ns.Gender", 0)
+            VerifyEnumsValue(text, "B.Gender", 0)
         End Sub
 
         ' Enums obey local scope rules

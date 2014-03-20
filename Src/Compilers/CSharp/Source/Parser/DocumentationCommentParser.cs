@@ -159,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.EndOfDocumentationCommentToken:
                     return null;
                 default:
-                    // This means we have some unrecognized
-                    // token. We probably need to give an
-                    // error without screwing up the recursion.
+                    // This means we have some unrecognized token. We probably need to give an error.
                     return null;
             }
         }

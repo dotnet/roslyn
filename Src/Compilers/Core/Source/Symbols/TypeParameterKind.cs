@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         Method,
 
         /// <summary>
-        /// Type parameter in a <c>cref</c> attribute in XML docummentation comments. For example: <c>T</c> in <c><![CDATA[<see cref="List{T}"/>]]></c>.
+        /// Type parameter in a <c>cref</c> attribute in XML documentation comments. For example: <c>T</c> in <c><![CDATA[<see cref="List{T}"/>]]></c>.
         /// </summary>
         Cref,
     }

@@ -2388,7 +2388,7 @@ struct MyManagedClass1 : IDisposable
         // Dangling using keyword
         [WorkItem(528933)]
         [Fact]
-        public void NakedUsing()
+        public void DanglingUsing()
         {
             var source = @"
 class A

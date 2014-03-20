@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var latestDV = project.GetLatestDocumentVersionAsync().Result;
 
             // update document
-            var solution1 = solution.WithDocumentText(document.Id, SourceText.From("using drugs;"));
+            var solution1 = solution.WithDocumentText(document.Id, SourceText.From("using test;"));
             var document1 = solution1.GetDocument(document.Id);
             var dversion1 = document1.GetTextVersionAsync().Result;
             Assert.NotEqual(dversion, dversion1); // new document version
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestLoad_VisualBasicCompilationOptions_OptionAssesmblyOriginatorKeyFile_SignAssemblyFalse()
+        public void TestLoad_VisualBasicCompilationOptions_OptionAssemblyOriginatorKeyFile_SignAssemblyFalse()
         {
             CreateVBFilesWith("SignAssembly", "false");
             AssertVBOptions(null, options => options.CryptoKeyFile);

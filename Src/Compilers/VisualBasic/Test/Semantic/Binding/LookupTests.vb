@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestLookupResult()
             Dim sym1 = New MockAssemblySymbol("hello") ' just a symbol to put in results
             Dim sym2 = New MockAssemblySymbol("goodbye") ' just a symbol to put in results
-            Dim sym3 = New MockAssemblySymbol("stupid") ' just a symbol to put in results
+            Dim sym3 = New MockAssemblySymbol("world") ' just a symbol to put in results
             Dim sym4 = New MockAssemblySymbol("banana") ' just a symbol to put in results
             Dim sym5 = New MockAssemblySymbol("apple") ' just a symbol to put in results
             Dim meth1 = New MockMethodSymbol("foo") ' just a symbol to put in results

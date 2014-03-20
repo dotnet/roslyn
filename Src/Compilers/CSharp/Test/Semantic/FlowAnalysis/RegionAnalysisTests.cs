@@ -3645,9 +3645,9 @@ public class C {
                 var tok = tree.GetCompilationUnitRoot().FindToken(index);
                 var node = tok.Parent as StatementSyntax;
                 var model = compilation.GetSemanticModel(tree);
-                var controlFlowAnalaysis = model.AnalyzeControlFlow(node, node);
+                var controlFlowAnalysis = model.AnalyzeControlFlow(node, node);
 
-                Assert.False(controlFlowAnalaysis.Succeeded);
+                Assert.False(controlFlowAnalysis.Succeeded);
             }
             {
                 var results = CompileAndAnalyzeControlAndDataFlowStatements(@"

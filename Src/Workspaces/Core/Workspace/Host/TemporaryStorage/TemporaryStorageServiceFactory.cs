@@ -81,12 +81,9 @@ namespace Microsoft.CodeAnalysis.Host
 
                 public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
                 {
-                    // So, I know what you're thinking: "Jason, why the heck would you implement the
-                    // Async implementation like this? It's dumb! You should have a proper async
-                    // implementation that reads the underlying memory mapped file stream in an
-                    // asynchronous fashion!"
-                    //
-                    // Well, there is a reason: that doesn't actually work. Windows doesn't offer
+                    // There is a reason for implementing it like this: proper async implementation
+                    // that reads the underlying memory mapped file stream in an asynchronous fashion
+                    // doesn't actually work. Windows doesn't offer
                     // any non-blocking way to read from a memory mapped file; the underlying memcpy
                     // may block as the memory pages back in and that's something you have to live
                     // with. Therefore, any implementation that attempts to use async will still

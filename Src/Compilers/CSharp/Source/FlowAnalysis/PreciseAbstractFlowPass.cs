@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the states. In fact, we need not have added continue statements to the
                         // pending jump queue in the first place if we were interested solely in the
                         // flow analysis.  However, region analysis (in support of extract method)
-                        // and other forms of more precise analsis
+                        // and other forms of more precise analysis
                         // depend on continue statements appearing in the pending branch queue, so
                         // we process them from the queue here.
                         IntersectWith(ref this.State, ref pending.State);
