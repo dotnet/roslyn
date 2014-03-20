@@ -11,145 +11,42 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class ProjectDependencyGraph : IObjectWritable
+    /// <summary>
+    /// A <see cref="ProjectDependencyGraph"/> models the dependencies between projects in a solution.
+    /// </summary>
+    public class ProjectDependencyGraph
     {
-        internal readonly Solution Solution;
-        internal readonly VersionStamp Version;
+        private readonly ImmutableList<ProjectId> projectIds;
+        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap;
 
-        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> projectToProjectsItReferencesMap;
-        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> projectToProjectsThatReferenceItMap;
-        private readonly CancellableLazy<IEnumerable<ProjectId>> topologicallySortedProjects;
+        // guards lazy computed data
+        private readonly NonReentrantLock dataLock = new NonReentrantLock();
 
-        private ProjectDependencyGraph(
-            Solution solution,
-            VersionStamp version,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> projectToProjectsItReferencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> projectToProjectsThatReferenceItMap)
+        // these are computed fully on demand
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> lazyReverseReferencesMap;
+        private ImmutableList<ProjectId> lazyTopologicallySortedProjects;
+        private ImmutableList<IEnumerable<ProjectId>> lazyDependencySets;
+
+        // these accumulate results on demand
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseTransitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
+
+        internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
+            ImmutableList<ProjectId>.Empty,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty);
+
+        internal ProjectDependencyGraph(
+            ImmutableList<ProjectId> projectIds,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap)
         {
-            this.Solution = solution;
-            this.Version = version;
-            this.projectToProjectsItReferencesMap = projectToProjectsItReferencesMap;
-            this.projectToProjectsThatReferenceItMap = projectToProjectsThatReferenceItMap;
-
-            this.topologicallySortedProjects = CancellableLazy.Create(
-                c => TopologicalSort(this.projectToProjectsItReferencesMap.Keys.OrderBy(p => p.Id), c).AsEnumerable());
-        }
-
-        internal static ProjectDependencyGraph From(Solution solution, CancellationToken cancellationToken)
-        {
-            var map = ImmutableDictionary.Create<ProjectId, ImmutableHashSet<ProjectId>>();
-            var reverseMap = ImmutableDictionary.Create<ProjectId, ImmutableHashSet<ProjectId>>();
-
-            foreach (var projectId in solution.ProjectIds)
-            {
-                var project = solution.GetProject(projectId);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var projectIds = project.ProjectReferences.Select(p => p.ProjectId);
-                map = map.Add(project.Id, ImmutableHashSet.CreateRange<ProjectId>(projectIds));
-                reverseMap = reverseMap.AddAll(projectIds, project.Id);
-            }
-
-            var version = solution.GetLatestProjectVersion();
-
-            return new ProjectDependencyGraph(solution, version, map, reverseMap);
-        }
-
-        internal static ProjectDependencyGraph From(Solution newSolution, ProjectDependencyGraph oldGraph, CancellationToken cancellationToken)
-        {
-            var oldSolution = oldGraph.Solution;
-
-            if (oldSolution == newSolution)
-            {
-                return oldGraph;
-            }
-
-            // in case old and new are incompatible just build it the hard way
-            if (oldSolution.Id != newSolution.Id)
-            {
-                return From(newSolution, cancellationToken);
-            }
-
-            var map = oldGraph.projectToProjectsItReferencesMap;
-            var reverseMap = oldGraph.projectToProjectsThatReferenceItMap;
-            var differences = newSolution.GetChanges(oldSolution);
-
-            // remove projects that no longer occur in new solution
-            foreach (var project in differences.GetRemovedProjects())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                ImmutableHashSet<ProjectId> referencedProjectIds;
-                if (oldGraph.projectToProjectsItReferencesMap.TryGetValue(project.Id, out referencedProjectIds))
-                {
-                    map = map.Remove(project.Id);
-                    reverseMap = reverseMap.RemoveAll(referencedProjectIds, project.Id);
-                }
-            }
-
-            // add projects that don't occur in old solution
-            foreach (var project in differences.GetAddedProjects())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var referencedProjectIds = project.ProjectReferences.Select(p => p.ProjectId);
-                map = map.Add(project.Id, ImmutableHashSet.CreateRange<ProjectId>(referencedProjectIds));
-                reverseMap = reverseMap.AddAll(referencedProjectIds, project.Id);
-            }
-
-            // update projects that are changed.
-            foreach (var projectChanges in differences.GetProjectChanges().Where(pc => pc.OldProject.AllProjectReferences != pc.NewProject.AllProjectReferences))
-            {
-                var projectId = projectChanges.ProjectId;
-
-                cancellationToken.ThrowIfCancellationRequested();
-                ImmutableHashSet<ProjectId> oldReferencedProjectIds;
-                if (oldGraph.projectToProjectsItReferencesMap.TryGetValue(projectId, out oldReferencedProjectIds))
-                {
-                    map = map.Remove(projectId);
-                    reverseMap = reverseMap.RemoveAll(oldReferencedProjectIds, projectId);
-                }
-
-                var newReferencedProjectIds = newSolution.GetProject(projectId).ProjectReferences.Select(p => p.ProjectId);
-                map = map.Add(projectId, ImmutableHashSet.CreateRange<ProjectId>(newReferencedProjectIds));
-                reverseMap = reverseMap.AddAll(newReferencedProjectIds, projectId);
-            }
-
-            var version = newSolution.GetLatestProjectVersion();
-
-            return new ProjectDependencyGraph(newSolution, version, map, reverseMap);
-        }
-
-        /// <summary>
-        /// Returns all the projects for the solution in a topologically sorted order with respect
-        /// to their dependencies. That is, projects that depend on other projects will always show
-        /// up later than them in this stream.
-        /// </summary>
-        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return topologicallySortedProjects.GetValue(cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the list of projects (topologically sorted) that directly depend on this project.
-        /// </summary> 
-        public IEnumerable<ProjectId> GetProjectsThatDirectlyDependOnThisProject(ProjectId projectId)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException("projectId");
-            }
-
-            // The list of projects that reference this project might be null if there are no
-            // references.
-            ImmutableHashSet<ProjectId> projectIds;
-            return projectToProjectsThatReferenceItMap.TryGetValue(projectId, out projectIds)
-                ? projectIds
-                : SpecializedCollections.EmptyEnumerable<ProjectId>();
+            this.projectIds = projectIds;
+            this.referencesMap = referencesMap;
         }
 
         /// <summary>
         /// Gets the list of projects (topologically sorted) that this project directly depends on.
         /// </summary>
-        public IEnumerable<ProjectId> GetProjectsThatThisProjectDirectlyDependsOn(ProjectId projectId)
+        public IImmutableSet<ProjectId> GetProjectsThatThisProjectDirectlyDependsOn(ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -157,320 +54,135 @@ namespace Microsoft.CodeAnalysis
             }
 
             ImmutableHashSet<ProjectId> projectIds;
-            return projectToProjectsItReferencesMap.TryGetValue(projectId, out projectIds)
-                ? projectIds
-                : SpecializedCollections.EmptyEnumerable<ProjectId>();
-        }
-
-        internal ProjectDependencyGraph WithReference(Solution newSolution, ProjectId fromId, ProjectId toId)
-        {
-            return new ProjectDependencyGraph(
-                newSolution,
-                VersionStamp.Create(),
-                this.projectToProjectsItReferencesMap.Add(fromId, toId),
-                this.projectToProjectsThatReferenceItMap.Add(toId, fromId));
-        }
-
-        internal ProjectDependencyGraph WithoutReference(Solution newSolution, ProjectId fromId, ProjectId toId)
-        {
-            return new ProjectDependencyGraph(
-                newSolution,
-                VersionStamp.Create(),
-                this.projectToProjectsItReferencesMap.Remove(fromId, toId),
-                this.projectToProjectsThatReferenceItMap.Remove(toId, fromId));
+            if (this.referencesMap.TryGetValue(projectId, out projectIds))
+            {
+                return projectIds;
+            }
+            else
+            {
+                return ImmutableHashSet<ProjectId>.Empty;
+            }
         }
 
         /// <summary>
-        /// Called when a solution is updated but when all the projects and project references
-        /// haven't changed. We just update to the latest solution snapshot here to not hold the old
-        /// solution in memory unnecessarily. Since we know that none of the relevant information
-        /// has actually changed, there's no need to recalculate the graph.
-        /// </summary>
-        internal ProjectDependencyGraph WithNewSolution(Solution newSolution)
+        /// Gets the list of projects (topologically sorted) that directly depend on this project.
+        /// </summary> 
+        public IImmutableSet<ProjectId> GetProjectsThatDirectlyDependOnThisProject(ProjectId projectId)
         {
-            Contract.Requires(!this.projectToProjectsItReferencesMap.Keys.Any((projectId) => !newSolution.ContainsProject(projectId)));
-            Contract.Requires(!this.projectToProjectsItReferencesMap.Values.Any((referencedProjectIds) =>
-                referencedProjectIds.Any((projectId) => !newSolution.ContainsProject(projectId))));
-
-            return new ProjectDependencyGraph(
-                newSolution,
-                VersionStamp.Create(),
-                this.projectToProjectsItReferencesMap,
-                this.projectToProjectsThatReferenceItMap);
-        }
-
-        private const string SerializationFormat = "1";
-
-        internal static ProjectDependencyGraph ReadGraph(Solution solution, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var references = new List<ProjectId>();
-            var map = ImmutableDictionary.Create<ProjectId, ImmutableHashSet<ProjectId>>();
-            var reverseMap = ImmutableDictionary.Create<ProjectId, ImmutableHashSet<ProjectId>>();
-
-            var format = reader.ReadString();
-            if (!string.Equals(format, SerializationFormat, StringComparison.Ordinal))
+            if (projectId == null)
             {
-                return null;
+                throw new ArgumentNullException("projectId");
             }
 
-            var graphVersion = VersionStamp.ReadFrom(reader);
-
-            var projectCount = reader.ReadInt32();
-            for (var i = 0; i < projectCount; i++)
+            if (this.lazyReverseReferencesMap == null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var referenceCount = reader.ReadInt32();
-                if (referenceCount < 0)
+                using (this.dataLock.DisposableWait())
                 {
-                    continue;
+                    return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
                 }
+            }
+            else
+            {
+                // okay, because its only ever going to be computed and assigned once
+                return this.GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(projectId);
+            }
+        }
 
-                references.Clear();
-                var projectFilePath = reader.ReadString();
+        private ImmutableHashSet<ProjectId> GetProjectsThatDirectlyDependOnThisProject_NoLock(ProjectId projectId)
+        {
+            if (this.lazyReverseReferencesMap == null)
+            {
+                this.lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
+            }
 
-                for (var j = 0; j < referenceCount; j++)
+            ImmutableHashSet<ProjectId> reverseReferences;
+            if (this.lazyReverseReferencesMap.TryGetValue(projectId, out reverseReferences))
+            {
+                return reverseReferences;
+            }
+            else
+            {
+                return ImmutableHashSet<ProjectId>.Empty;
+            }
+        }
+
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
+        {
+            var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
+
+            foreach (var kvp in this.referencesMap)
+            {
+                var references = kvp.Value;
+                foreach (var referencedId in references)
                 {
-                    var referenceFilePath = reader.ReadString();
-                    var referenceProject = GetProject(solution, referenceFilePath);
-                    if (referenceProject == null)
+                    HashSet<ProjectId> reverseReferences;
+                    if (!reverseReferencesMap.TryGetValue(referencedId, out reverseReferences))
                     {
-                        return null;
+                        reverseReferences = new HashSet<ProjectId>();
+                        reverseReferencesMap.Add(referencedId, reverseReferences);
                     }
 
-                    references.Add(referenceProject.Id);
-                }
-
-                var project = GetProject(solution, projectFilePath);
-                if (project == null)
-                {
-                    return null;
-                }
-
-                map = map.Add(project.Id, ImmutableHashSet.CreateRange<ProjectId>(references));
-                reverseMap = reverseMap.AddAll(references, project.Id);
-            }
-
-            return new ProjectDependencyGraph(solution, graphVersion, map, reverseMap);
-        }
-
-        private static Project GetProject(Solution solution, string filePath)
-        {
-            return solution.Projects.FirstOrDefault(p => p.FilePath == filePath);
-        }
-
-        internal static ProjectDependencyGraph From(Solution solution, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var graph = ReadGraph(solution, reader, cancellationToken);
-                if (graph == null)
-                {
-                    return null;
-                }
-
-                var latestProjectVersion = solution.GetLatestProjectVersion();
-
-                // check whether the loaded graph is already out of date.
-                if (!VersionStamp.CanReusePersistedVersion(latestProjectVersion, graph.Version))
-                {
-                    return null;
-                }
-
-                // make sure loaded graph is consistent with solution.
-                if (!CheckGraph(solution, graph.projectToProjectsItReferencesMap, cancellationToken))
-                {
-                    return null;
-                }
-
-                return graph;
-            }
-            catch (Exception)
-            {
-            }
-
-            return null;
-        }
-
-        private static bool CheckGraph(Solution solution, ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> projectsInGraph, CancellationToken cancellationToken)
-        {
-            // check whether graph de-serialized from the persistence service is valid or not.
-            var projectsInSolution = solution.ProjectIds.ToSet();
-
-            if (projectsInGraph.Count != projectsInSolution.Count)
-            {
-                return false;
-            }
-
-            return projectsInSolution.SetEquals(projectsInGraph.Keys, projectsInGraph.KeyComparer);
-        }
-
-        // TODO: WriteAsync?
-        internal void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteString(SerializationFormat);
-            this.Version.WriteTo(writer);
-
-            writer.WriteInt32(this.projectToProjectsItReferencesMap.Count);
-
-            foreach (var id in this.projectToProjectsItReferencesMap.Keys.OrderBy(p => p.Id))
-            {
-                var project = this.Solution.GetProject(id);
-                if (project != null && !string.IsNullOrEmpty(project.FilePath))
-                {
-                    ImmutableHashSet<ProjectId> projRefs;
-                    if (this.projectToProjectsItReferencesMap.TryGetValue(id, out projRefs))
-                    {
-                        var referencedProjects = projRefs.OrderBy(r => r.Id)
-                                                         .Select(r => this.Solution.GetProject(r))
-                                                         .Where(p => p != null && !string.IsNullOrEmpty(p.FilePath))
-                                                         .ToList();
-
-                        writer.WriteInt32(referencedProjects.Count);
-                        writer.WriteString(project.FilePath);
-
-                        if (referencedProjects.Count > 0)
-                        {
-                            // project references
-                            foreach (var referencedProject in referencedProjects)
-                            {
-                                writer.WriteString(referencedProject.FilePath);
-                            }
-                        }
-
-                        continue;
-                    }
-                }
-
-                // invalid project
-                writer.WriteInt32(-1);
-            }
-        }
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            WriteTo(writer);
-        }
-
-        private IList<ProjectId> TopologicalSort(
-            IEnumerable<ProjectId> projectIds,
-            CancellationToken cancellationToken,
-            HashSet<ProjectId> seenProjects = null,
-            List<ProjectId> resultList = null)
-        {
-            seenProjects = seenProjects ?? new HashSet<ProjectId>();
-            resultList = resultList ?? new List<ProjectId>();
-
-            foreach (var projectId in projectIds)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Make sure we only ever process a project once.
-                if (seenProjects.Add(projectId))
-                {
-                    // Recurse and add anything this project depends on before adding the project
-                    // itself.
-                    ImmutableHashSet<ProjectId> projectReferenceIds;
-                    if (this.projectToProjectsItReferencesMap.TryGetValue(projectId, out projectReferenceIds))
-                    {
-                        TopologicalSort(projectReferenceIds, cancellationToken, seenProjects, resultList);
-                    }
-
-                    resultList.Add(projectId);
+                    reverseReferences.Add(kvp.Key);
                 }
             }
 
-            return resultList;
-        }
-
-        public IEnumerable<IEnumerable<ProjectId>> GetConnectedProjects(CancellationToken cancellationToken)
-        {
-            var topologicallySortedProjects = this.GetTopologicallySortedProjects(cancellationToken);
-            var result = new List<IEnumerable<ProjectId>>();
-
-            var seenProjects = new HashSet<ProjectId>();
-
-#if false
-            Example:
-
-            A <-- B
-              |-- C
-
-            D <-- E
-              |-- F
-#endif
-
-            // Process the projects in topological order (i.e. build order).  This means that the
-            // project that has things depending on it will show up first.  Given the above example
-            // the topological sort will produce something like:
-#if false
-            A B D C E F
-#endif
-            foreach (var project in topologicallySortedProjects)
-            {
-                if (seenProjects.Add(project))
-                {
-                    // We've never seen this project before.  That means it's either A or D.  Walk
-                    // that project to see all the things that depend on it transitively and make a
-                    // connected component out of that.  If it's A then we'll add 'B' and 'C' and
-                    // consider them 'seen'.  Then we'll ignore those projects in the outer loop
-                    // until we get to 'D'.
-                    var connectedGroup = new HashSet<ProjectId>();
-                    connectedGroup.AddAll(GetTransitivelyConnectedProjects(project));
-
-                    seenProjects.AddAll(connectedGroup);
-
-                    result.Add(connectedGroup);
-                }
-            }
-
-#if false
-            Other case:
-            A<--B
-            C<-/
-#endif
-
-            return result;
-        }
-
-        private IEnumerable<ProjectId> GetTransitivelyConnectedProjects(ProjectId project, HashSet<ProjectId> visited = null)
-        {
-            visited = visited ?? new HashSet<ProjectId>();
-            if (visited.Add(project))
-            {
-                var otherProjects = this.GetProjectsThatDirectlyDependOnThisProject(project).Concat(
-                                    this.GetProjectsThatThisProjectDirectlyDependsOn(project));
-                foreach (var other in otherProjects)
-                {
-                    GetTransitivelyConnectedProjects(other, visited);
-                }
-            }
-
-            return visited;
+            return reverseReferencesMap
+                .Select(kvp => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
+                .ToImmutableDictionary();
         }
 
         /// <summary>
         /// Gets the list of projects that directly or transitively this project depends on
         /// </summary>
-        public IEnumerable<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn(ProjectId projectId)
+        public IImmutableSet<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn(ProjectId projectId)
         {
-            return GetProjectsThatThisProjectTransitivelyDependsOn(projectId, visited: null);
-        }
-
-        private IEnumerable<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn(ProjectId project, HashSet<ProjectId> visited)
-        {
-            visited = visited ?? new HashSet<ProjectId>();
-
-            var otherProjects = this.GetProjectsThatThisProjectDirectlyDependsOn(project);
-            foreach (var other in otherProjects)
+            if (projectId == null)
             {
-                if (visited.Add(other))
-                {
-                    GetProjectsThatThisProjectTransitivelyDependsOn(other, visited);
-                }
+                throw new ArgumentNullException("projectId");
             }
 
-            return visited;
+            // first try without lock for speed
+            var currentMap = this.transitiveReferencesMap;
+            ImmutableHashSet<ProjectId> transitiveReferences;
+            if (currentMap.TryGetValue(projectId, out transitiveReferences))
+            {
+                return transitiveReferences;
+            }
+            else
+            {
+                using (this.dataLock.DisposableWait())
+                {
+                    return GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(projectId);
+                }
+            }
+        }
+
+        private ImmutableHashSet<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(ProjectId projectId)
+        {
+            ImmutableHashSet<ProjectId> transitiveReferences;
+            if (!this.transitiveReferencesMap.TryGetValue(projectId, out transitiveReferences))
+            {
+                var results = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                this.ComputeTransitiveReferences(projectId, results);
+                transitiveReferences = results.ToImmutableHashSet();
+                this.transitiveReferencesMap = this.transitiveReferencesMap.Add(projectId, transitiveReferences);
+                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(results);
+            }
+
+            return transitiveReferences;
+        }
+
+        private void ComputeTransitiveReferences(ProjectId project, HashSet<ProjectId> result)
+        {
+            var otherProjects = this.GetProjectsThatThisProjectDirectlyDependsOn(project);
+
+            foreach (var other in otherProjects)
+            {
+                if (result.Add(other))
+                {
+                    ComputeTransitiveReferences(other, result);
+                }
+            }
         }
 
         /// <summary>
@@ -478,23 +190,193 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<ProjectId> GetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
         {
-            return GetProjectsThatTransitivelyDependOnThisProject(projectId, visited: null);
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("proejctId");
+            }
+
+            // first try without lock for speed
+            var currentMap = this.reverseTransitiveReferencesMap;
+            ImmutableHashSet<ProjectId> reverseTransitiveReferences;
+            if (currentMap.TryGetValue(projectId, out reverseTransitiveReferences))
+            {
+                return reverseTransitiveReferences;
+            }
+            else
+            {
+                using (this.dataLock.DisposableWait())
+                {
+                    return this.GetProjectsThatTransitivelyDependOnThisProject_NoLock(projectId);
+                }
+            }
         }
 
-        private IEnumerable<ProjectId> GetProjectsThatTransitivelyDependOnThisProject(ProjectId project, HashSet<ProjectId> visited)
+        private ImmutableHashSet<ProjectId> GetProjectsThatTransitivelyDependOnThisProject_NoLock(ProjectId projectId)
         {
-            visited = visited ?? new HashSet<ProjectId>();
+            ImmutableHashSet<ProjectId> reverseTransitiveReferences;
 
-            var otherProjects = this.GetProjectsThatDirectlyDependOnThisProject(project);
+            if (!this.reverseTransitiveReferencesMap.TryGetValue(projectId, out reverseTransitiveReferences))
+            {
+                var results = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                ComputeReverseTransitiveReferences(projectId, results);
+
+                reverseTransitiveReferences = results.ToImmutableHashSet();
+                this.reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
+
+                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(results);
+            }
+
+            return reverseTransitiveReferences;
+        }
+
+        private void ComputeReverseTransitiveReferences(ProjectId project, HashSet<ProjectId> results)
+        {
+            var otherProjects = this.GetProjectsThatDirectlyDependOnThisProject_NoLock(project);
             foreach (var other in otherProjects)
             {
-                if (visited.Add(other))
+                if (results.Add(other))
                 {
-                    GetProjectsThatTransitivelyDependOnThisProject(other, visited);
+                    ComputeReverseTransitiveReferences(other, results);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns all the projects for the solution in a topologically sorted order with respect
+        /// to their dependencies. Projects that depend on other projects will always show up later in this sequence
+        /// than the projects they depend on.
+        /// </summary>
+        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (this.lazyTopologicallySortedProjects == null)
+            {
+                using (this.dataLock.DisposableWait(cancellationToken))
+                {
+                    this.GetTopologicallySortedProjects_NoLock(cancellationToken);
                 }
             }
 
-            return visited;
+            return this.lazyTopologicallySortedProjects;
+        }
+
+        private IEnumerable<ProjectId> GetTopologicallySortedProjects_NoLock(CancellationToken cancellationToken)
+        {
+            if (this.lazyTopologicallySortedProjects == null)
+            {
+                var seenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                var resultList = SharedPools.Default<List<ProjectId>>().AllocateAndClear();
+
+                this.TopologicalSort(this.projectIds, cancellationToken, seenProjects, resultList);
+
+                this.lazyTopologicallySortedProjects = resultList.ToImmutableList();
+
+                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(seenProjects);
+                SharedPools.Default<List<ProjectId>>().ClearAndFree(resultList);
+            }
+
+            return this.lazyTopologicallySortedProjects;
+        }
+
+        private void TopologicalSort(
+            IEnumerable<ProjectId> projectIds,
+            CancellationToken cancellationToken,
+            HashSet<ProjectId> seenProjects,
+            List<ProjectId> resultList)
+        {
+            foreach (var projectId in projectIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Make sure we only ever process a project once.
+                if (seenProjects.Add(projectId))
+                {
+                    // Recurse and add anything this project depends on before adding the project itself.
+                    ImmutableHashSet<ProjectId> projectReferenceIds;
+                    if (this.referencesMap.TryGetValue(projectId, out projectReferenceIds))
+                    {
+                        TopologicalSort(projectReferenceIds, cancellationToken, seenProjects, resultList);
+                    }
+
+                    resultList.Add(projectId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a sequence of sets, where each set contains items with shared interdependency,
+        /// and there is no dependency between sets.
+        /// </summary>
+        public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (this.lazyDependencySets == null)
+            {
+                using (this.dataLock.DisposableWait(cancellationToken))
+                {
+                    this.GetDependencySets_NoLock(cancellationToken);
+                }
+            }
+
+            return this.lazyDependencySets;
+        }
+
+        private IEnumerable<IEnumerable<ProjectId>> GetDependencySets_NoLock(CancellationToken cancellationToken)
+        {
+            if (this.lazyDependencySets == null)
+            {
+                var seenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().AllocateAndClear();
+
+                this.ComputeDependencySets(seenProjects, results, cancellationToken);
+
+                this.lazyDependencySets = results.ToImmutableList();
+
+                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(seenProjects);
+                SharedPools.Default<List<IEnumerable<ProjectId>>>().ClearAndFree(results);
+            }
+
+            return this.lazyDependencySets;
+        }
+
+        private void ComputeDependencySets(HashSet<ProjectId> seenProjects, List<IEnumerable<ProjectId>> results, CancellationToken cancellationToken)
+        {
+            foreach (var project in this.projectIds)
+            {
+                if (seenProjects.Add(project))
+                {
+                    // We've never seen this project before, so we have not yet dealt with any projects
+                    // in its dependency set.
+                    var dependencySet = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                    ComputedDependencySet(project, dependencySet);
+
+                    // add all items in the dependency set to seen projects so we don't revisit any of them
+                    seenProjects.UnionWith(dependencySet);
+
+                    // now make sure the items within the sets are topologically sorted.
+                    var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
+                    var sortedProjects = SharedPools.Default<List<ProjectId>>().AllocateAndClear();
+                    this.TopologicalSort(dependencySet, cancellationToken, topologicallySeenProjects, sortedProjects);
+
+                    results.Add(sortedProjects.ToImmutableList());
+
+                    SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(dependencySet);
+                    SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(topologicallySeenProjects);
+                    SharedPools.Default<List<ProjectId>>().ClearAndFree(sortedProjects);
+                }
+            }
+        }
+
+        private void ComputedDependencySet(ProjectId project, HashSet<ProjectId> result)
+        {
+            if (result.Add(project))
+            {
+                var otherProjects = this.GetProjectsThatDirectlyDependOnThisProject_NoLock(project).Concat(
+                                    this.GetProjectsThatThisProjectDirectlyDependsOn(project));
+
+                foreach (var other in otherProjects)
+                {
+                    ComputedDependencySet(other, result);
+                }
+            }
         }
     }
 }

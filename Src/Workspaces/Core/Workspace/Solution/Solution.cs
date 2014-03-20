@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<ProjectId, ProjectState> projectIdToProjectStateMap;
         private readonly VersionStamp version;
         private readonly Lazy<VersionStamp> lazyLatestProjectVersion;
-        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveDependencyMap;
+        private readonly ProjectDependencyGraph dependencyGraph;
 
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> projectIdToProjectMap;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableList<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveDependencyMap,
+            ProjectDependencyGraph dependencyGraph,
             VersionStamp version,
             Lazy<VersionStamp> lazyLatestProjectVersion)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
             this.projectIds = projectIds;
             this.projectIdToProjectStateMap = idToProjectStateMap;
             this.projectIdToTrackerMap = projectIdToTrackerMap;
-            this.transitiveDependencyMap = transitiveDependencyMap;
+            this.dependencyGraph = dependencyGraph;
             this.projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
             this.version = version;
             this.lazyLatestProjectVersion = lazyLatestProjectVersion;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds: ImmutableList.Create<ProjectId>(),
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
-                transitiveDependencyMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+                dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyLatestProjectVersion: null)
         {
             this.lazyLatestProjectVersion = new Lazy<VersionStamp>(() => ComputeLatestProjectVersion());
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableList<ProjectId> projectIds = null,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveDependencyMap = null,
+            ProjectDependencyGraph dependencyGraph = null,
             VersionStamp? version = default(VersionStamp?),
             Lazy<VersionStamp> lazyLatestProjectVersion = null)
         {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             projectIds = projectIds ?? this.projectIds;
             idToProjectStateMap = idToProjectStateMap ?? this.projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? this.projectIdToTrackerMap;
-            transitiveDependencyMap = transitiveDependencyMap ?? this.transitiveDependencyMap;
+            dependencyGraph = dependencyGraph ?? this.dependencyGraph;
             version = version.HasValue ? version.Value : this.version;
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? this.lazyLatestProjectVersion;
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds == this.projectIds &&
                 idToProjectStateMap == this.projectIdToProjectStateMap &&
                 projectIdToTrackerMap == this.projectIdToTrackerMap &&
-                transitiveDependencyMap == this.transitiveDependencyMap &&
+                dependencyGraph == this.dependencyGraph &&
                 version == this.version &&
                 lazyLatestProjectVersion == this.lazyLatestProjectVersion)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
-                transitiveDependencyMap,
+                dependencyGraph,
                 version.Value,
                 lazyLatestProjectVersion);
         }
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
                 this.projectIds,
                 this.projectIdToProjectStateMap,
                 this.projectIdToTrackerMap,
-                this.transitiveDependencyMap,
+                this.dependencyGraph,
                 this.version,
                 this.lazyLatestProjectVersion);
         }
@@ -502,14 +502,16 @@ namespace Microsoft.CodeAnalysis
 
         private Solution AddProject(ProjectId projectId, ProjectState projectState)
         {
-            var newTransitiveMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, withProjectReferenceChange: true, newTransitiveMap: newTransitiveMap);
+            var newProjectIds = this.projectIds.Add(projectId);
+            var newStateMap = this.projectIdToProjectStateMap.Add(projectId, projectState);
+            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
 
             return this.Branch(
-                projectIds: this.projectIds.Add(projectId),
-                idToProjectStateMap: this.projectIdToProjectStateMap.Add(projectId, projectState),
+                projectIds: newProjectIds,
+                idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
-                transitiveDependencyMap: newTransitiveMap,
+                dependencyGraph: newDependencyGraph,
                 version: this.Version.GetNewerVersion(),  // changed project list so, increment version.
                 lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
         }
@@ -597,14 +599,16 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            var newTransitiveMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, withProjectReferenceChange: true, newTransitiveMap: newTransitiveMap);
+            var newProjectIds = this.projectIds.Remove(projectId);
+            var newStateMap = this.projectIdToProjectStateMap.Remove(projectId);
+            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
 
             return this.Branch(
-                projectIds: this.projectIds.Remove(projectId),
-                idToProjectStateMap: this.projectIdToProjectStateMap.Remove(projectId),
+                projectIds: newProjectIds,
+                idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
-                transitiveDependencyMap: newTransitiveMap,
+                dependencyGraph: newDependencyGraph,
                 version: this.Version.GetNewerVersion()); // changed project list, so increment version
         }
 
@@ -1306,8 +1310,8 @@ namespace Microsoft.CodeAnalysis
             var projectId = newProjectState.Id;
 
             var newStateMap = this.projectIdToProjectStateMap.SetItem(projectId, newProjectState);
-            var newTransitiveMap = GetTransitiveDependencyMap(projectId, withProjectReferenceChange);
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, withProjectReferenceChange, newTransitiveMap);
+            var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(this.projectIds, newStateMap) : this.dependencyGraph;
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
 
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
@@ -1323,48 +1327,27 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
-                transitiveDependencyMap: newTransitiveMap,
+                dependencyGraph: newDependencyGraph,
                 lazyLatestProjectVersion: newLatestProjectVersion);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(
-            ProjectId projectId, bool withProjectReferenceChange, ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> newTransitiveMap)
+        private static ProjectDependencyGraph CreateDependencyGraph(
+            ImmutableList<ProjectId> projectIds,
+            ImmutableDictionary<ProjectId, ProjectState> projectStates)
         {
-            // Create a copy of the tracker map.
-            //
-            // 1) If we have no compilation computed at all in the tracker, then we can just ignore
-            //    this tracker object.
-            // 2) we can reuse trackers for projects not dependent on this newProject. Otherwise, we
-            //    have to fork them.
+            var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
+                    state.Id,
+                    state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
+                    .ToImmutableDictionary();
 
-            // first check whether this fork is due to reference changes
-            ImmutableHashSet<ProjectId> transitiveSet;
-            if (!withProjectReferenceChange)
-            {
-                // okay, it is not due to a reference change, current or new transitivie map should contain logically same information.
-                // let's just use the new transitive map
-                // (new map could have more information since the map will be filled up lazily)
-                transitiveSet = newTransitiveMap[projectId];
-
-                ValidateTransitiveDependencyMap(projectId, transitiveSet);
-                return CreateCompilationTrackerMap(projectId, id => transitiveSet.Contains(id));
-            }
-
-            // we have reference changes, let's see whether we can use current transitive map
-            if (this.transitiveDependencyMap.TryGetValue(projectId, out transitiveSet))
-            {
-                // Yes, it is already calculated, we can reuse existing one
-                ValidateTransitiveDependencyMap(projectId, transitiveSet);
-                return CreateCompilationTrackerMap(projectId, id => transitiveSet.Contains(id));
-            }
-
-            // we never calcualted this information. do it here
-            return CreateCompilationTrackerMap(projectId, id => this.HasTransitiveDependency(id, projectId));
+            return new ProjectDependencyGraph(projectIds, map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, Func<ProjectId, bool> hasTransitiveDependency)
+        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
+            var dependencies = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+
             foreach (var projectIdAndTracker in this.projectIdToTrackerMap)
             {
                 var id = projectIdAndTracker.Key;
@@ -1375,85 +1358,11 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var canReuse = id == projectId || !hasTransitiveDependency(id);
+                var canReuse = id == projectId || !dependencies.Contains(id);
                 builder.Add(id, canReuse ? tracker : tracker.Fork(tracker.ProjectState));
             }
 
             return builder.ToImmutable();
-        }
-
-        [Conditional("DEBUG")]
-        private void ValidateTransitiveDependencyMap(ProjectId projectId, ImmutableHashSet<ProjectId> transitiveMap)
-        {
-            var projectsDependOnMe = GetProjectsDependOnMe(projectId);
-            Contract.ThrowIfFalse(transitiveMap.SetEquals(projectsDependOnMe));
-        }
-
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> GetTransitiveDependencyMap(ProjectId projectId, bool withProjectReferenceChange)
-        {
-            if (withProjectReferenceChange)
-            {
-                // we have project reference change, we need to re-create whole map again
-                return ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
-            }
-
-            // we are having none reference related changes and we already have a transitive map for given project.
-            // re-use the map as it is
-            if (this.transitiveDependencyMap.ContainsKey(projectId))
-            {
-                // we can reuse existing transitive dependency map as it is
-                return this.transitiveDependencyMap;
-            }
-
-            // we didn't calculate the map yet. do it right here. this map is for the forked project, 
-            // but since there is no project reference change, it should be okay to calculate the map using current p2p information.
-            var projectsDependOnMe = GetProjectsDependOnMe(projectId);
-            return this.transitiveDependencyMap.Add(projectId, projectsDependOnMe);
-        }
-
-        private ImmutableHashSet<ProjectId> GetProjectsDependOnMe(ProjectId projectId)
-        {
-            return ImmutableHashSet.CreateRange<ProjectId>(
-                from id in this.projectIds
-                where id != projectId && this.HasTransitiveDependency(id, projectId)
-                select id);
-        }
-
-        private bool HasTransitiveDependency(ProjectId fromProject, ProjectId toProject)
-        {
-            var seenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-            var result = HasTransitiveDependency(fromProject, toProject, seenProjects);
-            SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(seenProjects);
-
-            return result;
-        }
-
-        private bool HasTransitiveDependency(ProjectId fromProject, ProjectId toProject, HashSet<ProjectId> seenProjects)
-        {
-            if (fromProject == toProject)
-            {
-                return true;
-            }
-
-            // Don't go down projects multiple times.
-            if (!seenProjects.Add(fromProject))
-            {
-                return false;
-            }
-
-            var project = this.GetProjectState(fromProject);
-            if (project != null)
-            {
-                foreach (var projectReference in project.ProjectReferences)
-                {
-                    if (HasTransitiveDependency(projectReference.ProjectId, toProject, seenProjects))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -1530,7 +1439,7 @@ namespace Microsoft.CodeAnalysis
                         currentPartialSolution = this.Branch(
                             idToProjectStateMap: newIdToProjectStateMap,
                             projectIdToTrackerMap: newIdToTrackerMap,
-                            transitiveDependencyMap: ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty);
+                            dependencyGraph: CreateDependencyGraph(this.projectIds, newIdToProjectStateMap));
 
                         this.latestSolutionWithPartialCompilation = new WeakReference<Solution>(currentPartialSolution);
                         this.timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
@@ -1685,9 +1594,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets an ProjectDependencyGraph that details the dependencies between projects for this solution.
         /// </summary>
-        public Task<ProjectDependencyGraph> GetProjectDependencyGraphAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public ProjectDependencyGraph GetProjectDependencyGraph()
         {
-            return ProjectDependencyService.GetDependencyGraphAsync(this, cancellationToken);
+            return this.dependencyGraph;
         }
 
         private void CheckNotContainsProject(ProjectId projectId)
@@ -1716,7 +1625,8 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckNotContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
         {
-            if (HasTransitiveDependency(fromProjectId, toProjectId))
+            var dependents = this.dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId);
+            if (dependents.Contains(toProjectId))
             {
                 throw new InvalidOperationException(WorkspacesResources.ProjectTransitivelyReferencesTargetProject);
             }

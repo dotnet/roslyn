@@ -137,8 +137,7 @@
     <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceExtensions.cs" />
     <Compile Include="WorkspaceServices\OptionServiceTests.cs" />
-    <Compile Include="WorkspaceServices\ProjectDependencyGraphTests.cs" />
-    <Compile Include="WorkspaceServices\ProjectDependencyServiceTests.cs" />
+    <Compile Include="ProjectDependencyGraphTests.cs" />
     <Compile Include="WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="WorkspaceServices\TestWorkspaceServiceProvider.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml">

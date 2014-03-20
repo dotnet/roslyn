@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var symbol = renameLocationSet.Symbol;
                 var newSolution = renameLocationSet.Solution;
 
-                var dependencyGraph = await newSolution.GetProjectDependencyGraphAsync(cancellationToken).ConfigureAwait(false);
+                var dependencyGraph = newSolution.GetProjectDependencyGraph();
                 this.topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToList();
 
                 if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Label || symbol.Kind == SymbolKind.RangeVariable)

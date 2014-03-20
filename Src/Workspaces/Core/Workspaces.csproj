@@ -854,7 +854,6 @@
     <Compile Include="Workspace\Solution\Project.EquivalenceResult.cs" />
     <Compile Include="Workspace\Solution\ProjectChanges.cs" />
     <Compile Include="Workspace\Solution\ProjectDependencyGraph.cs" />
-    <Compile Include="Workspace\Solution\ProjectDependencyService.cs" />
     <Compile Include="Workspace\Solution\ProjectDiagnostic.cs" />
     <Compile Include="Workspace\Solution\ProjectId.cs" />
     <Compile Include="Workspace\Solution\ProjectInfo.cs" />

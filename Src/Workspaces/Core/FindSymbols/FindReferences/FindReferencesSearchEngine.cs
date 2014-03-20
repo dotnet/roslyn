@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ImmutableList<IReferenceFinder> finders;
         private readonly IFindReferencesProgress progress;
         private readonly CancellationToken cancellationToken;
-        private readonly AsyncLazy<ProjectDependencyGraph> lazyDependencyGraph;
+        private readonly ProjectDependencyGraph dependencyGraph;
 
         /// <summary>
         /// Mapping from a document to the list of reference locations found in it.  Kept around so
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.finders = finders;
             this.progress = progress;
             this.cancellationToken = cancellationToken;
-            this.lazyDependencyGraph = new AsyncLazy<ProjectDependencyGraph>(c => solution.GetProjectDependencyGraphAsync(c), cacheResult: true);
+            this.dependencyGraph = solution.GetProjectDependencyGraph();
         }
 
         public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol)
@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Get the connected components of the dependency graph and process each individually.
                 // That way once a component is done we can throw away all the memory associated with
                 // it.
-                var graph = await this.lazyDependencyGraph.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var connectedProjects = graph.GetConnectedProjects(cancellationToken);
+                var connectedProjects = this.dependencyGraph.GetDependencySets(cancellationToken);
                 var projectMap = CreateProjectMap(documentMap);
 
                 foreach (var projectSet in connectedProjects)

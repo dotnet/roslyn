@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         private void VerifyTopologicalSort(string projectReferences, params string[] expectedResults)
         {
             Solution solution = CreateSolutionFromReferenceMap(projectReferences);
-            var projectDependencyGraph = ProjectDependencyGraph.From(solution, CancellationToken.None);
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetTopologicallySortedProjects(CancellationToken.None);
 
             var actualResult = string.Concat(projectIds.Select(id => solution.GetProject(id).AssemblyName));
@@ -39,24 +39,24 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #endregion
 
-        #region GetConnectedProjects
+        #region Dependency Sets
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(542438)]
-        public void ProjectDependencyGraph_GetConnectedProjects()
+        public void ProjectDependencyGraph_GetDependencySets()
         {
-            VerifyConnectedProjects("A B:A C:A D E:D F:D", "ABC DEF");
-            VerifyConnectedProjects("A B:A,C C", "ABC");
-            VerifyConnectedProjects("A B", "A B");
-            VerifyConnectedProjects("A B C:B", "A BC");
-            VerifyConnectedProjects("A B:A C:A D:B,C", "ABCD");
+            VerifyDependencySets("A B:A C:A D E:D F:D", "ABC DEF");
+            VerifyDependencySets("A B:A,C C", "ABC");
+            VerifyDependencySets("A B", "A B");
+            VerifyDependencySets("A B C:B", "A BC");
+            VerifyDependencySets("A B:A C:A D:B,C", "ABCD");
         }
 
-        private void VerifyConnectedProjects(string projectReferences, string expectedResult)
+        private void VerifyDependencySets(string projectReferences, string expectedResult)
         {
             Solution solution = CreateSolutionFromReferenceMap(projectReferences);
-            var projectDependencyGraph = ProjectDependencyGraph.From(solution, CancellationToken.None);
-            var projectIds = projectDependencyGraph.GetConnectedProjects(CancellationToken.None);
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
+            var projectIds = projectDependencyGraph.GetDependencySets(CancellationToken.None);
             var actualResult = string.Join(" ",
                 projectIds.Select(
                     group => string.Concat(
@@ -66,89 +66,29 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #endregion
 
-        #region Serialization
+        #region GetProjectsThatThisProjectTransitivelyDependsOn
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectDependencyGraph_RoundTripToText()
+        public void ProjectDependencyGraph_GetProjectsThatThisProjectTransitivelyDependsOn()
         {
-            string projectReferences = "B:A A C:A D:C,B";
-
-            // due to the way version is serialized and deserialized, we need to make sure there is no version collision during
-            // building solution. otherwise, original version will have higher version than deserialized version and make 
-            // creating graph from persistance source fail.
-            var solution = CreateSolutionFromReferenceMap(projectReferences);
-
-            var graph = ProjectDependencyGraph.From(solution, CancellationToken.None);
-            var text = GetGraphText(graph);
-
-            // write graph to stream
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = new ObjectWriter(stream))
-                {
-                    graph.WriteTo(writer);
-                }
-
-                stream.Position = 0;
-
-                ProjectDependencyGraph newGraph;
-                using (var reader = new ObjectReader(stream))
-                {
-                    // read graph back from stream
-                    newGraph = ProjectDependencyGraph.ReadGraph(solution, reader, CancellationToken.None);
-                }
-
-                var newText = GetGraphText(newGraph);
-                Assert.Equal(text, newText);
-            }
+            VerifyTransitiveReferences("A", "A", new string[] { });
+            VerifyTransitiveReferences("B:A A", "B", new string[] { "A" });
+            VerifyTransitiveReferences("C:B B:A A", "C", new string[] { "B", "A" });
+            VerifyTransitiveReferences("C:B B:A A", "A", new string[] { });
         }
 
-        private string GetGraphText(string projectReferences = "B:A A C:A D:C,B")
+        private void VerifyTransitiveReferences(string projectReferences, string project, string[] expectedResults)
         {
-            var graph = CreateGraph(projectReferences);
-            return GetGraphText(graph);
-        }
+            Solution solution = CreateSolutionFromReferenceMap(projectReferences);
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
+            var projectId = solution.GetProjectsByName(project).Single().Id;
+            var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
 
-        private string GetGraphText(ProjectDependencyGraph graph)
-        {
-            using (var stream = new MemoryStream())
-            using (var writer = new ObjectWriter(stream))
-            {
-                graph.WriteTo(writer);
-                stream.Position = 0;
+            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
 
-                return Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length);
-            }
-        }
-        #endregion
-
-        #region From
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectDependencyGraph_FromExistingGraph()
-        {
-            var staleSolution = CreateSolution("stale");
-            var staleGraph = ProjectDependencyGraph.From(staleSolution, CancellationToken.None);
-
-            var solution = CreateSolutionFromReferenceMap("A B C");
-            var projectA = solution.GetProjectsByName("A").FirstOrDefault().Id;
-            var projectB = solution.GetProjectsByName("B").FirstOrDefault().Id;
-            var projectC = solution.GetProjectsByName("C").FirstOrDefault().Id;
-            var graph = ProjectDependencyGraph.From(solution, staleGraph, CancellationToken.None);
-
-            solution = solution.AddProjectReference(projectB, new ProjectReference(projectA));
-            solution = solution.RemoveProject(projectC);
-            AddProject(ref solution, 4, "D");
-            var projectD = solution.GetProjectsByName("D").FirstOrDefault().Id;
-            solution = solution.AddProjectReference(projectD, new ProjectReference(projectA));
-
-            graph = ProjectDependencyGraph.From(solution, graph, CancellationToken.None);
-
-            // we don't have an ordering guarantee.  So consider both cases;
-            var test1 = new[] { projectB, projectD }.SequenceEqual(graph.GetProjectsThatDirectlyDependOnThisProject(projectA));
-            var test2 = new[] { projectD, projectB }.SequenceEqual(graph.GetProjectsThatDirectlyDependOnThisProject(projectA));
-            Assert.True(test1 || test2, "test1 == " + test1 + ", test2 == " + test2);
-            AssertEx.Equal(new[] { projectA }, graph.GetProjectsThatThisProjectDirectlyDependsOn(projectB));
+            Assert.Equal<string>(
+                expectedResults.OrderBy(n => n),
+                actualResults.OrderBy(n => n));
         }
 
         #endregion
@@ -158,21 +98,25 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void ProjectDependencyGraph_GetProjectsThatTransitivelyDependOnThisProject()
         {
-            VerifyTransitiveReferences("A", "A", "");
-            VerifyTransitiveReferences("B:A A", "B", "A");
-            VerifyTransitiveReferences("C:B B:A A", "C", "BA");
-            VerifyTransitiveReferences("C:B B:A A", "A", "");
+            VerifyReverseTransitiveReferences("A", "A", new string[] { });
+            VerifyReverseTransitiveReferences("B:A A", "A", new string[] { "B" });
+            VerifyReverseTransitiveReferences("C:B B:A A", "A", new string[] { "B", "C" });
+            VerifyReverseTransitiveReferences("C:B B:A A", "C", new string[] { });
+            VerifyReverseTransitiveReferences("D:C,B B:A C A", "A", new string[] { "D", "B" });
         }
 
-        private void VerifyTransitiveReferences(string projectReferences, string project, params string[] expectedResults)
+        private void VerifyReverseTransitiveReferences(string projectReferences, string project, string[] expectedResults)
         {
             Solution solution = CreateSolutionFromReferenceMap(projectReferences);
-            var projectDependencyGraph = ProjectDependencyGraph.From(solution, CancellationToken.None);
+            var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
-            var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
+            var projectIds = projectDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
 
-            var actualResult = string.Concat(projectIds.Select(id => solution.GetProject(id).AssemblyName));
-            Assert.Contains<string>(actualResult, expectedResults);
+            var actualResults = projectIds.Select(id => solution.GetProject(id).Name);
+
+            Assert.Equal<string>(
+                expectedResults.OrderBy(n => n),
+                actualResults.OrderBy(n => n));
         }
 
         #endregion
@@ -182,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         private ProjectDependencyGraph CreateGraph(string projectReferences)
         {
             var solution = CreateSolutionFromReferenceMap(projectReferences);
-            return ProjectDependencyGraph.From(solution, CancellationToken.None);
+            return solution.GetProjectDependencyGraph();
         }
 
         private Solution CreateSolutionFromReferenceMap(string projectReferences)
