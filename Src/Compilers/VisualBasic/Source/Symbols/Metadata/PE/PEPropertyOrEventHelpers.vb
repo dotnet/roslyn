@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim symbolsForExplicitlyImplementedAccessors = New HashSet(Of T)()
             For Each implementedAccessor In implementedAccessors
-                Dim associatedProperty = TryCast(implementedAccessor.AssociatedPropertyOrEvent, T)
+                Dim associatedProperty = TryCast(implementedAccessor.AssociatedSymbol, T)
                 If associatedProperty IsNot Nothing Then
                     symbolsForExplicitlyImplementedAccessors.Add(associatedProperty)
                 End If

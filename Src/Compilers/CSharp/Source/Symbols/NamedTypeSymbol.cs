@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ConstructUnboundGenericType();
         }
 
-        IEventSymbol INamedTypeSymbol.AssociatedEvent
+        ISymbol INamedTypeSymbol.AssociatedSymbol
         {
             get
             {

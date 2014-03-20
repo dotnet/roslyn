@@ -162,8 +162,10 @@ namespace Microsoft.CodeAnalysis
         /// returns the property that this method is the getter or setter for.
         /// If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         /// returns the event that this method is the adder or remover for.
+        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// reflect changes in the languages.
         /// </summary>
-        ISymbol AssociatedPropertyOrEvent { get; }
+        ISymbol AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns a constructed method given its type arguments.

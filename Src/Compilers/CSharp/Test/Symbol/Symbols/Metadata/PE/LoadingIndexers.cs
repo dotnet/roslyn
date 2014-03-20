@@ -1064,12 +1064,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 if (!suppressAssociatedPropertyCheck)
                 {
-                    Assert.Same(property, accessor.AssociatedPropertyOrEvent);
+                    Assert.Same(property, accessor.AssociatedSymbol);
                 }
             }
             else
             {
-                Assert.Null(accessor.AssociatedPropertyOrEvent);
+                Assert.Null(accessor.AssociatedSymbol);
                 Assert.Equal(MethodKind.Ordinary, accessor.MethodKind);
             }
 

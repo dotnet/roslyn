@@ -171,7 +171,7 @@ public class Modifiers
             Assert.Same(volatileFld, volatileFld.OriginalDefinition);
             Assert.Null(volatileFld.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false));
             Assert.Null(volatileFld.ConstantValue);
-            Assert.Null(volatileFld.AssociatedPropertyOrEvent);
+            Assert.Null(volatileFld.AssociatedSymbol);
             Assert.Same(c1AsmRef, volatileFld.ContainingAssembly);
             Assert.Same(c1AsmRef.Modules[0], volatileFld.ContainingModule);
             Assert.Same(modifiers, volatileFld.ContainingSymbol);
@@ -190,7 +190,7 @@ public class Modifiers
             Assert.False(m1.HidesBaseMethodsByName);
             Assert.False(m1.IsExtensionMethod);
             Assert.Equal(((RetargetingMethodSymbol)m1).UnderlyingMethod.CallingConvention, m1.CallingConvention);
-            Assert.Null(m1.AssociatedPropertyOrEvent);
+            Assert.Null(m1.AssociatedSymbol);
             Assert.Same(c1AsmRef.Modules[0], m1.ContainingModule);
 
             ParameterSymbol p1 = m1.Parameters[0];

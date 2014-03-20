@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (containingSymbol is IMethodSymbol)
             {
                 var containingMethod = (IMethodSymbol)containingSymbol;
-                if (containingMethod.AssociatedPropertyOrEvent is IPropertySymbol)
+                if (containingMethod.AssociatedSymbol is IPropertySymbol)
                 {
-                    var property = (IPropertySymbol)containingMethod.AssociatedPropertyOrEvent;
+                    var property = (IPropertySymbol)containingMethod.AssociatedSymbol;
                     if (ordinal < property.Parameters.Length)
                     {
                         results.Add(property.Parameters[ordinal]);
@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 else
                 {
                     var namedType = containingMethod.ContainingType as INamedTypeSymbol;
-                    if (namedType != null && namedType.IsDelegateType() && namedType.AssociatedEvent != null)
+                    if (namedType != null && namedType.IsDelegateType() && namedType.AssociatedSymbol != null)
                     {
-                        var eventNode = namedType.AssociatedEvent.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
+                        var eventNode = namedType.AssociatedSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
                         if (eventNode != null)
                         {
                             var document = solution.GetDocument(eventNode.SyntaxTree);

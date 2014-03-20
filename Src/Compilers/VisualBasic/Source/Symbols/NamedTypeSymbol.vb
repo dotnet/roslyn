@@ -93,8 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' For implicitly declared delegate types returns the EventSymbol that caused this
         ''' delegate type to be generated.
         ''' For all other types returns null.
+        ''' Note, the set of possible associated symbols might be expanded in the future to 
+        ''' reflect changes in the languages.
         ''' </summary>
-        Public Overridable ReadOnly Property AssociatedEvent As EventSymbol
+        Public Overridable ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
             End Get
@@ -1136,9 +1138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property INamedTypeSymbol_AssociatedEvent As IEventSymbol Implements INamedTypeSymbol.AssociatedEvent
+        Private ReadOnly Property INamedTypeSymbol_AssociatedSymbol As ISymbol Implements INamedTypeSymbol.AssociatedSymbol
             Get
-                Return Me.AssociatedEvent
+                Return Me.AssociatedSymbol
             End Get
         End Property
 

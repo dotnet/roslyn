@@ -1557,7 +1557,7 @@ End Class
 
             Dim symbol = model.GetSymbolInfo(syntax).Symbol
             Assert.Equal(SymbolKind.Field, symbol.Kind)
-            Assert.Equal(fieldLikeEvent, DirectCast(symbol, FieldSymbol).AssociatedPropertyOrEvent)
+            Assert.Equal(fieldLikeEvent, DirectCast(symbol, FieldSymbol).AssociatedSymbol)
 
             Dim type = model.GetTypeInfo(syntax).Type
             Assert.Equal(tokenTableType, type.OriginalDefinition)

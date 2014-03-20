@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if ((object)node.Method.AssociatedPropertyOrEvent != null)
+            else if ((object)node.Method.AssociatedSymbol != null)
             {
                 foreach (var a in node.Arguments)
                 {

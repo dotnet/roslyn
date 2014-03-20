@@ -71,8 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If this variable serves as a backing variable for an automatically generated
         ''' property or event, returns that property or event. 
         ''' Otherwise returns Nothing.
+        ''' Note, the set of possible associated symbols might be expanded in the future to 
+        ''' reflect changes in the languages.
         ''' </summary>
-        Public MustOverride ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public MustOverride ReadOnly Property AssociatedSymbol As Symbol
 
         ''' <summary>
         ''' Returns true if this variable was declared as ReadOnly 
@@ -332,9 +334,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "IFieldSymbol"
 
-        Private ReadOnly Property IFieldSymbol_AssociatedPropertyOrEvent() As ISymbol Implements IFieldSymbol.AssociatedPropertyOrEvent
+        Private ReadOnly Property IFieldSymbol_AssociatedSymbol As ISymbol Implements IFieldSymbol.AssociatedSymbol
             Get
-                Return Me.AssociatedPropertyOrEvent
+                Return Me.AssociatedSymbol
             End Get
         End Property
 

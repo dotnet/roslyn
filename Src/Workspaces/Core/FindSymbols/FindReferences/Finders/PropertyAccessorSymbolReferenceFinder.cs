@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var result = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-            if (symbol.AssociatedPropertyOrEvent != null)
+            if (symbol.AssociatedSymbol != null)
             {
-                result = result.Concat(symbol.AssociatedPropertyOrEvent);
+                result = result.Concat(symbol.AssociatedSymbol);
             }
 
             return result;

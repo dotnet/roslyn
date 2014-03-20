@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolOpt.Kind == SymbolKind.Method)
             {
-                var associatedPropertyOrEvent = ((IMethodSymbol)symbolOpt).AssociatedPropertyOrEvent;
-                if (associatedPropertyOrEvent != null &&
-                    (IsDiagnosticLocallySuppressed(id, associatedPropertyOrEvent) || IsDiagnosticGloballySuppressed(id, associatedPropertyOrEvent)))
+                var associated = ((IMethodSymbol)symbolOpt).AssociatedSymbol;
+                if (associated != null &&
+                    (IsDiagnosticLocallySuppressed(id, associated) || IsDiagnosticGloballySuppressed(id, associated)))
                 {
                     return true;
                 }

@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function IsAccessor(methodSymbol As MethodSymbol) As Boolean
-            Return methodSymbol.AssociatedPropertyOrEvent IsNot Nothing
+            Return methodSymbol.AssociatedSymbol IsNot Nothing
         End Function
 
         <Extension()>

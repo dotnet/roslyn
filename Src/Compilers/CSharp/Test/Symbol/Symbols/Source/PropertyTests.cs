@@ -283,7 +283,7 @@ class C : B<string>
 
             Assert.True(accessor.MethodKind == MethodKind.PropertyGet || accessor.MethodKind == MethodKind.PropertySet,
                 "Accessor kind: " + accessor.MethodKind.ToString());
-            Assert.Equal(accessor.AssociatedPropertyOrEvent, property);
+            Assert.Equal(accessor.AssociatedSymbol, property);
         }
 
         [WorkItem(538789)]
@@ -441,7 +441,7 @@ class Program
         private void VerifyAccessor(MethodSymbol accessor, PEPropertySymbol associatedProperty, MethodKind methodKind)
         {
             Assert.NotNull(accessor);
-            Assert.Equal(accessor.AssociatedPropertyOrEvent, associatedProperty);
+            Assert.Equal(accessor.AssociatedSymbol, associatedProperty);
             Assert.Equal(accessor.MethodKind, methodKind);
 
             if (associatedProperty != null)

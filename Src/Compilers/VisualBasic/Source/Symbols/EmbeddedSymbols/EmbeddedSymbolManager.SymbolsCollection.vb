@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case MethodKind.PropertyGet, MethodKind.PropertySet
                             ' add associated property, note that adding any accessor will cause 
                             ' adding the property as well as the other accessor if any
-                            AddReferencedSymbolWithDependents(DirectCast(symbol, MethodSymbol).AssociatedPropertyOrEvent, allSymbols)
+                            AddReferencedSymbolWithDependents(DirectCast(symbol, MethodSymbol).AssociatedSymbol, allSymbols)
 
                         Case MethodKind.Ordinary,
                              MethodKind.Constructor,

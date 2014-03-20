@@ -1033,7 +1033,7 @@ End Class
                                                         Assert.NotNull(member)
                                                         Dim delegateTypeMember = DirectCast(tA.GetMember("E1EventHandler"), SynthesizedEventDelegateSymbol)
                                                         Assert.NotNull(delegateTypeMember)
-                                                        Assert.Equal(delegateTypeMember.AssociatedEvent, DirectCast(tA.GetMember("E1"), EventSymbol))
+                                                        Assert.Equal(delegateTypeMember.AssociatedSymbol, DirectCast(tA.GetMember("E1"), EventSymbol))
                                                     End Sub)
 
         End Sub

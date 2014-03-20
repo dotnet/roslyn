@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
                     isAccessor = true;
-                    var associatedProperty = (IPropertySymbol)symbol.AssociatedPropertyOrEvent;
+                    var associatedProperty = (IPropertySymbol)symbol.AssociatedSymbol;
                     if (associatedProperty == null)
                     {
                         goto case MethodKind.Ordinary;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
                     isAccessor = true;
-                    var associatedEvent = (IEventSymbol)symbol.AssociatedPropertyOrEvent;
+                    var associatedEvent = (IEventSymbol)symbol.AssociatedSymbol;
                     if (associatedEvent == null)
                     {
                         goto case MethodKind.Ordinary;

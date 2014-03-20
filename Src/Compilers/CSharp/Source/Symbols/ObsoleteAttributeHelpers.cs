@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // For Property or Event accessors, check the associated property or event instead.
             if (symbol.IsAccessor())
             {
-                symbol = ((MethodSymbol)symbol).AssociatedPropertyOrEvent;
+                symbol = ((MethodSymbol)symbol).AssociatedSymbol;
             }
             // If this is the backing field of an event, look at the event instead.
-            else if (symbol.Kind == SymbolKind.Field && (object)((FieldSymbol)symbol).AssociatedPropertyOrEvent != null)
+            else if (symbol.Kind == SymbolKind.Field && (object)((FieldSymbol)symbol).AssociatedSymbol != null)
             {
-                symbol = ((FieldSymbol)symbol).AssociatedPropertyOrEvent;
+                symbol = ((FieldSymbol)symbol).AssociatedSymbol;
             }
 
             if (forceComplete)

@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If method.MethodKind = MethodKind.PropertySet AndAlso
                    IsMarshalAsAttributeApplicable(method) Then
 
-                    Return DirectCast(method.AssociatedPropertyOrEvent, SourcePropertySymbol).ReturnTypeMarshallingInformation
+                    Return DirectCast(method.AssociatedSymbol, SourcePropertySymbol).ReturnTypeMarshallingInformation
                 End If
 
                 Return Nothing

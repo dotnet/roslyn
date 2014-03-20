@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
 
             // If this proc happens to belong to a property/event, we should include the property/event as well.
-            Symbol propertyOrEvent = method.AssociatedPropertyOrEvent;
+            Symbol propertyOrEvent = method.AssociatedSymbol;
             if ((object)propertyOrEvent != null)
             {
                 switch (propertyOrEvent.Kind)

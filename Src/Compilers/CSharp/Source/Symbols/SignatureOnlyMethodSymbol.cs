@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbol> TypeArguments { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override Symbol AssociatedPropertyOrEvent { get { throw ExceptionUtilities.Unreachable; } }
+        public override Symbol AssociatedSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsExtensionMethod { get { throw ExceptionUtilities.Unreachable; } }
 

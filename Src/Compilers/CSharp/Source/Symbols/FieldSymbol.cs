@@ -70,8 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
         /// property or a field-like event, returns that property/event. Otherwise returns null.
+        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// reflect changes in the languages.
         /// </summary>
-        public abstract Symbol AssociatedPropertyOrEvent { get; }
+        public abstract Symbol AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns true if this field was declared as "readonly". 
@@ -388,11 +390,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region IFieldSymbol Members
 
-        ISymbol IFieldSymbol.AssociatedPropertyOrEvent
+        ISymbol IFieldSymbol.AssociatedSymbol
         {
             get
             {
-                return this.AssociatedPropertyOrEvent;
+                return this.AssociatedSymbol;
             }
         }
 

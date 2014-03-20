@@ -252,8 +252,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' returns the property that this method is the getter or setter for.
         ''' If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         ''' returns the event that this method is the adder or remover for.
+        ''' Note, the set of possible associated symbols might be expanded in the future to 
+        ''' reflect changes in the languages.
         ''' </summary>
-        Public MustOverride ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public MustOverride ReadOnly Property AssociatedSymbol As Symbol
 
         ''' <summary>
         ''' If this method is a Lambda method (MethodKind = MethodKind.LambdaMethod) and 
@@ -274,9 +276,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property OverriddenMethod As MethodSymbol
             Get
-                If Me.IsAccessor AndAlso Me.AssociatedPropertyOrEvent.Kind = SymbolKind.Property Then
+                If Me.IsAccessor AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Property Then
                     ' Property accessors use the overridden property to determine overriding.
-                    Return DirectCast(Me.AssociatedPropertyOrEvent, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
+                    Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
                 Else
                     If Me.IsOverrides AndAlso Me.ConstructedFrom Is Me Then
                         Return OverriddenMembers.OverriddenMember
@@ -391,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
             Get
-                Return Me.AssociatedPropertyOrEvent
+                Return Me.AssociatedSymbol
             End Get
         End Property
 
@@ -891,9 +893,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_AssociatedPropertyOrEvent As ISymbol Implements IMethodSymbol.AssociatedPropertyOrEvent
+        Private ReadOnly Property IMethodSymbol_AssociatedSymbol As ISymbol Implements IMethodSymbol.AssociatedSymbol
             Get
-                Return Me.AssociatedPropertyOrEvent
+                Return Me.AssociatedSymbol
             End Get
         End Property
 

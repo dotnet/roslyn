@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.TypeKind == TypeKind.Delegate ||
-                        namedType.AssociatedEvent != null)
+                        namedType.AssociatedSymbol != null)
                     {
                         yield return type;
                     }
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (method != null)
                     {
-                        if (method.AssociatedPropertyOrEvent != null)
+                        if (method.AssociatedSymbol != null)
                         {
-                            yield return method.AssociatedPropertyOrEvent;
+                            yield return method.AssociatedSymbol;
                         }
                         else
                         {

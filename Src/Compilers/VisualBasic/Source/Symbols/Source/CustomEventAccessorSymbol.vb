@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return BindParameters(Me.Locations.FirstOrDefault, binder, BlockSyntax.Begin.ParameterList, diagBag)
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return m_event
             End Get

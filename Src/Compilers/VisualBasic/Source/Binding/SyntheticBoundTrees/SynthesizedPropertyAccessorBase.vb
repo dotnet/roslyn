@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '       Ideally it could have been split into two different implementations, but the code gen is
             '       quite similar in these two cases and current types hierarchy makes this solution preferable
 
-            Dim propertySymbol = DirectCast(accessor.AssociatedPropertyOrEvent, PropertySymbol)
+            Dim propertySymbol = DirectCast(accessor.AssociatedSymbol, PropertySymbol)
 
             Dim syntax = DirectCast(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), VisualBasicSyntaxNode)
             Dim meSymbol As ParameterSymbol = Nothing

@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static void CheckAccessorShape(this MethodSymbol accessor, Symbol propertyOrEvent)
         {
-            Assert.Same(propertyOrEvent, accessor.AssociatedPropertyOrEvent);
+            Assert.Same(propertyOrEvent, accessor.AssociatedSymbol);
 
             CheckAccessorModifiers(accessor, propertyOrEvent);
 

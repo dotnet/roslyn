@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.@event; }
         }
 
-        public sealed override Symbol AssociatedPropertyOrEvent
+        public sealed override Symbol AssociatedSymbol
         {
             get { return this.@event; }
         }

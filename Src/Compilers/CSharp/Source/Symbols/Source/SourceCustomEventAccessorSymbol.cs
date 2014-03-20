@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return this.AssociatedPropertyOrEvent.DeclaredAccessibility; }
+            get { return this.AssociatedSymbol.DeclaredAccessibility; }
         }
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

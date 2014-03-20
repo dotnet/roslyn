@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetMatchingPropertyParameter() As ParameterSymbol
             Dim containingMethod = TryCast(ContainingSymbol, MethodSymbol)
             If containingMethod IsNot Nothing AndAlso containingMethod.IsAccessor() Then
-                Dim containingProperty = TryCast(containingMethod.AssociatedPropertyOrEvent, PropertySymbol)
+                Dim containingProperty = TryCast(containingMethod.AssociatedSymbol, PropertySymbol)
                 If containingProperty IsNot Nothing AndAlso Ordinal < containingProperty.ParameterCount Then
                     ' We match a parameter on our containing property.
                     Return containingProperty.Parameters(Ordinal)

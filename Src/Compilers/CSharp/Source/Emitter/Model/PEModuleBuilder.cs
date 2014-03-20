@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             string aliasQualifierOpt = null;
             if (methodSymbol.IsExplicitInterfaceImplementation)
             {
-                Symbol symbol = methodSymbol.AssociatedPropertyOrEvent ?? methodSymbol;
+                Symbol symbol = methodSymbol.AssociatedSymbol ?? methodSymbol;
                 Debug.Assert(symbol.DeclaringSyntaxReferences.Length < 2, "Can't have a partial explicit interface implementation");
                 SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
                 if (reference != null)

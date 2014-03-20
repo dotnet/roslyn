@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public virtual ISymbol AssociatedPropertyOrEvent
+        public virtual ISymbol AssociatedSymbol
         {
             get
             {

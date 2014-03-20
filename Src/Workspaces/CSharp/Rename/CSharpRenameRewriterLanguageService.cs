@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var namedTypeSymbol = (INamedTypeSymbol)symbol;
                         if (namedTypeSymbol.IsImplicitlyDeclared &&
                             namedTypeSymbol.IsDelegateType() &&
-                            namedTypeSymbol.AssociatedEvent != null)
+                            namedTypeSymbol.AssociatedSymbol != null)
                         {
                             suffix = "EventHandler";
                         }
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (symbol.IsPropertyAccessor())
             {
-                var property = ((IMethodSymbol)symbol).AssociatedPropertyOrEvent;
+                var property = ((IMethodSymbol)symbol).AssociatedSymbol;
 
                 return property.Language == LanguageNames.VisualBasic ? property : null;
             }

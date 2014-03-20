@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<ParameterSymbol>.Empty; }
             }
 
-            public override Symbol AssociatedPropertyOrEvent
+            public override Symbol AssociatedSymbol
             {
                 get { return this.property; }
             }

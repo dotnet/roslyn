@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeSymbol>.Empty; }
         }
 
-        public sealed override Symbol AssociatedPropertyOrEvent
+        public sealed override Symbol AssociatedSymbol
         {
             get { return null; }
         }

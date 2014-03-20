@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private static void CheckAccessorShape(MethodSymbol accessor, EventSymbol @event)
         {
-            Assert.Same(@event, accessor.AssociatedPropertyOrEvent);
+            Assert.Same(@event, accessor.AssociatedSymbol);
 
             switch (accessor.MethodKind)
             {

@@ -43,12 +43,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 symbol.ForceCompleteObsoleteAttribute()
             End If
 
-            Dim associatedPropertyOrEvent = If(symbol.IsAccessor(), DirectCast(symbol, MethodSymbol).AssociatedPropertyOrEvent, Nothing)
+            Dim associatedPropertyOrEvent = If(symbol.IsAccessor(), DirectCast(symbol, MethodSymbol).AssociatedSymbol, Nothing)
 
             ' If this is an event accessor, then consider the event itself for context since
             ' event accessors cannot be marked obsolete.
             If associatedPropertyOrEvent IsNot Nothing AndAlso associatedPropertyOrEvent.Kind = SymbolKind.Event Then
-                symbol = DirectCast(symbol, MethodSymbol).AssociatedPropertyOrEvent
+                symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
             End If
 
             If symbol.ObsoleteState <> ThreeState.False Then
@@ -83,16 +83,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.
             ' For all other symbols, report the regular diagnostic.
-            If symbol.IsAccessor() AndAlso (DirectCast(symbol, MethodSymbol).AssociatedPropertyOrEvent).Kind = SymbolKind.Property Then
+            If symbol.IsAccessor() AndAlso (DirectCast(symbol, MethodSymbol).AssociatedSymbol).Kind = SymbolKind.Property Then
                 Dim accessorSymbol = DirectCast(symbol, MethodSymbol)
                 Dim accesorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
 
                 If String.IsNullOrEmpty(data.Message) Then
                     Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2),
-                                        accesorString, accessorSymbol.AssociatedPropertyOrEvent)
+                                        accesorString, accessorSymbol.AssociatedSymbol)
                 Else
                     Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3),
-                                        accesorString, accessorSymbol.AssociatedPropertyOrEvent, data.Message)
+                                        accesorString, accessorSymbol.AssociatedSymbol, data.Message)
                 End If
             Else
                 If String.IsNullOrEmpty(data.Message) Then

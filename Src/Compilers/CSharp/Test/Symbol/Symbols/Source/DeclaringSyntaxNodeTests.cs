@@ -536,13 +536,13 @@ namespace N1 {
                 if (memb is MethodSymbol)
                 {
                     MethodSymbol meth = (MethodSymbol)memb;
-                    if (meth.AssociatedPropertyOrEvent != null && meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev1))
+                    if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
                         expectedDeclaringNodes = 0;  // implicit accessor.
                 }
                 if (memb is FieldSymbol)
                 {
                     FieldSymbol fld = (FieldSymbol)memb;
-                    if (fld.AssociatedPropertyOrEvent != null && fld.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3))
+                    if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
                 }
 
@@ -559,13 +559,13 @@ namespace N1 {
                 if (memb is MethodSymbol)
                 {
                     MethodSymbol meth = (MethodSymbol)memb;
-                    if (meth.AssociatedPropertyOrEvent != null && meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev1))
+                    if (meth.AssociatedSymbol != null && meth.AssociatedSymbol.OriginalDefinition.Equals(ev1))
                         expectedDeclaringNodes = 0;  // implicit accessor.
                 }
                 if (memb is FieldSymbol)
                 {
                     FieldSymbol fld = (FieldSymbol)memb;
-                    if (fld.AssociatedPropertyOrEvent != null && fld.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3))
+                    if (fld.AssociatedSymbol != null && fld.AssociatedSymbol.OriginalDefinition.Equals(prop3))
                         expectedDeclaringNodes = 0;  // auto-prop backing field.
                 }
 

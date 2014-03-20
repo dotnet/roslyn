@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var blockSyntax = sourceMethod.BlockSyntax;
                 if (blockSyntax == null)
                 {
-                    var property = sourceMethod.AssociatedPropertyOrEvent as SourcePropertySymbol;
+                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);

@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                         If fieldSymbol.Type.IsDelegateType AndAlso
                         fieldSymbol.Type.IsImplicitlyDeclared AndAlso
-                        DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedEvent IsNot Nothing Then
+                        DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedSymbol IsNot Nothing Then
 
                             suffix = "Event"
                         End If
@@ -279,14 +279,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ElseIf symbol.IsConstructor AndAlso
                      symbol.ContainingType.IsImplicitlyDeclared AndAlso
                      symbol.ContainingType.IsDelegateType AndAlso
-                     symbol.ContainingType.AssociatedEvent IsNot Nothing Then
+                     symbol.ContainingType.AssociatedSymbol IsNot Nothing Then
 
                         suffix = "EventHandler"
                     ElseIf TypeOf symbol Is INamedTypeSymbol Then
                         Dim namedTypeSymbol = DirectCast(symbol, INamedTypeSymbol)
                         If namedTypeSymbol.IsImplicitlyDeclared AndAlso
                         namedTypeSymbol.IsDelegateType() AndAlso
-                        namedTypeSymbol.AssociatedEvent IsNot Nothing Then
+                        namedTypeSymbol.AssociatedSymbol IsNot Nothing Then
                             suffix = "EventHandler"
                         End If
                     End If

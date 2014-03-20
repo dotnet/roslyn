@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim attributeLocation As Location = Nothing
                                 If GetDeclaredCompliance(symbol, attributeLocation) = True Then
                                     ' This warning is a little strange since attributes on event accessors are silently ignored.
-                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSEventMethodInNonCLSType3, attributeLocation, methodKind.TryGetAccessorDisplayName(), symbol.AssociatedPropertyOrEvent.Name, containingType)
+                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSEventMethodInNonCLSType3, attributeLocation, methodKind.TryGetAccessorDisplayName(), symbol.AssociatedSymbol.Name, containingType)
                                 End If
                             End If
                         End If
@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return GetDeclaredOrInheritedCompliance(GetContainingModuleOrAssembly(symbol))
             ElseIf symbol.Kind = SymbolKind.Method Then
                 Dim method As MethodSymbol = DirectCast(symbol, MethodSymbol)
-                Dim associated As Symbol = method.AssociatedPropertyOrEvent
+                Dim associated As Symbol = method.AssociatedSymbol
                 If associated IsNot Nothing Then
                     ' Don't bother storing entries for accessors - just go straight to the property/event.
                     Return GetDeclaredOrInheritedCompliance(associated)

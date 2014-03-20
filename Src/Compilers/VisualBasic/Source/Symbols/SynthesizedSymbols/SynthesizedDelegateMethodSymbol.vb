@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         ''' returns the event that this method is the adder or remover for.
         ''' </summary>
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
             End Get

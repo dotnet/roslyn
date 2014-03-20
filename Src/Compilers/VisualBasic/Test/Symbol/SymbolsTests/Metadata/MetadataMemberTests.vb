@@ -730,7 +730,7 @@ End Class
                     Continue For
                 End If
 
-                Assert.NotNull(m.AssociatedPropertyOrEvent)
+                Assert.NotNull(m.AssociatedSymbol)
                 Assert.NotEqual(MethodKind.Ordinary, m.MethodKind)
             Next
 

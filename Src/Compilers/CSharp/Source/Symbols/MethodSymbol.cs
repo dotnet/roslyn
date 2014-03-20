@@ -276,8 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns the property that this method is the getter or setter for.
         /// If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         /// returns the event that this method is the adder or remover for.
+        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// reflect changes in the languages.
         /// </summary>
-        public abstract Symbol AssociatedPropertyOrEvent { get; }
+        public abstract Symbol AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns the original virtual or abstract method which a given method symbol overrides,
@@ -1034,11 +1036,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ISymbol IMethodSymbol.AssociatedPropertyOrEvent
+        ISymbol IMethodSymbol.AssociatedSymbol
         {
             get
             {
-                return this.AssociatedPropertyOrEvent;
+                return this.AssociatedSymbol;
             }
         }
 

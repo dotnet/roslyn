@@ -1554,8 +1554,8 @@ class C : B
             var get_XB = classB.GetMember<MethodSymbol>("get_X");
             var get_XC = classC.GetMember<MethodSymbol>("get_X");
 
-            Assert.Equal("X", get_XB.AssociatedPropertyOrEvent.MetadataName);
-            Assert.Equal("X", get_XC.AssociatedPropertyOrEvent.MetadataName);
+            Assert.Equal("X", get_XB.AssociatedSymbol.MetadataName);
+            Assert.Equal("X", get_XC.AssociatedSymbol.MetadataName);
         }
 
         [Fact]

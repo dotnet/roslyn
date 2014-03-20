@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)method != null);
             Debug.Assert(((object)propertyAccess == null) ||
-                (method.AssociatedPropertyOrEvent == propertyAccess) ||
+                (method.AssociatedSymbol == propertyAccess) ||
                 propertyAccess.MustCallMethodsDirectly);
 
             CheckArguments(argumentRefKindsOpt, arguments, method);

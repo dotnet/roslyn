@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)implementation != null)
                 {
                     associated = implementation.Kind == SymbolKind.Method
-                        ? ((MethodSymbol)implementation).AssociatedPropertyOrEvent
+                        ? ((MethodSymbol)implementation).AssociatedSymbol
                         : null;
                     return true;
                 }
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(interfaceMethod.IsAccessor());
 
-            Symbol associatedInterfacePropertyOrEvent = interfaceMethod.AssociatedPropertyOrEvent;
+            Symbol associatedInterfacePropertyOrEvent = interfaceMethod.AssociatedSymbol;
             Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMember(associatedInterfacePropertyOrEvent); // NB: uses cache
             MethodSymbol correspondingImplementingAccessor = null;
             if ((object)implementingPropertyOrEvent != null)

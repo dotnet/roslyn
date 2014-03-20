@@ -120,8 +120,10 @@ namespace Microsoft.CodeAnalysis
         /// For implicitly declared delegate types returns the EventSymbol that caused this
         /// delegate type to be generated.
         /// For all other types returns null.
+        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// reflect changes in the languages.
         /// </summary>
-        IEventSymbol AssociatedEvent { get; }
+        ISymbol AssociatedSymbol { get; }
 
         /// <summary>
         /// Determines if the symbol might contain extension methods. 

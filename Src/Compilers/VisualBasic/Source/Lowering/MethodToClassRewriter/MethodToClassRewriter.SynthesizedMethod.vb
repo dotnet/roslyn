@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+            Public Overrides ReadOnly Property AssociatedSymbol As Symbol
                 Get
                     Return Nothing
                 End Get

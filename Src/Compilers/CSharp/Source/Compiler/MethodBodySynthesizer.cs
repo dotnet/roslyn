@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(accessor.MethodKind == MethodKind.PropertyGet || accessor.MethodKind == MethodKind.PropertySet);
 
-            var property = (SourcePropertySymbol)accessor.AssociatedPropertyOrEvent;
+            var property = (SourcePropertySymbol)accessor.AssociatedSymbol;
             CSharpSyntaxNode syntax = property.CSharpSyntaxNode;
             BoundExpression thisReference = null;
             if (!accessor.IsStatic)

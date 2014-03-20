@@ -545,10 +545,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Dim accessorName = TryGetAccessorDisplayName(method.MethodKind)
                             If accessorName IsNot Nothing Then
-                                Debug.Assert(method.AssociatedPropertyOrEvent IsNot Nothing)
+                                Debug.Assert(method.AssociatedSymbol IsNot Nothing)
 
                                 diagnostics.Add(ERRID.ERR_InvalidAttributeUsageOnAccessor, node.Name.GetLocation,
-                                    CustomSymbolDisplayFormatter.ShortErrorName(attributeType), accessorName, CustomSymbolDisplayFormatter.ShortErrorName(method.AssociatedPropertyOrEvent))
+                                    CustomSymbolDisplayFormatter.ShortErrorName(attributeType), accessorName, CustomSymbolDisplayFormatter.ShortErrorName(method.AssociatedSymbol))
 
                                 Exit Select
                             End If
@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim withEventsBackingField = TryCast(Me, SourceWithEventsBackingFieldSymbol)
                         Dim ownerName As String
                         If withEventsBackingField IsNot Nothing Then
-                            ownerName = CustomSymbolDisplayFormatter.ShortErrorName(withEventsBackingField.AssociatedPropertyOrEvent).ToString()
+                            ownerName = CustomSymbolDisplayFormatter.ShortErrorName(withEventsBackingField.AssociatedSymbol).ToString()
                         Else
                             ownerName = CustomSymbolDisplayFormatter.ShortErrorName(Me).ToString()
                         End If

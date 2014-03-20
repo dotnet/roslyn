@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
             ' TODO(cyrusn): Handle Add/Remove/Raise events
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
-            If eventType.IsDelegateType() AndAlso eventType.AssociatedEvent IsNot Nothing Then
+            If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
                 ' This is a declaration style event like "Event E(x As String)".  This event will
                 ' have a type that is unmentionable.  So we should not generate it as "Event E() As
                 ' SomeType", but should instead inline the delegate type into the event itself.

@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     Else
-                        Dim associatedPropertyOrEvent = symbol.AssociatedPropertyOrEvent
+                        Dim associatedPropertyOrEvent = symbol.AssociatedSymbol
                         Debug.Assert(associatedPropertyOrEvent IsNot Nothing)
 
                         If associatedPropertyOrEvent.Kind = SymbolKind.Property Then
