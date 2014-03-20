@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public static class CaseInsensitiveComparison
     {
-
         /// <summary>
         /// This class seeks to perform one-to-one lowercase Unicode case mappings, which should be culture invariant.
         /// </summary>
-        /// <remarks></remarks>
         private sealed class OneToOneUnicodeComparer : StringComparer
         {
             // PERF: Grab the TextInfo for the invariant culture since this will be accessed very frequently
@@ -31,60 +29,75 @@ namespace Microsoft.CodeAnalysis
             /// comparison
             /// </summary>
             /// <param name="c"></param>
-            /// <returns></returns>
+            /// <returns>If <paramref name="c"/> is upper case, then this returns its lower case equivalent. Otherwise, <paramref name="c"/> is returned unmodified.</returns>
             public static char ToLower(char c)
             {
-                // PERF: This is a very hot code path in VB, optimize for Ascii
-                if (IsAscii(c))
+                // PERF: This is a very hot code path in VB, optimize for ASCII
+
+                // Perform a range check with a single compare by using unsigned arithmetic
+                if (unchecked((uint)(c - 'A')) <= ('Z' - 'A'))
                 {
-                    // copied from BCL: Textinfo.ToLowerAsciiInvariant
-                    // if ('A' <= c && c <= 'Z')
-                    // we will do it with only one branch though since we want this to be fast
-                    if (unchecked((uint)(c - 'A')) <= ('Z' - 'A'))
-                    {
-                        c = (char)(c | 0x20);
-                    }
-                }
-                else if (c == '\u0130')
-                {
-                    // Special case Turkish I, see bug 531346
-                    c = 'i';
-                }
-                else
-                {
-                    c = invariantCultureTextInfo.ToLower(c);
+                    return (char)(c | 0x20);
                 }
 
-                return c;
+                if (c < 0xC0) // Covers ASCII (U+0000 - U+007F) and up to the next upper-case codepoint (Latin Capital Letter A with Grave)
+                {
+                    return c;
+                }
+
+                return ToLowerNonAscii(c);
             }
 
-            private static bool IsAscii(char c)
+            private static char ToLowerNonAscii(char c)
             {
-                return c < 0x80;
+                if (c == '\u0130')
+                {
+                    // Special case Turkish I, see bug 531346
+                    return 'i';
+                }
+
+                return invariantCultureTextInfo.ToLower(c);
+            }
+
+            private int CompareLowerInvariant(char c1, char c2)
+            {
+                return (c1 == c2) ? 0 : ToLower(c1) - ToLower(c2);
             }
 
             public override int Compare(string str1, string str2)
             {
+                if (ReferenceEquals(str1, str2))
+                {
+                    return 0;
+                }
+
                 if (str1 == null)
                 {
-                    return str2 == null ? 0 : -1;
+                    return -1;
                 }
-                else if (str2 == null)
+
+                if (str2 == null)
                 {
                     return 1;
                 }
 
-                for (int i = 0; i < Math.Min(str1.Length, str2.Length); i++)
+                int len = Math.Min(str1.Length, str2.Length);
+                for (int i = 0; i < len; i++)
                 {
-                    int ordDiff = ToLower(str1[i]) - ToLower(str2[i]);
+                    int ordDiff = CompareLowerInvariant(str1[i], str2[i]);
                     if (ordDiff != 0)
                     {
                         return ordDiff;
                     }
                 }
 
-                // return the smaller string, or 0 if (they are equal in length
+                // return the smaller string, or 0 if they are equal in length
                 return str1.Length - str2.Length;
+            }
+
+            private static bool AreEqualLowerInvariant(char c1, char c2)
+            {
+                return c1 == c2 || ToLower(c1) == ToLower(c2);
             }
 
             public override bool Equals(string str1, string str2)
@@ -106,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0; i < str1.Length; i++)
                 {
-                    if (ToLower(str1[i]) != ToLower(str2[i]))
+                    if (!AreEqualLowerInvariant(str1[i], str2[i]))
                     {
                         return false;
                     }
@@ -137,7 +150,7 @@ namespace Microsoft.CodeAnalysis
 
                 while (j >= 0)
                 {
-                    if (ToLower(value[i]) != ToLower(possibleEnd[j]))
+                    if (!AreEqualLowerInvariant(value[i], possibleEnd[j]))
                     {
                         return false;
                     }
@@ -155,7 +168,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0; i < str.Length; i++)
                 {
-                    hashCode = unchecked((hashCode ^ ToLower(str[i]) * Hash.FnvPrime));
+                    hashCode = Hash.CombineFNVHash(hashCode, ToLower(str[i]));
                 }
 
                 return hashCode;
@@ -176,11 +189,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines if (two VB identifiers are equal according to the VB identifier comparison rules.
+        /// Determines if two VB identifiers are equal according to the VB identifier comparison rules.
         /// </summary>
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
-        /// <returns>true if (the identifiers should be considered the same.</returns>
+        /// <returns>true if the identifiers should be considered the same.</returns>
         public static bool Equals(string left, string right)
         {
             return m_Comparer.Equals(left, right);
@@ -202,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
-        /// <returns>-1 if (ident1 &lt; ident2, 1 if (ident1 &gt; ident2, 0 if (they are equal.</returns>
+        /// <returns>-1 if <paramref name="left"/> &lt; <paramref name="right"/>, 1 if <paramref name="left"/> &gt; <paramref name="right"/>, 0 if they are equal.</returns>
         public static int Compare(string left, string right)
         {
             return m_Comparer.Compare(left, right);
@@ -243,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// In-place convert string in StruingBuilder to lower case in culture invariant way
+        /// In-place convert string in StringBuilder to lower case in culture invariant way
         /// </summary>
         /// <param name="builder"></param>
         public static void ToLower(StringBuilder builder)
