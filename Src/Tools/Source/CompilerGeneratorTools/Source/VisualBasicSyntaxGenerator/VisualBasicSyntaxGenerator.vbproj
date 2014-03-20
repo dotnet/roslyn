@@ -82,10 +82,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="VBSyntaxModelSchema.xsd">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="VBSyntaxModelSchema.xsd">
+      <LogicalName>VBSyntaxModelSchema.xsd</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
