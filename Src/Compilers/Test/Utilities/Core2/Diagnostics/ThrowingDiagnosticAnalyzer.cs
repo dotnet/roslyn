@@ -42,21 +42,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Compilation compilation)
+        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<IDiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis, string exceptionDiagnosticId)
         {
             var handled = new bool?[AllInterfaceMemberNames.Length];
             for (int i = 0; i < AllInterfaceMemberNames.Length; i++)
             {
-                var method = AllInterfaceMemberNames[i];
+                var member = AllInterfaceMemberNames[i];
                 var analyzer = new ThrowingDiagnosticAnalyzer<TSyntaxKind>();
-                analyzer.ThrowOn(method);
+                analyzer.ThrowOn(member);
                 try
                 {
-                    var diagnosticIds = AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, CancellationToken.None).Select(d => d.Id).Distinct();
+                    var diagnosticIds = runAnalysis(analyzer).Select(d => d.Id).Distinct();
                     handled[i] = analyzer.Thrown ? true : (bool?)null;
                     if (analyzer.Thrown)
                     {
-                        Assert.Equal(diagnosticIds.Single(), "AnalyzerDriver");
+                        if (diagnosticIds.Any())
+                        {
+                            Assert.Equal(exceptionDiagnosticId, diagnosticIds.Single());
+                        }
                     }
                     else
                     {

@@ -85,6 +85,7 @@
     <Compile Include="CSharpParser.cs" />
     <Compile Include="CSharpSyntaxNodeKindProvider.cs" />
     <Compile Include="CSharpTestBase.cs" />
+    <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticExtensions.cs" />
     <Compile Include="DiagnosticTestUtilities.cs" />
     <Compile Include="Extensions.cs" />

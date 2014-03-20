@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             analyzer.VerifyAllInterfaceMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
-            analyzer.VerifyAnalyzeCodeBlockCalledForAllSymbolAndMethodKinds();
+            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
         }
 
         [WorkItem(896075)]
@@ -46,23 +47,8 @@ public class C
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
-            ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(compilation);
-        }
-
-        class CSharpTrackingDiagnosticAnalyzer : TrackingDiagnosticAnalyzer<SyntaxKind>
-        {
-            static readonly Regex omittedSyntaxKindRegex =
-                new Regex(@"Using|Extern|Parameter|Constraint|Specifier|Initializer|Global|Method|Destructor");
-
-            protected override bool IsAnalyzeCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
-            {
-                return base.IsAnalyzeCodeBlockSupported(symbolKind, methodKind, returnsVoid) && methodKind != MethodKind.EventRaise;
-            }
-
-            protected override bool IsAnalyzeNodeSupported(SyntaxKind syntaxKind)
-            {
-                return base.IsAnalyzeNodeSupported(syntaxKind) && !omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
-            }
+            ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
+                AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, CancellationToken.None), typeof(AnalyzerDriver).Name);
         }
     }
 }

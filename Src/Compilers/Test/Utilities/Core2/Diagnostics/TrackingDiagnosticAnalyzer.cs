@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
-        protected virtual bool IsAnalyzeCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
+        protected virtual bool IsOnCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
         {
             return true;
         }
 
-        public void VerifyAnalyzeCodeBlockCalledForAllSymbolAndMethodKinds()
+        public void VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(bool allowUnexpectedCalls = false)
         {
             const MethodKind InvalidMethodKind = (MethodKind)(-1);
             var expectedArguments = new[]
@@ -117,15 +117,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 new { SymbolKind = SymbolKind.Method, MethodKind = MethodKind.UserDefinedOperator, ReturnsVoid = false },
             }.AsEnumerable();
 
-            expectedArguments = expectedArguments.Where(a => IsAnalyzeCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
+            expectedArguments = expectedArguments.Where(a => IsOnCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
 
-            var actualOnCodeBodyArguments = callLog.Where(FilterByInterface<ICodeBlockStartedAnalyzer>)
+            var actualOnCodeBlockStartedArguments = callLog.Where(FilterByInterface<ICodeBlockStartedAnalyzer>)
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
-            AssertSequenceEqual(expectedArguments, actualOnCodeBodyArguments, items => items.OrderBy(p => p.SymbolKind).ThenBy(p => p.MethodKind).ThenBy(p => p.ReturnsVoid));
+            var actualOnCodeBlockEndedArguments = callLog.Where(FilterByInterface<ICodeBlockEndedAnalyzer>)
+                .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
 
-            var actualOnCodeBodyCompletedArguments = callLog.Where(FilterByInterface<ICodeBlockEndedAnalyzer>)
-                .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
-            AssertSequenceEqual(expectedArguments, actualOnCodeBodyCompletedArguments, items => items.OrderBy(p => p.SymbolKind).ThenBy(p => p.MethodKind).ThenBy(p => p.ReturnsVoid));
+            if (!allowUnexpectedCalls)
+            {
+                AssertSequenceEqual(expectedArguments, actualOnCodeBlockStartedArguments, items => items.OrderBy(p => p.SymbolKind).ThenBy(p => p.MethodKind).ThenBy(p => p.ReturnsVoid));
+                AssertSequenceEqual(expectedArguments, actualOnCodeBlockEndedArguments, items => items.OrderBy(p => p.SymbolKind).ThenBy(p => p.MethodKind).ThenBy(p => p.ReturnsVoid));
+            }
+            else
+            {
+                AssertIsSuperset(expectedArguments, actualOnCodeBlockStartedArguments);
+                AssertIsSuperset(expectedArguments, actualOnCodeBlockEndedArguments);
+            }
         }
 
         private void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, Func<IEnumerable<T>, IOrderedEnumerable<T>> sorter = null)

@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicTestBase.vb" />
+    <Compile Include="BasicTrackingDiagnosticAnalyzer.vb" />
     <Compile Include="CompilationTestUtils.vb" />
     <Compile Include="DiagnosticExtensions.vb" />
     <Compile Include="Extensions.vb" />
