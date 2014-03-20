@@ -781,6 +781,7 @@
     <Compile Include="Workspace\DocumentationComments\DocumentationCommentId.cs" />
     <Compile Include="Workspace\DocumentationComments\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
+    <Compile Include="Workspace\FileTextLoader.cs" />
     <Compile Include="Workspace\Host\BackgroundCompilation\BackgroundCompiler.cs" />
     <Compile Include="Workspace\Host\BackgroundParsing\BackgroundParser.cs" />
     <Compile Include="Workspace\Host\Caching\CachedObjectSource.cs" />
@@ -808,15 +809,6 @@
     <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptions.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageServiceFactory.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\MetadataInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskScheduler.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.cs" />
@@ -831,13 +823,20 @@
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
     <Compile Include="Workspace\InternalsVisibleTo.cs" />
-    <Compile Include="Workspace\FileTextLoader.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\MetadataInfo.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\LineScanner.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
-    <Compile Include="Workspace\WellKnownFeatures.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
     <Compile Include="Workspace\Solution\Document.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
@@ -880,6 +879,7 @@
     <Compile Include="Workspace\Solution\TreeAndVersion.cs" />
     <Compile Include="Workspace\Solution\VersionStamp.cs" />
     <Compile Include="Workspace\TextExtensions.cs" />
+    <Compile Include="Workspace\WellKnownFeatures.cs" />
     <Compile Include="Workspace\Workspace.cs" />
     <Compile Include="Workspace\Workspace.TextTracker.cs" />
     <Compile Include="Workspace\Workspace_Editor.cs" />

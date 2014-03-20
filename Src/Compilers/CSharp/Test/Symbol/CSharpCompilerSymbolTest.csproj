@@ -207,9 +207,9 @@
     <Reference Include="System.Collections" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Runtime" />
-    <Reference Include="System.Reflection.Primitives" />
     <Reference Include="System.IO" />
+    <Reference Include="System.Reflection.Primitives" />
+    <Reference Include="System.Runtime" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />

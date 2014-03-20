@@ -316,8 +316,8 @@
     <Content Include="SymbolsTests\RetargetingCycle\V2\ClassB.dll" />
     <Content Include="SymbolsTests\RetargetingCycle\V2\ClassB.vb" />
     <Content Include="SymbolsTests\snKey.snk" />
-    <Content Include="SymbolsTests\snPublicKey.snk" />
     <Content Include="SymbolsTests\snKey2.snk" />
+    <Content Include="SymbolsTests\snPublicKey.snk" />
     <Content Include="SymbolsTests\snPublicKey2.snk" />
     <Content Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
@@ -741,7 +741,6 @@
     </Compile>
     <Content Include="PerfTests\VBPerfTest.vb" />
   </ItemGroup>
-  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

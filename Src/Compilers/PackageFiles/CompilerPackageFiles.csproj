@@ -54,7 +54,6 @@
   <ItemGroup>
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>

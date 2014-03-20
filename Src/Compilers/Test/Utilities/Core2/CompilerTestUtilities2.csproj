@@ -88,6 +88,9 @@
   <ItemGroup>
     <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
+    <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="DirectoryHelper.cs" />
     <Compile Include="EqualityTesting.cs" />
     <Compile Include="ErrorHelpers.cs" />
@@ -109,12 +112,9 @@
     </Compile>
     <Compile Include="SourceCodeValidator.cs" />
     <Compile Include="SpeculativeSemanticModelTestsBase.cs" />
-    <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
     <Compile Include="TestExceptionUtilities.cs" />
     <Compile Include="TestReferences.cs" />
     <Compile Include="TokenRuleAttribute.cs" />
-    <Compile Include="Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="TreeRuleAttribute.cs" />
     <Compile Include="TreeRules.cs" />
     <Compile Include="TreeValidator.cs" />

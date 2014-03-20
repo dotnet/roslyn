@@ -186,8 +186,6 @@
     <Compile Include="Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineArgumentsFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
-    <Compile Include="MSBuild\CSharpProjectFileLoader.cs" />
-    <Compile Include="MSBuild\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
@@ -199,6 +197,8 @@
     <Compile Include="LanguageServices\CSharpSyntaxVersionService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
+    <Compile Include="MSBuild\CSharpProjectFileLoader.cs" />
+    <Compile Include="MSBuild\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="Recommendations\CSharpRecommendationService.cs" />
     <Compile Include="Rename\CSharpRenameRewriterLanguageService.cs" />
     <Compile Include="Rename\LabelConflictVisitor.cs" />
