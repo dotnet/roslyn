@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
@@ -17,12 +18,19 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class CompilerPackage : Package
     {
+        private const string VisualStudioVersion = "12.0";
+        private const string VisualStudioHive = "VisualStudio";
+
         // The targets templates rely on two properties: DisableRoslyn and RoslynToolPath.
         // RoslynToolPath is the full path to the compiler binaries within the package
         // while DisableRoslyn is a simple boolean used to determine whether to build
         // with Roslyn or not. DisableRoslyn is not strictly necessary. Instead, the targets file
         // could check "'$(RoslynToolPath)'!=''" but DisableRoslyn allows disabling Roslyn
         // for builds outside of VS without first uninstalling.
+        //
+        // The Roslyn VsTools set the RoslynVsHive variable to target the matching buildtask.
+        // If the Hive doesn't have roslyn installed the Exists($(RoslynToolPath)) condition
+        // will ensure that  
         //
         // NOTE: even though the task defined above does not use the 'rcsc.exe'/'rvbc.exe' in any way
         // and compiles the target using Roslyn compiler server, Roslyn Csc/Vbc msbuild task
@@ -32,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
         private const string CSharpTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <PropertyGroup>
-    <RoslynToolPath>{0}</RoslynToolPath>
-  </PropertyGroup>
+  {0}
   <UsingTask
     Condition=""'$(DisableRoslyn)'!='true' And Exists('$(RoslynToolPath)')""
     AssemblyFile=""$([MSBuild]::Unescape($(RoslynToolPath)))\Roslyn.Compilers.BuildTasks.dll""
@@ -54,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
         private const string VisualBasicTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <PropertyGroup>
-    <RoslynToolPath>{0}</RoslynToolPath>
-  </PropertyGroup>
+  {0}
   <UsingTask
     Condition=""'$(DisableRoslyn)'!='true' And Exists('$(RoslynToolPath)')""
     AssemblyFile=""$([MSBuild]::Unescape($(RoslynToolPath)))\Roslyn.Compilers.BuildTasks.dll""
@@ -73,6 +77,15 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
   </PropertyGroup>
 </Project>
 ";
+        private const string ConditionalRoslynToolPathTemplate =
+@"<PropertyGroup Condition=""'$(RoslynHive)'=='{1}'"">
+    <RoslynToolPath>{0}</RoslynToolPath>
+  </PropertyGroup>";
+        private const string UnconditionalRoslynToolPathTemplate =
+@"<PropertyGroup Condition=""'$(RoslynHive)'=='' And '$(RoslynToolPath)' == ''"">
+    <RoslynToolPath>{0}</RoslynToolPath>
+  </PropertyGroup>";
+
         private const string WriteFileExceptionTitle = "CompilerPackage";
         private const string WriteFileExceptionMessage =
 @"Unable to write {0}
@@ -80,19 +93,58 @@ namespace Microsoft.CodeAnalysis.CompilerPackage
 {1}
 
 To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio."/*.NeedsLocalization()*/;
-
         protected override void Initialize()
         {
+            // Generate targets file
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var userExtensionsPath = Path.Combine(localAppData, @"Microsoft\MSBuild\12.0"); // $(MSBuildUserExtensionsPath)\$(MSBuildToolsVersion)
+            var msbuildExtensionsPath = Path.Combine(localAppData, @"Microsoft\MSBuild\12.0"); // $(MSBuildUserExtensionsPath)\$(MSBuildToolsVersion)
 
-            WriteFile(
-                Path.Combine(userExtensionsPath, @"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.targets"),
-                string.Format(CSharpTargetsTemplate, packagePath));
-            WriteFile(
-                Path.Combine(userExtensionsPath, @"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.targets"),
-                string.Format(VisualBasicTargetsTemplate, packagePath));
+            string localRegistryRoot;
+            var reg = (ILocalRegistry2)this.GetService(typeof(SLocalRegistry));
+            reg.GetLocalRegistryRoot(out localRegistryRoot);
+            var regDirs = localRegistryRoot.Split('\\');
+            var roslynHive = string.Format(@"{0}\{1}", regDirs[2], regDirs[3]);
+
+            // Is it a valid Hive looks similar to:  'Software\Microsoft\VisualStudio\12.0'  'Software\Microsoft\VisualStudio\12.0Roslyn'  'Software\Microsoft\VSWinExpress\12.0'
+            if (regDirs.Length >= 4)
+            {
+                var roslynToolPathTemplate = string.Format(ConditionalRoslynToolPathTemplate, packagePath, roslynHive);
+                WriteFile(
+                    Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
+                    string.Format(string.Format(CSharpTargetsTemplate, roslynToolPathTemplate)));
+                WriteFile(
+                    Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
+                    string.Format(string.Format(CSharpTargetsTemplate, roslynToolPathTemplate)));
+
+                if(regDirs[3] == VisualStudioVersion)            // Not an Experimental hive write out a 'Default' target for the command line build
+                {
+                    roslynToolPathTemplate = string.Format(UnconditionalRoslynToolPathTemplate, packagePath);
+                    string targetName = string.CompareOrdinal(regDirs[2], VisualStudioHive) == 0 ?
+                        @"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.targets" :
+                        string.Format(@"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.{0}.targets", regDirs[2]);
+                    WriteFile(
+                        Path.Combine(msbuildExtensionsPath, targetName),
+                        string.Format(string.Format(CSharpTargetsTemplate, roslynToolPathTemplate)));
+                    targetName = string.CompareOrdinal(regDirs[2], VisualStudioHive) == 0 ?
+                        @"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.targets" :
+                        string.Format(@"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.{0}.targets", regDirs[2]);
+
+                    WriteFile(
+                        Path.Combine(msbuildExtensionsPath, targetName),
+                        string.Format(string.Format(VisualBasicTargetsTemplate, roslynToolPathTemplate)));
+                }
+
+                try
+                {
+                    Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.DisableMarkDirty = true;
+                    Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.SetGlobalProperty("RoslynHive", roslynHive);
+                }
+                finally
+                {
+                    Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.DisableMarkDirty = false;
+                }
+            }
             base.Initialize();
         }
 
