@@ -9,6 +9,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Instrumentation
+Imports Microsoft.CodeAnalysis.InternalUtilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -35,6 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' change to the C# version.
         '
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        ''' <summary>
+        ''' most of time all compilation would use same MyTemplate. no reason to create (reparse) one for each compilation
+        ''' as long as its parse option is same
+        ''' </summary>
+        Private Shared ReadOnly s_myTemplateCache As ConcurrentLruCache(Of VisualBasicParseOptions, SyntaxTree) =
+            New ConcurrentLruCache(Of VisualBasicParseOptions, SyntaxTree)(capacity:=5)
 
         ''' <summary>
         ''' The SourceAssemblySymbol for this compilation. Do not access directly, use Assembly
@@ -135,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private m_lazyEmbeddedSymbolManager As EmbeddedSymbolManager
 
         ''' <summary>
-        ''' MyTemplate automatically embedded from resource in VB runtime.
+        ''' MyTemplate automatically embedded from resource in the compiler.
         ''' It doesn't feel like it should be managed by EmbeddedSymbolManager
         ''' because MyTemplate is treated as user code, i.e. can be extended via
         ''' partial declarations, doesn't require "on-demand" metadata generation, etc.
@@ -195,8 +203,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Me.Options.EmbedVbCoreRuntime Then
                         m_lazyMyTemplate = Nothing
                     Else
-                        Dim text As String = EmbeddedResources.VbMyTemplateText
-                        m_lazyMyTemplate = VisualBasicSyntaxTree.ParseText(text, options:=Me.Options.ParseOptions, isMyTemplate:=True)
+                        ' first see whether we can use one from global cache
+                        Dim parseOptions = If(Me.Options.ParseOptions, VisualBasicParseOptions.Default)
+
+                        Dim tree As SyntaxTree = Nothing
+                        If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
+                            Debug.Assert(tree IsNot Nothing)
+                            Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
+                            Debug.Assert(tree.IsMyTemplate)
+
+                            m_lazyMyTemplate = tree
+                        Else
+                            ' we need to make one.
+                            Dim text As String = EmbeddedResources.VbMyTemplateText
+                            tree = VisualBasicSyntaxTree.ParseText(text, options:=parseOptions, isMyTemplate:=True)
+
+                            ' set global cache
+                            s_myTemplateCache(parseOptions) = tree
+
+                            m_lazyMyTemplate = tree
+                        End If
                     End If
 
                     Debug.Assert(m_lazyMyTemplate Is Nothing OrElse m_lazyMyTemplate.IsMyTemplate)
@@ -205,8 +231,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_lazyMyTemplate
             End Get
             Set(value As SyntaxTree)
-                Debug.Assert(m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy AndAlso value IsNot VisualBasicSyntaxTree.Dummy AndAlso
-                                      (value Is Nothing OrElse value.IsMyTemplate))
+                Debug.Assert(m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy)
+                Debug.Assert(value IsNot VisualBasicSyntaxTree.Dummy)
+                Debug.Assert(value Is Nothing OrElse value.IsMyTemplate)
 
                 m_lazyMyTemplate = value
             End Set
@@ -2570,7 +2597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return Me.GetSemanticModel(DirectCast(syntaxTree, syntaxTree))
+            Return Me.GetSemanticModel(DirectCast(syntaxTree, SyntaxTree))
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
@@ -2622,7 +2649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            Return Me.ContainsSyntaxTree(DirectCast(syntaxTree, syntaxTree))
+            Return Me.ContainsSyntaxTree(DirectCast(syntaxTree, SyntaxTree))
         End Function
 
         Protected Overrides Function CommonGetAssemblyOrModuleSymbol(reference As MetadataReference) As ISymbol
