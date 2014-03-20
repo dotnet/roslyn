@@ -3,15 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -262,6 +258,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
+                    Debug.Assert(!this.bufferToDocumentIdMap.ContainsKey(container) ||
+                                 !this.bufferToDocumentIdMap[container].Any());
                     return null;
                 }
             }
@@ -450,7 +448,7 @@ namespace Microsoft.CodeAnalysis
                 this.bufferToDocumentIdMap[textContainer] = ImmutableList.Create(id);
             }
 
-            if (isCurrentContext)
+            if (isCurrentContext || !bufferToDocumentInCurrentContextMap.ContainsKey(textContainer))
             {
                 this.bufferToDocumentInCurrentContextMap[textContainer] = id;
             }
