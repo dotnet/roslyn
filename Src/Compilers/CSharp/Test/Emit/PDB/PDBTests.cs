@@ -4187,12 +4187,10 @@ class C
         <entry il_offset=""0xd"" start_row=""7"" start_column=""61"" end_row=""7"" end_column=""70"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <scope startOffset=""0x0"" endOffset=""0x1c"">
-          <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
-        </scope>
+        <local name=""CS$&lt;&gt;8__locals5"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
       </scope>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;.cctor&gt;b__6"" parameterNames=""y"">

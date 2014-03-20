@@ -540,9 +540,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             builder.EmitBranch(ILOpCode.Br, boundGotoStatement.Label);
         }
 
-        private bool IsTopLevelBlock(BoundBlock block)
+        // used by HandleReturn method which tries to inject 
+        // indirect ret sequence as a last statement in the block
+        // that is the last statement of the current method
+        // NOTE: it is important that there is no code after this "ret"
+        //       it is desirable, for debug purposes, that this ret is emitted inside top level { } 
+        private bool IsLastBlockInMethod(BoundBlock block)
         {
-            return methodBlockSyntax == block.Syntax;
+            if (this.block == block)
+            {
+                return true;
+            }
+
+            //sometimes top level node is a statement list containing 
+            //epilogue and then a block. If we are having that block, it will do.
+            var list = this.block as BoundStatementList;
+            if (list != null && list.Statements.LastOrDefault() == block)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private void EmitBlock(BoundBlock block)
@@ -566,8 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             if (this.indirectReturnState == IndirectReturnState.Needed &&
-                IsTopLevelBlock(block) &&
-                !builder.InExceptionHandler)
+                IsLastBlockInMethod(block))
             {
                 HandleReturn();
             }

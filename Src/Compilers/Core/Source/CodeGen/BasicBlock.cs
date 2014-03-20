@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // internal for testing
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal class BasicBlock
         {
             public static readonly ObjectPool<BasicBlock> Pool = CreatePool(32);
@@ -661,6 +662,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     return (int)RegularInstructionsLength + branchSize;
                 }
+            }
+
+            private string GetDebuggerDisplay()
+            {
+#if DEBUG
+                var visType = System.Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
+                if (visType != null)
+                {
+                    return (string)visType.InvokeMember(
+                        "BasicBlockToString",
+                        System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
+                        null,
+                        null,
+                        new object[] { this });
+                }
+#endif
+
+                return "";
             }
 
             private class PooledBasicBlock : BasicBlock

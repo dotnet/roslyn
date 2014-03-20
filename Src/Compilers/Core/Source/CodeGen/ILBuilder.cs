@@ -8,6 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed partial class ILBuilder
     {
         private EmitState emitState;
@@ -1264,6 +1265,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(this.allocatedILMarkers != null, "There are not markers in this builder");
             Debug.Assert(ilMarker >= 0 && ilMarker < this.allocatedILMarkers.Count, "Wrong builder?");
             return this.allocatedILMarkers[ilMarker].AbsoluteOffset;
+        }
+
+        private string GetDebuggerDisplay()
+        {
+#if DEBUG
+            var visType = System.Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
+            if (visType != null)
+            {
+                return (string)visType.InvokeMember(
+                    "ILBuilderToString",
+                    System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
+                    null,
+                    null,
+                    new object[] { this });
+            }
+#endif
+
+            return "";
         }
 
         private struct ILMarker

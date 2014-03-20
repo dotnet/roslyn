@@ -165,8 +165,12 @@ namespace Roslyn.Test.Utilities
 
         private static void DumpBasicBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
-            byte[] il = block.RegularInstructions.Buffer;
-            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
+            var instrCnt = (int)block.RegularInstructionsLength;
+            if (instrCnt != 0)
+            {
+                byte[] il = block.RegularInstructions.Buffer;
+                new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
+            }
 
             if (block.BranchCode != ILOpCode.Nop)
             {
@@ -194,7 +198,7 @@ namespace Roslyn.Test.Utilities
         private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb)
         {
             byte[] il = block.RegularInstructions.Buffer;
-            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
+            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, (int)block.RegularInstructionsLength, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
 
             // switch (N, t1, t2... tN)
             //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >

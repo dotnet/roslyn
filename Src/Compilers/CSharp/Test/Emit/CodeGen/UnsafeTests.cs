@@ -9256,6 +9256,166 @@ class c1
 }
 ");
         }
+
+        [WorkItem(907771)]
+        [Fact]
+        public void UnsafeBeforeReturn001()
+        {
+            var text = @"
+
+using System;
+ 
+public unsafe class C
+{
+    private static readonly byte[] _emptyArray = new byte[0];
+ 
+    public static void Main()
+    {
+        System.Console.WriteLine(ToManagedByteArray(2));
+    }
+ 
+    public static byte[] ToManagedByteArray(uint byteCount)
+    {
+        if (byteCount == 0)
+        {
+            return _emptyArray; // degenerate case
+        }
+        else
+        {
+            byte[] bytes = new byte[byteCount];
+            fixed (byte* pBytes = bytes)
+            {
+ 
+            }
+            return bytes;
+        }
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeExe, expectedOutput: "System.Byte[]");
+            compVerifier.VerifyIL("C.ToManagedByteArray", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (pinned byte& V_0, //pBytes
+  byte[] V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldsfld     ""byte[] C._emptyArray""
+  IL_0008:  ret
+  IL_0009:  ldarg.0
+  IL_000a:  newarr     ""byte""
+  IL_000f:  dup
+  IL_0010:  dup
+  IL_0011:  stloc.1
+  IL_0012:  brfalse.s  IL_0019
+  IL_0014:  ldloc.1
+  IL_0015:  ldlen
+  IL_0016:  conv.i4
+  IL_0017:  brtrue.s   IL_001e
+  IL_0019:  ldc.i4.0
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0026
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  ldelema    ""byte""
+  IL_0025:  stloc.0
+  IL_0026:  ldc.i4.0
+  IL_0027:  conv.u
+  IL_0028:  stloc.0
+  IL_0029:  ret
+}
+");
+        }
+
+        [WorkItem(907771)]
+        [Fact]
+        public void UnsafeBeforeReturn002()
+        {
+            var text = @"
+
+using System;
+ 
+public unsafe class C
+{
+    private static readonly byte[] _emptyArray = new byte[0];
+ 
+    public static void Main()
+    {
+        System.Console.WriteLine(ToManagedByteArray(2));
+    }
+ 
+    public static byte[] ToManagedByteArray(uint byteCount)
+    {
+        if (byteCount == 0)
+        {
+            return _emptyArray; // degenerate case
+        }
+        else
+        {
+            byte[] bytes = new byte[byteCount];
+            fixed (byte* pBytes = bytes)
+            {
+ 
+            }
+            return bytes;
+        }
+    }
+}
+
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeExe.WithOptimizations(false), expectedOutput: "System.Byte[]");
+            compVerifier.VerifyIL("C.ToManagedByteArray", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (bool V_0,
+  byte[] V_1,
+  byte[] V_2, //bytes
+  pinned byte& V_3, //pBytes
+  byte[] V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  cgt.un
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_0010
+  IL_0008:  ldsfld     ""byte[] C._emptyArray""
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0038
+  IL_0010:  ldarg.0
+  IL_0011:  newarr     ""byte""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  dup
+  IL_0019:  stloc.s    V_4
+  IL_001b:  brfalse.s  IL_0023
+  IL_001d:  ldloc.s    V_4
+  IL_001f:  ldlen
+  IL_0020:  conv.i4
+  IL_0021:  brtrue.s   IL_0028
+  IL_0023:  ldc.i4.0
+  IL_0024:  conv.u
+  IL_0025:  stloc.3
+  IL_0026:  br.s       IL_0031
+  IL_0028:  ldloc.s    V_4
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldelema    ""byte""
+  IL_0030:  stloc.3
+  IL_0031:  ldc.i4.0
+  IL_0032:  conv.u
+  IL_0033:  stloc.3
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.1
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ldloc.1
+  IL_0039:  ret
+}
+");
+        }
+
         #endregion
     }
 }
