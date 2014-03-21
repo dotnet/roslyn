@@ -105,26 +105,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                      SyntaxKind.CatchStatement,
                      SyntaxKind.FinallyStatement,
                      SyntaxKind.EndTryStatement,
-                     SyntaxKind.SubStatement,
-                     SyntaxKind.SubNewStatement,
                      SyntaxKind.EndSubStatement,
-                     SyntaxKind.FunctionStatement,
                      SyntaxKind.EndFunctionStatement,
-                     SyntaxKind.OperatorStatement,
                      SyntaxKind.EndOperatorStatement,
-                     SyntaxKind.GetAccessorStatement,
                      SyntaxKind.EndGetStatement,
-                     SyntaxKind.SetAccessorStatement,
                      SyntaxKind.EndSetStatement,
-                     SyntaxKind.AddHandlerAccessorStatement,
                      SyntaxKind.EndAddHandlerStatement,
-                     SyntaxKind.RemoveHandlerAccessorStatement,
                      SyntaxKind.EndRemoveHandlerStatement,
-                     SyntaxKind.RaiseEventAccessorStatement,
                      SyntaxKind.EndRaiseEventStatement,
                      SyntaxKind.FunctionLambdaHeader,
                      SyntaxKind.SubLambdaHeader
                     Return CreateSpan(node)
+
+                Case SyntaxKind.SubStatement,
+                     SyntaxKind.SubNewStatement,
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.OperatorStatement,
+                     SyntaxKind.GetAccessorStatement,
+                     SyntaxKind.SetAccessorStatement,
+                     SyntaxKind.AddHandlerAccessorStatement,
+                     SyntaxKind.RemoveHandlerAccessorStatement,
+                     SyntaxKind.RaiseEventAccessorStatement
+                    Return CreateSpanForMethodBase(DirectCast(node, MethodBaseSyntax))
 
                 Case SyntaxKind.FunctionAggregation
                     Return TryCreateSpanForFunctionAggregation(DirectCast(node, FunctionAggregationSyntax))
@@ -177,17 +179,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Select
         End Function
 
+        Private Function CreateSpanForMethodBase(methodBase As MethodBaseSyntax) As TextSpan
+            If methodBase.Modifiers.Count = 0 Then
+                Return TextSpan.FromBounds(methodBase.Keyword.SpanStart, methodBase.Span.End)
+            End If
+
+            Return TextSpan.FromBounds(methodBase.Modifiers.First().SpanStart, methodBase.Span.End)
+        End Function
+
         Private Function TryCreateSpanForPropertyStatement(node As PropertyStatementSyntax) As TextSpan?
             If node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
                 ' not an auto-property:
                 Return Nothing
             End If
 
-            If node.Initializer Is Nothing Then
-                Return Nothing
+            If node.Initializer IsNot Nothing Then
+                Return TextSpan.FromBounds(node.Identifier.Span.Start, node.Initializer.Span.End)
             End If
 
-            Return CreateSpan(node)
+            If node.AsClause IsNot Nothing AndAlso node.AsClause.IsKind(SyntaxKind.AsNewClause) Then
+                Return TextSpan.FromBounds(node.Identifier.Span.Start, node.AsClause.Span.End)
+            End If
+
+            Return Nothing
         End Function
 
         Private Function TryCreateSpanForVariableDeclaration(modifiers As SyntaxTokenList, declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax), position As Integer) As TextSpan?
@@ -199,37 +213,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return New TextSpan()
             End If
 
-            Dim declarator = FindClosestDeclaratorWithInitializer(declarators, position)
-            If declarator Is Nothing Then
+            Dim name = FindClosestNameWithInitializer(declarators, position)
+            If name Is Nothing Then
                 Return New TextSpan()
             End If
 
-            If declarator.Names.Count <= 1 Then
-                Return CreateSpan(declarator)
+            If name.ArrayBounds IsNot Nothing OrElse DirectCast(name.Parent, VariableDeclaratorSyntax).Names.Count > 1 Then
+                Return CreateSpan(name)
+            Else
+                Return CreateSpan(name.Parent)
             End If
-
-            Dim name = declarator.Names(GetItemIndexByPosition(declarator.Names, position))
-            Return CreateSpan(name)
         End Function
 
-        Private Function FindClosestDeclaratorWithInitializer(declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax), position As Integer) As VariableDeclaratorSyntax
-            Dim d = GetItemIndexByPosition(declarators, position)
+        Private Function FindClosestNameWithInitializer(declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax), position As Integer) As ModifiedIdentifierSyntax
+            Return FindClosestNode(declarators, position,
+                Function(declarator)
+                    If declarator.HasInitializer Then
+                        Return declarator.Names(GetItemIndexByPosition(declarator.Names, position))
+                    End If
+
+                    Return FindClosestNode(declarator.Names, position, Function(idf)
+                                                                           Return If(idf.ArrayBounds IsNot Nothing, idf, Nothing)
+                                                                       End Function)
+                End Function)
+        End Function
+
+        Private Function FindClosestNode(Of TListNode As SyntaxNode, TResult As SyntaxNode)(nodes As SeparatedSyntaxList(Of TListNode), position As Integer, predicate As Func(Of TListNode, TResult)) As TResult
+            Dim d = GetItemIndexByPosition(nodes, position)
 
             Dim i = 0
             Do
                 Dim left = d - i
                 Dim right = d + i
 
-                If left < 0 AndAlso right >= declarators.Count Then
+                If left < 0 AndAlso right >= nodes.Count Then
                     Return Nothing
                 End If
 
-                If left >= 0 AndAlso declarators(left).HasInitializer Then
-                    Return declarators(left)
+                If left >= 0 Then
+                    Dim result = predicate(nodes(left))
+                    If result IsNot Nothing Then
+                        Return result
+                    End If
                 End If
 
-                If right < declarators.Count AndAlso declarators(right).HasInitializer Then
-                    Return declarators(right)
+                If right < nodes.Count Then
+                    Dim result = predicate(nodes(right))
+                    If result IsNot Nothing Then
+                        Return result
+                    End If
                 End If
 
                 i += 1

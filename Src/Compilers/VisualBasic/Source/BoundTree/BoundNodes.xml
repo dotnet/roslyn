@@ -944,11 +944,6 @@
       
       <!-- the expression representing the initial value -->
       <Field Name="InitialValue" Type="BoundExpression" Null="disallow"/>
-
-      <!-- In case of multiple symbols in InitializedSymbols, this array contains a syntax node for each symbol to be used
-           e.g. in sequence points. This is needed because there is a different span for each variable of an AsNew 
-           declaration. -->
-      <Field Name="AsNewSyntaxNodesOpt" Type="ImmutableArray(Of SyntaxNode)" Null="allow" />
     </Node>
 
   <!--

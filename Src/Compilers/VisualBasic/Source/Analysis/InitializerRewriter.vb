@@ -161,51 +161,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' declaration with "AsNew" and multiple variable names. The final rewriting will during local rewriting.
         ''' The statement list returned by this function can be copied into all constructors without reprocessing it.
         ''' </remarks>
-        Private Shared Function RewriteInitializersAsStatements(
-                constructor As MethodSymbol,
-                boundInitializers As ImmutableArray(Of BoundInitializer)
-            ) As ImmutableArray(Of BoundStatement)
-
+        Private Shared Function RewriteInitializersAsStatements(constructor As MethodSymbol,
+                                                                boundInitializers As ImmutableArray(Of BoundInitializer)) As ImmutableArray(Of BoundStatement)
             Debug.Assert(Not boundInitializers.IsEmpty)
 
-            Dim boundStatements(boundInitializers.Length - 1) As BoundStatement
-            For i = 0 To boundStatements.Length - 1
-                Dim init = boundInitializers(i)
-
+            Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance(boundInitializers.Length)
+            For Each init In boundInitializers
                 Select Case init.Kind
                     Case BoundKind.FieldOrPropertyInitializer
-                        boundStatements(i) = init
+                        boundStatements.Add(init)
 
                     Case BoundKind.GlobalStatementInitializer
                         Dim stmtInit = DirectCast(init, BoundGlobalStatementInitializer)
                         Dim syntax = init.Syntax
 
-                        If constructor.IsSubmissionConstructor AndAlso i = boundStatements.Length - 1 AndAlso stmtInit.Statement.Kind = BoundKind.ExpressionStatement Then
+                        If constructor.IsSubmissionConstructor AndAlso init Is boundInitializers.Last AndAlso stmtInit.Statement.Kind = BoundKind.ExpressionStatement Then
                             Dim submissionResultVariable = New BoundParameter(syntax, constructor.Parameters(1), constructor.Parameters(1).Type)
                             Dim expr = DirectCast(stmtInit.Statement, BoundExpressionStatement).Expression
 
                             Debug.Assert(expr.Type IsNot Nothing)
                             If expr.Type.SpecialType <> SpecialType.System_Void Then
-                                boundStatements(i) = New BoundExpressionStatement(
+                                boundStatements.Add(New BoundExpressionStatement(
                                                          syntax,
                                                          New BoundAssignmentOperator(
                                                             syntax,
                                                             submissionResultVariable,
                                                             expr,
                                                             False,
-                                                            expr.Type))
+                                                            expr.Type)))
                                 Exit Select
                             End If
                         End If
 
-                        boundStatements(i) = stmtInit.Statement
+                        boundStatements.Add(stmtInit.Statement)
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(init.Kind)
                 End Select
             Next
 
-            Return boundStatements.AsImmutableOrNull()
+            Return boundStatements.ToImmutableAndFree()
         End Function
 
         ''' <summary> 
