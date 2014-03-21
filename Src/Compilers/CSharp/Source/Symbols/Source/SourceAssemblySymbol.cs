@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override Symbol GetSpecialTypeMember(SpecialMember member)
         {
-            var makeMissingMember = compilation.Feature("MakeMissingMember");
-            return makeMissingMember != null && makeMissingMember == member.ToString() ? null : base.GetSpecialTypeMember(member);
+            return compilation.IsMemberMissing(member) ? null : base.GetSpecialTypeMember(member);
         }
 
         private string GetWellKnownAttributeDataStringField(Func<CommonAssemblyWellKnownAttributeData, string> fieldGetter, string missingValue = null)

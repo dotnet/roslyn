@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(member >= 0 && member < WellKnownMember.Count);
 
             // if this member is to be forced "missing", return null
-            var makeMissingMember = this.Feature("MakeMissingMember");
-            if (makeMissingMember != null && makeMissingMember == member.ToString()) return null;
+            if (IsMemberMissing(member)) return null;
 
             if (lazyWellKnownTypeMembers == null || ReferenceEquals(lazyWellKnownTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
             {

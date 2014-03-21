@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: Presently, we do not cache the per-tree diagnostics.
         private ImmutableArray<Diagnostic> lazyClsComplianceDiagnostics;
 
+        /// <summary>
+        /// Used for test purposes only to immulate missing members.
+        /// </summary>
+        private SmallDictionary<int, bool> lazyMakeMemberMissingMap;
+
         private Conversions conversions;
         internal Conversions Conversions
         {
@@ -3035,5 +3040,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
+
+        internal void MakeMemberMissing(WellKnownMember member)
+        {
+            MakeMemberMissing((int)member);
+        }
+
+        internal void MakeMemberMissing(SpecialMember member)
+        {
+            MakeMemberMissing(-(int)member - 1);
+        }
+
+        internal bool IsMemberMissing(WellKnownMember member)
+        {
+            return IsMemberMissing((int)member);
+        }
+
+        internal bool IsMemberMissing(SpecialMember member)
+        {
+            return IsMemberMissing(-(int)member - 1);
+        }
+
+        private void MakeMemberMissing(int member)
+        {
+            if (lazyMakeMemberMissingMap == null)
+            {
+                lazyMakeMemberMissingMap = new SmallDictionary<int, bool>(); 
+            }
+
+            lazyMakeMemberMissingMap[member] = true;
+        }
+
+        private bool IsMemberMissing(int member)
+        {
+            return lazyMakeMemberMissingMap != null && lazyMakeMemberMissingMap.ContainsKey(member);
+        }
     }
 }

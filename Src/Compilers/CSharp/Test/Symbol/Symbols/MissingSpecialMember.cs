@@ -11,25 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MissingSpecialMember : CSharpTestBase
     {
-        private CSharpCompilationOptions WithMissingMember(WellKnownMember wm)
-        {
-            return WithMissingMember(wm.ToString());
-        }
-        private CSharpCompilationOptions WithMissingMember(SpecialMember sm)
-        {
-            return WithMissingMember(sm.ToString());
-        }
-        private CSharpCompilationOptions WithMissingMember(string memberKey)
-        {
-            var compOptions = TestOptions.Dll.WithOptimizations(true).WithFeatures(new[] { "MakeMissingMember:" + memberKey });
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                // Using single-threaded build if debugger attached, to simplify debugging.
-                compOptions = compOptions.WithConcurrentBuild(false);
-            }
-            return compOptions;
-        }
-
         [Fact]
         public void Missing_System_Collections_Generic_IEnumerable_T__GetEnumerator()
         {
@@ -48,7 +29,11 @@ public class Program
         yield return 1;
     }
 }";
-            CreateCompilationWithMscorlib(source, compOptions: WithMissingMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)).VerifyEmitDiagnostics(
+            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+
+            comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
+            
+            comp.VerifyEmitDiagnostics(
     // (10,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerable`1.GetEnumerator'
     //     {
     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
@@ -76,7 +61,11 @@ public class Program
         yield return 1;
     }
 }";
-            CreateCompilationWithMscorlib(source, compOptions: WithMissingMember(SpecialMember.System_IDisposable__Dispose)).VerifyEmitDiagnostics(
+            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+
+            comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
+
+            comp.VerifyEmitDiagnostics(
     // (10,5): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
     //     {
     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
@@ -104,7 +93,11 @@ public class Program
         yield return 1;
     }
 }";
-            CreateCompilationWithMscorlib(source, compOptions: WithMissingMember(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor)).VerifyEmitDiagnostics(
+            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
+
+            comp.VerifyEmitDiagnostics(
                 // the DebuggerHidden attribute is optional.
                 );
         }
@@ -123,7 +116,11 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            CreateCompilationWithMscorlib(source, compOptions: WithMissingMember(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor)).VerifyEmitDiagnostics(
+            var comp = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Dll.WithOptimizations(true));
+
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
+
+            comp.VerifyEmitDiagnostics(
                 // (9,34): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static void Extension(this string x) {}
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(9, 34)
