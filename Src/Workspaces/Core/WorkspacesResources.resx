@@ -191,6 +191,12 @@
   <data name="MetadataIsAlreadyReferenced" xml:space="preserve">
     <value>Metadata is already referenced.</value>
   </data>
+  <data name="AnalyzerIsNotPresent" xml:space="preserve">
+    <value>{0} is not present.</value>
+  </data>
+  <data name="AnalyzerIsAlreadyPresent" xml:space="preserve">
+    <value>{0} is already present.</value>
+  </data>
   <data name="DocumentVersionIsDifferent" xml:space="preserve">
     <value>The specified document is not a version of this document.</value>
   </data>

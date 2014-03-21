@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
@@ -838,6 +839,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (metadataReference == null)
+            {
+                throw new ArgumentNullException("metadataReference");
+            }
+
             CheckContainsProject(projectId);
 
             return this.ForkProject(
@@ -850,6 +861,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddMetadataReferences(ProjectId projectId, IEnumerable<MetadataReference> metadataReferences)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (metadataReferences == null)
+            {
+                throw new ArgumentNullException("metadataReferences");
+            }
+
             CheckContainsProject(projectId);
             return this.ForkProject(this.GetProjectState(projectId).AddMetadataReferences(metadataReferences));
         }
@@ -860,6 +881,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (metadataReference == null)
+            {
+                throw new ArgumentNullException("metadataReference");
+            }
+
             CheckContainsProject(projectId);
 
             return this.ForkProject(
@@ -872,8 +903,98 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithProjectMetadataReferences(ProjectId projectId, IEnumerable<MetadataReference> metadataReferences)
         {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (metadataReferences == null)
+            {
+                throw new ArgumentNullException("metadataReferences");
+            }
+
             CheckContainsProject(projectId);
             return this.ForkProject(this.GetProjectState(projectId).WithMetadataReferences(metadataReferences));
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to include the 
+        /// specified diagnostic analyzer.
+        /// </summary>
+        public Solution AddAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (analyzer == null)
+            {
+                throw new ArgumentNullException("analyzer");
+            }
+
+            CheckContainsProject(projectId);
+            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzer(analyzer));
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to include the
+        /// specified diagnostic analyzers.
+        /// </summary>
+        public Solution AddAnalyzers(ProjectId projectId, IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (analyzers == null)
+            {
+                throw new ArgumentNullException("analyzers");
+            }
+
+            CheckContainsProject(projectId);
+            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzers(analyzers));
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to no longer include
+        /// the specified diagnostic analyzer.
+        /// </summary>
+        public Solution RemoveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (analyzer == null)
+            {
+                throw new ArgumentNullException("analyzer");
+            }
+
+            CheckContainsProject(projectId);
+            return this.ForkProject(this.GetProjectState(projectId).RemoveAnalyzer(analyzer));
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to include only the
+        /// specified diagnostic analyzers.
+        /// </summary>
+        public Solution WithProjectAnalyzers(ProjectId projectId, IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException("projectId");
+            }
+
+            if (analyzers == null)
+            {
+                throw new ArgumentNullException("analyzers");
+            }
+
+            CheckContainsProject(projectId);
+            return this.ForkProject(this.GetProjectState(projectId).WithAnalyzers(analyzers));
         }
 
         [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]

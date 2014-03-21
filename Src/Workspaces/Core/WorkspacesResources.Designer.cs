@@ -70,6 +70,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is already present..
+        /// </summary>
+        internal static string AnalyzerIsAlreadyPresent {
+            get {
+                return ResourceManager.GetString("AnalyzerIsAlreadyPresent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is not present..
+        /// </summary>
+        internal static string AnalyzerIsNotPresent {
+            get {
+                return ResourceManager.GetString("AnalyzerIsNotPresent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arrays with more than one dimension cannot be serialized..
         /// </summary>
         internal static string ArraysWithMoreThanOneDimensionCannotBeSerialized {

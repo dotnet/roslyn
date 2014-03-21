@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -538,6 +539,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when a diagnostic analyzer is added to a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerAdded(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+                CheckProjectDoesNotHaveAnalyzer(projectId, analyzer);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzer(projectId, analyzer));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when a diagnostic analyzer is removed from a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerRemoved(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            using (this.serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+                CheckProjectHasAnalyzer(projectId, analyzer);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzer(projectId, analyzer));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
@@ -764,6 +799,18 @@ namespace Microsoft.CodeAnalysis
                 this.AddMetadataReference(projectChanges.ProjectId, metadata);
             }
 
+            // removed analyzers
+            foreach (var analyzer in projectChanges.GetRemovedAnalyzers())
+            {
+                this.RemoveAnalyzer(projectChanges.ProjectId, analyzer);
+            }
+
+            // added analyzers
+            foreach (var analyzer in projectChanges.GetAddedAnalyzers())
+            {
+                this.AddAnalyzer(projectChanges.ProjectId, analyzer);
+            }
+
             // removed documents
             foreach (var documentId in projectChanges.GetRemovedDocuments())
             {
@@ -854,6 +901,26 @@ namespace Microsoft.CodeAnalysis
         /// Override this method to implement the capability of removing metadata references.
         /// </summary>
         protected virtual void RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to add a diagnostic analyzer to a project.
+        /// 
+        /// Override this method to implement the capability of adding diagnostic analyzers.
+        /// </summary>
+        protected virtual void AddAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// This method is called during ApplyChanges to remove a diagnostic analyzer from a project.
+        /// 
+        /// Override this method to implement the capability of removing diagnostic analyzers.
+        /// </summary>
+        protected virtual void RemoveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
         {
             throw new NotSupportedException();
         }
@@ -997,6 +1064,28 @@ namespace Microsoft.CodeAnalysis
             if (this.CurrentSolution.GetProject(projectId).MetadataReferences.Contains(metadataReference))
             {
                 throw new ArgumentException(WorkspacesResources.MetadataIsAlreadyReferenced);
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project does not have a specific diagnostic analyzer.
+        /// </summary>
+        protected void CheckProjectHasAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            if (!this.CurrentSolution.GetProject(projectId).Analyzers.Contains(analyzer))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsNotPresent, analyzer));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project already has a specific diagnostic analyzer.
+        /// </summary>
+        protected void CheckProjectDoesNotHaveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        {
+            if (this.CurrentSolution.GetProject(projectId).Analyzers.Contains(analyzer))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsAlreadyPresent, analyzer));
             }
         }
 

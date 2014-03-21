@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -76,6 +77,30 @@ namespace Microsoft.CodeAnalysis
                 if (!newMetadata.Contains(metadata))
                 {
                     yield return metadata;
+                }
+            }
+        }
+
+        public IEnumerable<IDiagnosticAnalyzer> GetAddedAnalyzers()
+        {
+            var oldAnalyzers = new HashSet<IDiagnosticAnalyzer>(this.oldProject.Analyzers);
+            foreach (var analyzer in this.newProject.Analyzers)
+            {
+                if (!oldAnalyzers.Contains(analyzer))
+                {
+                    yield return analyzer;
+                }
+            }
+        }
+
+        public IEnumerable<IDiagnosticAnalyzer> GetRemovedAnalyzers()
+        {
+            var newAnalyzers = new HashSet<IDiagnosticAnalyzer>(this.newProject.Analyzers);
+            foreach (var analyzer in this.oldProject.Analyzers)
+            {
+                if (!newAnalyzers.Contains(analyzer))
+                {
+                    yield return analyzer;
                 }
             }
         }

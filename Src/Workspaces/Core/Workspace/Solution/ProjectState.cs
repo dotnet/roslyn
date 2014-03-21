@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -233,6 +234,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public ImmutableList<IDiagnosticAnalyzer> Analyzers
+        {
+            get { return (ImmutableList<IDiagnosticAnalyzer>)this.ProjectInfo.Analyzers; }
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ImmutableList<ProjectReference> ProjectReferences
         {
             get { return (ImmutableList<ProjectReference>)this.ProjectInfo.ProjectReferences; }
@@ -416,6 +423,41 @@ namespace Microsoft.CodeAnalysis
         {
             return this.With(
                 projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState AddAnalyzer(IDiagnosticAnalyzer analyzer)
+        {
+            Contract.Requires(!this.Analyzers.Contains(analyzer));
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithAnalyzers(this.Analyzers.Add(analyzer)).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState RemoveAnalyzer(IDiagnosticAnalyzer analyzer)
+        {
+            Contract.Requires(this.Analyzers.Contains(analyzer));
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithAnalyzers(this.Analyzers.Remove(analyzer)).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState AddAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            var newAnalyzers = this.Analyzers;
+            foreach (var analyzer in analyzers)
+            {
+                Contract.Requires(!newAnalyzers.Contains(analyzer));
+                newAnalyzers = newAnalyzers.Add(analyzer);
+            }
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithAnalyzers(newAnalyzers).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState WithAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            return this.With(
+                projectInfo: this.ProjectInfo.WithAnalyzers(analyzers.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddDocument(DocumentState document)

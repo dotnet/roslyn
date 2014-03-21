@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,6 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -336,6 +339,76 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Null(assemblyReference);
 
             ValidateSolutionAndCompilations(solution);
+        }
+
+        private class MockDiagnosticAnalyzer : IDiagnosticAnalyzer
+        {
+            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestProjectDiagnosticAnalyzers()
+        {
+            var solution = CreateSolution();
+            var project1 = ProjectId.CreateNewId();
+            solution = solution.AddProject(project1, "foo", "foo.dll", LanguageNames.CSharp);
+            Assert.Empty(solution.Projects.Single().Analyzers);
+
+            var analyzer = new MockDiagnosticAnalyzer();
+            
+            // Test AddAnalyzer
+            var newSolution = solution.AddAnalyzer(project1, analyzer);
+            var actualAnalyzers = newSolution.Projects.Single().Analyzers;
+            Assert.Equal(1, actualAnalyzers.Count);
+            Assert.Equal(analyzer, actualAnalyzers[0]);
+            
+            // Cannot add the existing analyzer
+            Assert.Throws<TraceAssertException>(() => newSolution.AddAnalyzer(project1, analyzer));
+
+            // Test ProjectChanges
+            var changes = newSolution.GetChanges(solution).GetProjectChanges().Single();
+            var addedAnalyzer = changes.GetAddedAnalyzers().Single();
+            Assert.Equal(analyzer, addedAnalyzer);
+            var removedAnalyzers = changes.GetRemovedAnalyzers();
+            Assert.Empty(removedAnalyzers);
+            solution = newSolution;
+
+            // Test RemoveAnalyzer
+            solution = solution.RemoveAnalyzer(project1, analyzer);
+            actualAnalyzers = solution.Projects.Single().Analyzers;
+            Assert.Empty(actualAnalyzers);
+            
+            // Cannot remove non-existing analyzer
+            Assert.Throws<TraceAssertException>(() => solution.RemoveAnalyzer(project1, analyzer));
+
+            // Test AddAnalyzers
+            var secondAnalyzer = new MockDiagnosticAnalyzer();
+            var analyzers = ImmutableArray.Create(analyzer, secondAnalyzer);
+            solution = solution.AddAnalyzers(project1, analyzers);
+            actualAnalyzers = solution.Projects.Single().Analyzers;
+            Assert.Equal(2, actualAnalyzers.Count);
+            Assert.Equal(analyzer, actualAnalyzers[0]);
+            Assert.Equal(secondAnalyzer, actualAnalyzers[1]);
+            
+            // Cannot add the existing analyzers
+            Assert.Throws<TraceAssertException>(() => solution.AddAnalyzers(project1, analyzers));
+            solution = solution.RemoveAnalyzer(project1, analyzer);
+            actualAnalyzers = solution.Projects.Single().Analyzers;
+            Assert.Equal(1, actualAnalyzers.Count);
+            Assert.Equal(secondAnalyzer, actualAnalyzers[0]);
+
+            // Test WithAnalyzers
+            solution = solution.WithProjectAnalyzers(project1, analyzers);
+            actualAnalyzers = solution.Projects.Single().Analyzers;
+            Assert.Equal(2, actualAnalyzers.Count);
+            Assert.Equal(analyzer, actualAnalyzers[0]);
+            Assert.Equal(secondAnalyzer, actualAnalyzers[1]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

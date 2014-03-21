@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -151,6 +152,17 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return this.projectState.ProjectReferences;
+            }
+        }
+
+        /// <summary>
+        /// The list of all the diagnostic analyzers for this project.
+        /// </summary>
+        public IReadOnlyList<IDiagnosticAnalyzer> Analyzers
+        {
+            get
+            {
+                return this.projectState.Analyzers;
             }
         }
 
@@ -444,6 +456,38 @@ namespace Microsoft.CodeAnalysis
         public Project WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
             return this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to include the specified diagnostic analyzer.
+        /// </summary>
+        public Project AddAnalyzer(IDiagnosticAnalyzer analyzer)
+        {
+            return this.Solution.AddAnalyzer(this.Id, analyzer).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to include the specified diagnostic analyzers.
+        /// </summary>
+        public Project AddAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            return this.Solution.AddAnalyzers(this.Id, analyzers).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified diagnostic analyzer.
+        /// </summary>
+        public Project RemoveAnalyzer(IDiagnosticAnalyzer analyzer)
+        {
+            return this.Solution.RemoveAnalyzer(this.Id, analyzer).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to include the specified diagnostic analyzers.
+        /// </summary>
+        public Project WithAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            return this.Solution.WithProjectAnalyzers(this.Id, analyzers).GetProject(this.Id);
         }
 
         /// <summary>
