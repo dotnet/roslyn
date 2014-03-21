@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -74,6 +75,11 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<MetadataReference> MetadataReferences { get; private set; }
 
         /// <summary>
+        /// The analyzers initially associated with this project.
+        /// </summary>
+        public IReadOnlyList<IDiagnosticAnalyzer> Analyzers { get; private set; }
+
+        /// <summary>
         /// True if this is a submission project for interactive sessions.
         /// </summary>
         public bool IsSubmission { get; private set; }
@@ -96,6 +102,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> documents,
             IEnumerable<ProjectReference> projectReferences,
             IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<IDiagnosticAnalyzer> analyzers,
             bool isSubmission,
             Type hostObjectType)
         {
@@ -131,6 +138,7 @@ namespace Microsoft.CodeAnalysis
             this.Documents = documents.ToImmutableListOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableListOrEmpty();
             this.MetadataReferences = metadataReferences.ToImmutableListOrEmpty();
+            this.Analyzers = analyzers.ToImmutableListOrEmpty();
             this.IsSubmission = isSubmission;
             this.HostObjectType = hostObjectType;
         }
@@ -151,6 +159,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> documents = null,
             IEnumerable<ProjectReference> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
+            IEnumerable<IDiagnosticAnalyzer> analyzers = null,
             bool isSubmission = false,
             Type hostObjectType = null)
         {
@@ -167,6 +176,7 @@ namespace Microsoft.CodeAnalysis
                 documents,
                 projectReferences,
                 metadataReferences,
+                analyzers,
                 isSubmission,
                 hostObjectType);
         }
@@ -184,6 +194,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> documents = null,
             IEnumerable<ProjectReference> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
+            IEnumerable<IDiagnosticAnalyzer> analyzers = null,
             Optional<bool> isSubmission = default(Optional<bool>),
             Optional<Type> hostObjectType = default(Optional<Type>))
         {
@@ -199,6 +210,7 @@ namespace Microsoft.CodeAnalysis
             var newDocuments = documents ?? this.Documents;
             var newProjectReferences = projectReferences ?? this.ProjectReferences;
             var newMetadataReferences = metadataReferences ?? this.MetadataReferences;
+            var newAnalyzers = analyzers ?? this.Analyzers;
             var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : this.IsSubmission;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : this.HostObjectType;
 
@@ -214,6 +226,7 @@ namespace Microsoft.CodeAnalysis
                 newDocuments == this.Documents &&
                 newProjectReferences == this.ProjectReferences &&
                 newMetadataReferences == this.MetadataReferences &&
+                newAnalyzers == this.Analyzers &&
                 newIsSubmission == this.IsSubmission &&
                 newHostObjectType == this.HostObjectType)
             {
@@ -233,6 +246,7 @@ namespace Microsoft.CodeAnalysis
                     newDocuments,
                     newProjectReferences,
                     newMetadataReferences,
+                    newAnalyzers,
                     newIsSubmission,
                     newHostObjectType);
         }
@@ -275,6 +289,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
             return this.With(metadataReferences: metadataReferences);
+        }
+
+        public ProjectInfo WithAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        {
+            return this.With(analyzers: analyzers);
         }
     }
 }
