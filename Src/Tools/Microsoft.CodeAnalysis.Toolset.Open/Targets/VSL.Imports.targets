@@ -41,12 +41,12 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB'" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
-  <Import Project="$(WixTargetsPath)" Condition="'$(ProjectLanguage)' == 'WiX'" />
 
   <PropertyGroup>
     <BuildDependsOn>
       $(BuildDependsOn);
       CopyCppOutputBackToIntDir;
+      DeployToPreviewPackageFolders;
     </BuildDependsOn>
   </PropertyGroup>
 
@@ -57,44 +57,6 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="$(IntDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)$(TargetName).pdb')" />
   </Target>
-
-  <!-- ====================================================================================
-  
-         Support for building Roslyn with Roslyn compilers
-
-       ==================================================================================== -->
-
-  <!-- In case of a build through the VS UI we need to use our own ToolExes because the UsingTask solution only works 
-       for building through msbuild.exe. -->
-  <!-- In case we want rvbc2 and rcsc2 be used in a msbuild run, we can override the behavior by using 
-       /p:UseRoslynCommandLineCompilers=true on the command line -->
-  <PropertyGroup Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND ('$(BuildingInsideVisualStudio)' == 'true' OR '$(UseRoslynCommandLineCompilers)' == 'true')">
-    <CscToolPath>$(DogfoodCompilerDir)</CscToolPath>
-    <CscToolExe>rcsc2.exe</CscToolExe>
-
-    <VbcToolPath>$(DogfoodCompilerDir)</VbcToolPath> 
-    <VbcToolExe>rvbc2.exe</VbcToolExe>  
-  </PropertyGroup>
-  
-  <!-- The path might contain spaces (e.g. "Program Files (x86)" which gets automatically escaped in this task and will fail when the path 
-       is resolved. Unescaping fixes this for the local file system. -->
-  <UsingTask Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND '$(BuildingInsideVisualStudio)' != 'true' AND '$(UseRoslynCommandLineCompilers)' != 'true'"
-             AssemblyFile="$([MSBuild]::Unescape($(DogfoodCompilerDir)))\Roslyn.Compilers.BuildTasks.dll"             
-             TaskName="Csc"/>
-
-  <UsingTask Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true' AND '$(BuildingInsideVisualStudio)' != 'true' AND '$(UseRoslynCommandLineCompilers)' != 'true'"
-             AssemblyFile="$([MSBuild]::Unescape($(DogfoodCompilerDir)))\Roslyn.Compilers.BuildTasks.dll"             
-             TaskName="Vbc"/>    
-
-  <ItemGroup>
-    <CSharpCompilerFiles Include="$(OutDir)\rcsc.exe;$(OutDir)\Microsoft.CodeAnalysis.CSharp.dll;$(OutDir)\Microsoft.CodeAnalysis.dll;$(OutDir)\VBCSCompiler.exe;$(OutDir)\Roslyn.Compilers.BuildTasks.dll"/>
-    <VBCompilerFiles Include="$(OutDir)\rvbc.exe;$(OutDir)\Microsoft.CodeAnalysis.VisualBasic.dll;$(OutDir)\Microsoft.CodeAnalysis.dll;$(OutDir)\VBCSCompiler.exe;$(OutDir)\Roslyn.Compilers.BuildTasks.dll"/>
-    <BothCompilerFiles Include="@(CSharpCompilerFiles);@(VBCompilerFiles)"/>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(CanCompileWithRoslyn)' != 'false' AND '$(LiveLive)' == 'true'">
-    <CustomAdditionalCompileInputs Include="@(BothCompilerFiles-> '$(DogfoodCompilerDir)\%(filename)%(extension)')"/>
-  </ItemGroup>
 
   <!-- ====================================================================================
        
@@ -147,6 +109,29 @@
     </ItemGroup>
   </Target>
   
+  <!-- ====================================================================================
+  
+        Deploy binary to Preview Package folders
+
+    ==================================================================================== -->
+    
+  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true'">
+    <ItemGroup>
+      <FilesToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt)" />
+      <ConfigsToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt).Config" />
+      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache" />
+    </ItemGroup>
+
+    <Message Text="Source: @(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')"/>
+    <Message Text="Config: @(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension).Config')"/>
+    <Message Text="Dest: @(FilesToCopy)"/>
+    <Message Text="Delete: @(FilesToDelete)"/>
+
+    <Copy SourceFiles="@(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(FilesToCopy)" />
+    <Copy SourceFiles="@(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(ConfigsToCopy)" />
+    <Delete Files="@(FilesToDelete)" />
+  </Target>
+
   <!-- ====================================================================================
   
          Support for a IncludeInVSIXLocalOnly Content metadata
