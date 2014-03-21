@@ -155,16 +155,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // execute the tree based analyzers.
             var addTreeAnalyzerDiagnostic = GetDiagnosticSinkWithSuppressionBasedOnLocation(model.Compilation, declaredSymbolsInTree, addDiagnosticWithLocationFilter);
-            foreach (var a in analyzers.OfType<ICompilationUnitAnalyzer>())
+            foreach (var a in analyzers.OfType<ISemanticModelAnalyzer>())
             {
-                // Catch Exception from a.AnalyzeCompilationUnit
-                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeCompilationUnit(model.SyntaxTree, model, addTreeAnalyzerDiagnostic, cancellationToken); });
+                // Catch Exception from a.AnalyzeSemanticModel
+                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeSemanticModel(model, addTreeAnalyzerDiagnostic, cancellationToken); });
             }
 
-            foreach (var a in analyzers.OfType<ISyntaxAnalyzer>())
+            foreach (var a in analyzers.OfType<ISyntaxTreeAnalyzer>())
             {
-                // Catch Exception from a.AnalyzeTree
-                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeTree(model.SyntaxTree, addTreeAnalyzerDiagnostic, cancellationToken); });
+                // Catch Exception from a.AnalyzeSyntaxTree
+                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeSyntaxTree(model.SyntaxTree, addTreeAnalyzerDiagnostic, cancellationToken); });
             }
 
             // execute the executable code based analyzers.

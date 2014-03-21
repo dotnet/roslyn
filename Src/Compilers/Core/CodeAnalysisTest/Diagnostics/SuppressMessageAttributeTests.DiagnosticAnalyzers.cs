@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         // Produces a warning for each single line comment trivium in a syntax tree
-        private class WarningOnSingleLineCommentAnalyzer : AbstractMockAnalyzer, ISyntaxAnalyzer
+        private class WarningOnSingleLineCommentAnalyzer : AbstractMockAnalyzer, ISyntaxTreeAnalyzer
         {
             public const string Id = "Syntax";
             private static DiagnosticDescriptor Rule = GetRule(Id);
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            public void AnalyzeTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            public void AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
             {
                 var comments = tree.GetRoot().DescendantTrivia()
                     .Where(t =>

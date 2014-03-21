@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         ICodeBlockEndedAnalyzer,
         ICompilationStartedAnalyzer,
         ICompilationEndedAnalyzer,
-        ICompilationUnitAnalyzer,
+        ISemanticModelAnalyzer,
         IDiagnosticAnalyzer,
         ISymbolAnalyzer,
-        ISyntaxAnalyzer,
+        ISyntaxTreeAnalyzer,
         ISyntaxNodeAnalyzer<TSyntaxKind>
     {
         protected static readonly ImmutableArray<SymbolKind> AllSymbolKinds = GetAllEnumValues<SymbolKind>();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             OnInterfaceMember();
         }
 
-        void ICompilationUnitAnalyzer.AnalyzeCompilationUnit(SyntaxTree compilationUnit, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISemanticModelAnalyzer.AnalyzeSemanticModel(SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
         }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             OnInterfaceMember(symbol: symbol);
         }
 
-        void ISyntaxAnalyzer.AnalyzeTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        void ISyntaxTreeAnalyzer.AnalyzeSyntaxTree(SyntaxTree tree, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
             OnInterfaceMember();
         }
