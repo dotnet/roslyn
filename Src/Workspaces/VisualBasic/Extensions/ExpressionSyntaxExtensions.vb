@@ -560,12 +560,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.IsParentKind(SyntaxKind.SelectStatement) OrElse
                expression.IsParentKind(SyntaxKind.SyncLockStatement) OrElse
                expression.IsParentKind(SyntaxKind.CollectionInitializer) OrElse
+               expression.IsParentKind(SyntaxKind.InferredFieldInitializer) OrElse
                expression.IsParentKind(SyntaxKind.BinaryConditionalExpression) OrElse
                expression.IsParentKind(SyntaxKind.TernaryConditionalExpression) OrElse
                expression.IsParentKind(SyntaxKind.ReturnStatement) OrElse
+               expression.IsParentKind(SyntaxKind.YieldStatement) OrElse
                expression.IsParentKind(SyntaxKind.XmlEmbeddedExpression) OrElse
                expression.IsParentKind(SyntaxKind.ThrowStatement) OrElse
-               expression.IsParentKind(SyntaxKind.IfStatement) Then
+               expression.IsParentKind(SyntaxKind.IfStatement) OrElse
+               expression.IsParentKind(SyntaxKind.WhileStatement) Then
                 Return True
             End If
 

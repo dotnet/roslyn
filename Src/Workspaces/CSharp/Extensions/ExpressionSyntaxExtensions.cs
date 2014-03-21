@@ -479,6 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Direct parent kind checks.
             if (expression.IsParentKind(SyntaxKind.ExpressionStatement) ||
                 expression.IsParentKind(SyntaxKind.EqualsValueClause) ||
+                expression.IsParentKind(SyntaxKind.ArrayInitializerExpression) ||
+                expression.IsParentKind(SyntaxKind.CollectionInitializerExpression) ||
                 expression.IsParentKind(SyntaxKind.Argument) ||
                 expression.IsParentKind(SyntaxKind.AttributeArgument) ||
                 expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator) ||
