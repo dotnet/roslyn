@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -368,9 +366,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, actualAnalyzers.Count);
             Assert.Equal(analyzer, actualAnalyzers[0]);
             
-            // Cannot add the existing analyzer
-            Assert.Throws<TraceAssertException>(() => newSolution.AddAnalyzer(project1, analyzer));
-
             // Test ProjectChanges
             var changes = newSolution.GetChanges(solution).GetProjectChanges().Single();
             var addedAnalyzer = changes.GetAddedAnalyzers().Single();
@@ -384,9 +379,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             actualAnalyzers = solution.Projects.Single().Analyzers;
             Assert.Empty(actualAnalyzers);
             
-            // Cannot remove non-existing analyzer
-            Assert.Throws<TraceAssertException>(() => solution.RemoveAnalyzer(project1, analyzer));
-
             // Test AddAnalyzers
             var secondAnalyzer = new MockDiagnosticAnalyzer();
             var analyzers = ImmutableArray.Create(analyzer, secondAnalyzer);
@@ -396,8 +388,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(analyzer, actualAnalyzers[0]);
             Assert.Equal(secondAnalyzer, actualAnalyzers[1]);
             
-            // Cannot add the existing analyzers
-            Assert.Throws<TraceAssertException>(() => solution.AddAnalyzers(project1, analyzers));
             solution = solution.RemoveAnalyzer(project1, analyzer);
             actualAnalyzers = solution.Projects.Single().Analyzers;
             Assert.Equal(1, actualAnalyzers.Count);
