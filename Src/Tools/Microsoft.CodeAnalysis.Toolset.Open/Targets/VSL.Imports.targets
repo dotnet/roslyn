@@ -119,7 +119,7 @@
     <ItemGroup>
       <FilesToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt)" />
       <ConfigsToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt).Config" />
-      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache" />
+      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache; $(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\vssqmmulti.dll;" />
     </ItemGroup>
 
     <Message Text="Source: @(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')"/>

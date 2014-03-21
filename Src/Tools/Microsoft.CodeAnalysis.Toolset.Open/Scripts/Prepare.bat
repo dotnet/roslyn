@@ -48,6 +48,11 @@ if not "%unconfigure%" == "true" (
 
 if not "%unconfigure%" == "true" (
     "%VSSDK120Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
+
+    call :EnableRoslynPackage Roslyn.VisualStudio.Components.pkgdef  0b5e8ddb-f12d-4131-a71d-77acc26a798f
+    call :EnableRoslynPackage Roslyn.VisualStudio.Setup.pkgdef   28354cb8-c808-4138-bfce-33aa846bbd51
+    call :EnableRoslynPackage Roslyn.PreviewPackage.pkgdef  8e2de189-1d7a-4bdb-9a15-fa0cb80e9450
+    call :EnableRoslynPackage CompilerPackage.pkgdef  fc8d0600-8f16-4a89-a49c-a4f6c38b216a
     )
 
 call :DisableVerificationFor Microsoft.CodeAnalysis.dll
@@ -79,3 +84,10 @@ goto :eof
 @echo %label% verification for %1
 for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do sn -q %verification% "%%f" && goto :eof
 goto :eof
+
+
+:EnableRoslynPackage %1 %2
+@echo %label% EnableRoslynPackage for %1
+for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do reg add "HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\%targetVS%%TargetHive%\ExtensionManager\EnabledExtensions" /v %2 /d %%~dpf /F  > nul 2>&1 && goto :eof
+goto :eof
+
