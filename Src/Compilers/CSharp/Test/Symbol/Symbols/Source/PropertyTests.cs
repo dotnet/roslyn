@@ -16,6 +16,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class PropertyTests : CSharpTestBase
     {
         [Fact]
+        public void StructWithSameNameFieldAndProperty()
+        {
+            var text = @"struct S
+{
+    int a = 2;
+    int a { get { return 1; } set {} }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (3,9): error CS8040: Structs without explicit constructors cannot contain members with initializers.
+    //     int a = 2;
+    Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("S.a"),
+    // (4,9): error CS0102: The type 'S' already contains a definition for 'a'
+    //     int a { get { return 1; } set {} }
+    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a"),
+    // (3,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+    //     int a = 2;
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a"));
+        }
+
+        [Fact]
         public void AutoWithInitializerInStructPrimaryConstructor()
         {
             var text = @"struct S(int i)

@@ -2679,7 +2679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var s in members)
                 {
                     var p = s as SourcePropertySymbol;
-                    if (p != null && !p.IsStatic && p.BackingField.HasInitializer)
+                    if (p != null && !p.IsStatic && p.IsAutoProperty
+                        && p.BackingField.HasInitializer)
                     {
                         diagnostics.Add(
                             ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
