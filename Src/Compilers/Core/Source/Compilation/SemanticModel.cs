@@ -850,6 +850,7 @@ namespace Microsoft.CodeAnalysis
             TextSpan span,
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
             Action<Diagnostic> addDiagnostic,
+            bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken));
     }
 }

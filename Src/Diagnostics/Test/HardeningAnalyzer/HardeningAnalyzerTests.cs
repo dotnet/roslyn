@@ -39,7 +39,10 @@ public class Class6<TTypeParameter>
 {
 }
 ";
-            var diagnostics = GetSortedDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer());
+            var diagnosticsBag = DiagnosticBag.GetInstance();
+            var documentsAndSpan = VerifyAndGetDocumentsAndSpan(new[] { source }, LanguageNames.CSharp);
+            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnError: true);
+            var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
             Assert.Equal(diagnostics[0].ToString(), "info AnalyzerDriver: The Compiler Analyzer '" + GetCSharpDiagnosticAnalyzer().GetType() + "' threw an exception with message 'The method or operation is not implemented.'.");
         }

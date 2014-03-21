@@ -3532,10 +3532,12 @@ _Default:
         Protected Overrides Sub RunAnalyzersCore(span As TextSpan,
                                                  analyzers As ImmutableArray(Of IDiagnosticAnalyzer),
                                                  addDiagnostic As Action(Of Diagnostic),
+                                                 continueOnError As Boolean,
                                                  Optional cancellationToken As CancellationToken = Nothing)
             AnalyzerDriver.RunAnalyzersCore(Me, span, analyzers,
                                                          Function(node) node.VisualBasicKind(),
                                                          addDiagnostic,
+                                                         continueOnError,
                                                          cancellationToken)
         End Sub
 

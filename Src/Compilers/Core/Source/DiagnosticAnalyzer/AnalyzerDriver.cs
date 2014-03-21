@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Executes the given diagnostic analyzers, <paramref name="analyzers"/>, on the given <paramref name="compilation"/> and returns the generated diagnostics.
+        /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
         /// </summary>
-        public static IEnumerable<Diagnostic> GetDiagnostics(Compilation compilation, IEnumerable<IDiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        public static IEnumerable<Diagnostic> GetDiagnostics(Compilation compilation, IEnumerable<IDiagnosticAnalyzer> analyzers, CancellationToken cancellationToken, bool continueOnError = true)
         {
             if (compilation == null)
             {
@@ -34,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var allDiagnostics = DiagnosticBag.GetInstance();
             Action<Diagnostic> addDiagnostic = allDiagnostics.Add;
-            var effectiveAnalyzers = GetEffectiveAnalyzers(analyzers, compilation.Options, addDiagnostic, cancellationToken);
-            GetDiagnosticsCore(compilation, effectiveAnalyzers, addDiagnostic, cancellationToken);
+            var effectiveAnalyzers = GetEffectiveAnalyzers(analyzers, compilation.Options, addDiagnostic, continueOnError, cancellationToken);
+            GetDiagnosticsCore(compilation, effectiveAnalyzers, addDiagnostic, continueOnError, cancellationToken);
 
             // Before returning diagnostics, we filter warnings
             var filteredDiagnostics = DiagnosticBag.GetInstance();
@@ -65,8 +66,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options)
+        public static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, bool continueOnError = true)
         {
             if (analyzer == null)
             {
@@ -79,15 +81,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Action<Diagnostic> dummy = _ => { };
-            return IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, CancellationToken.None);
+            return IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, continueOnError, CancellationToken.None);
         }
 
-        private static ImmutableArray<IDiagnosticAnalyzer> GetEffectiveAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers, CompilationOptions options, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        private static ImmutableArray<IDiagnosticAnalyzer> GetEffectiveAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers, CompilationOptions options, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
         {
             var effectiveAnalyzers = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
             foreach (var analyzer in analyzers)
             {
-                if (analyzer != null && !IsDiagnosticAnalyzerSuppressed(analyzer, options, addDiagnostic, cancellationToken))
+                if (analyzer != null && !IsDiagnosticAnalyzerSuppressed(analyzer, options, addDiagnostic, continueOnError, cancellationToken))
                 {
                     effectiveAnalyzers.Add(analyzer);
                 }
@@ -99,12 +101,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// </summary>
-        private static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        private static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
         {
             var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
             // Catch Exception from analyzer.SupportedDiagnostics
-            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, cancellationToken, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
+            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnError, cancellationToken, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        private static void GetDiagnosticsCore(Compilation compilation, ImmutableArray<IDiagnosticAnalyzer> analyzers, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        private static void GetDiagnosticsCore(Compilation compilation, ImmutableArray<IDiagnosticAnalyzer> analyzers, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
         {
             Action<Diagnostic> addDiagnosticWithGlobalSuppression = GetDiagnosticSinkWithSuppressionBasedOnSymbol(compilation, symbolOpt: null, addDiagnosticCore: addDiagnostic);
 
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var factory in analyzers.OfType<ICompilationStartedAnalyzer>())
             {
                 // Catch Exception from factory.OnCompilationStarted
-                ExecuteAndCatchIfThrows(factory, addDiagnostic, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(factory, addDiagnostic, continueOnError, cancellationToken, () =>
                 {
                     var a = factory.OnCompilationStarted(compilation, addDiagnosticWithGlobalSuppression, cancellationToken);
                     if (a != null && a != factory) compilationAnalyzers.Add(a);
@@ -150,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var tree in compilation.SyntaxTrees)
             {
                 var model = compilation.GetSemanticModel(tree);
-                RunAnalyzers(model, tree.GetRoot().FullSpan, analyzersArray, addDiagnostic, cancellationToken);
+                RunAnalyzers(model, tree.GetRoot().FullSpan, analyzersArray, addDiagnostic, continueOnError, cancellationToken);
             }
 
             foreach (var a in compilationAnalyzers.Concat(analyzers.OfType<ICompilationEndedAnalyzer>()))
             {
                 // Catch Exception from a.OnCompilationEnded
-                ExecuteAndCatchIfThrows(a, addDiagnostic, cancellationToken, () => { a.OnCompilationEnded(compilation, addDiagnosticWithGlobalSuppression, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.OnCompilationEnded(compilation, addDiagnosticWithGlobalSuppression, cancellationToken); });
             }
         }
 
@@ -165,9 +167,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan span,
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
             Action<Diagnostic> addDiagnostic,
+            bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            model.RunAnalyzersCore(span, analyzers, addDiagnostic, cancellationToken);
+            model.RunAnalyzersCore(span, analyzers, addDiagnostic, continueOnError, cancellationToken);
         }
 
         internal static void RunAnalyzersCore<TSyntaxKind>(
@@ -176,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
             Func<SyntaxNode, TSyntaxKind> getKind,
             Action<Diagnostic> addDiagnostic,
+            bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Action<Diagnostic> addDiagnosticWithLocationFilter = d =>
@@ -183,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (d.Location == Location.None || d.ContainsLocation(model.SyntaxTree, span)) addDiagnostic(d);
             };
 
-            RunAnalyzersCoreInternal(model, span, analyzers, getKind, addDiagnosticWithLocationFilter, cancellationToken);
+            RunAnalyzersCoreInternal(model, span, analyzers, getKind, addDiagnosticWithLocationFilter, continueOnError, cancellationToken);
         }
 
         private static void RunAnalyzersCoreInternal<TSyntaxKind>(
@@ -192,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<IDiagnosticAnalyzer> analyzers,
             Func<SyntaxNode, TSyntaxKind> getKind,
             Action<Diagnostic> addDiagnosticWithLocationFilter,
+            bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (analyzers.Length == 0) return;
@@ -231,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             foreach (var da in declarationAnalyzers)
                             {
                                 // Catch Exception from da.SymbolKindsOfInterest and da.AnalyzeSymbol
-                                ExecuteAndCatchIfThrows(da, addDiagnosticWithLocationFilter, cancellationToken, () =>
+                                ExecuteAndCatchIfThrows(da, addDiagnosticWithLocationFilter, continueOnError, cancellationToken, () =>
                                 {
                                     if (da.SymbolKindsOfInterest.Contains(SymbolKind.Namespace))
                                     {
@@ -248,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var da in declarationAnalyzers)
                 {
                     // Catch Exception from da.SymbolKindsOfInterest and da.AnalyzeSymbol
-                    ExecuteAndCatchIfThrows(da, addDiagnosticWithLocationFilter, cancellationToken, () =>
+                    ExecuteAndCatchIfThrows(da, addDiagnosticWithLocationFilter, continueOnError, cancellationToken, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         if (da.SymbolKindsOfInterest.Contains(symbol.Kind))
@@ -264,17 +269,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var a in analyzers.OfType<ISemanticModelAnalyzer>())
             {
                 // Catch Exception from a.AnalyzeSemanticModel
-                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeSemanticModel(model, addTreeAnalyzerDiagnostic, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, continueOnError, cancellationToken, () => { a.AnalyzeSemanticModel(model, addTreeAnalyzerDiagnostic, cancellationToken); });
             }
 
             foreach (var a in analyzers.OfType<ISyntaxTreeAnalyzer>())
             {
                 // Catch Exception from a.AnalyzeSyntaxTree
-                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, cancellationToken, () => { a.AnalyzeSyntaxTree(model.SyntaxTree, addTreeAnalyzerDiagnostic, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnosticWithLocationFilter, continueOnError, cancellationToken, () => { a.AnalyzeSyntaxTree(model.SyntaxTree, addTreeAnalyzerDiagnostic, cancellationToken); });
             }
 
             // execute the executable code based analyzers.
-            ProcessBodies(model, analyzers, cancellationToken, declarations, addDiagnosticWithLocationFilter, getKind);
+            ProcessBodies(model, analyzers, cancellationToken, declarations, addDiagnosticWithLocationFilter, continueOnError, getKind);
         }
 
         private static void ProcessBodies<TSyntaxKind>(
@@ -283,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken,
             ImmutableArray<SemanticModel.DeclarationInSpan> declarations,
             Action<Diagnostic> addDiagnostic,
+            bool continueOnError,
             Func<SyntaxNode, TSyntaxKind> getKind)
         {
             var bodyAnalyzers = analyzers.OfType<ICodeBlockStartedAnalyzer>().ToArray();
@@ -294,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ISymbol symbol = model.GetDeclaredSymbolForNode(d.Declaration, cancellationToken);
                 if (symbol == null) continue;
                 var addBodyDiagnostic = GetDiagnosticSinkWithSuppressionBasedOnSymbol(model.Compilation, symbol, addDiagnostic);
-                ProcessBody<TSyntaxKind>(model, analyzers, bodyAnalyzers, symbol, d.Body, cancellationToken, addBodyDiagnostic, getKind);
+                ProcessBody<TSyntaxKind>(model, analyzers, bodyAnalyzers, symbol, d.Body, cancellationToken, addBodyDiagnostic, continueOnError, getKind);
             }
         }
 
@@ -306,6 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode syntax,
             CancellationToken cancellationToken,
             Action<Diagnostic> addDiagnostic,
+            bool continueOnError,
             Func<SyntaxNode, TSyntaxKind> getKind)
         {
             var endedAnalyzers = ArrayBuilder<ICodeBlockEndedAnalyzer>.GetInstance();
@@ -314,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var a in bodyAnalyzers)
             {
                 // Catch Exception from a.OnCodeBlockStarted
-                ExecuteAndCatchIfThrows(a, addDiagnostic, cancellationToken, () =>
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () =>
                 {
                     var analyzer = a.OnCodeBlockStarted(syntax, symbol, semanticModel, addDiagnostic, cancellationToken);
                     if (analyzer != null && analyzer != a)
@@ -357,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var analyzer in analyzersForKind)
                         {
                             // Catch Exception from analyzer.AnalyzeNode
-                            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, cancellationToken, () => { analyzer.AnalyzeNode(child, semanticModel, addDiagnostic, cancellationToken); });
+                            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnError, cancellationToken, () => { analyzer.AnalyzeNode(child, semanticModel, addDiagnostic, cancellationToken); });
                         }
                     }
                 }
@@ -372,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var a in endedAnalyzers.Concat(analyzers.OfType<ICodeBlockEndedAnalyzer>()))
             {
                 // Catch Exception from a.OnCodeBlockEnded
-                ExecuteAndCatchIfThrows(a, addDiagnostic, cancellationToken, () => { a.OnCodeBlockEnded(syntax, symbol, semanticModel, addDiagnostic, cancellationToken); });
+                ExecuteAndCatchIfThrows(a, addDiagnostic, continueOnError, cancellationToken, () => { a.OnCodeBlockEnded(syntax, symbol, semanticModel, addDiagnostic, cancellationToken); });
             }
 
             endedAnalyzers.Free();
@@ -411,13 +418,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 };
         }
 
-        private static void ExecuteAndCatchIfThrows(IDiagnosticAnalyzer a, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken, Action analyze)
+        private static void ExecuteAndCatchIfThrows(IDiagnosticAnalyzer a, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken, Action analyze)
         {
             try
             {
                 analyze();
             }
-            catch (OperationCanceledException oce)
+            catch (OperationCanceledException oce) if (continueOnError)
             {
                 if (oce.CancellationToken != cancellationToken)
                 {
@@ -425,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     addDiagnostic(GetAnalyzerDiagnostic(a, oce));
                 }
             }
-            catch (Exception e)
+            catch (Exception e) if (continueOnError)
             {
                 // Create a info diagnostic saying that the analyzer failed
                 addDiagnostic(GetAnalyzerDiagnostic(a, e));
