@@ -568,7 +568,7 @@ a.vb
         Assert.Equal(expectedNoManifest, parsedArgs.NoWin32Manifest)
     End Sub
 
-    <Fact(Skip:="909417")>
+    <Fact>
     Public Sub ParseResourceDescription()
         Dim diags = New List(Of Diagnostic)()
         Dim desc As ResourceDescription
@@ -640,8 +640,8 @@ a.vb
         Assert.Equal("someFile.foo.bar", desc.ResourceName)
         Assert.False(desc.IsPublic)
 
-        desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,public", _baseDirectory, diags, embedded:=False)
-        diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("public", "resource"))
+        desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
+        diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("publi", "resource"))
         diags.Clear()
         Assert.Null(desc)
 

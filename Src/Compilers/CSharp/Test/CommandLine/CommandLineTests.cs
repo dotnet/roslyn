@@ -457,7 +457,7 @@ d.cs
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
         }
 
-        [Fact(Skip = "909417")]
+        [Fact]
         public void ParseResources()
         {
             var diags = new List<Diagnostic>();
@@ -529,8 +529,8 @@ d.cs
             Assert.Equal("someFile.foo.bar", desc.ResourceName);
             Assert.False(desc.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName,public", baseDirectory, diags, embedded: false);
-            diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("public"));
+            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.foo.bar,someName,publi", baseDirectory, diags, embedded: false);
+            diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("publi"));
             Assert.Null(desc);
             diags.Clear();
 
