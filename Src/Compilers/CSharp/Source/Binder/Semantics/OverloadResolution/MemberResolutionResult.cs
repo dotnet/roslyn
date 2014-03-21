@@ -124,48 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool MemberCouldTakeArgumentCount(int count)
-        {
-            bool isVararg = leastOverriddenMember.GetIsVararg();
-            int parameterCount = leastOverriddenMember.GetParameterCount() + (isVararg ? 1 : 0);
-
-            // Early out.
-            if (parameterCount == count)
-            {
-                return true;
-            }
-
-            int optionalParameters = 0;
-            // Allow for any optional parameters, although if the method
-            // is vararg, optional parameters are not optional.
-            if (!isVararg)
-            {
-                foreach (ParameterSymbol param in leastOverriddenMember.GetParameters())
-                {
-                    if (param.IsOptional)
-                    {
-                        optionalParameters += 1;
-                    }
-                }
-            }
-
-            if (OverloadResolution.IsValidParams(leastOverriddenMember))
-            {
-                if (parameterCount - optionalParameters - 1 <= count)
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (parameterCount - optionalParameters <= count && count <= parameterCount)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public override bool Equals(object obj)
         {
             throw new NotSupportedException();

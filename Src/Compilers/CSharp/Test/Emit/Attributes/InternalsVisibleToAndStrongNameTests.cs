@@ -1486,12 +1486,12 @@ public class C : B
             assemblyName: "asm3");
 
         comp3.VerifyDiagnostics(
-            // (7,9): error CS1501: No overload for method 'F' takes 0 arguments
-            Diagnostic(ErrorCode.ERR_BadArgCount, "c.F").WithArguments("F", "0"),
+            // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'B.F(int[])'
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c.F").WithArguments("a", "B.F(int[])").WithLocation(7, 9),
             // (8,20): error CS1061: 'object' does not contain a definition for 'Bar' and no extension method 'Bar' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bar").WithArguments("object", "Bar"),
-            // (10,17): error CS1501: No overload for method 'this' takes 1 arguments
-            Diagnostic(ErrorCode.ERR_BadArgCount, "c[1]").WithArguments("this", "1"));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bar").WithArguments("object", "Bar").WithLocation(8, 20),
+            // (10,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'B.this[int, int[]]'
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
     }
 
     [Fact] [WorkItem(529779)]

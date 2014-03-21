@@ -234,12 +234,12 @@ class C : IB, IC
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,16): error CS1501: No overload for method 'this' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "this[0]").WithArguments("this", "1"),
+                // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("2", "C", "int"),
+                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("2", "C", "int").WithLocation(10, 18),
                 // (11,13): error CS1501: No overload for method 'this' takes 3 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[1, 2, 3]").WithArguments("this", "3"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "c[1, 2, 3]").WithArguments("this", "3").WithLocation(11, 13));
         }
 
         [Fact]
@@ -835,8 +835,8 @@ class Derived : Base
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,9): error CS1501: No overload for method 'this' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[0]").WithArguments("this", "1"),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]"),
                 // (7,16): error CS1501: No overload for method 'this' takes 3 arguments
                 Diagnostic(ErrorCode.ERR_BadArgCount, "c[0, 0, 0]").WithArguments("this", "3"),
                 // (8,11): error CS1503: Argument 1: cannot convert from 'bool' to 'int'

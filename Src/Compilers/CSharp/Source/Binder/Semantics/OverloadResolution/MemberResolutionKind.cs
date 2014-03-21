@@ -88,11 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         TypeInferenceExtensionInstanceArgument,
 
         /// <summary>
-        /// The candidate member was rejected because it had the wrong number of type parameters.
-        /// </summary>
-        BadGenericArity,
-
-        /// <summary>
         /// The candidate member was rejected because it a constraint on a type parameter was not satisfied.
         /// </summary>
         ConstructedParameterFailedConstraintCheck,
@@ -104,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LessDerived,
 
         /// <summary>
-        /// The candidate member was rejected because it was considered worse that another member (according to sectino
+        /// The candidate member was rejected because it was considered worse that another member (according to section
         /// 7.5.3.2 of the language specification).
         /// </summary>
         Worse,

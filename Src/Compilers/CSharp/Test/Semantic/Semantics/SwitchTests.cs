@@ -853,15 +853,15 @@ class C
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (6,17): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
                 // (8,20): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
                 //             case F(null):
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(8, 20),
-                // (9,17): error CS1501: No overload for method 'M' takes 0 arguments
+                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "0").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17));
         }
 
         [Fact]

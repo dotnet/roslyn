@@ -460,52 +460,51 @@ public class MyAttribute : System.Attribute
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (5,26): error CS1669: __arglist is not valid in this context
-//     static void N(params __arglist) {}
-Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"),
-// (6,23): error CS1669: __arglist is not valid in this context
-//     static void O(ref __arglist) {}
-Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"),
-// (7,23): error CS1669: __arglist is not valid in this context
-//     static void P(out __arglist) {}
-Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"),
-// (8,24): error CS1669: __arglist is not valid in this context
-//     static void Q(this __arglist) {}
-Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"),
-// (11,9): error CS1501: No overload for method 'M' takes 1 arguments
-//         M(1);
-Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1"),
-// (12,14): error CS1503: Argument 2: cannot convert from 'int' to '__arglist'
-//         M(2, 3);
-Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "__arglist"),
-// (13,9): error CS1501: No overload for method 'M' takes 3 arguments
-//         M(4, 5, 6);
-Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3"),
-// (15,24): error CS0226: An __arglist expression may only appear inside of a call or new expression
-//         M(1, __arglist(__arglist()));
-Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()"),
-// (16,17): error CS0226: An __arglist expression may only appear inside of a call or new expression
-//         var x = __arglist(123);
-Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(123)"),
-// (20,16): error CS0226: An __arglist expression may only appear inside of a call or new expression
-//         return __arglist(456);
-Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(456)"),
-// (24,11): error CS1503: Argument 1: cannot convert from '__arglist' to 'int'
-//         S(__arglist(1));
-Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1)").WithArguments("1", "__arglist", "int"),
-// (27,18): error CS0226: An __arglist expression may only appear inside of a call or new expression
-//     [MyAttribute(__arglist(2))]
-Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(2)"),
-// (30,23): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
-//         object obj1 = new System.TypedReference();
-Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.TypedReference()").WithArguments("System.TypedReference", "object"),
-// (31,23): error CS0030: Cannot convert type 'System.ArgIterator' to 'object'
-//         object obj2 
-Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)new System.ArgIterator()").WithArguments("System.ArgIterator", "object"),
-// (38,29): error CS0828: Cannot assign System.TypedReference to anonymous type property
-//         object obj3 = new { X = new System.TypedReference() };
-Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "X = new System.TypedReference()").WithArguments("System.TypedReference")
-);
+                // (5,26): error CS1669: __arglist is not valid in this context
+                //     static void N(params __arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 26),
+                // (6,23): error CS1669: __arglist is not valid in this context
+                //     static void O(ref __arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(6, 23),
+                // (7,23): error CS1669: __arglist is not valid in this context
+                //     static void P(out __arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(7, 23),
+                // (8,24): error CS1669: __arglist is not valid in this context
+                //     static void Q(this __arglist) {}
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(8, 24),
+                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(int, __arglist)'
+                //         M(1);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("__arglist", "C.M(int, __arglist)").WithLocation(11, 9),
+                // (12,14): error CS1503: Argument 2: cannot convert from 'int' to '__arglist'
+                //         M(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "__arglist").WithLocation(12, 14),
+                // (13,9): error CS1501: No overload for method 'M' takes 3 arguments
+                //         M(4, 5, 6);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(13, 9),
+                // (15,24): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         M(1, __arglist(__arglist()));
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(15, 24),
+                // (16,17): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         var x = __arglist(123);
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(123)").WithLocation(16, 17),
+                // (20,16): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         return __arglist(456);
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(456)").WithLocation(20, 16),
+                // (24,11): error CS1503: Argument 1: cannot convert from '__arglist' to 'int'
+                //         S(__arglist(1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1)").WithArguments("1", "__arglist", "int").WithLocation(24, 11),
+                // (27,18): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //     [MyAttribute(__arglist(2))]
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(2)").WithLocation(27, 18),
+                // (30,23): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+                //         object obj1 = new System.TypedReference();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.TypedReference()").WithArguments("System.TypedReference", "object").WithLocation(30, 23),
+                // (31,23): error CS0030: Cannot convert type 'System.ArgIterator' to 'object'
+                //         object obj2 = (object)new System.ArgIterator();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)new System.ArgIterator()").WithArguments("System.ArgIterator", "object").WithLocation(31, 23),
+                // (38,29): error CS0828: Cannot assign System.TypedReference to anonymous type property
+                //         object obj3 = new { X = new System.TypedReference() };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "X = new System.TypedReference()").WithArguments("System.TypedReference").WithLocation(38, 29));
         }
 
         [Fact]
@@ -1296,30 +1295,42 @@ class E
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (26,9): error CS1729: 'A' does not contain a constructor that takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A").WithArguments("A", "1").WithLocation(26, 13),
-                // (28,9): error CS1501: No overload for method 'M' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "A.M").WithArguments("M", "1").WithLocation(28, 9),
-                // (31,9): error CS1729: 'B' does not contain a constructor that takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "B").WithArguments("B", "1").WithLocation(31, 13),
-                // (33,9): error CS1501: No overload for method 'M' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "B.M").WithArguments("M", "1").WithLocation(33, 9),
-                // (36,9): error CS1729: 'C' does not contain a constructor that takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "1").WithLocation(36, 13),
-                // (37,9): error CS1729: 'C' does not contain a constructor that takes 2 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "2").WithLocation(37, 13),
-                // (39,9): error CS1501: No overload for method 'M' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "C.M").WithArguments("M", "1").WithLocation(39, 9),
-                // (40,9): error CS1501: No overload for method 'M' takes 2 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "C.M").WithArguments("M", "2").WithLocation(40, 9),
-                // (43,9): error CS1729: 'D' does not contain a constructor that takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "D").WithArguments("D", "1").WithLocation(43, 13),
-                // (44,9): error CS1729: 'D' does not contain a constructor that takes 2 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "D").WithArguments("D", "2").WithLocation(44, 13),
-                // (46,9): error CS1501: No overload for method 'M' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "D.M").WithArguments("M", "1").WithLocation(46, 9),
-                // (47,9): error CS1501: No overload for method 'M' takes 2 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "D.M").WithArguments("M", "2").WithLocation(47, 9));
+                // (26,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.A(object, __arglist)'
+                //         new A(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("__arglist", "A.A(object, __arglist)").WithLocation(26, 13),
+                // (28,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'A.M(object, __arglist)'
+                //         A.M(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A.M").WithArguments("__arglist", "A.M(object, __arglist)").WithLocation(28, 9),
+                // (31,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'B.B(object, __arglist)'
+                //         new B(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("__arglist", "B.B(object, __arglist)").WithLocation(31, 13),
+                // (33,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'B.M(object, __arglist)'
+                //         B.M(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B.M").WithArguments("__arglist", "B.M(object, __arglist)").WithLocation(33, 9),
+                // (36,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.C(object, object, __arglist)'
+                //         new C(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("__arglist", "C.C(object, object, __arglist)").WithLocation(36, 13),
+                // (37,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.C(object, object, __arglist)'
+                //         new C(null, __arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("__arglist", "C.C(object, object, __arglist)").WithLocation(37, 13),
+                // (39,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(object, object, __arglist)'
+                //         C.M(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C.M").WithArguments("__arglist", "C.M(object, object, __arglist)").WithLocation(39, 9),
+                // (40,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.M(object, object, __arglist)'
+                //         C.M(null, __arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C.M").WithArguments("__arglist", "C.M(object, object, __arglist)").WithLocation(40, 9),
+                // (43,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.D(object, object, __arglist)'
+                //         new D(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D").WithArguments("__arglist", "D.D(object, object, __arglist)").WithLocation(43, 13),
+                // (44,13): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.D(object, object, __arglist)'
+                //         new D(null, __arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D").WithArguments("__arglist", "D.D(object, object, __arglist)").WithLocation(44, 13),
+                // (46,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.M(object, object, __arglist)'
+                //         D.M(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D.M").WithArguments("__arglist", "D.M(object, object, __arglist)").WithLocation(46, 9),
+                // (47,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D.M(object, object, __arglist)'
+                //         D.M(null, __arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "D.M").WithArguments("__arglist", "D.M(object, object, __arglist)").WithLocation(47, 9));
         }
 
         [WorkItem(649808)]
@@ -1345,8 +1356,9 @@ class E
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource);
             compilation.VerifyDiagnostics(
-                // (6, 9): error CS1593: Delegate 'D' does not take 1 arguments
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "d").WithArguments("D", "1").WithLocation(6, 9));
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D'
+                //         d(__arglist());
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("__arglist", "D").WithLocation(6, 9));
         }
     }
 }

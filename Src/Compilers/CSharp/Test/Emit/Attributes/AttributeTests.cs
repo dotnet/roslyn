@@ -3791,9 +3791,9 @@ public class Test
 
             compilation.VerifyDiagnostics(
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
-                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple"),
-                // (3,2): error CS1729: 'System.AttributeUsageAttribute' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("System.AttributeUsageAttribute", "0"));
+                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(3, 39),
+                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2));
         }
 
         [WorkItem(541059)]

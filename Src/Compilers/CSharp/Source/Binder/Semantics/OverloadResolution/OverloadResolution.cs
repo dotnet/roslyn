@@ -459,30 +459,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var typeArgumentCount = typeArguments.Count;
-
             // First deal with eliminating generic-arity mismatches.
 
             // SPEC: If F is generic and M includes a type argument list, F is a candidate when:
             // SPEC: * F has the same number of method type parameters as were supplied in the type argument list, and
             //
-            // This is specifying an impossible condition; the member lookup
-            // algorithm has already filtered out methods from the method group that have the wrong
-            // generic arity. However, we'll keep the "bad generic arity" error condition around because
-            // in the future we might want to add methods that are *not* in the method group to the
-            // overload resolution results list, to give more complete results. 
+            // This is specifying an impossible condition; the member lookup algorithm has already filtered
+            // out methods from the method group that have the wrong generic arity.
 
-            if (typeArgumentCount > 0 && typeArgumentCount != member.GetMemberArity())
-            {
-                Debug.Assert(false, "How did we get a method of bad generic arity in the method group?");
-                Debug.Assert(!MemberAnalysisResult.BadGenericArity().HasUseSiteDiagnosticToReportFor(member)); // No need to store.
-                if (completeResults)
-                {
-                    results.Add(new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.BadGenericArity()));
-                }
-
-                return;
-            }
+            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 

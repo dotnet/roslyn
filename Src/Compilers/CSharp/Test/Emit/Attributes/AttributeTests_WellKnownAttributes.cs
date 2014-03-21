@@ -1102,10 +1102,10 @@ public class Foo: Attribute
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Foo([Optional(isOpt: false)][Foo]int y) {}
-                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
-                // (15,41): error CS1729: 'Foo' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
+                // (15,41): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Foo.Foo(int)'
                 //     public Foo([Optional(isOpt: false)][Foo]int y) {}
-                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo").WithArguments("Foo", "0"));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "Foo.Foo(int)").WithLocation(15, 41));
         }
 
         [Fact]
@@ -1164,13 +1164,13 @@ public class Foo: Attribute
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Foo([Optional(new Foo())][Foo]int y) {}
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
-                // (16,30): error CS1729: 'Foo' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
+                // (16,30): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Foo.Foo(int)'
                 //     public Foo([Optional(new Foo())][Foo]int y) {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo").WithArguments("Foo", "0"),
-                // (16,38): error CS1729: 'Foo' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "Foo.Foo(int)").WithLocation(16, 30),
+                // (16,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Foo.Foo(int)'
                 //     public Foo([Optional(new Foo())][Foo]int y) {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo").WithArguments("Foo", "0"));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "Foo.Foo(int)").WithLocation(16, 38));
         }
 
         [Fact, WorkItem(546624)]
@@ -4917,9 +4917,9 @@ using System.Runtime.InteropServices;
 [assembly: ComCompatibleVersionAttribute(""str"", 0)]
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (4,12): error CS1729: 'System.Runtime.InteropServices.ComCompatibleVersionAttribute' does not contain a constructor that takes 2 arguments
+                // (4,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'build' of 'System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)'
                 // [assembly: ComCompatibleVersionAttribute("str", 0)]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"ComCompatibleVersionAttribute(""str"", 0)").WithArguments("System.Runtime.InteropServices.ComCompatibleVersionAttribute", "2"));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"ComCompatibleVersionAttribute(""str"", 0)").WithArguments("build", "System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)").WithLocation(4, 12));
         }
 
         #endregion

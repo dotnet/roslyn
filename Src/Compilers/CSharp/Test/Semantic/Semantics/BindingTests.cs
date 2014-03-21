@@ -615,8 +615,8 @@ class C
     static void F(int i, params int[] args) { }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (5,9): error CS1501: No overload for method 'F' takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "F").WithArguments("F", "0").WithLocation(5, 9),
+                // (5,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'C.F(int, params int[])'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F").WithArguments("i", "C.F(int, params int[])").WithLocation(5, 9),
                 // (6,11): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 11),
                 // (7,14): error CS1503: Argument 2: cannot convert from 'object' to 'int'

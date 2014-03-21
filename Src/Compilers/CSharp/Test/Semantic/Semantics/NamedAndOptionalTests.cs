@@ -1335,9 +1335,9 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (25,9): error CS1501: No overload for method 'M' takes 0 arguments
+                // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
-                Diagnostic(ErrorCode.ERR_BadArgCount, "d.M").WithArguments("M", "0").WithLocation(25, 9));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d.M").WithArguments("o", "D.M(ref object)").WithLocation(25, 9));
         }
 
         [WorkItem(545337)]

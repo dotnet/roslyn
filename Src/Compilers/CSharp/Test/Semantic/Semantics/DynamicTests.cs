@@ -3077,9 +3077,9 @@ class C
             TestOperatorKinds(source);
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,16): error CS1729: 'C' does not contain a constructor that takes 1 arguments
+                // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("C", "1"));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("y", "C.C(string, string)").WithLocation(8, 16));
         }
 
         [Fact]

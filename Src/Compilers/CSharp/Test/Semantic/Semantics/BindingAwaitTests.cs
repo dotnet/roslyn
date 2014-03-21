@@ -1507,19 +1507,18 @@ static class MyExtensions
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-            // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
-            //         await new A();
-            Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"),
-            // (11,9): error CS1501: No overload for method 'GetAwaiter' takes 0 arguments
-            //         await new B();
-            Diagnostic(ErrorCode.ERR_BadArgCount, "await new B()").WithArguments("GetAwaiter", "0"),
-            // (12,9): error CS1986: 'await' requires that the type C have a suitable GetAwaiter method
-            //         await new C();
-            Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new C()").WithArguments("C"),
-            // (13,15): error CS1929: 'D' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C, object)' requires a receiver of type 'C'
-            //         await new D();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new D()").WithArguments("D", "GetAwaiter", "MyExtensions.GetAwaiter(C, object)", "C")
-            );
+                // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
+                //         await new A();
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A").WithLocation(10, 9),
+                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'B.GetAwaiter(object)'
+                //         await new B();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await new B()").WithArguments("o", "B.GetAwaiter(object)").WithLocation(11, 9),
+                // (12,9): error CS1986: 'await' requires that the type C have a suitable GetAwaiter method
+                //         await new C();
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new C()").WithArguments("C").WithLocation(12, 9),
+                // (13,15): error CS1929: 'D' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C, object)' requires a receiver of type 'C'
+                //         await new D();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new D()").WithArguments("D", "GetAwaiter", "MyExtensions.GetAwaiter(C, object)", "C").WithLocation(13, 15));
         }
 
         [Fact]

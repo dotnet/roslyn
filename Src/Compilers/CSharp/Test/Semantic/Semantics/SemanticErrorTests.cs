@@ -11920,8 +11920,8 @@ End Interface";
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS0856: Indexed property 'I.R' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
-                // (9,9): error CS1501: No overload for method 'R' takes 1 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "i.R[1]").WithArguments("R", "1").WithLocation(9, 9));
+                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
         }
 
         [Fact]
@@ -13207,8 +13207,10 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadDelArgCount, "md1").WithArguments("MyDelegate1", "1"));
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
+                //         md1(1);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
 
         }
 
@@ -14860,19 +14862,18 @@ public class Child2 : Parent
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (21,14): error CS1729: 'Parent' does not contain a constructor that takes 0 arguments
+                // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Child").WithArguments("Parent", "0"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
                 // (6,24): error CS1729: 'double' does not contain a constructor that takes 1 arguments
                 //         double d = new double(4.5);  // was CS0143 (Dev10)
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "double").WithArguments("double", "1"),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "double").WithArguments("double", "1").WithLocation(6, 24),
                 // (7,26): error CS1729: 'Test' does not contain a constructor that takes 1 arguments
                 //         Test test1 = new Test(2); // CS1729
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1"),
-                // (9,37): error CS1729: 'Parent' does not contain a constructor that takes 1 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1").WithLocation(7, 26),
+                // (9,37): error CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Parent").WithArguments("Parent", "1")
-                );
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37));
         }
 
         [WorkItem(539631)]

@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MemberResolutionKind.UnsupportedMetadata:
                     return true;
-                case MemberResolutionKind.BadGenericArity:
                 case MemberResolutionKind.NoCorrespondingParameter:
                 case MemberResolutionKind.NoCorrespondingNamedParameter:
                 case MemberResolutionKind.NameUsedForPositional:
@@ -228,11 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static MemberAnalysisResult TypeInferenceExtensionInstanceArgumentFailed()
         {
             return new MemberAnalysisResult(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
-        }
-
-        public static MemberAnalysisResult BadGenericArity()
-        {
-            return new MemberAnalysisResult(MemberResolutionKind.BadGenericArity);
         }
 
         public static MemberAnalysisResult ConstructedParameterFailedConstraintsCheck(int parameterPosition)

@@ -412,7 +412,7 @@ class C
 "'p.Generic' error CS0411: The type arguments for method 'P.Generic<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.",
 "'NotGeneric<int, int>' error CS0308: The non-generic method 'P.NotGeneric()' cannot be used with type arguments",
 "'Generic<int, int>' error CS0305: Using the generic method 'P.Generic<T>()' requires 1 type arguments",
-"'p.NoParameter' error CS1501: No overload for method 'NoParameter' takes 1 arguments",
+"'frob' error CS1739: The best overload for 'NoParameter' does not have a parameter named 'frob'",
 "'p.NoParameter' error CS1501: No overload for method 'NoParameter' takes 2 arguments",
 "'p.StaticMethod' error CS0176: Member 'P.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead",
 "'P.NoParameter' error CS0120: An object reference is required for the non-static field, method, or property 'P.NoParameter()'",

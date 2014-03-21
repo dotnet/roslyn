@@ -179,21 +179,21 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (9,6): error CS1729: 'System.Security.Permissions.PrincipalPermissionAttribute' does not contain a constructor that takes 0 arguments
+                // (9,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)'
                 //     [PrincipalPermission()]                         // Invalid attribute constructor
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "PrincipalPermission()").WithArguments("System.Security.Permissions.PrincipalPermissionAttribute", "0"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "PrincipalPermission()").WithArguments("action", "System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)").WithLocation(9, 6),
                 // (6,26): error CS7049: Security attribute 'PrincipalPermission' has an invalid SecurityAction value '(SecurityAction)0'
                 //     [PrincipalPermission((SecurityAction)0)]        // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)0").WithArguments("PrincipalPermission", "(SecurityAction)0"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)0").WithArguments("PrincipalPermission", "(SecurityAction)0").WithLocation(6, 26),
                 // (7,26): error CS7049: Security attribute 'PrincipalPermission' has an invalid SecurityAction value '(SecurityAction)11'
                 //     [PrincipalPermission((SecurityAction)11)]       // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)11").WithArguments("PrincipalPermission", "(SecurityAction)11"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)11").WithArguments("PrincipalPermission", "(SecurityAction)11").WithLocation(7, 26),
                 // (8,26): error CS7049: Security attribute 'PrincipalPermission' has an invalid SecurityAction value '(SecurityAction)(-1)'
                 //     [PrincipalPermission((SecurityAction)(-1))]     // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)(-1)").WithArguments("PrincipalPermission", "(SecurityAction)(-1)"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)(-1)").WithArguments("PrincipalPermission", "(SecurityAction)(-1)").WithLocation(8, 26),
                 // (12,10): error CS0592: Attribute 'PrincipalPermission' is not valid on this declaration type. It is only valid on 'class, method' declarations.
                 //         [PrincipalPermission(SecurityAction.Demand)]   // Invalid attribute target
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "PrincipalPermission").WithArguments("PrincipalPermission", "class, method"));
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "PrincipalPermission").WithArguments("PrincipalPermission", "class, method").WithLocation(12, 10));
         }
 
         [WorkItem(544918)]
@@ -225,19 +225,19 @@ namespace N
             compilation.VerifyDiagnostics(
                 // (12,26): error CS7049: Security attribute 'MySecurityAttribute' has an invalid SecurityAction value '(SecurityAction)0'
                 //     [MySecurityAttribute((SecurityAction)0)]        // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)0").WithArguments("MySecurityAttribute", "(SecurityAction)0"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)0").WithArguments("MySecurityAttribute", "(SecurityAction)0").WithLocation(12, 26),
                 // (13,26): error CS7049: Security attribute 'MySecurityAttribute' has an invalid SecurityAction value '(SecurityAction)11'
                 //     [MySecurityAttribute((SecurityAction)11)]       // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)11").WithArguments("MySecurityAttribute", "(SecurityAction)11"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)11").WithArguments("MySecurityAttribute", "(SecurityAction)11").WithLocation(13, 26),
                 // (14,26): error CS7049: Security attribute 'MySecurityAttribute' has an invalid SecurityAction value '(SecurityAction)(-1)'
                 //     [MySecurityAttribute((SecurityAction)(-1))]     // Invalid attribute argument
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)(-1)").WithArguments("MySecurityAttribute", "(SecurityAction)(-1)"),
-                // (15,6): error CS1729: 'MySecurityAttribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)(-1)").WithArguments("MySecurityAttribute", "(SecurityAction)(-1)").WithLocation(14, 26),
+                // (15,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'MySecurityAttribute.MySecurityAttribute(System.Security.Permissions.SecurityAction)'
                 //     [MySecurityAttribute()]                         // Invalid attribute constructor
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "MySecurityAttribute()").WithArguments("MySecurityAttribute", "0"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "MySecurityAttribute()").WithArguments("action", "MySecurityAttribute.MySecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(15, 6),
                 // (18,10): error CS0592: Attribute 'MySecurityAttribute' is not valid on this declaration type. It is only valid on 'assembly, class, struct, constructor, method' declarations.
                 //         [MySecurityAttribute(SecurityAction.Demand)]   // Invalid attribute target
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "MySecurityAttribute").WithArguments("MySecurityAttribute", "assembly, class, struct, constructor, method"));
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "MySecurityAttribute").WithArguments("MySecurityAttribute", "assembly, class, struct, constructor, method").WithLocation(18, 10));
         }
 
         [WorkItem(544918)]
