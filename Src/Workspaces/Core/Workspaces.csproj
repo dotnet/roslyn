@@ -782,8 +782,6 @@
     <Compile Include="Workspace\DocumentationComments\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
     <Compile Include="Workspace\FileTextLoader.cs" />
-    <Compile Include="Workspace\Host\BackgroundCompilation\BackgroundCompiler.cs" />
-    <Compile Include="Workspace\Host\BackgroundParsing\BackgroundParser.cs" />
     <Compile Include="Workspace\Host\Caching\CachedObjectSource.cs" />
     <Compile Include="Workspace\Host\Caching\CacheId.cs" />
     <Compile Include="Workspace\Host\Caching\CompilationCacheServiceFactory.cs" />
@@ -798,9 +796,6 @@
     <Compile Include="Workspace\Host\Caching\SyntaxTreeCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\TextCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\WeakAction.cs" />
-    <Compile Include="Workspace\Host\FileTracking\FileTrackingServiceFactory.cs" />
-    <Compile Include="Workspace\Host\FileTracking\IFileTracker.cs" />
-    <Compile Include="Workspace\Host\FileTracking\IFileTrackingService.cs" />
     <Compile Include="Workspace\Host\Metadata\AssemblyShadowCopyProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Metadata\IMetadataReferenceProviderService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\AbstractPersistentStorage.cs" />
