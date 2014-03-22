@@ -66,9 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ProjectFileReference> GetProjectReferencesCore(ProjectInstance executedProject)
             {
-                foreach (var projectReference in executedProject.GetItems("ProjectReference"))
+                foreach (var projectReference in GetProjectReferenceItems(executedProject))
                 {
-                    var guid = Guid.Parse(projectReference.GetMetadataValue("Project"));
+                    Guid guid;
+                    Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid);
+
                     var filePath = projectReference.EvaluatedInclude;
 
                     string[] aliases;

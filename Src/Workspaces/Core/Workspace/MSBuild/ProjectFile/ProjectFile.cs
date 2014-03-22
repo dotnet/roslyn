@@ -217,9 +217,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
         {
-            return executedProject.GetItems("ProjectReference")
-                        .Select(reference => new ProjectFileReference(Guid.Parse(reference.GetMetadataValue("Project")), reference.EvaluatedInclude))
-                        .ToImmutableList();
+            var builder = ImmutableList.CreateBuilder<ProjectFileReference>();
+            foreach (var referenceItem in GetProjectReferenceItems(executedProject))
+            {
+                Guid guid;
+                Guid.TryParse(referenceItem.GetMetadataValue("Project"), out guid);
+                builder.Add(new ProjectFileReference(guid, referenceItem.EvaluatedInclude));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        protected IEnumerable<ProjectItemInstance> GetProjectReferenceItems(ProjectInstance executedProject)
+        {
+            return executedProject
+                .GetItems("ProjectReference")
+                .Where(i => !string.Equals(
+                    i.GetMetadataValue("ReferenceOutputAssembly"),
+                    bool.FalseString,
+                    StringComparison.OrdinalIgnoreCase));
         }
 
         protected virtual IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(MSB.Execution.ProjectInstance executedProject)

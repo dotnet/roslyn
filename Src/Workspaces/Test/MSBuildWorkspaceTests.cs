@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class MSBuildWorkspaceTests : TestBase
     {
+        private const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCreateWorkspace()
         {
@@ -1537,6 +1540,79 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var proj = sol.Projects.First();
                 var comp = proj.GetCompilationAsync().Result;
                 comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestProjectReferenceWithReferenceOutputAssemblyFalse()
+        {
+            var files = GetProjectReferenceSolutionFiles();
+            files = VisitProjectReferences(files, r =>
+            {
+                r.Add(new XElement(XName.Get("ReferenceOutputAssembly", MSBuildNamespace), "false"));
+            });
+
+            CreateFiles(files);
+
+            var fullPath = Path.Combine(this.solutionDirectory.Path, @"CSharpProjectReference.sln");
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var sol = ws.OpenSolutionAsync(fullPath).Result;
+                foreach (var project in sol.Projects)
+                {
+                    Assert.Equal(0, project.ProjectReferences.Count());
+                }
+            }
+        }
+
+        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        {
+            var result = new List<KeyValuePair<string, object>>();
+            foreach (var file in files)
+            {
+                string text = file.Value.ToString();
+                if (file.Key.EndsWith("proj", StringComparison.OrdinalIgnoreCase))
+                {
+                    text = VisitProjectReferences(text, visitProjectReference);
+                }
+
+                result.Add(new KeyValuePair<string, object>(file.Key, text));
+            }
+
+            return new FileSet(result);
+        }
+
+        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        {
+            var document = XDocument.Parse(projectFileText);
+            var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));
+            foreach (var projectReferenceItem in projectReferenceItems)
+            {
+                visitProjectReference(projectReferenceItem);
+            }
+
+            return document.ToString();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestProjectReferenceWithNoGuid()
+        {
+            var files = GetProjectReferenceSolutionFiles();
+            files = VisitProjectReferences(files, r =>
+            {
+                r.Elements(XName.Get("Project", MSBuildNamespace)).Remove();
+            });
+
+            CreateFiles(files);
+
+            var fullPath = Path.Combine(this.solutionDirectory.Path, @"CSharpProjectReference.sln");
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var sol = ws.OpenSolutionAsync(fullPath).Result;
+                foreach (var project in sol.Projects)
+                {
+                    Assert.InRange(project.ProjectReferences.Count(), 0, 1);
+                }
             }
         }
 
