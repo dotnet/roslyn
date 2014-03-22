@@ -6,6 +6,7 @@
 '-----------------------------------------------------------------------------------------------------------
 
 Imports System.IO
+Imports System.Reflection
 Imports System.Xml
 Imports System.Xml.Schema
 Imports <xmlns="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler">
@@ -66,21 +67,21 @@ Public Module ReadTree
     Private Function GetXDocument(fileName As String) As XDocument
         currentFile = fileName
 
-        Dim fileStream As New FileStream(fileName, FileMode.Open, FileAccess.Read)
-        Dim readerSettings As New XmlReaderSettings()
+        Using schemaReader = XmlReader.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
 
-        Dim localPath = New Uri(GetType(ParseTree).Assembly.CodeBase).LocalPath
-        Dim schemaPath = Path.Combine(Path.GetDirectoryName(localPath), "VBSyntaxModelSchema.xsd")
-        readerSettings.Schemas.Add(Nothing, New Uri(schemaPath).ToString())
-        readerSettings.ValidationType = ValidationType.Schema
-        AddHandler readerSettings.ValidationEventHandler, AddressOf ValidationError
+            Dim readerSettings As New XmlReaderSettings()
+            readerSettings.Schemas.Add(Nothing, schemaReader)
+            readerSettings.ValidationType = ValidationType.Schema
+            AddHandler readerSettings.ValidationEventHandler, AddressOf ValidationError
 
-        Using reader = XmlReader.Create(fileStream, readerSettings)
-            Return XDocument.Load(reader, LoadOptions.SetLineInfo Or LoadOptions.PreserveWhitespace)
+            Dim fileStream As New FileStream(fileName, FileMode.Open, FileAccess.Read)
+            Using reader = XmlReader.Create(fileStream, readerSettings)
+                Return XDocument.Load(reader, LoadOptions.SetLineInfo Or LoadOptions.PreserveWhitespace)
+            End Using
         End Using
     End Function
 
-    ' A validation error occured while reading the document. Tell the user.
+    ' A validation error occurred while reading the document. Tell the user.
     Private Sub ValidationError(sender As Object, e As ValidationEventArgs)
         Console.WriteLine("{0}({1},{2}): Invalid input: {3}", currentFile, e.Exception.LineNumber, e.Exception.LinePosition, e.Exception.Message)
     End Sub
