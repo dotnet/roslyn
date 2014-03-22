@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // it looks like we or one of our bases implements something.
                     info = new InterfaceInfo();
 
-                    // NOTE: we are assingning lazyInterfaceInfo via interlocked not for correctness, 
+                    // NOTE: we are assigning lazyInterfaceInfo via interlocked not for correctness, 
                     // we just do not want to override an existing info that could be partially filled.
                     return Interlocked.CompareExchange(ref this.lazyInterfaceInfo, info, null) ?? info;
                 }

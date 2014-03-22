@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var text = trivia.ToFullString();
 
                 // When the doc comment is parsed from source, even if it is only one
-                // line long, the end-of-line will get sucked into the trivia text.
+                // line long, the end-of-line will get included into the trivia text.
                 // If the doc comment was parsed from a text fragment, there may not be
                 // an end-of-line at all. We need to trim the end before we check the
                 // number of line breaks in the text.

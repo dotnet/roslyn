@@ -2434,7 +2434,7 @@ public class Test
                 CreateCompilationWithMscorlib(source2,
                     new[] {new CSharpCompilationReference(referencedCompilation) },
                     compOptions: TestOptions.Exe,
-                    assemblyName: "OHI_GodeGen_TestHideWithInaccessibleVirtualMember2");
+                    assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember2");
 
             outerCompilation.VerifyDiagnostics(); // No errors
 

@@ -2266,7 +2266,7 @@ class Program
         }
 
         [Fact, WorkItem(543983)]
-        public void CheckedStatementWithCompoundAssigment()
+        public void CheckedStatementWithCompoundAssignment()
         {
             var source = @"
 using System;

@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                // It seems Dev11 just silently corrects invalid values and swallows the error message
+                                // It seems VS 2012 just silently corrects invalid values and suppresses the error message
                                 SubsystemVersion version = SubsystemVersion.None;
                                 if (SubsystemVersion.TryParse(value, out version))
                                 {
@@ -698,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadSubsystemVersion, value);
                                 }
+
                                 continue;
 
                             case "touchedfiles":
@@ -711,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     touchedFilesPath = unquoted;
                                 }
+
                                 continue;
 
                             case "bugreport":

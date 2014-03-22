@@ -1791,7 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // addr = sum;
                     //
                     // In "Redhawk" we can write this sort of code directly as well. However, we should
-                    // never have a case where the value of the assigment is "used", either in our own
+                    // never have a case where the value of the assignment is "used", either in our own
                     // lowering passes or in Redhawk. We never have something like:
                     //
                     // ref int t1 = (ref int t2 = ref M().s); 

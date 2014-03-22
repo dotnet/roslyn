@@ -812,7 +812,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Continue For
                                 End If
 
-                                ' It seems Dev11 just silently corrects invalid values and swallows the error message
                                 Dim version As SubsystemVersion = Nothing
                                 If SubsystemVersion.TryParse(value, version) Then
                                     ssVersion = version

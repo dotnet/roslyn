@@ -3813,13 +3813,13 @@ partial class program
 {
     static void Main(string[] args)
     {
-        //foo(sex: 1 > 2, name: "", age: 1);
+        //foo(gender: 1 > 2, name: "", age: 1);
     }
-    static partial void foo(string name, int age, bool sex, int index1 = 1) { }
+    static partial void foo(string name, int age, bool gender, int index1 = 1) { }
 }
 partial class program
 {
-    static partial void foo(string name, int age, bool sex, int index1 = 1);
+    static partial void foo(string name, int age, bool gender, int index1 = 1);
 }";
             var tree = Parse(sourceCode);
             var comp = CreateCompilationWithMscorlib(tree);

@@ -392,10 +392,10 @@ class c1
 using System;
 class c1
 {
-    enum Sex : byte { Male = 2 }
+    enum Gender : byte { Male = 2 }
     static void Main(string[] args)
     {
-        Sex s = 0;
+        Gender s = 0;
         Console.WriteLine(s); 
         s = -0;
         Console.WriteLine(s);
@@ -457,15 +457,15 @@ public enum Num
 @"
 namespace ns	
 {	
-    enum Sex { Male }
+    enum Gender { Male }
 }
 struct B
 {
-    enum Sex { Male }
+    enum Gender { Male }
 }
 ";
-            VerifyEnumsValue(text, "ns.Sex", 0);
-            VerifyEnumsValue(text, "B.Sex", 0);
+            VerifyEnumsValue(text, "ns.Gender", 0);
+            VerifyEnumsValue(text, "B.Gender", 0);
         }
 
         // Enums obey local scope rules

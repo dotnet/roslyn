@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void UpdateStateForCall(BoundCall node)
         {
-            // Are we calling a dispose method?  For now, we just (stupidly) check if the method is named Dispose and protected or better.
+            // Are we calling a dispose method?  For now, we just check if the method is named Dispose and protected or better.
             // TODO: we need a better way of determining if a method should be considered to dispose its receiver.
             bool isDispose = node.Method.Name == "Dispose" && node.Method.DeclaredAccessibility >= Accessibility.Protected;
             if (node.ReceiverOpt != null && isDispose)
