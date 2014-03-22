@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Threading_Interlocked__CompareExchange_T)
                 Dim containingType As WellKnownType = CType(memberDescriptor.DeclaringTypeId, WellKnownType)
 
-                diagnostics.Add(ERRID.ERR_RuntimeMemberNotFound2, errorLocation, containingType.GetMetadataName(), memberDescriptor.Name)
+                diagnostics.Add(ERRID.ERR_RuntimeMemberNotFound2, errorLocation, memberDescriptor.Name, containingType.GetMetadataName())
                 Return Nothing
             End If
 
