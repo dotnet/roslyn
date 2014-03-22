@@ -285,10 +285,10 @@ Delegate Sub E1()
 BC30002: Type 'System.IAsyncResult' is not defined.
 Delegate Sub E1()
 ~~~~~~~~~~~~~~~~~
-BC31097: Member 'System.Threading.Interlocked' cannot be found in class 'CompareExchange'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
+BC31097: Member 'CompareExchange' cannot be found in class 'System.Threading.Interlocked'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
   public event e as E1
                ~
-BC31097: Member 'System.Threading.Interlocked' cannot be found in class 'CompareExchange'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
+BC31097: Member 'CompareExchange' cannot be found in class 'System.Threading.Interlocked'. This condition is usually the result of a mismatched 'Microsoft.VisualBasic.dll'.
   public event e as E1
                ~
 </expected>)
