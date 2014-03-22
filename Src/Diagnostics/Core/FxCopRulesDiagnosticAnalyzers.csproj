@@ -104,7 +104,6 @@
     <Compile Include="Design\EnumWithFlagsDiagnosticAnalyzer.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticKind.cs" />
-    <Compile Include="FxCopConstants.cs" />
     <Compile Include="FxCopDiagnosticCategory.cs" />
     <Compile Include="FxCopRulesResources.Designer.cs">
       <AutoGen>True</AutoGen>

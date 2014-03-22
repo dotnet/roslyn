@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property Kind As String
+            Public Overrides ReadOnly Property Category As String
                 Get
                     Return m_id
                 End Get
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Friend Overrides Function WithWarningAsError(isWarningAsError As Boolean) As Diagnostic
                 If isWarningAsError AndAlso Severity = DiagnosticSeverity.Warning Then
-                    Return New TestDiagnostic(Id, Kind, DiagnosticSeverity.Error, m_location, m_message, isWarningAsError, m_arguments)
+                    Return New TestDiagnostic(Id, Category, DiagnosticSeverity.Error, m_location, m_message, isWarningAsError, m_arguments)
                 Else
                     Return Me
                 End If
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", kind:="Test", name:="CA9999_UseOfVariableThatStartsWithX", messageTemplate:="Use of variable whose name starts with 'x': '{0}'", category:="Test", severity:=DiagnosticSeverity.Warning)
+            Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", description:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning)
 
             Private ReadOnly Property IDiagnosticAnalyzer_SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
                 Get

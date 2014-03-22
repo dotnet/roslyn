@@ -35,19 +35,16 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleId = "CA1008";
 
         internal static DiagnosticDescriptor RuleRename = new DiagnosticDescriptor(RuleId,
-                                                                       FxCopConstants.DiagnosticKind,
                                                                        FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                        FxCopRulesResources.EnumsShouldZeroValueFlagsRename,
                                                                        FxCopDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning);
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
-                                                               FxCopConstants.DiagnosticKind,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning);
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
-                                                               FxCopConstants.DiagnosticKind,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue,
                                                                FxCopDiagnosticCategory.Design,

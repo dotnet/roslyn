@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public partial class SuppressMessageAttributeTests
     {
-        private const string TestDiagnosticKind = "Test";
+        private const string TestDiagnosticCategory = "Test";
         private const string TestDiagnosticMessageTemplate = "{0}";
 
         private abstract class AbstractMockAnalyzer : IDiagnosticAnalyzer
@@ -234,10 +234,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             return new DiagnosticDescriptor(
                 id,
-                TestDiagnosticKind,
                 id,
                 TestDiagnosticMessageTemplate,
-                TestDiagnosticKind,
+                TestDiagnosticCategory,
                 DiagnosticSeverity.Warning);
         }
     }

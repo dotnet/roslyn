@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
         internal const string Parameter = "Parameters of";
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopConstants.DiagnosticKind,
                                                                                       FxCopRulesResources.IdentifiersShouldDifferByMoreThanCase,
                                                                                       FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase,
                                                                                       FxCopDiagnosticCategory.Naming,

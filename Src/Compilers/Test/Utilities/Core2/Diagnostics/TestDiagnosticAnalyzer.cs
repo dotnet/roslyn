@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         protected static readonly ImmutableArray<string> AllInterfaceMemberNames = ImmutableArray<string>.Empty.AddRange(typeof(TestDiagnosticAnalyzer<TSyntaxKind>).GetInterfaces().SelectMany(i => GetInterfaceMemberNames(i)));
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
-            new DiagnosticDescriptor("CA7777", "Test", "CA7777_AnalyzerTestDiagnostic", "I'm here for test purposes", "Test", DiagnosticSeverity.Warning);
+            new DiagnosticDescriptor("CA7777", "CA7777_AnalyzerTestDiagnostic", "I'm here for test purposes", "Test", DiagnosticSeverity.Warning);
 
         private static ImmutableArray<T> GetAllEnumValues<T>()
         {

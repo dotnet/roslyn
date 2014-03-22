@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
     {
         internal const string RuleId = "CA2002";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.DoNotLockOnObjectsWithWeakIdentity,
                                                                          FxCopRulesResources.DoNotLockOnWeakIdentity,
                                                                          FxCopDiagnosticCategory.Reliability,

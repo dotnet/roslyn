@@ -15,14 +15,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string CA1014RuleName = "CA1014";
 
         internal static DiagnosticDescriptor CA1016Rule = new DiagnosticDescriptor(CA1016RuleName,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
                                                                          FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning);
 
         internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleName,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
                                                                          FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
                                                                          FxCopDiagnosticCategory.Design,

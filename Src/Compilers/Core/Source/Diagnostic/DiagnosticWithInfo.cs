@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.MessageIdentifier; }
         }
 
-        public override string Kind
+        public override string Category
         {
             get { return "Compiler"; }
         }

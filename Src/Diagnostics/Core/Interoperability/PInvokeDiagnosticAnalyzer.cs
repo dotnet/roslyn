@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
         internal static DiagnosticDescriptor RuleCA1401 = new DiagnosticDescriptor(CA1401,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.PInvokesShouldNotBeVisible,
                                                                          FxCopRulesResources.PInvokeMethodShouldNotBeVisible,
                                                                          FxCopDiagnosticCategory.Interoperability,
                                                                          DiagnosticSeverity.Warning);
         internal static DiagnosticDescriptor RuleCA2101 = new DiagnosticDescriptor(CA2101,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
                                                                          FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
                                                                          FxCopDiagnosticCategory.Globalization,

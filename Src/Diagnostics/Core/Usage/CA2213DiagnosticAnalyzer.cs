@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         internal const string RuleId = "CA2213";
         internal const string Dispose = "Dispose";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.DisposableFieldsShouldBeDisposed,
                                                                          FxCopRulesResources.DisposableFieldsShouldBeDisposed,
                                                                          FxCopDiagnosticCategory.Usage,

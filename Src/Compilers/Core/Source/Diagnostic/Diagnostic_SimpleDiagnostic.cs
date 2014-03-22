@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         internal sealed class SimpleDiagnostic : Diagnostic, ISerializable
         {
             private readonly string id;
-            private readonly string kind;
+            private readonly string category;
             private readonly string message;
             private readonly DiagnosticSeverity severity;
             private readonly int warningLevel;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Location location;
             private readonly ImmutableList<Location> additionalLocations;
 
-            internal SimpleDiagnostic(string id, string kind, string message, DiagnosticSeverity severity,
+            internal SimpleDiagnostic(string id, string category, string message, DiagnosticSeverity severity,
                                       int warningLevel, bool isWarningAsError, Location location,
                                       IEnumerable<Location> additionalLocations)
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 this.id = id;
-                this.kind = kind;
+                this.category = category;
                 this.message = message;
                 this.severity = severity;
                 this.warningLevel = warningLevel;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             private SimpleDiagnostic(SerializationInfo info, StreamingContext context)
             {
                 this.id = info.GetString("id");
-                this.kind = info.GetString("kind");
+                this.category = info.GetString("category");
                 this.message = info.GetString("message");
                 this.severity = (DiagnosticSeverity)info.GetInt32("severity");
                 this.warningLevel = info.GetInt32("warningLevel");
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
             {
                 info.AddValue("id", this.id);
-                info.AddValue("kind", this.kind);
+                info.AddValue("category", this.category);
                 info.AddValue("message", this.message);
                 info.AddValue("severity", (int)this.severity);
                 info.AddValue("warningLevel", this.warningLevel);
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
                 get { return this.id; }
             }
 
-            public override string Kind
+            public override string Category
             {
-                get { return this.kind; }
+                get { return this.category; }
             }
 
             public override string GetMessage(CultureInfo culture = null)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != this.location)
                 {
-                    return new SimpleDiagnostic(this.id, this.kind, this.message, this.severity, this.warningLevel, this.isWarningAsError, location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.warningLevel, this.isWarningAsError, location, this.additionalLocations);
                 }
 
                 return this;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.isWarningAsError != isWarningAsError)
                 {
-                    return new SimpleDiagnostic(this.id, this.kind, this.message, this.severity, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
                 }
 
                 return this;

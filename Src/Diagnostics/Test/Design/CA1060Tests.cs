@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Design
 
         private static DiagnosticResult CSharpResult(int line, int column)
         {
-            return GetCSharpResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageTemplate);
+            return GetCSharpResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageFormat);
         }
 
         private static DiagnosticResult BasicResult(int line, int column)
         {
-            return GetBasicResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageTemplate);
+            return GetBasicResultAt(line, column, CA1060DiagnosticAnalyzer.Rule.Id, CA1060DiagnosticAnalyzer.Rule.MessageFormat);
         }
 
         #endregion
