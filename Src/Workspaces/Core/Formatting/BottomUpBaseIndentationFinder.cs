@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (operation.Option == IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
                 {
-                    return ValueTuple.Create(0, operation);
+                    return ValueTuple.Create(indentationLevel, operation);
                 }
 
                 if (operation.IsRelativeIndentation)
