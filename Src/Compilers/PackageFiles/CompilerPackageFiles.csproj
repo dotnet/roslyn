@@ -16,11 +16,7 @@
     <AssemblyName>CompilerPackage</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <PlatformTarget>x86</PlatformTarget>
-    <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <StyleCopEnabled>false</StyleCopEnabled>
-    <GeneratePkgDefFile>True</GeneratePkgDefFile>
-    <DeployExtension>true</DeployExtension>
-    <CreateVsixContainer>False</CreateVsixContainer>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\Binaries\$(Configuration)\</OutDir>
