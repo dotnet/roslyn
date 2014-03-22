@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
-    Public Class PDBFieldAndPropertyInitializerTests
+    Public Class PDBVariableInitializerTests
         Inherits BasicTestBase
 
         <Fact>
@@ -97,7 +97,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -131,7 +131,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -165,7 +165,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -193,7 +193,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -215,6 +215,41 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub ArrayInitializedLocal()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M
+        Dim F(1), G(2) As Integer
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            compilation.VerifyDiagnostics()
+
+            Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
+
+            Dim expectedStart1 = "        Dim ".Length + 1
+            Dim expectedEnd1 = "        Dim F(1)".Length + 1
+
+            Dim expectedStart2 = "        Dim F(1), ".Length + 1
+            Dim expectedEnd2 = "        Dim F(1), G(2)".Length + 1
+
+            Dim expected =
+<sequencePoints>
+    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
+    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
+    <entry start_row="3" start_column=<%= expectedStart2 %> end_row="3" end_column=<%= expectedEnd2 %>/>
+    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+</sequencePoints>
+
+            AssertXmlEqual(expected, actual)
+        End Sub
+
+        <Fact>
         Public Sub FieldAsNewMultiInitializer()
             Dim source =
 <compilation>
@@ -225,7 +260,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -247,6 +282,41 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub LocalAsNewMultiInitializer()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M
+         Dim F, G As New C()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            compilation.VerifyDiagnostics()
+
+            Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
+
+            Dim expectedStart1 = "         Dim ".Length + 1
+            Dim expectedEnd1 = "         Dim F".Length + 1
+
+            Dim expectedStart2 = "         Dim F, ".Length + 1
+            Dim expectedEnd2 = "         Dim F, G".Length + 1
+
+            Dim expected =
+<sequencePoints>
+    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
+    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
+    <entry start_row="3" start_column=<%= expectedStart2 %> end_row="3" end_column=<%= expectedEnd2 %>/>
+    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+</sequencePoints>
+
+            AssertXmlEqual(expected, actual)
+        End Sub
+
+        <Fact>
         Public Sub FieldAsNewSingleInitializer()
             Dim source =
 <compilation>
@@ -257,7 +327,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -275,6 +345,37 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub LocalAsNewSingleInitializer()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M
+        Dim F As New C()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            compilation.VerifyDiagnostics()
+
+            Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
+
+            Dim expectedStart1 = "        Dim ".Length + 1
+            Dim expectedEnd1 = "        Dim F As New C()".Length + 1
+
+            Dim expected =
+<sequencePoints>
+    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
+    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
+    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+</sequencePoints>
+
+            AssertXmlEqual(expected, actual)
+        End Sub
+
+        <Fact>
         Public Sub FieldInitializer()
             Dim source =
 <compilation>
@@ -285,7 +386,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -297,6 +398,37 @@ End Class
 <sequencePoints>
     <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
     <entry start_row="2" start_column=<%= expectedStart1 %> end_row="2" end_column=<%= expectedEnd1 %>/>
+</sequencePoints>
+
+            AssertXmlEqual(expected, actual)
+        End Sub
+
+        <Fact>
+        Public Sub LocalInitializer()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M
+        Dim F = 1
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, Options.UnoptimizedDll)
+            compilation.VerifyDiagnostics()
+
+            Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
+
+            Dim expectedStart1 = "        Dim ".Length + 1
+            Dim expectedEnd1 = "        Dim F = 1".Length + 1
+
+            Dim expected =
+<sequencePoints>
+    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
+    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
+    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)

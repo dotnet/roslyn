@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -55,9 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If hasInitializer Then
                 ' Create an initializer for the local if the local is not a constant. 
                 If Not localSymbol.IsConst Then
-                    Debug.Assert(node.Syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
                     Dim rewrittenInitializer As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(initializerOpt)
-                    result = RewriteLocalDeclarationAsInitializer(node, rewrittenInitializer, node.Syntax.Parent, staticLocalBackingFields, placeholder Is Nothing)
+                    result = RewriteLocalDeclarationAsInitializer(node, rewrittenInitializer, staticLocalBackingFields, placeholder Is Nothing)
                 End If
             End If
 
@@ -75,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteLocalDeclarationAsInitializer(
             node As BoundLocalDeclaration,
             rewrittenInitializer As BoundExpression,
-            syntaxNodeForSequencePoint As VisualBasicSyntaxNode,
             staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField),
             Optional objectInitializerNeedsTemporary As Boolean = True
         ) As BoundStatement
@@ -108,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 node.LocalSymbol.Type
                             )
                         ),
-                        DirectCast(rewrittenInitializer, BoundExpression),
+                        rewrittenInitializer,
                         suppressObjectClone:=True,
                         type:=node.LocalSymbol.Type
                     )
@@ -125,11 +118,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, result, canThrow:=True)
             End If
 
-            If GenerateDebugInfo AndAlso syntaxNodeForSequencePoint IsNot Nothing Then
-                result = New BoundSequencePoint(syntaxNodeForSequencePoint, result)
+            Return MarkInitializerSequencePoint(result, node.Syntax)
+        End Function
+
+        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode) As BoundStatement
+            Debug.Assert(syntax.IsKind(SyntaxKind.ModifiedIdentifier))
+            Debug.Assert(syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
+
+            If Not GenerateDebugInfo Then
+                Return rewrittenStatement
             End If
 
-            Return result
+            Dim modifiedIdentitifer = DirectCast(syntax, ModifiedIdentifierSyntax)
+            If modifiedIdentitifer.ArrayBounds IsNot Nothing Then
+                ' Dim [|a(1)|], b(1) As Integer
+                Return New BoundSequencePoint(syntax, rewrittenStatement)
+            End If
+
+            Dim declarator = DirectCast(syntax.Parent, VariableDeclaratorSyntax)
+            If declarator.Names.Count > 1 Then
+                Debug.Assert(declarator.AsClause.IsKind(SyntaxKind.AsNewClause))
+
+                ' Dim [|a|], b As New C()
+                Return New BoundSequencePoint(syntax, rewrittenStatement)
+            End If
+
+            ' Dim [|a = 1|]
+            ' Dim [|a As New C()|]
+            Return New BoundSequencePoint(declarator, rewrittenStatement)
         End Function
 
         Private Function CreateBackingFieldsForStaticLocal(localSymbol As LocalSymbol, hasInitializer As Boolean) As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField)

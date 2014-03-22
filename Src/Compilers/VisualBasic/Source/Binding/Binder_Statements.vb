@@ -980,13 +980,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     ' Dim x,y,z as New C
                     Dim nameCount = names.Count
-                    Dim locals(nameCount - 1) As BoundLocalDeclaration
-                    Dim syntaxNodes(nameCount - 1) As ModifiedIdentifierSyntax
+                    Dim locals = ArrayBuilder(Of BoundLocalDeclaration).GetInstance(nameCount)
                     For i = 0 To nameCount - 1
                         ' Pass the asClause to each local declaration so local knows its type and for error reporting.
                         Dim var = BindVariableDeclaration(varDecl, names(i), asClauseOpt, Nothing, diagnostics, i > 0)
-                        locals(i) = var
-                        syntaxNodes(i) = names(i)
+                        locals.Add(var)
                     Next
                     ' At this point all of the local declarations have an initializer. Remove the initializers from the individual local declarations
                     ' and put the initializer on the BoundAsNewDeclaration. The local declarations are marked as initialized by the as-new.
@@ -1000,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 #End If
 
-                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.AsImmutableOrNull, asNewInitializer, syntaxNodes.AsImmutableOrNull))
+                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer))
                 End If
             Next
 
@@ -1041,8 +1039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional skipAsNewInitializer As Boolean = False
         ) As BoundLocalDeclaration
 
-            Dim identifier = name.Identifier
-            Dim symbol As LocalSymbol = GetLocalForDeclaration(identifier)
+            Dim symbol As LocalSymbol = GetLocalForDeclaration(name.Identifier)
 
             Dim valueExpression As BoundExpression = Nothing
             Dim declType As TypeSymbol = Nothing
@@ -1072,7 +1069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          diagnostics)
 
             ' Now that we know the type go ahead and set it.
-            VerifyLocalSymbolNameAndSetType(symbol, type, name, identifier, diagnostics)
+            VerifyLocalSymbolNameAndSetType(symbol, type, name, name.Identifier, diagnostics)
 
             Debug.Assert(type IsNot Nothing)
 

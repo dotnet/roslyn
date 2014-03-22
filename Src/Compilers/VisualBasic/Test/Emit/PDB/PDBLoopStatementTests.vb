@@ -424,7 +424,7 @@ End Module
         <method containingType="M1" name="Main" parameterNames="">
             <sequencepoints total="7">
                 <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="15" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="31" file_ref="1"/>
+                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="22" file_ref="1"/>
                 <entry il_offset="0x8" start_row="8" start_column="9" end_row="8" end_column="23" file_ref="1"/>
                 <entry il_offset="0xa" start_row="9" start_column="13" end_row="9" end_column="26" file_ref="1"/>
                 <entry il_offset="0xe" start_row="10" start_column="9" end_row="10" end_column="15" file_ref="1"/>

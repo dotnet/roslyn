@@ -107,11 +107,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenInitializer = Me.VisitAndGenerateObjectCloneIfNeeded(node.Initializer)
                 End If
 
-                Dim initialization = RewriteLocalDeclarationAsInitializer(localDeclaration,
-                                                                 DirectCast(rewrittenInitializer, BoundExpression),
-                                                                 node.SyntaxNodesOpt(declarationIndex),
-                                                                 staticLocalBackingFields,
-                                                                 objectInitializer Is Nothing OrElse objectInitializer.CreateTemporaryLocalForInitialization)
+                Dim initialization = RewriteLocalDeclarationAsInitializer(
+                    localDeclaration,
+                    DirectCast(rewrittenInitializer, BoundExpression),
+                    staticLocalBackingFields,
+                    objectInitializer Is Nothing OrElse objectInitializer.CreateTemporaryLocalForInitialization)
 
                 builder.Add(initialization)
             Next
