@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeGarbageAfterLocation()
         {
-            var text = "[assembly: $";
+            var text = "[assembly: `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeGarbageAfterAttribute()
         {
-            var text = "[assembly: a $";
+            var text = "[assembly: a `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeGarbageAfterParameterStart()
         {
-            var text = "[assembly: a( $";
+            var text = "[assembly: a( `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeGarbageAfterParameter()
         {
-            var text = "[assembly: a(b $";
+            var text = "[assembly: a(b `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeMissingCommaBetweenParameters()
         {
-            var text = "[assembly: a(b c)";
+            var text = "[assembly: a(b c d)";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeWithGarbageBetweenParameters()
         {
-            var text = "[assembly: a(b $ c)";
+            var text = "[assembly: a(b ` c)";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGlobalAttributeWithGarbageBetweenAttributes()
         {
-            var text = "[assembly: a $ b";
+            var text = "[assembly: a ` b";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGarbageBeforeNamespace()
         {
-            var text = "$ namespace n { }";
+            var text = "` namespace n { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGarbageAfterNamespace()
         {
-            var text = "namespace n { } $";
+            var text = "namespace n { } `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestGarbageInsideNamespace()
         {
-            var text = "namespace n { $ }";
+            var text = "namespace n { ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -388,7 +388,7 @@ class C
         [Fact]
         public void TestAttributeWithGarbageAfterStart()
         {
-            var text = "[ $";
+            var text = "[ `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -404,7 +404,7 @@ class C
         [Fact]
         public void TestAttributeWithGarbageAfterName()
         {
-            var text = "[a $";
+            var text = "[a `";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -545,7 +545,7 @@ class C
         [Fact]
         public void TestNamespaceWithGarbage()
         {
-            var text = "namespace n { $ }";
+            var text = "namespace n { ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -710,7 +710,7 @@ class C
         [Fact]
         public void TestGarbageAfterStartOfBaseTypeList()
         {
-            var text = "class c : $ { }";
+            var text = "class c : ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -725,7 +725,7 @@ class C
         [Fact]
         public void TestGarbageAfterBaseType()
         {
-            var text = "class c : t $ { }";
+            var text = "class c : t ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -739,7 +739,7 @@ class C
         [Fact]
         public void TestGarbageAfterBaseTypeAndComma()
         {
-            var text = "class c : t, $ { }";
+            var text = "class c : t, ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -754,7 +754,7 @@ class C
         [Fact]
         public void TestGarbageAfterBaseTypesWithMissingComma()
         {
-            var text = "class c : x y $ { }";
+            var text = "class c : x y ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1023,7 +1023,7 @@ class C
         [Fact]
         public void TestGarbageAfterConstraintStart()
         {
-            var text = "class c<t> where $ { }";
+            var text = "class c<t> where ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1040,7 +1040,7 @@ class C
         [Fact]
         public void TestGarbageAfterConstraintName()
         {
-            var text = "class c<t> where t $ { }";
+            var text = "class c<t> where t ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1056,7 +1056,7 @@ class C
         [Fact]
         public void TestGarbageAfterConstraintNameAndColon()
         {
-            var text = "class c<t> where t : $ { }";
+            var text = "class c<t> where t : ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1071,7 +1071,7 @@ class C
         [Fact]
         public void TestGarbageAfterConstraintNameColonAndType()
         {
-            var text = "class c<t> where t : x $ { }";
+            var text = "class c<t> where t : x ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1085,7 +1085,7 @@ class C
         [Fact]
         public void TestGarbageAfterConstraintNameColonTypeAndComma()
         {
-            var text = "class c<t> where t : x, $ { }";
+            var text = "class c<t> where t : x, ` { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1100,7 +1100,7 @@ class C
         [Fact]
         public void TestGarbageAfterGenericClassNameStart()
         {
-            var text = "class c<$> { }";
+            var text = "class c<`> { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1115,7 +1115,7 @@ class C
         [Fact]
         public void TestGarbageAfterGenericClassNameType()
         {
-            var text = "class c<t $> { }";
+            var text = "class c<t `> { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1129,7 +1129,7 @@ class C
         [Fact]
         public void TestGarbageAfterGenericClassNameTypeAndComma()
         {
-            var text = "class c<t, $> { }";
+            var text = "class c<t, `> { }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1369,7 +1369,7 @@ class C
         [Fact]
         public void TestGarbageAfterFieldStart()
         {
-            var text = "class c { int $ int y; }";
+            var text = "class c { int ` int y; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1389,7 +1389,7 @@ class C
         [Fact]
         public void TestGarbageAfterFieldTypeAndName()
         {
-            var text = "class c { int x $ int y; }";
+            var text = "class c { int x ` int y; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1408,7 +1408,7 @@ class C
         [Fact]
         public void TestGarbageAfterFieldTypeNameAndComma()
         {
-            var text = "class c { int x, $ int y; }";
+            var text = "class c { int x, ` int y; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1572,7 +1572,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodParameterStart()
         {
-            var text = "class c { int m( $ ); }";
+            var text = "class c { int m( ` ); }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1589,7 +1589,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodParameterType()
         {
-            var text = "class c { int m( x $ ); }";
+            var text = "class c { int m( x ` ); }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1607,7 +1607,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodParameterTypeAndName()
         {
-            var text = "class c { int m( x y $ ); }";
+            var text = "class c { int m( x y ` ); }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1624,7 +1624,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodParameterTypeNameAndComma()
         {
-            var text = "class c { int m( x y, $ ); }";
+            var text = "class c { int m( x y, ` ); }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1904,7 +1904,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerParameterStart()
         {
-            var text = "class c { int this[ $ ] { } }";
+            var text = "class c { int this[ ` ] { } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1922,7 +1922,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerParameterType()
         {
-            var text = "class c { int this[ x $ ] { } }";
+            var text = "class c { int this[ x ` ] { } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1940,7 +1940,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerParameterTypeAndName()
         {
-            var text = "class c { int this[ x y $ ] { } }";
+            var text = "class c { int this[ x y ` ] { } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -1957,7 +1957,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerParameterTypeNameAndComma()
         {
-            var text = "class c { int this[ x y, $ ] { } }";
+            var text = "class c { int this[ x y, ` ] { } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2343,7 +2343,7 @@ class C
         [Fact]
         public void TestGarbageAfterDelegateParameterStart()
         {
-            var text = "delegate void d($);";
+            var text = "delegate void d(`);";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2357,7 +2357,7 @@ class C
         [Fact]
         public void TestGarbageAfterDelegateParameterType()
         {
-            var text = "delegate void d(t $);";
+            var text = "delegate void d(t `);";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2372,7 +2372,7 @@ class C
         [Fact]
         public void TestGarbageAfterDelegateParameterTypeAndName()
         {
-            var text = "delegate void d(t n $);";
+            var text = "delegate void d(t n `);";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2386,7 +2386,7 @@ class C
         [Fact]
         public void TestGarbageAfterDelegateParameterTypeNameAndComma()
         {
-            var text = "delegate void d(t n, $);";
+            var text = "delegate void d(t n, `);";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2402,7 +2402,7 @@ class C
         [Fact]
         public void TestGarbageAfterEnumStart()
         {
-            var text = "enum e { $ }";
+            var text = "enum e { ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2416,7 +2416,7 @@ class C
         [Fact]
         public void TestGarbageAfterEnumName()
         {
-            var text = "enum e { n $ }";
+            var text = "enum e { n ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2430,7 +2430,7 @@ class C
         [Fact]
         public void TestGarbageBeforeEnumName()
         {
-            var text = "enum e { $ n }";
+            var text = "enum e { ` n }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2444,7 +2444,7 @@ class C
         [Fact]
         public void TestGarbageAferEnumNameAndComma()
         {
-            var text = "enum e { n, $ }";
+            var text = "enum e { n, ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2458,7 +2458,7 @@ class C
         [Fact]
         public void TestGarbageAferEnumNameCommaAndName()
         {
-            var text = "enum e { n, n $ }";
+            var text = "enum e { n, n ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2472,7 +2472,7 @@ class C
         [Fact]
         public void TestGarbageBetweenEnumNames()
         {
-            var text = "enum e { n, $ n }";
+            var text = "enum e { n, ` n }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2486,7 +2486,7 @@ class C
         [Fact]
         public void TestGarbageBetweenEnumNamesWithMissingComma()
         {
-            var text = "enum e { n $ n }";
+            var text = "enum e { n ` n }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2501,7 +2501,7 @@ class C
         [Fact]
         public void TestGarbageAferEnumNameAndEquals()
         {
-            var text = "enum e { n = $ }";
+            var text = "enum e { n = ` }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2603,7 +2603,7 @@ class C
         [Fact]
         public void TestGarbageAfterFixedFieldRankStart()
         {
-            var text = "class c { fixed int x[$]; }";
+            var text = "class c { fixed int x[`]; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2620,7 +2620,7 @@ class C
         [Fact]
         public void TestGarbageBeforeFixedFieldRankSize()
         {
-            var text = "class c { fixed int x[$ 10]; }";
+            var text = "class c { fixed int x[` 10]; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2636,7 +2636,7 @@ class C
         [Fact]
         public void TestGarbageAfterFixedFieldRankSize()
         {
-            var text = "class c { fixed int x[10 $]; }";
+            var text = "class c { fixed int x[10 `]; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2647,14 +2647,14 @@ class C
             Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind);
             Assert.Equal(3, file.Errors().Length);
             Assert.Equal(ErrorCode.ERR_SyntaxError, (ErrorCode)file.Errors()[0].Code); //expected comma
-            Assert.Equal(ErrorCode.ERR_UnexpectedCharacter, (ErrorCode)file.Errors()[1].Code); //didn't expect '$'
+            Assert.Equal(ErrorCode.ERR_UnexpectedCharacter, (ErrorCode)file.Errors()[1].Code); //didn't expect '`'
             Assert.Equal(ErrorCode.ERR_ValueExpected, (ErrorCode)file.Errors()[2].Code); //expected value after (missing) comma
         }
 
         [Fact]
         public void TestGarbageAfterFieldTypeRankStart()
         {
-            var text = "class c { int[$] x; }";
+            var text = "class c { int[`] x; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2670,7 +2670,7 @@ class C
         [Fact]
         public void TestGarbageAfterFieldTypeRankComma()
         {
-            var text = "class c { int[,$] x; }";
+            var text = "class c { int[,`] x; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2686,7 +2686,7 @@ class C
         [Fact]
         public void TestGarbageBeforeFieldTypeRankComma()
         {
-            var text = "class c { int[$,] x; }";
+            var text = "class c { int[`,] x; }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2978,7 +2978,7 @@ class C
         [Fact]
         public void TestGarbageAfterLocalDeclarationArrayInitializerStart()
         {
-            var text = "class c { void m() { int a = { $ }; } }";
+            var text = "class c { void m() { int a = { ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -2999,7 +2999,7 @@ class C
         [Fact]
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpression()
         {
-            var text = "class c { void m() { int a = { e $ }; } }";
+            var text = "class c { void m() { int a = { e ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3020,7 +3020,7 @@ class C
         [Fact]
         public void TestGarbageBeforeLocalDeclarationArrayInitializerExpression()
         {
-            var text = "class c { void m() { int a = { $ e }; } }";
+            var text = "class c { void m() { int a = { ` e }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3041,7 +3041,7 @@ class C
         [Fact]
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpressionAndComma()
         {
-            var text = "class c { void m() { int a = { e, $ }; } }";
+            var text = "class c { void m() { int a = { e, ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3062,7 +3062,7 @@ class C
         [Fact]
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpressions()
         {
-            var text = "class c { void m() { int a = { e, e $ }; } }";
+            var text = "class c { void m() { int a = { e, e ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3083,7 +3083,7 @@ class C
         [Fact]
         public void TestGarbageBetweenLocalDeclarationArrayInitializerExpressions()
         {
-            var text = "class c { void m() { int a = { e, $ e }; } }";
+            var text = "class c { void m() { int a = { e, ` e }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3104,7 +3104,7 @@ class C
         [Fact]
         public void TestGarbageBetweenLocalDeclarationArrayInitializerExpressionsWithMissingComma()
         {
-            var text = "class c { void m() { int a = { e $ e }; } }";
+            var text = "class c { void m() { int a = { e ` e }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3126,7 +3126,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodCallStart()
         {
-            var text = "class c { void m() { m($); } }";
+            var text = "class c { void m() { m(`); } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3149,7 +3149,7 @@ class C
         [Fact]
         public void TestGarbageAfterMethodArgument()
         {
-            var text = "class c { void m() { m(a $); } }";
+            var text = "class c { void m() { m(a `); } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3172,7 +3172,7 @@ class C
         [Fact]
         public void TestGarbageBeforeMethodArgument()
         {
-            var text = "class c { void m() { m($ a); } }";
+            var text = "class c { void m() { m(` a); } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3195,7 +3195,7 @@ class C
         [Fact]
         public void TestGarbageBeforeMethodArgumentAndComma()
         {
-            var text = "class c { void m() { m(a, $); } }";
+            var text = "class c { void m() { m(a, `); } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3457,7 +3457,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerStart()
         {
-            var text = "class c { void m() { ++a[$]; } }";
+            var text = "class c { void m() { ++a[`]; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3481,7 +3481,7 @@ class C
         [Fact]
         public void TestGarbageAfterIndexerArgument()
         {
-            var text = "class c { void m() { ++a[e $]; } }";
+            var text = "class c { void m() { ++a[e `]; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3505,7 +3505,7 @@ class C
         [Fact]
         public void TestGarbageBeforeIndexerArgument()
         {
-            var text = "class c { void m() { ++a[$ e]; } }";
+            var text = "class c { void m() { ++a[` e]; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -3529,7 +3529,7 @@ class C
         [Fact]
         public void TestGarbageBeforeIndexerArgumentAndComma()
         {
-            var text = "class c { void m() { ++a[e, $]; } }";
+            var text = "class c { void m() { ++a[e, `]; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4589,7 +4589,7 @@ class C
         [Fact]
         public void TestGarbageAfterAnonymousTypeStart()
         {
-            var text = "class c { void m() { var x = new { $ }; } }";
+            var text = "class c { void m() { var x = new { ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4616,7 +4616,7 @@ class C
         [Fact]
         public void TestGarbageBeforeAnonymousTypeMemberStart()
         {
-            var text = "class c { void m() { var x = new { $ a }; } }";
+            var text = "class c { void m() { var x = new { ` a }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4643,7 +4643,7 @@ class C
         [Fact]
         public void TestGarbageAfterAnonymousTypeMemberStart()
         {
-            var text = "class c { void m() { var x = new { a $ }; } }";
+            var text = "class c { void m() { var x = new { a ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4670,7 +4670,7 @@ class C
         [Fact]
         public void TestGarbageAfterAnonymousTypeMemberEquals()
         {
-            var text = "class c { void m() { var x = new { a = $ }; } }";
+            var text = "class c { void m() { var x = new { a = ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4698,7 +4698,7 @@ class C
         [Fact]
         public void TestGarbageAfterAnonymousTypeMember()
         {
-            var text = "class c { void m() { var x = new { a = b $ }; } }";
+            var text = "class c { void m() { var x = new { a = b ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -4725,7 +4725,7 @@ class C
         [Fact]
         public void TestGarbageAfterAnonymousTypeMemberComma()
         {
-            var text = "class c { void m() { var x = new { a = b, $ }; } }";
+            var text = "class c { void m() { var x = new { a = b, ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5063,7 +5063,7 @@ class C
         [Fact]
         public void TestGarbageAfterObjectInitializerStart()
         {
-            var text = "class c { void m() { var x = new C { $ }; } }";
+            var text = "class c { void m() { var x = new C { ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5090,7 +5090,7 @@ class C
         [Fact]
         public void TestGarbageBeforeObjectInitializerMemberStart()
         {
-            var text = "class c { void m() { var x = new C { $ a }; } }";
+            var text = "class c { void m() { var x = new C { ` a }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5117,7 +5117,7 @@ class C
         [Fact]
         public void TestGarbageAfterObjectInitializerMemberStart()
         {
-            var text = "class c { void m() { var x = new C { a $ }; } }";
+            var text = "class c { void m() { var x = new C { a ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5144,7 +5144,7 @@ class C
         [Fact]
         public void TestGarbageAfterObjectInitializerMemberEquals()
         {
-            var text = "class c { void m() { var x = new C { a = $ }; } }";
+            var text = "class c { void m() { var x = new C { a = ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5172,7 +5172,7 @@ class C
         [Fact]
         public void TestGarbageAfterObjectInitializerMember()
         {
-            var text = "class c { void m() { var x = new C { a = b $ }; } }";
+            var text = "class c { void m() { var x = new C { a = b ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);
@@ -5199,7 +5199,7 @@ class C
         [Fact]
         public void TestGarbageAfterObjectInitializerMemberComma()
         {
-            var text = "class c { void m() { var x = new C { a = b, $ }; } }";
+            var text = "class c { void m() { var x = new C { a = b, ` }; } }";
             var file = this.ParseTree(text);
 
             Assert.NotNull(file);

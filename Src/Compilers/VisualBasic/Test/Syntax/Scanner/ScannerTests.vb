@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Thread
 Imports Microsoft.CodeAnalysis
@@ -681,32 +681,169 @@ End If]]>.Value,
 
     <Fact>
     Public Sub Scanner_IntegerLiteralToken()
-        Dim Str = "42"
-        Dim tk = ScanOnce(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.VisualBasicKind)
-        Assert.Equal(LiteralBase.Decimal, tk.GetBase())
-        Assert.Equal(42, tk.Value)
+        Dim text = "42"
+        Dim token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Decimal, token.GetBase())
+        Assert.Equal(42, token.Value)
 
-        Str = " 42 "
-        tk = ScanOnce(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.VisualBasicKind)
-        Assert.Equal(LiteralBase.Decimal, tk.GetBase())
-        Assert.Equal(42, tk.Value)
-        Assert.Equal(" 42 ", tk.ToFullString())
+        text = " 42 "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Decimal, token.GetBase())
+        Assert.Equal(42, token.Value)
+        Assert.Equal(" 42 ", token.ToFullString())
 
-        Str = " &H42L "
-        tk = ScanOnce(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.VisualBasicKind)
-        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
-        Assert.Equal(&H42L, tk.Value)
-        Assert.Equal(" &H42L ", tk.ToFullString())
+        text = " &H42L "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Hexadecimal, token.GetBase())
+        Assert.Equal(&H42L, token.Value)
+        Assert.Equal(text, token.ToFullString())
 
-        Str = " &H42L &H42& "
-        Dim tks = ScanAllCheckDw(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).VisualBasicKind)
-        Assert.Equal(LiteralBase.Hexadecimal, tks(1).GetBase())
-        Assert.Equal(&H42L, tks(1).Value)
-        Assert.Equal(TypeCharacter.Long, tks(1).GetTypeCharacter())
+        text = " &O42L "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Octal, token.GetBase())
+        Assert.Equal(&O42L, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &H42L &H42& "
+        Dim tokens = ScanAllCheckDw(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tokens(0).VisualBasicKind)
+        Assert.Equal(LiteralBase.Hexadecimal, tokens(1).GetBase())
+        Assert.Equal(&H42L, tokens(1).Value)
+        Assert.Equal(TypeCharacter.Long, tokens(1).GetTypeCharacter())
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_IntegerLiteralToken2()
+        Dim text = " &B101010L "
+        Dim token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(42L, token.Value)
+        Assert.Equal(text, token.ToFullString())
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_DigitGroupSeparators()
+
+        Dim text = " 525_600L "
+        Dim token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Decimal, token.GetBase())
+        Assert.Equal(525600L, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " 525 600L "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Decimal, token.GetBase())
+        Assert.Equal(525600L, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &H FF EE "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Hexadecimal, token.GetBase())
+        Assert.Equal(&HFFEE, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &H FF_EE "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Hexadecimal, token.GetBase())
+        Assert.Equal(&HFFEE, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &O123 456S "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Octal, token.GetBase())
+        Assert.Equal(&O123456S, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &O123_456S "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Octal, token.GetBase())
+        Assert.Equal(&O123456S, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &B 0010 1010I "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(42, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &B 0010_1010I "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(42, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        text = " &B 0010_1010I "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(42, token.Value)
+        Assert.Equal(text, token.ToFullString())
+
+        ' Two consecutive separators is not allowed.  
+        text = " &B0010  1010 "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(2, token.Value)
+        Assert.Equal("&B0010", token.ToString())
+
+        ' Trailing separator is not allowed.
+        text = " &B0010_ "
+        token = ScanOnce(text)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, token.VisualBasicKind)
+        Assert.Equal(LiteralBase.Binary, token.GetBase())
+        Assert.Equal(2, token.Value)
+        Assert.Equal(" &B0010", token.ToFullString())
+
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_DigitGroupSeparatorsBeforeKeywordsThatStartWithHexCharacters()
+
+        Dim text =
+<text>
+Module Program
+    Sub Main()
+        Dim x As Object
+        ' And
+        x = &amp;HFF And 2
+        ' AndAlso
+        x = &amp;HFF AndAlso True
+        ' Ascending
+        x = From i In {1, 2, 3, 4, 5} Order By &amp;HFF Ascending
+        ' By
+        x = From i In {1, 2, 3, 4, 5} Group &amp;HFF By i Into Group
+        ' Descending
+        x = From i In {1, 2, 3, 4, 5} Order By &amp;HFF Descending
+        ' Distinct
+        x = From i In {1, 2, 3, 4, 5} Select &amp;HFF Distinct
+        ' Else
+        If True Then x = &amp;HFF Else x = 0
+        ' Equals
+        x = From l In {1, 2, 3} Join r In {1, 2, 3} On l + &amp;HFF Equals r
+        ' From
+        x = From c In "ABCDEF" Select &amp;HFF From i In {1, 2, 3, 4, 5}
+    End Sub
+End Module
+</text>.Value
+
+        Dim tree = VisualBasicSyntaxTree.ParseText(text)
+
+        Assert.Empty(tree.GetDiagnostics())
+
     End Sub
 
     <Fact>

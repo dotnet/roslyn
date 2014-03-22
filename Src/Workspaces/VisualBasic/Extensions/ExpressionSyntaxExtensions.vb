@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -583,6 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.CheckParent(Of MemberAccessExpressionSyntax)(Function(m) m.Expression Is expression) OrElse
                expression.CheckParent(Of TryCastExpressionSyntax)(Function(t) t.Expression Is expression) OrElse
                expression.CheckParent(Of CatchFilterClauseSyntax)(Function(c) c.Filter Is expression) OrElse
+               expression.CheckParent(Of CaseWhenClauseSyntax)(Function(c) c.Expression Is expression) OrElse
                expression.CheckParent(Of NamedArgumentSyntax)(Function(n) n.Expression Is expression) OrElse
                expression.CheckParent(Of DirectCastExpressionSyntax)(Function(d) d.Expression Is expression) OrElse
                expression.CheckParent(Of FunctionAggregationSyntax)(Function(f) f.Argument Is expression) OrElse

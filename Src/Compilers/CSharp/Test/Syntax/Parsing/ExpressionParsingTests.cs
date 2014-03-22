@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2074,5 +2074,550 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
         }
+
+        [Fact]
+        public void DeclarationExpression_01()
+        {
+            var expr = this.ParseExpression("int x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.PredefinedType, declExpr.Type.Kind);
+            Assert.Equal(SyntaxKind.IntKeyword, ((PredefinedTypeSyntax)declExpr.Type).Keyword.CSharpKind());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_02()
+        {
+            var expr = this.ParseExpression("int x = 2");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.PredefinedType, declExpr.Type.Kind);
+            Assert.Equal(SyntaxKind.IntKeyword, ((PredefinedTypeSyntax)declExpr.Type).Keyword.CSharpKind());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+
+            EqualsValueClauseSyntax initializer = declExpr.Variable.Initializer;
+            Assert.NotNull(initializer);
+            Assert.Equal("2", initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void DeclarationExpression_03()
+        {
+            var expr = this.ParseExpression("Int32 x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.IdentifierName, declExpr.Type.Kind);
+            Assert.Equal("Int32", ((IdentifierNameSyntax)declExpr.Type).Identifier.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_04()
+        {
+            var expr = this.ParseExpression("Value ? x :");
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind);
+        }
+
+        [Fact]
+        public void DeclarationExpression_05()
+        {
+            var expr = this.ParseExpression("Value ? x.y :");
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind);
+        }
+
+        [Fact]
+        public void DeclarationExpression_06()
+        {
+            var expr = this.ParseExpression("Value1 ?? Value2 ? x :");
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind);
+        }
+
+        [Fact]
+        public void DeclarationExpression_07()
+        {
+            var expr = this.ParseExpression("int? x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.NullableType, declExpr.Type.Kind);
+
+            var nullable = (NullableTypeSyntax)declExpr.Type;
+
+            Assert.Equal(SyntaxKind.PredefinedType, nullable.ElementType.Kind);
+            Assert.Equal(SyntaxKind.IntKeyword, ((PredefinedTypeSyntax)nullable.ElementType).Keyword.CSharpKind());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_08()
+        {
+            var expr = this.ParseExpression("IEnumerable<int> x = null");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("IEnumerable<int>", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Equal("= null", declExpr.Variable.Initializer.ToString());
+        }
+
+        [Fact]
+        public void DeclarationExpression_09()
+        {
+            var expr = this.ParseExpression("MyGeneric<int>.F1 x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.QualifiedName, declExpr.Type.Kind);
+            Assert.Equal("MyGeneric<int>.F1", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_10()
+        {
+            var expr = this.ParseExpression("MyGeneric<int>.F1<int> x = null");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.QualifiedName, declExpr.Type.Kind);
+            Assert.Equal("MyGeneric<int>.F1<int>", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Equal("= null", declExpr.Variable.Initializer.ToString());
+        }
+
+        [Fact]
+        public void DeclarationExpression_11()
+        {
+            var expr = this.ParseExpression("MyGeneric<int>.F1<int>? x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.NullableType, declExpr.Type.Kind);
+            Assert.Equal("MyGeneric<int>.F1<int>?", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_12()
+        {
+            var expr = this.ParseExpression("MyGeneric<int>.F1<int>?[] x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.ArrayType, declExpr.Type.Kind);
+            Assert.Equal("MyGeneric<int>.F1<int>?[]", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_13()
+        {
+            var expr = this.ParseExpression("var x");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, expr.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)expr;
+            Assert.Equal(SyntaxKind.IdentifierName, declExpr.Type.Kind);
+            Assert.Equal("var", declExpr.Type.ToString());
+            Assert.True(((IdentifierNameSyntax)declExpr.Type).IsVar);
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_14()
+        {
+            var expr = this.ParseExpression("Test(a < b, c > d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.LessThanExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+            Assert.Equal(SyntaxKind.GreaterThanExpression, invocation.ArgumentList.Arguments[1].Expression.Kind);
+        }
+
+        [Fact]
+        public void DeclarationExpression_15()
+        {
+            var expr = this.ParseExpression("Test(ref a < b, c > d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("a < b, c >", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_15_1()
+        {
+            var expr = this.ParseExpression("Test(ref (a < b > d))");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+            var parenthesized = (ParenthesizedExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, parenthesized.Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)parenthesized.Expression;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("a < b >", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_16()
+        {
+            var expr = this.ParseExpression("Test(out a < b, c > d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("a < b, c >", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_16_1()
+        {
+            var expr = this.ParseExpression("Test(out (a < b > d))");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+            var parenthesized = (ParenthesizedExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, parenthesized.Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)parenthesized.Expression;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("a < b >", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_17()
+        {
+            var expr = this.ParseExpression("Test(a < b, c > d = e)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("a < b, c >", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Equal("= e", declExpr.Variable.Initializer.ToString());
+        }
+
+        [Fact]
+        public void DeclarationExpression_18()
+        {
+            var expr = this.ParseExpression("Test(a * d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.MultiplyExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+        }
+
+        [Fact]
+        public void DeclarationExpression_19()
+        {
+            var expr = this.ParseExpression("Test(ref a * d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.PointerType, declExpr.Type.Kind);
+            Assert.Equal("a *", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_19_1()
+        {
+            var expr = this.ParseExpression("Test(ref (a * d))");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+            var parenthesized = (ParenthesizedExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, parenthesized.Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)parenthesized.Expression;
+            Assert.Equal(SyntaxKind.PointerType, declExpr.Type.Kind);
+            Assert.Equal("a *", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_20()
+        {
+            var expr = this.ParseExpression("Test(out a * d)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.PointerType, declExpr.Type.Kind);
+            Assert.Equal("a *", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_20_1()
+        {
+            var expr = this.ParseExpression("Test(out (a * d))");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+            var parenthesized = (ParenthesizedExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, parenthesized.Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)parenthesized.Expression;
+            Assert.Equal(SyntaxKind.PointerType, declExpr.Type.Kind);
+            Assert.Equal("a *", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
+        [Fact]
+        public void DeclarationExpression_21()
+        {
+            var expr = this.ParseExpression("Test(a * d = e)");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind);
+
+            var invocation = (InvocationExpressionSyntax)expr;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, invocation.ArgumentList.Arguments[0].Expression.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.PointerType, declExpr.Type.Kind);
+            Assert.Equal("a *", declExpr.Type.ToString());
+
+            Assert.Equal("d", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Equal("= e", declExpr.Variable.Initializer.ToString());
+        }
+
+        [Fact]
+        public void DeclarationExpression_22()
+        {
+            var expr = this.ParseExpression("((IEnumerable<int> x)) = null");
+
+            Assert.NotNull(expr);
+
+            expr.GetDiagnostics().Verify();
+
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, expr.Kind);
+
+            var target = ((ParenthesizedExpressionSyntax)((ParenthesizedExpressionSyntax)((BinaryExpressionSyntax)expr).Left).Expression).Expression;
+
+            Assert.Equal(SyntaxKind.DeclarationExpression, target.Kind);
+
+            var declExpr = (DeclarationExpressionSyntax)target;
+            Assert.Equal(SyntaxKind.GenericName, declExpr.Type.Kind);
+            Assert.Equal("IEnumerable<int>", declExpr.Type.ToString());
+
+            Assert.Equal("x", declExpr.Variable.Identifier.Value);
+            Assert.Null(declExpr.Variable.ArgumentList);
+            Assert.Null(declExpr.Variable.Initializer);
+        }
+
     }
 }

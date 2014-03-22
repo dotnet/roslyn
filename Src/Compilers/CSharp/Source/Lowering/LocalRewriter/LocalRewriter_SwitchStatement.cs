@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -46,7 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenExpression = (BoundExpression)Visit(node.BoundExpression);
             var rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
-            var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.LocalsOpt, node.BreakLabel, node);
+            var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocalsOpt, node.BreakLabel, node);
+
+            if (!node.OuterLocals.IsEmpty)
+            {
+                rewrittenStatement = new BoundBlock(syntax, node.OuterLocals, ImmutableArray.Create(rewrittenStatement));
+            }
 
             // Create the sequence point if generating debug info and
             // node is not compiler generated
@@ -108,9 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return oldNode.Update(
+                outerLocals: ImmutableArray<LocalSymbol>.Empty,
                 boundExpression: rewrittenExpression,
                 constantTargetOpt: constantTargetOpt,
-                localsOpt: localsOpt,
+                innerLocalsOpt: localsOpt,
                 switchSections: rewrittenSections,
                 breakLabel: breakLabel,
                 stringEquality: stringEquality);

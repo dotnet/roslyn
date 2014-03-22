@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -240,6 +240,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return underlyingParameter.HasByRefBeforeCustomModifiers; }
         }
 
+        internal sealed override FieldSymbol PrimaryConstructorParameterBackingField
+        {
+            get
+            {
+                FieldSymbol backingField = underlyingParameter.PrimaryConstructorParameterBackingField;
+
+                if ((object)backingField != null)
+                {
+                    return this.RetargetingModule.RetargetingTranslator.Retarget(backingField);
+                }
+
+                return null;
+            }
+        }
         #endregion
     }
 

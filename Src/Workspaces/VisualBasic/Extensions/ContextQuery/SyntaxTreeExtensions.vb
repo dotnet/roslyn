@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Text
@@ -310,10 +310,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of BinaryConditionalExpressionSyntax)(Function(binaryExpression) binaryExpression.CommaToken) OrElse
                targetToken.IsChildToken(Of CallStatementSyntax)(Function(callStatementSyntax) callStatementSyntax.CallKeyword) OrElse
                targetToken.IsChildToken(Of CatchFilterClauseSyntax)(Function(catchFilterClauseSyntax) catchFilterClauseSyntax.WhenKeyword) OrElse
+               targetToken.IsChildToken(Of CaseWhenClauseSyntax)(Function(caseWhenClauseSyntax) caseWhenClauseSyntax.WhenKeyword) OrElse
                targetToken.IsChildToken(Of CaseStatementSyntax)(Function(caseStatement) caseStatement.CaseKeyword) OrElse
                targetToken.IsChildSeparatorToken(Of CaseStatementSyntax, CaseClauseSyntax)(Function(caseStatement) caseStatement.Cases) OrElse
                targetToken.IsChildToken(Of CaseRangeClauseSyntax)(Function(caseRangeClause) caseRangeClause.ToKeyword) OrElse
                targetToken.IsChildToken(Of CaseRelationalClauseSyntax)(Function(caseRelationalClause) caseRelationalClause.OperatorToken) OrElse
+               targetToken.IsChildToken(Of CaseIdentityClauseSyntax)(Function(caseIdentityClause) caseIdentityClause.OperatorToken) OrElse
                targetToken.IsChildToken(Of CastExpressionSyntax)(Function(castExpression) castExpression.OpenParenToken) OrElse
                targetToken.IsChildToken(Of CollectionInitializerSyntax)(Function(collectionInitializer) collectionInitializer.OpenBraceToken) OrElse
                targetToken.IsChildToken(Of CollectionRangeVariableSyntax)(Function(collectionRange) collectionRange.InKeyword) OrElse
@@ -786,9 +788,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return identifierName.Identifier
             End If
 
+            Dim genericName = TryCast(expression, GenericNameSyntax)
+            If genericName IsNot Nothing Then
+                Return genericName.TypeArgumentList.CloseParenToken
+            End If
+
             Dim predefinedType = TryCast(expression, PredefinedTypeSyntax)
             If predefinedType IsNot Nothing Then
                 Return predefinedType.Keyword
+            End If
+
+            Dim arrayType = TryCast(expression, ArrayTypeSyntax)
+            If arrayType IsNot Nothing Then
+                Return arrayType.RankSpecifiers.Last.CloseParenToken
+            End If
+
+            Dim nullableType = TryCast(expression, NullableTypeSyntax)
+            If nullableType IsNot Nothing Then
+                Return nullableType.QuestionMarkToken
             End If
 
             Dim collectionInitializer = TryCast(expression, CollectionInitializerSyntax)

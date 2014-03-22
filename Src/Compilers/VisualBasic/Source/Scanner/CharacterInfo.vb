@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -98,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const DWCH_DQ As Char = ChrW(AscW(""""c) + (&HFF00US - &H20US))      '// DW double quote 
 
         Friend Const FULLWIDTH_0 As Char = ChrW(AscW("0"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_1 As Char = ChrW(AscW("1"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_7 As Char = ChrW(AscW("7"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_9 As Char = ChrW(AscW("9"c) + (&HFF00US - &H20US))
 
@@ -124,6 +125,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_Hl As Char = ChrW(AscW("h"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Oh As Char = ChrW(AscW("O"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Ol As Char = ChrW(AscW("o"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Bh As Char = ChrW(AscW("B"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Bl As Char = ChrW(AscW("b"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Eh As Char = ChrW(AscW("E"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_El As Char = ChrW(AscW("e"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Ah As Char = ChrW(AscW("A"c) + (&HFF00US - &H20US))
@@ -131,11 +134,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_Fh As Char = ChrW(AscW("F"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Fl As Char = ChrW(AscW("f"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Ch As Char = ChrW(AscW("C"c) + (&HFF00US - &H20US))
-        Friend Const FULLWIDTH_cl As Char = ChrW(AscW("c"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Cl As Char = ChrW(AscW("c"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Dh As Char = ChrW(AscW("D"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Dl As Char = ChrW(AscW("d"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Ph As Char = ChrW(AscW("P"c) + (&HFF00US - &H20US))
-        Friend Const FULLWIDTH_pl As Char = ChrW(AscW("p"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Pl As Char = ChrW(AscW("p"c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_Mh As Char = ChrW(AscW("M"c) + (&HFF00US - &H20US))
-        Friend Const FULLWIDTH_ml As Char = ChrW(AscW("m"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Ml As Char = ChrW(AscW("m"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Zh As Char = ChrW(AscW("Z"c) + (&HFF00US - &H20US))
+        Friend Const FULLWIDTH_Zl As Char = ChrW(AscW("z"c) + (&HFF00US - &H20US))
 
         Friend Const FULLWIDTH_LPAREN_STR As String = ChrW(AscW("("c) + (&HFF00US - &H20US))
         Friend Const FULLWIDTH_RPAREN_STR As String = ChrW(AscW(")"c) + (&HFF00US - &H20US))
@@ -195,11 +202,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c = ":"c OrElse c = FULLWIDTH_COL
         End Function
 
-        ''' <summary>
-        ''' Determines if the unicode character is a underscore character.
-        ''' </summary>
-        ''' <param name="c">The unicode character.</param>
-        ''' <returns>A boolean value set to True if character is an underscore character.</returns>
+        Public Shared Function IsDot(c As Char) As Boolean
+            Return c = "."c OrElse c = FULLWIDTH_DOT
+        End Function
+
         Public Shared Function IsUnderscore(c As Char) As Boolean
             ' NOTE: fullwidth _ is not considered any special.
             Return c = "_"c
@@ -212,6 +218,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value set to True if character is a hash character.</returns>
         Public Shared Function IsHash(c As Char) As Boolean
             Return c = "#"c OrElse c = FULLWIDTH_HASH
+        End Function
+
+        Public Shared Function IsLetter(c As Char) As Boolean
+            Select Case c
+                Case "A"c To "Z"c,
+                     "a"c To "z"c,
+                     FULLWIDTH_Ah To FULLWIDTH_Zh,
+                     FULLWIDTH_Al To FULLWIDTH_Zl
+
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         ''' <summary>
@@ -250,8 +269,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
-            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) OrElse
-                    (ISFULLWIDTH(c) AndAlso (c = FULLWIDTH_Hh Or c = FULLWIDTH_Oh Or c = FULLWIDTH_Hl Or c = FULLWIDTH_Ol))
+            Select Case c
+                Case "H"c, "O"c, "B"c, "h"c, "o"c, "b"c
+                    Return True
+            End Select
+
+            If ISFULLWIDTH(c) Then
+                Select Case c
+                    Case FULLWIDTH_Hh, FULLWIDTH_Oh, FULLWIDTH_Bh, FULLWIDTH_Hl, FULLWIDTH_Ol, FULLWIDTH_Bl
+                        Return True
+                End Select
+            End If
+
+            Return False
         End Function
 
         Private Shared _IsIDChar As Boolean() =
@@ -378,6 +408,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c = "E"c Or c = "e"c Or c = FULLWIDTH_Eh Or c = FULLWIDTH_El
         End Function
 
+        Friend Shared Function IsBinaryDigit(c As Char) As Boolean
+            Return (c >= "0"c And c <= "1"c) Or
+                   (c >= FULLWIDTH_0 And c <= FULLWIDTH_1)
+        End Function
+
         Friend Shared Function IsOctalDigit(c As Char) As Boolean
             Return (c >= "0"c And c <= "7"c) Or
                    (c >= FULLWIDTH_0 And c <= FULLWIDTH_7)
@@ -396,6 +431,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     (c >= FULLWIDTH_Ah And c <= FULLWIDTH_Fh)
         End Function
 
+        Friend Shared Function IsDigitGroupSeparatorCharacter(c As Char) As Boolean
+            Return c = "_"c OrElse
+                   c = " "c
+        End Function
+
         Friend Shared Function IsDateSeparatorCharacter(c As Char) As Boolean
             Return c = "/"c Or c = "-"c Or c = FULLWIDTH_SLASH Or c = FULLWIDTH_DASH
         End Function
@@ -405,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function IsLetterC(ch As Char) As Boolean
             Return _
-                ch = "c"c Or ch = "C"c Or ch = FULLWIDTH_Ch Or ch = FULLWIDTH_cl
+                ch = "c"c Or ch = "C"c Or ch = FULLWIDTH_Ch Or ch = FULLWIDTH_Cl
         End Function
 
         ''' <summary>

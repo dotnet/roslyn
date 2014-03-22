@@ -133,8 +133,6 @@
     <Compile Include="Symbols\IndexedPropertyTests.cs" />
     <Compile Include="Symbols\IndexerTests.cs" />
     <Compile Include="Symbols\InterfaceImplementationTests.cs" />
-    <Compile Include="Symbols\InterfaceOverriddenOrHiddenMembersTests.cs" />
-    <Compile Include="Symbols\LookupSymbolsInfoTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataMemberTests.cs" />
     <Compile Include="Symbols\Metadata\MetadataTypeTests.cs" />
     <Compile Include="Symbols\Metadata\PE\BaseTypeResolution.cs" />
@@ -188,6 +186,7 @@
     <Compile Include="Symbols\Source\LocationTests.cs" />
     <Compile Include="Symbols\Source\MethodTests.cs" />
     <Compile Include="Symbols\Source\ModifierTests.cs" />
+    <Compile Include="Symbols\Source\PrimaryConstructors.cs" />
     <Compile Include="Symbols\Source\PropertyTests.cs" />
     <Compile Include="Symbols\Source\SourcePlusMetadataTests.cs" />
     <Compile Include="Symbols\Source\TypeMapTests.cs" />

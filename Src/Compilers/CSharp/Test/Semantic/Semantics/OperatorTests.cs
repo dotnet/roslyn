@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1467,7 +1467,7 @@ i + ne,         //-LiftedUnderlyingAndEnumAddition
 e + i,          //-EnumAndUnderlyingAddition
 e + ni,         //-LiftedEnumAndUnderlyingAddition
 ni + e,         //-LiftedUnderlyingAndEnumAddition
-ni + ne         //-LiftedUnderlyingAndEnumAddition
+ni + ne,        //-LiftedUnderlyingAndEnumAddition
 ne + i,         //-LiftedEnumAndUnderlyingAddition
 ne + ni         //-LiftedEnumAndUnderlyingAddition" + Postfix;
 

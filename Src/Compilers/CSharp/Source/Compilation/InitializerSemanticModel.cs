@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -9,9 +9,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A binding for a field initializer, constructor initializer, or parameter default value.  
-    /// Represents the result of binding an initial
-    /// value expression rather than an block (for that, use a MethodBodySemanticModel).
+    /// A binding for a field initializer, property initializer, constructor 
+    /// initializer, or parameter default value. Represents the result of
+    /// binding an initial value expression rather than an block (for that,
+    /// use a MethodBodySemanticModel).
     /// </summary>
     internal sealed class InitializerSemanticModel : MemberSemanticModel
     {
@@ -19,7 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
         // (b) A constructor initializer (": this(...)" or ": base(...)") OR
         // (c) A parameter default value
-        private InitializerSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode syntax, Symbol symbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0) :
+        private InitializerSemanticModel(CSharpCompilation compilation,
+                                         CSharpSyntaxNode syntax,
+                                         Symbol symbol,
+                                         Binder rootBinder,
+                                         SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+                                         int speculatedPosition = 0) :
             base(compilation, syntax, symbol, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
         }
@@ -34,9 +40,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a SemanticModel for an autoprop initializer of a named type
+        /// </summary>
+        internal static InitializerSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
+        {
+            Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration));
+            return new InitializerSemanticModel(compilation, syntax, propertySymbol, rootBinder);
+        }
+
+        /// <summary>
         /// Creates a SemanticModel for a constructor initializer (": this(...)" or ": base(...)").
         /// </summary>
         internal static InitializerSemanticModel Create(CSharpCompilation compilation, ConstructorInitializerSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
+        {
+            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
+        }
+
+        /// <summary>
+        /// Creates a SemanticModel for a constructor initializer (": base-class(...)").
+        /// </summary>
+        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ArgumentListSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
         {
             return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
         }
@@ -57,7 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) || syntax.IsKind(SyntaxKind.ThisConstructorInitializer) || syntax.IsKind(SyntaxKind.BaseConstructorInitializer));
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) || 
+                syntax.IsKind(SyntaxKind.ThisConstructorInitializer) || 
+                syntax.IsKind(SyntaxKind.BaseConstructorInitializer) || 
+                syntax.IsKind(SyntaxKind.ArgumentList));
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
@@ -93,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ArgumentList:
                     break;
 
                 default:
@@ -126,13 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
-                    ConstructorInitializerSyntax constructorInitializer = node as ConstructorInitializerSyntax;
-                    if (constructorInitializer != null)
-                    {
-                        return binder.BindConstructorInitializer(constructorInitializer,
-                            (MethodSymbol)MemberSymbol, diagnostics);
-                    }
-                    break;
+                    return binder.BindConstructorInitializer(((ConstructorInitializerSyntax)node).ArgumentList, (MethodSymbol)MemberSymbol, diagnostics);
+
+                case SyntaxKind.ArgumentList:
+                    return binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)MemberSymbol, diagnostics);
             }
 
             if (equalsValue != null)
@@ -156,7 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound);
-                        return binder.BindVariableInitializer(equalsValue, fieldType, diagnostics);
+                        return binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics);
+                    }
+
+                case SymbolKind.Property:
+                    {
+                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type;
+                        return binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics);
                     }
 
                 case SymbolKind.Parameter:
@@ -184,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (node.Kind == SyntaxKind.EqualsValueClause &&
                 (/*enum or parameter initializer*/ this.Root == node || /*field initializer*/ this.Root == node.Parent)) ||
-                    ((node.Kind == SyntaxKind.BaseConstructorInitializer || node.Kind == SyntaxKind.ThisConstructorInitializer) && this.Root == node);
+                    ((node.Kind == SyntaxKind.BaseConstructorInitializer || node.Kind == SyntaxKind.ThisConstructorInitializer || node.Kind == SyntaxKind.ArgumentList) && this.Root == node);
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -66,6 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         #endregion
+
+        [Fact]
+        public void AutoPropInitializers()
+        {
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", memberCount: 1);
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", 1, 1);
+            ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", memberCount: 1);
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0;; }", 1, 1);
+            ParseAndRoundTripping("class C { int GetInt { get;; } = 0;; }", 2, 1);
+            ParseAndRoundTripping("interface I { int GetInt { get; } = 0; }", memberCount: 1);
+            ParseAndRoundTripping("interface I { int GetInt { get; } = 0 }", 1, 1);
+            ParseAndRoundTripping("interface I { public int GetInt { get; } = 0; }", memberCount: 1);
+        }
 
         [Fact()]
         [WorkItem(530410)]

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,11 +39,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // becomes
             //
             // start: 
-            // body
-            // continue:
-            // sequence point
-            // GotoIfTrue condition start;
+            // {
+            //   body
+            //   continue:
+            //   sequence point
+            //   GotoIfTrue condition start;
+            // }
             // break:
+
+            if (!node.InnerLocals.IsDefaultOrEmpty)
+            {
+                return BoundStatementList.Synthesized(syntax, node.HasErrors,
+                    new BoundLabelStatement(syntax, startLabel),
+                    new BoundBlock(syntax,
+                                   node.InnerLocals,
+                                   ImmutableArray.Create<BoundStatement>(rewrittenBody,
+                                                                         new BoundLabelStatement(syntax, node.ContinueLabel),
+                                                                         ifConditionGotoStart)),
+                    new BoundLabelStatement(syntax, node.BreakLabel));
+            }
 
             return BoundStatementList.Synthesized(syntax, node.HasErrors,
                 new BoundLabelStatement(syntax, startLabel),

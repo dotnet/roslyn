@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Classify conversion
             Dim conv As ConversionKind
 
-            If targetType.IsReferenceType Then
+            If targetType.IsReferenceType OrElse targetType.IsNullableType() Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 conv = Conversions.ClassifyTryCastConversion(argument, targetType, Me, useSiteDiagnostics)
 
@@ -229,15 +229,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Check for special error conditions
             If Conversions.NoConversion(conv) Then
-                If targetType.IsValueType() Then
+                If targetType.IsValueType() AndAlso Not targetType.IsNullableType() Then
                     Dim castSyntax = TryCast(node, CastExpressionSyntax)
                     ReportDiagnostic(diagnostics, If(castSyntax IsNot Nothing, castSyntax.Type, node), ERRID.ERR_TryCastOfValueType1, targetType)
-                    Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
 
                 ElseIf targetType.IsTypeParameter() AndAlso Not targetType.IsReferenceType Then
                     Dim castSyntax = TryCast(node, CastExpressionSyntax)
                     ReportDiagnostic(diagnostics, If(castSyntax IsNot Nothing, castSyntax.Type, node), ERRID.ERR_TryCastOfUnconstrainedTypeParam1, targetType)
-                    Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
 
                 ElseIf sourceType.IsValueType AndAlso sourceType.IsRestrictedType() AndAlso
                        (targetType.IsObjectType() OrElse targetType.SpecialType = SpecialType.System_ValueType) Then

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A mapping from (source) iterator or async methods to the compiler-generated classes that implement them.
         /// </summary>
         public readonly Dictionary<MethodSymbol, NamedTypeSymbol> StateMachineImplementationClass = new Dictionary<MethodSymbol, NamedTypeSymbol>();
+
+        private Dictionary<ParameterSymbol, FieldSymbol> backingFieldsForPrimaryConstructorParameters;
 
         public TypeCompilationState(NamedTypeSymbol type, PEModuleBuilder moduleBuilder)
         {
@@ -172,6 +174,76 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol result;
             return StateMachineImplementationClass.TryGetValue(method, out result) ? result : null;
+        }
+
+        public FieldSymbol GetOrAddBackingFieldForPrimaryConstructorParameter(ParameterSymbol parameter)
+        {
+            Debug.Assert(parameter.IsDefinition);
+            FieldSymbol backingField = parameter.PrimaryConstructorParameterBackingField;
+
+            if ((object)backingField == null && 
+                (backingFieldsForPrimaryConstructorParameters == null ||
+                 !backingFieldsForPrimaryConstructorParameters.TryGetValue(parameter,out backingField)))
+            {
+                if (backingFieldsForPrimaryConstructorParameters == null)
+                {
+                    backingFieldsForPrimaryConstructorParameters = new Dictionary<ParameterSymbol, FieldSymbol>(((MethodSymbol)parameter.ContainingSymbol).ParameterCount, ReferenceEqualityComparer.Instance); 
+                }
+
+                backingField = new SourcePrimaryConstructorParameterSymbolWithBackingField.BackingField((SourceParameterSymbol)parameter);
+                backingFieldsForPrimaryConstructorParameters.Add(parameter, backingField);
+            }
+
+            return backingField;
+        }
+
+        public IEnumerable<KeyValuePair<ParameterSymbol, FieldSymbol>> GetBackingFieldsForPrimaryConstructorParameters()
+        {
+            int startFrom = 0;
+
+            if (backingFieldsForPrimaryConstructorParameters == null)
+            {
+                startFrom = -1;
+                var container = (SourceMemberContainerTypeSymbol)this.type;
+                if ((object)container != null && (object)container.PrimaryCtor != null)
+                {
+                    var parameters = container.PrimaryCtor.Parameters;
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if ((object)parameters[i].PrimaryConstructorParameterBackingField != null)
+                        {
+                            startFrom = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (startFrom == -1)
+                {
+                    return SpecializedCollections.EmptyEnumerable<KeyValuePair<ParameterSymbol, FieldSymbol>>();
+                }
+            }
+
+            return BackingFieldsForPrimaryConstructorParametersIterator(startFrom);
+        }
+
+        private IEnumerable<KeyValuePair<ParameterSymbol, FieldSymbol>> BackingFieldsForPrimaryConstructorParametersIterator(int startFrom)
+        {
+            FieldSymbol backingField;
+
+            // Enforce the same order as parameters.
+            var parameters = ((SourceMemberContainerTypeSymbol)this.type).PrimaryCtor.Parameters;
+            for (int i = startFrom; i < parameters.Length; i++)
+            {
+                var p = parameters[i];
+                backingField = p.PrimaryConstructorParameterBackingField;
+                if ((object)backingField != null ||
+                    (backingFieldsForPrimaryConstructorParameters != null && 
+                     backingFieldsForPrimaryConstructorParameters.TryGetValue(p, out backingField)))
+                {
+                    yield return KeyValuePair.Create(p, backingField);
+                }
+            }
         }
     }
 }

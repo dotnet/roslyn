@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalDeclaration(node);
         }
 
+        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
+        {
+            if (IsInside)
+            {
+                variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            return base.VisitDeclarationExpression(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (IsInside && !node.WasCompilerGenerated)
@@ -89,9 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                if ((object)catchBlock.LocalOpt != null)
+                var local = catchBlock.Locals.FirstOrDefault();
+
+                if ((object)local != null && local.DeclarationKind == LocalDeclarationKind.Catch)
                 {
-                    variablesDeclared.Add(catchBlock.LocalOpt);
+                    variablesDeclared.Add(local);
                 }
             }
 

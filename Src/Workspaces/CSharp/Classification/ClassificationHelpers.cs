@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // field or event field.
                         return
                             token.Parent is IdentifierNameSyntax &&
-                            token.Parent.Parent is VariableDeclarationSyntax &&
+                            (token.Parent.Parent is VariableDeclarationSyntax || token.Parent.Parent is DeclarationExpressionSyntax) &&
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
                 }
@@ -232,8 +232,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             if (token.ValueText == VarKeyword && token.Parent != null && token.Parent.Parent != null)
             {
-                return token.Parent is IdentifierNameSyntax
-                    && token.Parent.Parent is ExpressionStatementSyntax;
+                // cases:
+                //   var
+                //   out var
+                if (token.Parent is IdentifierNameSyntax)
+                {
+                    if (token.Parent.Parent is ExpressionStatementSyntax)
+                    {
+                        return true;
+                    }
+
+                    if (token.Parent.Parent is ArgumentSyntax)
+                    {
+                        var argument = (ArgumentSyntax)token.Parent.Parent;
+                        if (argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
+                        {
+                            return true;
+                        }
+                    }
+                }
             }
 
             return false;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -308,21 +308,7 @@ class Res
 {
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
-                // (6,33): error CS1002: ; expected
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (6,33): error CS1513: } expected
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
-                // (6,15): error CS0119: 'Res' is a type, which is not valid in the given context
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Res").WithArguments("Res", "type"),
-                // (6,19): error CS0103: The name 'd' does not exist in the current context
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]

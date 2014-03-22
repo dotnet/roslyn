@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -4602,5 +4602,54 @@ class test<T> where T : c0
 }
 ");
         }
+
+        [Fact]
+        public void IndexedMemberAccess()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<string, Dictionary<string, int>>();
+        d.$foo = new Dictionary<string, int>();
+
+        d.$foo.$@this = 123;
+
+        System.Console.WriteLine(d.$foo.$@this);
+        System.Console.WriteLine(d.$foo[""this""]);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"123
+123");
+        }
+
+        [Fact]
+        public void IndexedMemberAccessDynamic()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<string, dynamic>();
+        d.$foo = new Dictionary<string, int>();
+
+        d.$foo.$bar = 123;
+
+        System.Console.WriteLine(d.$foo.$bar);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "123");
+        }
+
     }
 }

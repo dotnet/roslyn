@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -59,6 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
                 this.mapOrType = type;
                 return type;
+            }
+        }
+
+        internal override FieldSymbol PrimaryConstructorParameterBackingField
+        {
+            get
+            {
+                // This property is used only either for OriginalDefinition during Lowering, or
+                // to return attributes attached to the field.
+                // Substitution doesn't affect attributes, so it is safe to return OriginalDefinition symbol.
+                return this.underlyingParameter.PrimaryConstructorParameterBackingField;
             }
         }
 

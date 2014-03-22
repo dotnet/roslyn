@@ -159,6 +159,7 @@
     <Compile Include="Binding\BindingLocation.vb" />
     <Compile Include="Binding\BlockBaseBinder.vb" />
     <Compile Include="Binding\BlockStatementBinders.vb" />
+    <Compile Include="Binding\CaseBlockBinder.vb" />
     <Compile Include="Binding\CatchBlockBinder.vb" />
     <Compile Include="Binding\ConstantFieldsInProgressBinder.vb" />
     <Compile Include="Binding\DeclarationInitializerBinder.vb" />

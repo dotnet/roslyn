@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -14808,6 +14808,58 @@ namespace Test
             var typeInfo2 = model.GetTypeInfo(expr);
             var typeComparer = (IEquatable<TypeInfo>)typeInfo1;
             Assert.True(typeComparer.Equals(typeInfo2));
+        }
+
+        [Fact]
+        public void AutoPropertyInitializerInClassPrimaryConstructor()
+        {
+            string sourceCode = @"
+
+class Program(int i)
+{
+    public int P { get; } = /*<bind>*/i/*</bind>*/;
+}";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void AutoPropertyInitializerInStructPrimaryConstructor()
+        {
+            string sourceCode = @"
+struct Program(int i)
+{
+    public int P { get; } = /*<bind>*/i/*</bind>*/;
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
         }
     }
 }

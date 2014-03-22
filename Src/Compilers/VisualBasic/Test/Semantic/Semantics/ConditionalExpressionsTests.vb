@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Xml
@@ -408,7 +408,7 @@ Class CX
 
     Public F6 As Integer = If(True, 2, 3  4)
 
-    Public F7 As Integer = If(True, 2 3 4)
+    Public F7 As Integer = If(True, 2  3 4)
 
     Public F8 As Integer = If(TestExpression:=True, TruePart:=1, FalsePart:=2)
 
@@ -466,8 +466,8 @@ BC32017: Comma, ')', or a valid expression continuation expected.
     Public F6 As Integer = If(True, 2, 3  4)
                                           ~
 BC32017: Comma, ')', or a valid expression continuation expected.
-    Public F7 As Integer = If(True, 2 3 4)
-                                      ~~~
+    Public F7 As Integer = If(True, 2  3 4)
+                                       ~~~
 BC33105: 'If' operands cannot be named arguments.
     Public F8 As Integer = If(TestExpression:=True, TruePart:=1, FalsePart:=2)
                               ~~~~~~~~~~~~~~~~

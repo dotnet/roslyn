@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <root>
@@ -1946,9 +1946,6 @@
   <data name="ERR_MissingArgument" xml:space="preserve">
     <value>Argument missing</value>
   </data>
-  <data name="ERR_AutoPropertiesMustHaveBothAccessors" xml:space="preserve">
-    <value>'{0}' must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors.</value>
-  </data>
   <data name="ERR_VariableUsedBeforeDeclaration" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared</value>
   </data>
@@ -3734,6 +3731,12 @@
   <data name="ERR_FeatureNotAvailableInVersion5" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 5.  Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_DeclarationExpressionOutsideOfAMethodBody" xml:space="preserve">
+    <value>A declaration expression is not permitted in a variable-initializer of a field declaration, an attribute application, or in a class-base specification.</value>
+  </data>
+  <data name="ERR_VariableUsedInTheSameArgumentList" xml:space="preserve">
+    <value>Reference to variable '{0}' is not permitted in this context.</value>
+  </data>
   <data name="PositionNotWithinTree" xml:space="preserve">
     <value>Position must be within span of the syntax tree.</value>
   </data>
@@ -3742,6 +3745,36 @@
   </data>
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
+  </data>
+  <data name="InvalidPositionForSpeculation" xml:space="preserve">
+    <value>Given position is not valid for creating a speculative semantic model for the given syntax node.</value>
+  </data>
+  <data name="ERR_SeveralPartialsDeclarePrimaryCtor" xml:space="preserve">
+    <value>Only one part of a partial type can declare primary constructor parameters.</value>
+  </data>
+  <data name="ERR_InstanceCtorMustHaveThisInitializer" xml:space="preserve">
+    <value>Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list]).</value>
+  </data>
+  <data name="ERR_PrimaryCtorParameterSameNameAsTypeParam" xml:space="preserve">
+    <value>'{0}': a parameter of a primary constructor cannot have the same name as a type's type parameter '{1}'</value>
+  </data>
+  <data name="ERR_PrimaryCtorParameterSameNameAsContainingType" xml:space="preserve">
+    <value>'{0}': a parameter of a primary constructor cannot have the same name as containing type</value>
+  </data>
+  <data name="ERR_PrimaryCtorParameterInConstructorInitializer" xml:space="preserve">
+    <value>Constructor initializer cannot access the parameters to a primary constructor.</value>
+  </data>
+  <data name="ERR_ObjectRequiredForPrimaryConstructorParameter" xml:space="preserve">
+    <value>An object reference is required for the parameter to a primary constructor '{0}'.</value>
+  </data>
+  <data name="ERR_InvalidUseOfRefOutPrimaryConstructorParameter" xml:space="preserve">
+    <value>Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.</value>
+  </data>
+  <data name="ERR_AnonDelegateCantUsePrimaryConstructorParameter" xml:space="preserve">
+    <value>Cannot use primary constructor parameter '{0}' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.</value>
+  </data>
+  <data name="ERR_InstanceCtorCannotHaveDefaultThisInitializer" xml:space="preserve">
+    <value>Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor.</value>
   </data>
   <data name="LogoLine1" xml:space="preserve">
     <value>Microsoft (R) Visual C# Compiler version {0}</value>
@@ -3775,5 +3808,20 @@
   </data>
   <data name="OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>
+  </data>
+  <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
+    <value>Only auto-implemented properties can have a initializers.</value>
+  </data>
+  <data name="ERR_AutoPropertyMustHaveSetOrInitializer" xml:space="preserve">
+    <value>Auto-implemented properties must have set accessors or initializers.</value>
+  </data>
+  <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
+    <value>Auto-implemented properties must have get accessors.</value>
+  </data>
+  <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
+    <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
+  </data>
+  <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
+    <value>Structs without explicit constructors cannot contain members with initializers.</value>
   </data>
 </root>

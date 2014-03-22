@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         originalRetTypeDef.SpecialType <> SpecialType.System_Collections_Generic_IEnumerator_T AndAlso
                                         type.SpecialType <> SpecialType.System_Collections_IEnumerable AndAlso
                                         type.SpecialType <> SpecialType.System_Collections_IEnumerator Then
-                                Binder.ReportDiagnostic(diagnostics, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                binder.ReportDiagnostic(diagnostics, errorLocation, ERRID.ERR_BadIteratorReturn)
                             End If
                         End If
 

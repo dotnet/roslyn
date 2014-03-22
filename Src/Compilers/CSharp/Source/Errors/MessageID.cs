@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNamedArgument = MessageBase + 12646,
         IDS_FeatureOptionalParameter = MessageBase + 12647,
         IDS_FeatureExceptionFilter = MessageBase + 12648,
+        IDS_FeatureAutoPropertyInitializers = MessageBase + 12649,
 
         IDS_SK_TYPE_OR_NAMESPACE = MessageBase + 12652,
         IDS_Contravariant = MessageBase + 12659,
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
+                case MessageID.IDS_FeatureAutoPropertyInitializers:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

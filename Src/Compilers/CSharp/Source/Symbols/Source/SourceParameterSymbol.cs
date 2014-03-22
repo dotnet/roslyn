@@ -60,6 +60,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntaxRef = syntax.GetReference();
+
+            if (syntax.AttributeLists.Count > 0)
+            {
+                var sourceMethod = owner as SourceMethodSymbol;
+                if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
+                {
+                    foreach (AttributeListSyntax attrList in syntax.AttributeLists)
+                    {
+                        AttributeTargetSpecifierSyntax targetOpt = attrList.Target;
+                        if (targetOpt != null && targetOpt.GetAttributeLocation() == AttributeLocation.Field)
+                        {
+                            // From C# Design Notes for Oct 21, 2013:
+                            // We should also allow attributes on the individual parameters of the primary constructor 
+                            // to specify a “field” target in order to be applied to the underlying field. In practice 
+                            // there may be optimizations so that the field is not generated when not needed, but the 
+                            // field target should force the field to be generated.
+                            return new SourcePrimaryConstructorParameterSymbolWithBackingField(
+                                            owner,
+                                            ordinal,
+                                            parameterType,
+                                            refKind,
+                                            ImmutableArray<CustomModifier>.Empty,
+                                            false,
+                                            name,
+                                            locations,
+                                            syntaxRef,
+                                            ConstantValue.Unset,
+                                            isParams,
+                                            isExtensionMethodThis);
+                        }
+                    }
+                }
+            }
+
             return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,

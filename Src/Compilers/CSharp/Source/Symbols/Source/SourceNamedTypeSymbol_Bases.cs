@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -332,9 +332,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 i++;
                 var location = new SourceLocation(typeSyntax);
-                var baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
+
+                TypeSymbol baseType;
+
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
+                    if (typeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
+                    {
+                        TypeSyntax baseClass = ((BaseClassWithArgumentsSyntax)typeSyntax).BaseClass;
+                        location = new SourceLocation(baseClass);
+                        baseType = baseBinder.BindType(baseClass, diagnostics, newBasesBeingResolved);
+                    }
+                    else
+                    {
+                        baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
+                    }
+
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))
                     {
@@ -398,6 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         continue;
                     }
+                }
+                else
+                {
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
                 }
 
                 switch (baseType.TypeKind)

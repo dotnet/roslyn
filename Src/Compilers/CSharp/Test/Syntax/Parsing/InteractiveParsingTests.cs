@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -5010,19 +5010,17 @@ fixed int x[10];
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ConditionalExpression);
+                                        N(SyntaxKind.DeclarationExpression);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.NullableType);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken);
                                             }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.QuestionToken);
                                             }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.VariableDeclarator);
                                             {
                                                 N(SyntaxKind.IdentifierToken);
                                             }
@@ -5072,30 +5070,28 @@ fixed int x[10];
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ConditionalExpression);
+                                        N(SyntaxKind.DeclarationExpression);
                                         {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.SimpleAssignmentExpression);
+                                            N(SyntaxKind.NullableType);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken);
                                                 }
-                                                N(SyntaxKind.EqualsToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken);
-                                                }
+                                                N(SyntaxKind.QuestionToken);
                                             }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.VariableDeclarator);
                                             {
                                                 N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.EqualsValueClause);
+                                            {
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                N(SyntaxKind.IdentifierToken);
                                             }
+                                        }
+                                    }
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
@@ -5142,44 +5138,42 @@ fixed int x[10];
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ConditionalExpression);
+                                        N(SyntaxKind.DeclarationExpression);
                                         {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.SimpleAssignmentExpression);
+                                            N(SyntaxKind.NullableType);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken);
                                                 }
-                                                N(SyntaxKind.EqualsToken);
-                                                N(SyntaxKind.ConditionalExpression);
+                                                N(SyntaxKind.QuestionToken);
+                                            }
+                                            N(SyntaxKind.VariableDeclarator);
+                                            {
+                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.EqualsValueClause);
+                                        {
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.ConditionalExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierName);
+                                                    N(SyntaxKind.IdentifierToken);
+                                                }
+                                                        N(SyntaxKind.QuestionToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                {
+                                                            N(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.ColonToken);
+                                                        N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
-                                                    }
-                                                    N(SyntaxKind.QuestionToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken);
-                                                    }
-                                                    N(SyntaxKind.ColonToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.IdentifierToken);
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -6606,31 +6600,29 @@ fixed int x[10];
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ConditionalExpression);
+                                        N(SyntaxKind.DeclarationExpression);
                                         {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.SimpleAssignmentExpression);
+                                            N(SyntaxKind.NullableType);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken);
                                                 }
-                                                N(SyntaxKind.EqualsToken);
-                                                N(SyntaxKind.IdentifierName);
+                                                N(SyntaxKind.QuestionToken);
+                                            }
+                                            N(SyntaxKind.VariableDeclarator);
+                                            {
+                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.EqualsValueClause);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.EqualsToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                {
+                                                        N(SyntaxKind.IdentifierToken);
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
@@ -8389,7 +8381,6 @@ interface IC { }
 ";
             ParseAndValidate(test,
                 new ErrorDescription { Code = 1525, Line = 2, Column = 1 },
-                new ErrorDescription { Code = 1002, Line = 2, Column = 10 },
                 new ErrorDescription { Code = 1525, Line = 2, Column = 25 },
                 new ErrorDescription { Code = 1525, Line = 2, Column = 26 },
                 new ErrorDescription { Code = 1733, Line = 2, Column = 35 },

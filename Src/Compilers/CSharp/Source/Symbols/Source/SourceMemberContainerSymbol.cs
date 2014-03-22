@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -793,12 +793,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private sealed class MembersAndInitializers
         {
+            internal readonly SourceConstructorSymbol PrimaryCtor;
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
             internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> StaticInitializers;
             internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers;
             internal readonly ImmutableArray<SyntaxReference> IndexerDeclarations;
 
-            public MembersAndInitializers(ImmutableArray<Symbol> nonTypeNonIndexerMembers,
+            public MembersAndInitializers(
+                SourceConstructorSymbol primaryCtor,
+                ImmutableArray<Symbol> nonTypeNonIndexerMembers,
                 ImmutableArray<ImmutableArray<FieldInitializer>> staticInitializers,
                 ImmutableArray<ImmutableArray<FieldInitializer>> instanceInitializers,
                 ImmutableArray<SyntaxReference> indexerDeclarations)
@@ -808,10 +811,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!instanceInitializers.IsDefault);
                 Debug.Assert(!indexerDeclarations.IsDefault);
 
+                Debug.Assert((object)primaryCtor == null || nonTypeNonIndexerMembers.Any(s => (object)primaryCtor == (object)s));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s.IsIndexer()));
                 Debug.Assert(!nonTypeNonIndexerMembers.Any(s => s.IsAccessor() && ((MethodSymbol)s).AssociatedPropertyOrEvent.IsIndexer()));
 
+                this.PrimaryCtor = primaryCtor;
                 this.NonTypeNonIndexerMembers = nonTypeNonIndexerMembers;
                 this.StaticInitializers = staticInitializers;
                 this.InstanceInitializers = instanceInitializers;
@@ -827,6 +832,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers
         {
             get { return GetMembersAndInitializers().InstanceInitializers; }
+        }
+
+        /// <summary>
+        /// Returns the "main" Primary Constructor. If more than one partial declaration declares a 
+        /// Primary Constructor, we will have several distinct Primary Constructor symbols.
+        /// This property returns the first one we encounter, it's parameters will be in scope within
+        /// type members and initializers.
+        /// </summary>
+        internal SourceConstructorSymbol PrimaryCtor
+        {
+            get
+            {
+                if (this.lazyMembersAndInitializers == null)
+                {
+                    foreach (var decl in this.declaration.Declarations)
+                    {
+                        if (decl.HasPrimaryCtor)
+                        {
+                            return GetMembersAndInitializers().PrimaryCtor;
+                        }
+                    }
+
+                    return null;
+                }
+
+                return this.lazyMembersAndInitializers.PrimaryCtor;
+            }
         }
 
         public override IEnumerable<string> MemberNames
@@ -1153,6 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckMemberNameConflicts(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
+            CheckPrimaryCtorParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
 
             bool unused = KnownCircularStruct;
@@ -1387,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], "~" + this.Name, this);
             }
-            else
+            else if(!method1.IsPrimaryCtor || !method2.IsPrimaryCtor)
             {
                 // Type '{1}' already defines a member called '{0}' with the same parameter types
                 diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], method1.Name, this);
@@ -1473,12 +1506,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 lastIndexerName = indexerName;
 
+                if (Locations.Length == 1 || IsPartial)
+                {
                 if (membersByName.ContainsKey(indexerName))
                 {
                     // The name of the indexer is reserved - it can only be used by other indexers.
                     Debug.Assert(!membersByName[indexerName].Any(SymbolExtensions.IsIndexer));
-                    if (Locations.Length == 1 || IsPartial)
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
+                    }
+                    else
+                    {
+                        var primaryCtor = PrimaryCtor;
+
+                        if ((object)primaryCtor != null)
+                        {
+                            foreach (var p in primaryCtor.Parameters)
+                            {
+                                if (p.Name.Equals(indexerName))
+                                {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, indexer.Locations[0], this, indexerName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1515,12 +1566,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (Locations.Length == 1 || IsPartial)
+            {
+                var primaryCtor = this.PrimaryCtor;
+
             foreach (var tp in TypeParameters)
             {
+                    if ((object)primaryCtor != null)
+                {
+                        foreach (var dup in primaryCtor.Parameters)
+                        {
+                            if (dup.Name.Equals(tp.Name))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_PrimaryCtorParameterSameNameAsTypeParam, dup.Locations[0], this, tp.Name);
+                                break;
+                            }
+                        }
+                    }
+
                 foreach (var dup in GetMembers(tp.Name))
                 {
-                    if (Locations.Length == 1 || IsPartial)
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
+                    }
+                }
+            }
+        }
+
+        private void CheckPrimaryCtorParameterNameConflicts(DiagnosticBag diagnostics)
+        {
+                    if (Locations.Length == 1 || IsPartial)
+            {
+                var primaryCtor = this.PrimaryCtor;
+
+                if ((object)primaryCtor != null)
+                {
+                    foreach (var p in primaryCtor.Parameters)
+                    {
+                        foreach (var dup in GetMembers(p.Name))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, p.Name);
+                }
+            }
                 }
             }
         }
@@ -2055,6 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
+            public SourceConstructorSymbol PrimaryCtor;
             public ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
             public ArrayBuilder<ImmutableArray<FieldInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
             public ArrayBuilder<ImmutableArray<FieldInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
@@ -2063,6 +2150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public MembersAndInitializers ToReadOnlyAndFree()
             {
                 return new MembersAndInitializers(
+                    PrimaryCtor,
                     NonTypeNonIndexerMembers.ToImmutableAndFree(),
                     StaticInitializers.ToImmutableAndFree(),
                     InstanceInitializers.ToImmutableAndFree(),
@@ -2078,6 +2166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (TypeKind)
             {
                 case TypeKind.Struct:
+                    CheckForStructBadInitializers(builder, diagnostics);
+                    goto case TypeKind.Enum;
+                    
                 case TypeKind.Enum:
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
@@ -2125,17 +2216,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.NamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
-                        AddNonTypeMembers(builder, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.CompilationUnit:
-                        AddNonTypeMembers(builder, ((CompilationUnitSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
+                        var classDecl = (ClassDeclarationSyntax)syntax;
+                        AddNonTypeMembers(builder, classDecl.ParameterList, classDecl.Members, diagnostics);
+                        break;
+
                     case SyntaxKind.InterfaceDeclaration:
+                        AddNonTypeMembers(builder, null, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
+                        break;
+
                     case SyntaxKind.StructDeclaration:
-                        AddNonTypeMembers(builder, ((TypeDeclarationSyntax)syntax).Members, diagnostics);
+                        var structDecl = (StructDeclarationSyntax)syntax;
+                        AddNonTypeMembers(builder, structDecl.ParameterList, structDecl.Members, diagnostics);
                         break;
 
                     default:
@@ -2532,6 +2631,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case SymbolKind.Property:
+                    break;
+
                 case SymbolKind.Event:
                     break;
 
@@ -2550,6 +2651,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
                         diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultContructor, m.Locations[0]);
+                    }
+                }
+            }
+        }
+
+        private void CheckForStructBadInitializers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(TypeKind == TypeKind.Struct);
+            if (builder.InstanceInitializers.Count > 0)
+            {
+                var members = builder.NonTypeNonIndexerMembers;
+                foreach (var s in members)
+                {
+                    if (s.Kind == SymbolKind.Method)
+                    {
+                        var method = s as MethodSymbol;
+                        if (method.MethodKind == MethodKind.Constructor
+                            && !method.IsParameterlessValueTypeConstructor())
+                        {
+                            return;
+                        }
+
+                    }
+                }
+
+                foreach (var s in members)
+                {
+                    var p = s as SourcePropertySymbol;
+                    if (p != null && !p.IsStatic && p.BackingField.HasInitializer)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
+                            p.Location, p);
+                    }
+                    else
+                    {
+                        var f = s as SourceMemberFieldSymbol;
+                        if (f != null && !f.IsStatic && f.HasInitializer)
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
+                                f.Location, f);
+                        }
                     }
                 }
             }
@@ -2636,9 +2780,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddNonTypeMembers(
             MembersAndInitializersBuilder result,
+            ParameterListSyntax primaryCtorParameterList,
             SyntaxList<MemberDeclarationSyntax> members,
             DiagnosticBag diagnostics)
         {
+            if (primaryCtorParameterList != null)
+            {
+                var constructor = SourceConstructorSymbol.CreatePrimaryConstructorSymbol(this, primaryCtorParameterList, diagnostics);
+                result.NonTypeNonIndexerMembers.Add(constructor);
+
+                if ((object)result.PrimaryCtor == null)
+                {
+                    result.PrimaryCtor = constructor;
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, new SourceLocation(primaryCtorParameterList));
+                }
+            }
+
             if (members.Count == 0)
             {
                 return;
@@ -2764,6 +2924,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)property.BackingField != null)
                             {
                                 result.NonTypeNonIndexerMembers.Add(property.BackingField);
+
+                                var initializer = propertySyntax.Initializer;
+                                if (initializer != null)
+                                {
+                                    if (property.IsStatic)
+                                    {
+                                        AddInitializer(ref staticInitializers, property.BackingField, initializer);
+                                    }
+                                    else
+                                    {
+                                        AddInitializer(ref instanceInitializers, property.BackingField, initializer);
+                                    }
+                                }
                             }
                         }
                         break;

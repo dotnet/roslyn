@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Test.Utilities;
@@ -2334,6 +2334,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Tokens++;
                 base.VisitToken(token);
             }
+        }
+
+        [Fact]
+        public void DeclarationExpressions_01()
+        {
+            var text = "int x";
+            var statement = this.ParseStatement(text);
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(text, statement.ToString());
         }
     }
 }

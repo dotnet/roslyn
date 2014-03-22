@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -383,6 +383,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// If we are not in primary constructor and primary constructor parameters are in scope,
+        /// return them. Returns an empty array otherwise.
+        /// </summary>
+        protected ImmutableArray<ParameterSymbol> PrimaryConstructorParameters
+        {
+            get
+            {
+                if ((object)member != null)
+                {
+                    var container = (member.Kind == SymbolKind.NamedType ? member : member.ContainingType) as SourceMemberContainerTypeSymbol;
+
+                    if ((object)container != null && (object)container.PrimaryCtor != null && (object)container.PrimaryCtor != (object)member)
+                    {
+                        var sourceMethod = member as SourceMethodSymbol;
+
+                        if ((object)sourceMethod == null || !sourceMethod.IsPrimaryCtor)
+                        {
+                            return container.PrimaryCtor.Parameters;
+                        }
+                    }
+                }
+
+                return ImmutableArray<ParameterSymbol>.Empty;
+            }
+        }
+
+        /// <summary>
         /// If a method is currently being analyzed returns its 'this' parameter, returns null
         /// otherwise.
         /// </summary>
@@ -486,6 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
+                case BoundKind.DeclarationExpression:
                     // no need for it to be previously assigned: it is on the left.
                     break;
 
@@ -949,6 +977,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
+        {
+            if (node.InitializerOpt != null)
+            {
+                VisitRvalue(node.InitializerOpt); // analyze the expression
+            }
+            return null;
+        }
+
+        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
         {
             if (node.InitializerOpt != null)
             {
@@ -1923,12 +1960,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitStatementList(BoundStatementList node)
         {
+            return VisitStatementListWorker(node);
+        }
+
+        private BoundNode VisitStatementListWorker(BoundStatementList node)
+        {
             foreach (var statement in node.Statements)
             {
                 VisitStatement(statement);
             }
 
             return null;
+        }
+
+        public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
+        {
+            return VisitStatementListWorker(node);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
@@ -2274,6 +2321,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitBackingFieldsForPrimaryConstructorParametersInitialization(BoundBackingFieldsForPrimaryConstructorParametersInitialization node)
         {
             return null;
         }

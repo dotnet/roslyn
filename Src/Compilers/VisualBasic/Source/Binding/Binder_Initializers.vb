@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagnostics)
                         End If
                     Else
-                        Dim propertySymbol = DirectCast(firstFieldOrProperty, PropertySymbol)
+                        Dim propertySymbol = DirectCast(firstFieldOrProperty, propertySymbol)
 
                         initializerBinder.BindPropertyInitializer(propertySymbol,
                                                                   initializerNode,
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindGlobalStatement(statementNode As StatementSyntax, diagnostics As DiagnosticBag, isLast As Boolean) As BoundInitializer
-            Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
+            Dim boundStatement As boundStatement = Me.BindStatement(statementNode, diagnostics)
 
             If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
                 Dim submissionReturnType = Me.Compilation.GetSubmissionReturnType()
@@ -349,7 +349,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
-                Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,
                                                                   propertySymbol.AssociatedField,
@@ -359,12 +358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 boundPropertyOrFieldAccess = New BoundPropertyAccess(syntaxNode,
-                                                                     propertySymbol,
+                                                               propertySymbol,
                                                                      propertyGroupOpt:=Nothing,
                                                                      accessKind:=PropertyAccessKind.Set,
-                                                                     receiverOpt:=boundReceiver,
-                                                                     arguments:=ImmutableArray(Of BoundExpression).Empty,
-                                                                     hasErrors:=hasError)
+                                                               receiverOpt:=boundReceiver,
+                                                               arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                               hasErrors:=hasError)
             End If
 
             boundPropertyOrFieldAccess = BindAssignmentTarget(syntaxNode, boundPropertyOrFieldAccess, diagnostics)
@@ -399,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
-                        Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
+                        Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, objectCreationExpressionSyntax)
                         boundInitExpression = BindObjectCreationExpression(asNew.NewExpression.Type,
                                                                            objectCreationExpressionSyntax.ArgumentList,
                                                                            targetType,
@@ -454,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Const fields of type Date or Decimal will get initialized in the synthesized shared constructor
             ' because their value is not regarded as compile time constant by the CLR.
             ' This will produce sequence points in the shared constructor which is exactly what Dev10 does.
-            Dim constantValue = fieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            Dim constantValue = fieldSymbol.GetConstantValue(SymbolsInProgress(Of fieldSymbol).Empty)
 
             If constantValue IsNot Nothing Then
                 Dim meSymbol As ParameterSymbol = Nothing
@@ -495,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim initValueDiagnostics = DiagnosticBag.GetInstance
 
             If equalsValueOrAsNewSyntax.Kind = SyntaxKind.EqualsValue Then
-                Dim equalsValueSyntax As EqualsValueSyntax = DirectCast(equalsValueOrAsNewSyntax, EqualsValueSyntax)
+                Dim equalsValueSyntax As equalsValueSyntax = DirectCast(equalsValueOrAsNewSyntax, equalsValueSyntax)
                 boundInitValue = BindValue(equalsValueSyntax.Value, initValueDiagnostics)
             Else
                 ' illegal case, const fields cannot be initialized with AsNew
@@ -508,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case asNewSyntax.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
                         Dim objectCreationExpressionSyntax = DirectCast(asNewSyntax.NewExpression,
-                                                                        ObjectCreationExpressionSyntax)
+                                                                        objectCreationExpressionSyntax)
                         boundInitValue = BindObjectCreationExpression(asNewSyntax.Type,
                                                                       objectCreationExpressionSyntax.ArgumentList,
                                                                       fieldType,

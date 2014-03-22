@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -15,6 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan? part;
             GetBreakpointSpan(declaratorSyntax, out node, out part);
             var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
+            result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
+            return result;
+        }
+
+        internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
+        {
+            SyntaxTokenList modifiers = declarationSyntax.Modifiers;
+            // Skip attributes
+            int start = modifiers.Any() ? modifiers[0].SpanStart : declarationSyntax.Type.SpanStart;
+            int end = declarationSyntax.Span.End;
+            TextSpan part = TextSpan.FromBounds(start, end);
+
+            var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }

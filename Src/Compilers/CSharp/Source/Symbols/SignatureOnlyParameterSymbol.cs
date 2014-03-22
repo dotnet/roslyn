@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal override FieldSymbol PrimaryConstructorParameterBackingField { get { throw ExceptionUtilities.Unreachable; } }
 
         #endregion Not used by MethodSignatureComparer
 

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -681,7 +681,7 @@ nextm:
                 builder.Add(boundCaseClause)
             Next
 
-            Dim boundCaseStatement = New BoundCaseStatement(_syntax, builder.ToImmutableAndFree(), Nothing)
+            Dim boundCaseStatement = New BoundCaseStatement(_syntax, builder.ToImmutableAndFree(), Nothing, Nothing)
             boundCaseStatement.SetWasCompilerGenerated()
             Dim boundCaseBlock = New BoundCaseBlock(_syntax, boundCaseStatement, Block(ImmutableArray.Create(Of BoundStatement)(statements)))
             boundCaseBlock.SetWasCompilerGenerated()

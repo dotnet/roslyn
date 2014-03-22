@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -552,7 +552,7 @@ End Class
 
             ' Test Speculative binding.
             Dim position As Integer = originalExpression.SpanStart
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position, speculatedStatement, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -614,7 +614,7 @@ End Class
             Dim equalsValue = SyntaxFactory.EqualsValue(SyntaxFactory.ParseExpression(<![CDATA["hi"]]>.Value))
             Dim expression = equalsValue.Value
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, equalsValue, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -666,7 +666,7 @@ End Class
             Dim initializer = SyntaxFactory.EqualsValue(SyntaxFactory.ParseExpression("CType(0, System.Int16)"))
             Dim expression = initializer.Value
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -707,7 +707,7 @@ If y > 0 Then
   M(y)
 End If]]>.Value), ExecutableStatementSyntax)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedStatement, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -766,7 +766,7 @@ End Class
             ' different name local
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Dim z As Integer = 0"), ExecutableStatementSyntax)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedStatement, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -819,7 +819,7 @@ End Class
 
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Label: y = y + 1"), ExecutableStatementSyntax)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedStatement, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -854,7 +854,7 @@ End Class
 
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Dim var As Func(Of Integer, Integer) = Function(z) x + z"), ExecutableStatementSyntax)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedStatement, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -891,7 +891,7 @@ End Module
 
             Dim speculatedRangeArgument = rangeArg.ReplaceNode(rangeArg.UpperBound, SyntaxFactory.ParseExpression("NewMethod()"))
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -930,7 +930,7 @@ End Module
 
             Dim speculatedRangeArgument = rangeArg.ReplaceNode(rangeArg.UpperBound, SyntaxFactory.ParseExpression("NewMethod()"))
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1231,7 +1231,7 @@ End Module
             Dim newLocalDecl = DirectCast(localDecl.ReplaceNode(localDecl.Declarators(0).Initializer.Value, parsedInvocation), LocalDeclarationStatementSyntax)
             Dim newInitializer = DirectCast(newLocalDecl.Declarators(0).Initializer.Value, InvocationExpressionSyntax)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position, newLocalDecl, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1274,7 +1274,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1344,7 +1344,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1393,7 +1393,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
             Dim speculatedMethod = methodBlock.WithStatements(ifStatement.IfPart.Statements)
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1427,7 +1427,7 @@ End Class
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Dim z As Integer = 0"), ExecutableStatementSyntax)
             Dim speculatedMethod = methodBlock.WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(speculatedStatement))
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1505,7 +1505,7 @@ End Class
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Label: y = y + 1"), ExecutableStatementSyntax)
             Dim speculatedMethod = methodBlock.WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(speculatedStatement))
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1541,7 +1541,7 @@ End Class
             Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Dim var As Func(Of Integer, Integer) = Function(z) x + z"), ExecutableStatementSyntax)
             Dim speculatedMethod = methodBlock.WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(speculatedStatement))
 
-            Dim speculativeModel As SemanticModel = Nothing
+            Dim speculativeModel As semanticModel = Nothing
             Dim success = semanticModel.TryGetSpeculativeSemanticModelForMethodBody(position1, speculatedMethod, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
@@ -1792,8 +1792,8 @@ Module M
             Dim root = tree.GetCompilationUnitRoot()
             Dim moduleBlock = DirectCast(root.Members(0), ModuleBlockSyntax)
             Dim namespaceBlock = DirectCast(moduleBlock.Members(1), NamespaceBlockSyntax)
-            Dim typeBlockSyntax = DirectCast(namespaceBlock.Members(0), TypeBlockSyntax)
-            Dim methodBlockSyntax = DirectCast(typeBlockSyntax.Members(0), MethodBlockSyntax)
+            Dim typeBlockSyntax = DirectCast(namespaceBlock.Members(0), typeBlockSyntax)
+            Dim methodBlockSyntax = DirectCast(typeBlockSyntax.Members(0), methodBlockSyntax)
             Dim statementSyntax = DirectCast(methodBlockSyntax.Statements(0), LocalDeclarationStatementSyntax)
             Dim initializer = statementSyntax.DescendantNodes().Single(Function(n) n.ToString() = "Me.foo")
             Dim position = statementSyntax.SpanStart
@@ -3860,7 +3860,7 @@ End Class
         End Sub
 
         <WorkItem(859721)>
-        <Fact()>
+        <Fact(Skip:="mystery problem")>
         Sub TestMethodBodyDiagnostics()
             ' Even with a root namespace, we should still have these diagnostics with or without root namespace specified
             Dim sourceExplicitGlobalNamespace = <compilation>
@@ -3986,10 +3986,10 @@ BC30002: Type 'A' is not defined.
             'Two namespaces in same source file - global is 1st namespace
             Dim sourceWithGlobalAndMultipleNS1 = <compilation>
                                                      <file name="a.vb"><![CDATA[
-            Namespace Global
-            Class C
-                Sub S()
-                  Dim _A As A   ' error BC30002: Type 'A' is not defined.
+Namespace Global
+  Class C
+    Sub S()
+      Dim _A As A   ' error BC30002: Type 'A' is not defined.
                 End Sub
               End Class
             End Namespace
@@ -4035,9 +4035,9 @@ BC30002: Type 'A' is not defined.
                 Sub S()
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
 
-                End Sub
-              End Class
-            End Namespace
+    End Sub
+  End Class
+End Namespace
 
             Namespace Global
               Class C
@@ -4047,7 +4047,7 @@ BC30002: Type 'A' is not defined.
                 End Sub
               End Class
             End Namespace
-                            ]]></file>
+                ]]></file>
                                                  </compilation>
             compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")

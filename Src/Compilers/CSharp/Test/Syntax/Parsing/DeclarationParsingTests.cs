@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -3691,6 +3691,81 @@ class Class1<T>{
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[1].Body);
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[1].SemicolonToken.CSharpKind());
+        }
+
+        [Fact]
+        public void TestClassAutoPropertyWithInitializer()
+        {
+            var text = "class a { b c { get; set; } = d; }";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            var cs = (ClassDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, cs.AttributeLists.Count);
+            Assert.Equal(0, cs.Modifiers.Count);
+            Assert.NotNull(cs.Keyword);
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
+            Assert.NotNull(cs.Identifier);
+            Assert.Equal("a", cs.Identifier.ToString());
+            Assert.Null(cs.BaseList);
+            Assert.Equal(0, cs.ConstraintClauses.Count);
+            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotNull(cs.CloseBraceToken);
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("b", ps.Type.ToString());
+            Assert.NotNull(ps.Identifier);
+            Assert.Equal("c", ps.Identifier.ToString());
+
+            Assert.NotNull(ps.AccessorList.OpenBraceToken);
+            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.Equal(2, ps.AccessorList.Accessors.Count);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
+            Assert.Null(ps.AccessorList.Accessors[0].Body);
+
+            Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
+            Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
+            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
+            Assert.Null(ps.AccessorList.Accessors[1].Body);
+
+            Assert.NotNull(ps.Initializer);
+            Assert.NotNull(ps.Initializer.Value);
+            Assert.Equal("d", ps.Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void InitializerOnNonAutoProp()
+        {
+            var text = "class C { int P { set {} } = 0; }";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            var cs = (ClassDeclarationSyntax)file.Members[0];
+
+            Assert.Equal(1, cs.Members.Count);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.Errors().Length);
         }
 
         [Fact]

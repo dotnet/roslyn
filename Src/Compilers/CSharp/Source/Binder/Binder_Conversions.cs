@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
-                    hasErrors: true)
-                { WasCompilerGenerated = source.WasCompilerGenerated };
+                    hasErrors: true) 
+                    { WasCompilerGenerated = source.WasCompilerGenerated };
             }
 
             // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D? 
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(
-                syntax: source.Syntax,
-                source: source,
-                conversion: conversion.UserDefinedFromConversion,
+                syntax: source.Syntax, 
+                source: source, 
+                conversion: conversion.UserDefinedFromConversion, 
                 isCast: false,
                 wasCompilerGenerated: true,
-                destination: conversion.BestUserDefinedConversionAnalysis.FromType,
+                destination: conversion.BestUserDefinedConversionAnalysis.FromType, 
                 diagnostics: diagnostics);
 
             TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.ParameterTypes[0];
@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Conversion's "from" type --> conversion method's parameter type.
                 convertedOperand = CreateConversion(
-                    syntax: syntax,
-                    source: convertedOperand,
+                    syntax: syntax, 
+                    source: convertedOperand, 
                     conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteDiagnostics),
                     isCast: false,
                     wasCompilerGenerated: true,
-                    destination: conversionParameterType,
+                    destination: conversionParameterType, 
                     diagnostics: diagnostics);
             }
 
@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversionReturnType)
-                { WasCompilerGenerated = true };
+                    type: conversionReturnType) 
+                    { WasCompilerGenerated = true };
 
                 if (conversionToType.IsNullableType() && conversionToType.GetNullableUnderlyingType() == conversionReturnType)
                 {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversion.BestUserDefinedConversionAnalysis.ToType)
+                    type: conversion.BestUserDefinedConversionAnalysis.ToType) 
                 { WasCompilerGenerated = true };
             }
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt, //only change
                 group.ResultKind);
         }
-
+        
         /// <summary>
         /// This method implements the algorithm in spec section 7.6.5.1.
         /// 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (WasImplicitReceiver(receiverOpt))
             {
-                if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                if ((InFieldInitializer || InAutoPropertyInitializer) && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     CSharpSyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind == SyntaxKind.InvocationExpression)
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorNode = node.Parent;
                     }
 
-                    ErrorCode code = InFieldInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
+                    ErrorCode code = InFieldInitializer || InAutoPropertyInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
                     diagnostics.Add(code, errorNode.Location, memberSymbol);
                     return true;
                 }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
         {
             if (receiverOpt == null)
-            {
+            {   
                 return false;
             }
 
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
+            if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) || 
                 !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
             {
                 return true;

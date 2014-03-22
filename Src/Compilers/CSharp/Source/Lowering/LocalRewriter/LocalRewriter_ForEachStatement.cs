@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -129,14 +129,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement whileLoop = RewriteWhileStatement(
                 syntax: forEachSyntax,
+                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: BoundCall.Synthesized(
                     syntax: forEachSyntax,
                     receiverOpt: boundEnumeratorVar,
                     method: enumeratorInfo.MoveNextMethod),
                 conditionSequencePointSpan: forEachSyntax.InKeyword.Span,
                 rewrittenBody: new BoundBlock(rewrittenBody.Syntax,
-                    statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody),
-                    localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar)),
+                                              statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody),
+                                              localsOpt: ImmutableArray.Create<LocalSymbol>(iterationVar)),
                 breakLabel: node.BreakLabel,
                 continueLabel: node.ContinueLabel,
                 hasErrors: false);
@@ -187,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // if ((object)e != null) ((IDisposable)e).Dispose(); 
                         disposeStmt = RewriteIfStatement(
                             syntax: forEachSyntax,
+                            locals: ImmutableArray<LocalSymbol>.Empty,
                             rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
                                 operatorKind: BinaryOperatorKind.NotEqual,
                                 left: MakeConversion(
@@ -238,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (d != null) d.Dispose();
                     BoundStatement ifStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
                         rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
                             operatorKind: BinaryOperatorKind.NotEqual, // reference equality
                             left: boundDisposableVar,
@@ -284,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     /* as above */
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    localsOpt: ImmutableArray.Create<LocalSymbol>(enumeratorVar),
+                    localsOpt: node.OuterLocals.Add(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -296,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 result = new BoundBlock(
                     syntax: forEachSyntax,
-                    localsOpt: ImmutableArray.Create<LocalSymbol>(enumeratorVar),
+                    localsOpt: node.OuterLocals.Add(enumeratorVar),
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -470,8 +473,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement result = RewriteForStatement(
                 syntax: forEachSyntax,
-                locals: ImmutableArray.Create<LocalSymbol>(stringVar, positionVar),
+                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create<LocalSymbol>(stringVar, positionVar)),
                 rewrittenInitializer: initializer,
+                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: exitCondition,
                 conditionSyntax: forEachSyntax.InKeyword,
                 rewrittenIncrement: positionIncrement,
@@ -594,8 +598,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             BoundStatement result = RewriteForStatement(
                 syntax: node.Syntax,
-                locals: ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar),
+                outerLocals: node.OuterLocals.AddRange(ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar)),
                 rewrittenInitializer: initializer,
+                innerLocals: ImmutableArray<LocalSymbol>.Empty,
                 rewrittenCondition: exitCondition,
                 conditionSyntax: forEachSyntax.InKeyword,
                 rewrittenIncrement: positionIncrement,
@@ -778,8 +783,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 forLoop = RewriteForStatement(
                     syntax: forEachSyntax,
-                    locals: ImmutableArray.Create<LocalSymbol>(positionVar[dimension]),
+                    outerLocals: node.OuterLocals.Add(positionVar[dimension]),
                     rewrittenInitializer: positionVarDecl,
+                    innerLocals: ImmutableArray<LocalSymbol>.Empty,
                     rewrittenCondition: exitCondition,
                     conditionSyntax: forEachSyntax.InKeyword,
                     rewrittenIncrement: positionIncrement,

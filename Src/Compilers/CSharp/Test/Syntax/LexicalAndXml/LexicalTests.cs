@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2350,13 +2350,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDebuggerDollarIdentifiers()
+        public void TestDollarToken()
         {
             string text = "$";
-            var token = DebuggerLexToken(text);
+            var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.DollarToken, token.CSharpKind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2367,13 +2367,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.DollarToken, token.CSharpKind());
             Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.Equal(text, token.Value);
+            Assert.Equal("$", token.Text);
+            Assert.Equal("$", token.Value);
 
             text = "x$";
-            token = DebuggerLexToken(text);
+            token = LexToken(text);
             errors = token.Errors();
             
             Assert.NotNull(token);

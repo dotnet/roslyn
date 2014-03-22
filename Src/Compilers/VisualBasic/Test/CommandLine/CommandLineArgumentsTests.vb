@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -201,9 +201,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "A=ASCW ^^ ^^ (""G"")"))
 
-            text = "A=1--1,B=1 1"
+            text = "A=1--1,B=1  1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
-            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1  ^^ ^^ 1"))
+            errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("End of statement expected.", "B=1   ^^ ^^ 1"))
 
             text = "A=1--1,B=1 C=1"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3801,9 +3801,9 @@ public class MemberInitializerTest
     }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (9,105): error CS1525: Invalid expression term 'int'
+                // (9,108): error CS1001: Identifier expected
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
                 // (9,123): error CS1525: Invalid expression term '}'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
@@ -3815,7 +3815,10 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"),
                 // (9,20): error CS0030: Cannot convert type 'method' to 'MemberInitializerTest.D<int>'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"),
+                // (9,105): error CS0165: Use of unassigned local variable ''
+                //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int").WithArguments("").WithLocation(9, 105));
         }
 
         [WorkItem(545191)]

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Virtual = 1 << 16, // used for method binding
         Override = 1 << 17, // "
 
-        Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used
+        Indexer = 1 << 18, // not a real modifier, but used to record that indexer syntax was used. Sharing this bit with PrimaryCtor.
+        PrimaryCtor = 1 << 18, // not a real modifier, but used to record that this is a primary constructor. Sharing this bit with Indexer.
 
         Async = 1 << 19,
 

@@ -7843,7 +7843,7 @@ End Class
         ' End Class
         Dim builder = New System.Text.StringBuilder()
         builder.AppendLine("Class C")
-        builder.Append("    Dim x = M(0 ")
+        builder.Append("    Dim x = M(0  ")
         For i = 0 To n
             builder.Append("0+")
         Next

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12714,7 +12714,14 @@ public class A : Attribute
     }
 
 }")
-                .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string"));
+                .VerifyDiagnostics(
+    // (4,25): error CS1001: Identifier expected
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(4, 25),
+    // (4,18): error CS0165: Use of unassigned local variable ''
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "string ").WithArguments("").WithLocation(4, 18)
+                );
         }
 
         [WorkItem(543167)]

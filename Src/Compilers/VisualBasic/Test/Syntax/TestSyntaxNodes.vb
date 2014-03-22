@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Linq
@@ -1997,8 +1997,8 @@ End Class
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
-            Dim tokens As List(Of SyntaxToken) = tree.GetRoot().DescendantTokens().ToList()
-            Dim list As List(Of SyntaxToken) = New List(Of SyntaxToken)()
+            Dim tokens As list(Of SyntaxToken) = tree.GetRoot().DescendantTokens().ToList()
+            Dim list As list(Of SyntaxToken) = New list(Of SyntaxToken)()
             Dim token As SyntaxToken = tree.GetRoot().GetFirstToken()
 
             While token.VisualBasicKind <> 0
@@ -2081,14 +2081,14 @@ End Class]]>
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() root.FindNode(invalidSpan))
             invalidSpan = New TextSpan(classDecl2.FullSpan.Start - 1, root.FullSpan.End)
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(invalidSpan))
-            invalidSpan = new TextSpan(classDecl.FullSpan.End, root.FullSpan.End)
+            invalidSpan = New TextSpan(classDecl.FullSpan.End, root.FullSpan.End)
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(invalidSpan))
             ' Parent node's span.
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl.FindNode(root.FullSpan))
         End Sub
 
         <WorkItem(539940)>
-                                     <Fact()>
+        <Fact()>
         Public Sub TestFindTrivaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
     Sub Bar()
@@ -2691,9 +2691,9 @@ End Module
         <Fact()>
         Public Sub Test_CConst_CreateWithTypeCharacters()
             'Added for Code Coverage 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Imports System
 
 #Const char_a = "c"c
@@ -2725,7 +2725,7 @@ Public Module Module1
     End Sub
 
 End Module    </file>
-                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
@@ -2733,9 +2733,9 @@ End Module    </file>
 
         <Fact()>
         Public Sub Test_UnaryOperators()
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 'Type Types
 #If -1S Then
 'Short
@@ -2892,7 +2892,7 @@ Module Module1
 End Module
 
 </file>
-                                                                                                                                                     </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
@@ -2901,9 +2901,9 @@ End Module
         <Fact(Skip:="658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="CConst.vb">
-                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Imports System
 Imports Microsoft.VisualBasic
 
@@ -2940,7 +2940,7 @@ Module Module1
 End Module
 
 </file>
-                                                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
@@ -3005,12 +3005,12 @@ End Interface
             Assert.True(Root.ToFullString.Contains("Inherits aaa"))
             Assert.True(Root.ToFullString.Contains("Implements Ifoo"))
 
-            Dim compilationDef = _
+            Dim compilationDef =
 <compilation name="Test">
-                                                                                                                                                                 <file name="a.vb">
-                                                                                                                                                                     <%= root.ToFullString %>
-                                                                                                                                                                 </file>
-                                                                                                                                                             </compilation>
+    <file name="a.vb">
+        <%= Root.ToFullString %>
+    </file>
+</compilation>
 
             'Verify Compile Errors when try to use
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3157,33 +3157,33 @@ End Module
         Public Sub Test_CompilationOptions_Equals()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
 
             Dim Compilation3 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="GetSemanticInfo">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict On
 Option Infer On
 Option Explicit On
 Option Compare Text
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
 
             Dim vbpo1 = compilation.Options
@@ -3199,14 +3199,14 @@ Option Compare Text
 
             Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="CompileOptions">
-                                                                                                                                                                                             <file name="allon.vb">
+    <file name="allon.vb">
 Option Strict Off
 Module Module1
 Sub Main
 End Sub
 End Module
     </file>
-                                                                                                                                                                                         </compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
+</compilation>, OptionsDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
             vbpo1 = compilation4.Options
             Dim ObjCommonCompilationOptions As CompilationOptions = vbpo1
@@ -3222,14 +3222,14 @@ End Module
 
             Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compile1">
-                                                                                                                                                                                                 <file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Module Module1
 Sub Main
 End Sub
 End Module
         ]]></file>
-                                                                                                                                                                                             </compilation>, parseOptions:=po1)
+</compilation>, parseOptions:=po1)
 
             Assert.Equal(po1, po1)
             Assert.Equal(po1, po3)
@@ -3245,7 +3245,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyGroupByClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LinqQueryGroupBy">
-                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub main()
         Dim words = New String() {"blueberry", "chimpanzee", "abacus", "banana", "apple", "cheese"}
@@ -3257,7 +3257,7 @@ Module Module1
     End Sub
 End Module            
     </file>
-                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3270,7 +3270,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyCatchFilterClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()        
         Try
@@ -3280,7 +3280,7 @@ Module Module1
     End Sub
 End Module          
     </file>
-                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3293,7 +3293,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyDistinctClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()        
        Dim q = From c In {1, 2, 3, 4, 5, 3, 2}
@@ -3301,7 +3301,7 @@ Module Module1
     End Sub
 End Module          
     </file>
-                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3314,7 +3314,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyCaseRange()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
 Module Module1
     Sub Main()
         Dim number As Integer = 8
@@ -3325,7 +3325,7 @@ Module Module1
     End Sub
 End Module
             </file>
-                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3338,7 +3338,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyHandlesClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
             Imports System
 
         Public Class ContainerClass
@@ -3365,7 +3365,7 @@ End Module
             End Sub
         End Class
                         </file>
-                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3380,7 +3380,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyKeywordEventContainerSyntax()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Imports System
 Module Module1
     Sub Main()
@@ -3401,7 +3401,7 @@ Class ContainerClass
     End Class
 End Class
     </file>
-                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3414,7 +3414,7 @@ End Class
         Public Sub SyntaxWalkerMethod_VerifyOmmittedArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
             Imports System
 
 Module Module1
@@ -3426,7 +3426,7 @@ Module Module1
     End Sub
 End Module
     </file>
-                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3439,7 +3439,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyMidExpressionClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
         Module Module1
             Sub Main()
                 Dim s As String = "abcdef"
@@ -3450,7 +3450,7 @@ End Module
         End Module
 
             </file>
-                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3463,7 +3463,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyAggregateClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
                 Module Module1
                 Sub main()
                      Dim words() = {"cherry", "apple", "blueberry", "cherry"}
@@ -3473,7 +3473,7 @@ End Module
                 End Sub
                 End Module            
     </file>
-                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3486,7 +3486,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyDirectives()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -3511,7 +3511,7 @@ Module Program
 #End Region
 End Module
                             </file>
-                                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3533,7 +3533,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyPartitionClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
         Module Module1
             Sub Main()        
               Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -3542,7 +3542,7 @@ End Module
             End Sub
         End Module          
             </file>
-                                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3555,7 +3555,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyPartitionWhileClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                 <file name="Test.vb">
+    <file name="Test.vb">
                 Module Module1
                     Sub Main()        
                    Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -3565,7 +3565,7 @@ End Module
                     End Sub
                 End Module          
     </file>
-                                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3578,7 +3578,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyRangeArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                     <file name="Test.vb">
+    <file name="Test.vb">
         Imports System
         Module Module1
             Sub Main()
@@ -3586,7 +3586,7 @@ End Module
             End Sub
         End Module
     </file>
-                                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3599,7 +3599,7 @@ End Module
         Public Sub SyntaxWalkerMehhod_VerifyXMLBracketName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                         <file name="Test.vb">
+    <file name="Test.vb">
         Imports System
 Module Module1
     Sub Main()
@@ -3611,7 +3611,7 @@ Module Module1
     End Sub
 End Module
                     </file>
-                                                                                                                                                                                                                                                     </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3624,12 +3624,12 @@ End Module
         Public Sub SyntaxWalkerMehthod_VerifyImcompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                             <file name="Test.vb">
+    <file name="Test.vb">
                  &lt;Dim:clscompliant(true)&gt;
                     Module Module1
                     End Module
                     </file>
-                                                                                                                                                                                                                                                         </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3642,14 +3642,14 @@ End Module
         Public Sub SyntaxWalkerMehthod_VerifySkippedTokenTriva()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                                 <file name="Test.vb">                
+    <file name="Test.vb">                
                     OptImports System
                     Module Module1
                     Sub main
                     End Sub
                     End Module
                     </file>
-                                                                                                                                                                                                                                                             </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
@@ -3662,7 +3662,7 @@ End Module
         Public Sub SyntaxWalkerMehthod_VerifyInferredFieldName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                                     <file name="Test.vb">                
+    <file name="Test.vb">                
 Imports System
 Module Module1
     Sub Main()
@@ -3672,7 +3672,7 @@ Module Module1
     End Sub
 End Module
                     </file>
-                                                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()

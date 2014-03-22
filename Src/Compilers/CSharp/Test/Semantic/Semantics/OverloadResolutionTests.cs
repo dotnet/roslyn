@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6858,6 +6858,283 @@ class C
     //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44)
                 );
+        }
+
+        [Fact]
+        public void IndexMemberAccessErr()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int[] arr = null;
+        var x = arr.$foo;
+
+        var v = v.$bar;
+
+        var d = new Dictionary<int, long>();
+        var dv = d.$moo;
+
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (9,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+    //         var x = arr.$foo;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "$foo").WithArguments("string", "int").WithLocation(9, 21),
+    // (11,17): error CS0841: Cannot use local variable 'v' before it is declared
+    //         var v = v.$bar;
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "v").WithArguments("v").WithLocation(11, 17),
+    // (14,20): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+    //         var dv = d.$moo;
+    Diagnostic(ErrorCode.ERR_BadArgType, "$moo").WithArguments("1", "string", "int").WithLocation(14, 20),
+    // (11,17): error CS0165: Use of unassigned local variable 'v'
+    //         var v = v.$bar;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "v").WithArguments("v").WithLocation(11, 17)
+);
+        }
+
+        [Fact]
+        public void IndexMemberAccessErr002()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int[] arr = null;
+        var x = arr.$foo;
+
+        var v = v.$bar;
+
+        var d = new Dictionary<int, long>();
+        var dv = d.$moo;
+
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (9,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+    //         var x = arr.$foo;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "$foo").WithArguments("string", "int").WithLocation(9, 21),
+    // (11,17): error CS0841: Cannot use local variable 'v' before it is declared
+    //         var v = v.$bar;
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "v").WithArguments("v").WithLocation(11, 17),
+    // (14,20): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+    //         var dv = d.$moo;
+    Diagnostic(ErrorCode.ERR_BadArgType, "$moo").WithArguments("1", "string", "int").WithLocation(14, 20),
+    // (11,17): error CS0165: Use of unassigned local variable 'v'
+    //         var v = v.$bar;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "v").WithArguments("v").WithLocation(11, 17)
+);
+        }
+
+        [Fact]
+        public void IndexMemberAccessErr003()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<int, int>() {$aaa = 3};
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (8,45): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+    //         var d = new Dictionary<int, int>() {$aaa = 3};
+    Diagnostic(ErrorCode.ERR_BadArgType, "$aaa").WithArguments("1", "string", "int").WithLocation(8, 45)
+);
+        }
+
+        [Fact]
+        public void IndexMemberAccessErr004()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new int[] {$aaa = 3 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (8,28): error CS1003: Syntax error, ',' expected
+    //         var d = new int[] {$aaa = 3 };
+    Diagnostic(ErrorCode.ERR_SyntaxError, "$").WithArguments(",", "$").WithLocation(8, 28),
+    // (8,29): error CS0103: The name 'aaa' does not exist in the current context
+    //         var d = new int[] {$aaa = 3 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "aaa").WithArguments("aaa").WithLocation(8, 29),
+    // (2,1): info CS8019: Unnecessary using directive.
+    // using System.Collections.Generic;
+    Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
+);
+        }
+
+
+        [Fact]
+        public void IndexMemberAccessErr005()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<int, int>() {[""aaa""] = 3};
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (8,46): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+    //         var d = new Dictionary<int, int>() {["aaa"] = 3};
+    Diagnostic(ErrorCode.ERR_BadArgType, @"""aaa""").WithArguments("1", "string", "int").WithLocation(8, 46)
+);
+        }
+
+        [Fact]
+        public void IndexMemberAccessErr006()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new int[] {[1] = 3 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (8,28): error CS1513: } expected
+    //         var d = new int[] {[1] = 3 };
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(8, 28),
+    // (8,36): error CS1002: ; expected
+    //         var d = new int[] {[1] = 3 };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 36),
+    // (8,37): error CS1597: Semicolon after method or accessor block is not valid
+    //         var d = new int[] {[1] = 3 };
+    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(8, 37),
+    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
+    // (2,1): info CS8019: Unnecessary using directive.
+    // using System.Collections.Generic;
+    Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
+);
+        }
+
+
+        [Fact]
+        public void IndexedMemberSymInfo001()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<string, int>();
+        System.Console.WriteLine(d.$foo);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = tree.GetRoot().DescendantNodes().OfType<IndexedNameSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(syntax);
+            var symbol = symbolInfo.Symbol;
+
+            Assert.Equal("System.Int32 System.Collections.Generic.Dictionary<System.String, System.Int32>.this[System.String key] { get; set; }", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void IndexedMemberSymInfo002()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<string, int>() {$aaa = 3};
+        System.Console.WriteLine(d[""aaa""]);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = tree.GetRoot().DescendantNodes().OfType<IndexedNameSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(syntax);
+            var symbol = symbolInfo.Symbol;
+
+            Assert.Equal("System.Int32 System.Collections.Generic.Dictionary<System.String, System.Int32>.this[System.String key] { get; set; }", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void IndexedMemberSymInfo003()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<string, int>() {[""foo""] = 3};
+        System.Console.WriteLine(d.$foo);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(syntax);
+            var symbol = symbolInfo.Symbol;
+
+            Assert.Equal("System.Int32 System.Collections.Generic.Dictionary<System.String, System.Int32>.this[System.String key] { get; set; }", symbol.ToTestDisplayString());
         }
     }
 }

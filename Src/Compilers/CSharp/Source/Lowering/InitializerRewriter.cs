@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class InitializerRewriter
     {
-        internal static BoundStatementList Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol constructor)
+        internal static BoundTypeOrInstanceInitializers Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol constructor)
         {
             Debug.Assert(!boundInitializers.IsDefault);
 
@@ -30,24 +30,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Mark this as CompilerGenerated so that the local rewriter doesn't add a sequence point.
                         boundStatements[i] =
-                            new BoundExpressionStatement(syntax,
-                                new BoundAssignmentOperator(syntax,
-                                    new BoundFieldAccess(syntax,
-                                        boundReceiver,
-                                        fieldInit.Field,
+                            new BoundExpressionStatement(syntax, 
+                                new BoundAssignmentOperator(syntax, 
+                                    new BoundFieldAccess(syntax, 
+                                        boundReceiver, 
+                                        fieldInit.Field, 
                                         constantValueOpt: null),
                                     fieldInit.InitialValue,
                                     fieldInit.Field.Type)
                         { WasCompilerGenerated = true })
                         { WasCompilerGenerated = true };
-
+                        
                         Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
                         Debug.Assert(syntax.Parent.Kind == SyntaxKind.EqualsValueClause);
-                        Debug.Assert(syntax.Parent.Parent.Kind == SyntaxKind.VariableDeclarator);
-                        Debug.Assert(syntax.Parent.Parent.Parent.Kind == SyntaxKind.VariableDeclaration);
-
+                        switch (syntax.Parent.Parent.Kind)
+                        {
+                            case SyntaxKind.VariableDeclarator:
                         var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
                         boundStatements[i] = LocalRewriter.AddSequencePoint(declaratorSyntax, boundStatements[i]);
+                        break;
+
+                            case SyntaxKind.PropertyDeclaration:
+                                var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
+                                boundStatements[i] = LocalRewriter.AddSequencePoint(declaration, boundStatements[i]);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.Unreachable;
+                        }
                         break;
 
                     case BoundKind.GlobalStatementInitializer:
@@ -58,14 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var submissionResultVariable = new BoundParameter(syntax, constructor.Parameters[1]);
                             var expr = ((BoundExpressionStatement)stmtInit.Statement).Expression;
-
+                            
                             // The expression is converted to the submission result type when the initializer is bound, 
                             // so we just need to assign it to the out parameter:
                             if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
                             {
                                 boundStatements[i] =
-                                    new BoundExpressionStatement(syntax,
-                                        new BoundAssignmentOperator(syntax,
+                                    new BoundExpressionStatement(syntax, 
+                                        new BoundAssignmentOperator(syntax, 
                                             submissionResultVariable,
                                             expr,
                                             expr.Type
@@ -96,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 listSyntax = constructor.GetNonNullSyntaxNode();
             }
 
-            return new BoundStatementList(listSyntax, boundStatements.AsImmutableOrNull());
+            return new BoundTypeOrInstanceInitializers(listSyntax, boundStatements.AsImmutableOrNull());
         }
     }
 }

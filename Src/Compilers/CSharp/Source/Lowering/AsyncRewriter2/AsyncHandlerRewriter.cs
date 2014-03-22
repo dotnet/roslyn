@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: null,
@@ -547,18 +547,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         setPendingCatchNum));
 
                 // catch local lives on the synthetic catch handler block
-                handlerLocals = node.LocalOpt == null ?
-                                ImmutableArray<LocalSymbol>.Empty :
-                                ImmutableArray.Create(node.LocalOpt);
+                handlerLocals = node.Locals;
             }
             else
             {
                 // catch local moves up into hoisted locals
                 // since we might need to access it from both the filter and the catch
                 handlerLocals = ImmutableArray<LocalSymbol>.Empty;
-                if (node.LocalOpt != null)
+                if (!node.Locals.IsDefaultOrEmpty)
                 {
-                    currentAwaitCatchFrame.HoistLocal(node.LocalOpt, F);
+                    currentAwaitCatchFrame.HoistLocal(node.Locals, F);
                 }
 
                 // store pending exception 
@@ -575,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     rewrittenFilter);
 
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: newFilter,
@@ -941,6 +939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.pendingCatch = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32));
                 this.handlers = new List<BoundBlock>();
                 this.hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
+            }
+
+            internal void HoistLocal(ImmutableArray<LocalSymbol> locals, SyntheticBoundNodeFactory F)
+            {
+                foreach (var l in locals)
+                {
+                    HoistLocal(l, F);
+                }
             }
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)

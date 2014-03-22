@@ -376,6 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use primary constructor parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor..
+        /// </summary>
+        internal static string ERR_AnonDelegateCantUsePrimaryConstructorParameter {
+            get {
+                return ResourceManager.GetString("ERR_AnonDelegateCantUsePrimaryConstructorParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?.
         /// </summary>
         internal static string ERR_AnonMethGrpInForEach {
@@ -709,11 +718,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors..
+        ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
-        internal static string ERR_AutoPropertiesMustHaveBothAccessors {
+        internal static string ERR_AutoPropertyInitializerInInterface {
             get {
-                return ResourceManager.GetString("ERR_AutoPropertiesMustHaveBothAccessors", resourceCulture);
+                return ResourceManager.GetString("ERR_AutoPropertyInitializerInInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented properties must have get accessors..
+        /// </summary>
+        internal static string ERR_AutoPropertyMustHaveGetAccessor {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyMustHaveGetAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented properties must have set accessors or initializers..
+        /// </summary>
+        internal static string ERR_AutoPropertyMustHaveSetOrInitializer {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyMustHaveSetOrInitializer", resourceCulture);
             }
         }
         
@@ -2905,6 +2932,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A declaration expression is not permitted in a variable-initializer of a field declaration, an attribute application, or in a class-base specification..
+        /// </summary>
+        internal static string ERR_DeclarationExpressionOutsideOfAMethodBody {
+            get {
+                return ResourceManager.GetString("ERR_DeclarationExpressionOutsideOfAMethodBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -4642,6 +4678,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor..
+        /// </summary>
+        internal static string ERR_InstanceCtorCannotHaveDefaultThisInitializer {
+            get {
+                return ResourceManager.GetString("ERR_InstanceCtorCannotHaveDefaultThisInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list])..
+        /// </summary>
+        internal static string ERR_InstanceCtorMustHaveThisInitializer {
+            get {
+                return ResourceManager.GetString("ERR_InstanceCtorMustHaveThisInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Structs without explicit constructors cannot contain members with initializers..
+        /// </summary>
+        internal static string ERR_InitializerInStructWithoutExplicitConstructor {
+            get {
+                return ResourceManager.GetString("ERR_InitializerInStructWithoutExplicitConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only auto-implemented properties can have a initializers..
+        /// </summary>
+        internal static string ERR_InitializerOnNonAutoProperty {
+            get {
+                return ResourceManager.GetString("ERR_InitializerOnNonAutoProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare instance members in a static class.
         /// </summary>
         internal static string ERR_InstanceMemberInStaticClass {
@@ -5007,6 +5079,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidSignaturePublicKey {
             get {
                 return ResourceManager.GetString("ERR_InvalidSignaturePublicKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor..
+        /// </summary>
+        internal static string ERR_InvalidUseOfRefOutPrimaryConstructorParameter {
+            get {
+                return ResourceManager.GetString("ERR_InvalidUseOfRefOutPrimaryConstructorParameter", resourceCulture);
             }
         }
         
@@ -6244,6 +6325,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An object reference is required for the parameter to a primary constructor &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_ObjectRequiredForPrimaryConstructorParameter {
+            get {
+                return ResourceManager.GetString("ERR_ObjectRequiredForPrimaryConstructorParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A /reference option that declares an extern alias can only have one filename. To specify multiple aliases or filenames, use multiple /reference options..
         /// </summary>
         internal static string ERR_OneAliasPerReference {
@@ -6762,6 +6852,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PredefinedTypeNotFound {
             get {
                 return ResourceManager.GetString("ERR_PredefinedTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constructor initializer cannot access the parameters to a primary constructor..
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterInConstructorInitializer {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterInConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as containing type.
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterSameNameAsContainingType {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsContainingType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as a type&apos;s type parameter &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterSameNameAsTypeParam {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsTypeParam", resourceCulture);
             }
         }
         
@@ -7410,6 +7527,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SemiOrLBraceExpected {
             get {
                 return ResourceManager.GetString("ERR_SemiOrLBraceExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only one part of a partial type can declare primary constructor parameters..
+        /// </summary>
+        internal static string ERR_SeveralPartialsDeclarePrimaryCtor {
+            get {
+                return ResourceManager.GetString("ERR_SeveralPartialsDeclarePrimaryCtor", resourceCulture);
             }
         }
         
@@ -8175,6 +8301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VariableUsedBeforeDeclarationAndHidesField {
             get {
                 return ResourceManager.GetString("ERR_VariableUsedBeforeDeclarationAndHidesField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to variable &apos;{0}&apos; is not permitted in this context..
+        /// </summary>
+        internal static string ERR_VariableUsedInTheSameArgumentList {
+            get {
+                return ResourceManager.GetString("ERR_VariableUsedInTheSameArgumentList", resourceCulture);
             }
         }
         

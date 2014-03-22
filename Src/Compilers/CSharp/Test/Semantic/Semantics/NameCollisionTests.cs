@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -562,11 +562,7 @@ class Base
                 // (9,17): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in 
                 // this scope because that name is used in an enclosing local scope to refer to field 'Derived.name1'
                 // int name1 = 3, other = name1, name2 = other;  
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"),
-                // (9,43): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in 
-                // this scope because that name is used in an enclosing local scope to refer to field 'Base.name2'
-                // int name1 = 3, other = name1, name2 = other; 
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Base.name2", "name2", "field"));
+                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"));
         }
 
         [Fact]

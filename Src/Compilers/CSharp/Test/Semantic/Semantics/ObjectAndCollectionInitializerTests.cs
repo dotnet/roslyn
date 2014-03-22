@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1518,6 +1518,7 @@ class Program
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
         {
             var source = @"
+using System.Collections.Generic;
 class Program
 {
     static void Main(string[] args)
@@ -1530,24 +1531,12 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,13): error CS1003: Syntax error, ',' expected
+                // (10,18): error CS1513: } expected
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", ""),
-                // (9,18): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(10, 18),
+                // (10,9): error CS1501: No overload for method 'Add' takes 1 arguments
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
-                // (6,21): error CS0246: The type or namespace name 'Dictionary<object, object>' could not be found (are you missing a using directive or an assembly reference?)
-                //         var d = new Dictionary<object, object>()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<object, object>"),
-                // (8,13): error CS0747: Invalid initializer member declarator
-                //             {"s", 1 },
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }"),
-                // (9,9): error CS0103: The name 'var' does not exist in the current context
-                //         var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var"),
-                // (9,9): error CS0747: Invalid initializer member declarator
-                //         var x = 1;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "var x = 1").WithArguments("Add", "1").WithLocation(10, 9));
         }
 
         [WorkItem(543961)]

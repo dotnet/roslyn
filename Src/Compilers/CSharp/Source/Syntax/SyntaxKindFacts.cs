@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 
@@ -138,18 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLanguagePunctuation(SyntaxKind kind)
         {
-            return IsPunctuation(kind) && !IsPreprocessorKeyword(kind) && !IsDebuggerSpecialPunctuation(kind);
+            return IsPunctuation(kind) && !IsPreprocessorKeyword(kind);
         }
 
         public static bool IsPreprocessorPunctuation(SyntaxKind kind)
         {
             return kind == SyntaxKind.HashToken;
-        }
-
-        private static bool IsDebuggerSpecialPunctuation(SyntaxKind kind)
-        {
-            // TODO: What about "<>f_AnonymousMethod"? Or "123#"? What's this used for?
-            return kind == SyntaxKind.DollarToken;
         }
 
         public static IEnumerable<SyntaxKind> GetPunctuationKinds()

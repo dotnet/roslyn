@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -3098,7 +3098,7 @@ End Module
             </errors>)
         ParseAndVerify(<![CDATA[
 Module M
-    Dim x = <x><%= {1, 2 3
+    Dim x = <x><%= {1, 2  3
 End Module
 ]]>,
             <errors>
@@ -3172,7 +3172,7 @@ End Module
             </errors>)
         ParseAndVerify(<![CDATA[
 Module M
-    Dim x = <x><%= If(1, 2 3 REM
+    Dim x = <x><%= If(1, 2  3 REM
 End Module
 ]]>,
             <errors>

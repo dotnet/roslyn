@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -203,13 +203,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenAccess;
             if (rewrittenLeft.Kind == BoundKind.ObjectInitializerMember)
             {
-                rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, (BoundObjectInitializerMember)rewrittenLeft, isRhsNestedInitializer);
-                if (!isRhsNestedInitializer)
+                var memberInit = (BoundObjectInitializerMember)rewrittenLeft;
+                if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
                 {
-                    // Rewrite simple assignment to field/property.
-                    var rewrittenRight = VisitExpression(assignment.Right);
-                    result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
-                    return;
+                    if (dynamicSiteInitializers == null)
+                    {
+                        dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+                    }
+
+                    if (!isRhsNestedInitializer)
+                    {
+                        var rewrittenRight = VisitExpression(assignment.Right);
+                        var setMember = dynamicFactory.MakeDynamicSetIndex(
+                            rewrittenReceiver, 
+                            memberInit.Arguments,
+                            default(ImmutableArray<string>),
+                            default(ImmutableArray<RefKind>),
+                            rewrittenRight);
+
+                        dynamicSiteInitializers.Add(setMember.SiteInitialization);
+                        result.Add(setMember.SiteInvocation);
+                        return;
+                    }
+
+                    var getMember = dynamicFactory.MakeDynamicGetIndex(
+                        rewrittenReceiver,
+                        memberInit.Arguments,
+                        default(ImmutableArray<string>),
+                        default(ImmutableArray<RefKind>));
+
+                    dynamicSiteInitializers.Add(getMember.SiteInitialization);
+                    rewrittenAccess = getMember.SiteInvocation;
+                }
+                else
+                {
+                    rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
+                    if (!isRhsNestedInitializer)
+                {
+                        // Rewrite simple assignment to field/property.
+                        var rewrittenRight = VisitExpression(assignment.Right);
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
+                        return;
+                    }
                 }
             }
             else
@@ -243,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var memberSymbol = rewrittenLeft.MemberSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Debug.Assert(this.compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
+            Debug.Assert(memberSymbol == null ||
+                this.compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 
             switch (memberSymbol.Kind)
@@ -254,13 +290,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Property:
                     var propertySymbol = (PropertySymbol)memberSymbol;
-                    if (propertySymbol.IsIndexedProperty)
+                    var arguments = rewrittenLeft.Arguments;
+                    if (!arguments.IsEmpty || propertySymbol.IsIndexedProperty)
                     {
                         return MakeIndexerAccess(
                             rewrittenLeft.Syntax,
                             rewrittenReceiver,
                             propertySymbol,
-                            ImmutableArray<BoundExpression>.Empty,
+                            arguments,
                             default(ImmutableArray<string>),
                             default(ImmutableArray<RefKind>),
                             expanded: false,

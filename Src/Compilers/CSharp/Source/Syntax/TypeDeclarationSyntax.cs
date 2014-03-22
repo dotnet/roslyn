@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case SyntaxKind.ClassDeclaration:
-                    return SyntaxFactory.ClassDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.ClassDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.StructDeclaration:
-                    return SyntaxFactory.StructDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.StructDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:

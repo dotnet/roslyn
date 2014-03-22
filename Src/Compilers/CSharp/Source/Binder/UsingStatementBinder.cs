@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,18 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (syntax.Declaration != null)
-            {
-                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
-                {
-                    locals.Add(SourceLocalSymbol.MakeLocal(this.Owner, this, syntax.Declaration.Type, declarator.Identifier, declarator.Initializer, LocalDeclarationKind.Using));
-                }
-
-                return locals.ToImmutable();
-            }
-
-            return ImmutableArray<LocalSymbol>.Empty;
+            return BuildLocals(syntax);
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables
@@ -55,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
             bool hasErrors = false;
-            ImmutableArray<LocalSymbol> localsOpt = default(ImmutableArray<LocalSymbol>);
             BoundMultipleLocalDeclarations declarationsOpt = null;
             BoundExpression expressionOpt = null;
             Conversion iDisposableConversion = Conversion.NoConversion;
@@ -84,9 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ImmutableArray<BoundLocalDeclaration> declarations;
-                BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.Using, diagnostics, out localsOpt, out declarations);
+                BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.Using, diagnostics, out declarations);
 
-                Debug.Assert(!localsOpt.IsEmpty);
                 Debug.Assert(!declarations.IsEmpty);
 
                 declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
@@ -119,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundUsingStatement(
                 syntax,
-                localsOpt,
+                this.Locals,
                 declarationsOpt,
                 expressionOpt,
                 iDisposableConversion,

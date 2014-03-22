@@ -1946,6 +1946,31 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
+        <Fact>
+        Public Sub GetDeclaredSymbol_CaseTypeClause()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="GetDeclaredSymbol_CaseTypeClause">
+        <file name="Program.vb">
+Module M
+    Sub Main()
+        Select Case New Object()
+            Case s As String
+        End Select
+    End Sub
+End Module
+    </file>
+    </compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of CaseTypeClauseSyntax).Single()
+
+            Dim symbol = compilation.GetSemanticModel(tree).GetDeclaredSymbol(node)
+
+            Assert.NotNull(symbol)
+            Assert.Equal(SymbolKind.Local, symbol.Kind)
+            Assert.Equal("s", symbol.Name)
+        End Sub
+
 #Region "ObjectInitializer"
 
         <Fact()>

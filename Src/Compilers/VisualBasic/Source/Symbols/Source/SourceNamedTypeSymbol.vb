@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     allowableModifiers = SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Partial
                     typeBlock = DirectCast(node, TypeBlockSyntax)
                     modifiers = typeBlock.Begin.Modifiers
-                    id = typeBlock.Begin.Identifier
+                id = typeBlock.Begin.Identifier
 
                 Case SyntaxKind.ClassBlock
                     err = ERRID.ERR_BadClassFlags1

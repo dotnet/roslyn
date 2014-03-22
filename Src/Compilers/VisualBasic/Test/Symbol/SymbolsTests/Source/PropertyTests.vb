@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
@@ -8169,7 +8169,7 @@ End Class
             Assert.Same(accessor.AssociatedPropertyOrEvent, associatedProperty)
             Assert.Equal(accessor.MethodKind, methodKind)
             If associatedProperty IsNot Nothing Then
-                Dim method = If((methodKind = MethodKind.PropertyGet), associatedProperty.GetMethod, associatedProperty.SetMethod)
+                Dim method = If((methodKind = methodKind.PropertyGet), associatedProperty.GetMethod, associatedProperty.SetMethod)
                 Assert.Same(accessor, method)
             End If
         End Sub

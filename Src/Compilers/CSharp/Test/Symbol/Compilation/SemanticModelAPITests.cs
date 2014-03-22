@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1656,6 +1656,56 @@ foreach(short ele in a)
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentProperty.GetMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestGetSpeculativeSemanticModelInAutoPropInitializer1()
+        {
+            var source = @"class C
+{
+    int y = 0;
+    int X { get; } = 1;
+}";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            var tree = comp.SyntaxTrees.Single();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.False(model.IsSpeculativeSemanticModel);
+            Assert.Null(model.ParentModel);
+            Assert.Equal(0, model.OriginalPositionForSpeculation);
+
+            // Speculate on the initializer
+            var root = tree.GetCompilationUnitRoot();
+            var oldSyntax = root.DescendantNodes()
+                .OfType<EqualsValueClauseSyntax>().ElementAt(1);
+            var position = oldSyntax.SpanStart;
+            var newSyntax = SyntaxFactory.EqualsValueClause(
+                SyntaxFactory.ParseExpression("this.y"));
+            var expr = newSyntax.Value;
+
+            SemanticModel speculativeModel;
+            bool success = model.TryGetSpeculativeSemanticModel(oldSyntax.SpanStart,
+                newSyntax, out speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
+            Assert.True(speculativeModel.IsSpeculativeSemanticModel);
+            Assert.Equal(model, speculativeModel.ParentModel);
+            Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
+
+            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            Assert.NotNull(typeInfo);
+            Assert.Equal("Int32", typeInfo.Type.Name);
+
+            var thisSyntax = expr.DescendantNodes().OfType<ThisExpressionSyntax>().Single();
+            var symbolInfo = speculativeModel.GetSpeculativeSymbolInfo(
+                thisSyntax.SpanStart,
+                thisSyntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.NotNull(symbolInfo);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(1, candidates.Length);
+            Assert.IsType<ThisParameterSymbol>(candidates[0]);
+            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
 
         [Fact]

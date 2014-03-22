@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Xml.Linq
@@ -4193,6 +4193,37 @@ End Module
             ' without any data loss. Note: This is special for literal constants.
             Assert.True(conversion.IsWidening)
             Assert.True(conversion.IsNumeric)
+        End Sub
+
+        <Fact>
+        Public Sub TestTryCastNullableType()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim obj As Object = 1
+
+        Dim i = TryCast(obj, Integer?)
+
+        Write(i.HasValue)
+        Write(If(i.HasValue, i.Value.ToString(), "Null"))
+
+        Dim l = TryCast(obj, Long?)
+
+        Write(l.HasValue)
+        Write(If(l.HasValue, l.Value.ToString(), "Null"))
+        
+    End Sub
+End Module   
+    </file>
+</compilation>,
+expectedOutput:="True1FalseNull")
+
         End Sub
 
         <WorkItem(544620)>

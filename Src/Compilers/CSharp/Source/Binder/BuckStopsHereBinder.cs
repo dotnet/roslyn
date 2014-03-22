@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -134,15 +134,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a ForLoopBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -155,6 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics)
         {
             // There's supposed to be a LockBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundIfStatement BindIfParts(DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a IfBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 

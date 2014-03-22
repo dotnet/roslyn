@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -1755,10 +1755,18 @@ lUnsplitAndFinish:
                             VisitCaseValueClause(DirectCast(clause, BoundCaseValueClause))
                         Case BoundKind.CaseRangeClause
                             VisitCaseRangeClause(DirectCast(clause, BoundCaseRangeClause))
+                        Case BoundKind.CaseIdentityClause
+                            VisitCaseIdentityClause(DirectCast(clause, BoundCaseIdentityClause))
+                        Case BoundKind.CaseTypeClause
+                            VisitCaseTypeClause(DirectCast(clause, BoundCaseTypeClause))
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
                     End Select
                 Next
+
+                If node.FilterOpt IsNot Nothing Then
+                    VisitRvalue(node.FilterOpt)
+                End If
             End If
 
             Return Nothing
@@ -1809,6 +1817,17 @@ lUnsplitAndFinish:
                 VisitRvalue(node.UpperBoundConditionOpt)
             End If
 
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitCaseIdentityClause(node As BoundCaseIdentityClause) As BoundNode
+
+            VisitRvalue(node.Operand)
+
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitCaseTypeClause(node As BoundCaseTypeClause) As BoundNode
             Return Nothing
         End Function
 

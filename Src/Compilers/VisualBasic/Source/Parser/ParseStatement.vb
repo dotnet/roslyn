@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Parser
@@ -243,6 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim caseClauses = _pool.AllocateSeparated(Of CaseClauseSyntax)()
             Dim elseKeyword As KeywordSyntax = Nothing
 
+            Dim whenClause As CaseWhenClauseSyntax = Nothing
+
             If CurrentToken.Kind = SyntaxKind.ElseKeyword Then
                 elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
                 GetNextToken() '// get off ELSE
@@ -276,14 +278,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                             caseClause = SyntaxFactory.CaseRelationalClause(RelationalOperatorKindToCaseKind(relationalOperator.Kind), optionalIsKeyword, relationalOperator, CaseExpr)
 
-                        Else
+                        ElseIf SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
                             ' Since we saw IS, create a relational case.
                             ' This helps intellisense do a drop down of
                             ' the operators that can follow "Is".
                             Dim relationalOperator = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ExpectedRelational)
 
                             caseClause = ResyncAt(InternalSyntaxFactory.CaseRelationalClause(SyntaxKind.CaseEqualsClause, optionalIsKeyword, relationalOperator, InternalSyntaxFactory.MissingExpression))
+
+                        Else
+
+                            Dim expression = ParseExpression()
+
+                            caseClause = SyntaxFactory.CaseIsClause(optionalIsKeyword, expression)
+
                         End If
+                    ElseIf StartCase = SyntaxKind.IsNotKeyword Then
+
+                        Dim isNotKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                        GetNextToken()
+
+                        Dim expression = ParseExpression()
+
+                        caseClause = SyntaxFactory.CaseIsNotClause(isNotKeyword, expression)
+
+                    ElseIf StartCase = SyntaxKind.IdentifierToken AndAlso PeekNextToken().Kind = SyntaxKind.AsKeyword Then
+
+                        Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
+                        GetNextToken()
+
+                        Dim asKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                        GetNextToken()
+
+                        Dim type = ParseGeneralType()
+
+                        caseClause = SyntaxFactory.CaseTypeClause(identifier, SyntaxFactory.SimpleAsClause(asKeyword, Nothing, type))
 
                     Else
 
@@ -313,6 +342,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
+
+                        If CurrentToken.Kind = SyntaxKind.WhenKeyword Then
+                            Dim whenKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                            GetNextToken()
+
+                            Dim filterExpression = ParseExpression()
+
+                            whenClause = SyntaxFactory.CaseWhenClause(whenKeyword, filterExpression)
+                        End If
+
                         Exit Do
                     End If
 
@@ -327,9 +366,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim statement As CaseStatementSyntax
 
             If elseKeyword Is Nothing Then
-                statement = SyntaxFactory.CaseStatement(caseKeyword, separatedCaseClauses)
+                statement = SyntaxFactory.CaseStatement(caseKeyword, separatedCaseClauses, whenClause)
             Else
-                statement = SyntaxFactory.CaseElseStatement(caseKeyword, separatedCaseClauses)
+                statement = SyntaxFactory.CaseElseStatement(caseKeyword, separatedCaseClauses, whenClause:=Nothing)
             End If
 
             Return statement

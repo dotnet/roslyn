@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,27 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected SymbolCompletionState state;
         protected readonly SourceMemberContainerTypeSymbol containingType;
-        private readonly string name;
-        private readonly Location location;
-        private readonly SyntaxReference syntaxReference;
-
-        private string lazyDocComment;
         private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
 
         private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
         private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
-        protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
+        protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
-            Debug.Assert(name != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(location != null);
 
             this.containingType = containingType;
-            this.name = name;
-            this.syntaxReference = syntax;
-            this.location = location;
         }
 
         internal sealed override bool RequiresCompletion
@@ -57,29 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.DefaultForceComplete(this);
         }
 
-        public SyntaxTree SyntaxTree
-        {
-            get
-            {
-                return this.syntaxReference.SyntaxTree;
-            }
-        }
-
-        public CSharpSyntaxNode SyntaxNode
-        {
-            get
-            {
-                return (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
-            }
-        }
-
-        public sealed override string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public abstract override string Name { get; }
 
         public sealed override Symbol ContainingSymbol
         {
@@ -97,45 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(location, this.DeclaringCompilation);
-        }
-
-        public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray.Create(location);
-            }
-        }
-
-        internal Location Location
-        {
-            get
-            {
-                return location;
-            }
-        }
-
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>(syntaxReference);
-            }
-        }
-
-        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
-        }
+        internal abstract Location Location { get; }
 
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
         /// </summary>
         protected abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
-
+        
         protected virtual IAttributeTargetSymbol AttributeOwner
         {
             get { return this; }
@@ -228,17 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
-            CSharpAttributeData boundAttribute;
-            ObsoleteAttributeData obsoleteData;
-
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            bool hasAnyDiagnostics;
+            
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ObsoleteAttribute))
             {
-                if (obsoleteData != null)
+                var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+            {
+                    arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = boundAttribute.DecodeObsoleteAttribute();
+                    if (!hasAnyDiagnostics)
                 {
-                    arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+                        return boundAttribute;
+                    }
                 }
 
-                return boundAttribute;
+                return null;
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -462,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
         {
-            get
+            get 
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null ? data.MarshallingInformation : null;
@@ -471,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int? TypeLayoutOffset
         {
-            get
+            get 
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null ? data.Offset : null;
@@ -574,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = DiagnosticBag.GetInstance();
             if (startsCycle)
             {
-                diagnostics.Add(ErrorCode.ERR_CircConstValue, this.location, this);
+                diagnostics.Add(ErrorCode.ERR_CircConstValue, this.Location, this);
             }
 
             var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
@@ -620,5 +559,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
+    }
+
+
+    internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
+    {
+        private readonly string name;
+        private readonly Location location;
+        private readonly SyntaxReference syntaxReference;
+
+        private string lazyDocComment;
+
+        protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
+            : base(containingType)
+        {
+            Debug.Assert(name != null);
+            Debug.Assert(syntax != null);
+            Debug.Assert(location != null);
+
+            this.name = name;
+            this.syntaxReference = syntax;
+            this.location = location;
+        }
+
+        public SyntaxTree SyntaxTree
+        {
+            get
+            {
+                return this.syntaxReference.SyntaxTree;
+            }
+        }
+
+        public CSharpSyntaxNode SyntaxNode
+        {
+            get
+            {
+                return (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
+            }
+        }
+
+        public sealed override string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
+
+        internal override LexicalSortKey GetLexicalSortKey()
+        {
+            return new LexicalSortKey(location, this.DeclaringCompilation);
+        }
+
+        public sealed override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray.Create(location);
+            }
+        }
+
+        internal sealed override Location Location
+        {
+            get
+            {
+                return location;
+            }
+        }
+
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return ImmutableArray.Create<SyntaxReference>(syntaxReference);
+            }
+        }
+
+        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+        }
     }
 }

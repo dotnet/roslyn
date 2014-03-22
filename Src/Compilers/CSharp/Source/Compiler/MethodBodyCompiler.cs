@@ -302,8 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var processedInstanceInitializers = new ProcessedFieldInitializers();
 
             var sourceTypeSymbol = symbol as SourceMemberContainerTypeSymbol;
+            MethodSymbol primaryCtor = null;
+
             if ((object)sourceTypeSymbol != null)
             {
+                primaryCtor = sourceTypeSymbol.PrimaryCtor;
                 BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.StaticInitializers, this.generateDebugInfo, ref processedStaticInitializers);
                 BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.InstanceInitializers, this.generateDebugInfo, ref processedInstanceInitializers);
 
@@ -346,6 +349,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     continue;
                                 }
+                            }
+
+                            if ((object)primaryCtor == (object)method)
+                            {
+                                // Primary constructor must be compiled last. We need to figure out what parameters should have backing 
+                                // fields before it can be compiled, which means all other methods should be compiled first.
+                                continue;
                             }
 
                             ProcessedFieldInitializers processedInitializers =
@@ -446,6 +456,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(scriptCtor.IsSubmissionConstructor);
                 CompileMethod(scriptCtor, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
                 synthesizedSubmissionFields.AddToType(scriptCtor.ContainingType, compilationState.ModuleBuilder);
+            }
+
+            // Now compile primary constructor, if any.
+            if ((object)primaryCtor != null)
+            {
+                Debug.Assert(primaryCtor.MethodKind == MethodKind.Constructor);
+                CompileMethod(primaryCtor, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
             }
 
             //  Emit synthesized methods produced during lowering if any
@@ -700,6 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool includeInitializersInBody;
+                bool isPrimaryCtor = false;
                 BoundBlock body;
 
                 // if synthesized method returns its body in lowered form
@@ -715,14 +733,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 //EDMAURER initializers that have been analyzed but not yet lowered.
-                BoundStatementList analyzedInitializers = null;
+                BoundTypeOrInstanceInitializers analyzedInitializers = null;
 
                 ConsList<Imports> debugImports;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
                     // rewrite top-level statements and script variable declarations to a list of statements and assignments, respectively:
-                    BoundStatementList initializerStatements = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol);
+                    BoundTypeOrInstanceInitializers initializerStatements = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = new BoundBlock(initializerStatements.Syntax, ImmutableArray<LocalSymbol>.Empty, initializerStatements.Statements) { WasCompilerGenerated = true };
@@ -732,8 +750,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // do not emit initializers if we are invoking another constructor of this class:
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && !HasThisConstructorInitializer(methodSymbol);
+                    // Do not emit initializers if we are invoking another constructor of this class.
+
+                    // Also, in presence of primary constructor, do not process initializers for a non-primary instance constructor.
+                    // Even when non-primary instance constructor doesn't invoke another constructor of this class, this is an error
+                    // condition which is reported elsewhere. 
+                    SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
+                    isPrimaryCtor = ((object)container != null && (object)container.PrimaryCtor == (object)methodSymbol);
+                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
+                                                !HasThisConstructorInitializer(methodSymbol) &&
+                                                (methodSymbol.IsStatic || 
+                                                 isPrimaryCtor || (object)container == null || (object)container.PrimaryCtor == null);
+
+                    body = Compiler.BindMethodBody(methodSymbol, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -744,13 +773,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
+                        if (body == null || !isPrimaryCtor)
+                        {
                         // These analyses check for diagnostics in lambdas.
                         // Control flow analysis and implicit return insertion are unnecessary.
                         DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                         DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                     }
-
-                    body = Compiler.BindMethodBody(methodSymbol, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
+                        else 
+                        {
+                            // In order to get correct diagnostics, we need to analyze initializers and the body together.
+                            // We will not be repeating this analysis for other constructors.
+                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                            includeInitializersInBody = false;
+                            analyzedInitializers = null;
+                        }
+                    }
                 }
 
 #if DEBUG
@@ -773,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Associate these debug imports with all methods generated from this one.
                 compilationState.CurrentDebugImports = debugImports;
 
-                if (body != null && methodSymbol is SourceMethodSymbol)
+                if (body != null && (object)sourceMethod != null)
                 {
                     // TODO: Do we need to issue warnings for non-SourceMethodSymbol methods, like synthesized ctors?
                     DiagnosticsPass.IssueDiagnostics(compilation, body, diagsForCurrentMethod, methodSymbol);
@@ -845,6 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 compilationState,
                                 diagsForCurrentMethod);
 
+                            Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
                             Debug.Assert(!hasErrors);
                             hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
                             SetGlobalErrorIfTrue(hasErrors);

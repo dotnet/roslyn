@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -837,11 +837,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 builder.MarkLabel(typeCheckPassedLabel);
             }
 
-            if ((object)catchBlock.LocalOpt != null && !IsStackLocal(catchBlock.LocalOpt))
+            foreach (var local in catchBlock.Locals)
             {
-                var declaringReferences = catchBlock.LocalOpt.DeclaringSyntaxReferences;
+                if (IsStackLocal(local))
+                {
+                    continue;
+                }
+
+                var declaringReferences = local.DeclaringSyntaxReferences;
                 var localSyntax = !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : catchBlock.Syntax;
-                DefineLocal(catchBlock.LocalOpt, localSyntax);
+                DefineLocal(local, localSyntax);
             }
 
             var exceptionSourceOpt = catchBlock.ExceptionSourceOpt;
@@ -928,6 +933,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
+            Debug.Assert(switchStatement.OuterLocals.IsEmpty);
+
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)switchStatement.BoundExpression.Type != null);
             Debug.Assert(switchStatement.BoundExpression.Type.IsValidSwitchGoverningType());
@@ -969,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            EmitSwitchBody(switchStatement.LocalsOpt, switchSections, breakLabel, switchStatement.Syntax);
+            EmitSwitchBody(switchStatement.InnerLocalsOpt, switchSections, breakLabel, switchStatement.Syntax);
         }
 
         private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
@@ -1427,7 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // expressions do not contain labels or branches
                 BoundExpression boundExpression = node.BoundExpression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-                return node.Update(boundExpression, node.ConstantTargetOpt, node.LocalsOpt, switchSections, breakLabelClone, node.StringEquality);
+                Debug.Assert(node.OuterLocals.IsEmpty);
+                return node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, breakLabelClone, node.StringEquality);
             }
 
             public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)

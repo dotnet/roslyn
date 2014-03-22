@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Instrumentation
         CSharp_SemanticModel_ClassifyConversion,
         CSharp_SemanticModel_ClassifyConversionForCast,
         CSharp_SemanticModel_GetDeclaredSymbol,
+        CSharp_SemanticModel_GetDeclaredConstructorSymbol,
         CSharp_SemanticModel_ResolveOverloads,
         CSharp_SemanticModel_ResolveIndexerOverloads,
         CSharp_SemanticModel_GetDiagnostics,

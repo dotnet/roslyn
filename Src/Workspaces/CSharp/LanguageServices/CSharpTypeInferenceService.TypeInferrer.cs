@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1409,6 +1409,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
             {
                 var variableType = variableDeclarator.GetVariableType();
+                if (variableType == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                }
+
                 var types = GetTypes(variableType).Where(t => !IsUnusableType(t));
 
                 if (variableType.IsVar)

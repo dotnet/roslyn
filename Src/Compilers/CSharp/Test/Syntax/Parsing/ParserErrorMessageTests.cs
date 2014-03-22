@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -570,11 +570,11 @@ class MyClass
 ";
 
             ParseAndValidate(test,
-                // (8,15): error CS0443: Syntax error; value expected
-                //         if (x[,] == 5) {} // CS0443
+    // (8,15): error CS0443: Syntax error; value expected
+    //         if (x[,] == 5) {} // CS0443
     Diagnostic(ErrorCode.ERR_ValueExpected, ","),
-                // (8,16): error CS0443: Syntax error; value expected
-                //         if (x[,] == 5) {} // CS0443
+    // (8,16): error CS0443: Syntax error; value expected
+    //         if (x[,] == 5) {} // CS0443
     Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
 
@@ -876,7 +876,13 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordOn, "x") );
+            ParseAndValidate(test,
+    // (11,36): error CS0743: Expected contextual keyword 'on'
+    //                 join y in array2 x equals y
+    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordOn, "equals").WithLocation(11, 36),
+    // (11,36): error CS1525: Invalid expression term 'equals'
+    //                 join y in array2 x equals y
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "equals").WithArguments("equals").WithLocation(11, 36));
         }
 
         [Fact]
@@ -899,7 +905,13 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordEquals, "y"));
+            ParseAndValidate(test,
+    // (11,40): error CS0744: Expected contextual keyword 'equals'
+    //                 join y in array2 on x y
+    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordEquals, "").WithLocation(11, 40),
+    // (11,40): error CS1525: Invalid expression term 'select'
+    //                 join y in array2 on x y
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("select").WithLocation(11, 40));
         }
 
         [WorkItem(862121, "DevDiv/Personal")]
@@ -923,7 +935,13 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordBy, "y"));
+            ParseAndValidate(test,
+    // (12,26): error CS0745: Expected contextual keyword 'by'
+    //                 group x y;
+    Diagnostic(ErrorCode.ERR_ExpectedContextualKeywordBy, ";").WithLocation(12, 26),
+    // (12,26): error CS1525: Invalid expression term ';'
+    //                 group x y;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(12, 26));
         }
 
         [Fact]

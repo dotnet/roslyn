@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -880,13 +880,14 @@ public class Program
 }";
             // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
             // variables within the same declaration space. Roslyn on the other hand correctly reports the below error.
+            // But not with scope changes for Declaration Expressions.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (14,22): error CS0135: A local, parameter or range variable named 'count' cannot be declared 
+/*                // (14,22): error CS0135: A local, parameter or range variable named 'count' cannot be declared 
                 // in this scope because that name is used in an enclosing local scope to refer to field 
                 // 'Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count'
                 //             for (int count = 0; count < 10; count++)
                 Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "count")
-                    .WithArguments("Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count", "count", "field"));
+                    .WithArguments("Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count", "count", "field")*/);
         }
 
         [Fact, WorkItem(530301)]

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -1716,11 +1716,15 @@ FullWidthRepeat:
         Private Function ScanNumericLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGetChar)
 
-            Dim Here As Integer = 0
-            Dim IntegerLiteralStart As Integer
+            Dim offset As Integer = 0
+            Dim integralStartOffset As Integer
 
-            Dim Base As LiteralBase = LiteralBase.Decimal
+            Dim base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
+
+            ' TODO: Consider refactoring all the separate loops below into a single loop with a delegate to the
+            ' appropriate predicate for the literal base.
+            ' TODO: Consider enforcing that all digit group separators in a literal be consistent.
 
             ' ####################################################
             ' // Validate literal and find where the number starts and ends.
@@ -1728,230 +1732,279 @@ FullWidthRepeat:
 
             ' // First read a leading base specifier, if present, followed by a sequence of zero
             ' // or more digits.
-            Dim ch = PeekChar()
-            If ch = "&"c OrElse ch = FULLWIDTH_AMP Then
-                Here += 1
-                ch = If(CanGetCharAtOffset(Here), PeekAheadChar(Here), ChrW(0))
+            Dim c = PeekChar()
+            If c = "&"c OrElse c = FULLWIDTH_AMP Then
+                offset += 1
+                c = If(CanGetCharAtOffset(offset), PeekAheadChar(offset), ChrW(0))
 
 FullWidthRepeat:
-                Select Case ch
+                Select Case c
                     Case "H"c, "h"c
-                        Here += 1
-                        IntegerLiteralStart = Here
-                        Base = LiteralBase.Hexadecimal
+                        offset += 1
+                        integralStartOffset = offset
+                        base = LiteralBase.Hexadecimal
 
-                        While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
-                            If Not IsHexDigit(ch) Then
-                                Exit While
+                        Do While TryPeekAheadChar(offset, c)
+
+                            If IsHexDigit(c) Then
+                                offset += 1
+                            ElseIf IsDigitGroupSeparatorCharacter(c) AndAlso
+                                   (TryPeekAheadChar(offset + 1, c) AndAlso IsHexDigit(c)) Then
+
+                                ' For hexadecimal numbers we have to peek ahead extra to ensure we don't greedily
+                                ' consume a hex letter digit (A-F) which could also start a keyword which could
+                                ' legally follow an expression. E.g.:
+                                ' 'And' as in 'x = &HFF And 2'
+                                ' 'AndAlso' as in '&HFF AndAlso True'
+                                ' 'Ascending' as in 'From i In {1, 2, 3, 4, 5} Order By &HFF Ascending'
+                                ' 'By' as in 'From i In {1, 2, 3, 4, 5} Group &HFF By i Into Group'
+                                ' 'Descending' as in 'From i In {1, 2, 3, 4, 5} Order By &HFF Descending'
+                                ' 'Distinct' as in 'From i In {1, 2, 3, 4, 5} Select &HFF Distinct'
+                                ' 'Else' as in 'If True Then x = &HFF Else x = 0'
+                                ' 'Equals' as in 'From l In {1, 2, 3} Join r In {1, 2, 3} On l + &HFF Equals r'
+                                ' 'From' as in 'From c In "ABCDEF" Select &HFF From i In {1, 2, 3, 4, 5}'    
+                                ' To avoid this we peek ahead and bail if there are any non-hex digit letters.
+                                ' Hopefully this approach is resilient to us adding new operator keywords in the future.
+
+                                Dim j = offset + 2
+
+                                While TryPeekAheadChar(j, c)
+                                    If IsHexDigit(c) Then
+                                        ' More hex digits - keep peeking.
+                                        j += 1
+                                    ElseIf IsLetter(c) Then
+                                        ' Peek-ahead failed. Must be eating keyword or identifier - bail.
+                                        Exit Do
+                                    Else
+                                        ' Found a non-hex digit but it wasn't a letter.
+                                        ' Peek-ahead succeeded. Consume all chars seen so far.
+                                        offset = j - 1
+                                        Continue Do
                             End If
-                            Here += 1
                         End While
+                            Else
+                                Exit Do
+                            End If
+                        Loop
 
                     Case "O"c, "o"c
-                        Here += 1
-                        IntegerLiteralStart = Here
-                        Base = LiteralBase.Octal
+                        offset += 1
+                        integralStartOffset = offset
+                        base = LiteralBase.Octal
 
-                        While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
-                            If Not IsOctalDigit(ch) Then
-                                Exit While
-                            End If
-                            Here += 1
-                        End While
+                        Do While TryPeekAheadChar(offset, c) AndAlso
+                                 (IsOctalDigit(c) OrElse
+                                  (IsDigitGroupSeparatorCharacter(c) AndAlso
+                                   (TryPeekAheadChar(offset + 1, c) AndAlso IsOctalDigit(c))))
+
+                            offset += 1
+                        Loop
+
+                    Case "B"c, "b"c
+                        offset += 1
+                        integralStartOffset = offset
+                        base = LiteralBase.Binary
+
+                        Do While TryPeekAheadChar(offset, c) AndAlso
+                                 (IsBinaryDigit(c) OrElse
+                                  (IsDigitGroupSeparatorCharacter(c) AndAlso
+                                   (TryPeekAheadChar(offset + 1, c) AndAlso IsBinaryDigit(c))))
+
+                            offset += 1
+                        Loop
 
                     Case Else
-                        If ISFULLWIDTH(ch) Then
-                            ch = MAKEHALFWIDTH(ch)
+                        If ISFULLWIDTH(c) Then
+                            c = MAKEHALFWIDTH(c)
                             GoTo FullWidthRepeat
                         End If
 
-                        Throw ExceptionUtilities.UnexpectedValue(ch)
+                        Throw ExceptionUtilities.UnexpectedValue(c)
                 End Select
             Else
-                ' no base specifier - just go through decimal digits.
-                IntegerLiteralStart = Here
-                While CanGetCharAtOffset(Here)
-                    ch = PeekAheadChar(Here)
-                    If Not IsDecimalDigit(ch) Then
-                        Exit While
+                ' No base specifier - just go through decimal digits.
+
+                integralStartOffset = offset
+                base = LiteralBase.Decimal
+
+                Do While TryPeekAheadChar(offset, c) AndAlso
+                         (IsDecimalDigit(c) OrElse
+                          (IsDigitGroupSeparatorCharacter(c) AndAlso
+                           (TryPeekAheadChar(offset + 1, c) AndAlso IsDecimalDigit(c))))
+
+                    offset += 1
+                Loop
                     End If
-                    Here += 1
-                End While
-            End If
 
             ' we may have a dot, and then it is a float, but if this is an integral, then we have seen it all.
-            Dim IntegerLiteralEnd As Integer = Here
+            Dim integralEndOffset = offset
 
-            ' // Unless there was an explicit base specifier (which indicates an integer literal),
-            ' // read the rest of a float literal.
-            If Base = LiteralBase.Decimal AndAlso CanGetCharAtOffset(Here) Then
-                ' // First read a '.' followed by a sequence of one or more digits.
-                ch = PeekAheadChar(Here)
-                If (ch = "."c Or ch = FULLWIDTH_DOT) AndAlso
-                        CanGetCharAtOffset(Here + 1) AndAlso
-                        IsDecimalDigit(PeekAheadChar(Here + 1)) Then
+            ' Unless there was an explicit base specifier (which indicates an integer literal),
+            ' read the rest of a float literal.
+            If base = LiteralBase.Decimal AndAlso CanGetCharAtOffset(offset) Then
+                ' First read a '.' followed by a sequence of one or more digits.
+                c = PeekAheadChar(offset)
+                If (c = "."c Or c = FULLWIDTH_DOT) AndAlso
+                   CanGetCharAtOffset(offset + 1) AndAlso
+                   IsDecimalDigit(PeekAheadChar(offset + 1)) Then
 
-                    Here += 2   ' skip dot and first digit
+                    offset += 2   ' skip dot and first digit
 
-                    ' all following decimal digits belong to the literal (fractional part)
-                    While CanGetCharAtOffset(Here)
-                        ch = PeekAheadChar(Here)
-                        If Not IsDecimalDigit(ch) Then
-                            Exit While
-                        End If
-                        Here += 1
-                    End While
+                    ' All following decimal digits belong to the literal (fractional part).
+                    Do While TryPeekAheadChar(offset, c) AndAlso
+                             IsDecimalDigit(c)
+
+                        offset += 1
+                    Loop
+
                     literalKind = NumericLiteralKind.Float
                 End If
 
                 ' // Read an exponent symbol followed by an optional sign and a sequence of
                 ' // one or more digits.
-                If CanGetCharAtOffset(Here) AndAlso BeginsExponent(PeekAheadChar(Here)) Then
-                    Here += 1
+                If CanGetCharAtOffset(offset) AndAlso BeginsExponent(PeekAheadChar(offset)) Then
+                    offset += 1
 
-                    If CanGetCharAtOffset(Here) Then
-                        ch = PeekAheadChar(Here)
+                    If CanGetCharAtOffset(offset) Then
+                        c = PeekAheadChar(offset)
 
-                        If MatchOneOrAnotherOrFullwidth(ch, "+"c, "-"c) Then
-                            Here += 1
+                        If MatchOneOrAnotherOrFullwidth(c, "+"c, "-"c) Then
+                            offset += 1
                         End If
                     End If
 
-                    If CanGetCharAtOffset(Here) AndAlso IsDecimalDigit(PeekAheadChar(Here)) Then
-                        Here += 1
-                        While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
-                            If Not IsDecimalDigit(ch) Then
-                                Exit While
-                            End If
-                            Here += 1
-                        End While
+                    If CanGetCharAtOffset(offset) AndAlso IsDecimalDigit(PeekAheadChar(offset)) Then
+                        offset += 1
+
+                        Do While TryPeekAheadChar(offset, c) AndAlso
+                                 IsDecimalDigit(c)
+
+                            offset += 1
+                        Loop
                     Else
-                        Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidLiteralExponent)
+                        Return MakeBadToken(precedingTrivia, offset, ERRID.ERR_InvalidLiteralExponent)
                     End If
 
                     literalKind = NumericLiteralKind.Float
                 End If
             End If
 
-            Dim literalWithoutTypeChar = Here
+            Dim literalWithoutTypeChar = offset
 
             ' ####################################################
             ' // Read a trailing type character.
             ' ####################################################
 
-            Dim TypeCharacter As TypeCharacter = TypeCharacter.None
+            Dim typeCharacter As typeCharacter = typeCharacter.None
 
-            If CanGetCharAtOffset(Here) Then
-                ch = PeekAheadChar(Here)
+            If CanGetCharAtOffset(offset) Then
+                c = PeekAheadChar(offset)
 
 FullWidthRepeat2:
-                Select Case ch
+                Select Case c
                     Case "!"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.Single
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.Single
                             literalKind = NumericLiteralKind.Float
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "F"c, "f"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.SingleLiteral
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.SingleLiteral
                             literalKind = NumericLiteralKind.Float
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "#"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.Double
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.Double
                             literalKind = NumericLiteralKind.Float
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "R"c, "r"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.DoubleLiteral
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.DoubleLiteral
                             literalKind = NumericLiteralKind.Float
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "S"c, "s"c
 
                         If literalKind <> NumericLiteralKind.Float Then
-                            TypeCharacter = TypeCharacter.ShortLiteral
-                            Here += 1
+                            typeCharacter = typeCharacter.ShortLiteral
+                            offset += 1
                         End If
 
                     Case "%"c
                         If literalKind <> NumericLiteralKind.Float Then
-                            TypeCharacter = TypeCharacter.Integer
-                            Here += 1
+                            typeCharacter = typeCharacter.Integer
+                            offset += 1
                         End If
 
                     Case "I"c, "i"c
                         If literalKind <> NumericLiteralKind.Float Then
-                            TypeCharacter = TypeCharacter.IntegerLiteral
-                            Here += 1
+                            typeCharacter = typeCharacter.IntegerLiteral
+                            offset += 1
                         End If
 
                     Case "&"c
                         If literalKind <> NumericLiteralKind.Float Then
-                            TypeCharacter = TypeCharacter.Long
-                            Here += 1
+                            typeCharacter = typeCharacter.Long
+                            offset += 1
                         End If
 
                     Case "L"c, "l"c
                         If literalKind <> NumericLiteralKind.Float Then
-                            TypeCharacter = TypeCharacter.LongLiteral
-                            Here += 1
+                            typeCharacter = typeCharacter.LongLiteral
+                            offset += 1
                         End If
 
                     Case "@"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.Decimal
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.Decimal
                             literalKind = NumericLiteralKind.Decimal
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "D"c, "d"c
-                        If Base = LiteralBase.Decimal Then
-                            TypeCharacter = TypeCharacter.DecimalLiteral
+                        If base = LiteralBase.Decimal Then
+                            typeCharacter = typeCharacter.DecimalLiteral
                             literalKind = NumericLiteralKind.Decimal
 
                             ' check if this was not attempt to use obsolete exponent
-                            If CanGetCharAtOffset(Here + 1) Then
-                                ch = PeekAheadChar(Here + 1)
+                            If CanGetCharAtOffset(offset + 1) Then
+                                c = PeekAheadChar(offset + 1)
 
-                                If IsDecimalDigit(ch) OrElse MatchOneOrAnotherOrFullwidth(ch, "+"c, "-"c) Then
-                                    Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_ObsoleteExponent)
+                                If IsDecimalDigit(c) OrElse MatchOneOrAnotherOrFullwidth(c, "+"c, "-"c) Then
+                                    Return MakeBadToken(precedingTrivia, offset, ERRID.ERR_ObsoleteExponent)
                                 End If
                             End If
 
-                            Here += 1
+                            offset += 1
                         End If
 
                     Case "U"c, "u"c
-                        If literalKind <> NumericLiteralKind.Float AndAlso CanGetCharAtOffset(Here + 1) Then
-                            Dim NextChar As Char = PeekAheadChar(Here + 1)
+                        If literalKind <> NumericLiteralKind.Float AndAlso CanGetCharAtOffset(offset + 1) Then
+                            Dim NextChar As Char = PeekAheadChar(offset + 1)
 
                             'unsigned suffixes - US, UL, UI
                             If MatchOneOrAnotherOrFullwidth(NextChar, "S"c, "s"c) Then
-                                TypeCharacter = TypeCharacter.UShortLiteral
-                                Here += 2
+                                typeCharacter = typeCharacter.UShortLiteral
+                                offset += 2
                             ElseIf MatchOneOrAnotherOrFullwidth(NextChar, "I"c, "i"c) Then
-                                TypeCharacter = TypeCharacter.UIntegerLiteral
-                                Here += 2
+                                typeCharacter = typeCharacter.UIntegerLiteral
+                                offset += 2
                             ElseIf MatchOneOrAnotherOrFullwidth(NextChar, "L"c, "l"c) Then
-                                TypeCharacter = TypeCharacter.ULongLiteral
-                                Here += 2
+                                typeCharacter = typeCharacter.ULongLiteral
+                                offset += 2
                             End If
                         End If
 
                     Case Else
-                        If ISFULLWIDTH(ch) Then
-                            ch = MAKEHALFWIDTH(ch)
+                        If ISFULLWIDTH(c) Then
+                            c = MAKEHALFWIDTH(c)
                             GoTo FullWidthRepeat2
                         End If
                 End Select
@@ -1961,79 +2014,99 @@ FullWidthRepeat2:
             ' //  Produce a value for the literal.
             ' ####################################################
 
-            Dim IntegralValue As UInt64
-            Dim FloatingValue As Double
-            Dim DecimalValue As Decimal
-            Dim Overflows As Boolean = False
+            Dim integralValue As UInt64
+            Dim floatingValue As Double
+            Dim decimalValue As Decimal
+            Dim overflows As Boolean = False
 
             If literalKind = NumericLiteralKind.Integral Then
-                If IntegerLiteralStart = IntegerLiteralEnd Then
-                    Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_Syntax)
+                If integralStartOffset = integralEndOffset Then
+                    Return MakeBadToken(precedingTrivia, offset, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = IntegralLiteralCharacterValue(PeekAheadChar(IntegerLiteralStart))
+                    If IsDigitGroupSeparatorCharacter(PeekAheadChar(integralStartOffset)) Then
+                        integralStartOffset += 1
+                    End If
 
-                    If Base = LiteralBase.Decimal Then
-                        ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(PeekAheadChar(LiteralCharacter))
+                    integralValue = IntegralLiteralCharacterValue(PeekAheadChar(integralStartOffset))
 
-                            If IntegralValue < 1844674407370955161UL OrElse
-                              (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
+                    If base = LiteralBase.Decimal Then
+                        ' Build up integral value from digits.
+                        For digitOffset = integralStartOffset + 1 To integralEndOffset - 1
+                            If IsDigitGroupSeparatorCharacter(PeekAheadChar(digitOffset)) Then Continue For
 
-                                IntegralValue = (IntegralValue * 10UL) + NextCharacterValue
+                            Dim nextDigitValue As UInteger = IntegralLiteralCharacterValue(PeekAheadChar(digitOffset))
+
+                            If integralValue < 1844674407370955161UL OrElse
+                               (integralValue = 1844674407370955161UL AndAlso nextDigitValue <= 5UI) Then
+
+                                integralValue = (integralValue * 10UL) + nextDigitValue
                             Else
-                                Overflows = True
+                                overflows = True
                                 Exit For
                             End If
                         Next
 
-                        If TypeCharacter <> TypeCharacter.ULongLiteral AndAlso IntegralValue > Long.MaxValue Then
-                            Overflows = True
+                        If typeCharacter <> typeCharacter.ULongLiteral AndAlso integralValue > Long.MaxValue Then
+                            overflows = True
                         End If
                     Else
-                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, 3)
-                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, &HE000000000000000UL)
+                        Dim shift As Integer
+                        Dim overflowMask As UInt64
 
-                        ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            If (IntegralValue And OverflowMask) <> 0 Then
-                                Overflows = True
+                        Select Case base
+                            Case LiteralBase.Hexadecimal
+                                shift = 4
+                                overflowMask = &HF000000000000000UL
+                            Case LiteralBase.Octal
+                                shift = 3
+                                overflowMask = &HE000000000000000UL
+                            Case LiteralBase.Binary
+                                shift = 1
+                                overflowMask = &H8000000000000000UL
+                        End Select
+
+                        ' Build up integral value from digits.
+                        For digitOffset = integralStartOffset + 1 To integralEndOffset - 1
+                            If IsDigitGroupSeparatorCharacter(PeekAheadChar(digitOffset)) Then Continue For
+
+                            If (integralValue And overflowMask) <> 0 Then
+                                overflows = True
                             End If
 
-                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(PeekAheadChar(LiteralCharacter))
+                            integralValue = (integralValue << shift) + IntegralLiteralCharacterValue(PeekAheadChar(digitOffset))
                         Next
                     End If
 
-                    If TypeCharacter = TypeCharacter.None Then
-                        ' nothing to do
-                    ElseIf TypeCharacter = TypeCharacter.Integer OrElse TypeCharacter = TypeCharacter.IntegerLiteral Then
-                        If (Base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFFFFFF) OrElse
-                            IntegralValue > &HFFFFFFFFUI Then
+                    If typeCharacter = typeCharacter.None Then
+                        ' Do nothing.
+                    ElseIf typeCharacter = typeCharacter.Integer OrElse typeCharacter = typeCharacter.IntegerLiteral Then
+                        If (base = LiteralBase.Decimal AndAlso integralValue > &H7FFFFFFF) OrElse
+                            integralValue > &HFFFFFFFFUI Then
 
-                            Overflows = True
+                            overflows = True
                         End If
 
-                    ElseIf TypeCharacter = TypeCharacter.UIntegerLiteral Then
-                        If IntegralValue > &HFFFFFFFFUI Then
-                            Overflows = True
+                    ElseIf typeCharacter = typeCharacter.UIntegerLiteral Then
+                        If integralValue > &HFFFFFFFFUI Then
+                            overflows = True
                         End If
 
-                    ElseIf TypeCharacter = TypeCharacter.ShortLiteral Then
-                        If (Base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFF) OrElse
-                            IntegralValue > &HFFFF Then
+                    ElseIf typeCharacter = typeCharacter.ShortLiteral Then
+                        If (base = LiteralBase.Decimal AndAlso integralValue > &H7FFF) OrElse
+                            integralValue > &HFFFF Then
 
-                            Overflows = True
+                            overflows = True
                         End If
 
-                    ElseIf TypeCharacter = TypeCharacter.UShortLiteral Then
-                        If IntegralValue > &HFFFF Then
-                            Overflows = True
+                    ElseIf typeCharacter = typeCharacter.UShortLiteral Then
+                        If integralValue > &HFFFF Then
+                            overflows = True
                         End If
 
                     Else
-                        Debug.Assert(TypeCharacter = TypeCharacter.Long OrElse
-                                 TypeCharacter = TypeCharacter.LongLiteral OrElse
-                                 TypeCharacter = TypeCharacter.ULongLiteral,
+                        Debug.Assert(typeCharacter = typeCharacter.Long OrElse
+                                     typeCharacter = typeCharacter.LongLiteral OrElse
+                                     typeCharacter = typeCharacter.ULongLiteral,
                         "Integral literal value computation is lost.")
                     End If
                 End If
@@ -2045,24 +2118,24 @@ FullWidthRepeat2:
                     Dim curCh = PeekAheadChar(i)
                     scratch.Append(If(ISFULLWIDTH(curCh), MAKEHALFWIDTH(curCh), curCh))
                 Next
-                Dim LiteralSpelling = GetScratchTextInterned(scratch)
+                Dim literalSpelling = GetScratchTextInterned(scratch)
 
                 If literalKind = NumericLiteralKind.Decimal Then
                     ' Attempt to convert to Decimal.
-                    Overflows = Not GetDecimalValue(LiteralSpelling, DecimalValue)
+                    overflows = Not GetDecimalValue(literalSpelling, decimalValue)
                 Else
-                    If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
+                    If typeCharacter = typeCharacter.Single OrElse typeCharacter = typeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
                         Dim SingleValue As Single
-                        If Not Single.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
-                            Overflows = True
+                        If Not Single.TryParse(literalSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
+                            overflows = True
                         Else
-                            FloatingValue = SingleValue
+                            floatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not Double.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, FloatingValue) Then
-                            Overflows = True
+                        If Not Double.TryParse(literalSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, floatingValue) Then
+                            overflows = True
                         End If
                     End If
                 End If
@@ -2071,16 +2144,16 @@ FullWidthRepeat2:
             Dim result As SyntaxToken
             Select Case literalKind
                 Case NumericLiteralKind.Integral
-                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows, 0UL, IntegralValue), Here)
+                    result = MakeIntegerLiteralToken(precedingTrivia, base, typeCharacter, If(overflows, 0UL, integralValue), offset)
                 Case NumericLiteralKind.Float
-                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0.0F, FloatingValue), Here)
+                    result = MakeFloatingLiteralToken(precedingTrivia, typeCharacter, If(overflows, 0.0F, floatingValue), offset)
                 Case NumericLiteralKind.Decimal
-                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0D, DecimalValue), Here)
+                    result = MakeDecimalLiteralToken(precedingTrivia, typeCharacter, If(overflows, 0D, decimalValue), offset)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(literalKind)
             End Select
 
-            If Overflows Then
+            If overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
             End If
 

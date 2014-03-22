@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -143,6 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual Binder GetBinder(CSharpSyntaxNode node)
         {
             return this.Next.GetBinder(node);
+        }
+
+        /// <summary>
+        /// Get locals declared immediately in scope represented by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        {
+            return this.Next.GetDeclaredLocalsForScope(node);
         }
 
         /// <summary>
@@ -546,13 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var unusedDiagnostics = DiagnosticBag.GetInstance();
             foreach (var argumentSyntax in arguments)
             {
-                var argument = this.BindExpression(argumentSyntax.Expression, unusedDiagnostics);
-
-                analyzedArguments.Arguments.Add(argument);
-                analyzedArguments.RefKinds.Add(argumentSyntax.RefOrOutKeyword.CSharpKind().GetRefKind());
-                analyzedArguments.Names.Add(argumentSyntax.NameColon == null
-                    ? null
-                    : argumentSyntax.NameColon.Name);
+                BindArgumentAndName(analyzedArguments, unusedDiagnostics, false, argumentSyntax, allowArglist: false);
             }
 
             OverloadResolution.MethodOrPropertyOverloadResolution(
@@ -699,5 +701,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
+
+        internal virtual Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType)
+        {
+            var container = containingType as SourceMemberContainerTypeSymbol;
+
+            if ((object)container != null && container.PrimaryCtor != null && container.PrimaryCtor.ParameterCount > 0)
+            {
+                return new WithParametersBinder(container.PrimaryCtor.Parameters, this);
+            }
+
+            return this;
+        }
+
     }
 }

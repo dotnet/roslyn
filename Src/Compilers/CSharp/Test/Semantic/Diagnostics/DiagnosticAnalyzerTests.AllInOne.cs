@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticAnalyzerTests
     {
-        [Fact]
+        [Fact(Skip="906237")]
         public void DiagnosticAnalyzerAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;

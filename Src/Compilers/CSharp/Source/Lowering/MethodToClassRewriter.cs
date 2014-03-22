@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -125,15 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            if (node.LocalOpt != null)
+            if (!node.Locals.IsDefaultOrEmpty)
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
-                // of the variable owned by the catch block. Note that this variable might be a closure frame reference.
-                LocalSymbol newLocal;
-                TryRewriteLocal(node.LocalOpt, out newLocal);
+                // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
+                var newLocals = RewriteLocalList(node.Locals);
 
                 return node.Update(
-                    newLocal,
+                    newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
@@ -161,25 +160,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            var newLocals = RewriteLocalList(node.LocalsOpt);
+            var newOuterLocals = RewriteLocalList(node.OuterLocals);
+            var newInnerLocals = RewriteLocalList(node.InnerLocalsOpt);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(boundExpression, node.ConstantTargetOpt, newLocals, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(newOuterLocals, boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
-            var newLocals = RewriteLocalList(node.Locals);
+            var newOuterLocals = RewriteLocalList(node.OuterLocals);
+            var newInnerLocals = RewriteLocalList(node.InnerLocals);
             BoundStatement initializer = (BoundStatement)this.Visit(node.Initializer);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement increment = (BoundStatement)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(newLocals, initializer, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+            return node.Update(newOuterLocals, initializer, newInnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            var newLocals = RewriteLocalList(node.LocalsOpt);
+            var newLocals = RewriteLocalList(node.Locals);
             BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);

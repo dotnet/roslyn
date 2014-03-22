@@ -7,6 +7,10 @@
   </ImportGroup>
   <PropertyGroup>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
+    <SccProjectName>%24/Roslyn/Releases/MVPSummit2013/Open/Compilers/Test/Utilities/CSharp</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>http://vstfdevdiv:8080/devdiv2</SccAuxPath>
+    <SccProvider>{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}</SccProvider>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>

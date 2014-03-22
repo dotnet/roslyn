@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -565,6 +565,210 @@ BC42016: Implicit conversion from 'Object' to 'Boolean'.
             Case Function() 5
                  ~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_IdentityCaseClause()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim obj As Object = "Hello, World!"
+
+        Select Case obj
+            Case Is Nothing
+                Write("Null")
+            Case IsNot Nothing
+                Write("Not Null")
+        End Select
+    End Sub
+End Module
+    </file>
+</compilation>,
+expectedOutput:="Not Null")
+
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_CaseWhenClause()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim obj As Object = "Hello, World!"
+
+        Select Case True
+            Case True When obj Is Nothing
+                Write("Null")
+            Case True When obj IsNot Nothing
+                Write("Not Null")
+        End Select
+    End Sub
+End Module
+    </file>
+</compilation>,
+expectedOutput:="Not Null")
+
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_TypeCaseClause()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim obj As Object = "Hello, World!"
+
+        Select Case obj
+            Case arr As String()
+                Write(arr.Length)
+            Case s As String When s.Length = 5
+                Write(s)
+            Case s As String
+                Write(s)
+        End Select
+    End Sub
+End Module   
+    </file>
+</compilation>,
+expectedOutput:="Hello, World!")
+
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_TypeCaseClause_ValueType()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim obj As Object = 1
+
+        Select Case obj
+            Case s As String When s.Length = 5
+                Write(s)
+            Case i As Integer?
+                Write(i.HasValue)
+                Write(i.Value)
+            Case Else
+                Write("?")
+        End Select
+
+        Select Case obj
+            Case s As String When s.Length = 5
+                Write(s)
+            Case i As Integer When i > 0
+                Write(i)
+            Case i As Integer
+                Write("Zero")
+        End Select
+    End Sub
+End Module   
+    </file>
+</compilation>,
+expectedOutput:="True11")
+
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_TypeCaseClause_TypeParameter()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="Program.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        M(1, 1)
+        M(1, 2)
+        M("1", 1)
+        N("a", "a")
+        N("a", "b")
+        N("a", CStr(Nothing))
+        N(Nothing, "b")
+        N(1, "b")
+    End Sub
+
+    Sub M(Of T As {Structure, IEquatable(Of T)})(obj As Object, y As T)
+        Select Case obj
+            Case x As T When x.Equals(y) 
+                Write("Equal")
+            Case x As T? 
+                Write("Not Equal")
+            Case Else
+                Write("?")
+        End Select
+    End Sub
+
+    Sub N(Of T As {Class, IEquatable(Of T)})(obj As Object, y As T)
+        Select Case obj
+            Case x As T When x.Equals(y) 
+                Write("Equal")
+            Case x As T When y IsNot Nothing
+                Write("Not Equal")
+            Case x As T
+                Write("y:Null")
+            Case Is Nothing
+                Write("obj:Null")           
+            Case Else
+                Write("?")
+        End Select
+    End Sub
+
+End Module   
+    </file>
+</compilation>,
+expectedOutput:="EqualNot Equal?EqualNot Equaly:Nullobj:Null?")
+
+        End Sub
+
+        <Fact>
+        Public Sub SelectCase_TypeCaseClause_TypeParameterError()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="Program.vb">
+Imports System.Console
+
+Module Program
+    Sub Main()
+    End Sub
+
+    Sub M(Of T)(obj As Object)
+        Select Case obj
+            Case x As T
+                Write("!")
+            Case Else
+                Write("?")
+        End Select
+    End Sub
+End Module   
+    </file>
+</compilation>)
+
+            VerifyDiagnostics(compilation, Diagnostic(ERRID.ERR_TryCastOfUnconstrainedTypeParam1, "x As T").WithArguments("T").WithLocation(9, 18))
+
         End Sub
 
     End Class

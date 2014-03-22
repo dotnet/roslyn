@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -286,6 +286,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenConsequence:=rewrittenBody,
                     rewrittenAlternative:=RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1),
                     unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
+
+                Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
+
+                For i = 0 To curCaseBlock.CaseStatement.CaseClauses.Length - 1
+                    Dim typeClause = TryCast(curCaseBlock.CaseStatement.CaseClauses(i), BoundCaseTypeClause)
+
+                    If typeClause IsNot Nothing Then
+                        locals.Add(typeClause.Local)
+                    End If
+                Next
+
+                If locals.Count > 0 Then
+                    rewrittenStatement = New BoundBlock(curCaseBlock.Syntax,
+                                                        Nothing,
+                                                        locals.ToImmutableAndFree(),
+                                                        ImmutableArray.Create(Of BoundStatement)(rewrittenStatement))
+                End If
             End If
 
             Return rewrittenStatement

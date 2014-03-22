@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            Analysis analysis,
+            Analysis analysis, 
             bool generateDebugInfo)
         {
             Debug.Assert((object)thisType != null);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Symbol captured in analysis.variablesCaptured)
             {
                 BoundNode node;
-                if (!analysis.variableBlock.TryGetValue(captured, out node) ||
+                if (!analysis.variableBlock.TryGetValue(captured, out node) || 
                     analysis.declaredInsideExpressionLambda.Contains(captured))
                 {
                     continue;
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var p in analysis.variablesCaptured)
             {
                 BoundNode varNode;
-                if (!analysis.variableBlock.TryGetValue(p, out varNode) ||
+                if (!analysis.variableBlock.TryGetValue(p, out varNode) || 
                     varNode != node ||
                     analysis.declaredInsideExpressionLambda.Contains(p))
                 {
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InitParameterProxy(syntax, p, framePointer, prologue);
                     continue;
                 }
-            }
+                }
 
             Symbol oldInnermostFramePointer = innermostFramePointer;
 
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (frames.TryGetValue(node, out frame))
             {
-                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
+                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) => 
                     RewriteBlock(node, prologue, newLocals));
             }
             else
@@ -575,51 +575,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteCatch(node, ArrayBuilder<BoundExpression>.GetInstance(), ArrayBuilder<LocalSymbol>.GetInstance());
             }
         }
-
+        
         private BoundNode RewriteCatch(BoundCatchBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            LocalSymbol rewrittenCatchLocal = null;
-
-            if (newLocals.Count > 0)
-            {
-                Debug.Assert(newLocals.Count == 1, "must be only one local that is the frame reference");
-                Debug.Assert(this.proxies.ContainsKey(node.LocalOpt), "original local should be proxied");
-
-                // getting new locals means that our original local was lifted into a closure
-                // and instead of an actual local catch will own frame reference.
-                rewrittenCatchLocal = newLocals[0];
-            }
-            else if (node.LocalOpt != null)
-            {
-                // local was not lifted, but its type may need to be rewritten
-                // this happens when it has a generic type which needs to be rewritten
-                // when lambda body was moved to a separate method.
-                var origLocal = node.LocalOpt;
-                Debug.Assert(!this.proxies.ContainsKey(origLocal), "captured local should not need rewriting");
-
-                var newType = VisitType(origLocal.Type);
-                if (newType == origLocal.Type)
-                {
-                    // keeping same local
-                    rewrittenCatchLocal = origLocal;
-                }
-                else
-                {
-                    //  need a local of a different type
-                    rewrittenCatchLocal = new SynthesizedLocal(CurrentMethod, newType, origLocal.Name, declarationKind: LocalDeclarationKind.Catch);
-                    localMap.Add(origLocal, rewrittenCatchLocal);
-                }
-            }
+            AddLocals(node.Locals, newLocals);
+            var rewrittenCatchLocals = newLocals.ToImmutableAndFree();
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffecs.
             BoundExpression rewrittenExceptionSource = null;
+            var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
                 rewrittenExceptionSource = (BoundExpression)Visit(node.ExceptionSourceOpt);
                 if (prologue.Count > 0)
-                {
+            {
                     rewrittenExceptionSource = new BoundSequence(
                         rewrittenExceptionSource.Syntax,
                         ImmutableArray.Create<LocalSymbol>(),
@@ -628,21 +599,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExceptionSource.Type);
                 }
             }
+            else if (prologue.Count > 0)
+            {
+                Debug.Assert(rewrittenFilter != null);
+                rewrittenFilter = new BoundSequence(
+                    rewrittenFilter.Syntax,
+                    ImmutableArray.Create<LocalSymbol>(),
+                    prologue.ToImmutable(),
+                    rewrittenFilter,
+                    rewrittenFilter.Type);
+            }
 
-            // done with these.
-            newLocals.Free();
+            // done with this.
             prologue.Free();
 
             // rewrite filter and body
             // NOTE: this will proxy all accesses to exception local if that got lifted.
             var exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
-            var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             var rewrittenBlock = (BoundBlock)this.Visit(node.Body);
 
             return node.Update(
-                rewrittenCatchLocal,
-                rewrittenExceptionSource,
-                exceptionTypeOpt,
+                rewrittenCatchLocals, 
+                rewrittenExceptionSource, 
+                exceptionTypeOpt, 
                 rewrittenFilter,
                 rewrittenBlock);
         }
@@ -846,16 +825,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the block containing the lambda is not the innermost block,
             // or the lambda is static, then the lambda object should be cached in its frame.
             // NOTE: we are not caching static lambdas in static ctors - cannot reuse such cache.
-            var shouldCacheForStaticMethod = lambdaIsStatic &&
-                currentMethod.MethodKind != MethodKind.StaticConstructor &&
+            var shouldCacheForStaticMethod = lambdaIsStatic && 
+                currentMethod.MethodKind != MethodKind.StaticConstructor && 
                 !referencedMethod.IsGenericMethod;
 
             // NOTE: We require "lambdaScope != null". 
             //       We do not want to introduce a field into an actual user's class (not a synthetic frame).
-            var shouldCacheInLoop = lambdaScope != null &&
+            var shouldCacheInLoop = lambdaScope != null && 
                 lambdaScope != analysis.blockParent[node.Body] &&
                 InLoopOrLambda(node.Syntax, lambdaScope.Syntax);
-
+                               
             if (shouldCacheForStaticMethod || shouldCacheInLoop)
             {
 
@@ -863,28 +842,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var F = new SyntheticBoundNodeFactory(currentMethod, node.Syntax, CompilationState, Diagnostics);
                 try
                 {
-                    var cacheVariableName = GeneratedNames.MakeLambdaCacheName(CompilationState.GenerateTempNumber());
-                    BoundExpression cacheVariable;
-                    if (shouldCacheForStaticMethod || shouldCacheInLoop && translatedLambdaContainer is LambdaFrame)
-                    {
-                        var cacheVariableType = lambdaIsStatic ? type : (translatedLambdaContainer as LambdaFrame).TypeMap.SubstituteType(type);
-                        var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: !lambdaIsStatic, isStatic: lambdaIsStatic);
-                        CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(translatedLambdaContainer, cacheField);
-                        cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
-                    }
-                    else
-                    {
-                        // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
-                        var cacheLocal = F.SynthesizedLocal(type, cacheVariableName);
-                        if (addedLocals == null) addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
-                        addedLocals.Add(cacheLocal);
-                        if (addedStatements == null) addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
-                        cacheVariable = F.Local(cacheLocal);
-                        addedStatements.Add(F.Assignment(cacheVariable, F.Null(type)));
-                    }
-
-                    result = F.Coalesce(cacheVariable, F.AssignmentExpression(cacheVariable, result));
+                var cacheVariableName = GeneratedNames.MakeLambdaCacheName(CompilationState.GenerateTempNumber());
+                BoundExpression cacheVariable;
+                if (shouldCacheForStaticMethod || shouldCacheInLoop && translatedLambdaContainer is LambdaFrame)
+                {
+                    var cacheVariableType = lambdaIsStatic ? type : (translatedLambdaContainer as LambdaFrame).TypeMap.SubstituteType(type);
+                    var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: !lambdaIsStatic, isStatic: lambdaIsStatic);
+                    CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(translatedLambdaContainer, cacheField);
+                    cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                 }
+                else
+                {
+                    // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
+                    var cacheLocal = F.SynthesizedLocal(type, cacheVariableName);
+                    if (addedLocals == null) addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+                    addedLocals.Add(cacheLocal);
+                    if (addedStatements == null) addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
+                    cacheVariable = F.Local(cacheLocal);
+                    addedStatements.Add(F.Assignment(cacheVariable, F.Null(type)));
+                }
+
+                result = F.Coalesce(cacheVariable, F.AssignmentExpression(cacheVariable, result));
+            }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
                     Diagnostics.Add(ex.Diagnostic);

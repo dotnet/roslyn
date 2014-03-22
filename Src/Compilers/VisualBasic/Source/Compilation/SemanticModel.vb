@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -2699,6 +2699,28 @@ _Default:
         End Function
 
         ''' <summary>
+        ''' Given a case type clause syntax get the corresponding local symbol.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The case type clause syntax node.</param>
+        ''' <returns>The local symbol that was declared by the case type clause .</returns>
+        Public Overloads Function GetDeclaredSymbol(declarationSyntax As CaseTypeClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILocalSymbol
+            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDeclaredSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
+                Dim enclosingBinder = StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart))
+                Dim caseBinder = TryCast(enclosingBinder, CaseBlockBinder)
+
+                If caseBinder IsNot Nothing Then
+                    For Each local In caseBinder.Locals
+                        If IdentifierComparison.Equals(local.Name, declarationSyntax.Identifier.ValueText) Then
+                            Return local
+                        End If
+                    Next
+                End If
+
+                Return Nothing
+            End Using
+        End Function
+
+        ''' <summary>
         ''' Given a catch statement syntax get the corresponding local symbol.
         ''' </summary>
         ''' <param name="declarationSyntax">The catch statement syntax node.</param>
@@ -3318,6 +3340,9 @@ _Default:
 
                 Case SyntaxKind.AggregationRangeVariable
                     Return Me.GetDeclaredSymbol(DirectCast(node, AggregationRangeVariableSyntax), cancellationToken)
+
+                Case SyntaxKind.CaseTypeClause
+                    Return Me.GetDeclaredSymbol(DirectCast(node, CaseTypeClauseSyntax), cancellationToken)
 
                 Case SyntaxKind.CatchStatement
                     Return Me.GetDeclaredSymbol(DirectCast(node, CatchStatementSyntax), cancellationToken)

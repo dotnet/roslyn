@@ -3877,6 +3877,10 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Cases"></lm-equiv>
         <native-equiv name="Cases"></native-equiv>
       </child>
+
+      <child name="WhenClause" optional="true" kind="CaseWhenClause">
+        <description>The "When" clause, if present.</description>
+      </child>
     </node-structure>
 
     <!--****************
@@ -4016,6 +4020,62 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
+    <!--****************
+      -  CaseIdentityClause
+      ******************-->
+    <node-structure name="CaseIdentityClauseSyntax" parent="CaseClauseSyntax">
+      <description>Represents an Is or IsNot token followed by a single value in a Case.</description>
+
+      <node-kind name="CaseIsClause"/>
+      <node-kind name="CaseIsNotClause"/>
+
+      <child name="OperatorToken" kind="IsKeyword|IsNotKeyword">
+        <description>The operator in the relational clause. Either "Is" or "IsNot".</description>
+        <kind name="IsKeyword" node-kind="CaseIsClause" />
+        <kind name="IsNotKeyword" node-kind="CaseIsNotClause" />
+      </child>
+
+      <child name="Value" kind="@ExpressionSyntax">
+        <description>The expression that denotes the value being tested against.</description>
+        <native-equiv name="Value"></native-equiv>
+      </child>
+    </node-structure>
+    
+    <!--****************
+      -  CaseTypeClause
+      ******************-->
+    <node-structure name="CaseTypeClauseSyntax" parent="CaseClauseSyntax">
+      <description>Represents Case clause evaluating the the type of a value e.g. x As T.</description>
+
+      <node-kind name="CaseTypeClause"/>
+
+      <child name="Identifier" kind="IdentifierToken">
+        <description>The identifier representing the value cast to the specified type, if successful.</description>
+      </child>
+
+      <child name="AsClause" kind="SimpleAsClause">
+        <description>The As clause that defines the type of value being checked.</description>
+      </child>
+    </node-structure>
+    
+    <!--*********************
+      -  CaseWhenClauseSyntax
+      ***********************-->
+    <node-structure name="CaseWhenClauseSyntax" parent="VisualBasicSyntaxNode">
+      <description>
+        Represents the When clause of a Case clause.
+      </description>
+
+      <node-kind name="CaseWhenClause" />
+
+      <child name="WhenKeyword" kind="WhenKeyword">
+        <description>The "When" keyword.</description>
+      </child>
+
+      <child name="Expression" kind="@ExpressionSyntax">
+        <description>The filter expression.</description>
+      </child>
+    </node-structure>
 
     <!--****************
       -  SyncLockStatement
@@ -4192,8 +4252,6 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="ExpressionStatement.Operand"></native-equiv>
       </child>
     </node-structure>
-
-
 
     <!--****************
       -  WhileStatement
@@ -8982,6 +9040,7 @@ Unify Enum declarations with other block type declarations.
         <enumerator name="Decimal" />
         <enumerator name="Hexadecimal" />
         <enumerator name="Octal" />
+        <enumerator name="Binary" />
       </enumerators>
     </enumeration>
 

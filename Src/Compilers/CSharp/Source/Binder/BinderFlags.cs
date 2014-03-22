@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         InCatchFilter = 1 << 20,
 
         SuppressAccessChecks = 1 << 21,
+
+        AutoPropertyInitializer = 1 << 22,
 
         // Groups
 

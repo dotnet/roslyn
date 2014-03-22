@@ -239,6 +239,15 @@
       <summary>Creates an NullableTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="BaseClassWithArgumentsSyntax" Base="TypeSyntax">
+    <Kind Name="BaseClassWithArguments"/>
+    <Field Name="BaseClass" Type="TypeSyntax"/>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax">
+      <PropertyComment>
+        <summary>ArgumentListSyntax node representing the list of arguments acting as arguments to the base call of the primary constructor.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
     <Kind Name="OmittedTypeArgument"/>
     <Field Name="OmittedTypeArgumentToken" Type="SyntaxToken">
@@ -369,6 +378,67 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an MemberAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="IndexedNameSyntax" Base="SimpleNameSyntax">
+    <Kind Name="IndexedName"/>
+    <Field Name="DollarToken" Type="SyntaxToken">
+      <Kind Name="DollarToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the dollar sign in the indexed name expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the name of the identifier of the indexed name.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for indexed name.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IndexedNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="IndexedMemberAccessExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="IndexedMemberAccessExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the object that the indexer belongs to.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the dot in the indexed member access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="IndexedName" Type="IndexedNameSyntax">
+      <Kind Name="IndexedNameSyntax"/>
+      <PropertyComment>
+        <summary>IndexedNameSyntax representing the indexed name in the indexed member access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for indexed member access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IndexedMemberAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ImplicitElementAccessSyntax" Base="ExpressionSyntax">
+    <Kind Name="ImplicitElementAccess"/>
+    <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
+      <PropertyComment>
+        <summary>BracketedArgumentListSyntax node representing the list of arguments of the implicit element access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for implicit element access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ImplicitElementAccessSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="BinaryExpressionSyntax" Base="ExpressionSyntax">
@@ -2308,6 +2378,7 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
@@ -2338,6 +2409,7 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true"/>
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
@@ -2899,6 +2971,10 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="AccessorList" Type="AccessorListSyntax" Override="true"/>
+    <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
   </Node>
   <Node Name="EventDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="EventDeclaration"/>
@@ -3068,6 +3144,13 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </Node>
+
+  <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="DeclarationExpression"/>
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Variable" Type="VariableDeclaratorSyntax"/>
+  </Node>
+  
   <Node Name="SkippedTokensTriviaSyntax" Base="StructuredTriviaSyntax">
     <Kind Name="SkippedTokensTrivia"/>
     <Field Name="Tokens" Type="SyntaxList&lt;SyntaxToken&gt;"/>

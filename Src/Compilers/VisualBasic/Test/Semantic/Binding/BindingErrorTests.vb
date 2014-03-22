@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -3694,31 +3694,6 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
                          ~~
      </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
-        End Sub
-
-        <Fact()>
-        Public Sub BC30239ERR_ExpectedRelational_SelectCase()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="StrictDisallowImplicitObject">
-        <file name="a.vb">
-            <file name="a.vb"><![CDATA[
-Imports System        
-Module M1
-    Sub Main()
-        Select Case 0
-            Case Is << 1
-        End Select
-    End Sub
-End Module
-        ]]></file>
-        </file>
-    </compilation>)
-            CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected><![CDATA[
-BC30239: Relational operator expected.
-            Case Is << 1
-                    ~
-]]></expected>)
         End Sub
 
         <Fact()>

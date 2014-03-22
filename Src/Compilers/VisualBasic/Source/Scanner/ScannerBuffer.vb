@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -115,6 +115,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Return ch
+        End Function
+
+        Private Function TryPeekAheadChar(offset As Integer, <System.Runtime.InteropServices.Out> ByRef value As Char) As Boolean
+            If CanGetCharAtOffset(offset) Then
+                value = PeekAheadChar(offset)
+                Return True
+            Else
+                value = Nothing
+                Return False
+            End If
         End Function
 
         ' PERF CRITICAL

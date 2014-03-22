@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsEnumBaseListContext;
         public readonly bool IsIsOrAsTypeContext;
         public readonly bool IsLocalVariableDeclarationContext;
+        public readonly bool IsDeclarationExpressionContext;
         public readonly bool IsFixedVariableDeclarationContext;
         public readonly bool IsParameterTypeContext;
         public readonly bool IsPossibleLambdaOrAnonymousMethodParameterTypeContext;
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isEnumBaseListContext,
             bool isIsOrAsTypeContext,
             bool isLocalVariableDeclarationContext,
+            bool isDeclarationExpressionContext,
             bool isFixedVariableDeclarationContext,
             bool isParameterTypeContext,
             bool isPossibleLambdaOrAnonymousMethodParameterTypeContext,
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsEnumBaseListContext = isEnumBaseListContext;
             this.IsIsOrAsTypeContext = isIsOrAsTypeContext;
             this.IsLocalVariableDeclarationContext = isLocalVariableDeclarationContext;
+            this.IsDeclarationExpressionContext = isDeclarationExpressionContext;
             this.IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
             this.IsParameterTypeContext = isParameterTypeContext;
             this.IsPossibleLambdaOrAnonymousMethodParameterTypeContext = isPossibleLambdaOrAnonymousMethodParameterTypeContext;
@@ -210,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsEnumBaseListContext(position, leftToken, cancellationToken),
                 syntaxTree.IsIsOrAsTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
+                syntaxTree.IsDeclarationExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.IsFixedVariableDeclarationContext(position, leftToken, cancellationToken),
                 syntaxTree.IsParameterTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),

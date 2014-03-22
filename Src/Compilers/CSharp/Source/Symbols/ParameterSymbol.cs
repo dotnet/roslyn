@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -397,6 +397,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// We support before (correct) and after (incorrect, but works), but not in between.
         /// </remarks>
         internal abstract bool HasByRefBeforeCustomModifiers { get; }
+
+        /// <summary>
+        /// Gets the attributes on parameter's associated field, if any.
+        /// For example, field associated with a parameter of a Primary constructor.
+        /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if
+        /// there are no attributes.
+        /// </summary>
+        /// <remarks>
+        /// This publicly exposes the attributes of the internal backing field.
+        /// </remarks>
+        public ImmutableArray<CSharpAttributeData> GetFieldAttributes()
+        {
+            FieldSymbol backingField = PrimaryConstructorParameterBackingField;
+
+            if ((object)backingField != null)
+            {
+                return backingField.GetAttributes();
+            }
+
+            return ImmutableArray<CSharpAttributeData>.Empty;
+        }
+
+        internal abstract FieldSymbol PrimaryConstructorParameterBackingField { get; }
 
         #region IParameterSymbol Members
 

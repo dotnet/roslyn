@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -281,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IdentifierName,
         QualifiedName,
         GenericName,
+        IndexedName,
         TypeArgumentList,
         AliasQualifiedName,
         PredefinedType,
@@ -289,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PointerType,
         NullableType,
         OmittedTypeArgument,
+        BaseClassWithArguments,
 
         // expressions
         ParenthesizedExpression,
@@ -312,8 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         AnonymousObjectCreationExpression,
         ArrayCreationExpression,
         ImplicitArrayCreationExpression,
+        ImplicitElementAccess,
         StackAllocArrayCreationExpression,
         OmittedArraySizeExpression,
+        DeclarationExpression,
 
         // binary expressions
         AddExpression,
@@ -339,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CoalesceExpression,
         SimpleMemberAccessExpression,  // dot .
         PointerMemberAccessExpression,  // arrow ->
+        IndexedMemberAccessExpression,  // dot dollar   . $
 
         // binary assignment expressions
         SimpleAssignmentExpression,

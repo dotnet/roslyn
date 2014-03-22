@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
 
             Try
 
@@ -369,7 +369,7 @@ False
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
             Try
 
                 Dim compilationDef =

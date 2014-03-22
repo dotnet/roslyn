@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -15,6 +15,154 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public class PropertyTests : CSharpTestBase
     {
+        [Fact]
+        public void AutoWithInitializerInStructPrimaryConstructor()
+        {
+            var text = @"struct S(int i)
+{
+    public int P { get; } = i;
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AutoWithInitializerInClassPrimaryConstructor()
+        {
+            var text = @"class C(int a)
+{
+    public int P { get; } = a;
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AutoWithInitializerInClass()
+        {
+            var text = @"class C
+{
+    public int P { get; set; } = 1;
+    internal protected static long Q { get; } = 10;
+    public decimal R { get; } = 300;
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<PropertySymbol>("P");
+            Assert.NotNull(p.GetMethod);
+            Assert.NotNull(p.SetMethod);
+
+            var q = c.GetMember<PropertySymbol>("Q");
+            Assert.NotNull(q.GetMethod);
+            Assert.Null(q.SetMethod);
+
+            var r = c.GetMember<PropertySymbol>("R");
+            Assert.NotNull(r.GetMethod);
+            Assert.Null(r.SetMethod);
+        }
+
+        [Fact]
+        public void AutoWithInitializerInStruct1()
+        {
+            var text = @"struct S
+{
+    public int P { get; set; } = 1;
+    internal static long Q { get; } = 10;
+    public decimal R { get; } = 300;
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+// (3,16): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//     public int P { get; set; } = 1;
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "P").WithArguments("S.P").WithLocation(3, 16),
+// (5,20): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//     public decimal R { get; } = 300;
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").WithArguments("S.R").WithLocation(5, 20));
+        }
+
+        [Fact]
+        public void AutoWithInitializerInStruct2()
+        {
+            var text = @"struct S
+{
+    public int P { get; set; } = 1;
+    internal static long Q { get; } = 10;
+    public decimal R { get; } = 300;
+
+    public S(int i) : this() {}
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var s = global.GetTypeMember("S");
+
+            var p = s.GetMember<PropertySymbol>("P");
+            Assert.NotNull(p.GetMethod);
+            Assert.NotNull(p.SetMethod);
+
+            var q = s.GetMember<PropertySymbol>("Q");
+            Assert.NotNull(q.GetMethod);
+            Assert.Null(q.SetMethod);
+
+            var r = s.GetMember<PropertySymbol>("R");
+            Assert.NotNull(r.GetMethod);
+            Assert.Null(r.SetMethod);
+        }
+
+        [Fact]
+        public void AutoInitializerInInterface()
+        {
+            var text = @"interface I
+{
+    int P { get; } = 0;
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+
+            comp.VerifyDiagnostics(
+                // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
+                //     int P { get; } = 0;
+                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
+        }
+
+        [Fact]
+        public void AutoNoSetOrInitializer()
+        {
+            var text = @"class C
+{
+    public int P { get; }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+
+            comp.VerifyDiagnostics(
+// (3,20): error CS8033: Auto-implemented properties must have set accessors or initializers.
+//     public int P { get; }
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(3, 20));
+        }
+
+        [Fact]
+        public void AutoNoGet()
+        {
+            var text = @"class C
+{
+    public int P { set {} }
+    public int Q { set; } = 0;
+    public int R { set; }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+
+            comp.VerifyDiagnostics(
+// (4,20): error CS8034: Auto-implemented properties must have get accessors.
+//     public int Q { set; } = 0;
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
+// (5,20): error CS8034: Auto-implemented properties must have get accessors.
+//     public int R { set; }
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
+        }
+
         [WorkItem(542745)]
         [Fact()]
         public void AutoImplementedAccessorNotImplicitlyDeclared()

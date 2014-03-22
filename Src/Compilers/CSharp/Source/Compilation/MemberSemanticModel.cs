@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -160,6 +160,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (LookupPosition.IsInStatementScope(position, stmt))
                     {
                         binder = rootBinder.GetBinder(current);
+
+                        if (binder != null)
+                        {
+                            switch (stmt.CSharpKind())
+                            {
+                                case SyntaxKind.ForEachStatement:
+                                    var forEachStmt = (ForEachStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, forEachStmt.InKeyword, forEachStmt.CloseParenToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ScopedExpressionBinder);
+                                    }
+                                    break;
+
+                                case SyntaxKind.ForStatement:
+                                    var forStmt = (ForStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, forStmt.OpenParenToken, forStmt.FirstSemicolonToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ForLoopInitializationBinder);
+                    }
+                                    break;
+
+                                case SyntaxKind.SwitchStatement:
+                                    var switchStmt = (SwitchStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.CloseParenToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ScopedExpressionBinder);
+                                    }
+                                    break;
+                }
+                        }
                     }
                 }
                 else if (current.Kind == SyntaxKind.CatchClause)
@@ -408,6 +441,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override IMethodSymbol GetDeclaredSymbol(BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define method inside member.
+            return null;
+        }
+
+        public override IMethodSymbol GetDeclaredConstructorSymbol(TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define type inside a member.
             return null;
         }
 
@@ -1421,6 +1460,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetBindableSyntaxNode(parent);
 
                     case SyntaxKind.VariableDeclarator: // declarators are mapped in SyntaxBinder
+
+                        if (parent.Kind == SyntaxKind.DeclarationExpression)
+                        {
+                            return GetBindableSyntaxNode(parent);
+                        }
+
                         // When a local variable declaration contains a single declarator, the bound node
                         // is associated with the declaration, rather than with the declarator.  If we
                         // used the declarator here, we would have enough context to bind it, but we wouldn't

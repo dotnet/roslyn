@@ -733,16 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '$':
-                    if (this.ModeIs(LexerMode.DebuggerSyntax))
-                    {
-                        goto case 'a';
-                    }
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.DollarToken;
+                    break;
 
-                    goto default;
-
-                    // All the 'common' identifier characters are represented directly in
-                    // these switch cases for optimal perf.  Calling IsIdentifierChar() functions is relatively
-                    // expensive.
+                // All the 'common' identifier characters are represented directly in
+                // these switch cases for optimal perf.  Calling IsIdentifierChar() functions is relatively
+                // expensive.
                 case 'a':
                 case 'b':
                 case 'c':
@@ -1716,10 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         goto default;
                     case '$':
-                        if (!this.ModeIs(LexerMode.DebuggerSyntax) || this.identLen > 0)
-                        {
-                            goto LoopExit;
-                        }
+                        goto LoopExit;
 
                         break;
                     case SlidingTextWindow.InvalidCharacter:

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -729,6 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSwitchSections(s);
             return new BoundSwitchStatement(
                 Syntax,
+                ImmutableArray<LocalSymbol>.Empty,
                 ex,
                 null,
                 ImmutableArray<LocalSymbol>.Empty,
@@ -1023,14 +1024,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block)
         {
             var source = Local(local);
-            return new BoundCatchBlock(Syntax, local, source, source.Type, exceptionFilterOpt: null, body: block);
+            return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterOpt: null, body: block);
         }
 
         internal BoundCatchBlock Catch(
             BoundExpression source,
             BoundBlock block)
         {
-            return new BoundCatchBlock(Syntax, null, source, source.Type, exceptionFilterOpt: null, body: block);
+            return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterOpt: null, body: block);
         }
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)

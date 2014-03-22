@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,9 +11,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SourceMemberFieldSymbol : SourceFieldSymbol
+    internal class SourceMemberFieldSymbol : SourceFieldSymbolWithSyntaxReference
     {
         private readonly DeclarationModifiers modifiers;
+        private readonly bool hasInitializer;
 
         private TypeSymbol lazyType;
 
@@ -32,25 +33,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
         {
             this.modifiers = modifiers;
+            this.hasInitializer = declarator.Initializer != null;
 
             this.CheckAccessibility(diagnostics);
 
-            var location = Location;
+            var errorLocation = Location;
             if (modifierErrors)
             {
                 // skip the following checks
             }
             else if (containingType.IsSealed && (DeclaredAccessibility == Accessibility.Protected || DeclaredAccessibility == Accessibility.ProtectedOrInternal))
             {
-                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(containingType), location, this);
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(containingType), errorLocation, this);
             }
             else if (IsVolatile && IsReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_VolatileAndReadonly, location, this);
+                diagnostics.Add(ErrorCode.ERR_VolatileAndReadonly, errorLocation, this);
             }
             else if (containingType.IsStatic && !IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, this);
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, errorLocation, this);
             }
 
             // TODO: Consider checking presence of core type System.Runtime.CompilerServices.IsVolatile 
@@ -88,24 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 diagnostics.Add(ErrorCode.ERR_BadConstType, constToken.GetLocation(), type);
             }
-            else
-            {
-                if (ContainingType.TypeKind == TypeKind.Struct && !IsStatic && !IsConst)
-                {
-                    var initializerOpt = declarator.Initializer;
-                    if (initializerOpt != null)
-                    {
-                        // '{0}': cannot have instance field initializers in structs
-                        diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, this.Location, this);
-                    }
-                }
-
-                if (IsVolatile && !type.IsValidVolatileFieldType())
+            else if (IsVolatile && !type.IsValidVolatileFieldType())
                 {
                     // '{0}': a volatile field cannot be of the type '{1}'
                     diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.Location, this, type);
                 }
-            }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
@@ -115,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(this.Location, useSiteDiagnostics);
+        }
+
+        public bool HasInitializer
+        {
+            get { return hasInitializer; }
         }
 
         public VariableDeclaratorSyntax VariableDeclaratorNode
