@@ -13,7 +13,7 @@
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CompilerPackage</RootNamespace>
-    <AssemblyName>CompilerPackage</AssemblyName>
+    <AssemblyName>CompilerPackage.DoNotUse</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <PlatformTarget>x86</PlatformTarget>
     <StartAction>Program</StartAction>
@@ -26,6 +26,7 @@
     <StyleCopEnabled>false</StyleCopEnabled>
     <GeneratePkgDefFile>False</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <TargetVsixContainerName>CompilerPackage.vsix</TargetVsixContainerName>
     <SccProjectName>%24/Roslyn/Releases/MVPSummit2013/Open/Compilers/Package</SccProjectName>
     <SccLocalPath>.</SccLocalPath>
     <SccAuxPath>http://vstfdevdiv:8080/devdiv2</SccAuxPath>
