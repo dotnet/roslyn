@@ -19,7 +19,7 @@
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <StyleCopEnabled>false</StyleCopEnabled>
     <GeneratePkgDefFile>True</GeneratePkgDefFile>
-    <DeployExtension>False</DeployExtension>
+    <DeployExtension>true</DeployExtension>
     <CreateVsixContainer>False</CreateVsixContainer>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
