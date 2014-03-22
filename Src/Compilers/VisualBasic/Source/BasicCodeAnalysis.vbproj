@@ -90,6 +90,7 @@
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.vb" />
     <Compile Include="Analysis\Analyzer.vb" />
     <Compile Include="Analysis\FlowAnalysis\AbstractFlowPass.AbstractLocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\AbstractFlowPass.NestedTypes.vb" />
@@ -126,7 +127,6 @@
     <Compile Include="Binding\BackstopBinder.vb" />
     <Compile Include="Binding\BasesBeingResolvedBinder.vb" />
     <Compile Include="Binding\Binder.vb" />
-    <Compile Include="Binding\BinderFactory.BinderFactoryVisitor.vb" />
     <Compile Include="Binding\Binder_AnonymousTypes.vb" />
     <Compile Include="Binding\Binder_Attributes.vb" />
     <Compile Include="Binding\Binder_Constraints.vb" />
@@ -151,6 +151,7 @@
     <Compile Include="Binding\Binder_WithBlock.vb" />
     <Compile Include="Binding\Binder_XmlLiterals.vb" />
     <Compile Include="Binding\BinderBuilder.vb" />
+    <Compile Include="Binding\BinderFactory.BinderFactoryVisitor.vb" />
     <Compile Include="Binding\BinderFactory.NodeUsage.vb" />
     <Compile Include="Binding\BinderFactory.vb" />
     <Compile Include="Binding\Binders\AliasAndImportsClause.vb" />
@@ -254,7 +255,6 @@
     <Compile Include="BoundTree\BoundNode.vb" />
     <Compile Include="BoundTree\BoundNodeExtensions.vb" />
     <Compile Include="BoundTree\BoundNodeFinder.vb" />
-    <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.vb" />
     <Compile Include="BoundTree\BoundNoOpStatement.vb" />
     <Compile Include="BoundTree\BoundNullableIsTrueOperator.vb" />
     <Compile Include="BoundTree\BoundObjectCreationExpression.vb" />
@@ -349,11 +349,11 @@
     <Compile Include="Compilation\SyntaxTreeSemanticModel.vb" />
     <Compile Include="Compilation\TypeCompilationState.vb" />
     <Compile Include="Compilation\TypeInfo.vb" />
+    <Compile Include="Compilation\VisualBasicCompilation.DefinitionMap.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.MethodCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.SynthesizedMetadataCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.vb" />
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
-    <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
     <Compile Include="Declarations\DeclarationModifiers.vb" />
@@ -524,7 +524,6 @@
     <Compile Include="Lowering\WithExpressionRewriter.vb" />
     <Compile Include="OptionStrict.vb" />
     <Compile Include="OptionsValidator.vb" />
-    <Compile Include="VisualBasicParseOptions.vb" />
     <Compile Include="Parser\BlockContexts\BlockContext.vb" />
     <Compile Include="Parser\BlockContexts\BlockContextExtensions.vb" />
     <Compile Include="Parser\BlockContexts\CaseBlockContext.vb" />
@@ -904,7 +903,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VBResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="VisualBasicExtensions.vb" />
+    <Compile Include="VisualBasicParseOptions.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
@@ -920,13 +921,14 @@
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
       <SubType>Designer</SubType>
     </BoundTreeDefinition>
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
+    <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
       <SubType>Designer</SubType>
     </SyntaxDefinition>
@@ -960,13 +962,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Compilation\VisualBasicCompilation.DefinitionMap.vb" />
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">

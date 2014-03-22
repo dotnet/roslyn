@@ -62,7 +62,6 @@
   <ItemGroup>
     <Compile Include="BuildClient.cs" />
     <Compile Include="CommandLineSplitter.cs" />
-    <Compile Include="TaskUtilities.cs" />
     <Compile Include="Csc.cs" />
     <Compile Include="CscTaskFactory.cs" />
     <Compile Include="MSBuildTasksResources.Designer.cs">
@@ -72,6 +71,7 @@
     </Compile>
     <Compile Include="NativeMethods.cs" />
     <Compile Include="RoslynTaskFactory_T.cs" />
+    <Compile Include="TaskUtilities.cs" />
     <Compile Include="Vbc.cs" />
     <Compile Include="VbcTaskFactory.cs" />
   </ItemGroup>

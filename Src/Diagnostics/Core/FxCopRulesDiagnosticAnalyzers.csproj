@@ -74,8 +74,8 @@
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleToTest Include="Roslyn.DiagnosticFixers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.DiagnosticAnalyzers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.DiagnosticFixers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />

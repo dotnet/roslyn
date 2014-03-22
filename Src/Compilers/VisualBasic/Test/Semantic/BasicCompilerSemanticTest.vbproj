@@ -93,8 +93,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
-    <Reference Include="System.Reflection.Primitives" />
     <Reference Include="System.IO" />
+    <Reference Include="System.Reflection.Primitives" />
     <Reference Include="System.Runtime" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -126,13 +126,13 @@
     <Compile Include="Binding\SyncLockTests.vb" />
     <Compile Include="Binding\UsingTests.vb" />
     <Compile Include="Compilation\CompilationAPITests.vb" />
-    <Compile Include="Compilation\VisualBasicCompilationOptionsTests.vb" />
     <Compile Include="Compilation\GetSemanticInfoBrokenCodeTests.vb" />
     <Compile Include="Compilation\MyTemplateTests.vb" />
     <Compile Include="Compilation\ReferenceManagerTests.vb" />
     <Compile Include="Compilation\SemanticModelAPITests.vb" />
     <Compile Include="Compilation\SemanticModelGetDeclaredSymbolAPITests.vb" />
     <Compile Include="Compilation\SemanticModelLookupSymbolsAPITests.vb" />
+    <Compile Include="Compilation\VisualBasicCompilationOptionsTests.vb" />
     <Compile Include="DeclaringSyntaxNodeTests.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
@@ -214,6 +214,12 @@
     <Compile Include="Semantics\WithBlockErrorTests.vb" />
     <Compile Include="Semantics\WithBlockSemanticModelTests.vb" />
     <Compile Include="Semantics\XmlLiteralSemanticModelTests.vb" />
+    <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
     <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
     <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
     <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
@@ -224,23 +230,13 @@
     <EmbeddedResource Include="Binding\T_1247520.cs" />
     <EmbeddedResource Include="Binding\T_1556342.cs" />
     <EmbeddedResource Include="Binding\T_68086.vb" />
-    <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
-    <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
+    <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

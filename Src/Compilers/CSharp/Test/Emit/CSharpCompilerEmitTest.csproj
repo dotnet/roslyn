@@ -148,6 +148,7 @@
     <Compile Include="CodeGen\WinMdEventTests.cs" />
     <Compile Include="CodeGen\WinRTCollectionTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
+    <Compile Include="Emit\EditAndContinueTests.AssemblyReferences.cs" />
     <Compile Include="Emit\EditAndContinueTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />
     <Compile Include="Emit\EmitErrorTests.cs" />
@@ -178,9 +179,9 @@
     <Reference Include="System.Collections" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Runtime" />
-    <Reference Include="System.Reflection.Primitives" />
     <Reference Include="System.IO" />
+    <Reference Include="System.Reflection.Primitives" />
+    <Reference Include="System.Runtime" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -190,9 +191,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Emit\EditAndContinueTests.AssemblyReferences.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

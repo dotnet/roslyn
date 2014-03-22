@@ -89,6 +89,9 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs">
+      <Link>Syntax\Syntax.xml.Generated.cs</Link>
+    </Compile>
     <Compile Include="Diagnostics\DiagnosticTest.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.MockSyntaxTree.cs" />
     <Compile Include="Diagnostics\LocationsTests.cs" />
@@ -171,11 +174,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs">
-      <Link>Syntax\Syntax.xml.Generated.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

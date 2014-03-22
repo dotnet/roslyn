@@ -245,7 +245,6 @@
     <Compile Include="Compilation\SyntaxTreeSemanticModel.cs" />
     <Compile Include="Compilation\SyntaxTreeSemanticModel_RegionAnalysisContext.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />
-    <Compile Include="CSharpCompilationOptions.cs" />
     <Compile Include="Compiler\AnonymousTypeMethodBodySynthesizer.cs" />
     <Compile Include="Compiler\ClsComplianceChecker.cs" />
     <Compile Include="Compiler\Compiler.cs" />
@@ -260,7 +259,9 @@
     <Compile Include="Compiler\SynthesizedMethodMetadataCompiler.cs" />
     <Compile Include="Compiler\TypeCompilationState.cs" />
     <Compile Include="Compiler\UnprocessedDocumentationCommentFinder.cs" />
+    <Compile Include="CSharpCompilationOptions.cs" />
     <Compile Include="CSharpExtensions.cs" />
+    <Compile Include="CSharpParseOptions.cs" />
     <Compile Include="CSharpResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -330,8 +331,8 @@
     <Compile Include="Emitter\NoPia\EmbeddedTypesManager.cs" />
     <Compile Include="Errors\CSDiagnostic.cs" />
     <Compile Include="Errors\CSDiagnosticInfo.cs" />
-    <Compile Include="Errors\DiagnosticBagExtensions.cs" />
     <Compile Include="Errors\CSharpDiagnosticFormatter.cs" />
+    <Compile Include="Errors\DiagnosticBagExtensions.cs" />
     <Compile Include="Errors\DiagnosticInfoWithSymbols.cs" />
     <Compile Include="Errors\ErrorFacts.cs" />
     <Compile Include="Errors\LazyObsoleteDiagnosticInfo.cs" />
@@ -447,7 +448,6 @@
     <Compile Include="Lowering\SynthesizedSubmissionFields.cs" />
     <Compile Include="Lowering\SyntheticBoundNodeFactory.cs" />
     <Compile Include="Lowering\UnmatchedGotoFinder.cs" />
-    <Compile Include="CSharpParseOptions.cs" />
     <Compile Include="Parser\AbstractLexer.cs" />
     <Compile Include="Parser\BlendedNode.cs" />
     <Compile Include="Parser\Blender.cs" />
@@ -774,10 +774,9 @@
     <Compile Include="Syntax\SyntaxEquivalence.cs" />
     <Compile Include="Syntax\SyntaxExtensions.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
-    <Compile Include="Syntax\SyntaxNodeFacts.cs" />
-    <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxFormatter.cs" />
     <Compile Include="Syntax\SyntaxKind.cs" />
+    <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxList.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
     <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
@@ -789,6 +788,7 @@
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
+    <Compile Include="Syntax\SyntaxNodeFacts.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxNodeRemover.cs" />
     <Compile Include="Syntax\SyntaxReplacer.cs" />
@@ -811,6 +811,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Syntax\CSharpSyntaxTree.Dummy.cs" />
+    <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
     <None Include="Symbols\PublicSymbolTable.cd" />
@@ -818,9 +819,9 @@
   <ItemGroup>
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml" />
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.cs" />
-    <Compile Include="Errors\ErrorCode.cs" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.cs" />
     <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.cs" />
+    <Compile Include="Errors\ErrorCode.cs" />
     <EmbeddedResource Include="CSharpResources.resx">
       <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>
@@ -846,9 +847,6 @@
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
