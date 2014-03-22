@@ -902,11 +902,6 @@
     <Node Name="BoundAsNewLocalDeclarations" Base="BoundLocalDeclarationBase">
         <Field Name="LocalDeclarations" Type="ImmutableArray(Of BoundLocalDeclaration)" />
         <Field Name="Initializer" Type="BoundExpression" />
-        <!-- This array contains a syntax node for each local declaration to be used
-             e.g. in sequence points. This is needed because there is a different span for each variable of an AsNew 
-             declaration. The order of in this array is the same as the order of LocalDeclarations, the cound of elements 
-             is also the same. The syntax node points to the identifier name within the declaration. -->
-        <Field Name="SyntaxNodesOpt" Type="ImmutableArray(Of ModifiedIdentifierSyntax)" Null="allow" />
     </Node>
 
     <!--
