@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
     {
         internal const string RuleId = "CA1309";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                             FxCopConstants.DiagnosticKind,
                                                                              FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
                                                                              FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
                                                                              FxCopDiagnosticCategory.Globalization,

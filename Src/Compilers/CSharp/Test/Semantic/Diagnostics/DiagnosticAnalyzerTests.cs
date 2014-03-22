@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override string Id { get { return id; } }
 
-            public override string Kind { get { return kind; } }
+            public override string Category { get { return kind; } }
 
             public override Location Location { get { return location; } }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         class ComplainAboutX : ISyntaxNodeAnalyzer<SyntaxKind>
         {
             private static readonly DiagnosticDescriptor CA9999_UseOfVariableThatStartsWithX =
-                new DiagnosticDescriptor(id: "CA9999", kind: "Test", name: "CA9999_UseOfVariableThatStartsWithX", messageTemplate: "Use of variable whose name starts with 'x': '{0}'", category: "Test", severity: DiagnosticSeverity.Warning);
+                new DiagnosticDescriptor(id: "CA9999", description: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning);
 
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {

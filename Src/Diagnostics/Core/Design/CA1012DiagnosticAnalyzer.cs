@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     {
         internal const string RuleId = "CA1012";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.AbstractTypesShouldNotHavePublicConstructors,
                                                                          FxCopRulesResources.TypeIsAbstractButHasPublicConstructors,
                                                                          FxCopDiagnosticCategory.Design,

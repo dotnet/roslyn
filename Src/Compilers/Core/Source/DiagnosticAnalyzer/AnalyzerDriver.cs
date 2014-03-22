@@ -448,10 +448,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return new DiagnosticDescriptor(DiagnosticId,
                 CodeAnalysisResources.CompilerAnalyzerFailure,
-                DiagnosticId,
                 string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, message),
-                category: DiagnosticId,
-                severity: DiagnosticSeverity.Info);
+                category: "Compiler",
+                defaultSeverity: DiagnosticSeverity.Info);
         }
     }
 }

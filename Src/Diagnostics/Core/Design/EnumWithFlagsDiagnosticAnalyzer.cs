@@ -34,14 +34,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleNameForExportAttribute = "EnumWithFlagsAttributeRules";
 
         internal static DiagnosticDescriptor Rule1027 = new DiagnosticDescriptor(RuleIdMarkEnumsWithFlags,
-                                                                             FxCopConstants.DiagnosticKind,
                                                                              FxCopRulesResources.MarkEnumsWithFlags,
                                                                              FxCopRulesResources.MarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning);
 
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
-                                                                             FxCopConstants.DiagnosticKind,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlags,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Design,

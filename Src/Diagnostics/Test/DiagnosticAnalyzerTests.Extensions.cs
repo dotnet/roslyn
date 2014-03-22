@@ -54,9 +54,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
 
-                Assert.True(actual.Kind == FxCopConstants.DiagnosticKind,
-                    string.Format("Expected diagnostic kind to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                        FxCopConstants.DiagnosticKind, actual.Kind, actual));
                 Assert.True(actual.Id == expected.Id,
                     string.Format("Expected diagnostic id to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.Id, actual.Id, actual));

@@ -9,7 +9,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</ProjectGuid>
+    <ProjectGuid>{90D2AB08-A2D4-4F77-BE9C-0476B7066BCB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <FileUpgradeFlags></FileUpgradeFlags>
@@ -104,7 +104,6 @@
     <Compile Include="Design\EnumWithFlagsDiagnosticAnalyzer.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticKind.cs" />
-    <Compile Include="FxCopConstants.cs" />
     <Compile Include="FxCopDiagnosticCategory.cs" />
     <Compile Include="FxCopRulesResources.Designer.cs">
       <AutoGen>True</AutoGen>

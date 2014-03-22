@@ -17,13 +17,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string CA1052RuleId = "CA1052";
         internal const string CA1053RuleId = "CA1053";
         internal static readonly DiagnosticDescriptor CA1052Rule = new DiagnosticDescriptor(CA1052RuleId,
-                                                                          FxCopConstants.DiagnosticKind,
                                                                           FxCopRulesResources.StaticHolderTypesShouldBeStaticOrNotInheritable,
                                                                           FxCopRulesResources.StaticHolderTypeIsNotStatic,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning);
         internal static readonly DiagnosticDescriptor CA1053Rule = new DiagnosticDescriptor(CA1053RuleId,
-                                                                          FxCopConstants.DiagnosticKind,
                                                                           FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructors,
                                                                           FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage,
                                                                           FxCopDiagnosticCategory.Usage,

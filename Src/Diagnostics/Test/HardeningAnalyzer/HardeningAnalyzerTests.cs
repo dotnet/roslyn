@@ -50,13 +50,11 @@ public class Class6<TTypeParameter>
 #region "Test_Class"
 internal const string RuleId = "CA1715_Test";
         internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopConstants.DiagnosticKind,
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning);
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopConstants.DiagnosticKind,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopDiagnosticCategory.Naming,

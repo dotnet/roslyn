@@ -1975,11 +1975,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn), 
                                                         d.Location as Location, 
                                                         options,
-                                                        d.Kind);
+                                                        d.Category);
                 }
                 else
                 {
-                    reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Kind);
+                    reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
                 }
 
                 switch (reportAction)

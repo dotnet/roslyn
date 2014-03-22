@@ -14,13 +14,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
     {
         internal const string RuleId = "CA1715";
         internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopConstants.DiagnosticKind,
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning);
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopConstants.DiagnosticKind,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopDiagnosticCategory.Naming,

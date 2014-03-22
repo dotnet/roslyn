@@ -31,7 +31,7 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</Project>
+      <Project>{90D2AB08-A2D4-4F77-BE9C-0476B7066BCB}</Project>
       <Name>FxCopRulesDiagnosticAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Workspaces.csproj">

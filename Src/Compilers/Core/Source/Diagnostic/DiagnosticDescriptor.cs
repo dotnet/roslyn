@@ -15,20 +15,15 @@ namespace Microsoft.CodeAnalysis
         public string Id { get; private set; }
 
         /// <summary>
-        /// The kind of the diagnostic (like compiler, unnecessary etc.)
+        /// A short localizable description of the diagnostic.
         /// </summary>
-        public string Kind { get; private set; }
+        public string Description { get; private set; }
 
         /// <summary>
-        /// Name of the diagnostic.
-        /// </summary>
-        public string Name { get; private set; }
-
-        /// <summary>
-        /// The parameterized message of the diagnostic.
+        /// A localizable format message string, which can be passed as the first argument to <see cref="M:System.String.Format"/> when creating the diagnostic message with this descriptor.
         /// </summary>
         /// <returns></returns>
-        public string MessageTemplate { get; private set; }
+        public string MessageFormat { get; private set; }
 
         /// <summary>
         /// The category of the diagnostic (like Design, Naming etc.)
@@ -36,22 +31,27 @@ namespace Microsoft.CodeAnalysis
         public string Category { get; private set; }
 
         /// <summary>
-        /// The severity of the diagnostic.
+        /// The default severity of the diagnostic.
         /// </summary>
         /// <returns></returns>
-        public DiagnosticSeverity Severity { get; private set; }
+        public DiagnosticSeverity DefaultSeverity { get; private set; }
 
         /// <summary>
-        /// Create a DiagnosticDescriptor
+        /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// </summary>
-        public DiagnosticDescriptor(string id, string kind, string name, string messageTemplate, string category, DiagnosticSeverity severity)
+        /// <param name="id">A unique identifier for the diagnostic. For example, code analysis diagnostic ID "CA1001".</param>
+        /// <param name="description">A short localizable description of the diagnostic. For example, for CA1001: "Types that own disposable fields should be disposable".</param>
+        /// <param name="messageFormat">A localizable format message string, which can be passed as the first argument to <see cref="M:System.String.Format"/> when creating the diagnostic message with this descriptor.
+        /// For example, for CA1001: "Implement IDisposable on '{0}' because it creates members of the following IDisposable types: '{1}'."</param>
+        /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
+        /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
+        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity)
         {
             this.Id = id;
-            this.Kind = kind;
-            this.Name = name;
+            this.Description = description;
             this.Category = category;
-            this.MessageTemplate = messageTemplate;
-            this.Severity = severity;
+            this.MessageFormat = messageFormat;
+            this.DefaultSeverity = defaultSeverity;
         }
     }
 }

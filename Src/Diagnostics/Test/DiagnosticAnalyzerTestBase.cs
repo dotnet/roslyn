@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static Diagnostic[] GetSortedNonCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            return diagnostics.Where(d => d.Kind != "Compiler").OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            return diagnostics.Where(d => d.Category != "Compiler").OrderBy(d => d.Location.SourceSpan.Start).ToArray();
         }
     }
 }

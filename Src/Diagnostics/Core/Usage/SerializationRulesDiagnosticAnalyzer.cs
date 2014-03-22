@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
         internal static DiagnosticDescriptor RuleCA2229 = new DiagnosticDescriptor(RuleCA2229Id,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.ImplementSerializationConstructor,
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Usage,
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
         internal static DiagnosticDescriptor RuleCA2237 = new DiagnosticDescriptor(RuleCA2237Id,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.MarkISerializableTypesWithAttribute,
                                                                          FxCopRulesResources.AddSerializableAttributeToType,
                                                                          FxCopDiagnosticCategory.Usage,
@@ -36,7 +34,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
         internal static DiagnosticDescriptor RuleCA2235 = new DiagnosticDescriptor(RuleCA2235Id,
-                                                                         FxCopConstants.DiagnosticKind,
                                                                          FxCopRulesResources.MarkAllNonSerializableFields,
                                                                          FxCopRulesResources.FieldIsOfNonSerializableType,
                                                                          FxCopDiagnosticCategory.Usage,

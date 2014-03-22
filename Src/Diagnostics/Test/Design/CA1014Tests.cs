@@ -163,7 +163,7 @@ class Program
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleName,
             Severity = DiagnosticSeverity.Warning,
-            Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageTemplate
+            Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat
         };
     }
 }
