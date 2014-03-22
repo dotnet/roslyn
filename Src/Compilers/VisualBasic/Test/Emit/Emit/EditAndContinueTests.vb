@@ -3564,6 +3564,58 @@ End Module
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
         End Sub
 
+        <WorkItem(849649)>
+        <Fact>
+        Public Sub Bug849649()
+            Dim source0 =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub F()
+        Dim x(5) As Integer
+        x(3) = 2
+    End Sub
+End Module
+</file>
+</compilation>
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub F()
+        Dim x(5) As Integer
+        x(3) = 3
+    End Sub
+End Module
+</file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, UnoptimizedDll)
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
+            Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray(Of String).Empty)
+
+            Dim diff0 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+
+            diff0.VerifyIL("
+{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldc.i4.6
+  IL_0002:  newarr     0x01000008
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.3
+  IL_000a:  ldc.i4.3
+  IL_000b:  stelem.i4
+  IL_000c:  ret
+}")
+        End Sub
+
 #End Region
 
 #Region "Helpers"

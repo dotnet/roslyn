@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
@@ -24,15 +25,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' rewriters because here we already have the infrastructure to replace placeholders. 
         ''' </summary>
         Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
-            Dim initializedSymbolsCount = node.InitializedSymbols.Length
-            Dim statements(initializedSymbolsCount - 1) As BoundStatement
+            Dim syntax = node.Syntax
+
+            Debug.Assert(
+                syntax.IsKind(SyntaxKind.AsNewClause) OrElse                ' Dim a As New C(); Dim a,b As New C(); Property P As New C()
+                syntax.IsKind(SyntaxKind.ModifiedIdentifier) OrElse         ' Dim a(1) As Integer
+                syntax.IsKind(SyntaxKind.EqualsValue))                      ' Dim a = 1; Property P As Integer = 1
+
+            Dim initializedSymbols = node.InitializedSymbols
+            Dim rewrittenStatements = ArrayBuilder(Of BoundStatement).GetInstance(initializedSymbols.Length)
 
             ' it's enough to create one me reference if the symbols are not shared that gets reused for all following rewritings.
             Dim meReferenceOpt As BoundExpression = Nothing
-            If Not node.InitializedSymbols.First.IsShared Then
+            If Not initializedSymbols.First.IsShared Then
                 ' create me reference if needed
                 Debug.Assert(currentMethodOrLambda IsNot Nothing)
-                meReferenceOpt = New BoundMeReference(node.Syntax, currentMethodOrLambda.ContainingType)
+                meReferenceOpt = New BoundMeReference(syntax, currentMethodOrLambda.ContainingType)
                 meReferenceOpt.SetWasCompilerGenerated()
             End If
 
@@ -47,17 +55,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            For symbolIndex = 0 To initializedSymbolsCount - 1
+            For symbolIndex = 0 To initializedSymbols.Length - 1
                 Dim symbol = node.InitializedSymbols(symbolIndex)
-
-                Debug.Assert(node.AsNewSyntaxNodesOpt.IsDefault OrElse initializedSymbolsCount > 1)
-                Dim syntaxForSequencePoint = If(initializedSymbolsCount > 1, node.AsNewSyntaxNodesOpt(symbolIndex), node.Syntax.Parent)
                 Dim accessExpression As BoundExpression
 
                 ' if there are more than one symbol we need to create a field access for each of them
-                If initializedSymbolsCount > 1 Then
+                If initializedSymbols.Length > 1 Then
                     Dim fieldSymbol = DirectCast(symbol, FieldSymbol)
-                    accessExpression = New BoundFieldAccess(node.Syntax, meReferenceOpt, fieldSymbol, True, fieldSymbol.Type)
+                    accessExpression = New BoundFieldAccess(syntax, meReferenceOpt, fieldSymbol, True, fieldSymbol.Type)
                 Else
                     Debug.Assert(node.MemberAccessExpressionOpt IsNot Nothing)
 
@@ -78,17 +83,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     RemovePlaceholderReplacement(objectInitializer.PlaceholderOpt)
                 Else
                     ' in all other cases we want the initial value be assigned to the member (field or property)
-                    rewrittenStatement = DirectCast(Visit(New BoundAssignmentOperator(DirectCast(syntaxForSequencePoint, VisualBasicSyntaxNode),
-                                                                          accessExpression,
-                                                                          node.InitialValue,
-                                                                          False).ToStatement), BoundStatement)
+                    rewrittenStatement = VisitExpression(New BoundAssignmentOperator(syntax,
+                                                                                     accessExpression,
+                                                                                     node.InitialValue,
+                                                                                     suppressObjectClone:=False)).ToStatement
+
+                    rewrittenStatement = MarkInitializerSequencePoint(rewrittenStatement, syntax, symbolIndex)
                 End If
 
-                statements(symbolIndex) = rewrittenStatement
+                rewrittenStatements.Add(rewrittenStatement)
             Next
 
-            Return New BoundStatementList(node.Syntax, statements.AsImmutableOrNull)
+            Return New BoundStatementList(node.Syntax, rewrittenStatements.ToImmutableAndFree())
         End Function
 
+        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode, nameIndex As Integer) As BoundStatement
+            If Not GenerateDebugInfo Then
+                Return rewrittenStatement
+            End If
+
+            If syntax.Parent.IsKind(SyntaxKind.PropertyStatement) Then
+                ' Property [|P As Integer = 1|] Implements I.P
+                ' Property [|P As New Integer|] Implements I.P
+                Dim propertyStatement = DirectCast(syntax.Parent, PropertyStatementSyntax)
+
+                Dim span = TextSpan.FromBounds(propertyStatement.Identifier.SpanStart,
+                                               If(propertyStatement.Initializer Is Nothing, propertyStatement.AsClause.Span.End, propertyStatement.Initializer.Span.End))
+
+                Return New BoundSequencePointWithSpan(syntax, rewrittenStatement, span)
+            End If
+
+            If syntax.IsKind(SyntaxKind.AsNewClause) Then
+                Dim declarator = DirectCast(syntax.Parent, VariableDeclaratorSyntax)
+                If declarator.Names.Count > 1 Then
+                    ' Dim [|a|], b As New C()
+                    Return New BoundSequencePoint(declarator.Names(nameIndex), rewrittenStatement)
+                Else
+                    ' Dim [|a As New C()|]
+                    Return New BoundSequencePoint(syntax.Parent, rewrittenStatement)
+                End If
+            End If
+
+            If syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then
+                Debug.Assert(DirectCast(syntax, ModifiedIdentifierSyntax).ArrayBounds IsNot Nothing)
+                ' Dim [|a(1)|] As Integer
+                Return New BoundSequencePoint(syntax, rewrittenStatement)
+            End If
+
+            ' Dim [|a = 1|]
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValue))
+            Return New BoundSequencePoint(syntax.Parent, rewrittenStatement)
+        End Function
     End Class
 End Namespace

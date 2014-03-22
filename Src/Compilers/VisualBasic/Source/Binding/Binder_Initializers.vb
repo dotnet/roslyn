@@ -249,8 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim initializer = New BoundFieldOrPropertyInitializer(syntax,
                                                                   ImmutableArray.Create(Of Symbol)(fieldSymbol),
                                                                   boundFieldAccessExpression,
-                                                                  arrayCreation,
-                                                                  asNewSyntaxNodesOpt:=Nothing)
+                                                                  arrayCreation)
 
             initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
@@ -303,33 +302,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                   asNewVariablePlaceholder,
                                                                                                   diagnostics)
 
-            Dim asNewSyntaxNodes As ImmutableArray(Of SyntaxNode) = Nothing
-            Dim fieldSymbolCount = fieldSymbols.Length
             Dim hasErrors = False
-            If fieldSymbolCount > 1 Then
-                Debug.Assert(fieldSymbolCount = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
-                Dim variableNames = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
-                Dim identifiers(fieldSymbolCount - 1) As SyntaxNode
-                For variableNameIndex = 0 To fieldSymbols.Length - 1
-                    Dim name = variableNames(variableNameIndex)
+            If fieldSymbols.Length > 1 Then
+                Debug.Assert(fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
+
+                For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
                     If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
                         ' Arrays cannot be declared with AsNew syntax
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_AsNewArray)
                         hasErrors = True
                     End If
-
-                    identifiers(variableNameIndex) = name
                 Next
-
-                asNewSyntaxNodes = identifiers.AsImmutableOrNull
             End If
 
-            boundInitializers.Add(New BoundFieldOrPropertyInitializer(equalsValueOrAsNewSyntax,
-                                                                      fieldSymbols,
-                                                                      If(fieldSymbolCount = 1, fieldAccess, Nothing),
-                                                                      boundInitExpression,
-                                                                      asNewSyntaxNodes,
-                                                                      hasErrors))
+            boundInitializers.Add(New BoundFieldOrPropertyInitializer(
+                equalsValueOrAsNewSyntax,
+                fieldSymbols,
+                If(fieldSymbols.Length = 1, fieldAccess, Nothing),
+                boundInitExpression,
+                hasErrors))
         End Sub
 
         Friend Sub BindPropertyInitializer(
@@ -379,8 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundInitializers.Add(New BoundFieldOrPropertyInitializer(initValueOrAsNewNode,
                                                                       ImmutableArray.Create(Of Symbol)(propertySymbol),
                                                                       boundPropertyOrFieldAccess,
-                                                                      boundInitExpression,
-                                                                      asNewSyntaxNodesOpt:=Nothing))
+                                                                      boundInitExpression))
 
         End Sub
 
@@ -471,8 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitializers.Add(New BoundFieldOrPropertyInitializer(equalsValueOrAsNewSyntax,
                                                                           ImmutableArray.Create(Of Symbol)(fieldSymbol),
                                                                           boundFieldAccessExpr,
-                                                                          boundInitValue,
-                                                                          asNewSyntaxNodesOpt:=Nothing))
+                                                                          boundInitValue))
             End If
         End Sub
 

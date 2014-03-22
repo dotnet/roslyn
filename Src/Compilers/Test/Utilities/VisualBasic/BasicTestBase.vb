@@ -521,6 +521,16 @@ Public MustInherit Class BasicTestBaseBase
         Return XElement.Parse(TestBase.GetPdbXml(compilation, methodName))
     End Function
 
+    Public Shared Shadows Function GetSequencePoints(pdbXml As XElement) As XElement
+        Return <sequencePoints>
+                   <%= From entry In pdbXml.<methods>.<method>.<sequencepoints>.<entry>
+                       Select <entry start_row=<%= entry.@start_row %>
+                                  start_column=<%= entry.@start_column %>
+                                  end_row=<%= entry.@end_row %>
+                                  end_column=<%= entry.@end_column %>/> %>
+               </sequencePoints>
+    End Function
+
     Public Shared ReadOnly ClassesWithReadWriteProperties As XCData = <![CDATA[
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
