@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -71,10 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IPropertyDefinitionParameters As IEnumerable(Of IParameterDefinition) Implements IPropertyDefinition.Parameters
+        Private ReadOnly Property IPropertyDefinitionParameters As ImmutableArray(Of IParameterDefinition) Implements IPropertyDefinition.Parameters
             Get
                 CheckDefinitionInvariant()
-                Return Me.GetParameters()
+                Return StaticCast(Of IParameterDefinition).From(Me.Parameters)
             End Get
         End Property
 
@@ -99,9 +100,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IParameterTypeInformation) Implements ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
             CheckDefinitionInvariant()
-            Return Me.GetParameters()
+            Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
         End Function
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As IEnumerable(Of Microsoft.Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
@@ -165,12 +166,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.MetadataName
             End Get
         End Property
-
-        Private Function GetParameters() As IEnumerable(Of ParameterSymbol)
-            CheckDefinitionInvariant()
-            Return Me.Parameters
-        End Function
-
     End Class
-
 End Namespace

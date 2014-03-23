@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -65,11 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        IEnumerable<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.IMethodReference.ExtraParameters
+        ImmutableArray<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.IMethodReference.ExtraParameters
         {
             get
             {
-                return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.IParameterTypeInformation>();
+                return ImmutableArray<Microsoft.Cci.IParameterTypeInformation>.Empty;
             }
         }
 
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        IEnumerable<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);

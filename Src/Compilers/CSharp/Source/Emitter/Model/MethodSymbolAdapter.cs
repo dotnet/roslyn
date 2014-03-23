@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
             get
             {
-                return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>();
+                return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
             }
         }
 
@@ -187,14 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             if (this.IsDefinition && this.ContainingModule == moduleBeingBuilt.SourceModule)
             {
-                return EnumerateDefinitionParameters();
+                return StaticCast<Cci.IParameterTypeInformation>.From(this.EnumerateDefinitionParameters());
             }
             else
             {
@@ -202,19 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private IEnumerable<Cci.IParameterDefinition> EnumerateDefinitionParameters()
+        private ImmutableArray<Cci.IParameterDefinition> EnumerateDefinitionParameters()
         {
             Debug.Assert(this.Parameters.All(p => p.IsDefinition));
 
-            var parameters = this.Parameters;
-            if (parameters.Length != 0)
-            {
-                return this.Parameters;
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<Cci.IParameterDefinition>();
-            }
+            return StaticCast<Cci.IParameterDefinition>.From(this.Parameters);
         }
 
         IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
@@ -570,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsMetadataFinal();
 
-        IEnumerable<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
+        ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
         {
             get
             {

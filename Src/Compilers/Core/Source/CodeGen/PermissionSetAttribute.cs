@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Zero or more positional arguments for the attribute constructor.
         /// </summary>
-        public IEnumerable<Cci.IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
         {
             return this.sourceAttribute.GetArguments(context);
         }
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
         /// </summary>
-        public IEnumerable<Cci.IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
         {
             // Perform fixup 
             Cci.ITypeReference stringType = context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Synthesize a named attribute argument "Hex = hexFileContent".
-            yield return new HexPropertyMetadataNamedArgument(stringType, new MetadataConstant(stringType, hexFileContent));
+            return ImmutableArray.Create<Cci.IMetadataNamedArgument>(new HexPropertyMetadataNamedArgument(stringType, new MetadataConstant(stringType, hexFileContent)));
         }
 
         // internal for testing purposes.

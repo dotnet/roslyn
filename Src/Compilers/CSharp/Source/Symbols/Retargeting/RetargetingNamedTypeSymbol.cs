@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.underlyingType.GetSecurityInformation();
         }
 
-        internal override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return this.underlyingType.GetAppliedConditionalSymbols();
         }

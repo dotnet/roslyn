@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     visitor.Visit((Cci.IMethodBody)this);
                 }
 
-                IEnumerable<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
+                ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
                 {
-                    get { return SpecializedCollections.EmptyEnumerable<Cci.ExceptionHandlerRegion>(); }
+                    get { return ImmutableArray<Cci.ExceptionHandlerRegion>.Empty; }
                 }
 
                 bool Cci.IMethodBody.LocalsAreZeroed
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return false; }
                 }
 
-                IEnumerable<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
+                ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
                 {
-                    get { return SpecializedCollections.EmptyEnumerable<Cci.ILocalDefinition>(); }
+                    get { return ImmutableArray<Cci.ILocalDefinition>.Empty; }
                 }
 
                 Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
@@ -331,11 +331,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return GetImplementationAttributes(context);
             }
 
-            IEnumerable<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
+            ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
             {
                 get
                 {
-                    return parameters;
+                    return StaticCast<Cci.IParameterDefinition>.From(parameters);
                 }
             }
 
@@ -453,12 +453,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
-            IEnumerable<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
             {
                 get
                 {
                     // This is a definition, no information about extra parameters 
-                    return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>();
+                    return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
                 }
             }
 
@@ -494,9 +494,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
             {
-                return parameters;
+                return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
 
             IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers

@@ -1896,12 +1896,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        internal override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             var uncommon = GetUncommonProperties();
             if (uncommon == noUncommonProperties)
             {
-                return SpecializedCollections.EmptyEnumerable<string>();
+                return ImmutableArray<string>.Empty;
             }
 
             if (uncommon.lazyConditionalAttributeSymbols.IsDefault)

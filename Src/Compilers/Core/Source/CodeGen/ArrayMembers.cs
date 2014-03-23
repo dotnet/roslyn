@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using System.Collections.Immutable;
 
 
 // Contains support for pseudo-methods on multidimensional arrays.
@@ -221,20 +222,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
             }
 
-            protected override ArrayMethodParameterInfo[] MakeParameters()
+            protected override ImmutableArray<ArrayMethodParameterInfo> MakeParameters()
             {
-                var indexNum = (ushort)arrayType.Rank;
-                var parameters = new ArrayMethodParameterInfo[indexNum + 1];
+                int rank = (int)arrayType.Rank;
+                var parameters = ArrayBuilder<ArrayMethodParameterInfo>.GetInstance(rank + 1);
 
-                for (ushort i = 0; i < indexNum; i++)
+                for (int i = 0; i < rank; i++)
                 {
-                    parameters[i] = ArrayMethodParameterInfo.GetIndexParameter(i);
+                    parameters.Add(ArrayMethodParameterInfo.GetIndexParameter((ushort)i));
                 }
 
-                parameters[indexNum] = new ArraySetValueParameterInfo(indexNum, arrayType);
-
-                return parameters;
-            }
+                parameters.Add(new ArraySetValueParameterInfo((ushort)rank, arrayType));
+                return parameters.ToImmutableAndFree();
+           }
         }
     }
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal abstract class ArrayMethod : Cci.IMethodReference
     {
-        private readonly ArrayMethodParameterInfo[] parameters;
+        private readonly ImmutableArray<ArrayMethodParameterInfo> parameters;
         protected readonly Cci.IArrayTypeReference arrayType;
 
         protected ArrayMethod(Cci.IArrayTypeReference arrayType)
@@ -352,21 +352,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // Set overrides this to include "value" parameter.
-        protected virtual ArrayMethodParameterInfo[] MakeParameters()
+        protected virtual ImmutableArray<ArrayMethodParameterInfo> MakeParameters()
         {
-            var parameters = new ArrayMethodParameterInfo[arrayType.Rank];
+            int rank = (int)arrayType.Rank;
+            var parameters = ArrayBuilder<ArrayMethodParameterInfo>.GetInstance(rank);
 
-            for (ushort i = 0; i < parameters.Length; i++)
+            for (int i = 0; i < rank; i++)
             {
-                parameters[i] = ArrayMethodParameterInfo.GetIndexParameter(i);
+                parameters.Add(ArrayMethodParameterInfo.GetIndexParameter((ushort)i));
             }
 
-            return parameters;
+            return parameters.ToImmutableAndFree();
         }
 
-        public IEnumerable<Cci.IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
         {
-            return parameters;
+            return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
         }
 
         public bool AcceptsExtraArguments
@@ -389,9 +390,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return null;
         }
 
-        public IEnumerable<Cci.IParameterTypeInformation> ExtraParameters
+        public ImmutableArray<Cci.IParameterTypeInformation> ExtraParameters
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>(); }
+            get { return ImmutableArray<Cci.IParameterTypeInformation>.Empty; }
         }
 
         public Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference

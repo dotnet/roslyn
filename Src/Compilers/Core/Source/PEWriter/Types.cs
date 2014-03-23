@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
@@ -147,7 +148,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The types and modifiers of extra arguments that the caller will pass to the methods that are pointed to by this pointer.
         /// </summary>
-        IEnumerable<IParameterTypeInformation> ExtraArgumentTypes { get; }
+        ImmutableArray<IParameterTypeInformation> ExtraArgumentTypes { get; }
     }
 
     /// <summary>

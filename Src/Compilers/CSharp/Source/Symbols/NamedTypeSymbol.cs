@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a sequence of preprocessor symbols specified in <see cref="T:ConditionalAttribute"/> applied on this symbol, or null if there are none.
         /// </summary>
-        internal abstract IEnumerable<string> GetAppliedConditionalSymbols();
+        internal abstract ImmutableArray<string> GetAppliedConditionalSymbols();
 
         /// <summary>
         /// If CoClassAttribute was applied to the type and the attribute argument is a valid named type argument, i.e. accessible class type, then it returns the type symbol for the argument.

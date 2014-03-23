@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
-            foreach (var e in items)
+            for (int i = 0; i < items.Length; i++)
             {
-                builder.Add(map(e));
+                builder.Add(map(items[i]));
             }
 
             return builder.ToImmutableAndFree();

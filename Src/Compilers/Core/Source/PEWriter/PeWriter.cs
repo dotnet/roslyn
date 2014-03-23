@@ -2204,7 +2204,7 @@ namespace Microsoft.Cci
 
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
-            this.SerializeSignature(propertyDef, 0, IteratorHelper.GetEmptyEnumerable<IParameterTypeInformation>(), writer);
+            this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
             result = this.GetBlobIndex(sig.ToArray());
             this.signatureIndex.Add(propertyDef, result);
             sig.Free();
@@ -3005,7 +3005,8 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!this.tableIndicesAreComplete);
             this.localDefIndex.Clear();
-            ushort numLocals = (ushort)IteratorHelper.EnumerableCount(methodBody.LocalVariables);
+            var locals = methodBody.LocalVariables;
+            ushort numLocals = (ushort)locals.Length;
             if (numLocals == 0)
             {
                 return 0;
@@ -5163,7 +5164,7 @@ namespace Microsoft.Cci
 
             byte[] il = this.SerializeMethodBodyIL(methodBody);
 
-            uint numberOfExceptionHandlers = IteratorHelper.EnumerableCount(methodBody.ExceptionRegions);
+            uint numberOfExceptionHandlers = (uint)methodBody.ExceptionRegions.Length;
             if (il.Length < 64 && methodBody.MaxStack <= 8 && localVariableSignatureToken == 0 && numberOfExceptionHandlers == 0)
             {
                 //If 'possiblyDuplicateMethodBodies' is not null, check if an identical
@@ -5308,7 +5309,7 @@ namespace Microsoft.Cci
 
         private void SerializeReferenceToMethodWithModuleInfo()
         {
-            MemoryStream customMetadata = new MemoryStream();
+            MemoryStream customMetadata = new MemoryStream(12);
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(4); // version
             cmw.WriteByte(2); // kind: ForwardToModuleInfo
@@ -5320,7 +5321,7 @@ namespace Microsoft.Cci
 
         private void SerializeReferenceToPreviousMethodWithUsingInfo()
         {
-            MemoryStream customMetadata = new MemoryStream();
+            MemoryStream customMetadata = new MemoryStream(12);
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(4); // version
             cmw.WriteByte(1); // kind: ForwardInfo
@@ -5823,7 +5824,8 @@ namespace Microsoft.Cci
 
         private void SerializeMethodBodyExceptionHandlerTable(IMethodBody methodBody, uint numberOfExceptionHandlers, BinaryWriter writer)
         {
-            bool useSmallExceptionHeaders = MayUseSmallExceptionHeaders(numberOfExceptionHandlers, methodBody.ExceptionRegions);
+            var regions = methodBody.ExceptionRegions;
+            bool useSmallExceptionHeaders = MayUseSmallExceptionHeaders(numberOfExceptionHandlers, regions);
             writer.Align(4);
             if (useSmallExceptionHeaders)
             {
@@ -5840,7 +5842,7 @@ namespace Microsoft.Cci
                 writer.WriteUshort((ushort)((dataSize >> 8) & 0xffff));
             }
 
-            foreach (var region in methodBody.ExceptionRegions)
+            foreach (var region in regions)
             {
                 this.SerializeExceptionRegion(region, useSmallExceptionHeaders, writer);
             }
@@ -5876,7 +5878,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private static bool MayUseSmallExceptionHeaders(uint numberOfExceptionHandlers, IEnumerable<ExceptionHandlerRegion> exceptionRegions)
+        private static bool MayUseSmallExceptionHeaders(uint numberOfExceptionHandlers, ImmutableArray<ExceptionHandlerRegion> exceptionRegions)
         {
             if (numberOfExceptionHandlers * 12 + 4 > 0xff)
             {
@@ -6444,7 +6446,7 @@ namespace Microsoft.Cci
             // TODO: xml for older platforms
         }
 
-        private void SerializeSignature(ISignature signature, ushort genericParameterCount, IEnumerable<IParameterTypeInformation> extraArgumentTypes, BinaryWriter writer)
+        private void SerializeSignature(ISignature signature, ushort genericParameterCount, ImmutableArray<IParameterTypeInformation> extraArgumentTypes, BinaryWriter writer)
         {
             byte header = (byte)signature.CallingConvention;
             if (signature is IPropertyDefinition)
@@ -6458,8 +6460,9 @@ namespace Microsoft.Cci
                 writer.WriteCompressedUInt(genericParameterCount);
             }
 
-            uint numberOfRequiredParameters = IteratorHelper.EnumerableCount(signature.GetParameters(Context));
-            uint numberOfOptionalParameters = IteratorHelper.EnumerableCount(extraArgumentTypes);
+            var @params = signature.GetParameters(Context);
+            uint numberOfRequiredParameters = (uint)@params.Length;
+            uint numberOfOptionalParameters = (uint)extraArgumentTypes.Length;
             writer.WriteCompressedUInt(numberOfRequiredParameters + numberOfOptionalParameters);
             if (signature.ReturnValueIsModified)
             {
@@ -6475,7 +6478,7 @@ namespace Microsoft.Cci
             }
 
             this.SerializeTypeReference(signature.GetType(Context), writer, false, true);
-            foreach (IParameterTypeInformation parameterTypeInformation in signature.GetParameters(Context))
+            foreach (IParameterTypeInformation parameterTypeInformation in @params)
             {
                 this.SerializeParameterInformation(parameterTypeInformation, writer);
             }

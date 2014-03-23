@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return originalDefinition.GetSecurityInformation();
         }
 
-        internal sealed override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return originalDefinition.GetAppliedConditionalSymbols();
         }

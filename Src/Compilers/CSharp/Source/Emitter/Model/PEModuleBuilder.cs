@@ -1148,22 +1148,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return methodRef;
         }
 
-        internal IEnumerable<Cci.IParameterTypeInformation> Translate(ImmutableArray<ParameterSymbol> @params)
+        internal ImmutableArray<Cci.IParameterTypeInformation> Translate(ImmutableArray<ParameterSymbol> @params)
         {
             Debug.Assert(@params.All(p => p.IsDefinitionOrDistinct()));
-            if (@params.Length == 0)
-            {
-                return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>();
-            }
 
-            var firstParam = @params.First();
-
-            bool mustBeTranslated = MustBeWrapped(firstParam);
+            bool mustBeTranslated = @params.Any() && MustBeWrapped(@params.First());
             Debug.Assert(@params.All(p => mustBeTranslated == MustBeWrapped(p)), "either all or no parameters need translating");
 
             if (!mustBeTranslated)
             {
-                return @params;
+                return StaticCast<Cci.IParameterTypeInformation>.From(@params);
             }
 
             return TranslateAll(@params);
@@ -1189,12 +1183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        private IEnumerable<Cci.IParameterTypeInformation> TranslateAll(ImmutableArray<ParameterSymbol> @params)
+        private ImmutableArray<Cci.IParameterTypeInformation> TranslateAll(ImmutableArray<ParameterSymbol> @params)
         {
-            foreach (var param in @params)
-            {
-                yield return CreateParameterTypeInformationWrapper(param);
-            }
+            return @params.SelectAsArray(param => CreateParameterTypeInformationWrapper(param));
         }
 
         private Cci.IParameterTypeInformation CreateParameterTypeInformationWrapper(ParameterSymbol param)

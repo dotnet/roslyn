@@ -272,9 +272,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal sealed override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            return SpecializedCollections.EmptyEnumerable<string>();
+            return ImmutableArray<string>.Empty;
         }
 
         internal override bool HasDeclarativeSecurity

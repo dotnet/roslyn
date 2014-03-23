@@ -402,19 +402,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return methodRef
         End Function
 
-        Friend Overloads Function Translate(params As ImmutableArray(Of ParameterSymbol)) As IEnumerable(Of Microsoft.Cci.IParameterTypeInformation)
+        Friend Overloads Function Translate(params As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation)
             Debug.Assert(params.All(Function(p) p.IsDefinitionOrDistinct()))
-            If (params.Length = 0) Then
-                Return SpecializedCollections.EmptyEnumerable(Of Cci.IParameterTypeInformation)()
-            End If
 
-            Dim firstParam = params.First()
-
-            Dim mustBeTranslated = MustBeWrapped(firstParam)
+            Dim mustBeTranslated = params.Any AndAlso MustBeWrapped(params.First())
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
             If (Not mustBeTranslated) Then
-                Return params
+                Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
             End If
 
             Return TranslateAll(params)
@@ -437,10 +432,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Private Iterator Function TranslateAll(params As ImmutableArray(Of ParameterSymbol)) As IEnumerable(Of Microsoft.Cci.IParameterTypeInformation)
-            For Each param In params
-                Yield CreateParameterTypeInformationWrapper(param)
-            Next
+        Private Function TranslateAll(params As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation)
+            Return params.SelectAsArray(Function(param) CreateParameterTypeInformationWrapper(param))
         End Function
 
         Private Function CreateParameterTypeInformationWrapper(param As ParameterSymbol) As Cci.IParameterTypeInformation

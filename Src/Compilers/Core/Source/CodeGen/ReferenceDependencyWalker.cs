@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private static void VisitParameters(IEnumerable<Microsoft.Cci.IParameterTypeInformation> parameters, Microsoft.CodeAnalysis.Emit.Context context)
+        private static void VisitParameters(ImmutableArray<Microsoft.Cci.IParameterTypeInformation> parameters, Microsoft.CodeAnalysis.Emit.Context context)
         {
             foreach (var param in parameters)
             {

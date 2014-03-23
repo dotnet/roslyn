@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (attributeType.IsConditional)
             {
-                IEnumerable<string> conditionalSymbols = attributeType.GetAppliedConditionalSymbols();
+                ImmutableArray<string> conditionalSymbols = attributeType.GetAppliedConditionalSymbols();
                 Debug.Assert(conditionalSymbols != null);
                 if (syntaxTree.IsAnyPreprocessorSymbolDefined(conditionalSymbols))
                 {

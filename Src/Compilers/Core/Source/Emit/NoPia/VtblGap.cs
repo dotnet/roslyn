@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return System.Reflection.MethodImplAttributes.Managed | System.Reflection.MethodImplAttributes.Runtime;
         }
 
-        IEnumerable<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
+        ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.IParameterDefinition>(); }
+            get { return ImmutableArray<Cci.IParameterDefinition>.Empty; }
         }
 
         Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData
@@ -193,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return this;
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>(); }
+            get { return ImmutableArray<Cci.IParameterTypeInformation>.Empty; }
         }
 
         Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference
@@ -218,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return 0; }
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
         {
-            return SpecializedCollections.EmptyEnumerable<Cci.IParameterTypeInformation>();
+            return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
         }
 
         IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers

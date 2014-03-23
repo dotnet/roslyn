@@ -15,14 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract partial class CSharpAttributeData : Cci.ICustomAttribute
     {
-        IEnumerable<Cci.IMetadataExpression> Cci.ICustomAttribute.GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IMetadataExpression> Cci.ICustomAttribute.GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
         {
-            foreach (var argument in this.CommonConstructorArguments)
+            var commonArgs = this.CommonConstructorArguments;
+            if(commonArgs.IsEmpty)
+            {
+                return ImmutableArray<Cci.IMetadataExpression>.Empty;
+            }
+
+            var builder = ArrayBuilder<Cci.IMetadataExpression>.GetInstance();
+            foreach (var argument in commonArgs)
             {
                 Debug.Assert(argument.Kind != TypedConstantKind.Error);
-
-                yield return CreateMetadataExpression(argument, context);
+                builder.Add(CreateMetadataExpression(argument, context));
             }
+            return builder.ToImmutableAndFree();
         }
 
         Cci.IMethodReference Cci.ICustomAttribute.Constructor(Microsoft.CodeAnalysis.Emit.Context context)
@@ -31,12 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (Cci.IMethodReference)moduleBeingBuilt.Translate(this.AttributeConstructor, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
         }
 
-        IEnumerable<Cci.IMetadataNamedArgument> Cci.ICustomAttribute.GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IMetadataNamedArgument> Cci.ICustomAttribute.GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
         {
-            foreach (var namedArgument in this.CommonNamedArguments)
+            var commonArgs = this.CommonNamedArguments;
+            if (commonArgs.IsEmpty)
             {
-                yield return CreateMetadataNamedArgument(namedArgument.Key, namedArgument.Value, context);
+                return ImmutableArray<Cci.IMetadataNamedArgument>.Empty;
             }
+
+            var builder = ArrayBuilder<Cci.IMetadataNamedArgument>.GetInstance();
+            foreach (var namedArgument in commonArgs)
+            {
+                builder.Add(CreateMetadataNamedArgument(namedArgument.Key, namedArgument.Value, context));
+            }
+            return builder.ToImmutableAndFree();
         }
 
         int Cci.ICustomAttribute.ArgumentCount

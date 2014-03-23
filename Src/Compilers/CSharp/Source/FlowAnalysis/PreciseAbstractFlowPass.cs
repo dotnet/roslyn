@@ -448,8 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // track exception states.
                 result = this.pendingBranches
                         .Where(b => b.Branch != null)
-                        .ToArray()
                         .AsImmutableOrNull();
+
                 var oldExceptions = this.pendingBranches[0];
                 Debug.Assert(oldExceptions.Branch == null);
                 this.pendingBranches.Clear();

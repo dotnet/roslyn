@@ -484,9 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            return SpecializedCollections.EmptyEnumerable<string>();
+            return ImmutableArray<string>.Empty;
         }
 
         internal override AttributeUsageInfo GetAttributeUsageInfo()

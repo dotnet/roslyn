@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return underlyingMethod.GetResolvedMethod(context);
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
             get
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return underlyingMethod.ParameterCount; }
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
         {
             return underlyingMethod.GetParameters(context);
         }

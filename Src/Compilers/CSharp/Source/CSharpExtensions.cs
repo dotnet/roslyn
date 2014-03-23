@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree != null && csharpTree.HasReferenceDirectives;
         }
 
-        internal static bool IsAnyPreprocessorSymbolDefined(this SyntaxTree tree, IEnumerable<string> conditionalSymbols)
+        internal static bool IsAnyPreprocessorSymbolDefined(this SyntaxTree tree, ImmutableArray<string> conditionalSymbols)
         {
             var csharpTree = tree as CSharpSyntaxTree;
             return csharpTree != null && csharpTree.IsAnyPreprocessorSymbolDefined(conditionalSymbols);

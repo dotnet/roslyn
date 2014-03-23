@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -106,12 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
+        ImmutableArray<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.Parameters;
+                return StaticCast<Cci.IParameterDefinition>.From(this.Parameters);
             }
         }
 
@@ -152,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
         {
             CheckDefinitionInvariant();
-            return this.Parameters;
+            return StaticCast<Cci.IParameterTypeInformation>.From(this.Parameters);
         }
 
         IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers

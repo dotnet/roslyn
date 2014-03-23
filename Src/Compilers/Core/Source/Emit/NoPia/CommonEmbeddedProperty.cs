@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
+            ImmutableArray<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
             {
-                get { return parameters; }
+                get { return StaticCast<Cci.IParameterDefinition>.From(parameters); }
             }
 
             Cci.CallingConvention Cci.ISignature.CallingConvention
@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return (ushort)parameters.Length; }
             }
 
-            IEnumerable<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
             {
-                return parameters;
+                return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
 
             bool Cci.ISignature.ReturnValueIsModified

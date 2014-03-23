@@ -367,7 +367,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list exception data within the method body IL.
         /// </summary>
-        IEnumerable<ExceptionHandlerRegion> ExceptionRegions
+        ImmutableArray<ExceptionHandlerRegion> ExceptionRegions
         {
             get;
 
@@ -382,7 +382,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The local variables of the method.
         /// </summary>
-        IEnumerable<ILocalDefinition> LocalVariables { get; }
+        ImmutableArray<ILocalDefinition> LocalVariables { get; }
 
         /// <summary>
         /// The definition of the method whose body this is.
@@ -567,7 +567,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The parameters forming part of this signature.
         /// </summary>
-        IEnumerable<IParameterDefinition> Parameters { get; }
+        ImmutableArray<IParameterDefinition> Parameters { get; }
 
         /// <summary>
         /// Detailed information about the PInvoke stub. Identifies which method to call, which module has the method and the calling convention among other things.
@@ -727,7 +727,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The parameters forming part of this signature.
         /// </summary>
-        IEnumerable<IParameterDefinition> Parameters { get; }
+        ImmutableArray<IParameterDefinition> Parameters { get; }
 
         /// <summary>
         /// The method used to set the value of this property. May be absent (null).
@@ -754,7 +754,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The parameters forming part of this signature.
         /// </summary>
-        IEnumerable<IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context);
 
         /// <summary>
         /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
@@ -906,7 +906,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Information about this types of the extra arguments supplied at the call sites that references the method with this object.
         /// </summary>
-        IEnumerable<IParameterTypeInformation> ExtraParameters { get; }
+        ImmutableArray<IParameterTypeInformation> ExtraParameters { get; }
 
         IGenericMethodInstanceReference AsGenericMethodInstanceReference { get; }
         ISpecializedMethodReference AsSpecializedMethodReference { get; }

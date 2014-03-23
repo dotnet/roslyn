@@ -135,9 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private ReadOnly Property IMethodReferenceExtraParameters As IEnumerable(Of IParameterTypeInformation) Implements IMethodReference.ExtraParameters
+        Private ReadOnly Property IMethodReferenceExtraParameters As ImmutableArray(Of IParameterTypeInformation) Implements IMethodReference.ExtraParameters
             Get
-                Return SpecializedCollections.EmptyEnumerable(Of IParameterTypeInformation)()
+                Return ImmutableArray(Of IParameterTypeInformation).Empty
             End Get
         End Property
 
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IParameterTypeInformation) Implements ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -158,16 +158,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
 
             If Me.IsDefinition AndAlso Me.ContainingModule = moduleBeingBuilt.SourceModule Then
-                Return EnumerateDefinitionParameters
+                Return EnumerateDefinitionParameters()
             Else
                 Return moduleBeingBuilt.Translate(Me.Parameters)
             End If
         End Function
 
-        Private Function EnumerateDefinitionParameters() As IEnumerable(Of Cci.IParameterTypeInformation)
+        Private Function EnumerateDefinitionParameters() As ImmutableArray(Of Cci.IParameterTypeInformation)
             Debug.Assert(Me.Parameters.All(Function(p) p.IsDefinition))
 
-            Return Me.Parameters
+            Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
         End Function
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As IEnumerable(Of Microsoft.Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionParameters As IEnumerable(Of IParameterDefinition) Implements IMethodDefinition.Parameters
+        Private ReadOnly Property IMethodDefinitionParameters As ImmutableArray(Of IParameterDefinition) Implements IMethodDefinition.Parameters
             Get
                 CheckDefinitionInvariant()
 
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(p Is p.OriginalDefinition)
                 Next
 #End If
-                Return Me.Parameters
+                Return StaticCast(Of IParameterDefinition).From(Me.Parameters)
             End Get
         End Property
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using System.Collections.Immutable;
 
 namespace Microsoft.Cci
 {
@@ -332,7 +333,7 @@ namespace Microsoft.Cci
         /// Visits the specified local definitions.
         /// </summary>
         /// <param name="localDefinitions">The local definitions.</param>
-        public void Visit(IEnumerable<ILocalDefinition> localDefinitions)
+        public void Visit(ImmutableArray<ILocalDefinition> localDefinitions)
         {
             foreach (ILocalDefinition localDefinition in localDefinitions)
             {
@@ -643,7 +644,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Visits the specified operation exception informations.
         /// </summary>
-        public void Visit(IEnumerable<ExceptionHandlerRegion> exceptionRegions)
+        public void Visit(ImmutableArray<ExceptionHandlerRegion> exceptionRegions)
         {
             foreach (ExceptionHandlerRegion region in exceptionRegions)
             {
@@ -667,7 +668,7 @@ namespace Microsoft.Cci
         /// Visits the specified parameters.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
-        public void Visit(IEnumerable<IParameterDefinition> parameters)
+        public void Visit(ImmutableArray<IParameterDefinition> parameters)
         {
             foreach (IParameterDefinition parameter in parameters)
             {
@@ -712,7 +713,7 @@ namespace Microsoft.Cci
         /// Visits the specified parameter type informations.
         /// </summary>
         /// <param name="parameterTypeInformations">The parameter type informations.</param>
-        public void Visit(IEnumerable<IParameterTypeInformation> parameterTypeInformations)
+        public void Visit(ImmutableArray<IParameterTypeInformation> parameterTypeInformations)
         {
             foreach (IParameterTypeInformation parameterTypeInformation in parameterTypeInformations)
             {

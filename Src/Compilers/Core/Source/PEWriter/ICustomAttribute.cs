@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.Cci
 {
@@ -12,7 +13,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more positional arguments for the attribute constructor.
         /// </summary>
-        IEnumerable<IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context);
 
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
@@ -22,7 +23,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
         /// </summary>
-        IEnumerable<IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context);
 
         /// <summary>
         /// The number of positional arguments.

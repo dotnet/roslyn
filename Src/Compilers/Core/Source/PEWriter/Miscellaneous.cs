@@ -14,15 +14,6 @@ namespace Microsoft.Cci
     internal static class IteratorHelper
     {
         /// <summary>
-        /// Returns an enumerable containing no objects.
-        /// </summary>
-        /// <returns></returns>
-        public static IEnumerable<T> GetEmptyEnumerable<T>()
-        {
-            return SpecializedCollections.EmptyEnumerable<T>();
-        }
-
-        /// <summary>
         /// True if the given enumerable is not null and contains at least one element.
         /// </summary>
         public static bool EnumerableIsNotEmpty<T>(IEnumerable<T>/*?*/ enumerable)

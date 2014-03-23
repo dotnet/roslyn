@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.IsConditional)
             {
-                IEnumerable<string> conditionalSymbols = this.GetAppliedConditionalSymbols();
+                ImmutableArray<string> conditionalSymbols = this.GetAppliedConditionalSymbols();
                 Debug.Assert(conditionalSymbols != null);
                 if (syntaxTree.IsAnyPreprocessorSymbolDefined(conditionalSymbols))
                 {

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.directives;
         }
 
-        internal bool IsAnyPreprocessorSymbolDefined(IEnumerable<string> conditionalSymbols)
+        internal bool IsAnyPreprocessorSymbolDefined(ImmutableArray<string> conditionalSymbols)
         {
             System.Diagnostics.Debug.Assert(conditionalSymbols != null);
 

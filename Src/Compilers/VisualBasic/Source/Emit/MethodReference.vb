@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
@@ -53,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
-        Private ReadOnly Property IMethodReferenceExtraParameters As IEnumerable(Of Microsoft.Cci.IParameterTypeInformation) Implements Microsoft.Cci.IMethodReference.ExtraParameters
+        Private ReadOnly Property IMethodReferenceExtraParameters As ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation) Implements Microsoft.Cci.IMethodReference.ExtraParameters
             Get
-                Return SpecializedCollections.EmptyEnumerable(Of Microsoft.Cci.IParameterTypeInformation)()
+                Return ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation).Empty
             End Get
         End Property
 
@@ -65,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Microsoft.Cci.IParameterTypeInformation) Implements Microsoft.Cci.ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation) Implements Microsoft.Cci.ISignature.GetParameters
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Return moduleBeingBuilt.Translate(m_UnderlyingMethod.Parameters)

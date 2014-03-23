@@ -883,10 +883,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal override IEnumerable<string> GetAppliedConditionalSymbols()
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             var data = GetEarlyDecodedWellKnownAttributeData();
-            return data != null ? data.ConditionalSymbols : SpecializedCollections.EmptyEnumerable<string>();
+            return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)

@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class VisualBasicAttributeData
         Implements Cci.ICustomAttribute
 
-        Private Function GetArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.IMetadataExpression) Implements Cci.ICustomAttribute.GetArguments
-            Return From arg In CommonConstructorArguments Select CreateMetadataExpression(arg, context)
+        Private Function GetArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Cci.IMetadataExpression) Implements Cci.ICustomAttribute.GetArguments
+            Return CommonConstructorArguments.SelectAsArray(Function(arg) CreateMetadataExpression(arg, context))
         End Function
 
         Private Function Constructor1(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IMethodReference Implements Cci.ICustomAttribute.Constructor
@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                               syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), Diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function GetNamedArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.IMetadataNamedArgument) Implements Cci.ICustomAttribute.GetNamedArguments
-            Return From namedArgument In CommonNamedArguments Select CreateMetadataNamedArgument(namedArgument.Key, namedArgument.Value, context)
+        Private Function GetNamedArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Cci.IMetadataNamedArgument) Implements Cci.ICustomAttribute.GetNamedArguments
+            Return CommonNamedArguments.SelectAsArray(Function(namedArgument) CreateMetadataNamedArgument(namedArgument.Key, namedArgument.Value, context))
         End Function
 
         Private ReadOnly Property ArgumentCount As Integer Implements Cci.ICustomAttribute.ArgumentCount

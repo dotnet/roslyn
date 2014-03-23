@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             throw ExceptionUtilities.Unreachable;
         }
 
-        IEnumerable<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
+        ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
         {
             get { return this.exceptionHandlers; }
         }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return true; }
         }
 
-        IEnumerable<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
+        ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
         {
-            get { return this.locals; }
+            get { return StaticCast<Cci.ILocalDefinition>.From(this.locals); }
         }
 
         Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
