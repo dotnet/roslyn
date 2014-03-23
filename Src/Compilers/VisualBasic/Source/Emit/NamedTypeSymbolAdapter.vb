@@ -855,12 +855,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of ITypeReference) Implements IGenericTypeInstanceReference.GetGenericArguments
+        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of ITypeReference) Implements IGenericTypeInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
 
-            Return From type In Me.TypeArgumentsNoUseSiteDiagnostics
-                   Select moduleBeingBuilt.Translate(type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
+            For Each t In Me.TypeArgumentsNoUseSiteDiagnostics
+                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
+            Next
+
+            Return builder.ToImmutableAndFree
         End Function
 
         Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As INamedTypeReference Implements IGenericTypeInstanceReference.GenericType

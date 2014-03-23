@@ -433,7 +433,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Function TranslateAll(params As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of Microsoft.Cci.IParameterTypeInformation)
-            Return params.SelectAsArray(Function(param) CreateParameterTypeInformationWrapper(param))
+            Dim builder = ArrayBuilder(Of Microsoft.Cci.IParameterTypeInformation).GetInstance()
+            For Each param In params
+                builder.Add(CreateParameterTypeInformationWrapper(param))
+            Next
+            Return builder.ToImmutableAndFree
         End Function
 
         Private Function CreateParameterTypeInformationWrapper(param As ParameterSymbol) As Cci.IParameterTypeInformation

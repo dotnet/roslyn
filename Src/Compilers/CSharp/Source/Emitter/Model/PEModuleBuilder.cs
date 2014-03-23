@@ -1185,7 +1185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private ImmutableArray<Cci.IParameterTypeInformation> TranslateAll(ImmutableArray<ParameterSymbol> @params)
         {
-            return @params.SelectAsArray(param => CreateParameterTypeInformationWrapper(param));
+            var builder = ArrayBuilder<Cci.IParameterTypeInformation>.GetInstance();
+            foreach(var param in @params)
+            {
+                builder.Add(CreateParameterTypeInformationWrapper(param));
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private Cci.IParameterTypeInformation CreateParameterTypeInformationWrapper(ParameterSymbol param)

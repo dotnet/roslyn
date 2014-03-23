@@ -237,7 +237,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type arguments that were used to instantiate this.GenericType in order to create this type.
         /// </summary>
-        IEnumerable<ITypeReference> GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<ITypeReference> GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context);
         // ^ ensures result.GetEnumerator().MoveNext(); // The collection is always non empty.
 
         /// <summary>

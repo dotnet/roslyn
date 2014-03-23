@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -23,14 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             visitor.Visit((Microsoft.Cci.IGenericTypeInstanceReference)this);
         }
 
-        IEnumerable<Microsoft.Cci.ITypeReference> Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Microsoft.Cci.ITypeReference> Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
+            var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             foreach (TypeSymbol type in UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics)
             {
-                yield return moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                builder.Add(moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
             }
+
+            return builder.ToImmutableAndFree();
         }
 
         Microsoft.Cci.INamedTypeReference Microsoft.Cci.IGenericTypeInstanceReference.GenericType

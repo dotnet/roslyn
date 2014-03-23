@@ -1108,21 +1108,22 @@ namespace Microsoft.Cci
             return result;
         }
 
-        protected IEnumerable<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
+        protected ImmutableArray<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
         {
             if (methodDef.ParameterCount == 0 && !(methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes)))
             {
-                return SpecializedCollections.EmptyEnumerable<IParameterDefinition>();
+                return ImmutableArray<IParameterDefinition>.Empty;
             }
 
             return GetParametersToEmitCore(methodDef);
         }
 
-        private IEnumerable<IParameterDefinition> GetParametersToEmitCore(IMethodDefinition methodDef)
+        private ImmutableArray<IParameterDefinition> GetParametersToEmitCore(IMethodDefinition methodDef)
         {
+            var builder = ArrayBuilder<IParameterDefinition>.GetInstance();
             if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
             {
-                yield return new ReturnValueParameter(methodDef);
+                builder.Add(new ReturnValueParameter(methodDef));
             }
 
             foreach (IParameterDefinition parDef in methodDef.Parameters)
@@ -1133,9 +1134,11 @@ namespace Microsoft.Cci
                     parDef.Name != String.Empty ||
                     IteratorHelper.EnumerableIsNotEmpty(parDef.GetAttributes(Context)))
                 {
-                    yield return parDef;
+                    builder.Add(parDef);
                 }
             }
+
+            return builder.ToImmutableAndFree();
         }
 
         private void CreateInitialAssemblyRefIndex()

@@ -2,8 +2,10 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Text
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -26,11 +28,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             visitor.Visit(DirectCast(Me, Microsoft.Cci.IGenericTypeInstanceReference))
         End Sub
 
-        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Microsoft.Cci.ITypeReference) Implements Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments
+        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Microsoft.Cci.ITypeReference) Implements Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            Return From type In m_UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics
-                   Select moduleBeingBuilt.Translate(type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
+            For Each t In m_UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics
+                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
+            Next
+
+            Return builder.ToImmutableAndFree
         End Function
 
         Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As Microsoft.Cci.INamedTypeReference Implements Microsoft.Cci.IGenericTypeInstanceReference.GenericType
