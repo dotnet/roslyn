@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis
         public const string GenericTypeNameManglingString = "`";
         public const int MaxStringLengthForParamSize = 22;
         public const int MaxStringLengthForIntToStringConversion = 22;
+        public const string SystemString = "System";
 
         internal struct AssemblyQualifiedTypeName
         {
@@ -486,12 +488,63 @@ namespace Microsoft.CodeAnalysis
             return emittedTypeName;
         }
 
-        internal static string[] SplitQualifiedName(
-              string pstrName)
-        {
-            Debug.Assert(pstrName != null);
+        /// <summary>
+        /// An ImmutableArray representing the single string "System"
+        /// </summary>
+        private static readonly ImmutableArray<string> SplitQualifiedNameSystem = ImmutableArray.Create(SystemString);
 
-            return pstrName.Split(DotDelimiter);
+        internal static ImmutableArray<string> SplitQualifiedName(
+              string name)
+        {
+            Debug.Assert(name != null);
+
+            if (name.Length == 0)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            // PERF: Avoid String.Split because of the allocations. Also, we can special-case
+            // for "System" if it is the first or only part.
+
+            int dots = 0;
+            foreach (char ch in name)
+            {
+                if (ch == DotDelimiter)
+                {
+                    dots++;
+                }
+            }
+
+            if (dots == 0)
+            {
+                return name == SystemString ? SplitQualifiedNameSystem : ImmutableArray.Create(name);
+            }
+
+            var result = ArrayBuilder<string>.GetInstance(dots + 1);
+
+            int start = 0;
+            for (int i = 0; dots > 0; i++)
+            {
+                if (name[i] == DotDelimiter)
+                {
+                    int len = i - start;
+                    if (len == 6 && start == 0 && name.StartsWith(SystemString))
+                    {
+                        result.Add(SystemString);
+                    }
+                    else
+                    {
+                        result.Add(name.Substring(start, len));
+                    }
+
+                    dots--;
+                    start = i + 1;
+                }
+            }
+
+            result.Add(name.Substring(start));
+
+            return result.ToImmutableAndFree();
         }
 
         internal static string SplitQualifiedName(
@@ -508,7 +561,14 @@ namespace Microsoft.CodeAnalysis
                 return pstrName;
             }
 
-            qualifier = pstrName.Substring(0, delimiter);
+            if (delimiter == 6 && pstrName.StartsWith(SystemString))
+            {
+                qualifier = SystemString;
+            }
+            else
+            {
+                qualifier = pstrName.Substring(0, delimiter);
+            }
 
             return pstrName.Substring(delimiter + 1);
         }

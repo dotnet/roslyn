@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim container As NamespaceSymbol = m_ContainingModule.GlobalNamespace
 
                         If m_NamespaceName.Length > 0 Then
-                            Dim namespaces() As String = MetadataHelpers.SplitQualifiedName(m_NamespaceName)
+                            Dim namespaces = MetadataHelpers.SplitQualifiedName(m_NamespaceName)
                             Dim i As Integer
 
                             For i = 0 To namespaces.Length - 1 Step 1

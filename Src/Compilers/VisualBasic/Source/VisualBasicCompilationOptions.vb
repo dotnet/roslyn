@@ -324,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ImmutableArray(Of String).Empty
             End If
 
-            Return MetadataHelpers.SplitQualifiedName(_rootNamespace).AsImmutableOrNull()
+            Return MetadataHelpers.SplitQualifiedName(_rootNamespace)
         End Function
 
         ''' <summary>

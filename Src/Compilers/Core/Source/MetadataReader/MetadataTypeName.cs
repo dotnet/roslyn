@@ -273,16 +273,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (namespaceSegments.IsDefault)
                 {
-                    string nsName = NamespaceName;
-
-                    if (nsName.Length == 0)
-                    {
-                        namespaceSegments = ImmutableArray<string>.Empty;
-                    }
-                    else
-                    {
-                        namespaceSegments = MetadataHelpers.SplitQualifiedName(nsName).AsImmutableOrNull();
-                    }
+                    namespaceSegments = MetadataHelpers.SplitQualifiedName(NamespaceName);
                 }
 
                 return namespaceSegments;
