@@ -42,8 +42,8 @@ namespace Roslyn.SyntaxVisualizer.Control
         #endregion
 
         #region Public Properties, Events
-        public bool DirectedSyntaxGraphContextMenuEnabled { get; set; }
         public SyntaxTree SyntaxTree { get; private set; }
+        public SemanticModel SemanticModel { get; private set; }
         public bool IsLazy { get; private set; }
 
         public delegate void SyntaxNodeDelegate(SyntaxNode node);
@@ -88,12 +88,13 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxTree(SyntaxTree tree, bool lazy = true)
+        public void DisplaySyntaxTree(SyntaxTree tree, SemanticModel model = null, bool lazy = true)
         {
             if (tree != null)
             {
                 IsLazy = lazy;
                 SyntaxTree = tree;
+                SemanticModel = model;
                 AddNode(null, SyntaxTree.GetRoot());
                 legendButton.Visibility = Visibility.Visible;
             }
@@ -103,12 +104,13 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxNode(SyntaxNode node, bool lazy = true)
+        public void DisplaySyntaxNode(SyntaxNode node, SemanticModel model = null, bool lazy = true)
         {
             if (node != null)
             {
                 IsLazy = lazy;
                 SyntaxTree = node.SyntaxTree;
+                SemanticModel = model;
                 AddNode(null, node);
                 legendButton.Visibility = Visibility.Visible;
             }
@@ -609,6 +611,26 @@ namespace Roslyn.SyntaxVisualizer.Control
         #endregion
 
         #region Private Helpers - Other
+        private void DisplaySymbolInPropertyGrid(ISymbol symbol)
+        {
+            if (symbol == null)
+            {
+                typeTextLabel.Visibility = Visibility.Hidden;
+                kindTextLabel.Visibility = Visibility.Hidden;
+                typeValueLabel.Content = string.Empty;
+                kindValueLabel.Content = string.Empty;
+            }
+            else
+            {
+                typeTextLabel.Visibility = Visibility.Visible;
+                kindTextLabel.Visibility = Visibility.Visible;
+                typeValueLabel.Content = symbol.GetType().Name;
+                kindValueLabel.Content = symbol.Kind.ToString();
+            }
+
+            propertyGrid.SelectedObject = symbol;
+        }
+        
         private static TreeViewItem FindTreeViewItem(DependencyObject source)
         {
             while (source != null && !(source is TreeViewItem))
@@ -641,9 +663,24 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            if (!DirectedSyntaxGraphContextMenuEnabled)
+            var directedSyntaxGraphEnabled =
+                ((SyntaxNodeDirectedGraphRequested != null) &&
+                 (SyntaxTokenDirectedGraphRequested != null) &&
+                 (SyntaxTriviaDirectedGraphRequested != null));
+
+            var symbolDetailsEnabled =
+                ((SemanticModel != null) &&
+                 (((SyntaxTag)currentSelection.Tag).Category == SyntaxCategory.SyntaxNode));
+
+            if ((!directedSyntaxGraphEnabled) && (!symbolDetailsEnabled))
             {
                 e.Handled = true;
+            }
+            else
+            {
+                directedSyntaxGraphMenuItem.Visibility = directedSyntaxGraphEnabled ? Visibility.Visible : Visibility.Collapsed;
+                symbolDetailsMenuItem.Visibility = symbolDetailsEnabled ? Visibility.Visible : Visibility.Collapsed;
+                typeSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
             }
         }
 
@@ -665,6 +702,31 @@ namespace Roslyn.SyntaxVisualizer.Control
                 {
                     SyntaxTriviaDirectedGraphRequested(currentTag.SyntaxTrivia);
                 }
+            }
+        }
+
+        private void SymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTag = (SyntaxTag)currentSelection.Tag;
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            {
+                var symbol = SemanticModel.GetSymbolInfo(currentTag.SyntaxNode).Symbol;
+                if (symbol == null)
+                {
+                    symbol = SemanticModel.GetDeclaredSymbol(currentTag.SyntaxNode);
+                }
+
+                DisplaySymbolInPropertyGrid(symbol);
+            }
+        }
+        
+        private void TypeSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTag = (SyntaxTag)currentSelection.Tag;
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            {
+                var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).Type;
+                DisplaySymbolInPropertyGrid(symbol);
             }
         }
 
