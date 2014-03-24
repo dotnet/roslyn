@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             ' Synthesized methods for properties/events are not things we actually generate 
             ' declarations for.
-            If method.AssociatedPropertyOrEvent IsNot Nothing Then
+            If method.AssociatedSymbol IsNot Nothing Then
                 Return destination
             End If
 

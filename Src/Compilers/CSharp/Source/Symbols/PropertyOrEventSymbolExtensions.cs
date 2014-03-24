@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbolsForExplicitlyImplementedAccessors = new HashSet<T>();
             foreach (var implementedAccessor in implementedAccessors)
             {
-                var associatedProperty = implementedAccessor.AssociatedPropertyOrEvent as T;
+                var associatedProperty = implementedAccessor.AssociatedSymbol as T;
                 if ((object)associatedProperty != null)
                 {
                     symbolsForExplicitlyImplementedAccessors.Add(associatedProperty);

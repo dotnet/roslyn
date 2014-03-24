@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Select
 
             ' If this proc happens to belong to a property/event, we should include the property/event as well.
-            Dim propertyOrEvent = method.AssociatedPropertyOrEvent
+            Dim propertyOrEvent = method.AssociatedSymbol
             If propertyOrEvent IsNot Nothing Then
                 Select Case propertyOrEvent.Kind
                     Case SymbolKind.Property

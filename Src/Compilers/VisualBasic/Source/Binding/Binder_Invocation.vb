@@ -2924,7 +2924,7 @@ ProduceBoundNode:
                                         If container.IsLambdaMethod Then
                                             container = container.ContainingSymbol
                                         Else
-                                            Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedPropertyOrEvent
+                                            Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
 
                                             If propertyOrEvent IsNot Nothing Then
                                                 container = propertyOrEvent

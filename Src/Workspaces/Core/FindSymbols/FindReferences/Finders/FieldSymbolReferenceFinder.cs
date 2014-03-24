@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(IFieldSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            if (symbol.AssociatedPropertyOrEvent != null)
+            if (symbol.AssociatedSymbol != null)
             {
-                return Task.FromResult<IEnumerable<ISymbol>>(new ISymbol[] { symbol.AssociatedPropertyOrEvent });
+                return Task.FromResult<IEnumerable<ISymbol>>(new ISymbol[] { symbol.AssociatedSymbol });
             }
             else
             {

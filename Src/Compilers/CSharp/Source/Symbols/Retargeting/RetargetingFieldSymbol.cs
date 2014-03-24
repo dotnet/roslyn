@@ -202,11 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get
             {
-                return this.underlyingField.AssociatedPropertyOrEvent;
+                return this.underlyingField.AssociatedSymbol;
             }
         }
 

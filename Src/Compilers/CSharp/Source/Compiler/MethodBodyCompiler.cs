@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsFieldLikeEventAccessor(MethodSymbol method)
         {
-            Symbol associatedPropertyOrEvent = method.AssociatedPropertyOrEvent;
+            Symbol associatedPropertyOrEvent = method.AssociatedSymbol;
             return (object)associatedPropertyOrEvent != null &&
                 associatedPropertyOrEvent.Kind == SymbolKind.Event &&
                 ((EventSymbol)associatedPropertyOrEvent).HasAssociatedField;

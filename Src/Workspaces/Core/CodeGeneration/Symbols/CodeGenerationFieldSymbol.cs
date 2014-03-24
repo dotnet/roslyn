@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ISymbol AssociatedPropertyOrEvent
+        public ISymbol AssociatedSymbol
         {
             get
             {

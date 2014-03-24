@@ -683,16 +683,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
                 else // for [if (blockSyntax != null)]
                 {
-                    var property = sourceMethod.AssociatedPropertyOrEvent as SourcePropertySymbol;
+                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
-                    }
+                }
 
                     if (sourceMethod.IsPrimaryCtor)
                     {
                         body = null;
-                    }
+            }
             else
             {
                         return null;

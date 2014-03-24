@@ -4614,7 +4614,7 @@ End Class
                                 Assert.Equal(type.TypeParameters.Length, 0)
                                 Assert.Same(type.ConstructedFrom, type)
                                 accessor = type.GetMember(Of MethodSymbol)("get_P")
-                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedPropertyOrEvent, PropertySymbol), accessor)
+                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedSymbol, PropertySymbol), accessor)
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("P"))
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("Q"))
                                 prop = type.GetMember(Of PropertySymbol)("R")
@@ -4625,7 +4625,7 @@ End Class
                                 Assert.Equal(type.TypeParameters.Length, 2)
                                 Assert.Same(type.ConstructedFrom, type)
                                 accessor = type.GetMember(Of MethodSymbol)("get_P")
-                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedPropertyOrEvent, PropertySymbol), accessor)
+                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedSymbol, PropertySymbol), accessor)
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("P"))
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("Q"))
                                 prop = type.GetMember(Of PropertySymbol)("R")
@@ -4638,7 +4638,7 @@ End Class
                                 Assert.Equal(type.TypeParameters.Length, 2)
                                 Assert.NotSame(type.ConstructedFrom, type)
                                 accessor = type.GetMember(Of MethodSymbol)("get_P")
-                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedPropertyOrEvent, PropertySymbol), accessor)
+                                VerifyMethodAndAccessorSame(type, DirectCast(accessor.AssociatedSymbol, PropertySymbol), accessor)
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("P"))
                                 VerifyMethodsAndAccessorsSame(type, type.GetMember(Of PropertySymbol)("Q"))
                                 prop = type.GetMember(Of PropertySymbol)("R")
@@ -8111,8 +8111,8 @@ End Class
 
             Dim isAccessor = accessor.MethodKind = MethodKind.PropertyGet OrElse accessor.MethodKind = MethodKind.PropertySet
             Assert.True(isAccessor)
-            Assert.NotNull(accessor.AssociatedPropertyOrEvent)
-            Assert.Same(accessor.AssociatedPropertyOrEvent, [property])
+            Assert.NotNull(accessor.AssociatedSymbol)
+            Assert.Same(accessor.AssociatedSymbol, [property])
         End Sub
 
         Private Shared Sub CheckPropertyAccessibility([property] As PropertySymbol, propertyAccessibility As Accessibility, getterAccessibility As Accessibility, setterAccessibility As Accessibility)
@@ -8128,7 +8128,7 @@ End Class
                 Assert.Equal(accessorAccessibility, Accessibility.NotApplicable)
             Else
                 Dim containingType = [property].ContainingType
-                Assert.Same([property], accessor.AssociatedPropertyOrEvent)
+                Assert.Same([property], accessor.AssociatedSymbol)
                 Assert.Same(containingType, accessor.ContainingType)
                 Assert.Same(containingType, accessor.ContainingSymbol)
                 Dim method = containingType.GetMembers(accessor.Name).Single()
@@ -8166,7 +8166,7 @@ End Class
 
         Private Sub VerifyAccessor(accessor As MethodSymbol, associatedProperty As PEPropertySymbol, methodKind As MethodKind)
             Assert.NotNull(accessor)
-            Assert.Same(accessor.AssociatedPropertyOrEvent, associatedProperty)
+            Assert.Same(accessor.AssociatedSymbol, associatedProperty)
             Assert.Equal(accessor.MethodKind, methodKind)
             If associatedProperty IsNot Nothing Then
                 Dim method = If((methodKind = methodKind.PropertyGet), associatedProperty.GetMethod, associatedProperty.SetMethod)

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
-                                Symbol associatedPropertyOrEvent = field.AssociatedPropertyOrEvent;
+                                Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Property)
                                 {
                                     Diagnostics.Add(ErrorCode.ERR_UnassignedThisAutoProperty, location, associatedPropertyOrEvent);

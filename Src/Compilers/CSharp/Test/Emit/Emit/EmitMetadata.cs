@@ -1176,7 +1176,7 @@ public class C : I
             else
             {
                 var containingType = property.ContainingType;
-                Assert.Equal(property, accessor.AssociatedPropertyOrEvent);
+                Assert.Equal(property, accessor.AssociatedSymbol);
                 Assert.Equal(containingType, accessor.ContainingType);
                 Assert.Equal(containingType, accessor.ContainingSymbol);
                 var method = containingType.GetMembers(accessor.Name).Single();
@@ -1274,7 +1274,7 @@ class C : B<string>
                 p = classC.BaseType.GetMembers("P").OfType<PropertySymbol>().Single();
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
-                Assert.Equal(p.GetMethod.AssociatedPropertyOrEvent, p);
+                Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
             CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
@@ -1300,7 +1300,7 @@ class C : B<string>
             {
                 var method = property.ContainingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
-                Assert.Equal(accessor.AssociatedPropertyOrEvent, property);
+                Assert.Equal(accessor.AssociatedSymbol, property);
                 if (isFromSource)
                 {
                     Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be fakse for auto property accessors");

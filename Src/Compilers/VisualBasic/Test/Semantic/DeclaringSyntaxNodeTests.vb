@@ -531,22 +531,22 @@ End Namespace
                 Dim expectedDeclaringNodes As Integer = 1
                 If TypeOf memb Is MethodSymbol Then
                     Dim meth As MethodSymbol = DirectCast(memb, MethodSymbol)
-                    If meth.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                        (meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev1) OrElse
-                        meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev2) OrElse
-                        meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3)) Then
+                    If meth.AssociatedSymbol IsNot Nothing AndAlso
+                        (meth.AssociatedSymbol.OriginalDefinition.Equals(ev1) OrElse
+                        meth.AssociatedSymbol.OriginalDefinition.Equals(ev2) OrElse
+                        meth.AssociatedSymbol.OriginalDefinition.Equals(prop3)) Then
                         expectedDeclaringNodes = 0
                     End If
-                    If meth.IsAccessor() AndAlso meth.AssociatedPropertyOrEvent.IsMustOverride Then
+                    If meth.IsAccessor() AndAlso meth.AssociatedSymbol.IsMustOverride Then
                         expectedDeclaringNodes = 0
                     End If
                 End If
 
                 If TypeOf memb Is FieldSymbol Then
                     Dim fld As FieldSymbol = DirectCast(memb, FieldSymbol)
-                    If fld.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                        (fld.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3) OrElse
-                         fld.AssociatedPropertyOrEvent.Kind = SymbolKind.Event) Then
+                    If fld.AssociatedSymbol IsNot Nothing AndAlso
+                        (fld.AssociatedSymbol.OriginalDefinition.Equals(prop3) OrElse
+                         fld.AssociatedSymbol.Kind = SymbolKind.Event) Then
                         expectedDeclaringNodes = 0
                     End If
                 End If
@@ -567,22 +567,22 @@ End Namespace
                 Dim expectedDeclaringNodes As Integer = 1
                 If TypeOf memb Is MethodSymbol Then
                     Dim meth As MethodSymbol = DirectCast(memb, MethodSymbol)
-                    If meth.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                        (meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev1) OrElse
-                        meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(ev2) OrElse
-                        meth.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3)) Then
+                    If meth.AssociatedSymbol IsNot Nothing AndAlso
+                        (meth.AssociatedSymbol.OriginalDefinition.Equals(ev1) OrElse
+                        meth.AssociatedSymbol.OriginalDefinition.Equals(ev2) OrElse
+                        meth.AssociatedSymbol.OriginalDefinition.Equals(prop3)) Then
                         expectedDeclaringNodes = 0
                     End If
-                    If meth.IsAccessor() AndAlso meth.AssociatedPropertyOrEvent.IsMustOverride Then
+                    If meth.IsAccessor() AndAlso meth.AssociatedSymbol.IsMustOverride Then
                         expectedDeclaringNodes = 0
                     End If
                 End If
 
                 If TypeOf memb Is FieldSymbol Then
                     Dim fld As FieldSymbol = DirectCast(memb, FieldSymbol)
-                    If fld.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                        (fld.AssociatedPropertyOrEvent.OriginalDefinition.Equals(prop3) OrElse
-                         fld.AssociatedPropertyOrEvent.Kind = SymbolKind.Event) Then
+                    If fld.AssociatedSymbol IsNot Nothing AndAlso
+                        (fld.AssociatedSymbol.OriginalDefinition.Equals(prop3) OrElse
+                         fld.AssociatedSymbol.Kind = SymbolKind.Event) Then
                         expectedDeclaringNodes = 0
                     End If
                 End If

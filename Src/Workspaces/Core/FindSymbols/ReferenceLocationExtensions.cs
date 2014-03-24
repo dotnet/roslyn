@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var method = (IMethodSymbol)current;
                     if (method.IsAccessor())
                     {
-                        return method.AssociatedPropertyOrEvent;
+                        return method.AssociatedSymbol;
                     }
 
                     if (method.MethodKind != MethodKind.AnonymousFunction)

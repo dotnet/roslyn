@@ -133,11 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.originalDefinition.GetAttributes();
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get
             {
-                Symbol underlying = originalDefinition.AssociatedPropertyOrEvent;
+                Symbol underlying = originalDefinition.AssociatedSymbol;
                 return ((object)underlying == null) ? null : underlying.SymbolAsMember(ContainingType);
             }
         }

@@ -3036,7 +3036,7 @@ End Module
 
             Dim globalNS = compilation.GlobalNamespace
             Dim class_cls2 = DirectCast(globalNS.GetMembers("cls3").Single(), NamedTypeSymbol)
-            Assert.Null(class_cls2.AssociatedEvent)
+            Assert.Null(class_cls2.AssociatedSymbol)
             Dim meth_foo = DirectCast(class_cls2.GetMembers("foo").Single(), SourceMethodSymbol)
 
             Dim handledEvents = meth_foo.HandledEvents

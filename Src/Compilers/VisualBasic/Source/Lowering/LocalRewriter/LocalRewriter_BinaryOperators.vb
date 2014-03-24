@@ -121,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim boundCall = DirectCast(operand, BoundCall)
 
                     If boundCall.Method.MethodKind = MethodKind.PropertyGet AndAlso
-                       boundCall.Method.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                       boundCall.Method.AssociatedPropertyOrEvent.IsMyGroupCollectionProperty Then
+                       boundCall.Method.AssociatedSymbol IsNot Nothing AndAlso
+                       boundCall.Method.AssociatedSymbol.IsMyGroupCollectionProperty Then
                         Return New BoundFieldAccess(boundCall.Syntax,
                                                     boundCall.ReceiverOpt,
-                                                    DirectCast(boundCall.Method.AssociatedPropertyOrEvent, PropertySymbol).AssociatedField,
+                                                    DirectCast(boundCall.Method.AssociatedSymbol, PropertySymbol).AssociatedField,
                                                     isLValue:=False,
                                                     type:=boundCall.Type)
                     End If

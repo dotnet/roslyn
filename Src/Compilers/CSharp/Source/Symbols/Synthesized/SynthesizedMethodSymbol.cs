@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Accessibility.Private; }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get { return this.associatedProperty; }
         }

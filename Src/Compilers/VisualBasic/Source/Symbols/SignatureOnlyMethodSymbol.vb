@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent() As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol() As Symbol
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

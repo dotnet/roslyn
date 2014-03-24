@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             IEnumerable<ISymbol> result = SpecializedCollections.EmptyEnumerable<ISymbol>();
 
-            if (symbol.AssociatedEvent != null)
+            if (symbol.AssociatedSymbol != null)
             {
-                result = result.Concat(SpecializedCollections.SingletonEnumerable((ISymbol)symbol.AssociatedEvent));
+                result = result.Concat(SpecializedCollections.SingletonEnumerable((ISymbol)symbol.AssociatedSymbol));
             }
 
             // cascade to constructors

@@ -79,15 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
-            if (method.AssociatedPropertyOrEvent is IEventSymbol)
+            if (method.AssociatedSymbol is IEventSymbol)
             {
                 return destination;
             }
 
-            if (method.AssociatedPropertyOrEvent is IPropertySymbol)
+            if (method.AssociatedSymbol is IPropertySymbol)
             {
                 // we will ignore the method if the associated property can be generated.
-                var property = (IPropertySymbol)method.AssociatedPropertyOrEvent;
+                var property = (IPropertySymbol)method.AssociatedSymbol;
                 if (PropertyGenerator.CanBeGenerated(property))
                 {
                     return destination;

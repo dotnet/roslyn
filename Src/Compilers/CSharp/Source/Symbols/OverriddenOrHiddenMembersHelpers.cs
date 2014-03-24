@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Accessors are handled specially - see MakePropertyAccessorOverriddenOrHiddenMembers for details.
                 MethodSymbol accessor = member as MethodSymbol;
-                Symbol associatedPropertyOrEvent = accessor.AssociatedPropertyOrEvent;
+                Symbol associatedPropertyOrEvent = accessor.AssociatedSymbol;
                 if ((object)associatedPropertyOrEvent != null)
                 {
                     if (associatedPropertyOrEvent.Kind == SymbolKind.Property)

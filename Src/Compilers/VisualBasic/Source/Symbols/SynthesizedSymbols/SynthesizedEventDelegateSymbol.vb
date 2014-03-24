@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedEvent As EventSymbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 If m_lazyEventSymbol Is Nothing Then
                     Dim events = m_containingType.GetMembers(m_eventName)
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
             Get
                 If membersInProgress Is Nothing Then
-                    Return AssociatedEvent
+                    Return AssociatedSymbol
                 End If
 
                 Dim candidates = membersInProgress(m_eventName)
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return AssociatedEvent.DeclaredAccessibility
+                Return AssociatedSymbol.DeclaredAccessibility
             End Get
         End Property
 
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
             Get
-                Return AssociatedEvent.ShadowsExplicitly
+                Return AssociatedSymbol.ShadowsExplicitly
             End Get
         End Property
 
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' is not defined within '|1'. For example, 'Event |2 As Action(Of ...)'."
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VariancePreventsSynthesizedEvents2,
                                                                       CustomSymbolDisplayFormatter.QualifiedName(outermostVariantInterface),
-                                                                      AssociatedEvent.Name),
+                                                                      AssociatedSymbol.Name),
                                                 Locations(0)))
             End If
 

@@ -762,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' compilation and another compilation.
             If field.Dangerous_IsFromSomeCompilationIncludingRetargeting Then
                 ' NOTE: Dev11 ignores fields auto-generated for events
-                Dim eventOrProperty As Symbol = field.AssociatedPropertyOrEvent
+                Dim eventOrProperty As Symbol = field.AssociatedSymbol
                 If eventOrProperty Is Nothing OrElse eventOrProperty.Kind <> SymbolKind.Event Then
                     Return False
                 End If
@@ -1142,7 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: Strictly speaking, dev11 actually checks whether the return type is EventRegistrationToken (see IsWinRTEventAddHandler),
                 ' but the conditions should be equivalent (i.e. return EventRegistrationToken if and only if WinRT).
                 If EnableBreakingFlowAnalisysFeatures OrElse Not type.IsValueType OrElse type.IsIntrinsicOrEnumType OrElse Not IsEmptyStructType(type) OrElse
-                    (Me.MethodSymbol.MethodKind = MethodKind.EventAdd AndAlso DirectCast(Me.MethodSymbol.AssociatedPropertyOrEvent, EventSymbol).IsWindowsRuntimeEvent) Then
+                    (Me.MethodSymbol.MethodKind = MethodKind.EventAdd AndAlso DirectCast(Me.MethodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent) Then
                     ReportUnassignedFunctionValue(local, node)
                 End If
             End If
@@ -1212,7 +1212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' clearer, one.
 
                                 warning = ERRID.WRN_DefAsgNoRetValWinRtEventVal1
-                                localName = MethodSymbol.AssociatedPropertyOrEvent.Name
+                                localName = MethodSymbol.AssociatedSymbol.Name
                             Case Else
                                 warning = ERRID.WRN_DefAsgNoRetValFuncRef1
                         End Select

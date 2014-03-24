@@ -845,7 +845,7 @@ public class G<T>
                 if (m.MethodKind == MethodKind.Constructor)
                     continue;
 
-                Assert.NotNull(m.AssociatedPropertyOrEvent);
+                Assert.NotNull(m.AssociatedSymbol);
                 Assert.NotEqual(MethodKind.Ordinary, m.MethodKind);
             }
         }

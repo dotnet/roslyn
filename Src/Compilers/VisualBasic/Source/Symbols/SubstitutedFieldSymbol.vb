@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _originalDefinition.GetConstantValue(inProgress)
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
             End Get

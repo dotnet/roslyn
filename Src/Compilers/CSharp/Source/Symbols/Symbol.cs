@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return true;
                             case MethodKind.PropertyGet:
                             case MethodKind.PropertySet:
-                                if (!((PropertySymbol)method.AssociatedPropertyOrEvent).CanCallMethodsDirectly())
+                                if (!((PropertySymbol)method.AssociatedSymbol).CanCallMethodsDirectly())
                                 {
                                     return false;
                                 }
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
-                            return ((PropertySymbol)method.AssociatedPropertyOrEvent).CanCallMethodsDirectly();
+                            return ((PropertySymbol)method.AssociatedSymbol).CanCallMethodsDirectly();
                         default:
                             return false;
                     }

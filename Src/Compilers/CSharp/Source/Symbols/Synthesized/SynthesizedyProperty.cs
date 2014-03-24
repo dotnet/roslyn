@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol implementingType,
             bool debuggerHidden = false)
         {
-            this.propName = ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.AssociatedPropertyOrEvent.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
+            this.propName = ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.AssociatedSymbol.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
 
             var getterName = ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
             getter = new SynthesizedImplementationMethod(interfaceMethod,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (PropertySymbol)getter.ExplicitInterfaceImplementations[0].AssociatedPropertyOrEvent;
+                return (PropertySymbol)getter.ExplicitInterfaceImplementations[0].AssociatedSymbol;
             }
         }
 

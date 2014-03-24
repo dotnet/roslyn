@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
             baseSymbols = baseSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-            var backingField = symbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Where(f => symbol.Equals(f.AssociatedPropertyOrEvent));
+            var backingField = symbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Where(f => symbol.Equals(f.AssociatedSymbol));
 
             var result = baseSymbols.Concat(backingField);
 

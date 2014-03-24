@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    Symbol associatedPropertyOrEvent = field.AssociatedPropertyOrEvent;
+                    Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                     if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
                     {
                         if (unread)

@@ -343,9 +343,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     symbol = method;
 
-                    if (method.AssociatedPropertyOrEvent != null)
+                    if (method.AssociatedSymbol != null)
                     {
-                        symbol = method.AssociatedPropertyOrEvent;
+                        symbol = method.AssociatedSymbol;
                     }
                 }
             }

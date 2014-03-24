@@ -174,9 +174,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return m_UnderlyingField.AssociatedPropertyOrEvent
+                Return m_UnderlyingField.AssociatedSymbol
             End Get
         End Property
 

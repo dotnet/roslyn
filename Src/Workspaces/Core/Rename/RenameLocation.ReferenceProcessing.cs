@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Rename
                     if (symbol.ContainingSymbol.Kind == SymbolKind.Method)
                     {
                         var containingMethod = (IMethodSymbol)symbol.ContainingSymbol;
-                        if (containingMethod.AssociatedPropertyOrEvent is IPropertySymbol)
+                        if (containingMethod.AssociatedSymbol is IPropertySymbol)
                         {
-                            var associatedPropertyOrEvent = (IPropertySymbol)containingMethod.AssociatedPropertyOrEvent;
+                            var associatedPropertyOrEvent = (IPropertySymbol)containingMethod.AssociatedSymbol;
                             var ordinal = containingMethod.Parameters.IndexOf((IParameterSymbol)symbol);
                             if (ordinal < associatedPropertyOrEvent.Parameters.Length)
                             {
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
                     var typeSymbol = (INamedTypeSymbol)symbol;
-                    if (typeSymbol.IsImplicitlyDeclared && typeSymbol.IsDelegateType() && typeSymbol.AssociatedEvent != null)
+                    if (typeSymbol.IsImplicitlyDeclared && typeSymbol.IsDelegateType() && typeSymbol.AssociatedSymbol != null)
                     {
-                        return typeSymbol.AssociatedEvent;
+                        return typeSymbol.AssociatedSymbol;
                     }
                 }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // If the original symbol is a property, cascade to the backing field
-                if (referencedSymbol.Kind == SymbolKind.Field && originalSymbol.Equals(((IFieldSymbol)referencedSymbol).AssociatedPropertyOrEvent))
+                if (referencedSymbol.Kind == SymbolKind.Field && originalSymbol.Equals(((IFieldSymbol)referencedSymbol).AssociatedSymbol))
                 {
                     return true;
                 }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (symbol.IsPropertyAccessor())
                 {
-                    return ((IMethodSymbol)symbol).AssociatedPropertyOrEvent;
+                    return ((IMethodSymbol)symbol).AssociatedSymbol;
                 }
 
                 if (symbol.IsOverride && symbol.OverriddenMember() != null)

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public NotOverridable Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return m_propertyOrEvent
             End Get

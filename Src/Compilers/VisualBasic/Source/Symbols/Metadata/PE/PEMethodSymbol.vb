@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return result
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return m_associatedPropertyOrEventOpt
             End Get

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return hasInitializer; }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get
             {

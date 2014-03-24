@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArray(Of String).Empty
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
             End Get

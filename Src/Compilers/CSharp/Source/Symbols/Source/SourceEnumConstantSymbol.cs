@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get
             {

@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case MethodKind
                 Case MethodKind.PropertyGet
                     Dim accessorSym = DirectCast(Me, SourcePropertyAccessorSymbol)
-                    Dim prop = DirectCast(accessorSym.AssociatedPropertyOrEvent, PropertySymbol)
+                    Dim prop = DirectCast(accessorSym.AssociatedSymbol, PropertySymbol)
 
                     Dim result = prop.Type
 
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return m_property
             End Get

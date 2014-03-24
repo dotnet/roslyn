@@ -6348,7 +6348,7 @@ End Class
 
                     Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
                     Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(DirectCast(current.AssociatedPropertyOrEvent, PropertySymbol), semanticInfoEx.CurrentProperty)
+                    Assert.Equal(DirectCast(current.AssociatedSymbol, PropertySymbol), semanticInfoEx.CurrentProperty)
                     Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
                 Next
             Next

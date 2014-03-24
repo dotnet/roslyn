@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return OriginalDefinition.GetAppliedConditionalSymbols()
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return _propertyOrEventSymbolOpt
             End Get

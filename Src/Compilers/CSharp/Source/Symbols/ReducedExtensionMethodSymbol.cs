@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.reducedFrom.GetAttributes();
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get { return null; }
         }

@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedPropertyOrEvent,
+                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                 enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
                 enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,

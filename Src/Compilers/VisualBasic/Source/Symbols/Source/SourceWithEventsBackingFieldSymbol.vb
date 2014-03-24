@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_property = [property]
         End Sub
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return m_property
             End Get
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
                ImmutableArray.Create(New TypedConstant(compilation.GetSpecialType(SpecialType.System_String),
                                                                TypedConstantKind.Primitive,
-                                                               AssociatedPropertyOrEvent.Name))))
+                                                               AssociatedSymbol.Name))))
         End Sub
     End Class
 End Namespace

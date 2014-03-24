@@ -188,9 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End If
         End Function
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Dim propertyOrEvent = m_UnderlyingMethod.AssociatedPropertyOrEvent
+                Dim propertyOrEvent = m_UnderlyingMethod.AssociatedSymbol
                 Return If(propertyOrEvent Is Nothing, Nothing, RetargetingTranslator.Retarget(propertyOrEvent))
             End Get
         End Property

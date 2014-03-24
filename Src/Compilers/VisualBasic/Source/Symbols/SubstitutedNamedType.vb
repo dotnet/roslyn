@@ -444,23 +444,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' individually, we'll end up creating 3 properties, 3 get accessors, and 3 set accessors.
                     Select Case memberMethod.MethodKind
                         Case MethodKind.PropertyGet, MethodKind.PropertySet
-                            Debug.Assert(memberMethod.AssociatedPropertyOrEvent IsNot Nothing)
-                            Dim propertySymbol = SubstituteTypeParametersForMemberProperty(DirectCast(memberMethod.AssociatedPropertyOrEvent, PropertySymbol))
+                            Debug.Assert(memberMethod.AssociatedSymbol IsNot Nothing)
+                            Dim propertySymbol = SubstituteTypeParametersForMemberProperty(DirectCast(memberMethod.AssociatedSymbol, PropertySymbol))
                             Return If(memberMethod.MethodKind = MethodKind.PropertyGet, propertySymbol.GetMethod, propertySymbol.SetMethod)
 
                         Case MethodKind.EventAdd
-                            Debug.Assert(memberMethod.AssociatedPropertyOrEvent IsNot Nothing)
-                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedPropertyOrEvent, EventSymbol))
+                            Debug.Assert(memberMethod.AssociatedSymbol IsNot Nothing)
+                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedSymbol, EventSymbol))
                             Return eventSymbol.AddMethod
 
                         Case MethodKind.EventRemove
-                            Debug.Assert(memberMethod.AssociatedPropertyOrEvent IsNot Nothing)
-                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedPropertyOrEvent, EventSymbol))
+                            Debug.Assert(memberMethod.AssociatedSymbol IsNot Nothing)
+                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedSymbol, EventSymbol))
                             Return eventSymbol.RemoveMethod
 
                         Case MethodKind.EventRaise
-                            Debug.Assert(memberMethod.AssociatedPropertyOrEvent IsNot Nothing)
-                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedPropertyOrEvent, EventSymbol))
+                            Debug.Assert(memberMethod.AssociatedSymbol IsNot Nothing)
+                            Dim eventSymbol = SubstituteTypeParametersForMemberEvent(DirectCast(memberMethod.AssociatedSymbol, EventSymbol))
                             Return eventSymbol.RaiseMethod
 
                         Case Else

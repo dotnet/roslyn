@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Dev10: If a whole property is missing, report the property.  If the property is present, but an accessor
                     // is missing, report just the accessor.
 
-                    var associatedPropertyOrEvent = interfaceMemberKind == SymbolKind.Method ? ((MethodSymbol)interfaceMember).AssociatedPropertyOrEvent : null;
+                    var associatedPropertyOrEvent = interfaceMemberKind == SymbolKind.Method ? ((MethodSymbol)interfaceMember).AssociatedSymbol : null;
                     if ((object)associatedPropertyOrEvent == null ||
                         ReportAccessorOfInterfacePropertyOrEvent(associatedPropertyOrEvent) ||
                         (wasImplementingMemberFound && !implementingMember.IsAccessor()))
@@ -452,8 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // We don't want to report diagnostics for field-like event backing fields (redundant),
                         // but that shouldn't be an issue since they shouldn't be in the member list.
-                        Debug.Assert((object)sourceField == null || (object)sourceField.AssociatedPropertyOrEvent == null ||
-                            sourceField.AssociatedPropertyOrEvent.Kind != SymbolKind.Event);
+                        Debug.Assert((object)sourceField == null || (object)sourceField.AssociatedSymbol == null ||
+                            sourceField.AssociatedSymbol.Kind != SymbolKind.Event);
 
                         CheckNewModifier(member, isNewField, diagnostics);
                         break;
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Symbol associatedPropertyOrEvent = null;
                     if (overridingMemberIsMethod)
                     {
-                        associatedPropertyOrEvent = ((MethodSymbol)overridingMember).AssociatedPropertyOrEvent;
+                        associatedPropertyOrEvent = ((MethodSymbol)overridingMember).AssociatedSymbol;
                     }
 
                     if ((object)associatedPropertyOrEvent == null)
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         switch (hidingMember.Kind)
                         {
                             case SymbolKind.Method:
-                                var associatedPropertyOrEvent = ((MethodSymbol)hidingMember).AssociatedPropertyOrEvent;
+                                var associatedPropertyOrEvent = ((MethodSymbol)hidingMember).AssociatedSymbol;
                                 if ((object)associatedPropertyOrEvent != null)
                                 {
                                     //Dev10 reports that the property/event is doing the hiding, rather than the method

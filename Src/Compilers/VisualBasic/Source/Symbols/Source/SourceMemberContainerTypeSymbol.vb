@@ -2183,7 +2183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Debug.Assert(firstField IsNot Nothing)
 
                                         '  Report an error
-                                        Dim symbolToReportErrorOn As Symbol = If(firstField.AssociatedPropertyOrEvent, DirectCast(firstField, Symbol))
+                                        Dim symbolToReportErrorOn As Symbol = If(firstField.AssociatedSymbol, DirectCast(firstField, Symbol))
                                         Debug.Assert(symbolToReportErrorOn.Locations.Length > 0)
                                         diagnostics.Add(ERRID.ERR_RecordCycle2,
                                                         symbolToReportErrorOn.Locations(0),

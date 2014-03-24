@@ -216,11 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get
             {
-                var associatedPropertyOrEvent = this.underlyingMethod.AssociatedPropertyOrEvent;
+                var associatedPropertyOrEvent = this.underlyingMethod.AssociatedSymbol;
                 return (object)associatedPropertyOrEvent == null ? null : this.RetargetingTranslator.Retarget(associatedPropertyOrEvent);
             }
         }

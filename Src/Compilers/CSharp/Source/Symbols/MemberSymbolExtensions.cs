@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)
         {
-            return (object)methodSymbol.AssociatedPropertyOrEvent != null;
+            return (object)methodSymbol.AssociatedSymbol != null;
         }
 
         public static bool IsAccessor(this Symbol symbol)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsIndexedPropertyAccessor(this MethodSymbol methodSymbol)
         {
-            var propertyOrEvent = methodSymbol.AssociatedPropertyOrEvent;
+            var propertyOrEvent = methodSymbol.AssociatedSymbol;
             return ((object)propertyOrEvent != null) && propertyOrEvent.IsIndexedProperty();
         }
 
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (member.Kind == SymbolKind.Method)
             {
-                member = ((MethodSymbol)member).AssociatedPropertyOrEvent ?? member;
+                member = ((MethodSymbol)member).AssociatedSymbol ?? member;
             }
 
             return member.IsIndexer() ? member.MetadataName :

@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim result = MyBase.ImplementationAttributes
 
-                If DirectCast(Me.AssociatedPropertyOrEvent, PropertySymbol).IsWithEvents Then
+                If DirectCast(Me.AssociatedSymbol, PropertySymbol).IsWithEvents Then
                     result = result Or Reflection.MethodImplAttributes.Synchronized
                 End If
 

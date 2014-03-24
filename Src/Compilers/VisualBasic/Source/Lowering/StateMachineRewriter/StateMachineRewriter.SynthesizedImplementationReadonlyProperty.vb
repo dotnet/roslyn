@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly Property ImplementedProperty As PropertySymbol
                 Get
-                    Return DirectCast(getter.ExplicitInterfaceImplementations(0).AssociatedPropertyOrEvent, PropertySymbol)
+                    Return DirectCast(getter.ExplicitInterfaceImplementations(0).AssociatedSymbol, PropertySymbol)
                 End Get
             End Property
 

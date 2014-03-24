@@ -1061,7 +1061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+                Public Overrides ReadOnly Property AssociatedSymbol As Symbol
                     Get
                         Return Nothing ' Shouldn't make any difference for metadata emit.
                     End Get

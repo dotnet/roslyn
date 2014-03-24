@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return Microsoft.Cci.CallingConvention.Default; }
         }
 
-        public override Symbol AssociatedPropertyOrEvent
+        public override Symbol AssociatedSymbol
         {
             get { return null; }
         }

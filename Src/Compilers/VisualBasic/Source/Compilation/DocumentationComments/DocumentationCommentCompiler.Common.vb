@@ -710,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function GetSymbolName(symbol As Symbol) As String
                 Select Case symbol.Kind
                     Case SymbolKind.Field
-                        Dim associatedSymbol As Symbol = DirectCast(symbol, FieldSymbol).AssociatedPropertyOrEvent
+                        Dim associatedSymbol As Symbol = DirectCast(symbol, FieldSymbol).AssociatedSymbol
                         Return If(associatedSymbol IsNot Nothing AndAlso associatedSymbol.IsWithEventsProperty,
                                   "WithEvents variable",
                                   "variable")

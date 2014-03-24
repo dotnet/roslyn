@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
                             Else
                                 ' accessor is reported on the containing property.
-                                Debug.Assert(unimplementedMembers.Contains(DirectCast(member, MethodSymbol).AssociatedPropertyOrEvent))
+                                Debug.Assert(unimplementedMembers.Contains(DirectCast(member, MethodSymbol).AssociatedSymbol))
                             End If
                         Next
 
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If hidingMember.IsAccessor() Then
                 ' accessor hiding non-accessorTODO
-                Dim associatedHidingSymbol = DirectCast(hidingMember, MethodSymbol).AssociatedPropertyOrEvent
+                Dim associatedHidingSymbol = DirectCast(hidingMember, MethodSymbol).AssociatedSymbol
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_SynthMemberShadowsMustOverride5,
                                                                       hidingMember,
                                                                       associatedHidingSymbol.GetKindText(), associatedHidingSymbol.Name,
@@ -513,12 +513,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shared Function RequiresExplicitOverride(method As MethodSymbol) As Boolean
             If method.IsAccessor Then
-                If TypeOf method.AssociatedPropertyOrEvent Is EventSymbol Then
+                If TypeOf method.AssociatedSymbol Is EventSymbol Then
                     ' VB does not override events
                     Return False
                 End If
 
-                Return RequiresExplicitOverride(DirectCast(method.AssociatedPropertyOrEvent, PropertySymbol))
+                Return RequiresExplicitOverride(DirectCast(method.AssociatedSymbol, PropertySymbol))
             End If
 
             If method.OverriddenMethod IsNot Nothing Then

@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
 
                 Case SyntaxKind.AddHandlerBlock
-                    If DirectCast(methodSymbol.AssociatedPropertyOrEvent, EventSymbol).IsWindowsRuntimeEvent AndAlso
+                    If DirectCast(methodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent AndAlso
                        methodBlock.Parent IsNot Nothing AndAlso
                        methodBlock.Parent.Kind = SyntaxKind.EventBlock Then
 

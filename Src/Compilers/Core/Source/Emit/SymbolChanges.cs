@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 case SymbolKind.Field:
                     {
-                        var associated = ((IFieldSymbol)symbol).AssociatedPropertyOrEvent;
+                        var associated = ((IFieldSymbol)symbol).AssociatedSymbol;
                         if (associated != null)
                         {
                             return associated;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
                 case SymbolKind.Method:
                     {
-                        var associated = ((IMethodSymbol)symbol).AssociatedPropertyOrEvent;
+                        var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
                         if (associated != null)
                         {
                             return associated;

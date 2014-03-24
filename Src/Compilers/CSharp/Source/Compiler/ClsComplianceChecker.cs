@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol container = parameters[0].ContainingSymbol;
             if (container.Kind == SymbolKind.Method)
             {
-                Symbol associated = ((MethodSymbol)container).AssociatedPropertyOrEvent;
+                Symbol associated = ((MethodSymbol)container).AssociatedSymbol;
                 if ((object)associated != null && associated.Kind == SymbolKind.Property)
                 {
                     // Only care about "value" parameter for accessors.
@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (symbol.Kind == SymbolKind.Method)
             {
                 MethodSymbol method = (MethodSymbol)symbol;
-                Symbol associated = method.AssociatedPropertyOrEvent;
+                Symbol associated = method.AssociatedSymbol;
                 if ((object)associated != null)
                 {
                     // Don't bother storing entries for accessors - just go straight to the property/event.

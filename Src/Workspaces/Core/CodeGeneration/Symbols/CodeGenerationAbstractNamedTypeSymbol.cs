@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public IEventSymbol AssociatedEvent
+        public ISymbol AssociatedSymbol
         {
             get
             {

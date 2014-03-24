@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagBag As DiagnosticBag = diagnostics
 
-            If method.IsImplicitlyDeclared AndAlso method.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-               method.AssociatedPropertyOrEvent.IsMyGroupCollectionProperty Then
+            If method.IsImplicitlyDeclared AndAlso method.AssociatedSymbol IsNot Nothing AndAlso
+               method.AssociatedSymbol.IsMyGroupCollectionProperty Then
                 diagBag = DiagnosticBag.GetInstance()
             End If
 
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ForLoopVerification.VerifyForLoops(body, diagBag)
 
             If diagBag IsNot diagnostics Then
-                DirectCast(method.AssociatedPropertyOrEvent, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagnostics)
+                DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagnostics)
                 diagBag.Free()
             End If
         End Sub

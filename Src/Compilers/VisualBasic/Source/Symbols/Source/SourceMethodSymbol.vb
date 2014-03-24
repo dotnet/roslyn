@@ -612,7 +612,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AssociatedPropertyOrEvent As Symbol
+        Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 ' TODO: Associated property/event not implemented.
                 Return Nothing
@@ -1693,7 +1693,7 @@ lReportErrorOnTwoTokens:
         ) As Boolean
             If arguments.Attribute.IsTargetAttribute(Me, description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
-                If Me.IsAccessor() AndAlso Me.AssociatedPropertyOrEvent.Kind = SymbolKind.Event Then
+                If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
                     arguments.Diagnostics.Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
                 End If
 
@@ -2210,7 +2210,7 @@ lReportErrorOnTwoTokens:
                     Return binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
 
                 Case MethodKind.EventAdd
-                    Dim isWindowsRuntimeEvent As Boolean = DirectCast(Me.AssociatedPropertyOrEvent, EventSymbol).IsWindowsRuntimeEvent
+                    Dim isWindowsRuntimeEvent As Boolean = DirectCast(Me.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent
                     Return If(isWindowsRuntimeEvent,
                         binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken, Syntax, diagBag),
                         binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag))

@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each handledEvent In handledEvents
                     If handledEvent.HandlesKind = HandledEventKind.WithEvents Then
-                        Dim prop = TryCast(handledEvent.hookupMethod.AssociatedPropertyOrEvent, SynthesizedOverridingWithEventsProperty)
+                        Dim prop = TryCast(handledEvent.hookupMethod.AssociatedSymbol, SynthesizedOverridingWithEventsProperty)
                         If prop IsNot Nothing Then
                             Dim accessor = prop.GetMethod
                             If Not compilationState.HasMethodWrapper(accessor) Then
@@ -1135,8 +1135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim diagBag As DiagnosticBag = diagsForCurrentMethod
 
-                If method.IsImplicitlyDeclared AndAlso method.AssociatedPropertyOrEvent IsNot Nothing AndAlso
-                   method.AssociatedPropertyOrEvent.IsMyGroupCollectionProperty Then
+                If method.IsImplicitlyDeclared AndAlso method.AssociatedSymbol IsNot Nothing AndAlso
+                   method.AssociatedSymbol.IsMyGroupCollectionProperty Then
                     diagBag = DiagnosticBag.GetInstance()
                 End If
 
@@ -1161,7 +1161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Actual emitting is only done if we have a module in which to emit and no errors so far.
                 If _moduleBeingBuilt Is Nothing OrElse hasErrors Then
                     If diagBag IsNot diagsForCurrentMethod Then
-                        DirectCast(method.AssociatedPropertyOrEvent, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagsForCurrentMethod)
+                        DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagsForCurrentMethod)
                         diagBag.Free()
                     End If
 
@@ -1189,7 +1189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   namespaceScopes:=namespaceScopes)
 
                 If diagBag IsNot diagsForCurrentMethod Then
-                    DirectCast(method.AssociatedPropertyOrEvent, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagsForCurrentMethod)
+                    DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagBag, diagsForCurrentMethod)
                     diagBag.Free()
                 End If
 

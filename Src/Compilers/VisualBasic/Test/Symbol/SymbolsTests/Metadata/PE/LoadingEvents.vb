@@ -86,7 +86,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
         End Sub
 
         Private Shared Sub CheckAccessorShape(accessor As MethodSymbol, [event] As EventSymbol)
-            Assert.Same([event], accessor.AssociatedPropertyOrEvent)
+            Assert.Same([event], accessor.AssociatedSymbol)
             Select Case accessor.MethodKind
                 Case MethodKind.EventAdd
                     Assert.Same([event].AddMethod, accessor)

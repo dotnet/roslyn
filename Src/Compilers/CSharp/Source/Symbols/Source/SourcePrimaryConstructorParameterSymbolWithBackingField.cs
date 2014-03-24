@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            public override Symbol AssociatedPropertyOrEvent
+            public override Symbol AssociatedSymbol
             {
                 get
                 {

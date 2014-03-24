@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SymbolKind.Field:
                             field = (FieldSymbol)member;
-                            Debug.Assert(ReferenceEquals(field.AssociatedPropertyOrEvent as EventSymbol, null),
+                            Debug.Assert(ReferenceEquals(field.AssociatedSymbol as EventSymbol, null),
                                 "Didn't expect to find a field-like event backing field in the member list.");
                             break;
                         case SymbolKind.Event:
