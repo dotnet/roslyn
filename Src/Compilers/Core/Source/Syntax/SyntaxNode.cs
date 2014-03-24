@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     using BoxedEnumerator = StrongBox<ChildSyntaxList.Enumerator>;
+    using Stack2 = UnionStack<ChildSyntaxList.Enumerator, SyntaxTriviaList.Enumerator>;
+    using Stack3 = UnionStack<ChildSyntaxList.Enumerator, SyntaxTriviaList.Enumerator, SyntaxNodeOrToken>;
 
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
@@ -900,100 +902,105 @@ namespace Microsoft.CodeAnalysis
                 yield break;
             }
 
-            var stack = new Stack<Union<ChildSyntaxList.Enumerator, SyntaxTriviaList.Enumerator, SyntaxNodeOrToken>>();
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
+            var stack = new Stack3();
+            try
             {
-                var union = stack.Pop();
+                stack.Push(this.ChildNodesAndTokens().GetEnumerator());
 
-                switch (union.Discriminator)
+                Stack3.Discriminator discriminator;
+                while (stack.TryPeekDiscriminator(out discriminator))
                 {
-                    case 0: // child nodes & tokens
-                        {
-                            var enumerator = union.Value0;
-                            if (enumerator.MoveNext())
+                    switch (discriminator)
+                    {
+                        case Stack3.Discriminator.Value0: // child nodes & tokens
                             {
-                                var value = enumerator.Current;
-                                stack.Push(enumerator);
-
-                                if (IsInSpan(span, value.FullSpan))
+                                var enumerator = stack.PopValue0();
+                                if (enumerator.MoveNext())
                                 {
-                                    if (value.IsNode)
+                                    var value = enumerator.Current;
+                                    stack.Push(ref enumerator);
+
+                                    if (IsInSpan(span, value.FullSpan))
                                     {
-                                        // parent nodes come before children (prefix document order)
-                                        yield return value;
-
-                                        var nodeValue = value.AsNode();
-
-                                        if (descendIntoChildren == null || descendIntoChildren(nodeValue))
+                                        if (value.IsNode)
                                         {
-                                            stack.Push(value.AsNode().ChildNodesAndTokens().GetEnumerator());
-                                        }
-                                    }
-                                    else if (value.IsToken)
-                                    {
-                                        var token = value.AsToken();
-
-                                        // only look through trivia if this node has structured trivia
-                                        if (token.HasStructuredTrivia)
-                                        {
-                                            // trailing trivia comes last
-                                            if (token.HasTrailingTrivia)
-                                            {
-                                                stack.Push(token.TrailingTrivia.GetEnumerator());
-                                            }
-
-                                            // tokens come between leading and trailing trivia
-                                            stack.Push(value);
-
-                                            // leading trivia comes first
-                                            if (token.HasLeadingTrivia)
-                                            {
-                                                stack.Push(token.LeadingTrivia.GetEnumerator());
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // no structure trivia, so just yield this token now
+                                            // parent nodes come before children (prefix document order)
                                             yield return value;
+
+                                            var nodeValue = value.AsNode();
+
+                                            if (descendIntoChildren == null || descendIntoChildren(nodeValue))
+                                            {
+                                                stack.Push(value.AsNode().ChildNodesAndTokens().GetEnumerator());
+                                            }
+                                        }
+                                        else if (value.IsToken)
+                                        {
+                                            var token = value.AsToken();
+
+                                            // only look through trivia if this node has structured trivia
+                                            if (token.HasStructuredTrivia)
+                                            {
+                                                // trailing trivia comes last
+                                                if (token.HasTrailingTrivia)
+                                                {
+                                                    stack.Push(token.TrailingTrivia.GetEnumerator());
+                                                }
+
+                                                // tokens come between leading and trailing trivia
+                                                stack.Push(ref value);
+
+                                                // leading trivia comes first
+                                                if (token.HasLeadingTrivia)
+                                                {
+                                                    stack.Push(token.LeadingTrivia.GetEnumerator());
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // no structure trivia, so just yield this token now
+                                                yield return value;
+                                            }
                                         }
                                     }
                                 }
+                                break;
                             }
-                            break;
-                        }
 
-                    case 1: // trivia
-                        {
-                            // yield structure nodes and enumerate their children
-                            var enumerator = union.Value1;
-
-                            if (enumerator.MoveNext())
+                        case Stack3.Discriminator.Value1: // trivia
                             {
-                                var trivia = enumerator.Current;
-                                stack.Push(enumerator);
-
-                                if (trivia.HasStructure && IsInSpan(span, trivia.FullSpan))
+                                // yield structure nodes and enumerate their children
+                                var enumerator = stack.PopValue1();
+                                if (enumerator.MoveNext())
                                 {
-                                    var structureNode = trivia.GetStructure();
+                                    var trivia = enumerator.Current;
+                                    stack.Push(ref enumerator);
 
-                                    // parent nodes come before children (prefix document order)
-                                    yield return structureNode;
-
-                                    if (descendIntoChildren == null || descendIntoChildren(structureNode))
+                                    if (trivia.HasStructure && IsInSpan(span, trivia.FullSpan))
                                     {
-                                        stack.Push(structureNode.ChildNodesAndTokens().GetEnumerator());
+                                        var structureNode = trivia.GetStructure();
+
+                                        // parent nodes come before children (prefix document order)
+                                        yield return structureNode;
+
+                                        if (descendIntoChildren == null || descendIntoChildren(structureNode))
+                                        {
+                                            stack.Push(structureNode.ChildNodesAndTokens().GetEnumerator());
+                                        }
                                     }
                                 }
+                                break;
                             }
-                            break;
-                        }
 
-                    case 2: // single node or token
-                        yield return union.Value2;
-                        break;
+                        case Stack3.Discriminator.Value2: // single node or token
+                            yield return stack.PopValue2();
+                            break;
+                    }
                 }
+            }
+            finally
+            {
+                stack.FreePooledObjects();
             }
         }
 
@@ -1215,81 +1222,86 @@ namespace Microsoft.CodeAnalysis
                 yield break;
             }
 
-            var stack = new Stack<Union<ChildSyntaxList.Enumerator, SyntaxTriviaList.Enumerator>>();
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
+            var stack = new Stack2();
+            try
             {
-                var union = stack.Pop();
+                stack.Push(this.ChildNodesAndTokens().GetEnumerator());
 
-                switch (union.Discriminator)
+                Stack2.Discriminator discriminator;
+                while (stack.TryPeek(out discriminator))
                 {
-                    case 0: // child nodes & tokens
-                        {
-                            var enumerator = union.Value0;
-                            if (enumerator.MoveNext())
+                    switch (discriminator)
+                    {
+                        case Stack2.Discriminator.Value0: // child nodes & tokens
                             {
-                                var value = enumerator.Current;
-                                stack.Push(enumerator);
-
-                                if (IsInSpan(span, value.FullSpan))
+                                var enumerator = stack.PopValue0();
+                                if (enumerator.MoveNext())
                                 {
-                                    if (value.IsNode)
+                                    var value = enumerator.Current;
+                                    stack.Push(ref enumerator);
+
+                                    if (IsInSpan(span, value.FullSpan))
                                     {
-                                        var nodeValue = value.AsNode();
-
-                                        if (descendIntoChildren == null || descendIntoChildren(nodeValue))
+                                        if (value.IsNode)
                                         {
-                                            stack.Push(value.AsNode().ChildNodesAndTokens().GetEnumerator());
+                                            var nodeValue = value.AsNode();
+
+                                            if (descendIntoChildren == null || descendIntoChildren(nodeValue))
+                                            {
+                                                stack.Push(value.AsNode().ChildNodesAndTokens().GetEnumerator());
+                                            }
                                         }
-                                    }
-                                    else if (value.IsToken)
-                                    {
-                                        var token = value.AsToken();
-
-                                        if (token.HasTrailingTrivia)
+                                        else if (value.IsToken)
                                         {
-                                            stack.Push(token.TrailingTrivia.GetEnumerator());
-                                        }
+                                            var token = value.AsToken();
 
-                                        if (token.HasLeadingTrivia)
-                                        {
-                                            stack.Push(token.LeadingTrivia.GetEnumerator());
+                                            if (token.HasTrailingTrivia)
+                                            {
+                                                stack.Push(token.TrailingTrivia.GetEnumerator());
+                                            }
+
+                                            if (token.HasLeadingTrivia)
+                                            {
+                                                stack.Push(token.LeadingTrivia.GetEnumerator());
+                                            }
                                         }
                                     }
                                 }
+                                break;
                             }
-                            break;
-                        }
 
-                    case 1: // trivia
-                        {
-                            // yield structure nodes and enumerate their children
-                            var enumerator = union.Value1;
-
-                            if (enumerator.MoveNext())
+                        case Stack2.Discriminator.Value1: // trivia
                             {
-                                var trivia = enumerator.Current;
-                                stack.Push(enumerator);
-
-                                if (IsInSpan(span, trivia.FullSpan))
+                                var enumerator = stack.PopValue1();
+                                // yield structure nodes and enumerate their children
+                                if (enumerator.MoveNext())
                                 {
-                                    yield return trivia;
-                                }
+                                    var trivia = enumerator.Current;
+                                    stack.Push(ref enumerator);
 
-                                if (trivia.HasStructure)
-                                {
-                                    var structureNode = trivia.GetStructure();
-
-                                    if (descendIntoChildren == null || descendIntoChildren(structureNode))
+                                    if (IsInSpan(span, trivia.FullSpan))
                                     {
-                                        stack.Push(structureNode.ChildNodesAndTokens().GetEnumerator());
+                                        yield return trivia;
+                                    }
+
+                                    if (trivia.HasStructure)
+                                    {
+                                        var structureNode = trivia.GetStructure();
+
+                                        if (descendIntoChildren == null || descendIntoChildren(structureNode))
+                                        {
+                                            stack.Push(structureNode.ChildNodesAndTokens().GetEnumerator());
+                                        }
                                     }
                                 }
+                                break;
                             }
-                            break;
-                        }
+                    }
                 }
+            }
+            finally
+            {
+                stack.FreePooledObjects();
             }
         }
 
