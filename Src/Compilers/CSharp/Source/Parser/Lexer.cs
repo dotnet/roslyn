@@ -1715,7 +1715,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '$':
                         goto LoopExit;
 
-                        break;
                     case SlidingTextWindow.InvalidCharacter:
                         if (!TextWindow.IsReallyAtEnd())
                         {
