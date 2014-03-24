@@ -354,6 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            if (previousToken.CSharpKind() == SyntaxKind.DollarToken && currentToken.CSharpKind() == SyntaxKind.IdentifierToken && previousToken.Parent.IsKind(SyntaxKind.IndexedName))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             return nextOperation.Invoke();
         }
     }
