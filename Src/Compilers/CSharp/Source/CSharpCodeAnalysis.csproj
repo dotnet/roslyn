@@ -764,8 +764,8 @@
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
     <Compile Include="Syntax\NameSyntax.cs" />
-    <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\ParameterListSyntax.cs" />
+    <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />

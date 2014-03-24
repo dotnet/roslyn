@@ -172,7 +172,6 @@
     <Compile Include="PDB\PDBCollectionInitializerTests.vb" />
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
-    <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBLoopStatementTests.vb" />
     <Compile Include="PDB\PDBNamespaceScopes.vb" />
@@ -180,6 +179,7 @@
     <Compile Include="PDB\PDBSyncLockTests.vb" />
     <Compile Include="PDB\PDBTests.vb" />
     <Compile Include="PDB\PDBUsingTests.vb" />
+    <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBWinMdExpTests.vb" />
     <Compile Include="Perf.vb" />
     <Compile Include="Resource.Designer.vb">
