@@ -514,12 +514,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public static bool BlockContainsOnlyLabel(this SyntaxNode node)
-        {
-            var block = node as BlockSyntax;
-            return block != null && block.Statements.Count == 1 && block.Statements[0] is LabeledStatementSyntax;
-        }
-
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)
         {
             if (token.CSharpKind() != SyntaxKind.PlusToken && token.CSharpKind() != SyntaxKind.MinusToken)

@@ -91,35 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (labeledStatement != null)
             {
                 var labelPositioningOption = optionSet.GetOption(CSharpFormattingOptions.LabelPositioning);
-                var startToken = labeledStatement.GetFirstToken().GetNextToken().GetNextToken();
 
-                // make sure that label is not the only statement inside of a block
-                if (labeledStatement.Parent.BlockContainsOnlyLabel() && startToken.CSharpKind() != SyntaxKind.None)
+                if (labelPositioningOption == LabelPositionOptions.OneLess)
                 {
-                    // Nothing to do for NoIndent
-                    if (labelPositioningOption == LabelPositionOptions.OneLess)
-                    {
-                        AddIndentBlockOperation(list, startToken, labeledStatement.GetLastToken());
-                    }
-                    else if (labelPositioningOption == LabelPositionOptions.LeftMost)
-                    {
-                        AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.GetFirstToken(includeZeroWidth: true), labeledStatement.GetFirstToken().GetNextToken());
-                        if (optionSet.GetOption(CSharpFormattingOptions.IndentBlock))
-                        {
-                            AddIndentBlockOperation(list, labeledStatement.Parent.GetFirstToken(), startToken, labeledStatement.GetLastToken());
-                        }
-                    }
+                    AddUnindentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
                 }
-                else
+                else if (labelPositioningOption == LabelPositionOptions.LeftMost)
                 {
-                    if (labelPositioningOption == LabelPositionOptions.OneLess)
-                    {
-                        AddUnindentBlockOperation(list, labeledStatement.GetFirstToken(includeZeroWidth: true), labeledStatement.GetFirstToken().GetNextToken());
-                    }
-                    else if (labelPositioningOption == LabelPositionOptions.LeftMost)
-                    {
-                        AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.GetFirstToken(includeZeroWidth: true), labeledStatement.GetFirstToken().GetNextToken());
-                    }
+                    AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
                 }
             }
         }
@@ -129,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracePair = node.GetBracePair();
 
             // don't put block indentation operation if the block only contains label statement
-            if (node.BlockContainsOnlyLabel() || !bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracePair())
             {
                 return;
             }
@@ -145,6 +124,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddIndentBlockOperation(list, GetBaseTokenForRelativeIndentation(node, bracePair.Item1, optionSet),
                     bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true), option);
 
+                return;
+            }
+
+            if (node is BlockSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentBlock))
+            {
+                // do not add indent operation for block
+                return;
+            }
+
+            if (node is SwitchStatementSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentSwitchSection))
+            {
+                // do not add indent operation for switch statement
                 return;
             }
 
