@@ -30,6 +30,36 @@ public class C1
         }
 
         [Fact]
+        public void TestMultipleLocalSuppressionsOnSingleSymbol()
+        {
+            VerifyCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+[SuppressMessage(""Test"", ""Declaration"")]
+[SuppressMessage(""Test"", ""TypeDeclaration"")]
+public class C
+{
+}
+",
+                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer() });
+        }
+
+        [Fact]
+        public void TestDuplicateLocalSuppressions()
+        {
+            VerifyCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+[SuppressMessage(""Test"", ""Declaration"")]
+[SuppressMessage(""Test"", ""Declaration"")]
+public class C
+{
+}
+",
+                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
+        }
+
+        [Fact]
         public void TestLocalSuppressionOnMember()
         {
             VerifyCSharp(@"
@@ -98,6 +128,38 @@ public delegate void Ele<T1,T2>(T1 x, T2 y);
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") },
                 new[] { GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "Egg"),
                         GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "Ele")});
+        }
+
+        [Fact]
+        public void TestMultipleGlobalSuppressionsOnSingleSymbol()
+        {
+            VerifyCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: SuppressMessage(""Test"", ""TypeDeclaration"", Scope=""Type"", Target=""E"")]
+
+public class E
+{
+}
+",
+                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
+        }
+
+        [Fact]
+        public void TestDuplicateGlobalSuppressions()
+        {
+            VerifyCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+
+public class E
+{
+}
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") });
         }
 
         [Fact]

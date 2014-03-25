@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class GlobalSuppressions
         {
             private readonly HashSet<string> compilationWideSuppressions = new HashSet<string>();
-            private readonly Dictionary<ISymbol, string> globalSymbolSuppressions = new Dictionary<ISymbol, string>();
+            private readonly Dictionary<ISymbol, ImmutableArray<string>> globalSymbolSuppressions = new Dictionary<ISymbol, ImmutableArray<string>>();
 
             public void AddCompilationWideSuppression(string id)
             {
@@ -40,7 +40,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void AddGlobalSymbolSuppression(ISymbol symbol, string id)
             {
-                this.globalSymbolSuppressions.Add(symbol, id);
+                ImmutableArray<string> suppressions;
+                if (this.globalSymbolSuppressions.TryGetValue(symbol, out suppressions))
+                {
+                    if (!suppressions.Contains(id))
+                    {
+                        this.globalSymbolSuppressions[symbol] = suppressions.Add(id);
+                    }
+                }
+                else
+                {
+                    this.globalSymbolSuppressions.Add(symbol, ImmutableArray.Create(id));
+                }
             }
 
             public bool HasCompilationWideSuppression(string id)
@@ -51,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public bool HasGlobalSymbolSuppression(ISymbol symbol, string id)
             {
                 Debug.Assert(symbol != null);
-                return this.globalSymbolSuppressions.Contains(KeyValuePair.Create(symbol, id));
+                ImmutableArray<string> suppressions;
+                return this.globalSymbolSuppressions.TryGetValue(symbol, out suppressions) && suppressions.Contains(id);
             }
         }
 
