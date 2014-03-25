@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         static CommandLineTests()
         {
-            var workingDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
+            var applicationDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
+            var workingDirectory = Environment.CurrentDirectory;
 
             var foundCompiler = FindCompiler(new[] {
+                    Path.Combine(applicationDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "csc.exe"),
                     "csc.exe"});

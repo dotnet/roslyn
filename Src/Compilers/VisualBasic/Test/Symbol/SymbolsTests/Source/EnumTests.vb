@@ -1246,7 +1246,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M0' cannot depend on its own value.
     M0 = M5999 + 1
-    ~~
+               ~~
                                         </errors>)
         End Sub
 

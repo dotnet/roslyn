@@ -66,7 +66,14 @@
 
   <Target Name="SetLargeAddressAwareBit" Condition="'$(OutputType)' == 'Exe' AND '$(LargeAddressAware)' == 'true' AND Exists('$(IntermediateOutputPath)\$(TargetFileName)')" 
           BeforeTargets="AfterCompile" DependsOnTargets="CoreCompile">
-    <Exec Command="&quot;$(EditBinToolPath)&quot; /NOLOGO /LARGEADDRESSAWARE &quot;$(IntermediateOutputPath)\$(TargetFileName)&quot;" />
+    <CombinePath BasePath="$(IntermediateOutputPath)" Paths="$(TargetFileName)">
+      <Output TaskParameter="CombinedPaths" PropertyName="OutputFilePath" />
+    </CombinePath>
+
+    <Exec Command="&quot;$(EditBinToolPath)&quot; /NOLOGO /LARGEADDRESSAWARE &quot;$(OutputFilePath)&quot;" />
+
+    <!-- Since we've modified the binary, we'll now need to re-sign it... -->
+    <Exec Command="&quot;$(SnToolPath)&quot; -Ra &quot;$(OutputFilePath)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" />
   </Target>
 
   <!-- Verify some build flags are correct -->
