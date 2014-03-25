@@ -60,15 +60,6 @@
             </Grid>
         </Border>
         <TreeView Grid.Row="1" Name="treeView" SelectedItemChanged="TreeView_SelectedItemChanged" PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown" ContextMenuOpening="TreeView_ContextMenuOpening" Padding="5">
-            <TreeView.Resources>
-                <ContextMenu x:Key="treeViewItemContextMenu">
-                    <MenuItem Name="directedSyntaxGraphMenuItem" Header="Directed Syntax Graph" Click="DirectedSyntaxGraphMenuItem_Click">
-                        <MenuItem.Icon>
-                            <Image Height="16" Width="16" Source="/Roslyn.SyntaxVisualizer.Control;component/SyntaxGraph.ico" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </ContextMenu>
-            </TreeView.Resources>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Style.Resources>
@@ -76,9 +67,19 @@
                             x:Key="{x:Static SystemColors.ControlBrushKey}" 
                             Color="{x:Static SystemColors.HighlightColor}"/>
                     </Style.Resources>
-                    <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=treeViewItemContextMenu}"/>
                 </Style>
             </TreeView.ItemContainerStyle>
+            <TreeView.ContextMenu>
+                <ContextMenu Name="treeViewItemContextMenu">
+                    <MenuItem Name="directedSyntaxGraphMenuItem" Header="View Directed Syntax Graph" Click="DirectedSyntaxGraphMenuItem_Click">
+                        <MenuItem.Icon>
+                            <Image Height="16" Width="16" Source="/Roslyn.SyntaxVisualizer.Control;component/SyntaxGraph.ico" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Name="symbolDetailsMenuItem" Header="View Symbol (if any)" Click="SymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="typeSymbolDetailsMenuItem" Header="View TypeSymbol (if any)" Click="TypeSymbolDetailsMenuItem_Click"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
         </TreeView>
         <GridSplitter Grid.Row="2" ResizeDirection="Rows" HorizontalAlignment="Stretch" Height="5"/>
         <Grid Grid.Row="3">
