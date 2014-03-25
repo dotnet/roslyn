@@ -1024,8 +1024,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim field = TryCast(node, FieldDeclarationSyntax)
             If field IsNot Nothing Then
-                For Each delcaration In field.Declarators
-                    If delcaration.Initializer IsNot Nothing AndAlso delcaration.Initializer.Span.Contains(span) Then
+                For Each declaration In field.Declarators
+                    If declaration.Initializer IsNot Nothing AndAlso declaration.Initializer.Span.Contains(span) Then
                         Return True
                     End If
                 Next

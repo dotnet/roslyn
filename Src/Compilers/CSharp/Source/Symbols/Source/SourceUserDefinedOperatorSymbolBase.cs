@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: A unary ++ or -- operator must take a single parameter of type T or T?
             // SPEC: and it must return that same type or a type derived from it.
 
-            // The native compiler error reporting behaviour is not very good in some cases
+            // The native compiler error reporting behavior is not very good in some cases
             // here, both because it reports the wrong errors, and because the wording
             // of the error messages is misleading. The native compiler reports two errors:
 
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //         or be derived from the parameter type
             //
             // However, this now means that we must make *another* change from native compiler
-            // behaviour. The native compiler would report both 0448 and 0559 when given:
+            // behavior. The native compiler would report both 0448 and 0559 when given:
             //
             // struct S { public static int operator ++(int s) { ... } }
             //

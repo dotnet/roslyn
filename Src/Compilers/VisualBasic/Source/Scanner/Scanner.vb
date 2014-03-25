@@ -2332,7 +2332,6 @@ FullWidthRepeat2:
             End If
 
             If Not CanGetCharAtOffset(Here) OrElse Not IsHash(PeekAheadChar(Here)) Then
-                ' // Oooh, so close. But no cigar
                 GoTo baddate
             End If
 

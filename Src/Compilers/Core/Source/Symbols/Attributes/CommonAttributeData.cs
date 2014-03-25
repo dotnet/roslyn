@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis
             // There are two decimal constant attribute ctors:
             // (byte scale, byte sign, uint high, uint mid, uint low) and
             // (byte scale, byte sign, int high, int mid, int low) 
-            // The dev10 compiler only honours the first; Roslyn honours both.
+            // The dev10 compiler only honors the first; Roslyn honours both.
 
             // We should not end up in this code path unless we know we have one of them.
 

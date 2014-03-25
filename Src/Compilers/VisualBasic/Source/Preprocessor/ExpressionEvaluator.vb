@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Structure ExpressionEvaluator
         Private ReadOnly _symbols As ImmutableDictionary(Of String, CConst)
 
-        ' PERF: Using Byte instead of TypeCode becuase we want the compiler to use array literal initialization.
+        ' PERF: Using Byte instead of TypeCode because we want the compiler to use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
         Private Shared ReadOnly _dominantType(,) As Byte
 

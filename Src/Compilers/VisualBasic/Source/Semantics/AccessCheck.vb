@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '    Sub Test()
             '        Dim obj1 as New Cls1
-            '        Obj1.foo    'Not accesssible
+            '        Obj1.foo    'Not accessible
             '
             '        Dim obj2 as New Cls2
             '        Obj2.foo    'Accessible

@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a valid type. N is not the problem; C<string> is a struct. C<string> is the problem.
             //
             // See test case CS0310ERR_NewConstraintNotSatisfied02 for an even more complex version
-            // of this flavour of error recovery.
+            // of this flavor of error recovery.
 
             var result = GetFirstMemberKind(MemberResolutionKind.ConstructedParameterFailedConstraintCheck);
             if (result.IsNull)

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' In particular in VB read-only requirements are recursive.
         ' For example struct fields of readonly local are also considered readonly.
         ' If one needs to take a reference of such local it is not enough to not write to the
-        ' reference itself. We need to guaranteee that through such reference 
+        ' reference itself. We need to guarantee that through such reference 
         ' nested fields will not be changed too. Otherwise a clone must be created.
         '
         ' On the other hand CLR only cares about shallow readonlyness.

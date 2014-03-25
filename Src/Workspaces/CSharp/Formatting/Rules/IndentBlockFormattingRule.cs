@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddEmbeddedStatementsIndentationOperation(list, node);
 
-            AddTypeParameterContraintClauseOperation(list, node);
+            AddTypeParameterConstraintClauseOperation(list, node);
         }
 
-        private void AddTypeParameterContraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             var typeParameterConstraintClause = node as TypeParameterConstraintClauseSyntax;
             if (typeParameterConstraintClause != null)

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If containingType IsNot Nothing AndAlso containingType.IsValueType AndAlso withBlockBinder.Info.ExpressionHasByRefMeReference Then
                             Dim errorId As ERRID = GetMeAccessError()
                             If errorId <> ERRID.ERR_None Then
-                                ' The placeholder node will actualy use syntax from With statement and it might have some wrappers and conversions on top of it with the same syntax.
+                                ' The placeholder node will actually use syntax from With statement and it might have some wrappers and conversions on top of it with the same syntax.
                                 ' Let's use syntax of parent node instead. 
                                 Dim errorSyntax As SyntaxNode = node.Syntax
 

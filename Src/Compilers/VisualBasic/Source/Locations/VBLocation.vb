@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class VBLocation
         Inherits Location
 
-        ' Returns the type of embedded tree, if this is an embedded syntax treee.
+        ' Returns the type of embedded tree, if this is an embedded syntax tree.
         Friend Overridable ReadOnly Property EmbeddedKind As EmbeddedSymbolKind
             Get
                 Return EmbeddedSymbolKind.None

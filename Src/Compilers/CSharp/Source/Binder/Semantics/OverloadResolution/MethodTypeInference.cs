@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Arrays are specified as being convertible to IEnumerable<T>, ICollection<T> and
-            // IList<T>; we also honour their convertibility to IReadOnlyCollection<T> and
+            // IList<T>; we also honor their convertibility to IReadOnlyCollection<T> and
             // IReadOnlyList<T>, and make inferences accordingly.
 
             if (!target.IsPossibleArrayGenericInterface())
@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: An upper-bound inference from a type U to a type V is made as follows:
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-            // SPEC:   uppper bounds for Xi.
+            // SPEC:   upper bounds for Xi.
 
             if (UpperBoundTypeParameterInference(source, target))
             {

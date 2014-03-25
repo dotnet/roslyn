@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC ERROR: a ctor with all optional parameters, overload resolution might
             // SPEC ERROR: succeed even if there is no parameterless constructor. This
             // SPEC ERROR: is unintentionally inconsistent, and the native compiler does not
-            // SPEC ERROR: implement this behaviour. Rather, we should say in the spec that
+            // SPEC ERROR: implement this behavior. Rather, we should say in the spec that
             // SPEC ERROR: if there is no ctor in D1, then a ctor is created for you exactly
             // SPEC ERROR: as though you'd said "D1() : base() {}". 
             // SPEC ERROR: This is what we now do in Roslyn.

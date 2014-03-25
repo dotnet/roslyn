@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            // hmmm, can't find any line, put blank line right after any trivia that has lines in them
+            // can't find any line, put blank line right after any trivia that has lines in them
             for (int i = changes.Count - 1; i >= 0; i--)
             {
                 if (changes[i].ToFullString().GetNumberOfLineBreaks() > 0)
@@ -845,9 +845,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // if there was alrady new lines, ignore elastic
                 var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
-                var newLineFromPreviousOperatoin = (whitespaceBetween.Lines > 0) ||
+                var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||
                                                    (lineColumnAfterPreviousTrivia.Line > 0 && lineColumnAfterPreviousTrivia.Column == 0);
-                if (newLineFromPreviousOperatoin && whitespaceBetween.WhitespaceOnly)
+                if (newLineFromPreviousOperation && whitespaceBetween.WhitespaceOnly)
                 {
                     return LineColumnDelta.Default;
                 }

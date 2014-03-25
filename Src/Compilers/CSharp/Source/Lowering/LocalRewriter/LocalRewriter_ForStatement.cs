@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            // The sequence point behaviour exhibited here is different from that of the native compiler.  In the native
+            // The sequence point behavior exhibited here is different from that of the native compiler.  In the native
             // compiler, if you have something like 
             //
             // for(int i = 0, j = 0; ; i++, j++)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for(int i = 0, j = 0; ; i++, j++)
             //     ^-------^  ^---^    ^-^  ^-^
             //
-            // If we decide that we want to preserve the native compiler stepping behaviour
+            // If we decide that we want to preserve the native compiler stepping behavior
             // then we'll need to be a bit fancy here. The initializer and increment statements
             // can contain lambdas whose bodies need to have sequence points inserted, so we
             // need to make sure we visit the children. But we'll also need to make sure that

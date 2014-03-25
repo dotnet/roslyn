@@ -2483,7 +2483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
-#Region "Commmon Members"
+#Region "Common Members"
 
         Protected Overrides Function CommonWithReferences(newReferences As IEnumerable(Of MetadataReference)) As Compilation
             Return WithReferences(newReferences)

@@ -909,8 +909,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // 1    YES YES YES YES SUCCESS          Smith has named this strong-named Jones as a friend.
             // 2    YES YES YES NO  NO MATCH         Smith has named a different strong-named Jones as a friend.
             // 3    YES YES NO  NO  NO MATCH         Smith has named a strong-named Jones as a friend, but this Jones is weak-named.
-            // 4    YES NO  YES NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honour its offer of friendship.
-            // 5    YES NO  NO  NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honour its offer of friendship.
+            // 4    YES NO  YES NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honor its offer of friendship.
+            // 5    YES NO  NO  NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honor its offer of friendship.
             // 6    NO  YES YES YES SUCCESS, BAD REF Smith has named this strong-named Jones as a friend, but Jones should not be referring to a weak-named Smith.
             // 7    NO  YES YES NO  NO MATCH         Smith has named a different strong-named Jones as a friend.
             // 8    NO  YES NO  NO  NO MATCH         Smith has named a strong-named Jones as a friend, but this Jones is weak-named.

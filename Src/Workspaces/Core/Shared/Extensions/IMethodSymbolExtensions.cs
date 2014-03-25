@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 mapping.Add(typeParameter, newTypeParameter);
             }
 
-            // Now we update the contraints.
+            // Now we update the constraints.
             foreach (var newTypeParameter in newTypeParameters)
             {
                 newTypeParameter.ConstraintTypes = newTypeParameter.ConstraintTypes.Select(

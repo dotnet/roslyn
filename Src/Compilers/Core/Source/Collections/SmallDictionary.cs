@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
     //        The break even count is about 120 elements for read and 55 for write operations (with unknown initial size).
     //        At UShort.MaxValue elements, this dictionary is 6x slower to read and 4x slower 
     //
-    // Generaly. this dictionary is a win if number of elements is small, not known beforehand or both.
+    // Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
     //
     // If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
     // then regular Dictionary is a better choice.

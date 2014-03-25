@@ -7863,7 +7863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // If we see an await followed by a token that cannot follow an identifier, parse await as a unop.
-                // BindAwait() catches the cases where await succesfully parses as a unop but is not in an async
+                // BindAwait() catches the cases where await successfully parses as a unop but is not in an async
                 // function, and reports an appropriate ERR_BadAwaitWithoutAsync* error.
                 switch (this.PeekToken(1).Kind)
                 {

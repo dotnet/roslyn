@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Null if no paremter is ref/out. Otherwise the RefKind for each parameter.
+        /// Null if no parameter is ref/out. Otherwise the RefKind for each parameter.
         /// </summary>
         internal ImmutableArray<RefKind> ParameterRefKinds
         {

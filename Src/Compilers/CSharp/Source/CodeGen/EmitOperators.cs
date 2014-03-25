@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // ldc.i4.0
             // conv.i8  (when the operand is 64bit)
-            // <epxr>
+            // <expr>
             // sub.ovf
 
             builder.EmitOpCode(ILOpCode.Ldc_i4_0);

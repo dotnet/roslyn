@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Maps an immutable arrray to another immutable arrray.
+        /// Maps an immutable array to another immutable array.
         /// </summary>
         /// <typeparam name="TItem"></typeparam>
         /// <typeparam name="TResult"></typeparam>
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Maps an immutable arrray to another immutable arrray.
+        /// Maps an immutable array to another immutable array.
         /// </summary>
         /// <typeparam name="TItem"></typeparam>
         /// <typeparam name="TArg"></typeparam>
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        ///  Maps an immutable arrray to another immutable arrray.
+        ///  Maps an immutable array to another immutable array.
         /// </summary>
         /// <typeparam name="TItem"></typeparam>
         /// <typeparam name="TArg"></typeparam>

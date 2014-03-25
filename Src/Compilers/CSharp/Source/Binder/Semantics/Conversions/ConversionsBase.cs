@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   conversion from S to T.
             //
             // Newer versions of the framework also have arrays be convertible to
-            // IReadOnlyList<T> and IReadOnlyCollection<T>; we honour that as well.
+            // IReadOnlyList<T> and IReadOnlyCollection<T>; we honor that as well.
             //
             // Therefore we must check for:
             //
@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: provided that there is an explicit reference conversion from S to T.
 
             // The framework now also allows arrays to be converted to IReadOnlyList<T> and IReadOnlyCollection<T>; we 
-            // honour that as well.
+            // honor that as well.
 
             if ((object)sourceArray != null && sourceArray.Rank == 1 && destination.IsPossibleArrayGenericInterface())
             {
@@ -1972,7 +1972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: From System.Collections.Generic.IList<S> and its base interfaces to a single-dimensional array type T[], 
             // provided that there is an explicit identity or reference conversion from S to T.
 
-            // Similarly, we honour IReadOnlyList<S> and IReadOnlyCollection<S> in the same way.
+            // Similarly, we honor IReadOnlyList<S> and IReadOnlyCollection<S> in the same way.
             if ((object)destinationArray != null && destinationArray.Rank == 1)
             {
                 var specialDefinition = ((TypeSymbol)source.OriginalDefinition).SpecialType;

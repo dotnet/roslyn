@@ -52,7 +52,7 @@ namespace Roslyn.Utilities
 
                 for (int column = 1; column < rowWidth; column++)
                 {
-                    // Copy = top left neightbor + cost_copy     if currrent chars are equal
+                    // Copy = top left neighbor + cost_copy      if current chars are equal
                     //        infinite                           otherwise
                     int copyCost = (char.ToLower(oldString[column - 1]) == char.ToLower(newString[row - 1])) ?
                                         rowBefore1[column - 1] + Copy :

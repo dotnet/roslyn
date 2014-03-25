@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
-    ''' Represents a named type symbol whose members are delcared in source.
+    ''' Represents a named type symbol whose members are declared in source.
     ''' </summary>
     Friend MustInherit Class SourceMemberContainerTypeSymbol
         Inherits InstanceTypeSymbol

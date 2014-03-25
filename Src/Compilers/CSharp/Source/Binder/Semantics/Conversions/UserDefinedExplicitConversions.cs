@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // how the specification characterizes a lifted form. 
             //
             // An operation, in this case, X-->Y, is properly said to be "lifted" to X?-->Y? via
-            // the rule that X?-->Y? matches the behaviour of X-->Y for non-null X, and converts
+            // the rule that X?-->Y? matches the behavior of X-->Y for non-null X, and converts
             // null X to null Y otherwise.
             //
             // The native compiler, by contrast, takes the existing operator and "lifts" either

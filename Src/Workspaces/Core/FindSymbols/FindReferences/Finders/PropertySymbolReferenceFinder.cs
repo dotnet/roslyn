@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
-            var elementAcccessDocument = symbol.IsIndexer
+            var elementAccessDocument = symbol.IsIndexer
                 ? await FindDocumentWithElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
-            return ordinaryDocuments.Concat(forEachDocuments).Concat(elementAcccessDocument).Concat(indexerMemberCrefDocument);
+            return ordinaryDocuments.Concat(forEachDocuments).Concat(elementAccessDocument).Concat(indexerMemberCrefDocument);
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)

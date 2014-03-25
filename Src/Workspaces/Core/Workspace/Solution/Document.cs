@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
                 return syntaxTreeResultTask;
             }
 
-            // First seee if we already have a semantic model computed.  If so, we can just return
+            // First see if we already have a semantic model computed.  If so, we can just return
             // that syntax tree.
             SemanticModel semanticModel;
             if (TryGetSemanticModel(out semanticModel))

@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Gets the set of <see cref="TextChangeRange"/> that describe how the text changed
-        /// between this text an older version. This may be multiple detailed chagnes
+        /// between this text an older version. This may be multiple detailed changes
         /// or a single change encompassing the entire text.
         /// </summary>
         public virtual IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)

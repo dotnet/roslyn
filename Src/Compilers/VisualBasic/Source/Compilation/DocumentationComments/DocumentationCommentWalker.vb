@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Else
                             ' Dev11 seems to ignore any ambiguity and use the first symbol it finds,
-                            ' we have to repro this behaviour
+                            ' we have to repro this behavior
                             Dim compilation As VisualBasicCompilation = Me.Compilation
 
                             ' Some symbols found may not support doc-comment-ids and we just filter those out.

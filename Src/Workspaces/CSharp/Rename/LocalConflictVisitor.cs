@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             tracker.AddIdentifiers(tokens);
 
             // We have to be careful that the query continuation of this query isn't visited
-            // as everything there is actually an independent scope...it's bizzare
+            // as everything there is actually an independent scope.
             if (fromClause != null)
             {
                 Visit(fromClause);

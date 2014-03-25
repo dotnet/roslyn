@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //      class DAttribute: Attribute {}
         //   }
         //
-        // If we speculatively bind the attribute "D" with position at the beginnning of "class C", it should
+        // If we speculatively bind the attribute "D" with position at the beginning of "class C", it should
         // bind to DAttribute. 
         //
         // But GetBinderForPosition won't do that; it only handles the case where position is inside an attribute.
@@ -4151,7 +4151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Given a position in the SyntaxTree for this SemanticModel returns the innermost
-        /// NamedType that the positoin is considered inside of.
+        /// NamedType that the position is considered inside of.
         /// </summary>
         public new ISymbol GetEnclosingSymbol(
             int position,

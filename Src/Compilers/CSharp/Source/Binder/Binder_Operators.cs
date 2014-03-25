@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We ought not to break backwards compatibility with the native compiler. The spec
             // is plausibly in error; it is possible that this section of the specification was 
             // never updated when nullable types and lifted operators were added to the language. 
-            // And it seems like the native compiler's behaviour of allowing a nullable
+            // And it seems like the native compiler's behavior of allowing a nullable
             // version but not a lifted version is a bug that should be fixed.
             //
             // Therefore we will do the following in Roslyn:
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // That is, the native compiler converts the temporary to the type of the declaring operator type
             // regardless of the fact that there is a better conversion for the T.false call.
             //
-            // We choose to match the native compiler behaviour here; we might consider fixing
+            // We choose to match the native compiler behavior here; we might consider fixing
             // the spec to match the compiler.
             //
             // With this decision we need not keep track of any extra information in the bound 

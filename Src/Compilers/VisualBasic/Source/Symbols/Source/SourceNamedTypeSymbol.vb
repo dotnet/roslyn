@@ -1537,7 +1537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Me Is basesBeingResolved.Head Then
                 ' This is a little tricky: the head of 'basesBeingResolved' represents the innermost
                 ' type whose base is being resolved. That means if we start name lookup with that type
-                ' as containing type and if we canot find the name in its scope we want just to skip base 
+                ' as containing type and if we cannot find the name in its scope we want just to skip base
                 ' type search and avoid any errors. We want this to happen only for that innermost type
                 ' in base resolution chain. An example:
                 '

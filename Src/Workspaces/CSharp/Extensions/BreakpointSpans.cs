@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // We can break on the expression in a from clause, except for the first clause in a
                     // query. For example: 
                     //   from c in LookupCustomers() // not here 
-                    //   from o in LookupFooOrders() + LookupBarOrders() // but here 
+                    //   from o in LookupBarOrders() + LookupBazOrders() // but here 
                     //   group ... into y
                     //   from d in SomeOtherExpression() // and after a continuation, too
 

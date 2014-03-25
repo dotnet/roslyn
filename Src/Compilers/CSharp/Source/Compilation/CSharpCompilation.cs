@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //In the native compiler, all warnings originating from alink.dll were issued
                 //under the id WRN_ALinkWarn - 1607. If a customer used nowarn:1607 they would get
                 //none of those warnings. In Roslyn, we've given each of these warnings their
-                //own number, so that they may be configured independently. To preserve compatability
+                //own number, so that they may be configured independently. To preserve compatibility
                 //if a user has specifically configured 1607 and we are reporting one of the alink warnings, use
                 //the configuration specified for 1607. As implemented, this could result in customers 
                 //specifying warnaserror:1607 and getting a message saying "warning as error CS8012..."

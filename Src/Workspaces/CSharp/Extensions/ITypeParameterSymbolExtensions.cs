@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
             }
 
-            var contraintTypes =
+            var constraintTypes =
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Interface).Concat(
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind != TypeKind.Class && t.TypeKind != TypeKind.Interface)));
 
-            foreach (var type in contraintTypes)
+            foreach (var type in constraintTypes)
             {
                 if (type.SpecialType != SpecialType.System_Object)
                 {

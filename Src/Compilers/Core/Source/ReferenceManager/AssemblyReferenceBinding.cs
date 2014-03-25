@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// True if the definition index is available (reference was successfuly matched with the definition).
+            /// True if the definition index is available (reference was successfully matched with the definition).
             /// </summary>
             internal bool IsBound
             {

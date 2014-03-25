@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>
         ''' <param name="identifierSyntax">A IdentiferSyntax object.</param>
-        ''' <param name="cancellationToken">A cancelllation token.</param>
+        ''' <param name="cancellationToken">A cancellation token.</param>
         ''' <returns>A symbol, for the specified identifier; otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol

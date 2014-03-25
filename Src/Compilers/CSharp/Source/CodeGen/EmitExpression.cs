@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool CanUseCallOnRefTypeReceiver(BoundExpression receiver)
         {
             // It seems none of the ways that could produce a receiver typed as a type param 
-            // can guaranteee that it is not null.
+            // can guarantee that it is not null.
             if (receiver.Type.IsTypeParameter())
             {
                 return false;
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.ObjectCreationExpression:
-                    //NOTE: there are bizzare cases involving ProxyAttribute
+                    //NOTE: there are cases involving ProxyAttribute
                     //where newobj may produce null
                     return true;
 

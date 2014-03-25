@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Generate Hash base
 
 #If False Then
-                ' NOTE: Following Dev10 behaviour we ensure all anonymous types with the same field 
+                ' NOTE: Following Dev10 behavior we ensure all anonymous types with the same field 
                 '       names (case-insensitive) have the same hash base. Algorithm differs though...
                 Dim builder = PooledStringBuilder.GetInstance()
                 For Each [property] In Me.AnonymousType.Properties

@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // A local variable that is written to is considered to also be read,
                     // unless the written value is always a constant. The reasons for this
-                    // unusual behaviour are:
+                    // unusual behavior are:
                     //
                     // * The debugger does not make it easy to see the returned value of 
                     //   a method. Often a call whose returned value would normally be

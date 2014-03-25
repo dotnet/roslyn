@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             IList<SyntaxToken> tokens,
             CodeGenerationOptions options,
-            Accessibility defaultAccessibilty)
+            Accessibility defaultAccessibility)
         {
             options = options ?? CodeGenerationOptions.Default;
-            if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibilty)
+            if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
             }

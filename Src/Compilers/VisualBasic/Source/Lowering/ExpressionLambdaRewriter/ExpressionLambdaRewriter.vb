@@ -15,7 +15,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    ''' Rewrite lambda that are being converted to LINQ expression trees (Expresssion(Of T))
+    ''' Rewrite lambda that are being converted to LINQ expression trees (Expression(Of T))
     ''' </summary>
     ''' <remarks>
     ''' A lot of code is #If False disabled until it can be tested. 

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // using System;
             // |
 
-            // [asssembly: Foo]
+            // [assembly: Foo]
             // |
 
             if (token.CSharpKind() == SyntaxKind.CloseBraceToken)

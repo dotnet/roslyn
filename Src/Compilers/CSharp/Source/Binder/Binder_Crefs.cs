@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Quoted from XmlDocCommentBinder::bindXMLReference:
                     //   Filtering out the case where specifying the name of a generic type without specifying
                     //   any arity returns a constructor. This case shouldn't return anything. Note that
-                    //   returning the constructors was a fix for the wonky constructor behaviour, but in order
+                    //   returning the constructors was a fix for the wonky constructor behavior, but in order
                     //   to not introduce a regression and breaking change we return NULL in this case.
                     //   e.g.
                     //   

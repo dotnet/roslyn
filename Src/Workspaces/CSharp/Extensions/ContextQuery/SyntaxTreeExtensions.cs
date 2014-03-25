@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsTypeParameterContraintStartContext(
+        public static bool IsTypeParameterConstraintStartContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
             // cases:
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsTypeParameterConstraintContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
-            if (syntaxTree.IsTypeParameterContraintStartContext(position, tokenOnLeftOfPosition, cancellationToken))
+            if (syntaxTree.IsTypeParameterConstraintStartContext(position, tokenOnLeftOfPosition, cancellationToken))
             {
                 return true;
             }

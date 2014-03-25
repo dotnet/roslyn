@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Creates a separated list from a <see cref="SyntaxNodeOrTokenList"/>, where the list elements start with a node and then alternate between
-        /// additional nodes and seperator tokens.
+        /// additional nodes and separator tokens.
         /// </summary>
         /// <typeparam name="TNode">The specific type of the element nodes.</typeparam>
         /// <param name="nodesAndTokens">The list of nodes and tokens.</param>

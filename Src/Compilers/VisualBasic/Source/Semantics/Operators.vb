@@ -1671,7 +1671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ConcatenationLike
             End Enum
 
-            ' PERF: Using SByte instead of SpecialType becuase we want the compiler to use array literal initialization.
+            ' PERF: Using SByte instead of SpecialType because we want the compiler to use array literal initialization.
             '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
             Public Shared ReadOnly Table(,,) As SByte
 
@@ -2879,7 +2879,7 @@ Next_i:
                             stopClimbing = True
                         End If
 
-                        ' Operators that were declared in syntax may not satisfy all the contraints on user-defined operators -
+                        ' Operators that were declared in syntax may not satisfy all the constraints on user-defined operators -
                         ' they require extra validation.
                         If Not method.IsMethodKindBasedOnSyntax OrElse ValidateOverloadedOperator(method.OriginalDefinition, opInfo) Then
                             opSet.Add(method)

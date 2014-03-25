@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Collections;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a named type symbol whose members are delcared in source.
+    /// Represents a named type symbol whose members are declared in source.
     /// </summary>
     internal abstract partial class SourceMemberContainerTypeSymbol : NamedTypeSymbol
     {        
@@ -1189,10 +1189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The specification does not state that a user-defined conversion reserves the names
             // op_Implicit or op_Explicit, but nevertheless the native compiler does so; an attempt
             // to define a field or a conflicting method with the metadata name of a user-defined
-            // conversion is an error.  We preserve this reasonable behaviour.
+            // conversion is an error.  We preserve this reasonable behavior.
             //
             // Similarly, we treat "public static C operator +(C, C)" as colliding with
-            // "public static C op_Addition(C, C)". Fortunately, this behaviour simply
+            // "public static C op_Addition(C, C)". Fortunately, this behavior simply
             // falls out of treating user-defined operators as ordinary methods; we do
             // not need any special handling in this method.
             //

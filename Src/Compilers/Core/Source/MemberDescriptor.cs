@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             for (int i = 0; i < count; i++)
             {
                 MemberFlags flags = (MemberFlags)stream.ReadByte();
-                byte delcaringTypeId = (byte)stream.ReadByte();
+                byte declaringTypeId = (byte)stream.ReadByte();
                 ushort arity = (ushort)stream.ReadByte();
 
                 if ((flags & MemberFlags.Field) != 0)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                     ParseMethodOrPropertySignature(signatureBuilder, stream);
                 }
 
-                builder.Add(new MemberDescriptor(flags, delcaringTypeId, nameTable[i], signatureBuilder.ToImmutable(), arity));
+                builder.Add(new MemberDescriptor(flags, declaringTypeId, nameTable[i], signatureBuilder.ToImmutable(), arity));
                 signatureBuilder.Clear();
             }
 

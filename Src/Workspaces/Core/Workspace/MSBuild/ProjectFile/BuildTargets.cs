@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public void RemoveAfter(string target, bool includeTargetInRemoval)
         {
             // keep a set of targets already known to be in the build target list
-            // so we can keep from redundantly adding mulitple of the same targets
+            // so we can keep from redundantly adding multiple of the same targets
             // when we replace a target with its children
             var knownTargets = new HashSet<string>();
 

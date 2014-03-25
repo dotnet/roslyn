@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (triviaInfo.Spaces != indentation)
                 {
-                    // first save previous informatoin
+                    // first save previous information
                     previousChangesMap.Add(firstTokenOnLine, triviaInfo.Spaces);
 
                     // okay, update indentation

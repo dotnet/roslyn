@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract Diagnostic WithWarningAsError(bool isWarningAsError);
 
-        // compatability
+        // compatibility
         internal virtual int Code { get { return 0; } }
 
         internal virtual IReadOnlyList<object> Arguments

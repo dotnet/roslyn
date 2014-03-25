@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
-                    ' Dev10#595234: to preserve backwards-compatability with Orcas, a narrowing
+                    ' Dev10#595234: to preserve backwards-compatibility with Orcas, a narrowing
                     ' counts as type inference failure if it happens inside a generic type parameter.
                     ' e.g. type inference will never infer T:Object for parameter IComparable(Of T)
                     ' when given argument IComparable(Of String), since it String->Object is narrowing,

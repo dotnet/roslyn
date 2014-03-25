@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '  find valuetype parameterless constructor and check the accessibility
             For Each constr In typeTo.InstanceConstructors
                 ' NOTE: we intentionally skip constructors with all 
-                '       optional parameters; this matches Dev10 behaviour
+                '       optional parameters; this matches Dev10 behavior
                 If constr.ParameterCount = 0 Then
 
                     '  check 'constr' 

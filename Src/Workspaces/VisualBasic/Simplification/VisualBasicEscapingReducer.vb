@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
             End If
 
-            ' handle identifier Group in a function aggregation (sooo mean)
+            ' handle identifier Group in a function aggregation
             If SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.GroupKeyword Then
                 If parent.VisualBasicKind = SyntaxKind.FunctionAggregation AndAlso parent.GetFirstToken() = identifier Then
                     Return identifier

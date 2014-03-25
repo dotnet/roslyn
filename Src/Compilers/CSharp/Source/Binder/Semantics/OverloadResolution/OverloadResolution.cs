@@ -1781,12 +1781,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // DELIBERATE SPEC VIOLATION: See bug 11961.
             // The native compiler uses one algorithm for determining betterness of lambdas and another one
-            // for everything else. This is wrong; the correct behaviour is to do the type analysis of
+            // for everything else. This is wrong; the correct behavior is to do the type analysis of
             // the parameter types first, and then if necessary, do the lambda analysis. Native compiler
             // skips analysis of the parameter types when they are delegate types with identical parameter
             // lists and the corresponding argument is a lambda. 
             // There is a real-world code that breaks if we follow the specification, so we will try to fall
-            // back to the original behaviour to avoid an ambiguity that wasn't an ambiguity before.
+            // back to the original behavior to avoid an ambiguity that wasn't an ambiguity before.
 
             NamedTypeSymbol d1;
 

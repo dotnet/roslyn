@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDefinition keyLocal = null,
             int keyArgument = -1)
         {
-            Debug.Assert(keyArgument == -1 ^ keyLocal == null, "canot have both valid key argument and valid key local");
+            Debug.Assert(keyArgument == -1 ^ keyLocal == null, "cannot have both valid key argument and valid key local");
 
             this.builder = builder;
             this.keyLocal = keyLocal;

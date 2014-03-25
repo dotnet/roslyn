@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInCatchDeclaration(CatchDeclarationSyntax catchDeclaration, SyntaxToken? previousToken = null)
             {
-                // If we have a positoin, it has to be after "catch("
+                // If we have a position, it has to be after "catch("
                 if (previousToken.HasValue && previousToken.Value != catchDeclaration.OpenParenToken)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();

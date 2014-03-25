@@ -592,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' </summary>
         Private Function CanUseCallOnRefTypeReceiver(receiver As BoundExpression) As Boolean
             ' It seems none of the ways that could produce a receiver typed as a type param 
-            ' can guaranteee that it is not null.
+            ' can guarantee that it is not null.
             If receiver.Type.IsTypeParameter() Then
                 Return False
             End If
@@ -612,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return True
 
                 Case BoundKind.ObjectCreationExpression
-                    'NOTE: there are bizzare cases involving ProxyAttribute
+                    'NOTE: there are cases involving ProxyAttribute
                     'where newobj may produce null
                     Return True
 

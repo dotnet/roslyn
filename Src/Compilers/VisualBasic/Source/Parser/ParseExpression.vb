@@ -1349,7 +1349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''                     { | CastTarget ( CCExpression ) }
         ''' </summary>
         ''' <returns>Cast</returns>
-        ''' <remarks>Dev10 ParseCType does not parse exact grammar in the spec, since dev10 accepts Epxression whereas the grammar uses CCExpression.
+        ''' <remarks>Dev10 ParseCType does not parse exact grammar in the spec, since dev10 accepts Expression whereas the grammar uses CCExpression.
         ''' This function only does not parse CastTarget ( ... ), it is parsed in ParseTerm
         ''' </remarks>
         Private Function ParseCast() As CastExpressionSyntax

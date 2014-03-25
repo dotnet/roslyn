@@ -390,7 +390,7 @@ namespace Roslyn.Utilities
                 var nextIndex = GetChunkIndex(value);
                 for (var i = this.chunks.Count; i <= nextIndex; i++)
                 {
-                    // allocate memory and intialize it to zero
+                    // allocate memory and initialize it to zero
                     var chunk = SharedPools.ByteArray.Allocate();
                     Array.Clear(chunk, 0, chunk.Length);
                     chunks.Add(chunk);
