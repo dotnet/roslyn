@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void PrepareCrossLangaugeProjectWithEmittedMetadata()
+        private void PrepareCrossLanguageProjectWithEmittedMetadata()
         {
             // Now try variant of CSharpProject that has an emitted assembly 
             CreateFiles(GetMultiProjectSolutionFiles()

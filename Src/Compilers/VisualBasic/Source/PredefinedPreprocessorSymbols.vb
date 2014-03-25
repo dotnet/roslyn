@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbols.FirstOrDefault(Function(entry) IdentifierComparison.Equals(entry.Key, CompilerVersionSymbol)).Key Is Nothing Then
                 ' This number is hardcoded to Dev11 compiler. 
                 ' It's a bad practice to use the symbol so we should just keep the value as is and not ever rev it again.
-                ' Incorrect usages include conditionally using Framework APIs or langauge features based upon this number.
+                ' Incorrect usages include conditionally using Framework APIs or language features based upon this number.
                 symbols = symbols.Add(New KeyValuePair(Of String, Object)(CompilerVersionSymbol, 11.0))
             End If
 

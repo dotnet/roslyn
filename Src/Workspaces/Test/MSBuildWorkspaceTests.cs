@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCrossLanguageReferencesWithOutOfDateMetadataOnDiskUsesInMemoryGeneratedMetadata()
         {
-            PrepareCrossLangaugeProjectWithEmittedMetadata();
+            PrepareCrossLanguageProjectWithEmittedMetadata();
 
             // recreate the solution so it will reload from disk
             var sol = LoadSolution(GetSolutionFileName("TestSolution.sln"));

@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Retrieves Get method for this property or 'most derived' Get method from closest 
         ''' overridden property if such property exists.
         ''' 
-        ''' NOTE: It is not possible in VB, but possible in other langauges (for example in C#) to
+        ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
         '''       override read-write property an provide override only for setter, thus inheriting 
         '''       getter's implementation. This method will find the Get method from the most-derived
         '''       overridden property in this case
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Retrieves Set method for this property or 'most derived' Set method from closest 
         ''' overridden property if such property exists.
         ''' 
-        ''' NOTE: It is not possible in VB, but possible in other langauges (for example in C#) to
+        ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
         '''       override read-write property an provide override only for getter, thus inheriting 
         '''       setter's implementation. This method will find the Set method from the most-derived
         '''       overridden property in this case
