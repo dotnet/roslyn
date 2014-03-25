@@ -124,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim q = From node In token.GetAncestors(Of SyntaxNode)()
                     Where Not TypeOf node Is AggregationRangeVariableSyntax AndAlso
                           Not TypeOf node Is CollectionRangeVariableSyntax AndAlso
-                          Not TypeOf node Is ExpressionRangeVariableSyntax
+                          Not TypeOf node Is ExpressionRangeVariableSyntax AndAlso
+                          Not TypeOf node Is InferredFieldInitializerSyntax
                     Let symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken)
                     Where symbol IsNot Nothing AndAlso symbol.Locations.Contains(location)
                     Select symbol
