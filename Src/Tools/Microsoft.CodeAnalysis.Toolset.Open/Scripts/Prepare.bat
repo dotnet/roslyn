@@ -87,7 +87,8 @@ goto :eof
 
 
 :EnableRoslynPackage %1 %2
-@echo %label% EnableRoslynPackage for %1
-for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do reg add "HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\%targetVS%%TargetHive%\ExtensionManager\EnabledExtensions" /v %2 /d %%~dpf /F  > nul 2>&1 && goto :eof
+rem disable until we have a more complete mechanism
+rem @echo %label% EnableRoslynPackage for %1
+rem for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do reg add "HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\%targetVS%%TargetHive%\ExtensionManager\EnabledExtensions" /v %2 /d %%~dpf /F  > nul 2>&1 && goto :eof
 goto :eof
 
