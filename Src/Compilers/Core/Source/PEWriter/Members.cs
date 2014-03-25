@@ -39,7 +39,7 @@ namespace Microsoft.Cci
         FastCall = 4,
 
         /// <summary>
-        /// Win32 API calling convention for calling unmanged methods via PlatformInvoke. The call stack is cleaned up by the callee.
+        /// Win32 API calling convention for calling unmanaged methods via PlatformInvoke. The call stack is cleaned up by the callee.
         /// </summary>
         Standard = 2,
 

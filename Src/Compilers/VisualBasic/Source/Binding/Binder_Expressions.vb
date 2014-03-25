@@ -3425,7 +3425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If we can't find a common type, create an error type. If all the types have a common name,
         ' that name is used as the type of the error type (useful in ambiguous type lookup situations)
         Private Function GetCommonExpressionType(
-            symbolRefernce As VisualBasicSyntaxNode,
+            symbolReference As VisualBasicSyntaxNode,
             symbols As ImmutableArray(Of Symbol),
             constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
         ) As TypeSymbol
@@ -3438,7 +3438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For i As Integer = 0 To symbols.Length - 1
 
-                Dim expressionType As TypeSymbol = GetExpressionType(symbolRefernce, symbols(i), constantFieldsInProgress, diagnostics)
+                Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, diagnostics)
 
 
                 If expressionType IsNot Nothing Then
@@ -3471,7 +3471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Get the "expression type" of a symbol when used in an expression.
         Private Function GetExpressionType(
-            symbolRefernce As VisualBasicSyntaxNode,
+            symbolReference As VisualBasicSyntaxNode,
             s As Symbol,
             constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol),
             diagnostics As DiagnosticBag
@@ -3488,7 +3488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Parameter
                     Return DirectCast(s, ParameterSymbol).Type
                 Case SymbolKind.Local
-                    Return GetLocalSymbolType(DirectCast(s, LocalSymbol), symbolRefernce, diagnostics)
+                    Return GetLocalSymbolType(DirectCast(s, LocalSymbol), symbolReference, diagnostics)
                 Case SymbolKind.RangeVariable
                     Return DirectCast(s, RangeVariableSymbol).Type
                 Case Else

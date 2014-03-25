@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis
                     // Check whether matching name                    
                     if (MetadataReader.StringEquals(MetadataReader.GetAssemblyReference(assemblyRef).Name, assemblyName))
                     {
-                        // Return assemby ref token
+                        // Return assembly ref token
                         return assemblyRef;
                     }
                 }

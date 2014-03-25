@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             'TODO: I have seen other places where we do similar digging.
-            '      It seems a bit bug-prone. What if Nothing is wrapped in more than one conversion or a parenthesised or whatever...? 
+            '      It seems a bit bug-prone. What if Nothing is wrapped in more than one conversion or a parenthesized or whatever...? 
             '      Perhaps it may be worth it to introduce BoundDefault and reduce the "default value" patterns to 
             '      a node with unambiguous meaning?
 

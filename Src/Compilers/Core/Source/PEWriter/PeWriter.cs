@@ -7394,7 +7394,7 @@ namespace Microsoft.Cci
             this.WriteManagedResources(peStream);
             this.WriteSpaceForHash(peStream);
             this.WriteDebugTable(peStream);
-            // this.WriteUnmangedExportStubs();
+            // this.WriteUnmanagedExportStubs();
             if (this.emitRuntimeStartupStub) this.WriteImportTable(peStream);
             if (this.emitRuntimeStartupStub) this.WriteNameTable(peStream);
             if (this.emitRuntimeStartupStub) this.WriteRuntimeStartupStub(peStream);
@@ -7579,7 +7579,7 @@ namespace Microsoft.Cci
             stream.Free();
         }
 
-        // private void WriteUnmangedExportStubs() { }
+        // private void WriteUnmanagedExportStubs() { }
 
         private void WriteRuntimeStartupStub(System.IO.Stream peStream)
         {

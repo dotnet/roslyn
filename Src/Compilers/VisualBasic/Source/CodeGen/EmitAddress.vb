@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.Parenthesized
                     ' rewriter should take care of Parethesized
                     '
-                    ' we do not know how to emit address of a parethesised without context.
+                    ' we do not know how to emit address of a parethesized without context.
                     ' when it is an argument like  foo((arg)), it must be cloned, 
                     ' in other cases like (receiver).foo() it might not need to be...
                     '

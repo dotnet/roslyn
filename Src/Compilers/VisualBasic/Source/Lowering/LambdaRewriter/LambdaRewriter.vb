@@ -251,13 +251,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLocal(syntax, localFrame, isLValue:=False, type:=localFrame.Type)
         End Function
 
-        Protected Overrides Function MaterializeProxy(origExpresion As BoundExpression, proxy As FieldSymbol) As BoundNode
-            Dim frame As BoundExpression = FramePointer(origExpresion.Syntax, proxy.ContainingType)
+        Protected Overrides Function MaterializeProxy(origExpression As BoundExpression, proxy As FieldSymbol) As BoundNode
+            Dim frame As BoundExpression = FramePointer(origExpression.Syntax, proxy.ContainingType)
             Dim constructedProxyField = proxy.AsMember(DirectCast(frame.Type, NamedTypeSymbol))
-            Return New BoundFieldAccess(origExpresion.Syntax,
+            Return New BoundFieldAccess(origExpression.Syntax,
                                         frame,
                                         constructedProxyField,
-                                        origExpresion.IsLValue,
+                                        origExpression.IsLValue,
                                         constructedProxyField.Type)
         End Function
 

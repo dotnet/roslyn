@@ -260,8 +260,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.F.Block(blockBuilder.ToImmutableAndFree())
             End Function
 
-            Protected Overrides Function MaterializeProxy(origExpresion As BoundExpression, proxy As CapturedSymbolOrExpression) As BoundNode
-                Return proxy.Materialize(Me, origExpresion.IsLValue)
+            Protected Overrides Function MaterializeProxy(origExpression As BoundExpression, proxy As CapturedSymbolOrExpression) As BoundNode
+                Return proxy.Materialize(Me, origExpression.IsLValue)
             End Function
 
             Friend Overrides Sub AddProxyFieldsForStateMachineScope(proxy As CapturedSymbolOrExpression, proxyFields As ArrayBuilder(Of FieldSymbol))

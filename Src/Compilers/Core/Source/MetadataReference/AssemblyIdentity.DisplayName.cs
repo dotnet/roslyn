@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         int codepoint = Convert.ToInt32(str.Substring(i, semicolon - i), 16);
 
-                        // \0 is not valid in an asembly name
+                        // \0 is not valid in an assembly name
                         if (codepoint == 0)
                         {
                             return false;

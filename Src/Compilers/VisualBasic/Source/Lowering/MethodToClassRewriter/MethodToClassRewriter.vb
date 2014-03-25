@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Protected MustOverride Function MaterializeProxy(origExpresion As BoundExpression, proxy As TProxy) As BoundNode
+        Protected MustOverride Function MaterializeProxy(origExpression As BoundExpression, proxy As TProxy) As BoundNode
 
         ''' <summary>
         ''' Maps not-lifted parameter, since the parameter was not lifted, it must be an actual lambda's parameter 

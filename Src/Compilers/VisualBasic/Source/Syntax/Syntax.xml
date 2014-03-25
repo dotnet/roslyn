@@ -47,7 +47,7 @@ Most significant structural changes from native/LM trees:
    
    Unify FromItem and LinqSource into the same node (CollectionRangeVariable).
    
-   WHen FromExpresison was used as the source of an Aggregate, instead use JoinOrAggregateSource.
+   When FromExpressison was used as the source of an Aggregate, instead use JoinOrAggregateSource.
    
    Remove CrossJoin node, just represent as FromOperators with a source.
 -->

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // granted provided the simple assembly names match. When such access is granted
         // the assembly to which we have been granted access is noted (optimisticallyGrantedInternalsAccess).
         // After the public key has been computed, the set of optimistic grants is reexamined 
-        // to insure that full identities match. This may produce diagnostics.
+        // to ensure that full identities match. This may produce diagnostics.
         private StrongNameKeys lazyStrongNameKeys;
 
         /// <summary>

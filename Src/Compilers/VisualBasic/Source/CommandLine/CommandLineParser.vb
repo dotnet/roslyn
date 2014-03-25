@@ -1617,7 +1617,7 @@ lVbRuntimePlus:
                                 Exit Do
                             End If
 
-                            ' Expresion parsed successfully --> evaluate it
+                            ' Expression parsed successfully --> evaluate it
 
                             Dim value As InternalSyntax.CConst =
                                 InternalSyntax.ExpressionEvaluator.EvaluateExpression(
@@ -1636,7 +1636,7 @@ lVbRuntimePlus:
                                 Exit Do
                             End If
 
-                            ' Expresion evaluated successfully --> add to 'defines'
+                            ' Expression evaluated successfully --> add to 'defines'
                             If defines.ContainsKey(symbolName) Then
                                 defines = defines.Remove(symbolName)
                             End If

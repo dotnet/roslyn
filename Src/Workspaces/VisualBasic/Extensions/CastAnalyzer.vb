@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' If removing the cast will result in a change in semantics of any of the parenting nodes, we won't remove it.
-            ' We do this even for identity casts in case removing that cast might affect type inferrence.
+            ' We do this even for identity casts in case removing that cast might affect type inference.
             If speculationAnalyzer.ReplacementChangesSemantics() Then
                 Return False
             End If

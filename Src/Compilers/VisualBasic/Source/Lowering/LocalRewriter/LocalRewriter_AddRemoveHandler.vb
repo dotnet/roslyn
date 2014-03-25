@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return DirectCast(node, BoundEventAccess)
             End If
 
-            Debug.Assert(node.Kind = BoundKind.Parenthesized, "node can only be EventAccess or Parenthesised")
+            Debug.Assert(node.Kind = BoundKind.Parenthesized, "node can only be EventAccess or Parenthesized")
             Return UnwrapEventAccess(DirectCast(node, BoundParenthesized).Expression)
         End Function
 

@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return EvaluateLiteralExpression(DirectCast(expr, LiteralExpressionSyntax))
 
                 Case SyntaxKind.ParenthesizedExpression
-                    Return EvaluateParenthesisedExpression(DirectCast(expr, ParenthesizedExpressionSyntax))
+                    Return EvaluateParenthesizedExpression(DirectCast(expr, ParenthesizedExpressionSyntax))
 
                 Case SyntaxKind.IdentifierName
                     Return EvaluateIdentifierNameExpression(DirectCast(expr, IdentifierNameSyntax))
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Function EvaluateParenthesisedExpression(expr As ParenthesizedExpressionSyntax) As CConst
+        Private Function EvaluateParenthesizedExpression(expr As ParenthesizedExpressionSyntax) As CConst
             Return EvaluateExpressionInternal(expr.Expression)
         End Function
 

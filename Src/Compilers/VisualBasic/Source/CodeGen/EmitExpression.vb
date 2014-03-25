@@ -1253,7 +1253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                 syntaxNode As VisualBasicSyntaxNode)
 
             Debug.Assert(Not constructor.IsParameterlessStructConstructor(requireSynthesized:=True),
-                         "do not call synthesised struct constructors, they do not exist")
+                         "do not call synthesized struct constructors, they do not exist")
 
             EmitArguments(arguments, constructor.Parameters)
             _builder.EmitOpCode(ILOpCode.Newobj, ILOpCode.Newobj.StackPushCount() - arguments.Length)

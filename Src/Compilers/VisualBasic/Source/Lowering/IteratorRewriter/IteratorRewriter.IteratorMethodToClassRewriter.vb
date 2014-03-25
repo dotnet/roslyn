@@ -209,11 +209,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 proxyFields.Add(proxy)
             End Sub
 
-            Protected Overrides Function MaterializeProxy(origExpresion As BoundExpression, proxy As FieldSymbol) As BoundNode
+            Protected Overrides Function MaterializeProxy(origExpression As BoundExpression, proxy As FieldSymbol) As BoundNode
                 Dim syntax As VisualBasicSyntaxNode = Me.F.Syntax
                 Dim framePointer As BoundExpression = Me.FramePointer(syntax, proxy.ContainingType)
                 Dim proxyFieldParented = proxy.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
-                Return Me.F.Field(framePointer, proxyFieldParented, origExpresion.IsLValue)
+                Return Me.F.Field(framePointer, proxyFieldParented, origExpression.IsLValue)
             End Function
         End Class
     End Class

@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 wellKnownAttributeData = this.ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, boundAttributes, diagnostics, symbolPart);
 
                 // Store data decoded from remaining well-known attributes.
-                // TODO: what if this suceeds on another thread but not this thread?
+                // TODO: what if this succeeds on another thread but not this thread?
                 lazyCustomAttributesBag.SetDecodedWellKnownAttributeData(wellKnownAttributeData);
             }
             else if (earlyDecodingOnly)

@@ -126,7 +126,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The unmanged element type of the unmanaged array.
+        /// The unmanaged element type of the unmanaged array.
         /// -1 if it should be omitted from the marshal blob.
         /// </summary>
         System.Runtime.InteropServices.UnmanagedType ElementType

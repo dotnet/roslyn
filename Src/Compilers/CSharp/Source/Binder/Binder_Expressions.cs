@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (IsRefOrOutThisParameterCaptured(node, diagnostics))
             {
-                // error has been reported by CheckThisRefernece
+                // error has been reported by CheckThisReference
             }
             else
             {

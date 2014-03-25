@@ -2254,7 +2254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          <Out()> ByRef actualEventAccess As BoundEventAccess,
                                          <Out()> ByRef eventSymbol As EventSymbol) As BoundExpression
 
-            ' event must be a simple name that could be qualified and perhaps parethesised
+            ' event must be a simple name that could be qualified and perhaps parethesized
             ' Examples:  foo , (foo) , (bar.foo) , baz.moo(of T).goo
             Dim notParenthesizedSyntax = node
             While notParenthesizedSyntax.Kind = SyntaxKind.ParenthesizedExpression

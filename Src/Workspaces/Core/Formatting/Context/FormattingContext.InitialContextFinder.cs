@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     node = node.Parent;
                 }
 
-                // make sure operations we have has effects over the formating span
+                // make sure operations we have has effects over the formatting span
                 operations.RemoveAll(o => o == null || !o.TextSpan.IntersectsWith(span));
 
                 // we couldn't find anything

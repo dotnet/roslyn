@@ -779,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' granted provided the simple assembly names match. When such access is granted
         ' the assembly to which we have been granted access is noted (m_optimisticallyGrantedInternalsAccess).
         ' After the public key has been computed, the set of optimistic grants is reexamined 
-        ' to insure that full identities match. This may produce diagnostics.
+        ' to ensure that full identities match. This may produce diagnostics.
 
         ' EDMAURER please don't use thread local storage widely. This is hoped to be a one-off usage.
         <ThreadStatic()>

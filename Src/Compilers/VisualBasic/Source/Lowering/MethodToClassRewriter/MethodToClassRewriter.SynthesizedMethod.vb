@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits BoundTreeRewriter
 
         ''' <summary>
-        ''' Base for synthesised Lambda methods. 
+        ''' Base for synthesized Lambda methods. 
         ''' Just provides a bunch of defaults
         ''' </summary>
         Friend MustInherit Class SynthesizedMethod

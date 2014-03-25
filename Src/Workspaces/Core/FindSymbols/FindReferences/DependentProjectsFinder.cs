@@ -225,13 +225,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (compilation.PreviousSubmission != null)
                     {
-                        var refrencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly);
+                        var referencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly);
                         List<ProjectId> referencingSubmissions = null;
 
-                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(refrencedProject.Id, out referencingSubmissions))
+                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out referencingSubmissions))
                         {
                             referencingSubmissions = new List<ProjectId>();
-                            projectIdsToReferencingSubmissionIds.Add(refrencedProject.Id, referencingSubmissions);
+                            projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
                         }
 
                         referencingSubmissions.Add(project.Id);

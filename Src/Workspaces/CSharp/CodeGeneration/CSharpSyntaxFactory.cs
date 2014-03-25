@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode CreateDefaultExpression(ITypeSymbol type)
         {
-            // If it's just a reference type, then "null" is the default expresison for it.  Note:
+            // If it's just a reference type, then "null" is the default expressison for it.  Note:
             // this counts for actual reference type, or a type parameter with a 'class' constraint.
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
