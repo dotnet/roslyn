@@ -19,7 +19,7 @@
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <StyleCopEnabled>false</StyleCopEnabled>
     <GeneratePkgDefFile>True</GeneratePkgDefFile>
-    <DeployExtension>true</DeployExtension>
+    <DeployExtension>False</DeployExtension>
     <CreateVsixContainer>False</CreateVsixContainer>
     <SccProjectName>%24/Roslyn/Releases/MVPSummit2013/Open/Compilers/PackageFiles</SccProjectName>
     <SccLocalPath>.</SccLocalPath>
