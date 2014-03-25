@@ -664,13 +664,13 @@ namespace Roslyn.SyntaxVisualizer.Control
         private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             var directedSyntaxGraphEnabled =
-                ((SyntaxNodeDirectedGraphRequested != null) &&
-                 (SyntaxTokenDirectedGraphRequested != null) &&
-                 (SyntaxTriviaDirectedGraphRequested != null));
+                (SyntaxNodeDirectedGraphRequested != null) &&
+                (SyntaxTokenDirectedGraphRequested != null) &&
+                (SyntaxTriviaDirectedGraphRequested != null);
 
             var symbolDetailsEnabled =
-                ((SemanticModel != null) &&
-                 (((SyntaxTag)currentSelection.Tag).Category == SyntaxCategory.SyntaxNode));
+                (SemanticModel != null) &&
+                (((SyntaxTag)currentSelection.Tag).Category == SyntaxCategory.SyntaxNode);
 
             if ((!directedSyntaxGraphEnabled) && (!symbolDetailsEnabled))
             {

@@ -9,11 +9,11 @@ Imports Microsoft.VisualBasic
 Imports <xmlns="http://schemas.microsoft.com/vs/2009/dgml">
 
 Public Class SyntaxDgmlOptions
-    Public Property ShowTrivia = True
-    Public Property ShowSpan = True
-    Public Property ShowErrors = True
-    Public Property ShowText = False
-    Public Property ShowGroups = False
+    Public Property ShowTrivia As Boolean = True
+    Public Property ShowSpan As Boolean = True
+    Public Property ShowErrors As Boolean = True
+    Public Property ShowText As Boolean = False
+    Public Property ShowGroups As Boolean = False
 End Class
 
 Public Module SyntaxDgmlHelper
@@ -391,12 +391,12 @@ Public Module SyntaxDgmlHelper
         parentID = -1
 
         If parent IsNot Nothing Then
-            parentID = parent.@Id
+            parentID = CInt(parent.@Id)
         End If
 
         If options.ShowGroups Then
             If parentGroup IsNot Nothing Then
-                parentGroupID = parentGroup.@Id
+                parentGroupID = CInt(parentGroup.@Id)
             End If
             currentGroupID = parentGroupID
         End If
