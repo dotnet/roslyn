@@ -1,24 +1,17 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Reflection
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports VBReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferenceManager
 
 Module MetadataTestHelpers
 
-    <Extension()>
+    <Extension>
     Friend Function GetCorLibType(this As ModuleSymbol, typeId As SpecialType) As NamedTypeSymbol
         Return this.ContainingAssembly.GetSpecialType(typeId)
     End Function
 
-    <Extension()>
+    <Extension>
     Friend Function CorLibrary(this As ModuleSymbol) As AssemblySymbol
         Return this.ContainingAssembly.CorLibrary
     End Function
@@ -32,26 +25,10 @@ Module MetadataTestHelpers
 
     End Function
 
-    Private Class AssemblyInfoHelper : Inherits MarshalByRefObject
-        Public Function GetAssemblyFullName(bytes() As Byte) As String
-            Return Assembly.Load(bytes).FullName
-        End Function
-    End Class
-
-    Friend Function GetSymbolsForReferences(
-        references As Object(),
-        Optional importInternals As Boolean = False
-    ) As AssemblySymbol()
-
+    Friend Function GetSymbolsForReferences(references As Object(), Optional importInternals As Boolean = False) As AssemblySymbol()
         Dim refs As New List(Of MetadataReference)
 
         For Each r In references
-            Dim path = TryCast(r, String)
-            If path IsNot Nothing Then
-                refs.Add(New MetadataFileReference(path))
-                Continue For
-            End If
-
             Dim bytes = TryCast(r, Byte())
             If bytes IsNot Nothing Then
                 refs.Add(New MetadataImageReference(bytes.AsImmutableOrNull()))

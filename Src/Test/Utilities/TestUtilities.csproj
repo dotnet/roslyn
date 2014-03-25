@@ -118,6 +118,7 @@
     <Compile Include="ILBuilderVisualizer.cs" />
     <Compile Include="ImmutableArrayTestExtensions.cs" />
     <Compile Include="MarkupTestFile.cs" />
+    <Compile Include="MetadataCacheTestHelpers.cs" />
     <Compile Include="MetadataReader\CustomAttributeRow.cs" />
     <Compile Include="MetadataReader\EncValidation.cs" />
     <Compile Include="MetadataReader\MetadataReaderUtils.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="TempRoot.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestHelpers.cs" />
+    <Compile Include="TestMetadataReference.cs" />
     <Compile Include="TestMessageProvider.cs" />
     <Compile Include="TestMetadataReferenceResolver.cs" />
     <Compile Include="TestResource.Designer.cs">

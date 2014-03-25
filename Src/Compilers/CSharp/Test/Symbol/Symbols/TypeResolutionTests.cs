@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -110,7 +111,7 @@ namespace System
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree("class C { }") },
                 references: new[] { 
                     MscorlibRef,
-                    new MetadataFileReference(typeof(TypeTests).Assembly.Location)
+                    new MetadataImageReference(File.ReadAllBytes(typeof(TypeTests).Assembly.Location))
                 });
 
             var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);

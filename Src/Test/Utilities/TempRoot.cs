@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return dir;
         }
 
-        public TempFile CreateFile(string prefix = null, string extension = null, string directory = null)
+        public TempFile CreateFile(string prefix = null, string extension = null, string directory = null, [CallerFilePath]string callerSourcePath = null, [CallerLineNumber]int callerLineNumber = 0)
         {
-            return AddFile(new DisposableFile(prefix, extension, directory));
+            return AddFile(new DisposableFile(prefix, extension, directory, callerSourcePath, callerLineNumber));
         }
 
         public DisposableFile AddFile(DisposableFile file)

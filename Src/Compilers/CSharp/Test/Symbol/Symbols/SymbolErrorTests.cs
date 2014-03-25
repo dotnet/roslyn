@@ -13905,45 +13905,6 @@ static class B
         }
 
         [Fact]
-        public void CS1009FTL_MetadataCantOpenFileAssembly()
-        {
-            //CSC /TARGET:library /reference:class1.netmodule text.CS
-            var text = @"class Test
-{
-    public static int Main()
-    {
-        return 1;
-    }
-}";
-
-            var refFile = Temp.CreateFile();
-            var reference = new MetadataFileReference(refFile.Path);
-
-            CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
-        }
-
-        [Fact]
-        public void CS1009FTL_MetadataCantOpenFileModule()
-        {
-            //CSC /TARGET:library /addmodule:class1.netmodule text.CS
-            var text = @"class Test
-{
-    public static int Main()
-    {
-        return 1;
-    }
-}";
-            var refFile = Temp.CreateFile();
-            var reference = new MetadataFileReference(refFile.Path, MetadataImageKind.Module);
-
-            CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
-        }
-
-        [Fact]
         public void CS1527ERR_NoNamespacePrivate1()
         {
             var text = @"private class C { }";

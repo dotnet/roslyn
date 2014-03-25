@@ -979,73 +979,78 @@ public class E : bar::C { }
         [WorkItem(546026), WorkItem(546169)]
         public void CS1703ERR_DuplicateImport()
         {
-            var p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-            var p2 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.System).Path;
-            var text = @"namespace N {}";
+            using (MetadataCache.LockAndClean())
+            {
+                var p1 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+                var p2 = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.System).Path;
+                var text = @"namespace N {}";
 
-            var comp = CSharpCompilation.Create(
-                "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
-                new[] { new MetadataFileReference(p1), new MetadataFileReference(p2) },
-                TestOptions.Dll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+                var comp = CSharpCompilation.Create(
+                    "DupSignedRefs",
+                    new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                    new[] { new MetadataFileReference(p1), new MetadataFileReference(p2) },
+                    TestOptions.Dll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            comp.VerifyDiagnostics(
-                // error CS1703: Multiple assemblies with equivalent identity have been imported: '...\v4.0.30319\System.dll' and '...\v2.0.50727\System.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments(p1, p2));
+                comp.VerifyDiagnostics(
+                    // error CS1703: Multiple assemblies with equivalent identity have been imported: '...\v4.0.30319\System.dll' and '...\v2.0.50727\System.dll'. Remove one of the duplicate references.
+                    Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments(p1, p2));
+            }
         }
 
         [Fact]
         public void CS1704ERR_DuplicateImportSimple()
         {
-            var text = @"extern alias A1;
+            using (MetadataCache.LockAndClean())
+            {
+                var text = @"extern alias A1;
 extern alias A2;
 ";
-            var text1 = @"using System;
+                var text1 = @"using System;
 public class A { }";
 
 
-            var c1 = CreateCompilationWithMscorlib(text1,
-                compOptions: TestOptions.Dll,
-                assemblyName: "CS1704");
+                var c1 = CreateCompilationWithMscorlib(text1,
+                    compOptions: TestOptions.Dll,
+                    assemblyName: "CS1704");
 
-            var dir1 = Temp.CreateDirectory();
-            var exe1 = dir1.CreateFile("CS1704.dll");
-            var pdb1 = dir1.CreateFile("CS1704.pdb");
+                var dir1 = Temp.CreateDirectory();
+                var exe1 = dir1.CreateFile("CS1704.dll");
+                var pdb1 = dir1.CreateFile("CS1704.pdb");
 
-            var dir2 = Temp.CreateDirectory();
-            var exe2 = dir2.CreateFile("CS1704.dll");
-            var pdb2 = dir2.CreateFile("CS1704.pdb");
-            
-            using (var output = exe1.Open())
-            {
-                using (var outputPdb = pdb1.Open())
+                var dir2 = Temp.CreateDirectory();
+                var exe2 = dir2.CreateFile("CS1704.dll");
+                var pdb2 = dir2.CreateFile("CS1704.pdb");
+
+                using (var output = exe1.Open())
                 {
-                    c1.Emit(output, null, pdb1.Path, outputPdb, null);
+                    using (var outputPdb = pdb1.Open())
+                    {
+                        c1.Emit(output, null, pdb1.Path, outputPdb, null);
+                    }
                 }
-            }
 
-            using (var output = exe2.Open())
-            {
-                using (var outputPdb = pdb2.Open())
+                using (var output = exe2.Open())
                 {
-                    c1.Emit(output, null, pdb2.Path, outputPdb, null);
+                    using (var outputPdb = pdb2.Open())
+                    {
+                        c1.Emit(output, null, pdb2.Path, outputPdb, null);
+                    }
                 }
+
+                var ref1 = new MetadataFileReference(exe1.Path, alias: "A1");
+                var ref2 = new MetadataFileReference(exe2.Path, alias: "A2");
+
+                CreateCompilationWithMscorlib(text, new[] { ref1, ref2 }).VerifyDiagnostics(
+                    // error CS1704: An assembly with the same simple name 'CS1704' has already been imported. 
+                    // Try removing one of the references (e.g. '...\SymbolsTests\netModule\CS1704.dll') or sign them to enable side-by-side.
+                    Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("CS1704", exe1.Path),
+                    // (1,1): info CS8020: Unused extern alias.
+                    // extern alias A1;
+                    Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A1;"),
+                    // (2,1): info CS8020: Unused extern alias.
+                    // extern alias A2;
+                    Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A2;"));
             }
-
-            var ref1 = new MetadataFileReference(exe1.Path, alias: "A1");
-            var ref2 = new MetadataFileReference(exe2.Path, alias: "A2");
-
-            CreateCompilationWithMscorlib(text, new[] { ref1, ref2 }).VerifyDiagnostics(
-                // error CS1704: An assembly with the same simple name 'CS1704' has already been imported. 
-                // Try removing one of the references (e.g. '...\SymbolsTests\netModule\CS1704.dll') or sign them to enable side-by-side.
-                 Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("CS1704", exe1.Path),
-                // (1,1): info CS8020: Unused extern alias.
-                // extern alias A1;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A1;"),
-                // (2,1): info CS8020: Unused extern alias.
-                // extern alias A2;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A2;")
-            );
         }
 
         [Fact]

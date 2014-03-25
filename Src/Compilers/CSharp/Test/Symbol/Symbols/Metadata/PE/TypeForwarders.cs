@@ -1370,63 +1370,39 @@ namespace NS
         [Fact]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
-            var folder = Temp.CreateDirectory();
-            var folderA = folder.CreateDirectory("A");
-
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
-            var bitsA = CompileAndVerify(
-                            CreateCompilationWithMscorlib(moduleA, compOptions: TestOptions.Dll, assemblyName: "asm2"), 
-                            emitOptions: EmitOptions.RefEmitBug
-                        ).EmittedAssemblyData;
-            var asmA = folderA.CreateFile("asm2.dll");
-            asmA.WriteAllBytes(bitsA);
-            var refA = new MetadataFileReference(asmA.Path, MetadataImageKind.Assembly);
+            var bitsA = CreateCompilationWithMscorlib(moduleA, compOptions: TestOptions.Dll, assemblyName: "asm2").EmitToArray();
+            var refA = new MetadataImageReference(bitsA);
 
             string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
-            var bitsB = CompileAndVerify(
-                            CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.Exe, assemblyName: "test"), 
-                            emitOptions: EmitOptions.RefEmitBug
-                        ).EmittedAssemblyData;
-            var asmB = folderA.CreateFile("test.exe");
-            asmB.WriteAllBytes(bitsB);
+            var bitsB = CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.Exe, assemblyName: "test").EmitToArray();
 
+            string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
+            var bits0 = CreateCompilationWithMscorlib(module0, compOptions: TestOptions.NetModule, assemblyName: "asm0").EmitToArray();
+            var ref0 = new MetadataImageReference(ModuleMetadata.CreateFromImage(bits0));
+
+            string module1 = "using System;";
+            var bits1 = CreateCompilationWithMscorlib(module1, new[] { ref0 }, compOptions: TestOptions.Dll, assemblyName: "asm1").EmitToArray();
+            var ref1 = new MetadataImageReference(AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)));
+
+            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
+            var bits2 = CreateCompilationWithMscorlib(module2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "asm2").EmitToArray();
+
+            // runtime check:
+
+            var folder = Temp.CreateDirectory();
+            var folderA = folder.CreateDirectory("A");
+            var folderB = folder.CreateDirectory("B");
+
+            folderA.CreateFile("asm2.dll").WriteAllBytes(bitsA);
+            var asmB = folderA.CreateFile("test.exe").WriteAllBytes(bitsB);
             var result = RunAndGetOutput(asmB.Path);
             Assert.Equal("Original", result.Trim());
 
-            var folderB = folder.CreateDirectory("B");
-
-            string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
-            var bits0 = CompileAndVerify(
-                            CreateCompilationWithMscorlib(module0, compOptions: TestOptions.NetModule, assemblyName: "asm0"),
-                            emitOptions: EmitOptions.RefEmitBug,
-                            verify: false
-                        ).EmittedAssemblyData;
-            var asm0 = folderB.CreateFile("asm0.netmodule");
-            asm0.WriteAllBytes(bits0);
-
-            string module1 = "using System;";
-            var bits1 = CompileAndVerify(
-                            CreateCompilationWithMscorlib(
-                                module1,
-                                new[] { new MetadataFileReference(asm0.Path, MetadataImageKind.Module) },
-                                compOptions: TestOptions.Dll, assemblyName: "asm1"
-                            ),
-                            emitOptions: EmitOptions.RefEmitBug
-                        ).EmittedAssemblyData;
-            var asm1 = folderB.CreateFile("asm1.dll");
-            asm1.WriteAllBytes(bits1);
-            var ref1 = new MetadataFileReference(asm1.Path, MetadataImageKind.Assembly);
-
-            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
-            var bits2 = CompileAndVerify(
-                            CreateCompilationWithMscorlib(module2, new[] { ref1 }, compOptions: TestOptions.Dll, assemblyName: "asm2"),
-                            emitOptions: EmitOptions.RefEmitBug
-                        ).EmittedAssemblyData;
-            var asm2 = folderB.CreateFile("asm2.dll");
-            asm2.WriteAllBytes(bits2);
-
-            var asmB2 = folderB.CreateFile("test.exe");
-            asmB2.WriteAllBytes(bitsB);
+            folderB.CreateFile("asm0.netmodule").WriteAllBytes(bits0);
+            var asm1 = folderB.CreateFile("asm1.dll").WriteAllBytes(bits1);
+            var asm2 = folderB.CreateFile("asm2.dll").WriteAllBytes(bits2);
+            var asmB2 = folderB.CreateFile("test.exe").WriteAllBytes(bitsB);
 
             result = RunAndGetOutput(asmB2.Path);
             Assert.Equal("Substituted", result.Trim());

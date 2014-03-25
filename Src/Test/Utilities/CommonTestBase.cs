@@ -687,50 +687,6 @@ Example app.config:
             }
         }
 
-        internal IEnumerable<MetadataReference> CreateMetadataReferences(params object[] pathsOrBytesOrCompilations)
-        {
-            return CreateMetadataReferences((IEnumerable<object>)pathsOrBytesOrCompilations);
-        }
-
-        internal IEnumerable<MetadataReference> CreateMetadataReferences(IEnumerable<object> pathsOrBytesOrCompilations)
-        {
-            foreach (var item in pathsOrBytesOrCompilations)
-            {
-                string path;
-                byte[] bytes;
-                Compilation compilation;
-
-                // TODO (tomat): we should move tests off of using files and use byte[] from resources
-                if ((path = item as string) != null)
-                {
-                    if (string.Equals(Path.GetExtension(path), ".netmodule", StringComparison.OrdinalIgnoreCase))
-                    {
-                        yield return new MetadataFileReference(path, MetadataImageKind.Module);
-                    }
-                    else
-                    {
-                        yield return new MetadataFileReference(path, MetadataImageKind.Assembly);
-                    }
-                }
-                else if (item is ImmutableArray<byte>)
-                {
-                    yield return new MetadataImageReference((ImmutableArray<byte>)item);
-                }
-                else if ((bytes = item as byte[]) != null)
-                {
-                    yield return new MetadataImageReference(bytes.AsImmutableOrNull());
-                }
-                else if ((compilation = item as Compilation) != null)
-                {
-                    yield return compilation.ToMetadataReference();
-                }
-                else 
-                {
-                    throw new NotSupportedException("Expected string, byte[], ImmutableArray<byte> or Compilation.");
-                }
-            }
-        }
-
         protected CompilationReference CreateCompilationReference(Compilation compilation, string alias = null, bool embedInteropTypes = false)
         {
             return compilation.ToMetadataReference(alias, embedInteropTypes);

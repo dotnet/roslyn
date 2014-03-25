@@ -1,17 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
-Imports Roslyn.Test.Utilities
-Imports VBReferenceManager = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferenceManager
+Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
@@ -20,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub MissingCorLib()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.CorLibrary.NoMsCorLibRef.dll})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.CorLibrary.NoMsCorLibRef})
             Dim noMsCorLibRef = assemblies(0)
 
             For i As Integer = 1 To SpecialType.Count
@@ -56,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
                 lock.CleanCaches()
 
-                assemblies = MetadataTestHelpers.GetSymbolsForReferences({New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull())})
+                assemblies = MetadataTestHelpers.GetSymbolsForReferences({New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib)})
                 msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
                 Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 

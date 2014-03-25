@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public DisposableFile(string prefix = null, string extension = null, string directory = null)
-            : base(prefix, extension, directory)
+        public DisposableFile(string prefix = null, string extension = null, string directory = null, string callerSourcePath = null, int callerLineNumber = 0)
+            : base(prefix, extension, directory, callerSourcePath, callerLineNumber)
         {
         }
 

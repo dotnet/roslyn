@@ -477,17 +477,28 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Protected DefaultReferences As MetadataReference() = {
-        MscorlibRef,
-        SystemRef,
-        SystemCoreRef,
-        MsvbRef}
+    Dim _lazyDefaultReferences As MetadataReference()
+    Dim _lazyLatestReferences As MetadataReference()
 
-    Protected LatestReferences As MetadataReference() = {
-        MscorlibRef_v4_0_30316_17626,
-        SystemRef_v4_0_30319_17929,
-        SystemCoreRef_v4_0_30319_17929,
-        MsvbRef_v4_0_30319_17929}
+    Protected ReadOnly Property DefaultReferences As MetadataReference()
+        Get
+            If _lazyDefaultReferences Is Nothing Then
+                _lazyDefaultReferences = {MscorlibRef, SystemRef, SystemCoreRef, MsvbRef}
+            End If
+
+            Return _lazyDefaultReferences
+        End Get
+    End Property
+
+    Protected ReadOnly Property LatestReferences As MetadataReference()
+        Get
+            If _lazyLatestReferences Is Nothing Then
+                _lazyLatestReferences = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}
+            End If
+
+            Return _lazyLatestReferences
+        End Get
+    End Property
 
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),

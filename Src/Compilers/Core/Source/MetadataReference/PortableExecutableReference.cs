@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                     messageProvider.ERR_InvalidModuleMetadata;
 
                 result = default(T);
-                diagnostic = messageProvider.CreateDiagnostic(messageProvider.ERR_MetadataFileNotFound, location, e.FileName);
+                diagnostic = messageProvider.CreateDiagnostic(messageProvider.ERR_MetadataFileNotFound, location, e.FileName ?? string.Empty);
                 result = default(T);
                 return false;
             }

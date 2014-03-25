@@ -1973,7 +1973,7 @@ End Sub
 
         <Fact>
         Public Sub UnaryPlusExprWithoutMsCorlibRef()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CreateCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -1983,7 +1983,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, New String() {})
+</compilation>, {})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of UnaryExpressionSyntax)(compilation, "a.vb")
 

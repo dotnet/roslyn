@@ -132,6 +132,8 @@
     <Compile Include="SymbolsTests\ImplicitClassTests.vb" />
     <Compile Include="SymbolsTests\InaccessibleOverriding.vb" />
     <Compile Include="SymbolsTests\InstantiatingGenerics.vb" />
+    <Compile Include="SymbolsTests\MetadataCacheTests.vb" />
+    <Compile Include="SymbolsTests\MetadataFileReferenceCompilationTests.vb" />
     <Compile Include="SymbolsTests\Metadata\MetadataMemberTests.vb" />
     <Compile Include="SymbolsTests\Metadata\MetadataTypeTests.vb" />
     <Compile Include="SymbolsTests\Metadata\PE\BaseTypeResolution.vb" />
