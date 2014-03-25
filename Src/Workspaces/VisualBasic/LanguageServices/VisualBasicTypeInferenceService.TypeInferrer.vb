@@ -191,8 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' method then it will need one more argument in order for us to call it.
                         Dim symbols = info.GetBestOrAllSymbols()
                         If symbols.Any() Then
-                            Dim methods = symbols.OfType(Of IMethodSymbol)()
-                            Return InferTypeInArgument(argumentOpt, index, methods)
+                            Return InferTypeInArgument(argumentOpt, index, symbols)
                         Else
                             ' It may be an array access
                             Dim expressionType = _semanticModel.GetTypeInfo(invocation.Expression)
@@ -272,9 +271,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
-            Private Function InferTypeInArgument(argument As ArgumentSyntax, index As Integer, methods As IEnumerable(Of IMethodSymbol)) As IEnumerable(Of ITypeSymbol)
-                Dim parameters = methods.Select(Function(m) m.Parameters)
-                Return InferTypeInArgument(argument, index, parameters)
+            Private Function InferTypeInArgument(argument As ArgumentSyntax, index As Integer, symbols As IEnumerable(Of ISymbol)) As IEnumerable(Of ITypeSymbol)
+                Dim methods = symbols.OfType(Of IMethodSymbol)()
+                If methods.Any() Then
+                    Dim parameters = methods.Select(Function(m) m.Parameters)
+                    Return InferTypeInArgument(argument, index, parameters)
+                End If
+
+                Dim properties = symbols.OfType(Of IPropertySymbol)()
+                If properties.Any() Then
+                    Dim parameters = properties.Select(Function(p) p.Parameters)
+                    Return InferTypeInArgument(argument, index, parameters)
+                End If
+
             End Function
 
             Private Function InferTypeInArgument(
