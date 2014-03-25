@@ -12,7 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class SymbolMatcher
     {

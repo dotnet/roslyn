@@ -8,14 +8,14 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace Microsoft.CodeAnalysis.Emit
 {
-    internal class DeltaPeWriter : PeWriter
+    internal sealed class DeltaPeWriter : PeWriter
     {
         private readonly EmitBaseline previousGeneration;
         private readonly Guid encId;
@@ -162,7 +162,7 @@ namespace Microsoft.Cci
                 userStringStreamLengthAdded: (int)this.userStringWriter.BaseStream.Length + this.previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream is always aligned (the size if a multiple of 16 = sizeof(Guid))
                 guidStreamLengthAdded: (int)this.guidWriter.BaseStream.Length + this.previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap: moduleBuilder.GetAnonymousTypeMap(),
+                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
                 localsForMethodsAddedOrChanged: AddRange(locals, this.previousGeneration.LocalsForMethodsAddedOrChanged, replace: true),
                 localNames: baseline.LocalNames);
         }
@@ -418,7 +418,7 @@ namespace Microsoft.Cci
         protected override void CreateIndicesForModule()
         {
             base.CreateIndicesForModule();
-            var module = (CommonPEModuleBuilder)this.module;
+            var module = (IPEDeltaAssemblyBuilder)this.module;
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
 

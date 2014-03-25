@@ -1,15 +1,13 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using System.IO;
-using System.Security;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,13 +16,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference EntryPoint { get; }
-        internal virtual Microsoft.CodeAnalysis.Emit.EmitBaseline PreviousGeneration { get { return null; } }
-        internal virtual Microsoft.CodeAnalysis.Emit.DefinitionMap PreviousDefinitions { get { return null; } }
-        internal virtual Microsoft.CodeAnalysis.Emit.SymbolChanges Changes { get { return null; } }
         internal abstract bool SupportsPrivateImplClass { get; }
-        internal virtual void OnCreatedIndices(DiagnosticBag diagnostics) { }
         internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
-        internal abstract IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap();
         internal abstract Compilation CommonCompilation { get; }
     }
 

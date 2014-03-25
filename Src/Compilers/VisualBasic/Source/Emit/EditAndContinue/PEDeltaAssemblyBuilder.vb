@@ -3,16 +3,20 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Friend NotInheritable Class PEDeltaAssemblyBuilder
         Inherits PEAssemblyBuilderBase
+        Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly m_PreviousGeneration As Microsoft.CodeAnalysis.Emit.EmitBaseline
-        Private ReadOnly m_PreviousDefinitions As VisualBasicCompilation.DefinitionMap
-        Private ReadOnly m_Changes As Microsoft.CodeAnalysis.Emit.SymbolChanges
+        Private ReadOnly m_PreviousGeneration As EmitBaseline
+        Private ReadOnly m_PreviousDefinitions As DefinitionMap
+        Private ReadOnly m_Changes As SymbolChanges
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        outputName As String,
@@ -20,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
-                       previousGeneration As Microsoft.CodeAnalysis.Emit.EmitBaseline,
-                       edits As IEnumerable(Of Microsoft.CodeAnalysis.Emit.SemanticEdit))
+                       previousGeneration As EmitBaseline,
+                       edits As IEnumerable(Of SemanticEdit))
 
             MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper)
 
-            Dim context = New Microsoft.CodeAnalysis.Emit.Context(Me, Nothing, New DiagnosticBag())
+            Dim context = New Context(Me, Nothing, New DiagnosticBag())
             Dim [module] = previousGeneration.OriginalMetadata
             Dim compilation = sourceAssembly.DeclaringCompilation
             Dim metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create([module]), MetadataImportOptions.All)
@@ -38,19 +42,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim matchToPrevious As SymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New Microsoft.CodeAnalysis.Emit.Context(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
+                Dim previousContext = New Context(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
                 matchToPrevious = New SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
             End If
 
-            Me.m_PreviousDefinitions = New VisualBasicCompilation.DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits))
+            Me.m_PreviousDefinitions = New DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits))
             Me.m_PreviousGeneration = previousGeneration
-            Me.m_Changes = New Microsoft.CodeAnalysis.Emit.SymbolChanges(m_PreviousDefinitions, edits)
+            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits)
         End Sub
 
         Private Overloads Shared Function GetAnonymousTypeMap(
                                                    reader As MetadataReader,
-                                                   metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
-            Dim result = New Dictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+                                                   metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
@@ -65,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim index As Integer = 0
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
-                    Dim key = New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(GetAnonymousTypeKeyFields(type))
-                    Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(name, index, type)
+                    Dim key = New AnonymousTypeKey(GetAnonymousTypeKeyFields(type))
+                    Dim value = New AnonymousTypeValue(name, index, type)
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
-                    Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(name, index, type)
+                    Dim value = New AnonymousTypeValue(name, index, type)
                     result.Add(key, value)
                 End If
             Next
@@ -108,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray.Create(propertyNames)
         End Function
 
-        Private Shared Function GetAnonymousDelegateKey(type As NamedTypeSymbol) As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
+        Private Shared Function GetAnonymousDelegateKey(type As NamedTypeSymbol) As AnonymousTypeKey
             Debug.Assert(type.BaseTypeNoUseSiteDiagnostics.SpecialType = SpecialType.System_MulticastDelegate)
 
             ' The key is the set of parameter names to the Invoke method,
@@ -120,12 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim parameterNames = ArrayBuilder(Of String).GetInstance()
             parameterNames.AddRange(method.Parameters.SelectAsArray(Function(p) p.Name))
             parameterNames.Add(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub))
-            Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
+            Return New AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
         Private Shared Function EnsureInitialized(
-                                                 previousGeneration As Microsoft.CodeAnalysis.Emit.EmitBaseline,
-                                                 metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As Microsoft.CodeAnalysis.Emit.EmitBaseline
+                                                 previousGeneration As EmitBaseline,
+                                                 metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As EmitBaseline
             If previousGeneration.AnonymousTypeMap IsNot Nothing Then
                 Return previousGeneration
             End If
@@ -153,13 +157,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 localNames:=previousGeneration.LocalNames)
         End Function
 
-        Friend Overrides ReadOnly Property PreviousGeneration As Microsoft.CodeAnalysis.Emit.EmitBaseline
+        Friend ReadOnly Property PreviousGeneration As EmitBaseline
             Get
                 Return m_PreviousGeneration
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property PreviousDefinitions As Microsoft.CodeAnalysis.Emit.DefinitionMap
+        Friend ReadOnly Property PreviousDefinitions As DefinitionMap
             Get
                 Return m_PreviousDefinitions
             End Get
@@ -173,11 +177,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
+        Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
             Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
             Debug.Assert(m_PreviousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
             Return anonymousTypes
+        End Function
+
+        Friend Overrides Function CreateLocalSlotManager(method As MethodSymbol) As LocalSlotManager
+            Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
+            Dim getPreviousLocalSlot As GetPreviousLocalSlot = Nothing
+            If Not m_PreviousDefinitions.TryGetPreviousLocals(m_PreviousGeneration, method, previousLocals, getPreviousLocalSlot) Then
+                previousLocals = ImmutableArray(Of EncLocalInfo).Empty
+            End If
+            Debug.Assert(getPreviousLocalSlot IsNot Nothing)
+            Return New EncLocalSlotManager(previousLocals, getPreviousLocalSlot)
+        End Function
+
+        Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
+            Return ImmutableArray.CreateRange(m_PreviousGeneration.AnonymousTypeMap.Keys)
+        End Function
+
+        Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
+            Return m_PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
@@ -185,17 +207,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return m_PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Friend Overrides ReadOnly Property Changes As Microsoft.CodeAnalysis.Emit.SymbolChanges
+        Friend ReadOnly Property Changes As SymbolChanges
             Get
                 Return m_Changes
             End Get
         End Property
 
-        Friend Overrides Function GetTopLevelTypesCore(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+        Friend Overrides Function GetTopLevelTypesCore(context As Context) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             Return m_Changes.GetTopLevelTypes(context)
         End Function
 
-        Friend Overrides Sub OnCreatedIndices(diagnostics As DiagnosticBag)
+        Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices
             Dim embeddedTypesManager = Me.EmbeddedTypesManagerOpt
             If embeddedTypesManager IsNot Nothing Then
                 For Each embeddedType In embeddedTypesManager.EmbeddedTypesMap.Keys
@@ -204,13 +226,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Sub
 
-        Private Shared Function GenerateMethodMap(edits As IEnumerable(Of Microsoft.CodeAnalysis.Emit.SemanticEdit)) As IReadOnlyDictionary(Of MethodSymbol, VisualBasicCompilation.MethodDefinitionEntry)
-            Dim methodMap = New Dictionary(Of MethodSymbol, VisualBasicCompilation.MethodDefinitionEntry)
+        Private Shared Function GenerateMethodMap(edits As IEnumerable(Of SemanticEdit)) As IReadOnlyDictionary(Of MethodSymbol, MethodDefinitionEntry)
+            Dim methodMap = New Dictionary(Of MethodSymbol, MethodDefinitionEntry)
             For Each edit In edits
                 If edit.Kind = CodeAnalysis.Emit.SemanticEditKind.Update Then
                     Dim method = TryCast(edit.NewSymbol, MethodSymbol)
                     If method IsNot Nothing Then
-                        methodMap.Add(method, New VisualBasicCompilation.MethodDefinitionEntry(
+                        methodMap.Add(method, New MethodDefinitionEntry(
                                       DirectCast(edit.OldSymbol, MethodSymbol),
                                       edit.PreserveLocalVariables,
                                       edit.SyntaxMap))
@@ -219,7 +241,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
             Return methodMap
         End Function
-
     End Class
 
 End Namespace

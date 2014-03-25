@@ -164,25 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emitSequencePoints = !namespaceScopes.IsDefault && !method.IsAsync;
             var module = compilationState.ModuleBuilder;
             var compilation = module.Compilation;
-
-            LocalSlotManager localSlotManager;
-            var previousGeneration = module.PreviousGeneration;
-            if (previousGeneration == null)
-            {
-                localSlotManager = new FullLocalSlotManager();
-            }
-            else
-            {
-                var previousDefinitions = module.PreviousDefinitions;
-                ImmutableArray<Microsoft.CodeAnalysis.Emit.EncLocalInfo> previousLocals;
-                GetPreviousLocalSlot getPreviousLocalSlot;
-                if (!previousDefinitions.TryGetPreviousLocals(previousGeneration, method, out previousLocals, out getPreviousLocalSlot))
-                {
-                    previousLocals = ImmutableArray<Microsoft.CodeAnalysis.Emit.EncLocalInfo>.Empty;
-                }
-                Debug.Assert(getPreviousLocalSlot != null);
-                localSlotManager = new EncLocalSlotManager(previousLocals, getPreviousLocalSlot);
-            }
+            var localSlotManager = module.CreateLocalSlotManager(method);
 
             ILBuilder builder = new ILBuilder(module, localSlotManager, optimize);
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();

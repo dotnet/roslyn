@@ -2218,9 +2218,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return FunctionId.CSharp_Compilation_Emit; }
         }
 
-        internal override EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics, Microsoft.CodeAnalysis.Emit.EmitBaseline baseline = null)
+        internal override EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
         {
-            return new EmitResult(success, diagnostics.Cast<Diagnostic>().AsImmutable(), baseline);
+            return new EmitResult(success, diagnostics.Cast<Diagnostic>().AsImmutable());
         }
 
         /// <summary>
@@ -2335,9 +2335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnosticBag,
-            Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
+            DiagnosticBag diagnostics,
             ref bool hasDeclarationErrors)
         {
             return this.CreateModuleBuilder(
@@ -2348,9 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<NamedTypeSymbol>.Empty,
                 cancellationToken,
                 testData,
-                diagnosticBag,
-                previousGeneration,
-                edits,
+                diagnostics,
                 ref hasDeclarationErrors);
         }
 
@@ -2362,15 +2358,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamedTypeSymbol> additionalTypes,
             CancellationToken cancellationToken,
             CompilationTestData testData,
-            DiagnosticBag diagnosticBag,
-            Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
+            DiagnosticBag diagnostics,
             ref bool hasDeclarationErrors)
         {
             // The diagnostics should include syntax and declaration errors also. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
             if (!FilterAndAppendDiagnostics(
-                diagnosticBag,
+                diagnostics,
                 GetDiagnostics(CompilationStage.Declare, true, cancellationToken),
                 this.options))
             {
@@ -2384,20 +2378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            string runtimeMDVersion = GetRuntimeMetadataVersion();
-
+            string runtimeMDVersion = GetRuntimeMetadataVersion(diagnostics);
             if (runtimeMDVersion == null)
             {
-                DiagnosticBag runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
-
-                runtimeMDVersionDiagnostics.Add(ErrorCode.WRN_NoRuntimeMetadataVersion, NoLocation.Singleton);
-
-                if (!FilterAndAppendAndFreeDiagnostics(diagnosticBag, ref runtimeMDVersionDiagnostics))
-                {
-                    return null;
-                }
-
-                runtimeMDVersion = String.Empty;    //prevent emitter from crashing.
+                return null;
             }
 
             var moduleProps = ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);
@@ -2411,8 +2395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (options.OutputKind.IsNetModule())
             {
                 Debug.Assert(additionalTypes.IsEmpty);
-                Debug.Assert(previousGeneration == null);
-                Debug.Assert(edits == null);
 
                 moduleBeingBuilt = new PENetModuleBuilder(
                     (SourceModuleSymbol)SourceModule,
@@ -2423,30 +2405,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var kind = options.OutputKind.IsValid() ? options.OutputKind : OutputKind.DynamicallyLinkedLibrary;
-                if (previousGeneration == null)
-                {
-                    moduleBeingBuilt = new PEAssemblyBuilder(
-                        SourceAssembly,
-                        outputName,
-                        kind,
-                        moduleProps,
-                        manifestResources,
-                        assemblySymbolMapper,
-                        additionalTypes);
-                }
-                else
-                {
-                    moduleBeingBuilt = new PEDeltaAssemblyBuilder(
-                        SourceAssembly,
-                        outputName,
-                        kind,
-                        moduleProps,
-                        manifestResources,
-                        assemblySymbolMapper,
-                        additionalTypes,
-                        previousGeneration,
-                        edits);
-                }
+                moduleBeingBuilt = new PEAssemblyBuilder(
+                    SourceAssembly,
+                    outputName,
+                    kind,
+                    moduleProps,
+                    manifestResources,
+                    assemblySymbolMapper,
+                    additionalTypes);
             }
 
             // testData is only passed when running tests.
@@ -2468,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken,
             bool metadataOnly,
             bool generateDebugInfo,
-            DiagnosticBag diagnosticBag,
+            DiagnosticBag diagnostics,
             Predicate<ISymbol> filter,
             bool hasDeclarationErrors)
         {
@@ -2513,7 +2479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If there are clashes with debug documents that came from actual trees, ignore the pragma.
                     foreach (var tree in this.syntaxTrees)
                     {
-                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnosticBag);
+                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics);
                     }
                 }
 
@@ -2541,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddedModulesResourceNames(methodBodyDiagnosticBag),
                     methodBodyDiagnosticBag);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnosticBag, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
                 if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
                 {
@@ -2555,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, outputName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnosticBag, ref xmlDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))
             {
                 return false;
             }
@@ -2564,7 +2530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag importDiagnostics = DiagnosticBag.GetInstance();
             this.ReportUnusedImports(importDiagnostics, cancellationToken);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnosticBag, ref importDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref importDiagnostics))
             {
                 Debug.Assert(false, "Should never produce an error");
                 return false;
@@ -2599,102 +2565,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Microsoft.CodeAnalysis.Emit.EmitBaseline MapToCompilation(
-            CommonPEModuleBuilder moduleBeingBuilt)
+        internal override EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
+            ICollection<uint> updatedMethodTokens,
+            CompilationTestData testData,
+            CancellationToken cancellationToken)
         {
-            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            Debug.Assert(previousGeneration.Compilation != this);
-
-            if (previousGeneration.Ordinal == 0)
-            {
-                // Initial generation, nothing to map. (Since the initial generation
-                // is always loaded from metadata in the context of the current
-                // compilation, there's no separate mapping step.)
-                return previousGeneration;
-            }
-
-            var map = new SymbolMatcher(
-                moduleBeingBuilt.GetAnonymousTypeMap(),
-                ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
-                new Microsoft.CodeAnalysis.Emit.Context((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
-                this.SourceAssembly,
-                new Microsoft.CodeAnalysis.Emit.Context((Cci.IModule)moduleBeingBuilt, null, new DiagnosticBag()));
-
-            // Map all definitions to this compilation.
-            var typesAdded = MapDefinitions(map, previousGeneration.TypesAdded);
-            var eventsAdded = MapDefinitions(map, previousGeneration.EventsAdded);
-            var fieldsAdded = MapDefinitions(map, previousGeneration.FieldsAdded);
-            var methodsAdded = MapDefinitions(map, previousGeneration.MethodsAdded);
-            var propertiesAdded = MapDefinitions(map, previousGeneration.PropertiesAdded);
-
-            // Map anonymous types to this compilation.
-            var anonymousTypeMap = new Dictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue>();
-            foreach (var pair in previousGeneration.AnonymousTypeMap)
-            {
-                var key = pair.Key;
-                var value = pair.Value;
-                var type = (Cci.ITypeDefinition)map.MapDefinition(value.Type);
-                Debug.Assert(type != null);
-                anonymousTypeMap.Add(key, new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(value.Name, value.UniqueIndex, type));
-            }
-
-            // Map locals (specifically, local types) to this compilation.
-            var locals = new Dictionary<uint, ImmutableArray<Microsoft.CodeAnalysis.Emit.EncLocalInfo>>();
-            foreach (var pair in previousGeneration.LocalsForMethodsAddedOrChanged)
-            {
-                locals.Add(pair.Key, pair.Value.SelectAsArray((l, m) => MapLocalInfo(m, l), map));
-            }
-
-            return previousGeneration.With(
+            return EmitHelpers.EmitDifference(
                 this,
-                moduleBeingBuilt,
-                previousGeneration.Ordinal,
-                previousGeneration.EncId,
-                typesAdded,
-                eventsAdded,
-                fieldsAdded,
-                methodsAdded,
-                propertiesAdded,
-                previousGeneration.EventMapAdded,
-                previousGeneration.PropertyMapAdded,
-                previousGeneration.TableEntriesAdded,
-                blobStreamLengthAdded: previousGeneration.BlobStreamLengthAdded,
-                stringStreamLengthAdded: previousGeneration.StringStreamLengthAdded,
-                userStringStreamLengthAdded: previousGeneration.UserStringStreamLengthAdded,
-                guidStreamLengthAdded: previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap: anonymousTypeMap,
-                localsForMethodsAddedOrChanged: locals,
-                localNames: previousGeneration.LocalNames);
+                baseline,
+                edits,
+                metadataStream,
+                ilStream,
+                pdbStream,
+                updatedMethodTokens,
+                testData,
+                cancellationToken);
         }
 
-        private static IReadOnlyDictionary<K, V> MapDefinitions<K, V>(
-            SymbolMatcher map,
-            IReadOnlyDictionary<K, V> items)
-            where K : Cci.IDefinition
+        internal string GetRuntimeMetadataVersion(DiagnosticBag diagnostics)
         {
-            var result = new Dictionary<K, V>();
-            foreach (var pair in items)
+            string runtimeMDVersion = GetRuntimeMetadataVersion();
+            if (runtimeMDVersion != null)
             {
-                var key = (K)map.MapDefinition(pair.Key);
-                // Result may be null if the definition was deleted, or if the definition
-                // was synthesized (e.g.: an iterator type) and the method that generated
-                // the synthesized definition was unchanged and not recompiled.
-                if (key != null)
-                {
-                    result.Add(key, pair.Value);
-                }
+                return runtimeMDVersion;
             }
-            return result;
-        }
 
-        private static Microsoft.CodeAnalysis.Emit.EncLocalInfo MapLocalInfo(
-            SymbolMatcher map,
-            Microsoft.CodeAnalysis.Emit.EncLocalInfo localInfo)
-        {
-            Debug.Assert(!localInfo.IsDefault);
-            var type = map.MapReference(localInfo.Type);
-            Debug.Assert(type != null);
-            return new Microsoft.CodeAnalysis.Emit.EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind);
+            DiagnosticBag runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
+            runtimeMDVersionDiagnostics.Add(ErrorCode.WRN_NoRuntimeMetadataVersion, NoLocation.Singleton);
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics))
+            {
+                return null;
+            }
+
+            return string.Empty; //prevent emitter from crashing.
         }
 
         private string GetRuntimeMetadataVersion()
@@ -2712,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddDebugSourceDocumentsForChecksumDirectives(
             PEModuleBuilder moduleBeingBuilt, 
             SyntaxTree tree, 
-            DiagnosticBag diagnosticBag)
+            DiagnosticBag diagnostics)
         {
             var checksumDirectives = tree.GetRoot().GetDirectives(d => d.Kind == SyntaxKind.PragmaChecksumDirectiveTrivia && 
                                                                  !d.ContainsDiagnostics);
@@ -2751,7 +2659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // did not match to an existing document
                     // produce a warning and ignore the pragma
-                    diagnosticBag.Add(ErrorCode.WRN_ConflictingChecksum, new SourceLocation(checkSumDirective), path);
+                    diagnostics.Add(ErrorCode.WRN_ConflictingChecksum, new SourceLocation(checkSumDirective), path);
                 }
                 else
                 {

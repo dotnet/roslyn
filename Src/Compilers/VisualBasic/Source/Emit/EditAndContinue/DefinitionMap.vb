@@ -11,298 +11,295 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class VisualBasicCompilation
-        Friend Structure MethodDefinitionEntry
-            Public Sub New(previousMethod As MethodSymbol, preserveLocalVariables As Boolean, syntaxMap As Func(Of SyntaxNode, SyntaxNode))
-                Me.PreviousMethod = previousMethod
-                Me.PreserveLocalVariables = preserveLocalVariables
-                Me.SyntaxMap = syntaxMap
-            End Sub
+Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
+    Friend Structure MethodDefinitionEntry
+        Public Sub New(previousMethod As MethodSymbol, preserveLocalVariables As Boolean, syntaxMap As Func(Of SyntaxNode, SyntaxNode))
+            Me.PreviousMethod = previousMethod
+            Me.PreserveLocalVariables = preserveLocalVariables
+            Me.SyntaxMap = syntaxMap
+        End Sub
 
-            Public ReadOnly PreviousMethod As MethodSymbol
-            Public ReadOnly PreserveLocalVariables As Boolean
-            Public ReadOnly SyntaxMap As Func(Of SyntaxNode, SyntaxNode)
-        End Structure
+        Public ReadOnly PreviousMethod As MethodSymbol
+        Public ReadOnly PreserveLocalVariables As Boolean
+        Public ReadOnly SyntaxMap As Func(Of SyntaxNode, SyntaxNode)
+    End Structure
 
-        ''' <summary>
-        ''' Matches symbols from an assembly in one compilation to
-        ''' the corresponding assembly in another. Assumes that only
-        ''' one assembly has changed between the two compilations.
-        ''' </summary>
-        Friend NotInheritable Class DefinitionMap
-            Inherits Microsoft.CodeAnalysis.Emit.DefinitionMap
+    ''' <summary>
+    ''' Matches symbols from an assembly in one compilation to
+    ''' the corresponding assembly in another. Assumes that only
+    ''' one assembly has changed between the two compilations.
+    ''' </summary>
+    Friend NotInheritable Class DefinitionMap
+        Inherits Microsoft.CodeAnalysis.Emit.DefinitionMap
 
-            Private ReadOnly [module] As PEModule
-            Private ReadOnly metadataDecoder As MetadataDecoder
-            Private ReadOnly mapToMetadata As SymbolMatcher
-            Private ReadOnly mapToPrevious As SymbolMatcher
-            Private ReadOnly methodMap As IReadOnlyDictionary(Of MethodSymbol, MethodDefinitionEntry)
+        Private ReadOnly [module] As PEModule
+        Private ReadOnly metadataDecoder As MetadataDecoder
+        Private ReadOnly mapToMetadata As SymbolMatcher
+        Private ReadOnly mapToPrevious As SymbolMatcher
+        Private ReadOnly methodMap As IReadOnlyDictionary(Of MethodSymbol, MethodDefinitionEntry)
 
-            Public Sub New(
+        Public Sub New(
                 [module] As PEModule,
                  metadataDecoder As MetadataDecoder,
                  mapToMetadata As SymbolMatcher,
                  mapToPrevious As SymbolMatcher,
                  methodMap As IReadOnlyDictionary(Of MethodSymbol, MethodDefinitionEntry))
 
-                Debug.Assert([module] IsNot Nothing)
-                Debug.Assert(metadataDecoder IsNot Nothing)
-                Debug.Assert(mapToMetadata IsNot Nothing)
-                Debug.Assert(methodMap IsNot Nothing)
+            Debug.Assert([module] IsNot Nothing)
+            Debug.Assert(metadataDecoder IsNot Nothing)
+            Debug.Assert(mapToMetadata IsNot Nothing)
+            Debug.Assert(methodMap IsNot Nothing)
 
-                Me.module = [module]
-                Me.metadataDecoder = metadataDecoder
-                Me.mapToMetadata = mapToMetadata
-                Me.mapToPrevious = If(mapToPrevious, mapToMetadata)
-                Me.methodMap = methodMap
-            End Sub
+            Me.module = [module]
+            Me.metadataDecoder = metadataDecoder
+            Me.mapToMetadata = mapToMetadata
+            Me.mapToPrevious = If(mapToPrevious, mapToMetadata)
+            Me.methodMap = methodMap
+        End Sub
 
-            Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
-                Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
-            End Function
+        Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
+            Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
+        End Function
 
-            Friend Overrides Function TryGetTypeHandle(def As ITypeDefinition, ByRef handle As TypeHandle) As Boolean
-                Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
-                If other IsNot Nothing Then
-                    handle = other.Handle
-                    Return True
-                Else
-                    handle = Nothing
-                    Return False
-                End If
-            End Function
+        Friend Overrides Function TryGetTypeHandle(def As ITypeDefinition, ByRef handle As TypeHandle) As Boolean
+            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
+            If other IsNot Nothing Then
+                handle = other.Handle
+                Return True
+            Else
+                handle = Nothing
+                Return False
+            End If
+        End Function
 
-            Friend Overrides Function TryGetEventHandle(def As IEventDefinition, ByRef handle As EventHandle) As Boolean
-                Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEEventSymbol)
-                If other IsNot Nothing Then
-                    handle = other.Handle
-                    Return True
-                Else
-                    handle = Nothing
-                    Return False
-                End If
-            End Function
+        Friend Overrides Function TryGetEventHandle(def As IEventDefinition, ByRef handle As EventHandle) As Boolean
+            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEEventSymbol)
+            If other IsNot Nothing Then
+                handle = other.Handle
+                Return True
+            Else
+                handle = Nothing
+                Return False
+            End If
+        End Function
 
-            Friend Overrides Function TryGetFieldHandle(def As IFieldDefinition, ByRef handle As FieldHandle) As Boolean
-                Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEFieldSymbol)
-                If other IsNot Nothing Then
-                    handle = other.Handle
-                    Return True
-                Else
-                    handle = Nothing
-                    Return False
-                End If
-            End Function
+        Friend Overrides Function TryGetFieldHandle(def As IFieldDefinition, ByRef handle As FieldHandle) As Boolean
+            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEFieldSymbol)
+            If other IsNot Nothing Then
+                handle = other.Handle
+                Return True
+            Else
+                handle = Nothing
+                Return False
+            End If
+        End Function
 
-            Friend Overrides Function TryGetMethodHandle(def As IMethodDefinition, ByRef handle As MethodHandle) As Boolean
-                Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEMethodSymbol)
-                If other IsNot Nothing Then
-                    handle = other.Handle
-                    Return True
-                Else
-                    handle = Nothing
-                    Return False
-                End If
-            End Function
+        Friend Overrides Function TryGetMethodHandle(def As IMethodDefinition, ByRef handle As MethodHandle) As Boolean
+            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEMethodSymbol)
+            If other IsNot Nothing Then
+                handle = other.Handle
+                Return True
+            Else
+                handle = Nothing
+                Return False
+            End If
+        End Function
 
-            Friend Overrides Function TryGetPropertyHandle(def As IPropertyDefinition, ByRef handle As PropertyHandle) As Boolean
-                Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEPropertySymbol)
-                If other IsNot Nothing Then
-                    handle = other.Handle
-                    Return True
-                Else
-                    handle = Nothing
-                    Return False
-                End If
-            End Function
+        Friend Overrides Function TryGetPropertyHandle(def As IPropertyDefinition, ByRef handle As PropertyHandle) As Boolean
+            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEPropertySymbol)
+            If other IsNot Nothing Then
+                handle = other.Handle
+                Return True
+            Else
+                handle = Nothing
+                Return False
+            End If
+        End Function
 
-            Friend Overrides Function DefinitionExists(def As IDefinition) As Boolean
-                Dim previous = Me.mapToPrevious.MapDefinition(def)
-                Return previous IsNot Nothing
-            End Function
+        Friend Overrides Function DefinitionExists(def As IDefinition) As Boolean
+            Dim previous = Me.mapToPrevious.MapDefinition(def)
+            Return previous IsNot Nothing
+        End Function
 
-            Friend Overrides Function TryGetPreviousLocals(
+        Friend Overrides Function TryGetPreviousLocals(
                              baseline As EmitBaseline,
                              method As IMethodSymbol,
                              <Out()> ByRef previousLocals As ImmutableArray(Of EncLocalInfo),
                              <Out()> ByRef getPreviousLocalSlot As GetPreviousLocalSlot) As Boolean
 
-                previousLocals = Nothing
-                getPreviousLocalSlot = DefinitionMap.NoPreviousLocalSlot
+            previousLocals = Nothing
+            getPreviousLocalSlot = DefinitionMap.NoPreviousLocalSlot
 
-                Dim handle As MethodHandle = Nothing
-                If Not Me.TryGetMethodHandle(baseline, CType(method, IMethodDefinition), handle) Then
-                    ' Unrecognized method. Must have been added in the current compilation.
-                    Return False
-                End If
+            Dim handle As MethodHandle = Nothing
+            If Not Me.TryGetMethodHandle(baseline, CType(method, IMethodDefinition), handle) Then
+                ' Unrecognized method. Must have been added in the current compilation.
+                Return False
+            End If
 
-                Dim methodEntry As MethodDefinitionEntry = Nothing
-                If Not Me.methodMap.TryGetValue(DirectCast(method, MethodSymbol), methodEntry) Then
-                    ' Not part of changeset. No need to preserve locals.
-                    Return False
-                End If
+            Dim methodEntry As MethodDefinitionEntry = Nothing
+            If Not Me.methodMap.TryGetValue(DirectCast(method, MethodSymbol), methodEntry) Then
+                ' Not part of changeset. No need to preserve locals.
+                Return False
+            End If
 
-                If Not methodEntry.PreserveLocalVariables Then
-                    ' Not necessary to preserve locals.
-                    Return False
-                End If
+            If Not methodEntry.PreserveLocalVariables Then
+                ' Not necessary to preserve locals.
+                Return False
+            End If
 
-                Dim previousMethod As MethodSymbol = CType(methodEntry.PreviousMethod, MethodSymbol)
-                Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
-                Dim map As SymbolMatcher
+            Dim previousMethod As MethodSymbol = CType(methodEntry.PreviousMethod, MethodSymbol)
+            Dim methodIndex As UInteger = CUInt(MetadataTokens.GetRowNumber(handle))
+            Dim map As SymbolMatcher
 
-                ' Check if method has changed previously. If so, we already have a map.
-                If baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, previousLocals) Then
-                    map = Me.mapToPrevious
-                Else
-                    ' Method has not changed since initial generation. Generate a map
-                    ' using the local names provided with the initial metadata.
-                    Dim localNames As ImmutableArray(Of String) = baseline.LocalNames.Invoke(methodIndex)
-                    Debug.Assert(Not localNames.IsDefault)
+            ' Check if method has changed previously. If so, we already have a map.
+            If baseline.LocalsForMethodsAddedOrChanged.TryGetValue(methodIndex, previousLocals) Then
+                map = Me.mapToPrevious
+            Else
+                ' Method has not changed since initial generation. Generate a map
+                ' using the local names provided with the initial metadata.
+                Dim localNames As ImmutableArray(Of String) = baseline.LocalNames.Invoke(methodIndex)
+                Debug.Assert(Not localNames.IsDefault)
 
-                    Dim localInfo As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
-                    Try
-                        Debug.Assert(Me.module.HasIL)
-                        Dim methodIL As MethodBodyBlock = Me.module.GetMethodILOrThrow(handle)
-                        If Not methodIL.LocalSignature.IsNil Then
-                            Dim signature = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
-                            localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signature)
-                        Else
-                            localInfo = ImmutableArray(Of MetadataDecoder.LocalInfo).Empty
-                        End If
-                    Catch ex As UnsupportedSignatureContent
-                    Catch ex As BadImageFormatException
-                    End Try
-
-                    If localInfo.IsDefault Then
-                        ' TODO: Report error that metadata is not supported.
-                        Return False
+                Dim localInfo As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
+                Try
+                    Debug.Assert(Me.module.HasIL)
+                    Dim methodIL As MethodBodyBlock = Me.module.GetMethodILOrThrow(handle)
+                    If Not methodIL.LocalSignature.IsNil Then
+                        Dim signature = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
+                        localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signature)
+                    Else
+                        localInfo = ImmutableArray(Of MetadataDecoder.LocalInfo).Empty
                     End If
+                Catch ex As UnsupportedSignatureContent
+                Catch ex As BadImageFormatException
+                End Try
 
-                    ' The signature may have more locals than names if trailing locals are unnamed.
-                    ' (Locals in the middle of the signature may be unnamed too but since localNames
-                    ' Is indexed by slot, unnamed locals before the last named local will be represented
-                    ' as null values in the array.)
-                    Debug.Assert(localInfo.Length >= localNames.Length)
-                    previousLocals = GetLocalSlots(previousMethod, localNames, localInfo)
-                    Debug.Assert(previousLocals.Length = localInfo.Length)
-
-                    map = Me.mapToMetadata
+                If localInfo.IsDefault Then
+                    ' TODO: Report error that metadata is not supported.
+                    Return False
                 End If
 
-                ' Find declarators in previous method syntax.
-                ' The locals are indices into this list.
-                Dim previousDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(previousMethod)
+                ' The signature may have more locals than names if trailing locals are unnamed.
+                ' (Locals in the middle of the signature may be unnamed too but since localNames
+                ' Is indexed by slot, unnamed locals before the last named local will be represented
+                ' as null values in the array.)
+                Debug.Assert(localInfo.Length >= localNames.Length)
+                previousLocals = GetLocalSlots(previousMethod, localNames, localInfo)
+                Debug.Assert(previousLocals.Length = localInfo.Length)
 
-                ' Create a map from declarator to declarator offset.
-                Dim previousDeclaratorToOffset = New Dictionary(Of VisualBasicSyntaxNode, Integer)()
-                For offset As Integer = 0 To previousDeclarators.Length - 1
-                    previousDeclaratorToOffset.Add(previousDeclarators(offset), offset)
-                Next
+                map = Me.mapToMetadata
+            End If
 
-                ' Create a map from local info to slot.
-                Dim previousLocalInfoToSlot As Dictionary(Of EncLocalInfo, Integer) = New Dictionary(Of EncLocalInfo, Integer)()
-                For slot As Integer = 0 To previousLocals.Length - 1
-                    Dim localInfo As EncLocalInfo = previousLocals(slot)
-                    Debug.Assert(Not localInfo.IsDefault)
-                    If localInfo.IsInvalid Then
-                        ' Unrecognized or deleted local.
-                        Continue For
-                    End If
-                    previousLocalInfoToSlot.Add(localInfo, slot)
-                Next
+            ' Find declarators in previous method syntax.
+            ' The locals are indices into this list.
+            Dim previousDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(previousMethod)
 
-                Dim syntaxMap As Func(Of SyntaxNode, SyntaxNode) = methodEntry.SyntaxMap
-                If syntaxMap Is Nothing Then
-                    ' If there was no syntax map, the syntax structure has not changed,
-                    ' so we can map from current to previous syntax by declarator index.
-                    Debug.Assert(methodEntry.PreserveLocalVariables)
-                    ' Create a map from declarator to declarator index.
+            ' Create a map from declarator to declarator offset.
+            Dim previousDeclaratorToOffset = New Dictionary(Of VisualBasicSyntaxNode, Integer)()
+            For offset As Integer = 0 To previousDeclarators.Length - 1
+                previousDeclaratorToOffset.Add(previousDeclarators(offset), offset)
+            Next
 
-                    Dim currentDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(DirectCast(method, MethodSymbol))
-                    Dim currentDeclaratorToIndex = CreateDeclaratorToIndexMap(currentDeclarators)
-                    syntaxMap = Function(currentSyntax As SyntaxNode)
-                                    Dim currentIndex As Integer = currentDeclaratorToIndex(DirectCast(currentSyntax, VisualBasicSyntaxNode))
-                                    Return previousDeclarators(currentIndex)
-                                End Function
+            ' Create a map from local info to slot.
+            Dim previousLocalInfoToSlot As Dictionary(Of EncLocalInfo, Integer) = New Dictionary(Of EncLocalInfo, Integer)()
+            For slot As Integer = 0 To previousLocals.Length - 1
+                Dim localInfo As EncLocalInfo = previousLocals(slot)
+                Debug.Assert(Not localInfo.IsDefault)
+                If localInfo.IsInvalid Then
+                    ' Unrecognized or deleted local.
+                    Continue For
                 End If
+                previousLocalInfoToSlot.Add(localInfo, slot)
+            Next
 
-                getPreviousLocalSlot = Function(identity As Object, typeRef As ITypeReference, constraints As LocalSlotConstraints)
-                                           Dim local = DirectCast(identity, LocalSymbol)
-                                           Dim syntaxRefs = local.DeclaringSyntaxReferences
-                                           Debug.Assert(Not syntaxRefs.IsDefault)
+            Dim syntaxMap As Func(Of SyntaxNode, SyntaxNode) = methodEntry.SyntaxMap
+            If syntaxMap Is Nothing Then
+                ' If there was no syntax map, the syntax structure has not changed,
+                ' so we can map from current to previous syntax by declarator index.
+                Debug.Assert(methodEntry.PreserveLocalVariables)
+                ' Create a map from declarator to declarator index.
 
-                                           If Not syntaxRefs.IsDefaultOrEmpty Then
-                                               Dim currentSyntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
-                                               Dim previousSyntax = DirectCast(syntaxMap(currentSyntax), VisualBasicSyntaxNode)
+                Dim currentDeclarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(DirectCast(method, MethodSymbol))
+                Dim currentDeclaratorToIndex = CreateDeclaratorToIndexMap(currentDeclarators)
+                syntaxMap = Function(currentSyntax As SyntaxNode)
+                                Dim currentIndex As Integer = currentDeclaratorToIndex(DirectCast(currentSyntax, VisualBasicSyntaxNode))
+                                Return previousDeclarators(currentIndex)
+                            End Function
+            End If
 
-                                               Dim offset As Integer = Nothing
-                                               If previousSyntax IsNot Nothing AndAlso previousDeclaratorToOffset.TryGetValue(previousSyntax, offset) Then
-                                                   Dim previousType = map.MapReference(typeRef)
-                                                   If previousType IsNot Nothing Then
-                                                       Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.TempKind))
-                                                       Dim slot As Integer
-                                                       If previousLocalInfoToSlot.TryGetValue(localKey, slot) Then
-                                                           Return slot
-                                                       End If
+            getPreviousLocalSlot = Function(identity As Object, typeRef As ITypeReference, constraints As LocalSlotConstraints)
+                                       Dim local = DirectCast(identity, LocalSymbol)
+                                       Dim syntaxRefs = local.DeclaringSyntaxReferences
+                                       Debug.Assert(Not syntaxRefs.IsDefault)
+
+                                       If Not syntaxRefs.IsDefaultOrEmpty Then
+                                           Dim currentSyntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
+                                           Dim previousSyntax = DirectCast(syntaxMap(currentSyntax), VisualBasicSyntaxNode)
+
+                                           Dim offset As Integer = Nothing
+                                           If previousSyntax IsNot Nothing AndAlso previousDeclaratorToOffset.TryGetValue(previousSyntax, offset) Then
+                                               Dim previousType = map.MapReference(typeRef)
+                                               If previousType IsNot Nothing Then
+                                                   Dim localKey = New EncLocalInfo(offset, previousType, constraints, CInt(local.TempKind))
+                                                   Dim slot As Integer
+                                                   If previousLocalInfoToSlot.TryGetValue(localKey, slot) Then
+                                                       Return slot
                                                    End If
                                                End If
                                            End If
+                                       End If
 
-                                           Return -1
-                                       End Function
+                                       Return -1
+                                   End Function
+            Return True
+        End Function
+
+        Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As IMethodDefinition, <Out()> ByRef handle As MethodHandle) As Boolean
+            If Me.TryGetMethodHandle(def, handle) Then
                 Return True
-            End Function
+            End If
 
-            Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As IMethodDefinition, <Out()> ByRef handle As MethodHandle) As Boolean
-                If Me.TryGetMethodHandle(def, handle) Then
+            def = DirectCast(Me.mapToPrevious.MapDefinition(def), IMethodDefinition)
+            If def IsNot Nothing Then
+                Dim methodIndex As UInteger = 0
+                If baseline.MethodsAdded.TryGetValue(def, methodIndex) Then
+                    handle = MetadataTokens.MethodHandle(CInt(methodIndex))
                     Return True
                 End If
+            End If
 
-                def = DirectCast(Me.mapToPrevious.MapDefinition(def), IMethodDefinition)
-                If def IsNot Nothing Then
-                    Dim methodIndex As UInteger = 0
-                    If baseline.MethodsAdded.TryGetValue(def, methodIndex) Then
-                        handle = MetadataTokens.MethodHandle(CInt(methodIndex))
-                        Return True
-                    End If
+            handle = Nothing
+            Return False
+        End Function
+
+        Friend Overrides Function GetLocalInfo(methodDef As IMethodDefinition, localDefs As ImmutableArray(Of LocalDefinition)) As ImmutableArray(Of EncLocalInfo)
+            If localDefs.IsEmpty Then
+                Return ImmutableArray(Of EncLocalInfo).Empty
+            End If
+
+            ' Find declarators in current method syntax.
+            Dim declarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(DirectCast(methodDef, MethodSymbol))
+
+            ' Create a map from declarator to declarator index.
+            Dim declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer) = CreateDeclaratorToIndexMap(declarators)
+
+            Return localDefs.SelectAsArray(Function(localDef) GetLocalInfo(declaratorToIndex, localDef))
+        End Function
+
+        Private Overloads Shared Function GetLocalInfo(declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer), localDef As LocalDefinition) As EncLocalInfo
+            ' Local symbol will be null for short-lived temporaries.
+            Dim local = DirectCast(localDef.Identity, LocalSymbol)
+            If local IsNot Nothing Then
+                Dim syntaxRefs = local.DeclaringSyntaxReferences
+                Debug.Assert(Not syntaxRefs.IsDefault)
+
+                If Not syntaxRefs.IsDefaultOrEmpty Then
+                    Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
+                    Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, localDef.Constraints, CInt(local.TempKind))
                 End If
-
-                handle = Nothing
-                Return False
-            End Function
-
-            Friend Overrides Function GetLocalInfo(methodDef As IMethodDefinition, localDefs As ImmutableArray(Of LocalDefinition)) As ImmutableArray(Of EncLocalInfo)
-                If localDefs.IsEmpty Then
-                    Return ImmutableArray(Of EncLocalInfo).Empty
-                End If
-
-                ' Find declarators in current method syntax.
-                Dim declarators As ImmutableArray(Of VisualBasicSyntaxNode) = GetLocalVariableDeclaratorsVisitor.GetDeclarators(DirectCast(methodDef, MethodSymbol))
-
-                ' Create a map from declarator to declarator index.
-                Dim declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer) = CreateDeclaratorToIndexMap(declarators)
-
-                Return localDefs.SelectAsArray(Function(localDef) GetLocalInfo(declaratorToIndex, localDef))
-            End Function
-
-            Private Overloads Shared Function GetLocalInfo(declaratorToIndex As IReadOnlyDictionary(Of SyntaxNode, Integer), localDef As LocalDefinition) As EncLocalInfo
-                ' Local symbol will be null for short-lived temporaries.
-                Dim local = DirectCast(localDef.Identity, LocalSymbol)
-                If local IsNot Nothing Then
-                    Dim syntaxRefs = local.DeclaringSyntaxReferences
-                    Debug.Assert(Not syntaxRefs.IsDefault)
-
-                    If Not syntaxRefs.IsDefaultOrEmpty Then
-                        Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax()
-                        Return New EncLocalInfo(declaratorToIndex(syntax), localDef.Type, localDef.Constraints, CInt(local.TempKind))
-                    End If
-                End If
-                Return New EncLocalInfo(localDef.Type, localDef.Constraints)
-            End Function
-
-        End Class
+            End If
+            Return New EncLocalInfo(localDef.Type, localDef.Constraints)
+        End Function
 
         Private Shared Function CreateDeclaratorToIndexMap(declarators As ImmutableArray(Of VisualBasicSyntaxNode)) As IReadOnlyDictionary(Of SyntaxNode, Integer)
             Dim declaratorToIndex As Dictionary(Of SyntaxNode, Integer) = New Dictionary(Of SyntaxNode, Integer)()
@@ -355,61 +352,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(info.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None) Or
                 If(info.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
         End Function
-
-        Friend NotInheritable Class GetLocalVariableDeclaratorsVisitor
-            Inherits LocalVariableDeclaratorsVisitor
-
-            Private ReadOnly builder As ArrayBuilder(Of VisualBasicSyntaxNode)
-
-            Friend Shared Function GetDeclarators(method As MethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
-                Dim syntaxRefs = method.DeclaringSyntaxReferences
-                If syntaxRefs.Length = 0 Then
-                    Return ImmutableArray(Of VisualBasicSyntaxNode).Empty
-                End If
-                Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
-                Dim block = syntax.Parent
-                Debug.Assert(TypeOf block Is MethodBlockBaseSyntax)
-
-                Dim builder = ArrayBuilder(Of VisualBasicSyntaxNode).GetInstance()
-                Call New GetLocalVariableDeclaratorsVisitor(builder).Visit(block)
-                Return builder.ToImmutableAndFree()
-            End Function
-
-            Public Sub New(builder As ArrayBuilder(Of VisualBasicSyntaxNode))
-                Me.builder = builder
-            End Sub
-
-            Protected Overrides Sub VisitForEachStatementDeclarations(node As ForEachStatementSyntax)
-                Me.builder.Add(node)
-            End Sub
-
-            Protected Overrides Sub VisitForStatementDeclarations(node As ForStatementSyntax)
-                Me.builder.Add(node)
-            End Sub
-
-            Protected Overrides Sub VisitSyncLockStatementDeclarations(node As SyncLockStatementSyntax)
-                Me.builder.Add(node)
-            End Sub
-
-            Protected Overrides Sub VisitWithStatementDeclarations(node As WithStatementSyntax)
-                Me.builder.Add(node)
-            End Sub
-
-            Protected Overrides Sub VisitUsingStatementDeclarations(node As UsingStatementSyntax)
-                Me.builder.Add(node)
-            End Sub
-
-            Protected Overrides Sub VisitVariableDeclaratorDeclarations(node As VariableDeclaratorSyntax)
-                For Each name In node.Names
-                    Me.builder.Add(name)
-                Next
-            End Sub
-
-            Protected Overrides Sub VisitIdentifierNameDeclarations(node As IdentifierNameSyntax)
-                Debug.Assert(Not Me.builder.Contains(node))
-                Me.builder.Add(node)
-            End Sub
-        End Class
 
         Private NotInheritable Class GetLocalsVisitor
             Inherits LocalVariableDeclaratorsVisitor
@@ -685,6 +627,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
         End Class
+
+    End Class
+
+    Friend NotInheritable Class GetLocalVariableDeclaratorsVisitor
+        Inherits LocalVariableDeclaratorsVisitor
+
+        Private ReadOnly builder As ArrayBuilder(Of VisualBasicSyntaxNode)
+
+        Friend Shared Function GetDeclarators(method As MethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
+            Dim syntaxRefs = method.DeclaringSyntaxReferences
+            If syntaxRefs.Length = 0 Then
+                Return ImmutableArray(Of VisualBasicSyntaxNode).Empty
+            End If
+            Dim syntax As SyntaxNode = syntaxRefs(0).GetSyntax(Nothing)
+            Dim block = syntax.Parent
+            Debug.Assert(TypeOf block Is MethodBlockBaseSyntax)
+
+            Dim builder = ArrayBuilder(Of VisualBasicSyntaxNode).GetInstance()
+            Call New GetLocalVariableDeclaratorsVisitor(builder).Visit(block)
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Public Sub New(builder As ArrayBuilder(Of VisualBasicSyntaxNode))
+            Me.builder = builder
+        End Sub
+
+        Protected Overrides Sub VisitForEachStatementDeclarations(node As ForEachStatementSyntax)
+            Me.builder.Add(node)
+        End Sub
+
+        Protected Overrides Sub VisitForStatementDeclarations(node As ForStatementSyntax)
+            Me.builder.Add(node)
+        End Sub
+
+        Protected Overrides Sub VisitSyncLockStatementDeclarations(node As SyncLockStatementSyntax)
+            Me.builder.Add(node)
+        End Sub
+
+        Protected Overrides Sub VisitWithStatementDeclarations(node As WithStatementSyntax)
+            Me.builder.Add(node)
+        End Sub
+
+        Protected Overrides Sub VisitUsingStatementDeclarations(node As UsingStatementSyntax)
+            Me.builder.Add(node)
+        End Sub
+
+        Protected Overrides Sub VisitVariableDeclaratorDeclarations(node As VariableDeclaratorSyntax)
+            For Each name In node.Names
+                Me.builder.Add(name)
+            Next
+        End Sub
+
+        Protected Overrides Sub VisitIdentifierNameDeclarations(node As IdentifierNameSyntax)
+            Debug.Assert(Not Me.builder.Contains(node))
+            Me.builder.Add(node)
+        End Sub
     End Class
 
     Friend MustInherit Class LocalVariableDeclaratorsVisitor

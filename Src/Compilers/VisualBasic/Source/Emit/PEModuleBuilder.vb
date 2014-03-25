@@ -270,6 +270,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
+        Friend Overridable Function CreateLocalSlotManager(method As MethodSymbol) As LocalSlotManager
+            Return New FullLocalSlotManager()
+        End Function
+
+        Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey)
+            Return ImmutableArray(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey).Empty
+        End Function
+
+        Friend Overridable Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
+            Return 0
+        End Function
+
         Friend Overridable Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             name = Nothing
@@ -279,12 +291,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overrides Function GetAnonymousTypes() As IEnumerable(Of INamespaceTypeDefinition)
             Return SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates
-        End Function
-
-        Friend Overrides Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
-            ' Should only be called when emitting delta PE.
-            ' See PEDeltaAssemblyBuilder implementation.
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         Friend Overrides Iterator Function GetTopLevelTypesCore(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of INamespaceTypeDefinition)

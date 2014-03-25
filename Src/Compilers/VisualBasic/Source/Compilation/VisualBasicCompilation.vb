@@ -2044,8 +2044,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function MakeEmitResult(success As Boolean, diagnostics As ImmutableArray(Of Diagnostic), Optional baseline As Microsoft.CodeAnalysis.Emit.EmitBaseline = Nothing) As EmitResult
-            Return New EmitResult(success, diagnostics, baseline)
+        Friend Overrides Function MakeEmitResult(success As Boolean, diagnostics As ImmutableArray(Of Diagnostic)) As EmitResult
+            Return New EmitResult(success, diagnostics)
         End Function
 
         ''' <summary>
@@ -2185,8 +2185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken,
             testData As CompilationTestData,
             diagnosticBag As DiagnosticBag,
-            previousGeneration As Microsoft.CodeAnalysis.Emit.EmitBaseline,
-            edits As IEnumerable(Of Microsoft.CodeAnalysis.Emit.SemanticEdit),
             ByRef hasDeclarationErrors As Boolean) As CommonPEModuleBuilder
 
             Debug.Assert(diagnosticBag.IsEmptyWithoutResolution) ' True, but not required.
@@ -2207,8 +2205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
-            Dim corLibrary = TryCast(Assembly.CorLibrary, Symbols.Metadata.PE.PEAssemblySymbol)
-            Dim runtimeMetadataVersion As String = If(corLibrary Is Nothing, String.Empty, corLibrary.Assembly.ManifestModule.MetadataVersion)
+            Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
 
             Dim moduleSerializationProperties = ConstructModuleSerializationProperties(runtimeMetadataVersion, moduleVersionId)
             If manifestResources Is Nothing Then
@@ -2218,7 +2215,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' if there is no stream to write to, then there is no need for a module
             Dim moduleBeingBuilt As PEModuleBuilder
             If Options.OutputKind.IsNetModule() Then
-                Debug.Assert(previousGeneration Is Nothing)
                 moduleBeingBuilt = New PENetModuleBuilder(
                     DirectCast(Me.SourceModule, SourceModuleSymbol),
                     outputName,
@@ -2226,25 +2222,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     manifestResources)
             Else
                 Dim kind = If(Options.OutputKind.IsValid(), Options.OutputKind, OutputKind.DynamicallyLinkedLibrary)
-                If previousGeneration Is Nothing Then
-                    moduleBeingBuilt = New PEAssemblyBuilder(
+                moduleBeingBuilt = New PEAssemblyBuilder(
                         SourceAssembly,
                         outputName,
                         kind,
                         moduleSerializationProperties,
                         manifestResources,
                         assemblySymbolMapper)
-                Else
-                    moduleBeingBuilt = New PEDeltaAssemblyBuilder(
-                        SourceAssembly,
-                        outputName,
-                        kind,
-                        moduleSerializationProperties,
-                        manifestResources,
-                        assemblySymbolMapper,
-                        previousGeneration,
-                        edits)
-                End If
             End If
 
             If testData IsNot Nothing Then
@@ -2360,90 +2344,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Friend Overrides Function MapToCompilation(
-            moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
+        Friend Overrides Function EmitDifference(
+            baseline As EmitBaseline,
+            edits As IEnumerable(Of SemanticEdit),
+            metadataStream As Stream,
+            ilStream As Stream,
+            pdbStream As Stream,
+            updatedMethodTokens As ICollection(Of UInteger),
+            testData As CompilationTestData,
+            cancellationToken As CancellationToken) As EmitDifferenceResult
 
-            Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
-            Debug.Assert(previousGeneration.Compilation IsNot Me)
-
-            If previousGeneration.Ordinal = 0 Then
-                ' Initial generation, nothing to map. (Since the initial generation
-                ' Is always loaded from metadata in the context of the current
-                ' compilation, there's no separate mapping step.)
-                Return previousGeneration
-            End If
-
-            Dim map = New SymbolMatcher(
-                moduleBeingBuilt.GetAnonymousTypeMap(),
-                (DirectCast(previousGeneration.Compilation, VisualBasicCompilation)).SourceAssembly,
-                New Microsoft.CodeAnalysis.Emit.Context(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
-                Me.SourceAssembly,
-                New Microsoft.CodeAnalysis.Emit.Context(DirectCast(moduleBeingBuilt, Cci.IModule), Nothing, New DiagnosticBag()))
-
-            ' Map all definitions to this compilation.
-            Dim typesAdded = MapDefinitions(map, previousGeneration.TypesAdded)
-            Dim eventsAdded = MapDefinitions(map, previousGeneration.EventsAdded)
-            Dim fieldsAdded = MapDefinitions(map, previousGeneration.FieldsAdded)
-            Dim methodsAdded = MapDefinitions(map, previousGeneration.MethodsAdded)
-            Dim propertiesAdded = MapDefinitions(map, previousGeneration.PropertiesAdded)
-
-            ' Map anonymous types to this compilation.
-            Dim anonymousTypeMap As New Dictionary(Of Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue)
-            For Each pair In previousGeneration.AnonymousTypeMap
-                Dim key = pair.Key
-                Dim value = pair.Value
-                Dim type = DirectCast(map.MapDefinition(value.Type), Cci.ITypeDefinition)
-                Debug.Assert(type IsNot Nothing)
-                anonymousTypeMap.Add(key, New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(value.Name, value.UniqueIndex, type))
-            Next
-
-            ' Map locals (specifically, local types) to this compilation.
-            Dim locals As New Dictionary(Of UInt32, ImmutableArray(Of Microsoft.CodeAnalysis.Emit.EncLocalInfo))
-            For Each pair In previousGeneration.LocalsForMethodsAddedOrChanged
-                locals.Add(pair.Key, pair.Value.SelectAsArray(Function(l, m) MapLocalInfo(m, l), map))
-            Next
-
-            Return previousGeneration.With(
+            Return EmitHelpers.EmitDifference(
                 Me,
-                moduleBeingBuilt,
-                previousGeneration.Ordinal,
-                previousGeneration.EncId,
-                typesAdded,
-                eventsAdded,
-                fieldsAdded,
-                methodsAdded,
-                propertiesAdded,
-                previousGeneration.EventMapAdded,
-                previousGeneration.PropertyMapAdded,
-                previousGeneration.TableEntriesAdded,
-                blobStreamLengthAdded:=previousGeneration.BlobStreamLengthAdded,
-                stringStreamLengthAdded:=previousGeneration.StringStreamLengthAdded,
-                userStringStreamLengthAdded:=previousGeneration.UserStringStreamLengthAdded,
-                guidStreamLengthAdded:=previousGeneration.GuidStreamLengthAdded,
-                anonymousTypeMap:=anonymousTypeMap,
-                localsForMethodsAddedOrChanged:=locals,
-                localNames:=previousGeneration.LocalNames)
+                baseline,
+                edits,
+                metadataStream,
+                ilStream,
+                pdbStream,
+                updatedMethodTokens,
+                testData,
+                cancellationToken)
         End Function
 
-        Private Shared Function MapDefinitions(Of K As Cci.IDefinition, V)(map As SymbolMatcher, items As IReadOnlyDictionary(Of K, V)) As IReadOnlyDictionary(Of K, V)
-            Dim result As New Dictionary(Of K, V)
-            For Each pair In items
-                Dim key = DirectCast(map.MapDefinition(pair.Key), K)
-                ' Result may be null if the definition was deleted, or if the definition
-                ' was synthesized (e.g.: an iterator type) and the method that generated
-                ' the synthesized definition was unchanged and not recompiled.
-                If key IsNot Nothing Then
-                    result.Add(key, pair.Value)
-                End If
-            Next
-            Return result
-        End Function
-
-        Private Shared Function MapLocalInfo(map As SymbolMatcher, localInfo As Microsoft.CodeAnalysis.Emit.EncLocalInfo) As Microsoft.CodeAnalysis.Emit.EncLocalInfo
-            Debug.Assert(Not localInfo.IsDefault)
-            Dim type = map.MapReference(localInfo.Type)
-            Debug.Assert(type IsNot Nothing)
-            Return New Microsoft.CodeAnalysis.Emit.EncLocalInfo(localInfo.Offset, type, localInfo.Constraints, localInfo.TempKind)
+        Friend Function GetRuntimeMetadataVersion() As String
+            Dim corLibrary = TryCast(Assembly.CorLibrary, Symbols.Metadata.PE.PEAssemblySymbol)
+            Return If(corLibrary Is Nothing, String.Empty, corLibrary.Assembly.ManifestModule.MetadataVersion)
         End Function
 
         Private Shared Sub AddDebugSourceDocumentsForChecksumDirectives(

@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool IsDelaySign { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
         internal abstract FunctionId EmitFunctionId { get; }
-        internal abstract EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics, Microsoft.CodeAnalysis.Emit.EmitBaseline baseline = null);
+        internal abstract EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics);
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
@@ -1196,8 +1196,6 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
             ref bool hasDeclarationErrors);
 
         internal abstract bool Compile(
@@ -1236,8 +1234,6 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken,
                 testData,
                 diagnostics,
-                previousGeneration: null,
-                edits: null,
                 hasDeclarationErrors: ref hasDeclarationErrors);
 
             if (moduleBeingBuilt == null)
@@ -1263,16 +1259,6 @@ namespace Microsoft.CodeAnalysis
 
             return moduleBeingBuilt;
         }
-
-        /// <summary>
-        /// Return a version of the baseline with all definitions mapped to this compilation.
-        /// Definitions from the initial generation, from metadata, are not mapped since
-        /// the initial generation is always included as metadata. That is, the symbols from
-        /// types, methods, ... in the TypesAdded, MethodsAdded, ... collections are replaced
-        /// by the corresponding symbols from the current compilation.
-        /// </summary>
-        internal abstract Microsoft.CodeAnalysis.Emit.EmitBaseline MapToCompilation(
-            CommonPEModuleBuilder moduleBeingBuilt);
 
         /// <summary>
         /// Emit the IL for the compiled source code into the specified stream.
@@ -1408,7 +1394,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
-        public EmitResult EmitDifference(
+        public EmitDifferenceResult EmitDifference(
             Microsoft.CodeAnalysis.Emit.EmitBaseline baseline,
             IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
             Stream metadataStream,
@@ -1448,7 +1434,7 @@ namespace Microsoft.CodeAnalysis
             return this.EmitDifference(baseline, edits, metadataStream, ilStream, pdbStream, updatedMethodTokens, null, cancellationToken);
         }
 
-        internal EmitResult EmitDifference(
+        internal abstract EmitDifferenceResult EmitDifference(
             Microsoft.CodeAnalysis.Emit.EmitBaseline baseline,
             IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
             Stream metadataStream,
@@ -1456,89 +1442,7 @@ namespace Microsoft.CodeAnalysis
             Stream pdbStream,
             ICollection<uint> updatedMethodTokens,
             CompilationTestData testData,
-            CancellationToken cancellationToken)
-        {
-            Guid mvid;
-            try
-            {
-                mvid = baseline.OriginalMetadata.GetModuleVersionId();
-            }
-            catch (BadImageFormatException)
-            {
-                // TODO (tomat): report diagnostic
-                // return MakeEmitResult(success: false, diagnostics: ... , generation: writer.ToGeneration());
-                throw;
-            }
-
-            // TODO:
-            var pdbName = PathUtilities.ChangeExtension(this.SourceModule.Name, "pdb");
-
-            using (var pdbWriter = new Cci.PdbWriter(pdbName, new ComStreamWrapper(pdbStream)))
-            {
-                var diagnostics = DiagnosticBag.GetInstance();
-
-                // TODO: reuse code in SerializeToPeStream to report pdb diagnostics, etc.
-
-                bool hasDeclarationErrors = false;
-                CommonPEModuleBuilder moduleBeingBuilt = this.CreateModuleBuilder(
-                    outputName: null,
-                    moduleVersionId: mvid,
-                    manifestResources: null,
-                    assemblySymbolMapper: null,
-                    cancellationToken: cancellationToken,
-                    testData: testData,
-                    diagnostics: diagnostics,
-                    previousGeneration: baseline,
-                    edits: edits,
-                    hasDeclarationErrors: ref hasDeclarationErrors);
-
-                if (moduleBeingBuilt != null)
-                {
-                    var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-                    var changes = moduleBeingBuilt.Changes;
-                    if (this.Compile(
-                        moduleBeingBuilt,
-                        outputName: null,
-                        manifestResources: null,
-                        win32Resources: null,
-                        xmlDocStream: null,
-                        cancellationToken: cancellationToken,
-                        metadataOnly: false,
-                        generateDebugInfo: true,
-                        diagnostics: diagnostics,
-                        filter: changes.HasChanged,
-                        hasDeclarationErrors: hasDeclarationErrors))
-                    {
-                        var context = new Microsoft.CodeAnalysis.Emit.Context((Cci.IModule)moduleBeingBuilt, null, diagnostics);
-
-                        // Map the definitions from the previous compilation to the current compilation.
-                        // This must be done after compiling above since synthesized definitions
-                        // (generated when compiling method bodies) may be required.
-                        baseline = this.MapToCompilation(moduleBeingBuilt);
-
-                        var encId = Guid.NewGuid();
-                        var writer = new Cci.DeltaPeWriter(
-                            context,
-                            this.MessageProvider,
-                            pdbWriter,
-                            baseline,
-                            encId,
-                            definitionMap,
-                            changes,
-                            cancellationToken);
-                        writer.WriteMetadataAndIL(metadataStream, ilStream);
-                        writer.GetMethodTokens(updatedMethodTokens);
-
-                        return MakeEmitResult(
-                            success: true,
-                            diagnostics: diagnostics.ToReadOnlyAndFree(),
-                            baseline: writer.GetDelta(baseline, this, encId));
-                    }
-                }
-
-                return MakeEmitResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree());
-            }
-        }
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.

@@ -183,19 +183,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Sub AssignTemplatesNamesAndCompile(compiler As VisualBasicCompilation.MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As DiagnosticBag)
 
-            Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
-            If previousGeneration IsNot Nothing Then
-                ' Ensure all previous anonymous type templates are included so the
-                ' types are available for subsequent edit and continue generations.
-                For Each key In previousGeneration.AnonymousTypeMap.Keys
-                    Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) False)
-                    If key.IsDelegate Then
-                        AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
-                    Else
-                        AnonymousTypeTemplates.GetOrAdd(templateKey, Function(k) New AnonymousTypeTemplateSymbol(Me, CreatePlaceholderTypeDescriptor(key)))
-                    End If
-                Next
-            End If
+            ' Ensure all previous anonymous type templates are included so the
+            ' types are available for subsequent edit and continue generations.
+            For Each key In moduleBeingBuilt.GetPreviousAnonymousTypes()
+                Dim templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, Function(f) f, Function(f) False)
+                If key.IsDelegate Then
+                    AnonymousDelegateTemplates.GetOrAdd(templateKey, Function(k) AnonymousDelegateTemplateSymbol.Create(Me, CreatePlaceholderTypeDescriptor(key)))
+                Else
+                    AnonymousTypeTemplates.GetOrAdd(templateKey, Function(k) New AnonymousTypeTemplateSymbol(Me, CreatePlaceholderTypeDescriptor(key)))
+                End If
+            Next
 
             ' Get all anonymous types owned by this manager
             Dim builder = ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol).GetInstance()
@@ -225,8 +222,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     moduleId = String.Empty
                 End If
 
-                Dim typeIndex = If(previousGeneration Is Nothing, 0, previousGeneration.GetNextAnonymousTypeIndex(fromDelegates:=False))
-                Dim delegateIndex = If(previousGeneration Is Nothing, 0, previousGeneration.GetNextAnonymousTypeIndex(fromDelegates:=True))
+                Dim typeIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex(fromDelegates:=False)
+                Dim delegateIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex(fromDelegates:=True)
                 For Each template In builder
                     Dim name As String = Nothing
                     Dim index As Integer = 0

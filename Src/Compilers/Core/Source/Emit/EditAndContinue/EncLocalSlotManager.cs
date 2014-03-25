@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CodeGen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CodeGen
+namespace Microsoft.CodeAnalysis.Emit
 {
     internal delegate int GetPreviousLocalSlot(object identity, Microsoft.Cci.ITypeReference type, LocalSlotConstraints constraints);
 

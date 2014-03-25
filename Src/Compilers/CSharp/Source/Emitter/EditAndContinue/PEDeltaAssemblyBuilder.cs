@@ -1,20 +1,22 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase
+    internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
-        private readonly Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration;
-        private readonly CSharpCompilation.DefinitionMap previousDefinitions;
-        private readonly Microsoft.CodeAnalysis.Emit.SymbolChanges changes;
+        private readonly EmitBaseline previousGeneration;
+        private readonly DefinitionMap previousDefinitions;
+        private readonly SymbolChanges changes;
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
@@ -23,12 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            ImmutableArray<NamedTypeSymbol> additionalTypes,
-            Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits)
-            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
+            EmitBaseline previousGeneration,
+            IEnumerable<SemanticEdit> edits)
+            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
-            var context = new Microsoft.CodeAnalysis.Emit.Context(this, null, new DiagnosticBag());
+            var context = new Context(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;
             var compilation = sourceAssembly.DeclaringCompilation;
             var metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(module), MetadataImportOptions.All);
@@ -42,20 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (previousGeneration.Ordinal > 0)
             {
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-                var previousContext = new Microsoft.CodeAnalysis.Emit.Context((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
+                var previousContext = new Context((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
                 matchToPrevious = new SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
             }
 
-            this.previousDefinitions = new CSharpCompilation.DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits));
+            this.previousDefinitions = new DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits));
             this.previousGeneration = previousGeneration;
-            this.changes = new Microsoft.CodeAnalysis.Emit.SymbolChanges(this.previousDefinitions, edits);
+            this.changes = new SymbolChanges(this.previousDefinitions, edits);
         }
 
-        private static IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap(
+        private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap(
             MetadataReader reader,
             Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
         {
-            var result = new Dictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue>();
+            var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
             foreach (var handle in reader.TypeDefinitions)
             {
                 var def = reader.GetTypeDefinition(handle);
@@ -77,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     if (TryGetAnonymousTypeKey(reader, def, builder))
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
-                        var key = new Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(builder.ToImmutable());
-                        var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(name, index, type);
+                        var key = new AnonymousTypeKey(builder.ToImmutable());
+                        var value = new AnonymousTypeValue(name, index, type);
                         result.Add(key, value);
                     }
                     builder.Free();
@@ -105,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return true;
         }
 
-        private static Microsoft.CodeAnalysis.Emit.EmitBaseline EnsureInitialized(
-            Microsoft.CodeAnalysis.Emit.EmitBaseline previousGeneration,
+        private static EmitBaseline EnsureInitialized(
+            EmitBaseline previousGeneration,
             Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
         {
             if (previousGeneration.AnonymousTypeMap != null)
@@ -137,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 localNames: previousGeneration.LocalNames);
         }
 
-        internal override Microsoft.CodeAnalysis.Emit.EmitBaseline PreviousGeneration
+        internal EmitBaseline PreviousGeneration
         {
             get { return this.previousGeneration; }
         }
 
-        internal override Microsoft.CodeAnalysis.Emit.DefinitionMap PreviousDefinitions
+        internal DefinitionMap PreviousDefinitions
         {
             get { return this.previousDefinitions; }
         }
@@ -157,12 +158,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
+        public IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap()
         {
             var anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
             // Should contain all entries in previous generation.
             Debug.Assert(this.previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
             return anonymousTypes;
+        }
+
+        internal override LocalSlotManager CreateLocalSlotManager(MethodSymbol method)
+        {
+            ImmutableArray<EncLocalInfo> previousLocals;
+            GetPreviousLocalSlot getPreviousLocalSlot;
+            if (!this.previousDefinitions.TryGetPreviousLocals(this.previousGeneration, method, out previousLocals, out getPreviousLocalSlot))
+            {
+                previousLocals = ImmutableArray<EncLocalInfo>.Empty;
+            }
+            Debug.Assert(getPreviousLocalSlot != null);
+            return new EncLocalSlotManager(previousLocals, getPreviousLocalSlot);
+        }
+
+        internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
+        {
+            return ImmutableArray.CreateRange(this.previousGeneration.AnonymousTypeMap.Keys);
+        }
+
+        internal override int GetNextAnonymousTypeIndex()
+        {
+            return this.previousGeneration.GetNextAnonymousTypeIndex();
         }
 
         internal override bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
@@ -171,17 +194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return this.previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
         }
 
-        internal override Microsoft.CodeAnalysis.Emit.SymbolChanges Changes
+        internal SymbolChanges Changes
         {
             get { return this.changes; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(Microsoft.CodeAnalysis.Emit.Context context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(Context context)
         {
             return this.changes.GetTopLevelTypes(context);
         }
 
-        internal override void OnCreatedIndices(DiagnosticBag diagnostics)
+        public void OnCreatedIndices(DiagnosticBag diagnostics)
         {
             var embeddedTypesManager = this.EmbeddedTypesManagerOpt;
             if (embeddedTypesManager != null)
@@ -198,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return true; }
         }
 
-        private static IReadOnlyDictionary<MethodSymbol, CSharpCompilation.MethodDefinitionEntry> GenerateMethodMap(IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits)
+        private static IReadOnlyDictionary<MethodSymbol, MethodDefinitionEntry> GenerateMethodMap(IEnumerable<SemanticEdit> edits)
         {
-            var methodMap = new Dictionary<MethodSymbol, CSharpCompilation.MethodDefinitionEntry>();
+            var methodMap = new Dictionary<MethodSymbol, MethodDefinitionEntry>();
             foreach (var edit in edits)
             {
                 if (edit.Kind == CodeAnalysis.Emit.SemanticEditKind.Update)
@@ -208,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var method = edit.NewSymbol as MethodSymbol;
                     if ((object)method != null)
                     {
-                        methodMap.Add(method, new CSharpCompilation.MethodDefinitionEntry(
+                        methodMap.Add(method, new MethodDefinitionEntry(
                             (MethodSymbol)edit.OldSymbol,
                             edit.PreserveLocalVariables,
                             edit.SyntaxMap));

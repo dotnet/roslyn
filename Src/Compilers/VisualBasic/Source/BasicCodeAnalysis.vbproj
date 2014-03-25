@@ -344,11 +344,9 @@
     <Compile Include="Compilation\SemanticModel.vb" />
     <Compile Include="Compilation\SpeculativeSyntaxTreeSemanticModel.vb" />
     <Compile Include="Compilation\SymbolInfo.vb" />
-    <Compile Include="Compilation\SymbolMatcher.vb" />
     <Compile Include="Compilation\SyntaxTreeSemanticModel.vb" />
     <Compile Include="Compilation\TypeCompilationState.vb" />
     <Compile Include="Compilation\TypeInfo.vb" />
-    <Compile Include="Compilation\VisualBasicCompilation.DefinitionMap.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.MethodCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.SynthesizedMetadataCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.vb" />
@@ -375,6 +373,10 @@
     <Compile Include="Emit\AssemblyReference.vb" />
     <Compile Include="Emit\AttributeDataAdapter.vb" />
     <Compile Include="Emit\CustomModifierAdapter.vb" />
+    <Compile Include="Emit\EditAndContinue\DefinitionMap.vb" />
+    <Compile Include="Emit\EditAndContinue\EmitHelpers.vb" />
+    <Compile Include="Emit\EditAndContinue\PEDeltaAssemblyBuilder.vb" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcher.vb" />
     <Compile Include="Emit\EventSymbolAdapter.vb" />
     <Compile Include="Emit\FieldSymbolAdapter.vb" />
     <Compile Include="Emit\GenericMethodInstanceReference.vb" />
@@ -398,7 +400,6 @@
     <Compile Include="Emit\ParameterSymbolAdapter.vb" />
     <Compile Include="Emit\ParameterTypeInformation.vb" />
     <Compile Include="Emit\PEAssemblyBuilder.vb" />
-    <Compile Include="Emit\PEDeltaAssemblyBuilder.vb" />
     <Compile Include="Emit\PEModuleBuilder.vb" />
     <Compile Include="Emit\PENetModuleBuilder.vb" />
     <Compile Include="Emit\PropertySymbolAdapter.vb" />

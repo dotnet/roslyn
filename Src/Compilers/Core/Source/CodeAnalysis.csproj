@@ -53,7 +53,6 @@
     <Compile Include="CodeGen\CompilationTestData.cs" />
     <Compile Include="CodeGen\DebugDocumentProvider.cs" />
     <Compile Include="CodeGen\EmitState.cs" />
-    <Compile Include="CodeGen\EncLocalSlotManager.cs" />
     <Compile Include="CodeGen\ExternNamespace.cs" />
     <Compile Include="CodeGen\FullLocalSlotManager.cs" />
     <Compile Include="CodeGen\ILBuilder.cs" />
@@ -186,9 +185,14 @@
     <Compile Include="Emit\AnonymousTypeKey.cs" />
     <Compile Include="Emit\AnonymousTypeValue.cs" />
     <Compile Include="Emit\Context.cs" />
-    <Compile Include="Emit\DefinitionMap.cs" />
-    <Compile Include="Emit\EmitBaseline.cs" />
-    <Compile Include="Emit\EncLocalInfo.cs" />
+    <Compile Include="Emit\EditAndContinue\DefinitionMap.cs" />
+    <Compile Include="Emit\EditAndContinue\DeltaPeWriter.cs" />
+    <Compile Include="Emit\EditAndContinue\EmitBaseline.cs" />
+    <Compile Include="Emit\EditAndContinue\EmitDifferenceResult.cs" />
+    <Compile Include="Emit\EditAndContinue\EncLocalInfo.cs" />
+    <Compile Include="Emit\EditAndContinue\EncLocalSlotManager.cs" />
+    <Compile Include="Emit\EditAndContinue\IPEDeltaAssemblyBuilder.cs" />
+    <Compile Include="Emit\EditAndContinue\SymbolChanges.cs" />
     <Compile Include="Emit\ErrorType.cs" />
     <Compile Include="Emit\ModulePropertiesForSerialization.cs" />
     <Compile Include="Emit\NoPia\CommonEmbeddedEvent.cs" />
@@ -203,7 +207,6 @@
     <Compile Include="Emit\NoPia\VtblGap.cs" />
     <Compile Include="Emit\PEModuleBuilder.cs" />
     <Compile Include="Emit\SemanticEdit.cs" />
-    <Compile Include="Emit\SymbolChanges.cs" />
     <Compile Include="EnumConstantHelper.cs" />
     <Compile Include="Instrumentation\FunctionId.cs" />
     <Compile Include="Instrumentation\Logger.cs" />
@@ -349,7 +352,6 @@
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
-    <Compile Include="PEWriter\DeltaPeWriter.cs" />
     <Compile Include="PEWriter\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />

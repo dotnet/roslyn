@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -3644,7 +3645,7 @@ End Module
         End Function
 
         Private Shared Function GetAllLocals(method As MethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
-            Dim names = From name In VisualBasicCompilation.GetLocalVariableDeclaratorsVisitor.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
+            Dim names = From name In GetLocalVariableDeclaratorsVisitor.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
                         Select DirectCast(name, VisualBasicSyntaxNode)
 
             Return names.AsImmutableOrEmpty

@@ -1204,21 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       diagsForThisMethod As DiagnosticBag,
                                                       namespaceScopes As ImmutableArray(Of NamespaceScope)) As MethodBody
 
-                Dim previousGeneration = [module].PreviousGeneration
-                Dim localSlotManager As LocalSlotManager
-                If previousGeneration Is Nothing Then
-                    localSlotManager = New FullLocalSlotManager()
-                Else
-                    Dim previousDefinitions = [module].PreviousDefinitions
-                    Dim previousLocals As ImmutableArray(Of EncLocalInfo) = Nothing
-                    Dim getPreviousLocalSlot As GetPreviousLocalSlot = Nothing
-                    If Not previousDefinitions.TryGetPreviousLocals(previousGeneration, method, previousLocals, getPreviousLocalSlot) Then
-                        previousLocals = ImmutableArray(Of EncLocalInfo).Empty
-                    End If
-                    Debug.Assert(getPreviousLocalSlot IsNot Nothing)
-                    localSlotManager = New EncLocalSlotManager(previousLocals, getPreviousLocalSlot)
-                End If
-
+                Dim localSlotManager = [module].CreateLocalSlotManager(method)
                 Dim builder As ILBuilder = New ILBuilder([module], localSlotManager, optimize)
                 Dim emitSequencePoints = Not namespaceScopes.IsDefault
 

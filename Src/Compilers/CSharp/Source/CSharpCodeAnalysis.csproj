@@ -223,7 +223,6 @@
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
     <Compile Include="Compilation\BuiltInOperators.cs" />
     <Compile Include="Compilation\CSharpCompilation.cs" />
-    <Compile Include="Compilation\CSharpCompilation.DefinitionMap.cs" />
     <Compile Include="Compilation\CSharpCompilationReference.cs" />
     <Compile Include="Compilation\CSharpSemanticModel.cs" />
     <Compile Include="Compilation\ForEachStatementInfo.cs" />
@@ -237,7 +236,6 @@
     <Compile Include="Compilation\QueryClauseInfo.cs" />
     <Compile Include="Compilation\SpeculativeSyntaxTreeSemanticModel.cs" />
     <Compile Include="Compilation\SymbolInfoFactory.cs" />
-    <Compile Include="Compilation\SymbolMatcher.cs" />
     <Compile Include="Compilation\SyntaxTreeSemanticModel.cs" />
     <Compile Include="Compilation\SyntaxTreeSemanticModel_RegionAnalysisContext.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />
@@ -281,6 +279,10 @@
     <Compile Include="DocumentationComments\DocumentationCommentIDVisitor.PartVisitor.cs" />
     <Compile Include="DocumentationComments\PEDocumentationCommentUtils.cs" />
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.cs" />
+    <Compile Include="Emitter\EditAndContinue\DefinitionMap.cs" />
+    <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
+    <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
+    <Compile Include="Emitter\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\AssemblyReference.cs" />
     <Compile Include="Emitter\Model\AttributeDataAdapter.cs" />
@@ -304,7 +306,6 @@
     </Compile>
     <Compile Include="Emitter\Model\ParameterTypeInformation.cs" />
     <Compile Include="Emitter\Model\PEAssemblyBuilder.cs" />
-    <Compile Include="Emitter\Model\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\Model\PEModuleBuilder.cs" />
     <Compile Include="Emitter\Model\PENetModuleBuilder.cs" />
     <Compile Include="Emitter\Model\PointerTypeSymbolAdapter.cs" />

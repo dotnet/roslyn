@@ -297,6 +297,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
+        internal virtual LocalSlotManager CreateLocalSlotManager(MethodSymbol method)
+        {
+            return new FullLocalSlotManager();
+        }
+
+        internal virtual ImmutableArray<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey> GetPreviousAnonymousTypes()
+        {
+            return ImmutableArray<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey>.Empty;
+        }
+
+        internal virtual int GetNextAnonymousTypeIndex()
+        {
+            return 0;
+        }
+
         internal virtual bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
@@ -308,13 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
             return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
-        }
-
-        internal override IReadOnlyDictionary<CodeAnalysis.Emit.AnonymousTypeKey, CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
-        {
-            // Should only be called when emitting delta PE.
-            // See PEDeltaAssemblyBuilder implementation.
-            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

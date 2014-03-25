@@ -11,7 +11,7 @@ Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports System.Threading
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class SymbolMatcher
         Private Shared ReadOnly NameComparer As StringComparer = IdentifierComparison.Comparer
 

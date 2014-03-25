@@ -275,17 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public void AssignTemplatesNamesAndCompile(MethodBodyCompiler compiler, PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
         {
-            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-
-            if (previousGeneration != null)
+            // Ensure all previous anonymous type templates are included so the
+            // types are available for subsequent edit and continue generations.
+            foreach (var key in moduleBeingBuilt.GetPreviousAnonymousTypes())
             {
-                // Ensure all previous anonymous type templates are included so the
-                // types are available for subsequent edit and continue generations.
-                foreach (var key in previousGeneration.AnonymousTypeMap.Keys)
-                {
-                    var templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, f => f);
-                    this.AnonymousTypeTemplates.GetOrAdd(templateKey, k => this.CreatePlaceholderTemplate(key));
-                }
+                var templateKey = AnonymousTypeDescriptor.ComputeKey(key.Names, f => f);
+                this.AnonymousTypeTemplates.GetOrAdd(templateKey, k => this.CreatePlaceholderTemplate(key));
             }
 
             // Get all anonymous types owned by this manager
@@ -334,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     moduleId = string.Empty;
                 }
 
-                int nextIndex = (previousGeneration == null) ? 0 : previousGeneration.GetNextAnonymousTypeIndex();
+                int nextIndex = moduleBeingBuilt.GetNextAnonymousTypeIndex();
                 foreach (var template in builder)
                 {
                     string name;

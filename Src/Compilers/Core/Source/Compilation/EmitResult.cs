@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -14,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private readonly bool success;
         private readonly ImmutableArray<Diagnostic> diagnostics;
-        private readonly EmitBaseline baseline;
 
         /// <summary>
         /// True if the compilation successfully produced an executable.
@@ -35,21 +33,10 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return this.diagnostics; }
         }
 
-        /// <summary>
-        /// A representation of the compilation that can be used as a baseline
-        /// for emitting differences later in edit and continue. Only generated
-        /// when emitting differences from the previous generation.
-        /// </summary>
-        public EmitBaseline Baseline
-        {
-            get { return this.baseline; }
-        }
-
-        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics, EmitBaseline generation)
+        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
         {
             this.success = success;
             this.diagnostics = diagnostics;
-            this.baseline = generation;
         }
 
         protected virtual string GetDebuggerDisplay()
