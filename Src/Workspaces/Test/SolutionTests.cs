@@ -356,49 +356,55 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "foo", "foo.dll", LanguageNames.CSharp);
-            Assert.Empty(solution.Projects.Single().Analyzers);
+            Assert.Empty(solution.Projects.Single().AnalyzerReferences);
 
-            var analyzer = new MockDiagnosticAnalyzer();
+            IDiagnosticAnalyzer analyzer = new MockDiagnosticAnalyzer();
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
             
             // Test AddAnalyzer
-            var newSolution = solution.AddAnalyzer(project1, analyzer);
-            var actualAnalyzers = newSolution.Projects.Single().Analyzers;
-            Assert.Equal(1, actualAnalyzers.Count);
+            var newSolution = solution.AddAnalyzerReference(project1, analyzerReference);
+            var actualAnalyzerReferences = newSolution.Projects.Single().AnalyzerReferences;
+            Assert.Equal(1, actualAnalyzerReferences.Count);
+            Assert.Equal(analyzerReference, actualAnalyzerReferences[0]);
+            var actualAnalyzers = actualAnalyzerReferences[0].GetAnalyzers().ToImmutableArray();
+            Assert.Equal(1, actualAnalyzers.Length);
             Assert.Equal(analyzer, actualAnalyzers[0]);
             
             // Test ProjectChanges
             var changes = newSolution.GetChanges(solution).GetProjectChanges().Single();
-            var addedAnalyzer = changes.GetAddedAnalyzers().Single();
-            Assert.Equal(analyzer, addedAnalyzer);
-            var removedAnalyzers = changes.GetRemovedAnalyzers();
-            Assert.Empty(removedAnalyzers);
+            var addedAnalyzerReference = changes.GetAddedAnalyzerReferences().Single();
+            Assert.Equal(analyzerReference, addedAnalyzerReference);
+            var removedAnalyzerReferences = changes.GetRemovedAnalyzerReferences();
+            Assert.Empty(removedAnalyzerReferences);
             solution = newSolution;
 
             // Test RemoveAnalyzer
-            solution = solution.RemoveAnalyzer(project1, analyzer);
-            actualAnalyzers = solution.Projects.Single().Analyzers;
-            Assert.Empty(actualAnalyzers);
+            solution = solution.RemoveAnalyzerReference(project1, analyzerReference);
+            actualAnalyzerReferences = solution.Projects.Single().AnalyzerReferences;
+            Assert.Empty(actualAnalyzerReferences);
             
             // Test AddAnalyzers
-            var secondAnalyzer = new MockDiagnosticAnalyzer();
-            var analyzers = ImmutableArray.Create(analyzer, secondAnalyzer);
-            solution = solution.AddAnalyzers(project1, analyzers);
-            actualAnalyzers = solution.Projects.Single().Analyzers;
-            Assert.Equal(2, actualAnalyzers.Count);
-            Assert.Equal(analyzer, actualAnalyzers[0]);
-            Assert.Equal(secondAnalyzer, actualAnalyzers[1]);
+            analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+            IDiagnosticAnalyzer secondAnalyzer = new MockDiagnosticAnalyzer();
+            var secondAnalyzerReference = new AnalyzerImageReference(ImmutableArray.Create(secondAnalyzer));
+            var analyzerReferences = new[] { analyzerReference, secondAnalyzerReference };
+            solution = solution.AddAnalyzerReferences(project1, analyzerReferences);
+            actualAnalyzerReferences = solution.Projects.Single().AnalyzerReferences;
+            Assert.Equal(2, actualAnalyzerReferences.Count);
+            Assert.Equal(analyzerReference, actualAnalyzerReferences[0]);
+            Assert.Equal(secondAnalyzerReference, actualAnalyzerReferences[1]);
             
-            solution = solution.RemoveAnalyzer(project1, analyzer);
-            actualAnalyzers = solution.Projects.Single().Analyzers;
-            Assert.Equal(1, actualAnalyzers.Count);
-            Assert.Equal(secondAnalyzer, actualAnalyzers[0]);
+            solution = solution.RemoveAnalyzerReference(project1, analyzerReference);
+            actualAnalyzerReferences = solution.Projects.Single().AnalyzerReferences;
+            Assert.Equal(1, actualAnalyzerReferences.Count);
+            Assert.Equal(secondAnalyzerReference, actualAnalyzerReferences[0]);
 
             // Test WithAnalyzers
-            solution = solution.WithProjectAnalyzers(project1, analyzers);
-            actualAnalyzers = solution.Projects.Single().Analyzers;
-            Assert.Equal(2, actualAnalyzers.Count);
-            Assert.Equal(analyzer, actualAnalyzers[0]);
-            Assert.Equal(secondAnalyzer, actualAnalyzers[1]);
+            solution = solution.WithProjectAnalyzerReferences(project1, analyzerReferences);
+            actualAnalyzerReferences = solution.Projects.Single().AnalyzerReferences;
+            Assert.Equal(2, actualAnalyzerReferences.Count);
+            Assert.Equal(analyzerReference, actualAnalyzerReferences[0]);
+            Assert.Equal(secondAnalyzerReference, actualAnalyzerReferences[1]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

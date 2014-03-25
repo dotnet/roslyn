@@ -81,26 +81,26 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public IEnumerable<IDiagnosticAnalyzer> GetAddedAnalyzers()
+        public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
         {
-            var oldAnalyzers = new HashSet<IDiagnosticAnalyzer>(this.oldProject.Analyzers);
-            foreach (var analyzer in this.newProject.Analyzers)
+            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(this.oldProject.AnalyzerReferences);
+            foreach (var analyzerReference in this.newProject.AnalyzerReferences)
             {
-                if (!oldAnalyzers.Contains(analyzer))
+                if (!oldAnalyzerReferences.Contains(analyzerReference))
                 {
-                    yield return analyzer;
+                    yield return analyzerReference;
                 }
             }
         }
 
-        public IEnumerable<IDiagnosticAnalyzer> GetRemovedAnalyzers()
+        public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
         {
-            var newAnalyzers = new HashSet<IDiagnosticAnalyzer>(this.newProject.Analyzers);
-            foreach (var analyzer in this.oldProject.Analyzers)
+            var newAnalyzerReferences = new HashSet<AnalyzerReference>(this.newProject.AnalyzerReferences);
+            foreach (var analyzerReference in this.oldProject.AnalyzerReferences)
             {
-                if (!newAnalyzers.Contains(analyzer))
+                if (!newAnalyzerReferences.Contains(analyzerReference))
                 {
-                    yield return analyzer;
+                    yield return analyzerReference;
                 }
             }
         }

@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     ///     2) A list of weak references to instances of VB/CS AssemblySymbols based on the PEAssembly object.
     ///
     /// For modules - a map from file name and timestamp to a weak reference to the corresponding PEModule object
+    /// 
+    /// For analyzer assemblies - a map from file name and timestamp to a weak reference to the diagnostic analyzers defined in the assembly.
     /// </summary>
     internal static class MetadataCache
     {
@@ -38,6 +42,15 @@ namespace Microsoft.CodeAnalysis
             new Dictionary<FileKey, CachedModule>();
 
         private static List<FileKey> moduleKeys = new List<FileKey>();
+
+        /// <summary>
+        /// Global cache for diagnostic analyzers imported from analyzer assembly files.
+        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
+        /// </summary>
+        private static Dictionary<FileKey, CachedAnalyzers> analyzersFromFiles =
+            new Dictionary<FileKey, CachedAnalyzers>();
+
+        private static List<FileKey> analyzerAssemblyKeys = new List<FileKey>();
 
         /// <summary>
         /// Timer triggering compact operation for metadata cache.
@@ -102,6 +115,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal struct CachedAnalyzers
+        {
+            // Save a reference to the cached analyzers so that they don't get collected 
+            // if the metadata object gets collected.
+            public readonly WeakReference Analyzers;
+
+            public CachedAnalyzers(ImmutableArray<IDiagnosticAnalyzer> analyzers)
+            {
+                Debug.Assert(analyzers != null);
+
+                this.Analyzers = new WeakReference(analyzers);
+            }
+        }
+
         /// <summary>
         /// Lock that must be acquired for the duration of read/write operations on MetadataCache.
         /// 
@@ -155,13 +182,14 @@ namespace Microsoft.CodeAnalysis
 
                 CompactCacheOfAssemblies();
                 CompactCacheOfModules();
+                CompactCacheOfAnalyzers();
 
                 compactCollectionCount = currentCollectionCount;
 
                 DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
                 lock (Guard)
                 {
-                    if (!(AnyAssembliesCached() || AnyModulesCached()))
+                    if (!(AnyAssembliesCached() || AnyModulesCached() || AnyAnalyzerAssembliesCached()))
                     {
                         // Stop the timer
                         compactTimerIsOn = no;
@@ -369,6 +397,72 @@ namespace Microsoft.CodeAnalysis
             return moduleKeys.Count > 0;
         }
 
+        /// <summary>
+        /// Called by compactTimer.
+        /// </summary>
+        private static void CompactCacheOfAnalyzers()
+        {
+            DebuggerUtilities.CallBeforeAcquiringLock(); //see method comment
+
+            // Do one pass through the analyzerAssemblyKeys list    
+            int originalCount = -1;
+
+            for (int current = 0; ; current++)
+            {
+                // Compact analyzer assemblies, one assembly per lock
+
+                // Lock our cache
+                lock (Guard)
+                {
+                    if (originalCount == -1)
+                    {
+                        originalCount = analyzerAssemblyKeys.Count;
+                    }
+
+                    if (analyzerAssemblyKeys.Count > current)
+                    {
+                        CachedAnalyzers cahedAnalyzers;
+                        FileKey key = analyzerAssemblyKeys[current];
+
+                        if (analyzersFromFiles.TryGetValue(key, out cahedAnalyzers))
+                        {
+                            if (!cahedAnalyzers.Analyzers.IsAlive)
+                            {
+                                // Analyzers has been collected
+                                analyzersFromFiles.Remove(key);
+                                analyzerAssemblyKeys.RemoveAt(current);
+                                current--;
+                            }
+                        }
+                        else
+                        {
+                            // Key is not found. Shouldn't ever get here!
+                            System.Diagnostics.Debug.Assert(false);
+                            analyzerAssemblyKeys.RemoveAt(current);
+                            current--;
+                        }
+                    }
+
+                    if (analyzerAssemblyKeys.Count <= current + 1)
+                    {
+                        // no more assemblies to process
+                        if (originalCount > analyzerAssemblyKeys.Count)
+                        {
+                            analyzerAssemblyKeys.TrimExcess();
+                        }
+
+                        return;
+                    }
+                }
+
+                Thread.Yield();
+            }
+        }
+
+        private static bool AnyAnalyzerAssembliesCached()
+        {
+            return analyzerAssemblyKeys.Count > 0;
+        }
 
         /// <summary>
         /// Global cache for assemblies imported from files.
@@ -419,6 +513,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Global cache for analyzers imported from files.
+        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
+        /// Internal accessibility is for test purpose only.
+        /// </summary>
+        internal static Dictionary<FileKey, CachedAnalyzers> AnalyzersFromFiles
+        {
+            get
+            {
+                return analyzersFromFiles;
+            }
+        }
+
+        /// <summary>
+        /// For test purposes only.
+        /// </summary>
+        internal static List<FileKey> AnalyzerAssemblyKeys
+        {
+            get
+            {
+                return analyzerAssemblyKeys;
+            }
+        }
+
         // for testing
         internal static CleaningCacheLock LockAndClean()
         {
@@ -437,6 +555,9 @@ namespace Microsoft.CodeAnalysis
             private List<FileKey> saveAssemblyKeys;
             private Dictionary<FileKey, CachedModule> saveModulesFromFiles;
             private List<FileKey> saveModuleKeys;
+            private Dictionary<FileKey, CachedAnalyzers> saveAnalyzersFromFiles;
+            private List<FileKey> saveAnalyzerAssemblyKeys;
+
             private bool cacheIsLocked;
 
             // helpers to diagnose lock leaks.
@@ -460,16 +581,22 @@ namespace Microsoft.CodeAnalysis
                     result.saveAssemblyKeys = assemblyKeys;
                     result.saveModulesFromFiles = modulesFromFiles;
                     result.saveModuleKeys = moduleKeys;
+                    result.saveAnalyzersFromFiles = analyzersFromFiles;
+                    result.saveAnalyzerAssemblyKeys = analyzerAssemblyKeys;
 
                     var newAssembliesFromFiles = new Dictionary<FileKey, CachedAssembly>();
                     var newAssemblyKeys = new List<FileKey>();
                     var newModulesFromFiles = new Dictionary<FileKey, CachedModule>();
                     var newModuleKeys = new List<FileKey>();
+                    var newAnalyzersFromFiles = new Dictionary<FileKey, CachedAnalyzers>();
+                    var newAnalyzerAssemblyKeys = new List<FileKey>();
 
                     assembliesFromFiles = newAssembliesFromFiles;
                     assemblyKeys = newAssemblyKeys;
                     modulesFromFiles = newModulesFromFiles;
                     moduleKeys = newModuleKeys;
+                    analyzersFromFiles = newAnalyzersFromFiles;
+                    analyzerAssemblyKeys = newAnalyzerAssemblyKeys;
 
                     result.threadId = Thread.CurrentThread.ManagedThreadId;
                     result.stackTrace = Environment.StackTrace;
@@ -515,6 +642,8 @@ namespace Microsoft.CodeAnalysis
                 assemblyKeys.Clear();
                 modulesFromFiles.Clear();
                 moduleKeys.Clear();
+                analyzersFromFiles.Clear();
+                analyzerAssemblyKeys.Clear();
             }
 
             public void Dispose()
@@ -525,6 +654,8 @@ namespace Microsoft.CodeAnalysis
                     assemblyKeys = this.saveAssemblyKeys;
                     modulesFromFiles = this.saveModulesFromFiles;
                     moduleKeys = this.saveModuleKeys;
+                    analyzersFromFiles = this.saveAnalyzersFromFiles;
+                    analyzerAssemblyKeys = this.saveAnalyzerAssemblyKeys;
 
                     System.Diagnostics.Debug.Assert(ReferenceEquals(last, this));
                     System.Diagnostics.Debug.Assert(this.threadId == Thread.CurrentThread.ManagedThreadId);
@@ -551,6 +682,38 @@ namespace Microsoft.CodeAnalysis
                 {
                     return GetOrCreateModuleFromFile(fullPath);
                 }
+            }
+        }
+
+        internal static ImmutableArray<IDiagnosticAnalyzer> GetOrCreateAnalyzersFromFile(AnalyzerFileReference analyzerReference)
+        {
+            string fullPath = analyzerReference.FullPath;
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
+            lock (Guard)
+            {
+                // may throw:
+                FileKey key = FileKey.Create(fullPath);
+
+                CachedAnalyzers cachedAnalyzers;
+                if (analyzersFromFiles.TryGetValue(key, out cachedAnalyzers) && cachedAnalyzers.Analyzers.IsAlive)
+                {
+                    return (ImmutableArray<IDiagnosticAnalyzer>)cachedAnalyzers.Analyzers.Target;
+                }
+
+                // get all analyzers in the assembly:
+                var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+                analyzerReference.AddAnalyzers(builder, null, null);
+                var analyzers = builder.ToImmutable();
+
+                // refresh the timestamp (the file may have changed just before we memory-mapped it):
+                key = FileKey.Create(fullPath);
+
+                analyzersFromFiles[key] = new CachedAnalyzers(analyzers);
+                analyzerAssemblyKeys.Add(key);
+                EnableCompactTimer();
+
+                return analyzers;
             }
         }
 

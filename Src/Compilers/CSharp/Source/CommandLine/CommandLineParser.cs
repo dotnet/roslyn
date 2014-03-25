@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Encoding codepage = null;
                 var defines = ArrayBuilder<string>.GetInstance();
                 List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
-                List<DiagnosticAnalyzerAssembly> analyzers = new List<DiagnosticAnalyzerAssembly>();
+                List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
                 List<string> libPaths = new List<string>();
                 List<string> keyFileSearchPaths = new List<string>();
                 List<string> usings = new List<string>();
@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<DiagnosticAnalyzerAssembly> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
+        private IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (string path in paths)
             {
-                yield return new DiagnosticAnalyzerAssembly(path);
+                yield return new CommandLineAnalyzerReference(path);
             }
         }
 

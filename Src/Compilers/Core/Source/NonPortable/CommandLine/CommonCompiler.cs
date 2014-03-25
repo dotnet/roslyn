@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<string> absoluteReferencePaths = MakeAbsolute(Arguments.ReferencePaths, baseDirectory);
             var referenceResolver = new MetadataFileReferenceResolver(absoluteReferencePaths, baseDirectory, touchedFiles);
 
-            return DiagnosticAnalyzerAssembly.ResolveAnalyzerAssemblies(Arguments.Analyzers, referenceResolver, diagnostics, MessageProvider);
+            return CommandLineAnalyzerReference.ResolveAndGetAnalyzers(Arguments.Analyzers, referenceResolver, diagnostics, MessageProvider);
         }
 
         /// <summary>

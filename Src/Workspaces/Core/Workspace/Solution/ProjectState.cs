@@ -234,9 +234,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableList<IDiagnosticAnalyzer> Analyzers
+        public ImmutableList<AnalyzerReference> AnalyzerReferences
         {
-            get { return (ImmutableList<IDiagnosticAnalyzer>)this.ProjectInfo.Analyzers; }
+            get { return (ImmutableList<AnalyzerReference>)this.ProjectInfo.AnalyzerReferences; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -425,39 +425,39 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState AddAnalyzer(IDiagnosticAnalyzer analyzer)
+        public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            Contract.Requires(!this.Analyzers.Contains(analyzer));
+            Contract.Requires(!this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzers(this.Analyzers.Add(analyzer)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState RemoveAnalyzer(IDiagnosticAnalyzer analyzer)
+        public ProjectState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            Contract.Requires(this.Analyzers.Contains(analyzer));
+            Contract.Requires(this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzers(this.Analyzers.Remove(analyzer)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.Remove(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState AddAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public ProjectState AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            var newAnalyzers = this.Analyzers;
-            foreach (var analyzer in analyzers)
+            var newAnalyzerReferences = this.AnalyzerReferences;
+            foreach (var analyzerReference in analyzerReferences)
             {
-                Contract.Requires(!newAnalyzers.Contains(analyzer));
-                newAnalyzers = newAnalyzers.Add(analyzer);
+                Contract.Requires(!newAnalyzerReferences.Contains(analyzerReference));
+                newAnalyzerReferences = newAnalyzerReferences.Add(analyzerReference);
             }
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzers(newAnalyzers).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(newAnalyzerReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState WithAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzers(analyzers.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddDocument(DocumentState document)

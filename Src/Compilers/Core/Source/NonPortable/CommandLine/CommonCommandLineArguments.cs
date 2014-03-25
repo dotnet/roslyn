@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// References to analyzers supplied on the command line.
         /// </summary>
-        public ImmutableArray<DiagnosticAnalyzerAssembly> Analyzers { get; internal set; }
+        public ImmutableArray<CommandLineAnalyzerReference> Analyzers { get; internal set; }
 
         /// <summary>
         /// If true, prepend the command line header logo during 

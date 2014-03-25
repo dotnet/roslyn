@@ -539,34 +539,34 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when a diagnostic analyzer is added to a project in the host environment.
+        /// Call this method when an analyzer reference is added to a project in the host environment.
         /// </summary>
-        protected internal void OnAnalyzerAdded(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             using (this.serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
-                CheckProjectDoesNotHaveAnalyzer(projectId, analyzer);
+                CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
 
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzer(projectId, analyzer));
+                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerReference(projectId, analyzerReference));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
 
         /// <summary>
-        /// Call this method when a diagnostic analyzer is removed from a project in the host environment.
+        /// Call this method when an analyzer reference is removed from a project in the host environment.
         /// </summary>
-        protected internal void OnAnalyzerRemoved(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             using (this.serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
-                CheckProjectHasAnalyzer(projectId, analyzer);
+                CheckProjectHasAnalyzerReference(projectId, analyzerReference);
 
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzer(projectId, analyzer));
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerReference(projectId, analyzerReference));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
@@ -799,16 +799,16 @@ namespace Microsoft.CodeAnalysis
                 this.AddMetadataReference(projectChanges.ProjectId, metadata);
             }
 
-            // removed analyzers
-            foreach (var analyzer in projectChanges.GetRemovedAnalyzers())
+            // removed analyzer references
+            foreach (var analyzerReference in projectChanges.GetRemovedAnalyzerReferences())
             {
-                this.RemoveAnalyzer(projectChanges.ProjectId, analyzer);
+                this.RemoveAnalyzerReference(projectChanges.ProjectId, analyzerReference);
             }
 
-            // added analyzers
-            foreach (var analyzer in projectChanges.GetAddedAnalyzers())
+            // added analyzer references
+            foreach (var analyzerReference in projectChanges.GetAddedAnalyzerReferences())
             {
-                this.AddAnalyzer(projectChanges.ProjectId, analyzer);
+                this.AddAnalyzerReference(projectChanges.ProjectId, analyzerReference);
             }
 
             // removed documents
@@ -906,21 +906,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to add a diagnostic analyzer to a project.
+        /// This method is called during ApplyChanges to add an analyzer reference to a project.
         /// 
-        /// Override this method to implement the capability of adding diagnostic analyzers.
+        /// Override this method to implement the capability of adding analyzer references.
         /// </summary>
-        protected virtual void AddAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected virtual void AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             throw new NotSupportedException();
         }
 
         /// <summary>
-        /// This method is called during ApplyChanges to remove a diagnostic analyzer from a project.
+        /// This method is called during ApplyChanges to remove an analyzer reference from a project.
         /// 
-        /// Override this method to implement the capability of removing diagnostic analyzers.
+        /// Override this method to implement the capability of removing analyzer references.
         /// </summary>
-        protected virtual void RemoveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected virtual void RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             throw new NotSupportedException();
         }
@@ -1068,24 +1068,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Throws an exception if a project does not have a specific diagnostic analyzer.
+        /// Throws an exception if a project does not have a specific analyzer reference.
         /// </summary>
-        protected void CheckProjectHasAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected void CheckProjectHasAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (!this.CurrentSolution.GetProject(projectId).Analyzers.Contains(analyzer))
+            if (!this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsNotPresent, analyzer));
+                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsNotPresent, analyzerReference));
             }
         }
 
         /// <summary>
-        /// Throws an exception if a project already has a specific diagnostic analyzer.
+        /// Throws an exception if a project already has a specific analyzer reference.
         /// </summary>
-        protected void CheckProjectDoesNotHaveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        protected void CheckProjectDoesNotHaveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (this.CurrentSolution.GetProject(projectId).Analyzers.Contains(analyzer))
+            if (this.CurrentSolution.GetProject(projectId).AnalyzerReferences.Contains(analyzerReference))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsAlreadyPresent, analyzer));
+                throw new ArgumentException(string.Format(WorkspacesResources.AnalyzerIsAlreadyPresent, analyzerReference));
             }
         }
 

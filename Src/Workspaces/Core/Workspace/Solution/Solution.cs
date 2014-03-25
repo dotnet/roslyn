@@ -919,82 +919,82 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the 
-        /// specified diagnostic analyzer.
+        /// specified analyzer reference.
         /// </summary>
-        public Solution AddAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        public Solution AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             if (projectId == null)
             {
                 throw new ArgumentNullException("projectId");
             }
 
-            if (analyzer == null)
+            if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzer");
+                throw new ArgumentNullException("analyzerReference");
             }
 
             CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzer(analyzer));
+            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzerReference(analyzerReference));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
-        /// specified diagnostic analyzers.
+        /// specified analyzer references.
         /// </summary>
-        public Solution AddAnalyzers(ProjectId projectId, IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public Solution AddAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
         {
             if (projectId == null)
             {
                 throw new ArgumentNullException("projectId");
             }
 
-            if (analyzers == null)
+            if (analyzerReferences == null)
             {
-                throw new ArgumentNullException("analyzers");
+                throw new ArgumentNullException("analyzerReferences");
             }
 
             CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzers(analyzers));
+            return this.ForkProject(this.GetProjectState(projectId).AddAnalyzerReferences(analyzerReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to no longer include
-        /// the specified diagnostic analyzer.
+        /// the specified analyzer reference.
         /// </summary>
-        public Solution RemoveAnalyzer(ProjectId projectId, IDiagnosticAnalyzer analyzer)
+        public Solution RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             if (projectId == null)
             {
                 throw new ArgumentNullException("projectId");
             }
 
-            if (analyzer == null)
+            if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzer");
+                throw new ArgumentNullException("analyzerReference");
             }
 
             CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId).RemoveAnalyzer(analyzer));
+            return this.ForkProject(this.GetProjectState(projectId).RemoveAnalyzerReference(analyzerReference));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include only the
-        /// specified diagnostic analyzers.
+        /// specified analyzer references.
         /// </summary>
-        public Solution WithProjectAnalyzers(ProjectId projectId, IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public Solution WithProjectAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
         {
             if (projectId == null)
             {
                 throw new ArgumentNullException("projectId");
             }
 
-            if (analyzers == null)
+            if (analyzerReferences == null)
             {
-                throw new ArgumentNullException("analyzers");
+                throw new ArgumentNullException("analyzerReferences");
             }
 
             CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId).WithAnalyzers(analyzers));
+            return this.ForkProject(this.GetProjectState(projectId).WithAnalyzerReferences(analyzerReferences));
         }
 
         [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]

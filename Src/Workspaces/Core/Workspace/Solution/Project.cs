@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The list of all the diagnostic analyzers for this project.
+        /// The list of all the diagnostic analyzer references for this project.
         /// </summary>
-        public IReadOnlyList<IDiagnosticAnalyzer> Analyzers
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences
         {
             get
             {
-                return this.projectState.Analyzers;
+                return this.projectState.AnalyzerReferences;
             }
         }
 
@@ -459,35 +459,35 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified diagnostic analyzer.
+        /// Creates a new instance of this project updated to include the specified analyzer reference.
         /// </summary>
-        public Project AddAnalyzer(IDiagnosticAnalyzer analyzer)
+        public Project AddAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            return this.Solution.AddAnalyzer(this.Id, analyzer).GetProject(this.Id);
+            return this.Solution.AddAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id);
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified diagnostic analyzers.
+        /// Creates a new instance of this project updated to include the specified analyzer references.
         /// </summary>
-        public Project AddAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public Project AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            return this.Solution.AddAnalyzers(this.Id, analyzers).GetProject(this.Id);
+            return this.Solution.AddAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id);
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to no longer include the specified diagnostic analyzer.
+        /// Creates a new instance of this project updated to no longer include the specified analyzer reference.
         /// </summary>
-        public Project RemoveAnalyzer(IDiagnosticAnalyzer analyzer)
+        public Project RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
-            return this.Solution.RemoveAnalyzer(this.Id, analyzer).GetProject(this.Id);
+            return this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id);
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified diagnostic analyzers.
+        /// Creates a new instance of this project updated to include the specified analyzer references.
         /// </summary>
-        public Project WithAnalyzers(IEnumerable<IDiagnosticAnalyzer> analyzers)
+        public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
         {
-            return this.Solution.WithProjectAnalyzers(this.Id, analyzers).GetProject(this.Id);
+            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id);
         }
 
         /// <summary>

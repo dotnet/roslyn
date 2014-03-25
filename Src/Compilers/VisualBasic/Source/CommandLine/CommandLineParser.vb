@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim codepage As Encoding = Nothing
                 Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
                 Dim metadataReferences = New List(Of CommandLineReference)()
-                Dim analyzers = New List(Of DiagnosticAnalyzerAssembly)()
+                Dim analyzers = New List(Of CommandLineAnalyzerReference)()
                 Dim sdkPath As New List(Of String)()
                 Dim libPaths As New List(Of String)()
                 Dim keyFileSearchPaths = New List(Of String)()
@@ -1292,16 +1292,16 @@ lVbRuntimePlus:
                           End Function)
         End Function
 
-        Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of DiagnosticAnalyzerAssembly)
+        Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
-                Return Enumerable.Empty(Of DiagnosticAnalyzerAssembly)()
+                Return Enumerable.Empty(Of CommandLineAnalyzerReference)()
             End If
 
             Return ParseSeparatedPaths(value).
                    Select(Function(path)
-                              Return New DiagnosticAnalyzerAssembly(path)
+                              Return New CommandLineAnalyzerReference(path)
                           End Function)
         End Function
 

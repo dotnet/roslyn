@@ -139,6 +139,9 @@
     <Compile Include="ConstantValueSpecialized.cs" />
     <Compile Include="CryptographicHashProvider.cs" />
     <Compile Include="CvtRes.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerImageReference.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerReference.cs" />
+    <Compile Include="DiagnosticAnalyzer\UnresolvedAnalyzerReference.cs" />
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />
     <Compile Include="Diagnostic\Diagnostic.cs" />
@@ -323,13 +326,14 @@
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.cs" />
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="NonPortable\DesktopStrongNameProvider.cs" />
-    <Compile Include="NonPortable\DiagnosticAnalyzerAssembly.cs" />
+    <Compile Include="NonPortable\CommandLineAnalyzerReference.cs" />
     <Compile Include="NonPortable\EncodedStringText.cs" />
     <Compile Include="NonPortable\FailFast.cs" />
     <Compile Include="NonPortable\FileKey.cs" />
     <Compile Include="NonPortable\FileUtilities.cs" />
     <Compile Include="NonPortable\IVsSQM.cs" />
     <Compile Include="NonPortable\MetadataCache.cs" />
+    <Compile Include="NonPortable\AnalyzerFileReference.cs" />
     <Compile Include="NonPortable\MetadataFileReference.cs" />
     <Compile Include="NonPortable\MetadataFileReferenceProvider.cs" />
     <Compile Include="NonPortable\MetadataFileReferenceResolver.cs" />
