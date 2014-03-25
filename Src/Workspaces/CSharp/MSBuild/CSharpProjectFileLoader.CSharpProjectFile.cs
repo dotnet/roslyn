@@ -239,9 +239,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal CSharpCompilerInputs(CSharpProjectFile projectFile)
                 {
                     this.projectFile = projectFile;
+                    var projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    var outputDirectory = projectFile.GetTargetPath();
+                    if (!string.IsNullOrEmpty(outputDirectory) && Path.IsPathRooted(outputDirectory))
+                    {
+                        outputDirectory = Path.GetDirectoryName(outputDirectory);
+                    }
+                    else
+                    {
+                        outputDirectory = projectDirectory;
+                    }
 
                     this.ParseOptions = defaultParseOptions;
-                    this.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+                    this.CompilationOptions = new CSharpCompilationOptions(
+                        OutputKind.ConsoleApplication,
+                        debugInformationKind: DebugInformationKind.None,
+                        xmlReferenceResolver: new XmlFileResolver(projectDirectory),
+                        sourceReferenceResolver: new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory),
+                        metadataReferenceResolver: new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
+                        metadataReferenceProvider: MetadataFileReferenceProvider.Default,
+                        strongNameProvider: new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputDirectory)),
+                        assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
                     this.Warnings = new Dictionary<string, ReportDiagnostic>();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();

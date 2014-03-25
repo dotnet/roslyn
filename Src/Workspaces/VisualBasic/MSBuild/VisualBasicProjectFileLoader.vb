@@ -259,7 +259,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Sub New(projectFile As VisualBasicProjectFile)
                     Me._projectFile = projectFile
                     Me._parseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
-                    Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+                    Dim projectDirectory = Path.GetDirectoryName(projectFile.FilePath)
+                    Dim outputDirectory = If(Not String.IsNullOrEmpty(projectFile.GetTargetPath()), Path.GetDirectoryName(projectFile.GetTargetPath()), Nothing)
+                    Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
+                        debugInformationKind:=DebugInformationKind.None,
+                        xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
+                        sourceReferenceResolver:=New SourceFileResolver(ImmutableArray(Of String).Empty, projectDirectory),
+                        metadataReferenceResolver:=New MetadataFileReferenceResolver(ImmutableArray(Of String).Empty, projectDirectory),
+                        metadataReferenceProvider:=MetadataFileReferenceProvider.Default,
+                        strongNameProvider:=New DesktopStrongNameProvider(ImmutableArray.Create(Of String)(projectDirectory, outputDirectory)),
+                        assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
                     Me._sources = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._references = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._warnings = New Dictionary(Of String, ReportDiagnostic)()

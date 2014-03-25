@@ -121,11 +121,13 @@
     <Compile Include="NotKeptAliveCompilationCacheServiceFactory.cs" />
     <Compile Include="NotKeptAliveSyntaxTreeCacheServiceFactory.cs" />
     <Compile Include="NotKeptAliveTextCacheServiceFactory.cs" />
+    <Compile Include="ProjectDependencyGraphTests.cs" />
     <Compile Include="ProjectInfoTests.cs" />
     <Compile Include="ReferencedSymbolTests.cs" />
     <Compile Include="SerializableBytesTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SolutionExtensions.cs" />
+    <Compile Include="SolutionGeneration.cs" />
     <Compile Include="SolutionParsingTests.cs" />
     <Compile Include="SolutionTests.cs" />
     <Compile Include="SolutionUtilities.cs" />
@@ -137,7 +139,6 @@
     <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceExtensions.cs" />
     <Compile Include="WorkspaceServices\OptionServiceTests.cs" />
-    <Compile Include="ProjectDependencyGraphTests.cs" />
     <Compile Include="WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="WorkspaceServices\TestWorkspaceServiceProvider.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml">
@@ -201,6 +202,7 @@
     <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidsBecomeCircularReferential.csproj" />
     <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidsBecomeSelfReferential.csproj" />
     <EmbeddedResource Include="TestFiles\CSharpProject_WithLink.csproj" />
+    <EmbeddedResource Include="TestFiles\key.snk" />
     <EmbeddedResource Include="TestFiles\TestSolution_CSharp.sln" />
     <EmbeddedResource Include="TestFiles\TestSolution_DuplicatedGuids.sln" />
     <EmbeddedResource Include="TestFiles\TestSolution_DuplicatedGuidsBecomeCircularReferential.sln" />

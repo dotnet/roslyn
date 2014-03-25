@@ -7,11 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -165,6 +165,44 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var c2 = p2.GetCompilationAsync().Result;
             var pref = c2.References.OfType<MetadataImageReference>().FirstOrDefault(r => r.Display == "EmittedCSharpProject");
             Assert.NotNull(pref);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestInternalsVisibleToSigned()
+        {
+            var solution = Solution(
+                Project(
+                    ProjectName("Project1"),
+                    Sign,
+                    Document(string.Format(
+@"using System.Runtime.CompilerServices;
+[assembly:InternalsVisibleTo(""Project2, PublicKey={0}"")]
+class C1
+{{
+}}", PublicKey))),
+                Project(
+                    ProjectName("Project2"),
+                    Sign,
+                    ProjectReference("Project1"),
+                    Document(@"class C2 : C1 { }")));
+
+            var project2 = solution.GetProjectsByName("Project2").First();
+            var compilation = project2.GetCompilationAsync().Result;
+            var diagnostics = compilation.GetDiagnostics()
+                .Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning)
+                .ToArray();
+
+            Assert.Equal(Enumerable.Empty<Diagnostic>(), diagnostics);
+        }
+
+        private Solution Solution(params IBuilder[] inputs)
+        {
+            var files = GetSolutionFiles(inputs);
+            CreateFiles(files);
+            var solutionFileName = files.First(kvp => kvp.Key.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)).Key;
+            solutionFileName = GetSolutionFileName(solutionFileName);
+            var solution = LoadSolution(solutionFileName);
+            return solution;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
