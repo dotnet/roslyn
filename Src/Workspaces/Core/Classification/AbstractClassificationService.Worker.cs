@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly CancellationToken cancellationToken;
             private readonly Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers;
             private readonly Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers;
-            private readonly IExtensionManager extensionManager;
             private readonly HashSet<ClassifiedSpan> set;
             private readonly Stack<SyntaxNodeOrToken> pendingNodes;
 
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
-                this.extensionManager = workspace.GetExtensionManager();
                 this.getNodeClassifiers = getNodeClassifiers;
                 this.getTokenClassifiers = getTokenClassifiers;
                 this.semanticModel = semanticModel;
@@ -119,23 +117,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var classifier in getNodeClassifiers(syntax))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        if (!extensionManager.IsDisabled(classifier))
-                        {
-                            var classifications = classifier.ClassifyNode(syntax, this.semanticModel, cancellationToken);
-                            AddClassifications(classifications);
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception e)
-                    {
-                        extensionManager.HandleException(classifier, e);
-                    }
+                    var classifications = classifier.ClassifyNode(syntax, this.semanticModel, cancellationToken);
+                    AddClassifications(classifications);
                 }
             }
 
@@ -165,23 +148,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var classifier in getTokenClassifiers(syntax))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        if (!extensionManager.IsDisabled(classifier))
-                        {
-                            var classifications = classifier.ClassifyToken(syntax, this.semanticModel, cancellationToken);
-                            AddClassifications(classifications);
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception e)
-                    {
-                        extensionManager.HandleException(classifier, e);
-                    }
+                    var classifications = classifier.ClassifyToken(syntax, this.semanticModel, cancellationToken);
+                    AddClassifications(classifications);
                 }
 
                 ClassifyStructuredTrivia(syntax.TrailingTrivia);
