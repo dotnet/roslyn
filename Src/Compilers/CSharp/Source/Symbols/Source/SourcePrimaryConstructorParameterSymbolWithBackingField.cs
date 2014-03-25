@@ -21,17 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
-            ImmutableArray<CustomModifier> customModifiers,
-            bool hasByRefBeforeCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
-            SyntaxReference syntaxRef,
+            ParameterSyntax syntax,
             ConstantValue defaultSyntaxValue,
             bool isParams,
-            bool isExtensionMethodThis
-        ) : base(owner, ordinal, parameterType, refKind, customModifiers, hasByRefBeforeCustomModifiers, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
+            bool isExtensionMethodThis,
+            DiagnosticBag diagnostics
+        ) : base(owner, ordinal, parameterType, refKind, ImmutableArray<CustomModifier>.Empty, false, name, locations, syntax.GetReference(), defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
-            backingField = new BackingField(this);
+            bool modifierErrors;
+            var modifiers = SourceMemberFieldSymbol.MakeModifiers(owner.ContainingType, syntax.Identifier, syntax.Modifiers, diagnostics, out modifierErrors, ignoreParameterModifiers: true);
+
+            backingField = new BackingField(this, modifiers, modifierErrors, diagnostics);
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
@@ -48,7 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.ForceComplete(locationOpt, cancellationToken);
 
+            if ((object)this.ContainingSymbol != (object)((SourceMemberContainerTypeSymbol)this.ContainingType).PrimaryCtor)
+            {
             this.backingField.ForceComplete(locationOpt, cancellationToken);
+        }
         }
 
         internal override FieldSymbol PrimaryConstructorParameterBackingField
@@ -62,11 +67,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class BackingField : SourceFieldSymbol
         {
             private readonly SourceParameterSymbol parameterSymbol;
+            private readonly DeclarationModifiers modifiers;
+            private ImmutableArray<CustomModifier> lazyCustomModifiers;
 
-            internal BackingField(SourceParameterSymbol parameterSymbol)
+            internal BackingField(
+                SourceParameterSymbol parameterSymbol,
+                DeclarationModifiers modifiers,
+                bool modifierErrors,
+                DiagnosticBag diagnostics)
                 : base((SourceMemberContainerTypeSymbol)parameterSymbol.ContainingType)
             {
                 this.parameterSymbol = parameterSymbol;
+                this.modifiers = modifiers;
+
+                this.CheckAccessibility(diagnostics);
+
+                if (!modifierErrors)
+            {
+                    this.ReportModifiersDiagnostics(diagnostics);
+                }
             }
 
             public override string Name
@@ -77,43 +96,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override Accessibility DeclaredAccessibility
+            public override Symbol AssociatedSymbol
             {
                 get
                 {
-                    return Accessibility.Private;
+                    return parameterSymbol;
                 }
             }
 
-            public override bool IsReadOnly
+            protected override DeclarationModifiers Modifiers
             {
                 get
                 {
-                    return false;
-                }
-            }
-
-            public override bool IsStatic
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override bool IsConst
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override bool IsVolatile
-            {
-                get
-                {
-                    return false;
+                    return modifiers;
                 }
             }
 
@@ -122,26 +117,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return parameterSymbol.Type;
             }
 
-            public override ImmutableArray<CustomModifier> CustomModifiers
+            public sealed override ImmutableArray<CustomModifier> CustomModifiers
             {
                 get
                 {
-                    return parameterSymbol.CustomModifiers;
+                    if (lazyCustomModifiers.IsDefault)
+                    {
+                        ImmutableInterlocked.InterlockedCompareExchange(ref lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
+            }
+
+                    return lazyCustomModifiers;
                 }
             }
 
-            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
-            {
-                return null;
-            }
-
-            public override Symbol AssociatedSymbol
-            {
-                get
+            internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
                 {
                     return null;
                 }
-            }
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {
@@ -163,11 +155,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return ImmutableArray<Location>.Empty;
+                    return parameterSymbol.Locations;
                 }
+                }
+
+            internal override LexicalSortKey GetLexicalSortKey()
+            {
+                return new LexicalSortKey(parameterSymbol.Locations[0], this.DeclaringCompilation);
             }
 
-            internal override Location Location
+            internal override Location ErrorLocation
             {
                 get
                 {

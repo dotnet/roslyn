@@ -1303,11 +1303,4 @@
   -->
   <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList">
   </Node>
-
-  <!-- 
-  Special node to designate the place where backing fields for primary constructor parameters should be initialized.
-  Doesn't survive the lowering.
-  -->
-  <Node Name="BoundBackingFieldsForPrimaryConstructorParametersInitialization" Base="BoundStatement">
-  </Node>
 </Tree>

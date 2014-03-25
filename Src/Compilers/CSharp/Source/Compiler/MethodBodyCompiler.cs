@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken)
         {
             MethodBodyCompiler methodBodyCompiler = new MethodBodyCompiler(
-                                                            compilation,
-                                                            moduleBeingBuilt,
-                                                            generateDebugInfo,
+                                                            compilation, 
+                                                            moduleBeingBuilt, 
+                                                            generateDebugInfo, 
                                                             hasDeclarationErrors,
                                                             diagnostics,
-                                                            filter,
+                                                            filter, 
                                                             cancellationToken);
 
             if (compilation.Options.ConcurrentBuild)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.diagnostics = diagnostics;
             this.optimize = compilation.Options.Optimize;
             this.filter = filter;
-            
+
             this.hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
@@ -218,17 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
         {
             return Task.Run(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        CompileNamespace(symbol);
-                        return (object)null;
-                    }
-                    catch (Exception e) if (CompilerFatalError.ReportUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }, this.cancellationToken);
+                    CompileNamespace(symbol);
+                    return (object)null;
+                }
+                catch (Exception e) if (CompilerFatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }, this.cancellationToken);
         }
 
         private void CompileNamespace(NamespaceSymbol symbol)
@@ -265,17 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
         {
             return Task.Run(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        CompileNamedType(symbol);
-                        return (object)null;
-                    }
-                    catch (Exception e) if (CompilerFatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }, this.cancellationToken);
+                    CompileNamedType(symbol);
+                    return (object)null;
+                }
+                catch (Exception e) if (CompilerFatalError.Report(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }, this.cancellationToken);
         }
 
         private void CompileNamedType(NamedTypeSymbol symbol)
@@ -302,11 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var processedInstanceInitializers = new ProcessedFieldInitializers();
 
             var sourceTypeSymbol = symbol as SourceMemberContainerTypeSymbol;
-            MethodSymbol primaryCtor = null;
 
             if ((object)sourceTypeSymbol != null)
             {
-                primaryCtor = sourceTypeSymbol.PrimaryCtor;
                 BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.StaticInitializers, this.generateDebugInfo, ref processedStaticInitializers);
                 BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.InstanceInitializers, this.generateDebugInfo, ref processedInstanceInitializers);
 
@@ -349,13 +347,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     continue;
                                 }
-                            }
-
-                            if ((object)primaryCtor == (object)method)
-                            {
-                                // Primary constructor must be compiled last. We need to figure out what parameters should have backing 
-                                // fields before it can be compiled, which means all other methods should be compiled first.
-                                continue;
                             }
 
                             ProcessedFieldInitializers processedInitializers =
@@ -456,13 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(scriptCtor.IsSubmissionConstructor);
                 CompileMethod(scriptCtor, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
                 synthesizedSubmissionFields.AddToType(scriptCtor.ContainingType, compilationState.ModuleBuilder);
-            }
-
-            // Now compile primary constructor, if any.
-            if ((object)primaryCtor != null)
-            {
-                Debug.Assert(primaryCtor.MethodKind == MethodKind.Constructor);
-                CompileMethod(primaryCtor, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
             }
 
             //  Emit synthesized methods produced during lowering if any
@@ -616,11 +600,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors && !hasDeclarationErrors)
                 {
                     MethodBody emittedBody = Compiler.GenerateMethodBody(
-                        compilationState,
-                        accessor,
+                        compilationState, 
+                        accessor, 
                         boundBody,
                         diagnosticsThisMethod,
-                        optimize,
+                        optimize, 
                         debugDocumentProvider,
                         default(ImmutableArray<NamespaceScope>));
 
@@ -696,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool calculateDiagnosticsOnly = moduleBeingBuilt == null;
             SourceMethodSymbol sourceMethod = methodSymbol as SourceMethodSymbol;
-            
+
             //get cached diagnostics if not building and we have 'em
             if (calculateDiagnosticsOnly && ((object)sourceMethod != null))
             {
@@ -708,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
             }
-
+           
             ConsList<Imports> oldDebugImports = compilationState.CurrentDebugImports;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
@@ -762,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 (methodSymbol.IsStatic || 
                                                  isPrimaryCtor || (object)container == null || (object)container.PrimaryCtor == null);
 
-                    body = Compiler.BindMethodBody(methodSymbol, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
+                    body = Compiler.BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -818,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundBlock flowAnalyzedBody = (body == null) ? null : FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
-                
+
                 bool hasErrors = hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
 
                 // Record whether or not the bound tree for the lowered method body (including any initializers) contained any
@@ -839,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         this.diagnostics.AddRange(diagsForCurrentMethod);
                     }
-
+                        
                     return;
                 }
 
@@ -951,10 +935,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var emittedBody = Compiler.GenerateMethodBody(
                         compilationState,
-                        methodSymbol,
+                        methodSymbol, 
                         boundBody,
                         diagsForCurrentMethod,
-                        optimize,
+                        optimize, 
                         debugDocumentProvider,
                         GetNamespaceScopes(methodSymbol, debugImports));
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = Compiler.BindMethodBody(method, diagnostics);
+            var block = Compiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, null), diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value)
                 .Where(x => x.Text == "method" && x.Value != null)

@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.Field:
-                        var sourceField = member as SourceMemberFieldSymbol; //null for ZeroValuedEnumConstantSymbol
+                        var sourceField = member as SourceFieldSymbol;
                         var isNewField = (object)sourceField != null && sourceField.IsNew;
 
                         // We don't want to report diagnostics for field-like event backing fields (redundant),

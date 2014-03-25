@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                var boundBody = Compiler.BindMethodBody(sourceSymbol, new DiagnosticBag());
+                var boundBody = Compiler.BindMethodBody(sourceSymbol, new TypeCompilationState(sourceSymbol.ContainingType, null), new DiagnosticBag());
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, flowDiagnostics);

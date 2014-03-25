@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // UNDONE: The binding and conversion has to be executed in a checked context.
 
-            var collisionDetector = new LocalScopeBinder(containingSymbol as MethodSymbol, this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType));
+            var collisionDetector = new LocalScopeBinder(containingSymbol as MethodSymbol, this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType, shadowBackingFields: false));
             valueBeforeConversion = collisionDetector.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
@@ -1192,25 +1192,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // An instance constructor initializer cannot access the parameters to a primary constructor. 
                                 Error(diagnostics, ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, node);
                             }
-                            else if (parameter.RefKind != RefKind.None && !this.InConstructorInitializer && !this.InFieldInitializer)
+                            else if (!this.InFieldInitializer && !this.InAutoPropertyInitializer)
                             {
+                                Debug.Assert(!this.InConstructorInitializer);
+
                                 // SPEC:
-                                // ref and out parameters can only be accessed in variable initializers and arguments to the base constructor
-                                Error(diagnostics, ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, node);
+                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
+                                Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
                             }
                             else if (containingMember.IsStatic)
                             {
+                                Debug.Assert(this.InFieldInitializer || this.InAutoPropertyInitializer);
                                 // SPEC:
-                                // value parameters may be accessed from within instance function members
+                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
 
                                 // We already complained if the type is static, let's not complain more in that case.
                                 if (!this.ContainingMemberOrLambda.ContainingType.IsStatic)
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, node, parameter.Name);
+                                    Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
                                 }
                             }
-                            else if ((object)containingMember != (object)this.ContainingMemberOrLambda && (this.InConstructorInitializer || this.InFieldInitializer))
+                            else if ((object)containingMember != (object)this.ContainingMemberOrLambda && (this.InConstructorInitializer || this.InFieldInitializer || this.InAutoPropertyInitializer))
                             {
+                                Debug.Assert(this.InFieldInitializer || this.InAutoPropertyInitializer);
                                 // SPEC:
                                 // we should simply disallow reference to the parameters inside anonymous functions that occur in field and property initializers, as well as in base arguments.
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, node, parameter.Name);

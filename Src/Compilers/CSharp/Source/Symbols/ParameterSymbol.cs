@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public bool IsOptional
         {
-            get
+            get 
             {
                 // DEV10 COMPATIBILITY: Special handling for ParameterArray params
                 //
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// True if Out flag is set in metadata.
         /// </summary>
-        internal abstract bool IsMetadataIn { get; }
+        internal abstract bool IsMetadataIn { get; } 
 
         /// <summary>
         /// True if In flag is set in metadata.
@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// The default value can be obtained with <see cref="ExplicitDefaultValue"/> property.
         /// </remarks>
-        public bool HasExplicitDefaultValue
+        public bool HasExplicitDefaultValue 
         {
-            get
-            {
+            get 
+            { 
                 // In the symbol model, only optional parameters have default values.
                 // Internally, however, non-optional parameters may also have default
                 // values (accessible via DefaultConstantValue).  For example, if the
@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData 
+        { 
+            get { return null; } 
         }
 
         internal abstract bool IsIDispatchConstant { get; }
@@ -397,27 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// We support before (correct) and after (incorrect, but works), but not in between.
         /// </remarks>
         internal abstract bool HasByRefBeforeCustomModifiers { get; }
-
-        /// <summary>
-        /// Gets the attributes on parameter's associated field, if any.
-        /// For example, field associated with a parameter of a Primary constructor.
-        /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if
-        /// there are no attributes.
-        /// </summary>
-        /// <remarks>
-        /// This publicly exposes the attributes of the internal backing field.
-        /// </remarks>
-        public ImmutableArray<CSharpAttributeData> GetFieldAttributes()
-        {
-            FieldSymbol backingField = PrimaryConstructorParameterBackingField;
-
-            if ((object)backingField != null)
-            {
-                return backingField.GetAttributes();
-            }
-
-            return ImmutableArray<CSharpAttributeData>.Empty;
-        }
 
         internal abstract FieldSymbol PrimaryConstructorParameterBackingField { get; }
 

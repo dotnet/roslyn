@@ -62,20 +62,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+        }
+
         internal override FieldSymbol PrimaryConstructorParameterBackingField
         {
             get
             {
-                // This property is used only either for OriginalDefinition during Lowering, or
-                // to return attributes attached to the field.
-                // Substitution doesn't affect attributes, so it is safe to return OriginalDefinition symbol.
-                return this.underlyingParameter.PrimaryConstructorParameterBackingField;
+                FieldSymbol underlying = this.underlyingParameter.PrimaryConstructorParameterBackingField;
+                return ((object)underlying == null) ? null : (FieldSymbol)underlying.SymbolAsMember(ContainingType);
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool Equals(object obj)
         {
-            return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            if ((object)this == (object)obj)
+            {
+                return true;
+            }
+
+            var other = obj as SubstitutedParameterSymbol;
+            return (object)other != null && OriginalDefinition.Equals(other.OriginalDefinition) && ContainingSymbol.Equals(other.ContainingSymbol);
+        }
+
+        public override int GetHashCode()
+        {
+            return Roslyn.Utilities.Hash.Combine(ContainingSymbol, OriginalDefinition.GetHashCode());
         }
     }
 }

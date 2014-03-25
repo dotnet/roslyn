@@ -206,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.AssociatedSymbol;
+                var associatedSymbol = this.underlyingField.AssociatedSymbol;
+                return (object)associatedSymbol == null ? null : this.RetargetingTranslator.Retarget(associatedSymbol);
             }
         }
 

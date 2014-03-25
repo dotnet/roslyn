@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
-        /// property or a field-like event, returns that property/event. Otherwise returns null.
+        /// property or a field-like event or a Primary Constructor Parameter, returns that 
+        /// property/event/parameter. Otherwise returns null.
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Since the compiler does only need to know the marshalling type of symbols that aren't emitted 
         /// PE symbols just decode the type from metadata and don't provide full marshalling information.
         /// </remarks>
-        internal virtual UnmanagedType MarshallingType
+        internal virtual UnmanagedType MarshallingType 
         {
             get
             {
@@ -379,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool HasUnsupportedMetadata
         {
-            get
-            {
+            get 
+            { 
                 DiagnosticInfo info = GetUseSiteDiagnostic();
                 return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }

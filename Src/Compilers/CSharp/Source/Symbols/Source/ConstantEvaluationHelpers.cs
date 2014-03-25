@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct FieldInfo
         {
-            public readonly SourceFieldSymbol Field;
+            public readonly SourceFieldSymbolWithSyntaxReference Field;
             public readonly bool StartsCycle;
 
-            public FieldInfo(SourceFieldSymbol field, bool startsCycle)
+            public FieldInfo(SourceFieldSymbolWithSyntaxReference field, bool startsCycle)
             {
                 this.Field = field;
                 this.StartsCycle = startsCycle;
@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// from the lists in some threads as other threads evaluate fields.
         /// </summary>
         internal static void OrderAllDependencies(
-            this SourceFieldSymbol field,
+            this SourceFieldSymbolWithSyntaxReference field,
             ArrayBuilder<FieldInfo> order,
             bool earlyDecodingWellKnownAttributes)
         {
             Debug.Assert(order.Count == 0);
 
-            var graph = PooledDictionary<SourceFieldSymbol, Node<SourceFieldSymbol>>.GetInstance();
+            var graph = PooledDictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>>.GetInstance();
 
             CreateGraph(graph, field, earlyDecodingWellKnownAttributes);
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckGraph(graph);
 
 #if DEBUG
-            var fields = ArrayBuilder<SourceFieldSymbol>.GetInstance();
+            var fields = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             fields.AddRange(graph.Keys);
 #endif
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #if DEBUG
             // Verify all entries in the graph are in the ordered list.
-            var map = new HashSet<SourceFieldSymbol>(order.Select(o => o.Field).Distinct());
+            var map = new HashSet<SourceFieldSymbolWithSyntaxReference>(order.Select(o => o.Field).Distinct());
             Debug.Assert(fields.All(f => map.Contains(f)));
             fields.Free();
 #endif
@@ -94,18 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// field to dependencies).
         /// </summary>
         private static void CreateGraph(
-            Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph,
-            SourceFieldSymbol field,
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph,
+            SourceFieldSymbolWithSyntaxReference field,
             bool earlyDecodingWellKnownAttributes)
         {
-            var pending = ArrayBuilder<SourceFieldSymbol>.GetInstance();
+            var pending = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             pending.Push(field);
 
             while (pending.Count > 0)
             {
                 field = pending.Pop();
 
-                Node<SourceFieldSymbol> node;
+                Node<SourceFieldSymbolWithSyntaxReference> node;
                 if (graph.TryGetValue(field, out node))
                 {
                     if (node.Dependencies != null)
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    node = new Node<SourceFieldSymbol>();
-                    node.DependedOnBy = ImmutableHashSet<SourceFieldSymbol>.Empty;
+                    node = new Node<SourceFieldSymbolWithSyntaxReference>();
+                    node.DependedOnBy = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
                 }
 
                 var dependencies = field.GetConstantValueDependencies(earlyDecodingWellKnownAttributes);
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!graph.TryGetValue(dependency, out node))
                     {
-                        node = new Node<SourceFieldSymbol>();
-                        node.DependedOnBy = ImmutableHashSet<SourceFieldSymbol>.Empty;
+                        node = new Node<SourceFieldSymbolWithSyntaxReference>();
+                        node.DependedOnBy = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
                     }
 
                     node.DependedOnBy = node.DependedOnBy.Add(field);
@@ -149,21 +149,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void OrderGraph(
-            Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph,
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph,
             ArrayBuilder<FieldInfo> order)
         {
             Debug.Assert(graph.Count > 0);
 
-            PooledHashSet<SourceFieldSymbol> lastUpdated = null;
+            PooledHashSet<SourceFieldSymbolWithSyntaxReference> lastUpdated = null;
 
             while (graph.Count > 0)
             {
                 // Get the set of fields in the graph that have no dependencies.
-                var search = ((IEnumerable<SourceFieldSymbol>)lastUpdated) ?? graph.Keys;
-                var set = ArrayBuilder<SourceFieldSymbol>.GetInstance();
+                var search = ((IEnumerable<SourceFieldSymbolWithSyntaxReference>)lastUpdated) ?? graph.Keys;
+                var set = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
                 foreach (var field in search)
                 {
-                    Node<SourceFieldSymbol> node;
+                    Node<SourceFieldSymbolWithSyntaxReference> node;
                     if (graph.TryGetValue(field, out node))
                     {
                         if (node.Dependencies.Count == 0)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (set.Count > 0)
                 {
-                    var updated = PooledHashSet<SourceFieldSymbol>.GetInstance();
+                    var updated = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
 
                     // Remove fields with no dependencies from the graph.
                     foreach (var field in set)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     node = graph[field];
-                    node.Dependencies = ImmutableHashSet<SourceFieldSymbol>.Empty;
+                    node.Dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
                     if (node.DependedOnBy.Count == 0)
                     {
                         graph.Remove(field);
@@ -260,8 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static SourceFieldSymbol GetStartOfFirstCycle(
-            Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph)
+        private static SourceFieldSymbolWithSyntaxReference GetStartOfFirstCycle(
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph)
         {
             Debug.Assert(graph.Count > 0);
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var comparer = new SourceLocationComparer(compilations);
 
             // Sort the fields by lexical order.
-            var fields = ArrayBuilder<SourceFieldSymbol>.GetInstance();
+            var fields = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             fields.AddRange(graph.Keys);
             fields.Sort(comparer);
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to compare source locations across different compilations.
         /// </summary>
         private static void OrderCompilations(
-            Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> fields,
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> fields,
             Dictionary<Compilation, int> compilations)
         {
             Debug.Assert(fields.Count > 0);
@@ -322,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (There must be at least one cycle. In fact, there
         /// shouldn't be any fields without dependencies.)
         /// </summary>
-        private static SourceFieldSymbol GetMemberOfCycle(Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph)
+        private static SourceFieldSymbolWithSyntaxReference GetMemberOfCycle(Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph)
         {
             Debug.Assert(graph.Count > 0);
             Debug.Assert(graph.Values.All(n => n.Dependencies.Count > 0)); // No fields without dependencies.
 
-            var set = PooledHashSet<SourceFieldSymbol>.GetInstance();
+            var set = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             var field = graph.First().Key;
 
             while (true)
@@ -347,14 +347,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void GetAllReachable(
-            Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph,
-            ArrayBuilder<SourceFieldSymbol> fields,
-            SourceFieldSymbol field)
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph,
+            ArrayBuilder<SourceFieldSymbolWithSyntaxReference> fields,
+            SourceFieldSymbolWithSyntaxReference field)
         {
             Debug.Assert(fields.Count == 0);
 
-            var set = PooledHashSet<SourceFieldSymbol>.GetInstance();
-            var stack = ArrayBuilder<SourceFieldSymbol>.GetInstance();
+            var set = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
+            var stack = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
 
             set.Add(field);
             stack.Push(field);
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [Conditional("DEBUG")]
-        private static void CheckGraph(Dictionary<SourceFieldSymbol, Node<SourceFieldSymbol>> graph)
+        private static void CheckGraph(Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph)
         {
             // Avoid O(n^2) behavior by checking
             // a maximum number of entries.
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var dependency in node.Dependencies)
                 {
-                    Node<SourceFieldSymbol> n;
+                    Node<SourceFieldSymbolWithSyntaxReference> n;
                     var ok = graph.TryGetValue(dependency, out n);
                     Debug.Assert(ok);
                     Debug.Assert(n.DependedOnBy.Contains(field));
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var dependedOnBy in node.DependedOnBy)
                 {
-                    Node<SourceFieldSymbol> n;
+                    Node<SourceFieldSymbolWithSyntaxReference> n;
                     var ok = graph.TryGetValue(dependedOnBy, out n);
                     Debug.Assert(ok);
                     Debug.Assert(n.Dependencies.Contains(field));
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(graph.Values.Sum(n => n.DependedOnBy.Count) == graph.Values.Sum(n => n.Dependencies.Count));
         }
 
-        private sealed class SourceLocationComparer : IComparer<SourceFieldSymbol>
+        private sealed class SourceLocationComparer : IComparer<SourceFieldSymbolWithSyntaxReference>
         {
             private readonly Dictionary<Compilation, int> compilationOrdering;
 
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.compilationOrdering = compilationOrdering;
             }
 
-            public int Compare(SourceFieldSymbol x, SourceFieldSymbol y)
+            public int Compare(SourceFieldSymbolWithSyntaxReference x, SourceFieldSymbolWithSyntaxReference y)
             {
                 var xComp = x.DeclaringCompilation;
                 var yComp = y.DeclaringCompilation;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (result == 0)
                 {
                     Debug.Assert(xComp == yComp);
-                    result = xComp.CompareSourceLocations(x.Location, y.Location);
+                    result = xComp.CompareSourceLocations(x.ErrorLocation, y.ErrorLocation);
                 }
                 return result;
             }

@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.AddSeparator(commaToken);
                     builder.Add(enumerator.Current);
-                }
+                } 
                 while (enumerator.MoveNext());
 
                 return builder.ToList();
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var element = list[i];
                 if (element.IsNode && !(element.AsNode() is TNode))
-                {
+        {
                     return false;
                 }
             }
@@ -971,14 +971,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static bool HasSeparatedNodeTokenPattern(SyntaxNodeOrTokenList list)
-        {
-            for (int i = 0, n = list.Count; i < n; i++)
             {
+            for (int i = 0, n = list.Count; i < n; i++)
+                {
                 var element = list[i];
                 if (element.IsToken == ((i & 1) == 0))
-                {
+                    {
                     return false;
-                }
+                    }
             }
 
             return true;
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
             builder.Add(nodesAndTokens);
-            return builder.ToList();
+                return builder.ToList();
         }
 
         /// <summary>
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+                var node = parser.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true, allowFieldModifiers: true);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }
@@ -1427,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="newList">The new token list.</param>
         public static bool AreEquivalent(SyntaxTokenList oldList, SyntaxTokenList newList)
         {
-            return SyntaxEquivalence.AreEquivalent(oldList, newList);
+            return SyntaxEquivalence.AreEquivalent(oldList, newList);            
         }
 
         /// <summary>
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool AreEquivalent<TNode>(SyntaxList<TNode> oldList, SyntaxList<TNode> newList, bool topLevel)
             where TNode : CSharpSyntaxNode
         {
-            return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, null, topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, null, topLevel);            
         }
 
         /// <summary>

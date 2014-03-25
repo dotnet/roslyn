@@ -382,43 +382,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rhs = assignment.Right;
             return rhs.IsDefaultValue();
         }
-
-        public override BoundNode VisitParameter(BoundParameter node)
-        {
-            var container = node.ParameterSymbol.ContainingSymbol as SourceMethodSymbol;
-             
-            if ((object)container == null || !container.IsPrimaryCtor || (object)container == (object)this.factory.CurrentMethod ||
-                (object)((SourceMemberContainerTypeSymbol)container.ContainingType).PrimaryCtor != (object)container)
-            {
-                return base.VisitParameter(node);
-            }
-
-            var thisParameter = this.factory.TopLevelMethod.ThisParameter;
-            return new BoundFieldAccess(node.Syntax,
-                                        new BoundThisReference(node.Syntax, thisParameter.Type) { WasCompilerGenerated = true },
-                                        this.factory.CompilationState.GetOrAddBackingFieldForPrimaryConstructorParameter(node.ParameterSymbol),
-                                        constantValueOpt: node.ConstantValue,
-                                        hasErrors: node.HasErrors);
-        }
-
-        public override BoundNode VisitBackingFieldsForPrimaryConstructorParametersInitialization(BoundBackingFieldsForPrimaryConstructorParametersInitialization node)
-        {
-            Debug.Assert((object)this.factory.CurrentMethod == (object)this.factory.TopLevelMethod);
-
-            ArrayBuilder<BoundStatement> statements = ArrayBuilder<BoundStatement>.GetInstance();
-
-            foreach (var pair in this.factory.CompilationState.GetBackingFieldsForPrimaryConstructorParameters())
-            {
-                if (this.factory.CompilationState.Emitting)
-                {
-                    this.factory.CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(pair.Key.ContainingType, pair.Value);
-                }
-
-                statements.Add(this.factory.Assignment(this.factory.Field(this.factory.This(), pair.Value),
-                                                       this.factory.Parameter(pair.Key)));
-            }
-
-            return new BoundStatementList(node.Syntax, statements.ToImmutableAndFree());
-        }
     }
 }

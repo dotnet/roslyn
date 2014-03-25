@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.Name == WellKnownMemberNames.EnumBackingFieldName)
             {
-                diagnostics.Add(ErrorCode.ERR_ReservedEnumerator, this.Location, WellKnownMemberNames.EnumBackingFieldName);
+                diagnostics.Add(ErrorCode.ERR_ReservedEnumerator, this.ErrorLocation, WellKnownMemberNames.EnumBackingFieldName);
             }
         }
 
@@ -70,29 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsReadOnly
+        protected sealed override DeclarationModifiers Modifiers
         {
-            get { return false; }
-        }
-
-        public override bool IsVolatile
-        {
-            get { return false; }
-        }
-
-        public override bool IsConst
-        {
-            get { return true; }
-        }
-
-        public override bool IsStatic
-        {
-            get { return true; }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get { return Accessibility.Public; }
+            get
+            {
+                return DeclarationModifiers.Const | DeclarationModifiers.Static | DeclarationModifiers.Public;
+            }
         }
 
         public new EnumMemberDeclarationSyntax SyntaxNode
@@ -164,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
             {
                 var constantType = this.ContainingType.EnumUnderlyingType.SpecialType;
                 return Microsoft.CodeAnalysis.ConstantValue.Default(constantType);
@@ -185,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.equalsValueNodeRef = initializer.GetReference();
             }
 
-            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
             {
                 return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)this.equalsValueNodeRef.GetSyntax(), dependencies, earlyDecodingWellKnownAttributes, diagnostics);
             }
@@ -211,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.otherConstantOffset = otherConstantOffset;
             }
 
-            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+            protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
             {
                 var otherValue = this.otherConstant.GetConstantValue(new ConstantFieldsInProgress(this, dependencies), earlyDecodingWellKnownAttributes);
                 // Value may be Unset if there are dependencies

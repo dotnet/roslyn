@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventSymbol associatedEvent;
 
         internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag discardedDiagnostics)
-            : base(associatedEvent.containingType, declaratorSyntax, associatedEvent.Modifiers, modifierErrors: true, diagnostics: discardedDiagnostics)
+            : base(associatedEvent.containingType, declaratorSyntax, (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private, modifierErrors: true, diagnostics: discardedDiagnostics)
         {
             this.associatedEvent = associatedEvent;
         }
@@ -45,24 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return Accessibility.Private;
-            }
-        }
-
         internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(ref attributes);
-
+            
             var compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
             // Dev11 doesn't synthesize this attribute, the debugger has a knowledge 
             // of special name C# compiler uses for backing fields, which is not desirable.
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
-        }
+        }  
     }
 }

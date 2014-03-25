@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax = node.Syntax;
 
             // assign new frame to the frame variable
-            CompilationState.AddGeneratedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(Compiler.BindMethodBody(frame.Constructor, null), frame.Constructor));
+            CompilationState.AddGeneratedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(Compiler.BindMethodBody(frame.Constructor, CompilationState, null), frame.Constructor));
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
 

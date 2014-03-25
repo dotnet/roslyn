@@ -2325,11 +2325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitBackingFieldsForPrimaryConstructorParametersInitialization(BoundBackingFieldsForPrimaryConstructorParametersInitialization node)
-        {
-            return null;
-        }
-
         #endregion visitors
     }
 }

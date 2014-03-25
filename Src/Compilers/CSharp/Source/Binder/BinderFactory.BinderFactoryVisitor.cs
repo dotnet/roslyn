@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private int position;
             private readonly BinderFactory factory;
-
+            
             internal BinderFactoryVisitor(BinderFactory factory)
             {
                 this.factory = factory;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return VisitCore(node);
             }
-
+            
             //PERF: nonvirtual implementation of Visit
             private Binder VisitCore(SyntaxNode node)
             {
@@ -135,15 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (usage == NodeUsage.MethodBody)
                     {
                         method = GetMethodSymbol(methodDecl, resultBinder);
-                        resultBinder = resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType);
+                        resultBinder = resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false);
                     }
 
                     if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new WithMethodTypeParametersBinder(method, resultBinder);
-                    }
-
+                    } 
+                    
                     if (usage == NodeUsage.MethodBody)
                     {
                         resultBinder = new InMethodBinder(method, resultBinder);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
                             Debug.Assert(!method.IsPrimaryCtor);
 
-                            resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType));
+                            resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
                         }
                     }
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultBinder = VisitCore(parent.Parent);
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
-
+                
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -296,27 +296,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case SyntaxKind.PropertyDeclaration:
                             case SyntaxKind.IndexerDeclaration:
+                            {
+                                var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
+                                if ((object)propertySymbol != null)
                                 {
-                                    var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
-                                    if ((object)propertySymbol != null)
-                                    {
-                                        accessor = (parent.Kind == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
-                                    }
-                                    break;
+                                    accessor = (parent.Kind == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
                                 }
+                                break;
+                            }
                             case SyntaxKind.EventDeclaration:
                             case SyntaxKind.EventFieldDeclaration:
-                                {
-                                    // NOTE: it's an error for field-like events to have accessors, 
-                                    // but we want to bind them anyway for error tolerance reasons.
+                            {
+                                // NOTE: it's an error for field-like events to have accessors, 
+                                // but we want to bind them anyway for error tolerance reasons.
 
-                                    var eventSymbol = GetEventSymbol((EventDeclarationSyntax)propertyOrEventDecl, resultBinder);
-                                    if ((object)eventSymbol != null)
-                                    {
-                                        accessor = (parent.Kind == SyntaxKind.AddAccessorDeclaration) ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
-                                    }
-                                    break;
+                                var eventSymbol = GetEventSymbol((EventDeclarationSyntax)propertyOrEventDecl, resultBinder);
+                                if ((object)eventSymbol != null)
+                                {
+                                    accessor = (parent.Kind == SyntaxKind.AddAccessorDeclaration) ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
                                 }
+                                break;
+                            }
                             default:
                                 Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind);
                                 break;
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)accessor != null)
                         {
-                            resultBinder = new InMethodBinder(accessor, resultBinder.WithPrimaryConstructorParametersIfNecessary(accessor.ContainingType));
+                            resultBinder = new InMethodBinder(accessor, resultBinder.WithPrimaryConstructorParametersIfNecessary(accessor.ContainingType, shadowBackingFields: false));
                         }
                     }
 
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     if ((object)method != null && inBody)
                     {
-                        resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType));
+                        resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
-
+                
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool inBody = LookupPosition.IsBetweenTokens(position, parent.OpenBraceToken, parent.CloseBraceToken) ||
                     LookupPosition.IsInAttributeSpecification(position, parent.AttributeLists);
                 if (!inBody)
-                {
+                {                
                     return VisitCore(parent.Parent);
                 }
 
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
-                    InContainerBinder outer;
+                        InContainerBinder outer;
                     var container = parent.Parent;
 
                     if (InScript && container.Kind == SyntaxKind.CompilationUnit)
@@ -747,11 +747,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Although namespaces are not allowed in script code we still bind them so that we don't report useless errors.
                         // A namespace in script code is not bound within the scope of a Script class, 
                         // but still within scope of compilation unit extern aliases and usings.
-                        outer = VisitCompilationUnit((CompilationUnitSyntax)container, inUsing: false, inScript: false);
+                            outer = VisitCompilationUnit((CompilationUnitSyntax)container, inUsing: false, inScript: false);
                     }
                     else
                     {
-                        outer = (InContainerBinder)factory.GetBinder(parent.Parent, position);
+                            outer = (InContainerBinder)factory.GetBinder(parent.Parent, position);
                     }
 
                     if (!inBody)
@@ -788,10 +788,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
             {
-                return VisitCompilationUnit(
-                parent,
-                inUsing: IsInUsing(parent),
-                inScript: InScript);
+                    return VisitCompilationUnit(
+                    parent,
+                    inUsing: IsInUsing(parent),
+                    inScript: InScript);
             }
 
             internal InContainerBinder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
@@ -801,8 +801,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new ArgumentOutOfRangeException("compilationUnit", "node not part of tree");
                 }
 
-                var extraInfo = inUsing
-                    ? (inScript ? NodeUsage.CompilationUnitScriptUsings : NodeUsage.CompilationUnitUsings)
+                var extraInfo = inUsing 
+                    ? (inScript ? NodeUsage.CompilationUnitScriptUsings : NodeUsage.CompilationUnitUsings) 
                     : (inScript ? NodeUsage.CompilationUnitScript : NodeUsage.Normal);  // extra info for the cache.
                 var key = CreateBinderCacheKey(compilationUnit, extraInfo);
 
@@ -839,12 +839,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);
-
+                    
                         if (compilation.HostObjectType != null)
                         {
                             result = new HostObjectModelBinder(result);
                         }
-
+                    
                         importsContainer = compilation.ScriptClass;
                     }
                     else
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This occurs at EOF
                     token = containingNode.GetLastToken();
-                    Debug.Assert(token == this.syntaxTree.GetRoot().GetLastToken());
+                        Debug.Assert(token == this.syntaxTree.GetRoot().GetLastToken());
                 }
                 else if (this.position < containingSpan.Start || this.position > containingSpan.End) //NB: > not >=
                 {

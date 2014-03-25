@@ -3764,17 +3764,23 @@
   <data name="ERR_PrimaryCtorParameterInConstructorInitializer" xml:space="preserve">
     <value>Constructor initializer cannot access the parameters to a primary constructor.</value>
   </data>
-  <data name="ERR_ObjectRequiredForPrimaryConstructorParameter" xml:space="preserve">
-    <value>An object reference is required for the parameter to a primary constructor '{0}'.</value>
-  </data>
-  <data name="ERR_InvalidUseOfRefOutPrimaryConstructorParameter" xml:space="preserve">
-    <value>Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.</value>
+  <data name="ERR_InvalidUseOfPrimaryConstructorParameter" xml:space="preserve">
+    <value>Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.</value>
   </data>
   <data name="ERR_AnonDelegateCantUsePrimaryConstructorParameter" xml:space="preserve">
     <value>Cannot use primary constructor parameter '{0}' inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor.</value>
   </data>
   <data name="ERR_InstanceCtorCannotHaveDefaultThisInitializer" xml:space="preserve">
     <value>Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor.</value>
+  </data>
+  <data name="ERR_StaticParamMod" xml:space="preserve">
+    <value>A parameter cannot have static modifier.</value>
+  </data>
+  <data name="ERR_ParamMissingAccessMod" xml:space="preserve">
+    <value>A parameter must either have an accessibility modifier or must not have any field modifiers.</value>
+  </data>
+  <data name="ERR_RefOutParameterWithFieldModifier" xml:space="preserve">
+    <value>A ref or out parameter cannot have any field modifiers.</value>
   </data>
   <data name="LogoLine1" xml:space="preserve">
     <value>Microsoft (R) Visual C# Compiler version {0}</value>

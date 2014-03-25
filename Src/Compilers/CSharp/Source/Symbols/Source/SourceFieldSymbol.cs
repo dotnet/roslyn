@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly SourceMemberContainerTypeSymbol containingType;
         private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
 
-        private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-
         protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
@@ -48,6 +45,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override string Name { get; }
 
+        protected abstract DeclarationModifiers Modifiers { get; }
+
+        public sealed override bool IsStatic
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Static) != 0;
+            }
+        }
+
+        public sealed override bool IsReadOnly
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
+        public sealed override bool IsConst
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Const) != 0;
+            }
+        }
+
+        public sealed override bool IsVolatile
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Volatile) != 0;
+            }
+        }
+
+        public sealed override bool IsFixed
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Fixed) != 0;
+            }
+        }
+
+        internal bool IsNew
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.New) != 0;
+            }
+        }
+
+        public sealed override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                return ModifierUtils.EffectiveAccessibility(Modifiers);
+            }
+        }
+
+        protected void CheckAccessibility(DiagnosticBag diagnostics)
+        {
+            var info = ModifierUtils.CheckAccessibility(Modifiers);
+            if (info != null)
+            {
+                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
+            }
+        }
+
+        protected void ReportModifiersDiagnostics(DiagnosticBag diagnostics)
+        {
+            if (containingType.IsSealed && (DeclaredAccessibility == Accessibility.Protected || DeclaredAccessibility == Accessibility.ProtectedOrInternal))
+            {
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(containingType), ErrorLocation, this);
+            }
+            else if (IsVolatile && IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_VolatileAndReadonly, ErrorLocation, this);
+            }
+            else if (containingType.IsStatic && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, ErrorLocation, this);
+            }
+
+            // TODO: Consider checking presence of core type System.Runtime.CompilerServices.IsVolatile 
+            // if there is a volatile modifier. Perhaps an appropriate error should be reported if the 
+            // type isn't available.
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                if (!IsVolatile)
+                {
+                    return ImmutableArray<CustomModifier>.Empty;
+                }
+                else
+                {
+                    return ImmutableArray.Create<CustomModifier>(
+                            CSharpCustomModifier.CreateRequired(this.ContainingAssembly.GetSpecialType(SpecialType.System_Runtime_CompilerServices_IsVolatile)));
+                }
+            }
+        }
+
         public sealed override Symbol ContainingSymbol
         {
             get
@@ -64,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract Location Location { get; }
+        internal abstract Location ErrorLocation {  get; }
 
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
@@ -163,21 +263,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
-            bool hasAnyDiagnostics;
+            CSharpAttributeData boundAttribute;
+            ObsoleteAttributeData obsoleteData;
             
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ObsoleteAttribute))
+            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
-                var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
-            {
-                    arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = boundAttribute.DecodeObsoleteAttribute();
-                    if (!hasAnyDiagnostics)
-                {
-                        return boundAttribute;
-                    }
+                if (obsoleteData != null)
+                    {
+                    arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                 }
 
-                return null;
+                return boundAttribute;
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -350,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.ContainingType.Layout.Kind == LayoutKind.Explicit)
                 {
                     // error CS0625: '<field>': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, this.Location, this);
+                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, this.ErrorLocation, this);
                 }
             }
 
@@ -417,150 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
-        {
-            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
-            if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
-            {
-                return value;
-            }
-
-            if (!inProgress.IsEmpty)
-            {
-                // Add this field as a dependency of the original field, and
-                // return Unset. The outer GetConstantValue caller will call
-                // this method again after evaluating any dependencies.
-                inProgress.AddDependency(this);
-                return Microsoft.CodeAnalysis.ConstantValue.Unset;
-            }
-
-            // Order dependencies.
-            var order = ArrayBuilder<ConstantEvaluationHelpers.FieldInfo>.GetInstance();
-            this.OrderAllDependencies(order, earlyDecodingWellKnownAttributes);
-
-            // Evaluate fields in order.
-            foreach (var info in order)
-            {
-                // Bind the field value regardless of whether the field represents
-                // the start of a cycle. In the cycle case, there will be unevaluated
-                // dependencies and the result will be ConstantValue.Bad plus cycle error.
-                var field = info.Field;
-                field.BindConstantValueIfNecessary(earlyDecodingWellKnownAttributes, startsCycle: info.StartsCycle);
-            }
-
-            order.Free();
-
-            // Return the value of this field.
-            return this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
-        }
-
-        /// <summary>
-        /// Return the constant value dependencies. Compute the dependencies
-        /// if necessary by evaluating the constant value but only persist the
-        /// constant value if there were no dependencies. (If there are dependencies,
-        /// the constant value will be re-evaluated after evaluating dependencies.)
-        /// </summary>
-        internal ImmutableHashSet<SourceFieldSymbol> GetConstantValueDependencies(bool earlyDecodingWellKnownAttributes)
-        {
-            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
-            if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
-            {
-                // Constant value already determined. No need to
-                // compute dependencies since the constant values
-                // of all dependencies should be evaluated as well.
-                return ImmutableHashSet<SourceFieldSymbol>.Empty;
-            }
-
-            ImmutableHashSet<SourceFieldSymbol> dependencies;
-            var builder = PooledHashSet<SourceFieldSymbol>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
-            value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
-
-            // Only persist if there are no dependencies and the calculation
-            // completed successfully. (We could probably persist in other
-            // scenarios but it's probably not worth the added complexity.)
-            if ((builder.Count == 0) &&
-                (value != null) &&
-                !value.IsBad &&
-                (value != Microsoft.CodeAnalysis.ConstantValue.Unset) &&
-                diagnostics.IsEmptyWithoutResolution)
-            {
-                this.SetLazyConstantValue(
-                    value,
-                    earlyDecodingWellKnownAttributes,
-                    diagnostics,
-                    startsCycle: false);
-                dependencies = ImmutableHashSet<SourceFieldSymbol>.Empty;
-            }
-            else
-            {
-                dependencies = ImmutableHashSet<SourceFieldSymbol>.Empty.Union(builder);
-            }
-
-            diagnostics.Free();
-            builder.Free();
-            return dependencies;
-        }
-
-        private void BindConstantValueIfNecessary(bool earlyDecodingWellKnownAttributes, bool startsCycle)
-        {
-            if (this.GetLazyConstantValue(earlyDecodingWellKnownAttributes) != Microsoft.CodeAnalysis.ConstantValue.Unset)
-            {
-                return;
-            }
-
-            var builder = PooledHashSet<SourceFieldSymbol>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
-            if (startsCycle)
-            {
-                diagnostics.Add(ErrorCode.ERR_CircConstValue, this.Location, this);
-            }
-
-            var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
-            this.SetLazyConstantValue(
-                value,
-                earlyDecodingWellKnownAttributes,
-                diagnostics,
-                startsCycle);
-            diagnostics.Free();
-            builder.Free();
-        }
-
-        private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
-        {
-            return earlyDecodingWellKnownAttributes ? this.lazyConstantEarlyDecodingValue : this.lazyConstantValue;
-        }
-
-        private void SetLazyConstantValue(
-            ConstantValue value,
-            bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics,
-            bool startsCycle)
-        {
-            Debug.Assert(value != Microsoft.CodeAnalysis.ConstantValue.Unset);
-            Debug.Assert((GetLazyConstantValue(earlyDecodingWellKnownAttributes) == Microsoft.CodeAnalysis.ConstantValue.Unset) ||
-                (GetLazyConstantValue(earlyDecodingWellKnownAttributes) == value));
-
-            if (earlyDecodingWellKnownAttributes)
-            {
-                Interlocked.CompareExchange(ref this.lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);
-            }
-            else
-            {
-                if (Interlocked.CompareExchange(ref this.lazyConstantValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset) == Microsoft.CodeAnalysis.ConstantValue.Unset)
-                {
-#if REPORT_ALL
-                    Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
-#endif
-                    this.AddSemanticDiagnostics(diagnostics);
-                    this.state.NotePartComplete(CompletionPart.ConstantValue);
-                }
-            }
-        }
-
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
     }
-
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
     {
@@ -569,6 +522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference syntaxReference;
 
         private string lazyDocComment;
+        private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+
 
         protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
             : base(containingType)
@@ -619,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override Location Location
+        internal sealed override Location ErrorLocation
         {
             get
             {
@@ -639,5 +595,148 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
+
+        internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+        {
+            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
+            if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
+            {
+                return value;
+            }
+
+            if (!inProgress.IsEmpty)
+            {
+                // Add this field as a dependency of the original field, and
+                // return Unset. The outer GetConstantValue caller will call
+                // this method again after evaluating any dependencies.
+                inProgress.AddDependency(this);
+                return Microsoft.CodeAnalysis.ConstantValue.Unset;
+            }
+
+            // Order dependencies.
+            var order = ArrayBuilder<ConstantEvaluationHelpers.FieldInfo>.GetInstance();
+            this.OrderAllDependencies(order, earlyDecodingWellKnownAttributes);
+
+            // Evaluate fields in order.
+            foreach (var info in order)
+            {
+                // Bind the field value regardless of whether the field represents
+                // the start of a cycle. In the cycle case, there will be unevaluated
+                // dependencies and the result will be ConstantValue.Bad plus cycle error.
+                var field = info.Field;
+                field.BindConstantValueIfNecessary(earlyDecodingWellKnownAttributes, startsCycle: info.StartsCycle);
+            }
+
+            order.Free();
+
+            // Return the value of this field.
+            return this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
+        }
+
+        /// <summary>
+        /// Return the constant value dependencies. Compute the dependencies
+        /// if necessary by evaluating the constant value but only persist the
+        /// constant value if there were no dependencies. (If there are dependencies,
+        /// the constant value will be re-evaluated after evaluating dependencies.)
+        /// </summary>
+        internal ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> GetConstantValueDependencies(bool earlyDecodingWellKnownAttributes)
+        {
+            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
+            if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
+            {
+                // Constant value already determined. No need to
+                // compute dependencies since the constant values
+                // of all dependencies should be evaluated as well.
+                return ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
+            }
+
+            ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
+            var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
+                var diagnostics = DiagnosticBag.GetInstance();
+            value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
+
+            // Only persist if there are no dependencies and the calculation
+            // completed successfully. (We could probably persist in other
+            // scenarios but it's probably not worth the added complexity.)
+            if ((builder.Count == 0) &&
+                (value != null) &&
+                !value.IsBad &&
+                (value != Microsoft.CodeAnalysis.ConstantValue.Unset) &&
+                diagnostics.IsEmptyWithoutResolution)
+            {
+                this.SetLazyConstantValue(
+                    value,
+                    earlyDecodingWellKnownAttributes,
+                    diagnostics,
+                    startsCycle: false);
+                dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
+            }
+            else
+                {
+                dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty.Union(builder);
+            }
+
+                    diagnostics.Free();
+            builder.Free();
+            return dependencies;
+        }
+
+        private void BindConstantValueIfNecessary(bool earlyDecodingWellKnownAttributes, bool startsCycle)
+        {
+            if (this.GetLazyConstantValue(earlyDecodingWellKnownAttributes) != Microsoft.CodeAnalysis.ConstantValue.Unset)
+            {
+                return;
+            }
+
+            var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (startsCycle)
+                {
+                diagnostics.Add(ErrorCode.ERR_CircConstValue, this.location, this);
+                }
+
+            var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
+            this.SetLazyConstantValue(
+                value,
+                earlyDecodingWellKnownAttributes,
+                diagnostics,
+                startsCycle);
+                diagnostics.Free();
+            builder.Free();
+        }
+
+        private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
+        {
+            return earlyDecodingWellKnownAttributes ? this.lazyConstantEarlyDecodingValue : this.lazyConstantValue;
+        }
+
+        private void SetLazyConstantValue(
+            ConstantValue value,
+            bool earlyDecodingWellKnownAttributes,
+            DiagnosticBag diagnostics,
+            bool startsCycle)
+        {
+            Debug.Assert(value != Microsoft.CodeAnalysis.ConstantValue.Unset);
+            Debug.Assert((GetLazyConstantValue(earlyDecodingWellKnownAttributes) == Microsoft.CodeAnalysis.ConstantValue.Unset) ||
+                (GetLazyConstantValue(earlyDecodingWellKnownAttributes) == value));
+
+            if (earlyDecodingWellKnownAttributes)
+            {
+                Interlocked.CompareExchange(ref this.lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);
+            }
+            else
+            {
+                if (Interlocked.CompareExchange(ref this.lazyConstantValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset) == Microsoft.CodeAnalysis.ConstantValue.Unset)
+                {
+#if REPORT_ALL
+                    Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
+#endif
+                    this.AddSemanticDiagnostics(diagnostics);
+                    this.state.NotePartComplete(CompletionPart.ConstantValue);
+                }
+            }
+        }
+
+        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
     }
 }

@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundInitializer boundInitializer = BindFieldInitializer(
-                            new LocalScopeBinder(parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType)).
+                            new LocalScopeBinder(parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true)).
                                             WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol),
                             fieldSymbol,
                             (EqualsValueClauseSyntax)initializerNode,
@@ -610,14 +610,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Method Body Binding
 
         // NOTE: can return null if the method has no body.
-        internal static BoundBlock BindMethodBody(MethodSymbol method, DiagnosticBag diagnostics)
+        internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ConsList<Imports> unused;
-            return BindMethodBody(method, diagnostics, false, out unused);
+            return BindMethodBody(method, compilationState, diagnostics, false, out unused);
         }
 
         // NOTE: can return null if the method has no body.
-        internal static BoundBlock BindMethodBody(MethodSymbol method, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
+        internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
         {
             debugImports = null;
 
@@ -687,12 +687,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
-                }
+                    }
 
                     if (sourceMethod.IsPrimaryCtor)
                     {
                         body = null;
-            }
+                    }
             else
             {
                         return null;
@@ -724,18 +724,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(constructorInitializer);
             }
 
-            if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
+            if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor && (object)((SourceMemberContainerTypeSymbol)sourceMethod.ContainingType).PrimaryCtor == (object)sourceMethod)
             {
                 Debug.Assert(method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType());
-
-                // If we allow primary constructors to have a body, our strategy to figure out 
-                // what parameters should have backing fields should be adjusted. When parameter 
-                // is used in a lambda within the body, it must have a backing field.
                 Debug.Assert(body == null);
 
                 if (sourceMethod.ParameterCount > 0)
                 {
-                    statements.Add(new BoundBackingFieldsForPrimaryConstructorParametersInitialization(sourceMethod.SyntaxNode) { WasCompilerGenerated = true });
+                    var factory = new SyntheticBoundNodeFactory(sourceMethod, sourceMethod.SyntaxNode, compilationState, diagnostics);
+                    factory.CurrentMethod = sourceMethod; 
+
+                    foreach (var parameter in sourceMethod.Parameters)
+                    {
+                        FieldSymbol field = parameter.PrimaryConstructorParameterBackingField;
+
+                        if ((object)field != null)
+                        {
+                            statements.Add(factory.Assignment(factory.Field(factory.This(), field),
+                                                                   factory.Parameter(parameter)));
+                        }
+                    }
                 }
             }
 

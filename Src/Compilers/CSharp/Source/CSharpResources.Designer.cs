@@ -5083,11 +5083,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor..
+        ///   Looks up a localized string similar to Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor..
         /// </summary>
-        internal static string ERR_InvalidUseOfRefOutPrimaryConstructorParameter {
+        internal static string ERR_InvalidUseOfPrimaryConstructorParameter {
             get {
-                return ResourceManager.GetString("ERR_InvalidUseOfRefOutPrimaryConstructorParameter", resourceCulture);
+                return ResourceManager.GetString("ERR_InvalidUseOfPrimaryConstructorParameter", resourceCulture);
             }
         }
         
@@ -6322,16 +6322,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
             get {
                 return ResourceManager.GetString("ERR_ObjectRequired", resourceCulture);
             }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An object reference is required for the parameter to a primary constructor &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_ObjectRequiredForPrimaryConstructorParameter {
-            get {
-                return ResourceManager.GetString("ERR_ObjectRequiredForPrimaryConstructorParameter", resourceCulture);
             }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to A /reference option that declares an extern alias can only have one filename. To specify multiple aliases or filenames, use multiple /reference options..
@@ -6546,6 +6537,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ParameterNotValidForType {
             get {
                 return ResourceManager.GetString("ERR_ParameterNotValidForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A parameter must either have an accessibility modifier or must not have any field modifiers..
+        /// </summary>
+        internal static string ERR_ParamMissingAccessMod {
+            get {
+                return ResourceManager.GetString("ERR_ParamMissingAccessMod", resourceCulture);
             }
         }
         
@@ -7207,6 +7207,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A ref or out parameter cannot have any field modifiers..
+        /// </summary>
+        internal static string ERR_RefOutParameterWithFieldModifier {
+            get {
+                return ResourceManager.GetString("ERR_RefOutParameterWithFieldModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A property or indexer may not be passed as an out or ref parameter.
         /// </summary>
         internal static string ERR_RefProperty {
@@ -7698,6 +7707,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StaticNotVirtual {
             get {
                 return ResourceManager.GetString("ERR_StaticNotVirtual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A parameter cannot have static modifier..
+        /// </summary>
+        internal static string ERR_StaticParamMod {
+            get {
+                return ResourceManager.GetString("ERR_StaticParamMod", resourceCulture);
             }
         }
         

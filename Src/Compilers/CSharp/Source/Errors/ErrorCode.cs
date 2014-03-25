@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1261,18 +1261,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: Adjust numbers of the following errors once Declaration Expressions are RI-ed into Main.
         ERR_DeclarationExpressionOutsideOfAMethodBody = 8201,
-
         ERR_VariableUsedInTheSameArgumentList = 8202,
+
         // TODO: Revise the numbers after an RI to Main.
         ERR_SeveralPartialsDeclarePrimaryCtor = 9001,
         ERR_InstanceCtorMustHaveThisInitializer = 9002,
         ERR_PrimaryCtorParameterSameNameAsTypeParam = 9003,
         ERR_PrimaryCtorParameterSameNameAsContainingType = 9004,
         ERR_PrimaryCtorParameterInConstructorInitializer = 9005,
-        ERR_ObjectRequiredForPrimaryConstructorParameter = 9006,
-        ERR_InvalidUseOfRefOutPrimaryConstructorParameter = 9007,
+        ERR_InvalidUseOfPrimaryConstructorParameter = 9007,
         ERR_AnonDelegateCantUsePrimaryConstructorParameter = 9008,
         ERR_InstanceCtorCannotHaveDefaultThisInitializer = 9009,
+        ERR_StaticParamMod = 9010,
+        ERR_ParamMissingAccessMod = 9011,
+        ERR_RefOutParameterWithFieldModifier = 9012,
 
         ERR_InitializerOnNonAutoProperty = 8036, 
         ERR_AutoPropertyMustHaveSetOrInitializer = 8037,

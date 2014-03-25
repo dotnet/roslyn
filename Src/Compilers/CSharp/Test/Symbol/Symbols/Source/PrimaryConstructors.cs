@@ -1134,7 +1134,6 @@ class Base
 
     public const int f0 = 1;
 }
-
 class Derived(int p0, int p1 = Base.f0, int p2 = 0, int p3 = 0, int p4 = 0, int p5 = 0, int p6 = 0, int p7 = 0, int p8 = 0, int p9 = 0, int p10 = 0, int p11 = 0, int p12 = 0, int p13 = 0, int p14 = 0)
     : Base(p0)
 {
@@ -1204,18 +1203,45 @@ class Derived(int p0, int p1 = Base.f0, int p2 = 0, int p3 = 0, int p4 = 0, int 
 ");
 
             comp.VerifyDiagnostics(
-    // (58,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    // (61,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
-    // (14,22): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12").WithLocation(61, 24),
+    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    //     void Test2(int x = p12)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
+    // (14,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         System.Console.WriteLine(p1);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(14, 34),
+    // (19,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         System.Console.WriteLine(p3);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3").WithLocation(19, 34),
+    // (17,22): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
     //     Derived() : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (64,16): error CS9006: An object reference is required for the parameters to a primary constructor 'p13'.
+    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2").WithLocation(17, 22),
+    // (26,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         get { return p5; } 
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5").WithLocation(26, 22),
+    // (29,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p6);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6").WithLocation(29, 38),
+    // (35,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         get { return p7; } 
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7").WithLocation(35, 22),
+    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p8);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8").WithLocation(38, 38),
+    // (46,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p9);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9").WithLocation(46, 38),
+    // (50,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p10);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10").WithLocation(50, 38),
+    // (67,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p13;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p13").WithArguments("p13"),
-    // (69,16): error CS9006: An object reference is required for the parameters to a primary constructor 'p14'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13").WithLocation(67, 16),
+    // (72,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p14;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p14").WithArguments("p14")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14").WithLocation(72, 16)
                 );
 
             SyntaxTree tree = comp.SyntaxTrees.Single();
@@ -1340,18 +1366,45 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
 ");
 
             comp.VerifyDiagnostics(
-    // (53,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    // (61,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
-    // (9,28): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12").WithLocation(61, 24),
+    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    //     void Test2(int x = p12)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
+    // (14,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         System.Console.WriteLine(p1);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(14, 34),
+    // (19,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         System.Console.WriteLine(p3);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3").WithLocation(19, 34),
+    // (17,28): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
     //     Derived(long x) : this(p2)
-    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (59,16): error CS9006: An object reference is required for the parameter to a primary constructor 'p13'.
+    Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2").WithLocation(17, 28),
+    // (26,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         get { return p5; } 
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5").WithLocation(26, 22),
+    // (29,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p6);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6").WithLocation(29, 38),
+    // (35,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         get { return p7; } 
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7").WithLocation(35, 22),
+    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p8);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8").WithLocation(38, 38),
+    // (46,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p9);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9").WithLocation(46, 38),
+    // (50,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Console.WriteLine(p10);
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10").WithLocation(50, 38),
+    // (67,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p13;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p13").WithArguments("p13"),
-    // (64,16): error CS9006: An object reference is required for the parameter to a primary constructor 'p14'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13").WithLocation(67, 16),
+    // (72,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p14;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p14").WithArguments("p14")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14").WithLocation(72, 16)
                 );
 
             SyntaxTree tree = comp.SyntaxTrees.Single();
@@ -1370,6 +1423,296 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
             {
                 symInfo = semanticModel.GetSymbolInfo(n);
                 Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+            }
+
+            var structDecl = (from node in tree.GetRoot().DescendantNodes()
+                              where node.CSharpKind() == SyntaxKind.StructDeclaration
+                              select (StructDeclarationSyntax)node).Single();
+
+            Assert.Equal("Derived", structDecl.Identifier.ValueText);
+            var declaredCtor = semanticModel.GetDeclaredConstructorSymbol(structDecl);
+            Assert.Equal("Derived..ctor(System.Int32 p1, [System.Int32 p2 = 1], [System.Int32 p3 = 0], [System.Int32 p4 = 0], [System.Int32 p5 = 0], [System.Int32 p6 = 0], [System.Int32 p7 = 0], [System.Int32 p8 = 0], [System.Int32 p9 = 0], [System.Int32 p10 = 0], [System.Int32 p11 = 0], [System.Int32 p12 = 0], [System.Int32 p13 = 0], [System.Int32 p14 = 0])",
+                declaredCtor.ToTestDisplayString());
+            Assert.Same(declaredCtor, CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, structDecl));
+
+            var p1 = structDecl.ParameterList.Parameters[1];
+
+            Assert.Equal("[System.Int32 p2 = 1]", semanticModel.GetDeclaredSymbol(p1).ToTestDisplayString());
+
+            symInfo = semanticModel.GetSymbolInfo(p1.Default.Value);
+            Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ParameterVisibility_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x)
+    {}
+
+    public const int f0 = 1;
+}
+class Derived(private int p0, private int p1 = Base.f0, private int p2 = 0, private int p3 = 0, private int p4 = 0, private int p5 = 0, private int p6 = 0, private int p7 = 0, private int p8 = 0, private int p9 = 0, private int p10 = 0, private int p11 = 0, private int p12 = 0, private int p13 = 0, private int p14 = 0)
+    : Base(p0)
+{
+    void Test1()
+    {
+        System.Console.WriteLine(p1);
+    }
+
+    Derived() : this(p2)
+    {
+        System.Console.WriteLine(p3);
+    }
+
+    private int x = p4;
+
+    public int Item1 
+    { 
+        get { return p5; } 
+        set 
+        { 
+            System.Console.WriteLine(p6);
+        }
+    }
+
+    public int this[int x] 
+    { 
+        get { return p7; } 
+        set 
+        { 
+            System.Console.WriteLine(p8);
+        }
+    }
+
+    public event System.Action E1 
+    { 
+        add 
+        { 
+            System.Console.WriteLine(p9);
+        }
+        remove 
+        { 
+            System.Console.WriteLine(p10);
+        }
+    }
+
+    static System.Action GetAction(int x)
+    {
+        return null;
+    }
+
+    public event System.Action E2 = GetAction(p11);
+
+    void Test2(int x = p12)
+    {
+    }
+
+    public static int operator + (Derived x)
+    {
+        return p13;
+    }
+
+    public static explicit operator int (Derived x)
+    {
+        return p14;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    //     void Test2(int x = p12)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
+    // (17,22): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p2'
+    //     Derived() : this(p2)
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p2").WithArguments("Derived.p2").WithLocation(17, 22),
+    // (67,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p13'
+    //         return p13;
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p13").WithArguments("Derived.p13").WithLocation(67, 16),
+    // (72,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p14'
+    //         return p14;
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16)
+                );
+
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+
+            var parameterRefs = (from node in tree.GetRoot().DescendantNodes()
+                                 where node.CSharpKind() == SyntaxKind.IdentifierName
+                                 select (IdentifierNameSyntax)node).
+                         Where(node => node.Identifier.ValueText.StartsWith("p")).ToArray();
+
+            Assert.Equal(15, parameterRefs.Length);
+
+            SymbolInfo symInfo;
+
+            foreach (var n in parameterRefs)
+            {
+                symInfo = semanticModel.GetSymbolInfo(n);
+
+                switch (symInfo.Symbol.Name)
+                {
+                    case "p0":
+                    case "p4":
+                    case "p11":
+                        Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+                        break;
+                    default:
+                        Assert.Equal(SymbolKind.Field, symInfo.Symbol.Kind);
+                        break;
+                }
+            }
+
+            var classDecls = (from node in tree.GetRoot().DescendantNodes()
+                              where node.CSharpKind() == SyntaxKind.ClassDeclaration
+                              select (ClassDeclarationSyntax)node).ToArray();
+
+            Assert.Equal(2, classDecls.Length);
+
+            Assert.Equal("Base", classDecls[0].Identifier.ValueText);
+            Assert.Null(semanticModel.GetDeclaredConstructorSymbol(classDecls[0]));
+            Assert.Null(CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, classDecls[0]));
+
+            Assert.Equal("Derived", classDecls[1].Identifier.ValueText);
+            var declaredCtor = semanticModel.GetDeclaredConstructorSymbol(classDecls[1]);
+            Assert.Equal("Derived..ctor(System.Int32 p0, [System.Int32 p1 = 1], [System.Int32 p2 = 0], [System.Int32 p3 = 0], [System.Int32 p4 = 0], [System.Int32 p5 = 0], [System.Int32 p6 = 0], [System.Int32 p7 = 0], [System.Int32 p8 = 0], [System.Int32 p9 = 0], [System.Int32 p10 = 0], [System.Int32 p11 = 0], [System.Int32 p12 = 0], [System.Int32 p13 = 0], [System.Int32 p14 = 0])",
+                declaredCtor.ToTestDisplayString());
+            Assert.Same(declaredCtor, CSharpExtensions.GetDeclaredConstructorSymbol((CodeAnalysis.SemanticModel)semanticModel, classDecls[1]));
+
+            var p1 = classDecls[1].ParameterList.Parameters[1];
+
+            Assert.Equal("[System.Int32 p1 = 1]", semanticModel.GetDeclaredSymbol(p1).ToTestDisplayString());
+
+            symInfo = semanticModel.GetSymbolInfo(p1.Default.Value);
+            Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ParameterVisibility_04()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x)
+    {}
+
+    public const int f0 = 1;
+}
+
+struct Derived(private int p1, private int p2 = Base.f0, private int p3 = 0, private int p4 = 0, private int p5 = 0, private int p6 = 0, private int p7 = 0, private int p8 = 0, private int p9 = 0, private int p10 = 0, private int p11 = 0, private int p12 = 0, private int p13 = 0, private int p14 = 0)
+{
+    void Test1()
+    {
+        System.Console.WriteLine(p1);
+    }
+
+    Derived(long x) : this(p2)
+    {
+        System.Console.WriteLine(p3);
+    }
+
+    private int x = p4;
+
+    public int Item1 
+    { 
+        get { return p5; } 
+        set 
+        { 
+            System.Console.WriteLine(p6);
+        }
+    }
+
+    public int this[int x] 
+    { 
+        get { return p7; } 
+        set 
+        { 
+            System.Console.WriteLine(p8);
+        }
+    }
+
+    public event System.Action E1 
+    { 
+        add 
+        { 
+            System.Console.WriteLine(p9);
+        }
+        remove 
+        { 
+            System.Console.WriteLine(p10);
+        }
+    }
+
+    static System.Action GetAction(int x)
+    {
+        return null;
+    }
+
+    public event System.Action E2 = GetAction(p11);
+
+    void Test2(int x = p12)
+    {
+    }
+
+    public static int operator + (Derived x)
+    {
+        return p13;
+    }
+
+    public static explicit operator int (Derived x)
+    {
+        return p14;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+    //     void Test2(int x = p12)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
+    // (17,28): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p2'
+    //     Derived(long x) : this(p2)
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p2").WithArguments("Derived.p2").WithLocation(17, 28),
+    // (17,28): error CS0170: Use of possibly unassigned field 'p2'
+    //     Derived(long x) : this(p2)
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "p2").WithArguments("p2").WithLocation(17, 28),
+    // (67,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p13'
+    //         return p13;
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p13").WithArguments("Derived.p13").WithLocation(67, 16),
+    // (72,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p14'
+    //         return p14;
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16)
+                );
+
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+
+            var parameterRefs = (from node in tree.GetRoot().DescendantNodes()
+                                 where node.CSharpKind() == SyntaxKind.IdentifierName
+                                 select (IdentifierNameSyntax)node).
+                         Where(node => node.Identifier.ValueText.StartsWith("p")).ToArray();
+
+            Assert.Equal(14, parameterRefs.Length);
+
+            SymbolInfo symInfo;
+
+            foreach (var n in parameterRefs)
+            {
+                symInfo = semanticModel.GetSymbolInfo(n);
+
+                switch (symInfo.Symbol.Name)
+                {
+                    case "p4":
+                    case "p11":
+                        Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+                        break;
+                    default:
+                        Assert.Equal(SymbolKind.Field, symInfo.Symbol.Kind);
+                        break;
+                }
             }
 
             var structDecl = (from node in tree.GetRoot().DescendantNodes()
@@ -1430,12 +1773,12 @@ struct Derived4(int p4)
     // (18,25): error CS0514: 'Derived3': static constructor cannot have an explicit 'this' or 'base' constructor call
     //     static Derived3() : this(p3,0)
     Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("Derived3"),
-    // (26,34): error CS9006: An object reference is required for the parameters to a primary constructor 'p4'.
+    // (26,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p4").WithArguments("p4"),
-    // (12,34): error CS9006: An object reference is required for the parameters to a primary constructor 'p2'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
+    // (12,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p2);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p2").WithArguments("p2")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2")
                 );
         }
 
@@ -1483,27 +1826,27 @@ class Derived(int p1, int p2 = 0, int p3 = 0, int p4 = 0, int p5 = 0, int p6 = 0
 ");
 
             comp.VerifyDiagnostics(
-    // (9,28): error CS9006: An object reference is required for the parameter to a primary constructor 'p2'.
+    // (9,28): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     private static int x = p2;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p2").WithArguments("p2"),
-    // (37,54): error CS9006: An object reference is required for the parameter to a primary constructor 'p7'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2"),
+    // (37,54): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     public static event System.Action E2 = GetAction(p7);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p7").WithArguments("p7"),
-    // (6,34): error CS9006: An object reference is required for the parameter to a primary constructor 'p1'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
+    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p1").WithArguments("p1"),
-    // (13,22): error CS9006: An object reference is required for the parameter to a primary constructor 'p3'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
+    // (13,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p3; } 
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p3").WithArguments("p3"),
-    // (16,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p4'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
+    // (16,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p4").WithArguments("p4"),
-    // (24,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p5'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
+    // (24,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p5);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p5").WithArguments("p5"),
-    // (28,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p6'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
+    // (28,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p6").WithArguments("p6")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6")
                 );
         }
 
@@ -1551,27 +1894,27 @@ struct Derived(int p1, int p2 = 0, int p3 = 0, int p4 = 0, int p5 = 0, int p6 = 
 ");
 
             comp.VerifyDiagnostics(
-    // (9,28): error CS9006: An object reference is required for the parameter to a primary constructor 'p2'.
+    // (9,28): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     private static int x = p2;
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p2").WithArguments("p2"),
-    // (37,54): error CS9006: An object reference is required for the parameter to a primary constructor 'p7'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2"),
+    // (37,54): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     public static event System.Action E2 = GetAction(p7);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p7").WithArguments("p7"),
-    // (6,34): error CS9006: An object reference is required for the parameter to a primary constructor 'p1'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
+    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p1").WithArguments("p1"),
-    // (13,22): error CS9006: An object reference is required for the parameter to a primary constructor 'p3'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
+    // (13,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p3; } 
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p3").WithArguments("p3"),
-    // (16,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p4'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
+    // (16,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p4);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p4").WithArguments("p4"),
-    // (24,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p5'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
+    // (24,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p5);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p5").WithArguments("p5"),
-    // (28,38): error CS9006: An object reference is required for the parameter to a primary constructor 'p6'.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
+    // (28,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p6").WithArguments("p6")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6")
                 );
         }
 
@@ -1652,9 +1995,9 @@ class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref in
 ");
 
             comp.VerifyDiagnostics(
-    // (58,24): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (58,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p12"),
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12"),
     // (58,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
@@ -1679,39 +2022,39 @@ class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref in
     // (6,14): error CS0177: The out parameter 'p14' must be assigned to before control leaves the current method
     // class Derived(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
     Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p0, ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, ref int p7, ref int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14"),
-    // (11,34): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (11,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p1"),
-    // (16,34): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
+    // (16,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p3"),
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
     // (14,22): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
     //     Derived() : this(p2)
     Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (23,22): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (23,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p5"),
-    // (26,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
+    // (26,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p6"),
-    // (32,22): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6"),
+    // (32,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p7"),
-    // (35,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
+    // (35,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p8"),
-    // (43,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8"),
+    // (43,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p9"),
-    // (47,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9"),
+    // (47,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p10"),
-    // (64,16): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10"),
+    // (64,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p13"),
-    // (69,16): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13"),
+    // (69,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p14")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14")
                 );
         }
 
@@ -1787,9 +2130,9 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
 ");
 
             comp.VerifyDiagnostics(
-    // (53,24): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (53,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p12"),
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12"),
     // (53,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x"),
@@ -1820,41 +2163,41 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
     // (2,15): error CS0177: The out parameter 'p14' must be assigned to before control leaves the current method
     // struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)
     Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref int p6, out int p7, out int p8, out int p9, out int p10, out int p11, out int p12, out int p13, out int p14)").WithArguments("p14"),
-    // (6,34): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (6,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p1);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p1"),
-    // (11,34): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1"),
+    // (11,34): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         System.Console.WriteLine(p3);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p3"),
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p3"),
     // (9,28): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
     //     Derived(long x) : this(p2)
     Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p2"),
-    // (59,16): error CS9006: An object reference is required for the parameter to a primary constructor 'p13'.
+    // (59,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p13;
-    // (18,22): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (18,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p5; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p5"),
-    // (21,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p5"),
+    // (21,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p6);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p6"),
-    // (27,22): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p6"),
+    // (27,22): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         get { return p7; } 
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p7"),
-    // (30,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p7"),
+    // (30,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p8);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p8"),
-    // (38,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p8"),
+    // (38,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p9);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p9"),
-    // (42,38): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p9"),
+    // (42,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //             System.Console.WriteLine(p10);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p10"),
-    // (59,16): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p10"),
+    // (59,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p13;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p13"),
-    // (64,16): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p13"),
+    // (64,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         return p14;
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p14")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p14")
                 );
         }
 
@@ -2044,7 +2387,7 @@ class Derived(int p0, out int p1, ref int p2, int p3, out int p4, ref int p5, in
         }
 
         [Fact]
-        public void GenericName()
+        public void GenericName_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
 class Derived1(int p1, int p2)
@@ -2059,9 +2402,34 @@ class Derived1(int p1, int p2)
 ");
 
             comp.VerifyDiagnostics(
+    // (6,18): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         int x1 = p1;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p1").WithLocation(6, 18),
     // (7,18): error CS0103: The name 'p2' does not exist in the current context
     //         int x2 = p2<int>(0);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2<int>").WithArguments("p2")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "p2<int>").WithArguments("p2").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void GenericName_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived1(private int p1, private int p2)
+{
+    void Test()
+    {
+        int x1 = p1;
+        int x2 = p2<int>(0);
+    }
+}
+
+");
+
+            comp.VerifyDiagnostics(
+    // (7,18): error CS0307: The field 'Derived1.p2' cannot be used with type arguments
+    //         int x2 = p2<int>(0);
+    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p2<int>").WithArguments("Derived1.p2", "field").WithLocation(7, 18)
                 );
         }
 
@@ -2092,15 +2460,15 @@ class Derived1(ref int p1, ref int p2, ref int p3, ref int p4)
 ");
 
             comp.VerifyDiagnostics(
-    // (20,30): error CS9006: An object reference is required for the parameter to a primary constructor 'p4'.
+    // (20,30): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     static int f2 = Test(ref p4);
-    Diagnostic(ErrorCode.ERR_ObjectRequiredForPrimaryConstructorParameter, "p4").WithArguments("p4"),
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p4"),
     // (4,33): error CS9005: Constructor initializer cannot access the parameters to a primary constructor.
     //     Derived1(int p5) : this(ref p1, ref p5, ref p5, ref p5)
     Diagnostic(ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, "p1"),
-    // (15,18): error CS9007: Ref and out parameters of a primary constructor can only be accessed in variable initializers and arguments to the base constructor.
+    // (15,18): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //         Test(ref p2);
-    Diagnostic(ErrorCode.ERR_InvalidUseOfRefOutPrimaryConstructorParameter, "p2")
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p2")
                 );
         }
 
@@ -2116,7 +2484,7 @@ class Base
     }
 }
 
-class Derived(int x, int y, int z, int u, int v, int w) : Base(x)
+class Derived(int x, int y, private int z, int u, private int v, private int w) : Base(x)
 {
     public int V
     {
@@ -2168,14 +2536,7 @@ class Program
 }
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp, expectedOutput: 
-@"1
-2
-3
-4
-5
-6
-60", symbolValidator: delegate (ModuleSymbol m)
+            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
                 var derived = m.GlobalNamespace.GetTypeMember("Derived");
 
@@ -2184,21 +2545,101 @@ class Program
                     Assert.Equal(0, derived.GetMembers(name).Length);
                 }
 
-                foreach (var name in new [] { "z", "v", "w"})
+                foreach (var name in new[] { "z", "v", "w" })
                 {
                     var f = derived.GetMember<FieldSymbol>(name);
                     Assert.False(f.IsStatic);
                     Assert.False(f.IsReadOnly);
                     Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
                 }
-            });
+            };
+
+            var verifier = CompileAndVerify(comp, expectedOutput: 
+@"1
+2
+3
+4
+5
+6
+60", sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void Emit_01_Err()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public Base(int x)
+    {
+        System.Console.WriteLine(x);
+    }
+}
+
+class Derived(int x, int y, int z, int u, int v, int w) : Base(x)
+{
+    public int V
+    {
+        get 
+        {
+            return v;
+        }
+    }
+
+    public int Fy = y;
+
+    public int Z
+    {
+        get 
+        {
+            return z;
+        }
+    }
+
+    public int Fu = u;
+
+    public int W
+    {
+        get 
+        {
+            return w;
+        }
+        set
+        {
+            w = value;
+        }
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+    // (16,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return v;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(16, 20),
+    // (26,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return z;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "z").WithLocation(26, 20),
+    // (36,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return w;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(36, 20),
+    // (40,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             w = value;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(40, 13)
+                );
         }
 
         [Fact]
         public void Emit_02()
         {
             var comp = CreateCompilationWithMscorlib(@"
-struct Derived(int x, int y, int z, int u, int v, int w)
+struct Derived(int x, int y, int z, int u, private int v, private int w)
 {
     public int V()
     {
@@ -2232,10 +2673,7 @@ class Program
 }
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"5
-6
-60", symbolValidator: delegate (ModuleSymbol m)
+            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
                 var derived = m.GlobalNamespace.GetTypeMember("Derived");
 
@@ -2251,14 +2689,64 @@ class Program
                     Assert.False(f.IsReadOnly);
                     Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
                 }
-            });
+            };
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"5
+6
+60", sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void Emit_02_Err()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct Derived(int x, int y, int z, int u, int v, int w)
+{
+    public int V()
+    {
+        return v;
+    }
+
+    public int W
+    {
+        get 
+        {
+            return w;
+        }
+        set
+        {
+            w = value;
+        }
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+    // (6,16): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //         return v;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(6, 16),
+    // (13,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return w;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(13, 20),
+    // (17,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             w = value;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(17, 13)
+                );
         }
 
         [Fact]
         public void Emit_03()
         {
             var comp = CreateCompilationWithMscorlib(@"
-static class Derived(int x, int y, int z, int u, int v, int w)
+static class Derived(int x, int y, int z, int u, private int v, int w)
 {
     public static int V()
     {
@@ -2281,9 +2769,24 @@ static class Derived(int x, int y, int z, int u, int v, int w)
 ", compOptions: TestOptions.Dll);
 
             comp.VerifyEmitDiagnostics(
+    // (2,62): error CS0708: 'Derived.v': cannot declare instance members in a static class
+    // static class Derived(int x, int y, int z, int u, private int v, int w)
+    Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "v").WithArguments("Derived.v").WithLocation(2, 62),
     // (2,21): error CS0710: Static classes cannot have instance constructors
     // static class Derived(int x, int y, int z, int u, int v, int w)
-    Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "(int x, int y, int z, int u, int v, int w)")
+    Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "(int x, int y, int z, int u, private int v, int w)").WithLocation(2, 21),
+    // (6,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.v'
+    //         return v;
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "v").WithArguments("Derived.v").WithLocation(6, 16),
+    // (13,38): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             System.Func<int> a = ()=>w;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(13, 38),
+    // (14,20): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return w;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(14, 20),
+    // (18,13): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             w = value;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "w").WithLocation(18, 13)
                 );
         }
 
@@ -2291,7 +2794,7 @@ static class Derived(int x, int y, int z, int u, int v, int w)
         public void Emit_04()
         {
             var comp = CreateCompilationWithMscorlib(@"
-class Derived(int v)
+class Derived(private int v)
 {
     public  System.Func<int> GetV
     {
@@ -2328,18 +2831,61 @@ class Program
 }
 ", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"1
-2
-2
-3", symbolValidator: delegate (ModuleSymbol m)
+            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
                 var derived = m.GlobalNamespace.GetTypeMember("Derived");
                 var f = derived.GetMember<FieldSymbol>("v");
                 Assert.False(f.IsStatic);
                 Assert.False(f.IsReadOnly);
                 Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
-            });
+            };
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"1
+2
+2
+3", sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void Emit_04_Err()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Derived(int v)
+{
+    public  System.Func<int> GetV
+    {
+        get 
+        {
+            return ()=>v;
+        }
+    }
+
+    public  System.Action<int> SetV
+    {
+        get 
+        {
+            return (int x)=> v=x;
+        }
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+    }
+}
+", compOptions: TestOptions.Exe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyEmitDiagnostics(
+    // (8,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return ()=>v;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(8, 24),
+    // (16,30): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
+    //             return (int x)=> v=x;
+    Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "v").WithLocation(16, 30)
+                );
         }
 
         [Fact]
@@ -2698,8 +3244,10 @@ class Derived([ParameterAttribute] int v)
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Single().ToString());
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Length);
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
+            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
+            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -2725,8 +3273,9 @@ class Derived([param: ParameterAttribute] int v)
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Single().ToString());
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Length);
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
+            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -2747,16 +3296,18 @@ public class ParameterAttribute : System.Attribute
 {
 }
 
-class Derived([ParameterAttribute] int v)
+class Derived([ParameterAttribute] private int v)
 {
     public int V { get { return v; } }
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Single().ToString());
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Length);
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v"));
+            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
 
-            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
+            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
                 var derived = m.GlobalNamespace.GetTypeMember("Derived");
 
@@ -2765,7 +3316,9 @@ class Derived([ParameterAttribute] int v)
 
                 var v = derived.GetMember<FieldSymbol>("v");
                 Assert.Equal(0, v.GetAttributes().Length);
-            });
+            };
+
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2777,16 +3330,18 @@ public class ParameterAttribute : System.Attribute
 {
 }
 
-class Derived([param: ParameterAttribute] int v)
+class Derived([param: ParameterAttribute] private int v)
 {
     public int V { get { return v; } }
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Single().ToString());
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Length);
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v"));
+            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
 
-            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
+            System.Action<ModuleSymbol> validator = delegate (ModuleSymbol m)
             {
                 var derived = m.GlobalNamespace.GetTypeMember("Derived");
 
@@ -2795,11 +3350,13 @@ class Derived([param: ParameterAttribute] int v)
 
                 var v = derived.GetMember<FieldSymbol>("v");
                 Assert.Equal(0, v.GetAttributes().Length);
-            });
+            };
+
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void FieldAttributes_05()
+        public void FieldAttributes_05_1()
         {
             var comp = CreateCompilationWithMscorlib(@"
 [System.AttributeUsage(System.AttributeTargets.Parameter)]
@@ -2812,8 +3369,40 @@ class Derived([field: ParameterAttribute] int v)
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Length);
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Single().ToString());
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
+            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+    // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+    // class Derived([field: ParameterAttribute] int v)
+    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        public void FieldAttributes_05_2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+[System.AttributeUsage(System.AttributeTargets.Parameter)]
+public class ParameterAttribute : System.Attribute
+{
+}
+
+class Derived([field: ParameterAttribute] private int v)
+{
+}
+", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+
+            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>("v");
+            Assert.Equal("ParameterAttribute", field.GetAttributes().Single().ToString());
+
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
+            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
 
             comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
     // (7,23): error CS0592: Attribute 'ParameterAttribute' is not valid on this declaration type. It is only valid on 'parameter' declarations.
@@ -2834,7 +3423,7 @@ public class FieldAttribute : System.Attribute
 }
 
 [StructLayout(LayoutKind.Explicit)]
-struct Derived([field: FieldAttribute] int v)
+struct Derived([field: FieldAttribute] private int v)
 {
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -2847,7 +3436,7 @@ struct Derived([field: FieldAttribute] int v)
         }
 
         [Fact]
-        public void FieldAttributes_07()
+        public void FieldAttributes_07_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
 [System.AttributeUsage(System.AttributeTargets.Field)]
@@ -2860,8 +3449,52 @@ class Derived([field: FieldAttribute] int v)
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Length);
-            Assert.Equal("FieldAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Single().ToString());
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
+            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+    // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+    // class Derived([field: FieldAttribute] int v)
+    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(7, 16)
+                );
+
+            var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
+            {
+                var derived = m.GlobalNamespace.GetTypeMember("Derived");
+
+                var ctor = derived.GetMember<MethodSymbol>(".ctor");
+                Assert.Equal(0, ctor.Parameters[0].GetAttributes().Length);
+
+                Assert.Equal(0, derived.GetMembers("v").Length);
+            });
+        }
+
+        [Fact]
+        public void FieldAttributes_07_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+[System.AttributeUsage(System.AttributeTargets.Field)]
+public class FieldAttribute : System.Attribute
+{
+}
+
+class Derived([field: FieldAttribute] private int v)
+{
+}
+", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+
+            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name);
+            Assert.Equal("FieldAttribute", field.GetAttributes().Single().ToString());
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField,  field);
+            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+                );
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -2876,7 +3509,7 @@ class Derived([field: FieldAttribute] int v)
         }
 
         [Fact]
-        public void FieldAttributes_08()
+        public void FieldAttributes_08_1()
         {
             var comp = CreateCompilationWithMscorlib(@"
 [System.AttributeUsage(System.AttributeTargets.Field)]
@@ -2890,8 +3523,44 @@ class Derived([field: FieldAttribute] int v)
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Length);
-            Assert.Equal("FieldAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Single().ToString());
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+            Assert.Equal(0, comp.GetTypeByMetadataName("Derived").GetMembers(parameter.Name).Length);
+            Assert.Null(parameter.PrimaryConstructorParameterBackingField);
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+    // (7,16): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+    // class Derived([field: FieldAttribute] int v)
+    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        public void FieldAttributes_08_2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+[System.AttributeUsage(System.AttributeTargets.Field)]
+public class FieldAttribute : System.Attribute
+{
+}
+
+class Derived([field: FieldAttribute] private int v)
+{
+    public int V { get { return v; } }
+}
+", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal(0, parameter.GetAttributes().Length);
+
+            var field = comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name);
+            Assert.Equal("FieldAttribute", field.GetAttributes().Single().ToString());
+
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
+            Assert.Same(parameter, parameter.PrimaryConstructorParameterBackingField.AssociatedSymbol);
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+                );
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -2919,14 +3588,18 @@ public class ParameterAttribute : System.Attribute
 {
 }
 
-class Derived([field: FieldAttribute][ParameterAttribute] int v, int w)
+class Derived([field: FieldAttribute][ParameterAttribute] private int v, int w)
 {
     public int V { get { return v; } }
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            Assert.Equal("ParameterAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetAttributes().Single().ToString());
-            Assert.Equal("FieldAttribute", comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0].GetFieldAttributes().Single().ToString());
+            var parameter = comp.GetTypeByMetadataName("Derived").GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Equal("ParameterAttribute", parameter.GetAttributes().Single().ToString());
+            Assert.Equal("FieldAttribute", comp.GetTypeByMetadataName("Derived").GetMember<FieldSymbol>(parameter.Name).GetAttributes().Single().ToString());
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+                );
 
             var verifier = CompileAndVerify(comp, symbolValidator: delegate (ModuleSymbol m)
             {
@@ -2942,22 +3615,318 @@ class Derived([field: FieldAttribute][ParameterAttribute] int v, int w)
             });
         }
 
-        [Fact(Skip = "Pending issue around LayoutKind.Explicit")]
+        [Fact]
         public void FieldAttributes_10()
         {
             var comp = CreateCompilationWithMscorlib(@"
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Explicit)]
-struct Derived(int v)
+struct Derived(private int v)
 {
     public int V { get { return v; } }
 }
 ", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify();
-            CompileAndVerify(comp);
-            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify();
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+    // (5,28): error CS0625: 'Derived.v': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+    // struct Derived(private int v)
+    Diagnostic(ErrorCode.ERR_MissingStructOffset, "v").WithArguments("Derived.v").WithLocation(5, 28)
+                );
+       }
+
+        [Fact]
+        public void FieldAttributes_11()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+[System.AttributeUsage(System.AttributeTargets.Parameter)]
+public class ParameterAttribute : System.Attribute
+{
+}
+
+partial class Derived(string x)
+{
+}
+
+partial class Derived([field: ParameterAttribute] private int v)
+{
+}
+", compOptions: TestOptions.Dll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.GetDiagnostics(CompilationStage.Declare, true, default(CancellationToken)).Verify(
+    // (11,22): error CS9001: Only one part of a partial type can declare primary constructor parameters.
+    // partial class Derived([field: ParameterAttribute] private int v)
+    Diagnostic(ErrorCode.ERR_SeveralPartialsDeclarePrimaryCtor, "([field: ParameterAttribute] private int v)").WithLocation(11, 22),
+    // (11,31): error CS0592: Attribute 'ParameterAttribute' is not valid on this declaration type. It is only valid on 'parameter' declarations.
+    // partial class Derived([field: ParameterAttribute] private int v)
+    Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ParameterAttribute").WithArguments("ParameterAttribute", "parameter").WithLocation(11, 31)
+                );
+        }
+
+        [Fact]
+        public void ParameterWithFields_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(private int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+                );
+
+            var field = comp.GetTypeByMetadataName("Test").GetMember<SourceFieldSymbol>("v");
+
+            Assert.True(field.IsImplicitlyDeclared);
+            Assert.False(field.IsStatic);
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
+            Assert.False(field.IsVolatile);
+            Assert.False(field.IsNew);
+            Assert.True(field.CustomModifiers.IsEmpty);
+        }
+
+        [Fact]
+        public void ParameterWithFields_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(static static int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9010: A parameter cannot have static modifier.
+    // class Test(static static int v)
+    Diagnostic(ErrorCode.ERR_StaticParamMod, "static").WithLocation(2, 12)
+                );
+
+            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
+            Assert.True(field.IsStatic);
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void ParameterWithFields_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(readonly int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9011: A parameter must either have an accessibility modifier or must not have any field modifiers.
+    // class Test(readonly int v)
+    Diagnostic(ErrorCode.ERR_ParamMissingAccessMod, "readonly").WithLocation(2, 12)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v").IsReadOnly);
+        }
+
+        [Fact]
+        public void ParameterWithFields_04()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(static readonly new int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9010: A parameter cannot have static modifier.
+    // class Test(static readonly new int v)
+    Diagnostic(ErrorCode.ERR_StaticParamMod, "static").WithLocation(2, 12),
+    // (2,19): error CS9011: A parameter must either have an accessibility modifier or must not have any field modifiers.
+    // class Test(static readonly new int v)
+    Diagnostic(ErrorCode.ERR_ParamMissingAccessMod, "readonly").WithLocation(2, 19),
+    // (2,36): warning CS0109: The member 'Test.v' does not hide an inherited member. The new keyword is not required.
+    // class Test(static readonly new int v)
+    Diagnostic(ErrorCode.WRN_NewNotRequired, "v").WithArguments("Test.v").WithLocation(2, 36)
+                );
+        }
+
+        [Fact]
+        public void ParameterWithFields_05()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(private int v)
+{
+    void v(){}
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (4,10): error CS0102: The type 'Test' already contains a definition for 'v'
+    //     void v(){}
+    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "v").WithArguments("Test", "v").WithLocation(4, 10)
+                );
+        }
+
+
+        [Fact]
+        public void ParameterWithFields_06()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+static class Test(public int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,30): error CS0708: 'Test.v': cannot declare instance members in a static class
+    // static class Test(public int v)
+    Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "v").WithArguments("Test.v").WithLocation(2, 30),
+    // (2,18): error CS0710: Static classes cannot have instance constructors
+    // static class Test(public int v)
+    Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "(public int v)").WithLocation(2, 18)
+                );
+
+            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
+            Assert.False(field.IsStatic);
+            Assert.Equal(Accessibility.Public, field.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void ParameterWithFields_07()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(protected volatile int v)
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+                );
+
+            var field = comp.GetTypeByMetadataName("Test").GetMember<FieldSymbol>("v");
+
+            Assert.Equal(Accessibility.Protected, field.DeclaredAccessibility);
+            Assert.True(field.IsVolatile);
+            Assert.Equal(1, field.CustomModifiers.Length);
+            Assert.False(field.CustomModifiers[0].IsOptional);
+            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", field.CustomModifiers[0].Modifier.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ParameterWithFields_08()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base
+{
+    protected int v = 0;
+}
+
+class Test(protected new int v) : Base
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+                );
+
+            var field = comp.GetTypeByMetadataName("Test").GetMember<SourceFieldSymbol>("v");
+            Assert.True(field.IsNew);
+        }
+
+        [Fact]
+        public void ParameterWithFields_09()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(protected ref int v) 
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
+    // class Test(protected ref int v) 
+    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "protected").WithLocation(2, 12)
+                );
+        }
+
+        [Fact]
+        public void ParameterWithFields_10()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(protected out int v) 
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
+    // class Test(protected out int v) 
+    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "protected").WithLocation(2, 12),
+    // (2,11): error CS0177: The out parameter 'v' must be assigned to before control leaves the current method
+    // class Test(protected out int v) 
+    Diagnostic(ErrorCode.ERR_ParamUnassigned, "(protected out int v)").WithArguments("v").WithLocation(2, 11)
+                );
+        }
+
+        [Fact]
+        public void ParameterWithFields_11()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Test(readonly ref int v) 
+{
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (2,12): error CS9012: A ref or out parameter cannot have any field modifiers.
+    // class Test(readonly ref int v) 
+    Diagnostic(ErrorCode.ERR_RefOutParameterWithFieldModifier, "readonly").WithLocation(2, 12)
+                );
+        }
+
+        [Fact]
+        public void ParameterWithFields_12()
+        {
+            var comp1 = CreateCompilation(@"
+class Derived(private int v)
+{
+}
+", new[] { MscorlibRef_v20 }, compOptions: TestOptions.Dll);
+
+            var derived = comp1.GetTypeByMetadataName("Derived");
+            var parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
+            var field = derived.GetMember<FieldSymbol>(parameter.Name);
+
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
+            Assert.Same(parameter, field.AssociatedSymbol);
+
+            var comp2 = CreateCompilation(@"", new[] { MscorlibRef, new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
+
+            derived = comp2.GetTypeByMetadataName("Derived");
+            parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
+            field = derived.GetMember<FieldSymbol>(parameter.Name);
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
+            Assert.Same(parameter, field.AssociatedSymbol);
+
+            var comp3 = CreateCompilation(@"", new[] { MscorlibRef, new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
+
+            derived = comp3.GetTypeByMetadataName("Derived");
+            field = derived.GetMember<FieldSymbol>(parameter.Name);
+            parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
+            Assert.Same(parameter, field.AssociatedSymbol);
+            Assert.Same(parameter.PrimaryConstructorParameterBackingField, field);
+        }
+
+        [Fact]
+        public void ParameterWithFields_13()
+        {
+            var comp1 = CreateCompilationWithMscorlib(@"
+class Derived<T>(private int v)
+{
+}
+", compOptions: TestOptions.Dll);
+
+            var derived = comp1.GetTypeByMetadataName("Derived`1").Construct(comp1.GetSpecialType(SpecialType.System_Int32));
+            var parameter = derived.GetMember<MethodSymbol>(".ctor").Parameters[0];
+            var field = derived.GetMember<FieldSymbol>(parameter.Name);
+
+            Assert.Equal(parameter.PrimaryConstructorParameterBackingField, field);
+            Assert.Equal(parameter, field.AssociatedSymbol);
         }
 
     }

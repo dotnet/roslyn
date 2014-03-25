@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return this.Flags.Includes(BinderFlags.CheckedRegion)
                     ? OverflowChecks.Enabled
-                    : this.Flags.Includes(BinderFlags.UncheckedRegion)
-                        ? OverflowChecks.Disabled
+                    : this.Flags.Includes(BinderFlags.UncheckedRegion) 
+                        ? OverflowChecks.Disabled 
                         : OverflowChecks.Implicit;
             }
         }
@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual ConsList<FieldSymbol> FieldsBeingBound
         {
-            get
-            {
-                return this.Next.FieldsBeingBound;
+            get 
+            { 
+                return this.Next.FieldsBeingBound; 
             }
         }
 
@@ -413,20 +413,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static void ReportDiagnosticsIfObsolete(
-            DiagnosticBag diagnostics,
-            Symbol symbol,
-            SyntaxNodeOrToken node,
-            bool hasBaseReceiver,
-            Symbol containingMember,
+            DiagnosticBag diagnostics, 
+            Symbol symbol, 
+            SyntaxNodeOrToken node, 
+            bool hasBaseReceiver, 
+            Symbol containingMember, 
             NamedTypeSymbol containingType,
             BinderFlags location)
         {
             Debug.Assert((object)symbol != null);
 
-            Debug.Assert(symbol.Kind == SymbolKind.NamedType ||
+            Debug.Assert(symbol.Kind == SymbolKind.NamedType || 
                          symbol.Kind == SymbolKind.Field ||
                          symbol.Kind == SymbolKind.Method ||
-                         symbol.Kind == SymbolKind.Event ||
+                         symbol.Kind == SymbolKind.Event || 
                          symbol.Kind == SymbolKind.Property);
 
             // Dev11 also reports on the unconstructed method.  It would be nice to report on 
@@ -544,10 +544,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments)
             where TMember : Symbol
         {
-            var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length);
+            var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length); 
             methodsBuilder.AddRange(members);
 
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(typeArguments.Length);
+            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(typeArguments.Length); 
             typeArgumentsBuilder.AddRange(typeArguments);
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -702,13 +702,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        internal virtual Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType)
+        internal virtual Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType, bool shadowBackingFields)
         {
             var container = containingType as SourceMemberContainerTypeSymbol;
 
             if ((object)container != null && container.PrimaryCtor != null && container.PrimaryCtor.ParameterCount > 0)
             {
-                return new WithParametersBinder(container.PrimaryCtor.Parameters, this);
+                return new WithPrimaryConstructorParametersBinder(container.PrimaryCtor, shadowBackingFields, this);
             }
 
             return this;

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ConstantValue EvaluateFieldConstant(
             SourceFieldSymbol symbol,
             EqualsValueClauseSyntax equalsValueNode,
-            HashSet<SourceFieldSymbol> dependencies,
+            HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics)
         {

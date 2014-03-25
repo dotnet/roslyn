@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags = outer.Flags | BinderFlags.AutoPropertyInitializer;
 
             var withPrimaryConstructor = 
-                outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType);
+                outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType, shadowBackingFields: true);
 
             return new LocalScopeBinder(withPrimaryConstructor.WithAdditionalFlagsAndContainingMemberOrLambda(
                 flags, propertySymbol));
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            return new LocalScopeBinder(outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType)).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
+            return new LocalScopeBinder(outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true)).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)

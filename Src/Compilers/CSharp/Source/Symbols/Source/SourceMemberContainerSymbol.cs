@@ -1267,6 +1267,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
+                    if (symbol.Kind == SymbolKind.Field)
+                    {
+                        var field = (FieldSymbol)symbol;
+                        if ((object)field.AssociatedSymbol != null && field.AssociatedSymbol.Kind == SymbolKind.Parameter)
+                        {
+                            Debug.Assert((object)((ParameterSymbol)field.AssociatedSymbol).PrimaryConstructorParameterBackingField == (object)symbol);
+                        continue;
+                    }
+                    }
+
                     // We detect the first category of conflict by running down the list of members
                     // of the same name, and producing an error when we discover any of the following
                     // "bad transitions".
@@ -1570,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var primaryCtor = this.PrimaryCtor;
 
-            foreach (var tp in TypeParameters)
+                foreach (var tp in TypeParameters)
             {
                     if ((object)primaryCtor != null)
                 {
@@ -1584,8 +1594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                foreach (var dup in GetMembers(tp.Name))
-                {
+                    foreach (var dup in GetMembers(tp.Name))
+                    {
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
                     }
                 }
@@ -1604,11 +1614,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var dup in GetMembers(p.Name))
                         {
+                            if ((object)dup != (object)p.PrimaryConstructorParameterBackingField)
+                            {
                             diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, p.Name);
                 }
             }
-                }
+        }
             }
+        }
         }
 
         private void CheckAccessorNameConflicts(DiagnosticBag diagnostics)
@@ -2693,10 +2706,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(
                                 ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
-                                f.Location, f);
-                        }
-                    }
+                                f.ErrorLocation, f);
                 }
+            }
+        }
             }
         }
 
@@ -2793,6 +2806,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)result.PrimaryCtor == null)
                 {
                     result.PrimaryCtor = constructor;
+
+                    foreach (ParameterSymbol param in constructor.Parameters)
+                    {
+                        FieldSymbol backingField = param.PrimaryConstructorParameterBackingField;
+                        if ((object)backingField != null)
+                        {
+                            result.NonTypeNonIndexerMembers.Add(backingField);
+                        } 
+                    }
                 }
                 else
                 {
@@ -2834,7 +2856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             bool modifierErrors;
-                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax, diagnostics, out modifierErrors);
+                            var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, diagnostics, out modifierErrors);
                             foreach (var variable in fieldSyntax.Declaration.Variables)
                             {
                                 var fieldSymbol = (modifiers & DeclarationModifiers.Fixed) == 0

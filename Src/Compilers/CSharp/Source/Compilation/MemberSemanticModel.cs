@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root != null);
             Debug.Assert((object)memberSymbol != null);
             Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
-
+            
             this.compilation = compilation;
             this.root = root;
             this.memberSymbol = memberSymbol;
@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // end up with an entry in the syntax-to-bound node map.
                         Debug.Assert(parent.Kind == SyntaxKind.VariableDeclaration);
                         var grandparent = parent.Parent;
-                        if (grandparent != null && grandparent.Kind == SyntaxKind.LocalDeclarationStatement &&
+                        if (grandparent != null && grandparent.Kind == SyntaxKind.LocalDeclarationStatement && 
                             ((VariableDeclarationSyntax)parent).Variables.Count == 1)
                         {
                             return GetBindableSyntaxNode(parent);
@@ -1612,6 +1612,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Already bound. Return the top-most bound node associated with the statement. 
                     return (BoundStatement)boundNodes[0];
                 }
+            }
+
+            internal override Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType, bool shadowBackingFields)
+            {
+                Binder result = base.WithPrimaryConstructorParametersIfNecessary(containingType, shadowBackingFields);
+
+                if (result != this)
+                {
+                    result = new IncrementalBinder(this.semanticModel, result);
+                }
+
+                return result;
             }
         }
     }

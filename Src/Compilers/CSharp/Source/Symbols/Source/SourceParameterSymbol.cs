@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
-        protected SymbolCompletionState state;
+        protected SymbolCompletionState state;        
         protected readonly TypeSymbol parameterType;
         private readonly string name;
         private readonly ImmutableArray<Location> locations;
@@ -41,15 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
-            if (!isParams &&
-                !isExtensionMethodThis &&
-                (syntax.Default == null) &&
-                (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
-            {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
-            }
-
             if (isParams)
             {
                 // touch the constructor in order to generate proper use-site diagnostics
@@ -59,39 +50,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            var syntaxRef = syntax.GetReference();
-
-            if (syntax.AttributeLists.Count > 0)
-            {
                 var sourceMethod = owner as SourceMethodSymbol;
                 if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
                 {
-                    foreach (AttributeListSyntax attrList in syntax.AttributeLists)
+                foreach (SyntaxToken modToken in syntax.Modifiers)
                     {
-                        AttributeTargetSpecifierSyntax targetOpt = attrList.Target;
-                        if (targetOpt != null && targetOpt.GetAttributeLocation() == AttributeLocation.Field)
+                    switch (modToken.CSharpKind())
                         {
-                            // From C# Design Notes for Oct 21, 2013:
-                            // We should also allow attributes on the individual parameters of the primary constructor 
-                            // to specify a “field” target in order to be applied to the underlying field. In practice 
-                            // there may be optimizations so that the field is not generated when not needed, but the 
-                            // field target should force the field to be generated.
+                        case SyntaxKind.NewKeyword:
+                        case SyntaxKind.PublicKeyword:
+                        case SyntaxKind.ProtectedKeyword:
+                        case SyntaxKind.InternalKeyword:
+                        case SyntaxKind.PrivateKeyword:
+                        case SyntaxKind.StaticKeyword:
+                        case SyntaxKind.ReadOnlyKeyword:
+                        case SyntaxKind.VolatileKeyword:
+
                             return new SourcePrimaryConstructorParameterSymbolWithBackingField(
                                             owner,
                                             ordinal,
                                             parameterType,
                                             refKind,
-                                            ImmutableArray<CustomModifier>.Empty,
-                                            false,
                                             name,
                                             locations,
-                                            syntaxRef,
+                                            syntax,
                                             ConstantValue.Unset,
                                             isParams,
-                                            isExtensionMethodThis);
+                                            isExtensionMethodThis,
+                                            diagnostics);
                         }
                     }
                 }
+
+            if (!isParams &&
+                !isExtensionMethodThis &&
+                (syntax.Default == null) &&
+                (syntax.AttributeLists.Count == 0) &&
+                !owner.IsPartialMethod())
+            {
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
 
             return new SourceComplexParameterSymbol(
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 false,
                 name,
                 locations,
-                syntaxRef,
+                syntax.GetReference(),
                 ConstantValue.Unset,
                 isParams,
                 isExtensionMethodThis);
@@ -239,8 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared
         {
-            get
-            {
+            get 
+            { 
                 // Parameters of accessors are always synthesized. (e.g., parameter of indexer accessors).
                 // The non-synthesized accessors are on the property/event itself.
                 MethodSymbol owningMethod = ContainingSymbol as MethodSymbol;
