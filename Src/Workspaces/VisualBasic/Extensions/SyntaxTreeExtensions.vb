@@ -53,7 +53,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return _
                 syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
                 syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) OrElse
-                syntaxTree.IsInInactiveRegion(position, cancellationToken)
+                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
+                syntaxTree.IsWithinPartialMethodDeclaration(position, cancellationToken)
+        End Function
+
+        <Extension()>
+        Public Function IsWithinPartialMethodDeclaration(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim declaration = token.GetAncestor(Of MethodStatementSyntax)
+            If declaration IsNot Nothing AndAlso declaration.Modifiers.Any(SyntaxKind.PartialKeyword) Then
+                Return True
+            End If
+
+            Dim block = token.GetAncestor(Of MethodBlockSyntax)
+            If block IsNot Nothing AndAlso block.Begin.Modifiers.Any(SyntaxKind.PartialKeyword) Then
+                Return True
+            End If
+
+            Return False
         End Function
 
         <Extension()>
