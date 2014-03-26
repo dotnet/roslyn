@@ -168,7 +168,7 @@
     <Compile Include="DiagnosticAnalyzer\ICodeBlockStartedAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\ICompilationEndedAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\ICompilationStartedAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\ICompilationUnitAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\ISemanticModelAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\ISymbolAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\ISyntaxNodeAnalyzer.cs" />
