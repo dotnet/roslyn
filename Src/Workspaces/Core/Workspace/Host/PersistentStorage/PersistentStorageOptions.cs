@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    public static class PersistentStorageOptions
+    internal static class PersistentStorageOptions
     {
         public const string OptionName = "FeatureManager/Persistence";
 

@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    public class WeakAction<TAnchor, TArg> : IWeakAction<TArg> where TAnchor : class
+    internal class WeakAction<TAnchor, TArg> : IWeakAction<TArg> where TAnchor : class
     {
         private readonly WeakReference<TAnchor> owner;
         private readonly Action<TAnchor, TArg> weakAction;
