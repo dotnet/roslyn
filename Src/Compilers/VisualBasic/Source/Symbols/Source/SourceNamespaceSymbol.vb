@@ -395,36 +395,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance()
+                Dim declarations As ImmutableArray(Of SingleNamespaceDeclaration) = m_declaration.Declarations
+
+                Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance(declarations.Length)
 
                 ' SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
                 ' namespace decl node we want to return. here we will wrap the original syntax reference in 
                 ' the translation syntax reference so that we can lazily manipulate a node return to the caller
-                For Each decl In m_declaration.Declarations
+                For Each decl In declarations
                     Dim reference = decl.SyntaxReference
                     If reference IsNot Nothing AndAlso Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
-                        builder.Add(New TranslationSyntaxReference(reference, NamespaceDeclarationGetter))
+                        builder.Add(New NamespaceDeclarationSyntaxReference(reference))
                     End If
                 Next
 
                 Return builder.ToImmutableAndFree()
             End Get
         End Property
-
-        Private Shared ReadOnly NamespaceDeclarationGetter As Func(Of SyntaxReference, VisualBasicSyntaxNode) =
-            Function(r)
-                Dim node = r.GetSyntax()
-
-                ' If the node is a name syntax, it's something like "X" or "X.Y" in :
-                '    Namespace X.Y.Z
-                ' We want to return the full NamespaceStatementSyntax.
-                While TypeOf node Is NameSyntax
-                    node = node.Parent
-                End While
-
-                Debug.Assert(TypeOf node Is CompilationUnitSyntax OrElse TypeOf node Is NamespaceStatementSyntax)
-                Return DirectCast(node, VisualBasicSyntaxNode)
-            End Function
 
         Friend Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If Me.IsGlobalNamespace Then

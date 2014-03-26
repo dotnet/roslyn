@@ -555,6 +555,7 @@
     <Compile Include="Syntax\SyntaxTriviaList.Reversed.cs" />
     <Compile Include="Syntax\SyntaxWalker.cs" />
     <Compile Include="Syntax\SyntaxWalkerDepth.cs" />
+    <Compile Include="Syntax\TranslationSyntaxReference.cs" />
     <Compile Include="Text\ChangedText.cs" />
     <Compile Include="Text\CompositeText.cs" />
     <Compile Include="Text\LinePosition.cs" />

@@ -759,6 +759,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
+    <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.cs" />
     <Compile Include="Syntax\NameSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
@@ -791,7 +792,6 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.cs" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.cs" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
-    <Compile Include="Syntax\TranslationalSyntaxReference.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />
