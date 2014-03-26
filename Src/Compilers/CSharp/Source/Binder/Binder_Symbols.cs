@@ -8,13 +8,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         /// <summary>
         /// Binds the type for the syntax taking into account possibility of "var" type.

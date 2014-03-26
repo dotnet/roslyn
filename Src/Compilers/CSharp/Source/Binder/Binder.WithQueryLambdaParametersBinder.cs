@@ -5,12 +5,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         // A binder that finds query variables (BoundRangeVariableSymbol) and can bind them
         // to the appropriate rewriting involving lambda parameters when transparent identifiers are involved.

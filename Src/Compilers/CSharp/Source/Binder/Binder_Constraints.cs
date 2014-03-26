@@ -5,12 +5,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         /// <summary>
         /// Return a collection of bound constraint clauses indexed by type parameter
