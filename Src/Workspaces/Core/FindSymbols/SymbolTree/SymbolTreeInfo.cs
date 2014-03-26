@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<SymbolTreeInfo> GetInfoForProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var branchId = project.Solution.BranchId;
-            var worksapce = project.Solution.Workspace;
+            var workspace = project.Solution.Workspace;
 
             ConditionalWeakTable<ProjectId, SymbolTreeInfo> infoTable;
             if (!inMemoryCache.TryGetValue(branchId, out infoTable))

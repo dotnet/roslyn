@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
     /// It maintains a map between your instances and actual SyntaxAnnotation's used to annotate the nodes
     /// and offers an API that matches the true annotation API on SyntaxNode.
     /// 
-    /// The table controls the lifetime of when you can find and retrieve your annotations. You wont be able to 
+    /// The table controls the lifetime of when you can find and retrieve your annotations. You won't be able to 
     /// find your annotations via HasAnnotations/GetAnnotations unless you use the same annotation table for these operations
     /// that you used for the WithAdditionalAnnotations operation.  
     /// 

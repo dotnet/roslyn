@@ -332,12 +332,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var firstReplacementToken = replacement.GetFirstToken(true, false, true, true);
                             var firstOriginalToken = originalSimpleName.GetFirstToken(true, false, true, true);
                             SyntaxToken tokenWithLeadingWhitespace;
-                            if (TryAddLeadingElasticTriviaIfNeccessary(firstReplacementToken, firstOriginalToken, out tokenWithLeadingWhitespace))
+                            if (TryAddLeadingElasticTriviaIfNecessary(firstReplacementToken, firstOriginalToken, out tokenWithLeadingWhitespace))
                             {
                                 replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                             }
 
-                            replacement = AppendElasticTriviaIfNeccessary(replacement, originalSimpleName);
+                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
 
                             return replacement;
                         }
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                             replacement = newNode.CopyAnnotationsTo(replacement);
 
-                            replacement = AppendElasticTriviaIfNeccessary(replacement, originalSimpleName);
+                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
 
                             return replacement;
                         }
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         omitLeftHandSide: omitLeftSideOfExpression)
                             .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                    replacement = AppendElasticTriviaIfNeccessary(replacement, originalSimpleName);
+                    replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
 
                     return replacement;
                 }
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var result = newNode.WithAdditionalAnnotations(Simplifier.Annotation);
-                result = AppendElasticTriviaIfNeccessary(result, originalSimpleName);
+                result = AppendElasticTriviaIfNecessary(result, originalSimpleName);
 
                 return result;
             }

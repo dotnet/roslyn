@@ -1494,7 +1494,7 @@ namespace Microsoft.CodeAnalysis
                     value = sig.ReadUtf8(strLen);
 
                     // Trim null characters at the end to mimic native compiler behavior.
-                    // There are libraries that have them and leaving them in breaks QA tests.
+                    // There are libraries that have them and leaving them in breaks tests.
                     value = value.TrimEnd('\0');
 
                     return true;

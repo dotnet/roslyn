@@ -7858,7 +7858,7 @@ namespace Microsoft.Cci
         NestedMask = 0x00000006,
 
         AutoLayout = 0x00000000,
-        SeqentialLayout = 0x00000008,
+        SequentialLayout = 0x00000008,
         ExplicitLayout = 0x00000010,
         LayoutMask = 0x00000018,
 

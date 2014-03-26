@@ -4534,7 +4534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim parameterType As TypeSymbol = selectParameter.Type
 
-            ' We are expecting a delgate type with the following shape:
+            ' We are expecting a delegate type with the following shape:
             '     Function Selector (element as ControlVariableType) As AType
 
             ' The delegate type, directly converted to or argument of Expression(Of T)

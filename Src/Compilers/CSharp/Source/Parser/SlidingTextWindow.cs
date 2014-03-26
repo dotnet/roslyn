@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             int offset = position - this.basis;
 
-            // PERF: Whether interning or not, there are some frequently ocurring
+            // PERF: Whether interning or not, there are some frequently occurring
             // easy cases we can pick off easily.
             switch (length)
             {

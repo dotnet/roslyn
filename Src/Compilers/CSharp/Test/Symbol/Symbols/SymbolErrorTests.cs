@@ -10014,7 +10014,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void CS0568ERR_StructsCantContainDefaultContructor01()
+        public void CS0568ERR_StructsCantContainDefaultConstructor01()
         {
             var text = @"namespace NS
 {
@@ -10030,8 +10030,8 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultContructor, Line = 5, Column = 16 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultContructor, Line = 9, Column = 13 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultConstructor, Line = 5, Column = 16 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultConstructor, Line = 9, Column = 13 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

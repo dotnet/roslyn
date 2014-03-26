@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly MetadataDecoder decoder;
         private readonly CustomAttributeHandle handle;
         private NamedTypeSymbol lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates unitialized.
-        private MethodSymbol lazyAttributeContructor;
+        private MethodSymbol lazyAttributeConstructor;
         private ImmutableArray<TypedConstant> lazyConstructorArguments;
         private ImmutableArray<KeyValuePair<string, TypedConstant>> lazyNamedArguments;
         private ThreeState lazyHasErrors = ThreeState.Unknown;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureClassAndConstructorSymbolsAreLoaded();
-                return this.lazyAttributeContructor;
+                return this.lazyAttributeConstructor;
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyHasErrors = ThreeState.True;
                 }
 
-                Interlocked.CompareExchange(ref this.lazyAttributeContructor, attributeConstructor, null);
+                Interlocked.CompareExchange(ref this.lazyAttributeConstructor, attributeConstructor, null);
                 Interlocked.CompareExchange(ref this.lazyAttributeClass, (NamedTypeSymbol)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
             }
 #pragma warning restore 0252

@@ -1084,7 +1084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Sub
 
             Private Sub RecordVarRef(local As LocalSymbol)
-                Debug.Assert(Not local.IsByRef, "cant tke a ref of a ref")
+                Debug.Assert(Not local.IsByRef, "can't tke a ref of a ref")
 
                 If Not CanScheduleToStack(local) Then
                     Return

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 var ch = identifier[i];
 
-                // We dont' consider _ as punctuation as there may be things with that name.
+                // We don't consider _ as punctuation as there may be things with that name.
                 if (!char.IsPunctuation(ch) || ch == '_')
                 {
                     return false;

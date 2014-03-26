@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, hungarianSemanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
                 SyntaxToken rewrittenTokenWithElasticTrivia;
-                if (TryAddLeadingElasticTriviaIfNeccessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
+                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
                 }
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         .WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
-        public static T AppendElasticTriviaIfNeccessary<T>(T rewrittenNode, T originalNode) where T : SyntaxNode
+        public static T AppendElasticTriviaIfNecessary<T>(T rewrittenNode, T originalNode) where T : SyntaxNode
         {
             var firstRewrittenToken = rewrittenNode.GetFirstToken(true, false, true, true);
             var firstOriginalToken = originalNode.GetFirstToken(true, false, true, true);
 
             SyntaxToken rewrittenTokenWithLeadingElasticTrivia;
-            if (TryAddLeadingElasticTriviaIfNeccessary(firstRewrittenToken, firstOriginalToken, out rewrittenTokenWithLeadingElasticTrivia))
+            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out rewrittenTokenWithLeadingElasticTrivia))
             {
                 return rewrittenNode.ReplaceToken(firstRewrittenToken, rewrittenTokenWithLeadingElasticTrivia);
             }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return rewrittenNode;
         }
 
-        private static bool TryAddLeadingElasticTriviaIfNeccessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
+        private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
             tokenWithLeadingWhitespace = default(SyntaxToken);
 

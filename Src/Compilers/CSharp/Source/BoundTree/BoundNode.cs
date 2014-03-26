@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PERF: it is very uncommon for a flag being forcibly reset 
-        //       so we do not support it in general (making the commonly used implementaiton simpler) 
+        //       so we do not support it in general (making the commonly used implementation simpler) 
         //       and instead have a special method to do resetting.
         public void ResetCompilerGenerated(bool newCompilerGenerated)
         {

@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (initializerSyntaxOpt == null)
             {
                 // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
-                // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the paramater list
+                // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
                 // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(constructorSyntax.ParameterList);

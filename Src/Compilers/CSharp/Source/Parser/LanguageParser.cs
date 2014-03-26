@@ -1420,8 +1420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // a more specific message later in binding that they are doing 
             // something wrong.
             //
-            // personally, i disagree with this, and i believe the simple check
-            // would suffice.  However, we'd like to maintain behavior with 
+            // Some might argue that the simple check would suffice.
+            // However, we'd like to maintain behavior with 
             // previously shipped versions, and so we're keeping this code.
 
             // Here we check for:

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// Any character '\t' is replaced by two characters '\' and 't',
         /// Any character '\n' is replaced by two characters '\' and 'n',
         /// Any character '\r' is replaced by two characters '\' and 'r',
-        /// The assembly name in the display name is enclosed in double qoutes if it starts or ends with 
+        /// The assembly name in the display name is enclosed in double quotes if it starts or ends with 
         /// a whitespace character (' ', '\t', '\r', '\n').
         /// </remarks>
         public string GetDisplayName(bool fullKey = false)

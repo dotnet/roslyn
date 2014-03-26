@@ -630,8 +630,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Function GetPreviousAndNextToken(token As SyntaxToken) As ValueTuple(Of SyntaxToken, SyntaxToken)
-                ' we need this special method because we can't use reguler previous/next token on the omitted token since
-                ' omitted token logically doesnt exist in the tree
+                ' we need this special method because we can't use regular previous/next token on the omitted token since
+                ' omitted token logically doesn't exist in the tree
                 Debug.Assert(token.Span.IsEmpty)
                 Dim node = token.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) n.FullSpan.IntersectsWith(token.Span))
                 If node Is Nothing Then

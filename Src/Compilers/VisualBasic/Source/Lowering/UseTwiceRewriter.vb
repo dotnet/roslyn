@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = UseTwiceExpression(containingMember, receiverOpt, temporaries)
             End If
 
-            ' LValue-ness of a reciever should be preserved because it affects how helper method is called.
+            ' LValue-ness of a receiver should be preserved because it affects how helper method is called.
             Debug.Assert(receiver.Second Is Nothing OrElse (receiverOpt.IsLValue = receiver.First.IsLValue AndAlso receiverOpt.IsLValue = receiver.Second.IsLValue))
             Return receiver
         End Function

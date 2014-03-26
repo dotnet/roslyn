@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool TopLevelChanged(SyntaxTree oldTree, SourceText oldText, SyntaxTree newTree, SourceText newText)
         {
-            // ** currently, it doesnt do any text based quick check. we can add them later if current logic is not performant enough for typing case.
+            // ** currently, it doesn't do any text based quick check. we can add them later if current logic is not performant enough for typing case.
             var change = newText.GetEncompassingTextChangeRange(oldText);
             if (change == default(TextChangeRange))
             {

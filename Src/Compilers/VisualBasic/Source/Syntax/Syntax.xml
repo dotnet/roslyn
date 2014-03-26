@@ -47,7 +47,7 @@ Most significant structural changes from native/LM trees:
    
    Unify FromItem and LinqSource into the same node (CollectionRangeVariable).
    
-   When FromExpressison was used as the source of an Aggregate, instead use JoinOrAggregateSource.
+   When FromExpression was used as the source of an Aggregate, instead use JoinOrAggregateSource.
    
    Remove CrossJoin node, just represent as FromOperators with a source.
 -->
@@ -6043,7 +6043,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <child name="Arguments" optional="true" list="true" optional-elements="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ArgumentSyntax">
-        <description>The list of arguments. This may be empty. Ommitted argument are represented by an OmittedArgumentSyntax node.</description>
+        <description>The list of arguments. This may be empty. Omitted argument are represented by an OmittedArgumentSyntax node.</description>
         <lm-equiv name="Arguments"></lm-equiv>
         <native-equiv name="Values"></native-equiv>
       </child>
@@ -6284,7 +6284,7 @@ Unify Enum declarations with other block type declarations.
 
       <child name="NameEquals" optional="true" kind="VariableNameEquals">
         <description>
-          The optional name and type of the expression range variable. If ommitted, the name of the expression range variable
+          The optional name and type of the expression range variable. If omitted, the name of the expression range variable
           is inferred from the expression.
         </description>
       </child>
@@ -6322,7 +6322,7 @@ Unify Enum declarations with other block type declarations.
 
       <child name="NameEquals" optional="true" kind="VariableNameEquals">
         <description>
-          The optional name and type of the expression range variable. If ommitted, the name of the expression range variable
+          The optional name and type of the expression range variable. If omitted, the name of the expression range variable
           is inferred from the aggregation expression.
         </description>
       </child>

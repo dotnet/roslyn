@@ -1080,7 +1080,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim actualReceiver As BoundExpression = receiver
 
-            ' Figure out if we need to capture the reciever in a temp before creating the lambda
+            ' Figure out if we need to capture the receiver in a temp before creating the lambda
             ' in order to enforce correct semantics.
             If actualReceiver IsNot Nothing AndAlso actualReceiver.IsValue() AndAlso Not actualReceiver.HasErrors Then
                 If actualReceiver.IsInstanceReference() AndAlso targetMethod.ReceiverType.IsReferenceType Then
