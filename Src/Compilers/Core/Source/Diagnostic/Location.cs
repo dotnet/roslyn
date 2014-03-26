@@ -34,8 +34,19 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if the location represents a specific location in a source code file.
+        /// If a location is from a source file, then <see cref="FilePath"/> can be used to 
+        /// identify the source file.  Also, <see cref="SourceTree"/> may be available if the
+        /// source code file also had an associated <see cref="SyntaxTree"/>.  Locations for
+        /// <see cref="ISymbol"/>s declared in source files will return <code>true</code> for
+        /// <see cref="IsInSource"/> and will have a non-<code>null</code> 
+        /// <see cref="SourceTree"/> as well.
         /// </summary>
-        public bool IsInSource { get { return SourceTree != null; } }
+        public virtual bool IsInSource { get { return false; } }
+
+        /// <summary>
+        /// Returns the path to this location if this is a location from source.
+        /// </summary>
+        public virtual string FilePath { get { return null; } }
 
         /// <summary>
         /// Returns true if the location is in metadata.
@@ -101,7 +112,7 @@ namespace Microsoft.CodeAnalysis
             string result = Kind.ToString();
             if (IsInSource)
             {
-                result += "(" + this.SourceTree.FilePath + this.SourceSpan + ")";
+                result += "(" + this.FilePath + this.SourceSpan + ")";
             }
             else if (IsInMetadata)
             {
@@ -167,6 +178,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SourceLocation(syntaxTree, textSpan);
+        }
+
+        /// <summary>
+        /// Creates an instance of a Location for 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="textSpan"></param>
+        /// <returns></returns>
+        public static Location Create(string filePath, TextSpan textSpan)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException("filePath");
+            }
+
+            return new FilePathLocation(filePath, textSpan);
         }
     }
 }

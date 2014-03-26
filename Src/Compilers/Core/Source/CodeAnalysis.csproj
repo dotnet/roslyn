@@ -152,6 +152,7 @@
     <Compile Include="Diagnostic\DiagnosticSeverity.cs" />
     <Compile Include="Diagnostic\DiagnosticWithInfo.cs" />
     <Compile Include="Diagnostic\FileLinePositionSpan.cs" />
+    <Compile Include="Diagnostic\FilePathLocation.cs" />
     <Compile Include="Diagnostic\IMessageSerializable.cs" />
     <Compile Include="Diagnostic\Location.cs" />
     <Compile Include="Diagnostic\LocationKind.cs" />
