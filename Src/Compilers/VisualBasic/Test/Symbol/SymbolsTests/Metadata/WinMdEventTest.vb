@@ -1285,7 +1285,7 @@ Class Test
 End Class
 
 Namespace System.Runtime.InteropServices.WindowsRuntime
-    Structure EventRegistrationToken
+    Public Structure EventRegistrationToken
     End Structure
 End Namespace
         </file>

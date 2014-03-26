@@ -3285,11 +3285,11 @@ class C
 
 namespace System.Runtime.InteropServices.WindowsRuntime
 {
-    struct EventRegistrationToken
+    public struct EventRegistrationToken
     {
     }
 
-    class EventRegistrationTokenTable<T>
+    public class EventRegistrationTokenTable<T>
     {
         public static EventRegistrationTokenTable<T> GetOrCreateEventRegistrationTokenTable(ref EventRegistrationTokenTable<T> t)
         {

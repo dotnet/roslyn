@@ -8902,7 +8902,7 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";
@@ -8921,10 +8921,10 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    interface ICloneable
+    public interface ICloneable
     {
     }
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";
@@ -8941,10 +8941,10 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    interface ICloneable
+    public interface ICloneable
     {
     }
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";

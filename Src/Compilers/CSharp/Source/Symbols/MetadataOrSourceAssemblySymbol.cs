@@ -50,7 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (lazySpecialTypes == null || (object)lazySpecialTypes[(int)type] == null)
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
-                NamedTypeSymbol result = this.Modules[0].LookupTopLevelMetadataType(ref emittedName);
+                ModuleSymbol module = this.Modules[0];
+                NamedTypeSymbol result = module.LookupTopLevelMetadataType(ref emittedName);
+                if (result.Kind != SymbolKind.ErrorType && result.DeclaredAccessibility != Accessibility.Public)
+                {
+                    result = new MissingMetadataTypeSymbol.TopLevel(module, ref emittedName, type);
+                }
                 RegisterDeclaredSpecialType(result);
             }
 

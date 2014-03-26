@@ -46,8 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
 
-                Dim result As NamedTypeSymbol = Me.Modules(0).LookupTopLevelMetadataType(emittedName)
-
+                Dim [module] As ModuleSymbol = Me.Modules(0)
+                Dim result As NamedTypeSymbol = [module].LookupTopLevelMetadataType(emittedName)
+                If result.TypeKind <> TypeKind.Error AndAlso result.DeclaredAccessibility <> Accessibility.Public Then
+                    result = New MissingMetadataTypeSymbol.TopLevel([module], emittedName, type)
+                End If
                 RegisterDeclaredSpecialType(result)
             End If
 

@@ -4591,7 +4591,7 @@ class ClassCollection : IEnumerable
 
 namespace System.Collections
 {
-    interface IEnumerable
+    public interface IEnumerable
     {
         void Add(int t);
     }
