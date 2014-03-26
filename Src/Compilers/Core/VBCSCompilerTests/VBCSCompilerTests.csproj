@@ -11,8 +11,8 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{F5CE416E-B906-41D2-80B9-0078E887A3F6}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>VBCSCompiler.UnitTests</RootNamespace>
-    <AssemblyName>VBCSCompiler.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
+    <AssemblyName>Roslyn.Compilers.CompilerServer.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StyleCopEnabled>false</StyleCopEnabled>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
