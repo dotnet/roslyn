@@ -495,6 +495,29 @@ BC30002: Type 'abcDef' is not defined.
                                                             </expected>)
         End Sub
 
+        <Fact>
+        Public Sub AssociatedSymbolOfSubstitutedField()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation name="AAA">
+    <file name="a.vb">
+Public Class C(Of T)
+    Public Property P As Integer
+End Class
+    </file>
+</compilation>)
+
+            Dim type = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+            Dim [property] = type.GetMember(Of PropertySymbol)("P")
+            Dim field = [property].AssociatedField
+            Assert.Equal([property], field.AssociatedSymbol)
+
+            Dim substitutedType = type.Construct(compilation.GetSpecialType(SpecialType.System_Int32))
+            Dim substitutedProperty = substitutedType.GetMember(Of PropertySymbol)("P")
+            Dim substitutedField = substitutedProperty.AssociatedField
+            Assert.IsType(Of SubstitutedFieldSymbol)(substitutedField)
+            Assert.Equal(substitutedProperty, substitutedField.AssociatedSymbol)
+        End Sub
+
 
     End Class
 End Namespace
