@@ -248,6 +248,9 @@
   <data name="CantResolveMetadataReference" xml:space="preserve">
     <value>Can't resolve metadata reference: '{0}'.</value>
   </data>
+  <data name="CantResolveAnalyzerReference" xml:space="preserve">
+    <value>Can't resolve analyzer reference: '{0}'.</value>
+  </data>
   <data name="InvalidProjectBlockInSolutionFile" xml:space="preserve">
     <value>Invalid project block, expected "=" after Project.</value>
   </data>

@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SourceFiles = sourceFiles.AsImmutable(),
                     Encoding = codepage,
                     MetadataReferences = metadataReferences.AsImmutable(),
-                    Analyzers = analyzers.AsImmutable(),
+                    AnalyzerReferences = analyzers.AsImmutable(),
                     ReferencePaths = referencePaths,
                     KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     Win32ResourceFile = win32ResourceFile,

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -411,8 +412,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // metadata references
                 var metadataReferences = projectFileInfo.MetadataReferences
                     .Select(mi => new MetadataFileReference(mi.Path, mi.Properties, this.GetDocumentationProvider(mi.Path)))
-                    .Concat(resolvedReferences.MetadataReferences)
-                    .ToList<MetadataReference>();
+                    .Concat(resolvedReferences.MetadataReferences);
 
                 var outputFilePath = projectFileInfo.OutputFilePath;
                 var assemblyName = projectFileInfo.AssemblyName;
@@ -443,6 +443,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         docs.ToImmutableListOrEmpty(),
                         resolvedReferences.ProjectReferences.ToImmutableListOrEmpty(),
                         metadataReferences.ToImmutableListOrEmpty(),
+                        analyzerReferences: projectFileInfo.AnalyzerReferences,
                         isSubmission: false,
                         hostObjectType: null));
 

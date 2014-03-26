@@ -248,6 +248,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return executedProject.GetItems("ReferencePath");
         }
 
+        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAnalyzerReferencesFromModel(MSB.Execution.ProjectInstance executedProject)
+        {
+            return executedProject.GetItems("Analyzer");
+        }
+
         public MSB.Evaluation.ProjectProperty GetProperty(string name)
         {
             return this.loadedProject.GetProperty(name);

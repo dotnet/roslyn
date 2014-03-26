@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private AnalyzerReference Resolve(MetadataFileReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal AnalyzerReference Resolve(MetadataFileReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
 

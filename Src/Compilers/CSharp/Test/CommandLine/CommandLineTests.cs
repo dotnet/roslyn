@@ -1443,24 +1443,24 @@ d.cs
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
             
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzer:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/analyzer:\"foo.dll\"", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:foo.dll;bar.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(2, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
-            Assert.Equal("bar.dll", parsedArgs.Analyzers[1].FilePath);
+            Assert.Equal(2, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences[1].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(

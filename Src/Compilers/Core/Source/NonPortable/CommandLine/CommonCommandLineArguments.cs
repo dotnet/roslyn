@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// References to analyzers supplied on the command line.
         /// </summary>
-        public ImmutableArray<CommandLineAnalyzerReference> Analyzers { get; internal set; }
+        public ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; internal set; }
 
         /// <summary>
         /// If true, prepend the command line header logo during 
@@ -224,6 +225,24 @@ namespace Microsoft.CodeAnalysis
             foreach (CommandLineReference cmdLineReference in MetadataReferences)
             {
                 yield return cmdLineReference.Resolve(metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
+            }
+        }
+
+        /// <summary>
+        /// Resolves analyzer references stored in <see cref="P:AnalyzerReferences"/> using given file resolver.
+        /// </summary>
+        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution, or null to use a default.</param>
+        /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
+        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(MetadataFileReferenceResolver metadataResolver = null)
+        {
+            if (metadataResolver == null)
+            {
+                metadataResolver = new MetadataFileReferenceResolver(ReferencePaths, BaseDirectory, touchedFiles: null);
+            }
+
+            foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
+            {
+                yield return cmdLineReference.Resolve(metadataResolver, diagnosticsOpt: null, messageProviderOpt: null);
             }
         }
     }

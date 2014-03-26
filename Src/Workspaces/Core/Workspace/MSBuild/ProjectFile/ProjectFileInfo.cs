@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -52,6 +53,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public IReadOnlyList<MetadataInfo> MetadataReferences { get; private set; }
 
         /// <summary>
+        /// References to analyzer assembly files; contains diagnostic analyzers.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; private set; }
+
+        /// <summary>
         /// The path to an App.config configuration file, or null if none is provided.
         /// </summary>
         public string AppConfigPath { get; private set; }
@@ -65,6 +71,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<ProjectFileReference> projectReferences,
             IEnumerable<MetadataInfo> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
             string appConfigPath)
         {
             this.Guid = guid;
@@ -75,6 +82,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Documents = documents.ToImmutableListOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableListOrEmpty();
             this.MetadataReferences = metadataReferences.ToImmutableListOrEmpty();
+            this.AnalyzerReferences = analyzerReferences.ToImmutableListOrEmpty();
             this.AppConfigPath = appConfigPath;
         }
     }
