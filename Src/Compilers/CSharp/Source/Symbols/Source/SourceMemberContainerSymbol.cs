@@ -980,13 +980,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (allMembers.Length > 1)
                 {
                     // The array isn't sorted. Sort it and remember that we sorted it.
-                    Symbol[] membersArray = allMembers.ToArray();
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance);
-                    ImmutableInterlocked.InterlockedExchange(ref this.lazyMembersFlattened, membersArray.AsImmutableOrNull());
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance);
+                    ImmutableInterlocked.InterlockedExchange(ref this.lazyMembersFlattened, allMembers);
                 }
 
                 ThreadSafeFlagOperations.Set(ref flags2, (FlattenedMembersIsSortedMask << FlattenedMembersIsSortedOffset));
-                return lazyMembersFlattened;
+                return allMembers;
             }
         }
 

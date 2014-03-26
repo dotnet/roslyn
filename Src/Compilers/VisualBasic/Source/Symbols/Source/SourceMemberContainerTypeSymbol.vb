@@ -2205,7 +2205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                     If Not fieldType.IsDefinition Then
                                         ' Types constructred from generic types are considered to be a separate types. We never report 
-                                        ' errros on such types. We also process only fields actually changed compared to original generic type.
+                                        ' errors on such types. We also process only fields actually changed compared to original generic type.
                                         data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(
                                                 fieldType, New ConsList(Of FieldSymbol)(field, current.Path)))
 
@@ -3186,14 +3186,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim allMembers = Me.GetMembersUnordered()
 
                 If allMembers.Length >= 2 Then
-                    Dim membersArray As Symbol() = allMembers.ToArray()
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance)
-                    ImmutableInterlocked.InterlockedExchange(m_lazyMembersFlattened, membersArray.AsImmutableOrNull())
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance)
+                    ImmutableInterlocked.InterlockedExchange(m_lazyMembersFlattened, allMembers)
                 End If
 
                 ThreadSafeFlagOperations.Set(m_lazyState, StateFlags.FlattenedMembersIsSortedMask)
 
-                Return m_lazyMembersFlattened
+                Return allMembers
             End If
         End Function
 

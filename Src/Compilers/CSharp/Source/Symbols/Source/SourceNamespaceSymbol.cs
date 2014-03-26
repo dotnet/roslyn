@@ -153,13 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (allMembers.Length >= 2)
                 {
                     // The array isn't sorted. Sort it and remember that we sorted it.
-                    Symbol[] membersArray = allMembers.ToArray();
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance);
-                    ImmutableInterlocked.InterlockedExchange(ref this.lazyAllMembers, membersArray.AsImmutableOrNull());
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance);
+                    ImmutableInterlocked.InterlockedExchange(ref this.lazyAllMembers, allMembers);
                 }
 
                 ThreadSafeFlagOperations.Set(ref flags, LazyAllMembersIsSorted);
-                return lazyAllMembers;
+                return allMembers;
             }
         }
 

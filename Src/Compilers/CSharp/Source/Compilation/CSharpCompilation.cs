@@ -815,14 +815,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(ordinalMap.ContainsKey(oldTree)); // Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
                 var oldOrdinal = ordinalMap[oldTree];
 
-                var newArray = this.SyntaxTrees.ToArray();
-                newArray[oldOrdinal] = (SyntaxTree)newTree;
+                var newArray = this.SyntaxTrees.SetItem(oldOrdinal, newTree);
 
                 // CONSIDER: should this be an operation on ImmutableDictionary?
                 ordinalMap = ordinalMap.Remove(oldTree);
                 ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
 
-                return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged);
+                return UpdateSyntaxTrees(newArray, ordinalMap, declMap, declTable, referenceDirectivesChanged);
             }
         }
 
@@ -2014,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Take a warning and return the final deposition of the given warning,
-        // based on both commmand line options and pragmas
+        // based on both command line options and pragmas
         internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, string id, int warningLevel, Location location, CompilationOptions options, string kind)
         {
             switch (severity)
@@ -2051,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            // Unless sepcific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
+            // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
             {

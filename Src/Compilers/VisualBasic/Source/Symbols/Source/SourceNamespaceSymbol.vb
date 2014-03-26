@@ -307,14 +307,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim allMembers = Me.GetMembersUnordered()
 
                 If allMembers.Length >= 2 Then
-                    Dim membersArray As Symbol() = allMembers.ToArray()
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance)
-                    ImmutableInterlocked.InterlockedExchange(m_lazyAllMembers, membersArray.AsImmutableOrNull())
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance)
+                    ImmutableInterlocked.InterlockedExchange(m_lazyAllMembers, allMembers)
                 End If
 
                 ThreadSafeFlagOperations.Set(m_lazyState, StateFlags.AllMembersIsSorted)
 
-                Return m_lazyAllMembers
+                Return allMembers
             End If
         End Function
 
