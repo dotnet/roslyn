@@ -53,6 +53,8 @@ if not "%unconfigure%" == "true" (
     call :EnableRoslynPackage Roslyn.VisualStudio.Setup.pkgdef   28354cb8-c808-4138-bfce-33aa846bbd51
     call :EnableRoslynPackage Roslyn.PreviewPackage.pkgdef  8e2de189-1d7a-4bdb-9a15-fa0cb80e9450
     call :EnableRoslynPackage CompilerPackage.pkgdef  fc8d0600-8f16-4a89-a49c-a4f6c38b216a
+
+    devenv.exe /rootSuffix %TargetHive% /udpateConfiguration
     )
 
 call :DisableVerificationFor Microsoft.CodeAnalysis.dll
