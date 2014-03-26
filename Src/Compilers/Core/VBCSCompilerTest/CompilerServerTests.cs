@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private string GetFilePathUsingShadowCopyHint(string fileName)
+        private string GetFilePathConsideringShadowCopy(string fileName)
         {
             var filePath = Path.Combine(BinariesDirectory, fileName);
             if (!File.Exists(filePath))
             {
-                var originalDirectory = AppDomain.CurrentDomain.GetData("originalDirectory") as string;
+                var originalDirectory = Environment.CurrentDirectory;
                 if (originalDirectory != null)
                 {
                     filePath = Path.Combine(originalDirectory, fileName);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 #if ARM
                 return Path.Combine(BinariesDirectory, "rcsc.exe");
 #else
-                return GetFilePathUsingShadowCopyHint("rcsc2.exe");
+                return GetFilePathConsideringShadowCopy("rcsc2.exe");
 #endif
             }
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 #if ARM
                 return Path.Combine(BinariesDirectory, "rvbc.exe");
 #else
-                return GetFilePathUsingShadowCopyHint("rvbc2.exe");
+                return GetFilePathConsideringShadowCopy("rvbc2.exe");
 #endif
 
             }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             get
             {
-                return GetFilePathUsingShadowCopyHint("VBCSCompiler.exe");
+                return GetFilePathConsideringShadowCopy("VBCSCompiler.exe");
             }
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
                 if (!File.Exists(targetFilePath))
                 {                  
-                    var originalDirectory = AppDomain.CurrentDomain.GetData("originalDirectory") as string;
+                    var originalDirectory = Environment.CurrentDirectory;
                     if (originalDirectory != null)
                     {
                         var originalFilePath = Path.Combine(originalDirectory, fileName);

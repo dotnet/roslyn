@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         static CommandLineTests()
         {
-            var workingDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
+            var applicationDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
+            var workingDirectory = Environment.CurrentDirectory;
 
             var foundCompiler = FindCompiler(new[] {
+                    Path.Combine(applicationDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "csc.exe"),
                     "csc.exe"});
@@ -1443,7 +1445,7 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.Analyzers.Length);
             Assert.Equal("foo.dll", parsedArgs.Analyzers[0].Analyzer);
-            
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzer:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.Analyzers.Length);

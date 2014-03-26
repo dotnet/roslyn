@@ -1181,7 +1181,41 @@ BC30650: Enums must be declared as an integral type.
             Assert.Equal(type.SpecialType, SpecialType.System_Int32)
         End Sub
 
-        <Fact, WorkItem(843037)>
+        <Fact, WorkItem(895284)>
+        Public Sub CircularDefinition_Explicit()
+            ' Bug#895284 Roslyn gives extra error BC30060: 
+            '      Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
+            ' Per field 
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Enum E1
+    M10 = 1
+    M11 = CType(M10, Integer) + 1
+    M12 = CType(M11, Integer) + 1
+End Enum
+Enum E2
+    M20 = CType(M22, Integer) + 1
+    M21 = CType(M20, Integer) + 1
+    M22 = CType(M21, Integer) + 1
+End Enum
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors>
+BC30500: Constant 'M20' cannot depend on its own value.
+    M20 = CType(M22, Integer) + 1
+    ~~~
+BC30060: Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
+    M21 = CType(M20, Integer) + 1
+                ~~~
+BC30060: Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
+    M22 = CType(M21, Integer) + 1
+                ~~~
+                                        </errors>)
+        End Sub
+
+        <Fact>
         Public Sub CircularDefinitionManyMembers_Implicit()
             ' Enum E
             '     M0 = Mn + 1
@@ -1198,7 +1232,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
 </errors>)
         End Sub
 
-        <Fact, WorkItem(843037), WorkItem(895284)>
+        <Fact(Skip:="886047"), WorkItem(886047)>
         Public Sub CircularDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = Mn + 1
@@ -1207,32 +1241,16 @@ BC30500: Constant 'M0' cannot depend on its own value.
             '     Mn = Mn-1 + 1
             ' End Enum
             ' Dev12 crashes at ~300 members.
-            ' Bug#895284 Roslyn gives extra error BC30060: 
-            '      Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
-            ' Per field 
-            Dim source = GenerateEnum(5, Function(i, n) String.Format("CType(M{0}, Integer) + 1", If(i = 0, n - 1, i - 1)))
+            Dim source = GenerateEnum(6000, Function(i, n) String.Format("M{0} + 1", If(i = 0, n - 1, i - 1)))
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M0' cannot depend on its own value.
-    M0 = CType(M4, Integer) + 1
-    ~~
-BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
-    M1 = CType(M0, Integer) + 1
-               ~~
-BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
-    M2 = CType(M1, Integer) + 1
-               ~~
-BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
-    M3 = CType(M2, Integer) + 1
-               ~~
-BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
-    M4 = CType(M3, Integer) + 1
+    M0 = M5999 + 1
                ~~
                                         </errors>)
         End Sub
 
-
-        <Fact, WorkItem(843037)>
+        <Fact(Skip:="886047"), WorkItem(886047)>
         Public Sub InvertedDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = M1 - 1
@@ -1241,7 +1259,7 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             '     Mn = n
             ' End Enum
             ' Dev12 crashes at ~300 members.
-            Dim source = GenerateEnum(300, Function(i, n) If(i < n - 1, String.Format("M{0} - 1", i + 1), i.ToString()))
+            Dim source = GenerateEnum(6000, Function(i, n) If(i < n - 1, String.Format("M{0} - 1", i + 1), i.ToString()))
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.AssertTheseDiagnostics(<errors/>)
         End Sub

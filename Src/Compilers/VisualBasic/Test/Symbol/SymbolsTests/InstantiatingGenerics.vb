@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
     Public Class InstantiatingGenerics
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="910574"), WorkItem(910574)>
         Public Sub Test1()
 
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)

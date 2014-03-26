@@ -25,9 +25,11 @@ Partial Public Class CommandLineTests
     Private Shared Property BasicCompilerCommand As String
 
     Shared Sub New()
-        Dim workingDirectory = Path.GetDirectoryName(Assembly.GetAssembly(GetType(VisualBasicCompiler)).Location)
+        Dim applicationDirectory = Path.GetDirectoryName(Assembly.GetAssembly(GetType(VisualBasicCompiler)).Location)
+        Dim workingDirectory = Environment.CurrentDirectory
 
         Dim foundCompiler = FindCompiler(New String() {
+                  Path.Combine(applicationDirectory, "rvbc.exe"),
                   Path.Combine(workingDirectory, "rvbc.exe"),
                   Path.Combine(workingDirectory, "vbc.exe"),
                   "vbc.exe"})
