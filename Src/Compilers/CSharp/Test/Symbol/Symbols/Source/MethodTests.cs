@@ -1903,5 +1903,30 @@ partial class C
               Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M")));
         }
 
+        [WorkItem(910100)]
+        [Fact]
+        public void SubstitutedParameterEquality()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var method = type.GetMember<MethodSymbol>("M");
+
+            var constructedMethod1 = method.Construct(type);
+            var constructedMethod2 = method.Construct(type);
+            Assert.Equal(constructedMethod1, constructedMethod2);
+            Assert.NotSame(constructedMethod1, constructedMethod2);
+
+            var substitutedParameter1 = constructedMethod1.Parameters.Single();
+            var substitutedParameter2 = constructedMethod2.Parameters.Single();
+            Assert.Equal(substitutedParameter1, substitutedParameter2);
+            Assert.NotSame(substitutedParameter1, substitutedParameter2);
+        }
+
     }
 }
