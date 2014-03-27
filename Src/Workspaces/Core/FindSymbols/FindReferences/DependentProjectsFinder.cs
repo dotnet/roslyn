@@ -286,6 +286,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var internalsVisibleToMap = CreateInternalsVisibleToMap(sourceAssembly);
 
+            SymbolKey sourceAssemblySymbolKey = null;
+
             // TODO(cyrusn): What about error tolerance situations.  Do we maybe want to search
             // transitive dependencies as well?  Even if the code wouldn't compile, they may be
             // things we want to find.
@@ -301,7 +303,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (internalsVisibleToMap.Value.Contains(project.AssemblyName))
                     {
                         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        hasInternalsAccess = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
+
+                        var targetAssembly = compilation.Assembly;
+                        if (sourceAssembly.Language != targetAssembly.Language)
+                        {
+                            sourceAssemblySymbolKey = sourceAssemblySymbolKey ?? sourceAssembly.GetSymbolKey();
+                            var sourceAssemblyInTargetCompilation = sourceAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol as IAssemblySymbol;
+
+                            if (sourceAssemblyInTargetCompilation != null)
+                            {
+                                hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
+                            }
+                        }
+                        else
+                        {
+                            hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
+                        }
                     }
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
