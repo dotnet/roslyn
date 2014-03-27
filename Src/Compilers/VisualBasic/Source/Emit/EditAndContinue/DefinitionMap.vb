@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides Sub VisitNamedArgument(node As NamedArgumentSyntax)
             Me.Visit(node.Expression)
 
-            ' arguement name in "foo(argName := expr)" does not declare locals
+            ' argument name in "foo(argName := expr)" does not declare locals
             Return
         End Sub
 

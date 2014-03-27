@@ -2722,7 +2722,7 @@ Unify Enum declarations with other block type declarations.
     <node-structure name="SyncLockBlockSyntax" parent="ExecutableStatementSyntax">
       <description>
         Represents a entire SyncLock...End SyncLock block, including the SyncLock statement, the enclosed statements,
-        and the End SyncLock statment.
+        and the End SyncLock statement.
       </description>
 
       <lm-equiv name="BlockNode"></lm-equiv>
@@ -4263,7 +4263,7 @@ Unify Enum declarations with other block type declarations.
       <child name="NextStatement" optional="true" kind="NextStatement">
         <description>
           The Next statement that ends the block. If two For statements are ended by a single Next statement,
-          the inner For will not have an EndStatment.
+          the inner For will not have an EndStatement.
         </description>
         <lm-equiv name="EndBlock"></lm-equiv>
         <native-equiv name="TerminatingConstruct"></native-equiv>

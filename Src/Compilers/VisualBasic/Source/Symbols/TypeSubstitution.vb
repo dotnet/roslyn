@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Verify TypeSubstitution to make sure it dosn't map any 
+        ''' Verify TypeSubstitution to make sure it doesn't map any 
         ''' type parameter to an alpha-renamed type parameter.
         ''' </summary>
         ''' <remarks></remarks>

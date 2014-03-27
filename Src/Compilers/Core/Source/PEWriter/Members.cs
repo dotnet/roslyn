@@ -375,7 +375,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// True if the locals are initialized by zeroeing the stack upon method entry.
+        /// True if the locals are initialized by zeroing the stack upon method entry.
         /// </summary>
         bool LocalsAreZeroed { get; }
 

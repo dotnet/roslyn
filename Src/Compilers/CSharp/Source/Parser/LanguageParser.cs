@@ -8017,7 +8017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //  null-coalescing-expression
             //  null-coalescing-expression   ?   expression   :   expression
             //
-            // Only take the ternary if we're at a precedence less than the null coelescing
+            // Only take the ternary if we're at a precedence less than the null coalescing
             // expression.
 
             var nullCoalescingPrecedence = GetPrecedence(SyntaxKind.CoalesceExpression);

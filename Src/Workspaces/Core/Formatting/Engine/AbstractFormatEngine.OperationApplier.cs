@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (triviaInfo.Spaces == indentation)
                 {
-                    // indentation didnt actually moved. nothing to change
+                    // indentation didn't actually move. nothing to change
                     return;
                 }
 
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     tokenWithIndex = tokenWithIndex.GetPreviousTokenData();
                 }
 
-                // didnt find anything moved
+                // didn't find anything moved
                 if (tokenWithIndex.IndexInStream < 0)
                 {
                     return false;

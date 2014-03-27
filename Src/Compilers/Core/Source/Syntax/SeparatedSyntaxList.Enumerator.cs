@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     {
         // Public struct enumerator
         // Only implements enumerator pattern as used by foreach
-        // Does not implement IEnumerator. Doing so would require the struct to implment IDisposable too.
+        // Does not implement IEnumerator. Doing so would require the struct to implement IDisposable too.
         public struct Enumerator
         {
             private readonly SeparatedSyntaxList<TNode> list;

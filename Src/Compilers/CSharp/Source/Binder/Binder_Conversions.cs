@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: the following types: sbyte, byte, short, ushort, int, uint, long, 
             // SPEC: ulong, char, float, double, decimal, bool, string, or any enumeration type.
 
-            // SEPC: The following conversions are permitted in constant expressions:
+            // SPEC: The following conversions are permitted in constant expressions:
             // SPEC: Identity conversions
             // SPEC: Numeric conversions
             // SPEC: Enumeration conversions

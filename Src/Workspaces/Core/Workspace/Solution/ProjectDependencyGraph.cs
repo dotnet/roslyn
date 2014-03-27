@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("proejctId");
+                throw new ArgumentNullException("projectId");
             }
 
             // first try without lock for speed

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
-                // ) ; with embeded statement case
+                // ) ; with embedded statement case
                 if (previousToken.CSharpKind() == SyntaxKind.CloseParenToken && previousToken.Parent.IsEmbeddedStatementOwnerWithCloseParen())
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ] *
             if (previousToken.CSharpKind() == SyntaxKind.CloseBracketToken && previousToken.Parent is AttributeListSyntax)
             {
-                // preserving dev10 behavior, in dev10 we didnt touch space after attribute
+                // preserving dev10 behavior, in dev10 we didn't touch space after attribute
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
             }
 

@@ -1012,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' Collects expressions that are effective return values of the lambda body.
-            ''' In iterators those would be arguments of Yield statments.
+            ''' In iterators those would be arguments of Yield statements.
             ''' </summary>
             Public Shared Sub CollectReturnExpressions(lambdaBlock As BoundBlock,
                                                        arrayToFill As ArrayBuilder(Of BoundExpression),

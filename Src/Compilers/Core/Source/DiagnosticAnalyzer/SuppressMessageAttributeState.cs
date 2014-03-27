@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return IsDiagnosticGloballySuppressed(id, null);
             }
 
-            // Check for local suppression on symbol and global suppresions.
+            // Check for local suppression on symbol and global suppressions.
             if (IsDiagnosticLocallySuppressed(id, symbolOpt) || IsDiagnosticGloballySuppressed(id, symbolOpt))
             {
                 return true;

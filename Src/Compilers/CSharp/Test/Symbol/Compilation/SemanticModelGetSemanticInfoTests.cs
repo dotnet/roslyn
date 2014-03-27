@@ -11516,7 +11516,7 @@ class Test
 
         [WorkItem(542536)]
         [Fact]
-        public void UndelcaredSymbolInDefaultParameterValue()
+        public void UndeclaredSymbolInDefaultParameterValue()
         {
             string sourceCode = @"
 class Program

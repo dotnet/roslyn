@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.HasAnnotation(Simplifier.Annotation)
 
                 Dim begin = DirectCast(Visit(node.Begin), MethodBaseSyntax)
-                Dim endStatment = DirectCast(Visit(node.End), EndBlockStatementSyntax)
+                Dim endStatement = DirectCast(Visit(node.End), EndBlockStatementSyntax)
 
                 ' Certain reducers for VB (escaping, parentheses) require to operate on the entire method body, rather than individual statements.
                 ' Hence, we need to reduce the entire method body as a single unit.

@@ -5356,7 +5356,7 @@ checkNullable:
                 ' Identifiers - note that only simple indentifiers are allowed.
                 ' This check is done in ParseTerm.
 
-                ' Paranthesized expressions
+                ' Parenthesized expressions
 
                 ' Literals
 
