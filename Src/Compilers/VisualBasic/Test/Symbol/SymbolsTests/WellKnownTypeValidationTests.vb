@@ -395,7 +395,31 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim libSourceTemplate = <![CDATA[
+            If True Then
+                Dim libSourceTemplate = <![CDATA[
+Namespace System
+    {0} Class Type
+    End Class
+End Namespace
+]]>.Value.Replace(vbLf, vbCrLf).Trim
+
+                Dim corlibRef = CreateCompilationWithoutReferences(corlibSource).EmitToImageReference()
+                Dim publicLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
+                Dim internalLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
+
+                Dim comp = CreateCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
+
+                Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
+                Assert.NotNull(wellKnown)
+                Assert.Equal(TypeKind.Class, wellKnown.TypeKind)
+                Assert.Equal(Accessibility.Public, wellKnown.DeclaredAccessibility)
+
+                Dim Lookup = comp.GetTypeByMetadataName("System.Type")
+                Assert.Null(Lookup) ' Ambiguous
+            End If
+
+            If True Then
+                Dim libSourceTemplate = <![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test")>
 
 Namespace System
@@ -404,19 +428,19 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-            Dim corlibRef = CreateCompilationWithoutReferences(corlibSource).EmitToImageReference()
-            Dim publicLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
-            Dim internalLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
+                Dim corlibRef = CreateCompilationWithoutReferences(corlibSource).EmitToImageReference()
+                Dim publicLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
+                Dim internalLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
 
-            Dim comp = CreateCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
+                Dim comp = CreateCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
 
-            Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
-            Assert.NotNull(wellKnown)
-            Assert.Equal(TypeKind.Class, wellKnown.TypeKind)
-            Assert.Equal(Accessibility.Public, wellKnown.DeclaredAccessibility)
+                Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
+                Assert.NotNull(wellKnown)
+                Assert.Equal(TypeKind.Error, wellKnown.TypeKind)
 
-            Dim Lookup = comp.GetTypeByMetadataName("System.Type")
-            Assert.Null(Lookup) ' Ambiguous
+                Dim Lookup = comp.GetTypeByMetadataName("System.Type")
+                Assert.Null(Lookup) ' Ambiguous
+            End If
         End Sub
 
         <Fact>

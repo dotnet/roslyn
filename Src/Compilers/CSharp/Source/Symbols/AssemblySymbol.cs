@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool IsValidWellKnownType(NamedTypeSymbol result)
+        private bool IsValidWellKnownType(NamedTypeSymbol result)
         {
             if ((object)result == null || result.TypeKind == TypeKind.Error)
             {
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)result.ContainingType == null || IsValidWellKnownType(result.ContainingType),
                 "Checking the containing type is the caller's responsibility.");
 
-            return result.DeclaredAccessibility == Accessibility.Public;
+            return result.DeclaredAccessibility == Accessibility.Public || IsSymbolAccessible(result, this);
         }
 
         /// <summary>

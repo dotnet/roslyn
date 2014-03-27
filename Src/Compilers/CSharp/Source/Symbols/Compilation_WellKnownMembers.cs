@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, wellKnownMemberSignatureComparer);
+                    result = GetRuntimeMember(type, ref descriptor, wellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
                 Interlocked.CompareExchange(ref lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownTypeMember(member);
         }
 
-        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, ref MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer)
+        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, ref MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
         {
             Symbol result = null;
             SymbolKind targetSymbolKind;
@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(member.Name.Equals(descriptor.Name));
 
-                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic || member.DeclaredAccessibility != Accessibility.Public)
+                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic || 
+                    !(member.DeclaredAccessibility == Accessibility.Public || ((object)accessWithinOpt != null && Symbol.IsSymbolAccessible(member, accessWithinOpt))))
                 {
                     continue;
                 }

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!type.IsErrorType())
                 {
-                    result = CSharpCompilation.GetRuntimeMember(type, ref descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance);
+                    result = CSharpCompilation.GetRuntimeMember(type, ref descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
                 }
 
                 Interlocked.CompareExchange(ref lazySpecialTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);

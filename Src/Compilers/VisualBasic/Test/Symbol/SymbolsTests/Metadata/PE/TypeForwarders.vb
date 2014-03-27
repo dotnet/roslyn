@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Const funcTypeMetadataName As String = "System.Func`1"
 
             ' mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True, wellKnownTypeCompilation:=comp)
+            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True)
             Assert.NotNull(funcType)
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind)
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             ' The compilation assembly references both mscorlib and System.Core, but finding
             ' System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True, wellKnownTypeCompilation:=comp))
+            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True))
         End Sub
 
         ''' <summary>

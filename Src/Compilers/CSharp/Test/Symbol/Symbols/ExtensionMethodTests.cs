@@ -3290,5 +3290,30 @@ namespace CSharpApp
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { FSharpTestLibraryRef });
             compilation.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void InternalExtensionAttribute()
+        {
+            var source =
+@"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+    class ExtensionAttribute : Attribute
+    {
+    }
+}
+
+internal static class Test
+{
+    public static void M(this int p)
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.Dll);
+            CompileAndVerify(compilation);
+        }
+
     }
 }

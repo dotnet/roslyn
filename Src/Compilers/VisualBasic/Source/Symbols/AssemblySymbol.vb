@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Symbol for the type or null if type cannot be found or is ambiguous. 
         ''' </returns>
         Public Function GetTypeByMetadataName(fullyQualifiedMetadataName As String) As NamedTypeSymbol
-            Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False, wellKnownTypeCompilation:=Nothing)
+            Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False)
         End Function
 
         Private Shared ReadOnly m_NestedTypeNameSeparators As Char() = {"+"c}
@@ -430,9 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' I.e. arity is inferred from the name and matching type must have the same emitted name and arity.
         ''' </param>
         ''' <returns></returns>
-        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, wellKnownTypeCompilation As Compilation, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
-
-            Debug.Assert(wellKnownTypeCompilation IsNot Nothing OrElse Not isWellKnownType)
+        Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
                 Throw New ArgumentNullException("metadataName")
@@ -447,20 +445,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If parts.Length > 0 Then
                     mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
-                    type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, wellKnownTypeCompilation)
+                    type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
 
                     Dim i As Integer = 1
 
                     While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
                         mdName = MetadataTypeName.FromTypeName(parts(i))
                         Dim temp = type.LookupMetadataType(mdName)
-                        type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp, wellKnownTypeCompilation), temp, Nothing)
+                        type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
                         i += 1
                     End While
                 End If
             Else
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding)
-                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType, wellKnownTypeCompilation)
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
             End If
 
             Return If(type Is Nothing OrElse type.IsErrorType(), Nothing, type)
@@ -475,13 +473,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>
         ''' Symbol for the type or Nothing if type cannot be found or ambiguous. 
         ''' </returns>
-        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean, wellKnownTypeCompilation As Compilation) As NamedTypeSymbol
+        Friend Function GetTopLevelTypeByMetadataName(ByRef metadataName As MetadataTypeName, includeReferences As Boolean, isWellKnownType As Boolean) As NamedTypeSymbol
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
             result = Me.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
-            If isWellKnownType AndAlso Not IsValidWellKnownType(result, wellKnownTypeCompilation) Then
+            If isWellKnownType AndAlso Not IsValidWellKnownType(result) Then
                 result = Nothing
             End If
 
@@ -499,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
                     Dim candidate As NamedTypeSymbol = references(i).LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
-                    If isWellKnownType AndAlso Not IsValidWellKnownType(candidate, wellKnownTypeCompilation) Then
+                    If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
                         candidate = Nothing
                     End If
 
@@ -576,16 +574,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function IsValidWellKnownType(result As NamedTypeSymbol, wellKnownTypeCompilation As Compilation) As Boolean
+        Private Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
             If result Is Nothing OrElse result.TypeKind = TypeKind.Error Then
                 Return False
             End If
 
-            Debug.Assert(result.ContainingType Is Nothing OrElse IsValidWellKnownType(result.ContainingType, wellKnownTypeCompilation),
+            Debug.Assert(result.ContainingType Is Nothing OrElse IsValidWellKnownType(result.ContainingType),
                          "Checking the containing type is the caller's responsibility.")
 
-            Return result.DeclaredAccessibility = Accessibility.Public OrElse
-                result.DeclaringCompilation Is wellKnownTypeCompilation
+            Return result.DeclaredAccessibility = Accessibility.Public OrElse IsSymbolAccessible(result, Me)
         End Function
 
 #Region "IAssemblySymbol"

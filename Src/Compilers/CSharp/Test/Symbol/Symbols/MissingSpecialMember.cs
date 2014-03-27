@@ -261,18 +261,15 @@ namespace System
     public struct Void { }
 }
 ";
-            Action<CSharpCompilation> validate = comp =>
-            {
-                var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
-                Assert.Equal(TypeKind.Error, wellKnownType.TypeKind);
-                Assert.Equal(Accessibility.NotApplicable, wellKnownType.DeclaredAccessibility);
+            var comp = CreateCompilation(source);
 
-                var lookupType = comp.GetTypeByMetadataName("System.Type");
-                Assert.Equal(TypeKind.Class, lookupType.TypeKind);
-                Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
-            };
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
+            Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
+            Assert.Equal(Accessibility.Internal, wellKnownType.DeclaredAccessibility);
 
-            ValidateSourceAndMetadata(source, validate);
+            var lookupType = comp.GetTypeByMetadataName("System.Type");
+            Assert.Equal(TypeKind.Class, lookupType.TypeKind);
+            Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
         }
 
         [WorkItem(530436)]
@@ -308,8 +305,8 @@ namespace System
                 Assert.NotEqual(Accessibility.NotApplicable, lookupType.DeclaredAccessibility);
             };
 
-            ValidateSourceAndMetadata(string.Format(sourceTemplate, "public", "internal"), validate);
-            ValidateSourceAndMetadata(string.Format(sourceTemplate, "internal", "public"), validate);
+            ValidateSourceAndMetadata(string.Format(sourceTemplate, "public", "protected"), validate);
+            ValidateSourceAndMetadata(string.Format(sourceTemplate, "public", "private"), validate);
         }
 
         [WorkItem(530436)]
@@ -346,15 +343,8 @@ namespace System
                 Assert.DoesNotThrow(() => comp.GetDiagnostics());
             };
 
-            Action<CSharpCompilation> validateMissing = comp =>
-            {
-                Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing));
-                Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble));
-                Assert.DoesNotThrow(() => comp.GetDiagnostics());
-            };
-
-            ValidateSourceAndMetadata(string.Format(sourceTemplate, "public"), validatePresent);
-            ValidateSourceAndMetadata(string.Format(sourceTemplate, "internal"), validateMissing);
+            validatePresent(CreateCompilation(string.Format(sourceTemplate, "public")));
+            validatePresent(CreateCompilation(string.Format(sourceTemplate, "internal")));
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).

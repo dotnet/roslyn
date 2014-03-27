@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, Me)
+                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
                 End If
 
                 Interlocked.CompareExchange(m_LazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
-                Dim result As NamedTypeSymbol = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, wellKnownTypeCompilation:=Me, useCLSCompliantNameArityEncoding:=True)
+                Dim result As NamedTypeSymbol = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByVal declaringType As NamedTypeSymbol,
             ByRef descriptor As MemberDescriptor,
             ByVal comparer As SignatureComparer(Of MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol),
-            ByVal wellKnownMemberCompilation As VisualBasicCompilation
+            ByVal accessWithinOpt As AssemblySymbol
         ) As Symbol
             Dim result As Symbol = Nothing
 
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each m In declaringType.GetMembers(descriptor.Name)
                 If m.Kind <> targetSymbolKind OrElse m.IsShared <> isShared OrElse
-                    Not (m.DeclaredAccessibility = Accessibility.Public OrElse (declaringType.SpecialType = SpecialType.None AndAlso m.DeclaringCompilation Is wellKnownMemberCompilation)) Then ' A few well-known types aren't public
+                    Not (m.DeclaredAccessibility = Accessibility.Public OrElse (accessWithinOpt IsNot Nothing AndAlso Symbol.IsSymbolAccessible(m, accessWithinOpt))) Then
                     Continue For
                 End If
 
