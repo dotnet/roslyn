@@ -10,6 +10,7 @@ using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprieta
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -51,6 +52,8 @@ class C
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase);
+
+            CleanupAllGeneratedFiles(hello);
         }
 
         [Fact]
@@ -95,6 +98,8 @@ class C
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase);
+
+            CleanupAllGeneratedFiles(hello);
         }
 
         [Fact]
@@ -128,6 +133,8 @@ class C
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase);
+
+            CleanupAllGeneratedFiles(hello);
         }
 
         [Fact]
@@ -183,11 +190,16 @@ public class C { }").Path;
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase);
+
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
         public void TrivialMetadataCaching()
         {
+
+            List<String> filelist = new List<string>();
+
             // Do the following compilation twice.
             // The compiler server API should hold on to the mscorlib bits
             // in memory, but the file tracker should still map that it was
@@ -198,6 +210,7 @@ public class C { }").Path;
                 var touchedDir = Temp.CreateDirectory();
                 var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
+                filelist.Add(source1);
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
@@ -219,6 +232,11 @@ public class C { }").Path;
                 AssertTouchedFilesEqual(expectedReads,
                                         expectedWrites,
                                         touchedBase);
+            }
+
+            foreach (String f in filelist)
+            {
+                CleanupAllGeneratedFiles(f);
             }
         }
 

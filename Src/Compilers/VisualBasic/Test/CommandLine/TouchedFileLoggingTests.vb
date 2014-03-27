@@ -6,6 +6,7 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Xunit
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
@@ -51,6 +52,8 @@ End Class
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase)
+
+            CleanupAllGeneratedFiles(hello)
         End Sub
 
         <Fact>
@@ -83,6 +86,9 @@ End Class
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase)
+
+            CleanupAllGeneratedFiles(hello)
+            CleanupAllGeneratedFiles(snkPath)
         End Sub
 
         <Fact>
@@ -142,14 +148,22 @@ End Class
             AssertTouchedFilesEqual(expectedReads,
                                     expectedWrites,
                                     touchedBase)
+
+            CleanupAllGeneratedFiles(sourcePath)
+            CleanupAllGeneratedFiles(xml.Path)
         End Sub
 
         <Fact>
         Public Sub TrivialMetadataCaching()
+            Dim folderList As New List(Of String)
+            Dim filelist As New List(Of String)
+
             For i = 0 To 2 - 1
                 Dim source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path
                 Dim touchedDir = Temp.CreateDirectory()
                 Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
+                filelist.Add(source1)
+                folderList.Add(touchedDir.Path)
 
                 Dim outWriter = New StringWriter()
                 Dim cmd = New VisualBasicCompilerServer(Nothing,
@@ -172,6 +186,10 @@ End Class
                 AssertTouchedFilesEqual(expectedReads,
                                         expectedWrites,
                                         touchedBase)
+            Next
+
+            For Each f In filelist
+                CleanupAllGeneratedFiles(f)
             Next
         End Sub
 
