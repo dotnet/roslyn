@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -17,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
     public sealed class AsyncQueue<TElement>
     {
-        private object syncObject = new object();
-        private Queue<TElement> data = new Queue<TElement>();
-        private Queue<TaskCompletionSource<TElement>> waiters = new Queue<TaskCompletionSource<TElement>>();
+        private readonly object syncObject = new object();
+        private readonly Queue<TElement> data = new Queue<TElement>();
+        private readonly Queue<TaskCompletionSource<TElement>> waiters = new Queue<TaskCompletionSource<TElement>>();
         private bool completed = false;
-        private TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
         private Exception thrown = null;
 
         /// <summary>
@@ -31,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                return data.Count;
+                lock(syncObject)
+                {
+                    return data.Count;
+                }
             }
         }
 
@@ -49,21 +53,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void Enqueue(TElement value)
         {
             TaskCompletionSource<TElement> waiter;
-            lock (syncObject)
+            lock(syncObject)
             {
-                if (completed) throw new InvalidOperationException("Add after Complete");
-                if (thrown != null) return;
-                if (waiters.Count == 0)
+                if (completed)
+                {
+                    throw new InvalidOperationException("Enqueue after Complete");
+                }
+                else if (thrown != null)
+                {
+                    return;
+                }
+                else if (waiters.Count == 0)
                 {
                     data.Enqueue(value);
                     return;
                 }
-
-                waiter = waiters.Dequeue();
-                Debug.Assert(data.Count == 0);
+                else
+                {
+                    Debug.Assert(data.Count == 0);
+                    waiter = waiters.Dequeue();
+                }
             }
 
-            waiter.SetResult(value);
+            Task.Run(() =>
+            {
+                waiter.SetResult(value);
+            });
         }
 
         /// <summary>
@@ -77,19 +92,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<TaskCompletionSource<TElement>> waitersArray;
             lock (syncObject)
             {
-                if (completed) throw new InvalidOperationException("Thrown after Completed");
-                if (thrown != null) throw new InvalidOperationException("Thrown after Thrown");
-                thrown = exception;
-                data.Clear();
-                waitersArray = waiters.AsImmutable(); // TODO: move allocation out of the lock
-                waiters.Clear();
+                if (completed)
+                {
+                    throw new InvalidOperationException("Thrown after Completed");
+                }
+                else if (thrown != null)
+                {
+                    throw new InvalidOperationException("Thrown after Thrown");
+                }
+                else
+                {
+                    thrown = exception;
+                    data.Clear();
+                    waitersArray = waiters.AsImmutable();
+                    waiters.Clear();
+                }
             }
 
-            whenCompleted.SetException(exception);
-            foreach (var tcs in waitersArray)
+            Task.Run(() =>
             {
-                tcs.SetException(exception);
-            }
+                whenCompleted.SetException(exception);
+                foreach (var tcs in waitersArray)
+                {
+                    tcs.SetException(exception);
+                }
+            });
         }
 
         /// <summary>
@@ -99,7 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                return completed;
+                lock(syncObject)
+                {
+                    return completed;
+                }
             }
         }
 
@@ -109,27 +139,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void Complete()
         {
             ImmutableArray<TaskCompletionSource<TElement>> waitersArray;
-            lock (syncObject)
+            lock(syncObject)
             {
-                if (thrown != null) throw new InvalidOperationException("Done after Thrown");
-                waitersArray = waiters.AsImmutable();
-                waiters.Clear();
-                completed = true;
+                if (completed)
+                {
+                    throw new InvalidOperationException("Completed after Completed");
+                }
+                else if (thrown != null)
+                {
+                    throw new InvalidOperationException("Completed after Thrown");
+                }
+                else
+                {
+                    waitersArray = waiters.AsImmutable();
+                    waiters.Clear();
+                    completed = true;
+                }
             }
 
-            foreach (var tcs in waitersArray)
+            Task.Run(() =>
             {
-                tcs.SetCanceled();
-            }
-            whenCompleted.SetResult(true);
+                whenCompleted.SetResult(true);
+                foreach (var tcs in waitersArray)
+                {
+                    tcs.SetCanceled();
+                }
+            });
         }
 
         /// <summary>
         /// Gets a task that transitions to a completed state when <see cref="Complete"/> is called.
         /// </summary>
-        public Task<bool> WhenCompleted
+        public Task WhenCompleted
         {
-            get { return whenCompleted.Task; }
+            get
+            {
+                return whenCompleted.Task;
+            }
         }
 
         /// <summary>
@@ -141,20 +187,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Task<TElement> DequeueAsync()
         {
-            lock (syncObject)
+            lock(syncObject)
             {
                 if (thrown != null)
                 {
-                    throw thrown;
+                    var waiter = new TaskCompletionSource<TElement>();
+                    waiter.SetException(thrown);
+                    return waiter.Task;
                 }
                 else if (data.Count != 0)
                 {
                     Debug.Assert(waiters.Count == 0);
-                    return Task.FromResult(data.Dequeue());
+                    var datum = data.Dequeue();
+                    return Task.FromResult(datum);
                 }
                 else if (completed)
                 {
-                    throw new TaskCanceledException();
+                    var waiter = new TaskCompletionSource<TElement>();
+                    waiter.SetCanceled();
+                    return waiter.Task;
                 }
                 else
                 {
@@ -167,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override string ToString()
         {
-            return "AsyncQueue<" + typeof(TElement).Name + ">:" + (this.IsCompleted ? "Completed" : data.Count.ToString());
+            return "AsyncQueue<" + typeof(TElement).Name + ">:" + (IsCompleted ? "Completed" : Count.ToString());
         }
     }
 }

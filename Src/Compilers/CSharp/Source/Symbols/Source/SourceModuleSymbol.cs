@@ -441,7 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var mergedAttributes = ((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations();
                 if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref lazyCustomAttributesBag))
                 {
-                    state.NotePartComplete(CompletionPart.Attributes);
+                    var completed = state.NotePartComplete(CompletionPart.Attributes);
+                    Debug.Assert(completed);
                 }
             }
 

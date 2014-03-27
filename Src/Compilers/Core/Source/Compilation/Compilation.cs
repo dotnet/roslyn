@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
@@ -46,13 +47,15 @@ namespace Microsoft.CodeAnalysis
             Type submissionReturnType,
             Type hostObjectType,
             bool isSubmission,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap)
+            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
+            AsyncQueue<CompilationEvent> eventQueue)
         {
             Debug.Assert(!references.IsDefault);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
             this.syntaxTreeOrdinalMap = syntaxTreeOrdinalMap;
+            this.EventQueue = eventQueue;
 
             if (isSubmission)
             {
@@ -438,6 +441,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract bool CommonContainsSyntaxTree(SyntaxTree syntaxTree);
+
+        /// <summary>
+        /// The event queue that this compilation was created with.
+        /// </summary>
+        internal readonly AsyncQueue<CompilationEvent> EventQueue;
 
         #endregion
 

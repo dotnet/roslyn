@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -177,7 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((lazyCustomAttributesBag == null || !lazyCustomAttributesBag.IsSealed) &&
                 LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref lazyCustomAttributesBag))
             {
-                state.NotePartComplete(CompletionPart.Attributes);
+                var completed = state.NotePartComplete(CompletionPart.Attributes);
+                Debug.Assert(completed);
+                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
 
             return lazyCustomAttributesBag;

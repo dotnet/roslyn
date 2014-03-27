@@ -163,6 +163,7 @@
     <Compile Include="Diagnostic\SourceLocation.cs" />
     <Compile Include="Diagnostic\XmlLocation.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.cs" />
+    <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\AsyncQueue.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzerAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\ICodeBlockEndedAnalyzer.cs" />
