@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
             {
-                return this.GetProjectReferencesCore(executedProject).ToImmutableListOrEmpty();
+                return this.GetProjectReferencesCore(executedProject);
             }
 
             private IEnumerable<ProjectFileReference> GetProjectReferencesCore(ProjectInstance executedProject)
@@ -69,22 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var projectReference in GetProjectReferenceItems(executedProject))
                 {
                     Guid guid;
-                    Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid);
+                    if (!Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid))
+                    {
+                        continue;
+                    }
 
                     var filePath = projectReference.EvaluatedInclude;
+                    var aliases = GetAliases(projectReference);
 
-                    string[] aliases;
-                    if (TryGetAliases(projectReference, out aliases))
-                    {
-                        foreach (var alias in aliases)
-                        {
-                            yield return new ProjectFileReference(guid, filePath, alias);
-                        }
-                    }
-                    else
-                    {
-                        yield return new ProjectFileReference(guid, filePath);
-                    }
+                    yield return new ProjectFileReference(guid, filePath, aliases);
                 }
             }
 
@@ -103,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var metadataRefs = compilerInputs.References.SelectMany(r => MakeMetadataInfo(r));
 
+                var analyzerRefs = compilerInputs.AnalyzerReferences.Select(r => new AnalyzerFileReference(GetDocumentFilePath(r)));
+
                 if (!compilerInputs.NoStandardLib)
                 {
                     var mscorlibPath = typeof(object).Assembly.Location;
@@ -118,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     docs,
                     this.GetProjectReferences(executedProject),
                     metadataRefs,
-                    compilerInputs.AppConfigPath);
+                    analyzerRefs,
+                    appConfigPath: compilerInputs.AppConfigPath);
             }
 
             private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
@@ -134,27 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var filePath = GetDocumentFilePath(item);
 
-                string[] aliases;
-                if (TryGetAliases(item, out aliases))
-                {
-                    return aliases.Select(alias => new MetadataInfo(filePath, new MetadataReferenceProperties(alias: alias)));
-                }
-
-                return new MetadataInfo[] { new MetadataInfo(filePath) };
+                var aliases = GetAliases(item);
+                return new MetadataInfo[] { new MetadataInfo(filePath, new MetadataReferenceProperties(aliases: aliases)) };
             }
 
-            private bool TryGetAliases(MSB.Framework.ITaskItem item, out string[] aliases)
+            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
             {
                 var aliasesText = item.GetMetadata("Aliases");
 
-                if (!string.IsNullOrEmpty(aliasesText))
+                if (string.IsNullOrEmpty(aliasesText))
                 {
-                    aliases = aliasesText.Split(new char[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    return aliases.Length >= 1;
+                    return ImmutableArray<string>.Empty;
                 }
 
-                aliases = null;
-                return false;
+                return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -208,12 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetSubsystemVersion(this.ReadPropertyString(executedProject, "SubsystemVersion"));
                 compilerInputs.SetTargetType(this.ReadPropertyString(executedProject, "OutputType"));
 
+                // Decode the warning options from RuleSet file prior to reading explicit settings in the project file, so that project file settings prevail for duplicates.
+                compilerInputs.SetRuleSet(this.ReadPropertyString(executedProject, "RuleSet"));
                 compilerInputs.SetTreatWarningsAsErrors(this.ReadPropertyBool(executedProject, "TreatWarningsAsErrors"));
                 compilerInputs.SetWarningLevel(this.ReadPropertyInt(executedProject, "WarningLevel"));
                 compilerInputs.SetWarningsAsErrors(this.ReadPropertyString(executedProject, "WarningsAsErrors"));
                 compilerInputs.SetWarningsNotAsErrors(this.ReadPropertyString(executedProject, "WarningsNotAsErrors"));
 
                 compilerInputs.SetReferences(this.GetMetadataReferencesFromModel(executedProject).ToArray());
+                compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
 
                 string errorMessage;
@@ -221,7 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.EndInitialization(out errorMessage, out errorCode);
             }
 
+            // Uncomment the below base list clause once MSBuild support for analyzers/ruleset has been added
             private class CSharpCompilerInputs : MSB.Tasks.Hosting.ICscHostObject4
+                ////, MSB.Tasks.Hosting.IAnalyzerHostObject
             {
                 private readonly CSharpProjectFile projectFile;
 
@@ -231,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal string AppConfigPath { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences { get; private set; }
                 internal bool NoStandardLib { get; private set; }
                 internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
 
@@ -263,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Warnings = new Dictionary<string, ReportDiagnostic>();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                 }
 
                 public bool Compile()
@@ -598,6 +595,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
+                {
+                    this.AnalyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    return true;
+                }
+
                 public bool SetResources(MSB.Framework.ITaskItem[] resources)
                 {
                     // ??
@@ -632,6 +635,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return false;
+                }
+
+                public bool SetRuleSet(string ruleSetFile)
+                {
+                    // Get options from the ruleset file, if any.
+                    if (!string.IsNullOrEmpty(ruleSetFile))
+                    {
+                        var fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(this.projectFile.FilePath));
+
+                        Dictionary<string, ReportDiagnostic> specificDiagnosticOptions;
+                        var generalDiagnosticOption = RuleSet.GetDiagnosticOptionsFromRulesetFile(fullPath, out specificDiagnosticOptions);
+                        this.CompilationOptions = this.CompilationOptions.WithGeneralDiagnosticOption(generalDiagnosticOption);
+                        this.Warnings.AddRange(specificDiagnosticOptions);
+                    }
+
+                    return true;
                 }
 
                 public bool SetTreatWarningsAsErrors(bool treatWarningsAsErrors)

@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     (token2.GetAncestor(Of WithBlockSyntax)() IsNot Nothing OrElse
                      token2.GetAncestor(Of ObjectMemberInitializerSyntax)() IsNot Nothing)
 
-                ' dont remove colon in these cases:
+                ' don't remove colon in these cases:
 
                 ' (1)
                 ' With ""

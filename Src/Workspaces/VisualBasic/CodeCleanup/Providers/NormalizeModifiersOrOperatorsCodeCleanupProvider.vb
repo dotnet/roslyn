@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 _cancellationToken.ThrowIfCancellationRequested()
 
-                ' if there is no overlapping spans, no need to walk down this noe
+                ' if there are no overlapping spans, no need to walk down this node
                 If node Is Nothing OrElse
                    Not _spans.GetOverlappingIntervals(node.FullSpan.Start, node.FullSpan.Length).Any() Then
                     Return node

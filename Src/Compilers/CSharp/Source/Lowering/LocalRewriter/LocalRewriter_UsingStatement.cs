@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundTemp = this.factory.StoreToTemp(rewrittenExpression, tempKind: TempKind.Using, store: out tempAssignment);
             }
 
-            BoundStatement expressionStatment = new BoundExpressionStatement(expressionSyntax, tempAssignment);
+            BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
             if (this.generateDebugInfo)
             {
                 // NOTE: unlike in the assignment case, the sequence point is on the using keyword, not the expression.
-                expressionStatment = new BoundSequencePointWithSpan(usingSyntax, expressionStatment, usingSyntax.UsingKeyword.Span);
+                expressionStatement = new BoundSequencePointWithSpan(usingSyntax, expressionStatement, usingSyntax.UsingKeyword.Span);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax: usingSyntax,
                 localsOpt: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol),
-                statements: ImmutableArray.Create<BoundStatement>(expressionStatment, tryFinally));
+                statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 
         /// <summary>

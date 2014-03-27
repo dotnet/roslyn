@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits LocalSymbol
 
         Friend Sub New(container As Symbol, type As TypeSymbol)
-            MyBase.New(container, Nothing, LocalDeclarationKind.CompilerGenerated, type)
+            MyBase.New(container, LocalDeclarationKind.CompilerGenerated, type)
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -26,7 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IdentifierLocation As Location
+        Friend NotOverridable Overrides ReadOnly Property IdentifierToken As SyntaxToken
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property IdentifierLocation As Location
             Get
                 Return NoLocation.Singleton
             End Get

@@ -513,9 +513,9 @@ End Module
 
 #Region "Mixed Error Tests"
 
-        <Fact(), WorkItem(530211)>
+        <Fact, WorkItem(530211)>
         Public Sub ModuleNameMismatch()
-            Dim netModule = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim netModule = CreateCompilationWithMscorlib(
     <compilation name="ModuleNameMismatch">
         <file name="a.vb">
 Class Test
@@ -523,15 +523,7 @@ End Class
         </file>
     </compilation>, OptionsNetModule)
 
-            CompileAndVerify(netModule, verify:=False)
-            Dim moduleImage = netModule.EmitToArray()
-
-            Dim tempDir = Temp.CreateDirectory()
-
-            Dim match = tempDir.CreateFile("ModuleNameMismatch.netmodule")
-            Dim mismatch = tempDir.CreateFile("ModuleNameMismatch.mod")
-            match.WriteAllBytes(moduleImage)
-            mismatch.WriteAllBytes(moduleImage)
+            Dim netModuleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray())
 
             Dim source =
     <compilation>
@@ -543,24 +535,13 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataFileReference(match.Path, MetadataImageKind.Module)}, OptionsExe)
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(netModuleMetadata, fullPath:="R:\A\B\ModuleNameMismatch.netmodule")})
             CompileAndVerify(compilation1)
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataFileReference(mismatch.Path, MetadataImageKind.Module)}, OptionsExe)
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(netModuleMetadata, fullPath:="R:\A\B\ModuleNameMismatch.mod")})
 
             AssertTheseDiagnostics(compilation2,
-<expected>
-BC37205: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatch.mod' must match its filename.
-</expected>)
-
-            Dim imageData = ModuleMetadata.CreateFromImage(moduleImage)
-
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(imageData, fullPath:=match.Path)}, OptionsExe)
-            CompileAndVerify(compilation3)
-
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(imageData, fullPath:=mismatch.Path)}, OptionsExe)
-
-            AssertTheseDiagnostics(compilation4,
 <expected>
 BC37205: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatch.mod' must match its filename.
 </expected>)

@@ -284,6 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return InferTypeInArgument(argument, index, parameters)
                 End If
 
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
             Private Function InferTypeInArgument(

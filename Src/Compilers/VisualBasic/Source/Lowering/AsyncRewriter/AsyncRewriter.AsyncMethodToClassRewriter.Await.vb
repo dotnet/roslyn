@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 {criticalNotifyCompletionAsLValue, Me.F.ValueTypeMe()}))
 
                     ' >>>>   dcast2 = DirectCast(AwaiterLocalTemp, INotifyCompletion)
-                    ' TODO: POSTPROCES ASSIGNMENT
+                    ' TODO: POSTPROCESS ASSIGNMENT
                     Dim asNotifyCompletionAssignment As BoundStatement =
                         Me.MakeAssignmentStatement(
                             Me.F.DirectCast(awaiterTempAsRValue, asNotifyCompletion.Type),

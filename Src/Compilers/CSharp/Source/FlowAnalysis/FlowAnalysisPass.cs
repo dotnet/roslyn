@@ -5,6 +5,8 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,7 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="block">the method's body</param>
         /// <param name="diagnostics">the receiver of the reported diagnostics</param>
         /// <returns>the rewritten block for the method (with a return statement possibly inserted)</returns>
-        public static BoundBlock Rewrite(MethodSymbol method, BoundBlock block, DiagnosticBag diagnostics)
+        public static BoundBlock Rewrite(
+            MethodSymbol method,
+            BoundBlock block,
+            DiagnosticBag diagnostics)
         {
             var compilation = method.DeclaringCompilation;
 
@@ -90,10 +95,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool Analyze(CSharpCompilation compilation, MethodSymbol method, BoundBlock block, DiagnosticBag diagnostics)
+        private static bool Analyze(
+            CSharpCompilation compilation,
+            MethodSymbol method,
+            BoundBlock block,
+            DiagnosticBag diagnostics)
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
             DataFlowPass.Analyze(compilation, method, block, diagnostics);
+            if (compilation.EventQueue != null)
+            {
+                var lazySemanticModel = new Lazy<SemanticModel>(() =>
+                {
+                    var syntax = block.Syntax;
+                    var semanticModel = (CSharpSemanticModel)compilation.GetSemanticModel(syntax.SyntaxTree);
+                    var memberModel = semanticModel.GetMemberModel(syntax);
+                    if (memberModel != null)
+                    {
+                        memberModel.AddBoundTreeForStandaloneSyntax(syntax, block);
+                    }
+                    return semanticModel;
+                });
+                compilation.EventQueue.Enqueue(new CompilationEvent.SymbolDeclared(compilation, method, lazySemanticModel));
+            }
             DisposeCheckerPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }

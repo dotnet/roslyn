@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.InternalUtilities
@@ -369,9 +370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hostObjectType As Type,
             isSubmission As Boolean,
             referenceManager As ReferenceManager,
-            reuseReferenceManager As Boolean
+            reuseReferenceManager As Boolean,
+            Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap)
+            MyBase.New(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
 
             Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_Create, message:=assemblyName)
                 Debug.Assert(rootNamespaces IsNot Nothing)
@@ -406,6 +408,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Debug.Assert(m_lazyAssemblySymbol Is Nothing)
+                If Me.EventQueue IsNot Nothing Then
+                    Me.EventQueue.Enqueue(New CompilationEvent.CompilationStarted(Me))
+                End If
             End Using
         End Sub
 
@@ -427,7 +432,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 m_referenceManager,
-                reuseReferenceManager:=True)
+                reuseReferenceManager:=True,
+                eventQueue:=Nothing) ' no event queue when cloning
         End Function
 
         Private Function UpdateSyntaxTrees(
@@ -601,6 +607,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 m_referenceManager,
                 reuseReferenceManager:=True)
+        End Function
+
+        ''' <summary>
+        ''' Returns a new compilation with a given event queue. 
+        ''' </summary>
+        Friend Shadows Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As VisualBasicCompilation
+            Return New VisualBasicCompilation(
+                Me.AssemblyName,
+                Me.Options,
+                Me.ExternalReferences,
+                m_syntaxTrees,
+                Me.syntaxTreeOrdinalMap,
+                m_rootNamespaces,
+                m_embeddedTrees,
+                m_declarationTable,
+                m_previousSubmission,
+                Me.SubmissionReturnType,
+                Me.HostObjectType,
+                Me.IsSubmission,
+                m_referenceManager,
+                reuseReferenceManager:=True,
+                eventQueue:=eventQueue)
         End Function
 
 #End Region
@@ -1130,8 +1158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides Function ToMetadataReference(Optional [alias] As String = Nothing, Optional embedInteropTypes As Boolean = False) As CompilationReference
-            Return New VisualBasicCompilationReference(Me, [alias], embedInteropTypes)
+        Public Overrides Function ToMetadataReference(Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False) As CompilationReference
+            Return New VisualBasicCompilationReference(Me, aliases, embedInteropTypes)
         End Function
 
         Public Shadows Function AddReferences(ParamArray references As MetadataReference()) As VisualBasicCompilation
@@ -1655,7 +1683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Symbol for the type or null if type cannot be found or is ambiguous. 
         ''' </returns>
         Friend Shadows Function GetTypeByMetadataName(fullyQualifiedMetadataName As String) As NamedTypeSymbol
-            Return Me.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=True)
+            Return Me.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=True, isWellKnownType:=False, wellKnownTypeCompilation:=Nothing)
         End Function
 
         Friend Shadows ReadOnly Property ObjectType As NamedTypeSymbol

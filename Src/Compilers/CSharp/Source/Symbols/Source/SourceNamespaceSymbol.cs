@@ -106,21 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<SyntaxReference, CSharpSyntaxNode> NamespaceDeclarationGetter = r =>
-            {
-                var node = (CSharpSyntaxNode)r.GetSyntax();
-
-                // If the node is a name syntax, it's something like "X" or "X.Y" in :
-                //    namespace X.Y.Z
-                // We want to return the full NamespaceDeclarationSyntax.
-                while (node is NameSyntax)
-                {
-                    node = node.Parent;
-                }
-
-                Debug.Assert(node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax);
-                return node;
-            };
+        private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> DeclaringSyntaxReferencesSelector = d =>
+            new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -129,14 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
                 // namespace decl node we want to return. here we will wrap the original syntax reference in 
                 // the translation syntax reference so that we can lazily manipulate a node return to the caller
-                ArrayBuilder<SyntaxReference> builder = ArrayBuilder<SyntaxReference>.GetInstance();
-
-                foreach (SingleNamespaceDeclaration decl in mergedDeclaration.Declarations)
-                {
-                    builder.Add(new TranslationSyntaxReference(decl.SyntaxReference, NamespaceDeclarationGetter));
-                }
-
-                return builder.ToImmutableAndFree();
+                return mergedDeclaration.Declarations.SelectAsArray(DeclaringSyntaxReferencesSelector);
             }
         }
 
@@ -173,13 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (allMembers.Length >= 2)
                 {
                     // The array isn't sorted. Sort it and remember that we sorted it.
-                    Symbol[] membersArray = allMembers.ToArray();
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance);
-                    ImmutableInterlocked.InterlockedExchange(ref this.lazyAllMembers, membersArray.AsImmutableOrNull());
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance);
+                    ImmutableInterlocked.InterlockedExchange(ref this.lazyAllMembers, allMembers);
                 }
 
                 ThreadSafeFlagOperations.Set(ref flags, LazyAllMembersIsSorted);
-                return lazyAllMembers;
+                return allMembers;
             }
         }
 

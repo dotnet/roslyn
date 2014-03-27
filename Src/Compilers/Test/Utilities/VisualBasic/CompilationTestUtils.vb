@@ -139,30 +139,6 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="referencePaths"></param>
-    ''' <param name="options"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Function CreateCompilationWithReferences(sources As XElement,
-                                                           referencePaths As IEnumerable(Of String),
-                                                           Optional options As VisualBasicCompilationOptions = Nothing,
-                                                           Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                           Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim references As IEnumerable(Of MetadataReference) = From path In referencePaths Select New MetadataFileReference(path)
-
-        Return CreateCompilationWithReferences(sources, references, options, spans, parseOptions:=parseOptions)
-    End Function
-
-    ''' <summary>
-    ''' 
-    ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
-    ''' &lt;compilation name="assemblyname[optional]"&gt;
-    ''' &lt;file name="file1.vb[optional]"&gt;
-    ''' source
-    ''' &lt;/file&gt;
-    ''' &lt;/compilation&gt;
-    ''' </param>
     Public Function CreateCompilationWithReferences(sources As XElement,
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,

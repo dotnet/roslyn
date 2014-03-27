@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class Binder
+    internal partial class Binder
     {
 
         protected BoundExpression CreateConversion(
@@ -727,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: the following types: sbyte, byte, short, ushort, int, uint, long, 
             // SPEC: ulong, char, float, double, decimal, bool, string, or any enumeration type.
 
-            // SEPC: The following conversions are permitted in constant expressions:
+            // SPEC: The following conversions are permitted in constant expressions:
             // SPEC: Identity conversions
             // SPEC: Numeric conversions
             // SPEC: Enumeration conversions

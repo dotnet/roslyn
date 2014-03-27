@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         /*
          * Name Reduction, to implicitly mean "this", is possible only after the initialization of all member variables but
-         * since the check for initialization of all member variable is a lot of work for this simplification we dont simplify
+         * since the check for initialization of all member variable is a lot of work for this simplification we don't simplify
          * even if all the member variables are initialized
          */
         private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(this MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)

@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException("fullyQualifiedMetadataName");
             }
 
-            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false);
+            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false);
         }
 
         /// <summary>
@@ -518,6 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="includeReferences">
         /// If search within assembly fails, lookup in assemblies referenced by the primary module.
         /// For source assembly, this is equivalent to all assembly references given to compilation.
+        /// </param>
+        /// <param name="isWellKnownType">
+        /// Extra restrictions apply when searching for a well-known type.  In particular, the type must be public.
         /// </param>
         /// <param name="useCLSCompliantNameArityEncoding">
         /// While resolving the name, consider only types following CLS-compliant generic type names and arity encoding (ECMA-335, section 10.7.2).
@@ -530,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamedTypeSymbol GetTypeByMetadataName(
             string metadataName,
             bool includeReferences,
+            bool isWellKnownType,
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null)
         {
@@ -542,18 +546,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parts.Length > 0)
                 {
                     mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
-                    type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, warnings: warnings);
+                    type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
                     for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                     {
                         mdName = MetadataTypeName.FromTypeName(parts[i]);
-                        type = type.LookupMetadataType(ref mdName);
+                        NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
+                        type = (!isWellKnownType || IsValidWellKnownType(temp)) ? temp : null;
                     }
                 }
             }
             else
             {
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding);
-                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, warnings: warnings);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
             }
 
             return ((object)type == null || type.IsErrorType()) ? null : type;
@@ -659,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeInfo.Name,
                     forcedArity: typeInfo.GenericTypeArguments.Length);
 
-                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences);
+                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false);
 
                 if ((object)symbol == null || symbol.IsErrorType())
                 {
@@ -704,12 +709,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ref MetadataTypeName metadataName,
             AssemblyIdentity assemblyOpt,
             bool includeReferences,
+            bool isWellKnownType,
             DiagnosticBag warnings = null)
         {
             NamedTypeSymbol result;
 
             // First try this assembly
             result = GetTopLevelTypeByMetadataName(this, ref metadataName, assemblyOpt);
+
+            if (isWellKnownType && !IsValidWellKnownType(result))
+            {
+                result = null;
+            }
 
             // ignore any types of the same name that might be in referenced assemblies (prefer the current assembly):
             if ((object)result != null || !includeReferences)
@@ -726,6 +737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!(this is SourceAssemblySymbol && reference.IsMissing)); // Non-source assemblies can have missing references
 
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(reference, ref metadataName, assemblyOpt);
+
+                if (isWellKnownType && !IsValidWellKnownType(candidate))
+                {
+                    candidate = null;
+                }
 
                 if ((object)candidate == null)
                 {
@@ -755,6 +771,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        private static bool IsValidWellKnownType(NamedTypeSymbol result)
+        {
+            if ((object)result == null || result.TypeKind == TypeKind.Error)
+            {
+                return false;
+            }
+
+            Debug.Assert((object)result.ContainingType == null || IsValidWellKnownType(result.ContainingType),
+                "Checking the containing type is the caller's responsibility.");
+
+            return result.DeclaredAccessibility == Accessibility.Public;
+        }
+
         /// <summary>
         /// Return a list of assembly symbols than can be accessed without using an alias.
         /// For example:
@@ -778,12 +807,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CSharpCompilation.ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
-                    if (referencedAssembly.Aliases.Length == 0 || referencedAssembly.Aliases.IndexOf(null) >= 0)
+                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
                     {
                         if (references == null)
                         {
                             references = ArrayBuilder<AssemblySymbol>.GetInstance();
                         }
+
                         references.Add(referencedAssembly.Symbol);
                     }
                 }

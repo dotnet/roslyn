@@ -12418,19 +12418,19 @@ End Module
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure UInt32
+    Public Structure UInt32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [String]
+    Public Class [String]
     End Class
 End Namespace
 Class C
@@ -12462,23 +12462,23 @@ BC35000: Requested operation is not available because the runtime library functi
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure UInt32
+    Public Structure UInt32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [String]
+    Public Class [String]
     End Class
 End Namespace
 Namespace Microsoft.VisualBasic.CompilerServices
-    Class EmbeddedOperators
+    Public Class EmbeddedOperators
     End Class
 End Namespace
 Class C
@@ -12509,17 +12509,17 @@ BC35000: Requested operation is not available because the runtime library functi
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [Type]
+    Public Class [Type]
     End Class
 End Namespace
 Class C
@@ -12543,13 +12543,13 @@ BC35000: Requested operation is not available because the runtime library functi
     <file name="a.vb"><![CDATA[
 Imports System
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Class Exception
+    Public Class Exception
     End Class
 End Namespace
 Class C

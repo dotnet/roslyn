@@ -406,14 +406,14 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     var map = AddOrUpdateNewTreeToOldMap(project, compilation, oldCompilationSet, cancellationToken);
 
                     // check simple case. most of typing case should hit this.
-                    // number of items in the map is same as number of new trees and old compilation doesnt have
+                    // number of items in the map is same as number of new trees and old compilation doesn't have
                     // more trees than current one
                     if (map.Count == newTreeCount && oldCompilationSet.Trees.Count <= newTreeCount)
                     {
                         return map;
                     }
 
-                    // a bit more expensive case where there is a document in oldCompilationSet that doesnt exist in new compilation
+                    // a bit more expensive case where there is a document in oldCompilationSet that doesn't exist in new compilation
                     return RemoveOldTreeFromMap(compilation, oldCompilationSet.Trees, map, cancellationToken);
                 }
 

@@ -378,8 +378,8 @@ False
 {
   // Code size      105 (0x69)
   .maxstack  2
-  .locals init (Object V_0, //
-  Object V_1) //
+  .locals init (Object V_0,
+  Object V_1)
   IL_0000:  ldarg.1
   IL_0001:  brfalse.s  IL_0067
   IL_0003:  ldarg.0

@@ -650,6 +650,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (cacheIsLocked)
                 {
+                    DisposeCachedMetadata();
+
                     assembliesFromFiles = this.saveAssembliesFromFiles;
                     assemblyKeys = this.saveAssemblyKeys;
                     modulesFromFiles = this.saveModulesFromFiles;
@@ -657,12 +659,33 @@ namespace Microsoft.CodeAnalysis
                     analyzersFromFiles = this.saveAnalyzersFromFiles;
                     analyzerAssemblyKeys = this.saveAnalyzerAssemblyKeys;
 
-                    System.Diagnostics.Debug.Assert(ReferenceEquals(last, this));
-                    System.Diagnostics.Debug.Assert(this.threadId == Thread.CurrentThread.ManagedThreadId);
+                    Debug.Assert(ReferenceEquals(last, this));
+                    Debug.Assert(this.threadId == Thread.CurrentThread.ManagedThreadId);
 
                     last = this.next;
                     cacheIsLocked = false;
                     Monitor.Exit(Guard);
+                }
+            }
+        }
+
+        internal static void DisposeCachedMetadata()
+        {
+            foreach (var cachedAssembly in assembliesFromFiles.Values)
+            {
+                AssemblyMetadata metadata;
+                if (cachedAssembly.Metadata.TryGetTarget(out metadata))
+                {
+                    metadata.Dispose();
+                }
+            }
+
+            foreach (var cachedModule in modulesFromFiles.Values)
+            {
+                ModuleMetadata metadata;
+                if (cachedModule.Metadata.TryGetTarget(out metadata))
+                {
+                    metadata.Dispose();
                 }
             }
         }

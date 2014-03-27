@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            ' make sure position doesnt touch end of root
+            ' make sure position doesn't touch end of root
             position = Math.Min(position, [end] - 1)
 
             Dim node = root.FindToken(position).Parent

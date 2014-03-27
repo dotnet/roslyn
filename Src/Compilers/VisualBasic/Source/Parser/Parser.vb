@@ -1790,7 +1790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' SpecifierList* .Parser::ParseSpecifiers( [ _Inout_ bool& ErrorInConstruct ] )
 
         'TODO - davidsch - The error checking here looks like parser doing semantics.  The grammar allows
-        'a list of modifers. Deferring semantic errors is important for incremental parsing. Note that some
+        'a list of modifiers. Deferring semantic errors is important for incremental parsing. Note that some
         ' errors are done here and one in semantics. For consistency the errors should be reports in the same
         ' component, i.e. semantics or parser.
 
@@ -5356,7 +5356,7 @@ checkNullable:
                 ' Identifiers - note that only simple indentifiers are allowed.
                 ' This check is done in ParseTerm.
 
-                ' Paranthesized expressions
+                ' Parenthesized expressions
 
                 ' Literals
 

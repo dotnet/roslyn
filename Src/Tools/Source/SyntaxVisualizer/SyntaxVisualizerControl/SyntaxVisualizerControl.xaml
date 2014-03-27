@@ -76,8 +76,13 @@
                             <Image Height="16" Width="16" Source="/Roslyn.SyntaxVisualizer.Control;component/SyntaxGraph.ico" />
                         </MenuItem.Icon>
                     </MenuItem>
+                    <Separator Name="menuItemSeparator1" />
                     <MenuItem Name="symbolDetailsMenuItem" Header="View Symbol (if any)" Click="SymbolDetailsMenuItem_Click"/>
                     <MenuItem Name="typeSymbolDetailsMenuItem" Header="View TypeSymbol (if any)" Click="TypeSymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="convertedTypeSymbolDetailsMenuItem" Header="View Converted TypeSymbol (if any)" Click="ConvertedTypeSymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="aliasSymbolDetailsMenuItem" Header="View AliasSymbol (if any)" Click="AliasSymbolDetailsMenuItem_Click"/>
+                    <Separator Name="menuItemSeparator2" />
+                    <MenuItem Name="constantValueDetailsMenuItem" Header="View Constant Value (if any)" Click="ConstantValueDetailsMenuItem_Click"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>

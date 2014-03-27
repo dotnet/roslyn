@@ -8961,44 +8961,6 @@ BC30972: Attribute 'StructLayout' cannot be applied to a generic type.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(539480)>
-        <Fact>
-        Public Sub BC31011ERR_BadRefLib1()
-            Dim refFile = Temp.CreateFile().Path
-
-            Dim ref = New MetadataFileReference(refFile)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="BadRefLib1">
-        <file name="a.vb"><![CDATA[
-        Class C1
-        End Class
-        ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(ref)
-            Dim expectedErrors1 = <errors>
-BC31519: '<%= refFile %>' cannot be referenced because it is not a valid assembly.
-                 </errors>
-            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
-        End Sub
-
-        <Fact>
-        Public Sub BC31007ERR_BadModuleFile1()
-            Dim refFile = Temp.CreateFile().Path
-            Dim ref = New MetadataFileReference(refFile, MetadataImageKind.Module)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation name="BadRefLib1">
-        <file name="a.vb"><![CDATA[
-        Class C1
-        End Class
-        ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(ref)
-            Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file '<%= refFile %>': Image too small to contain DOS header.
-                 </errors>
-            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
-        End Sub
-
         <Fact()>
         Public Sub BC31029ERR_EventHandlerSignatureIncompatible2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

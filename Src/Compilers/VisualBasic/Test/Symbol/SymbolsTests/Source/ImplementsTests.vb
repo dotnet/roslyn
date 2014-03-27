@@ -2721,7 +2721,7 @@ BC31444: 'WriteOnly Property wo2 As Integer' cannot be implemented by a ReadOnly
         End Sub
 
         <Fact>
-        Public Sub ImplmentReadOnlyUsingReadWriteWithPrivateSet()
+        Public Sub ImplementReadOnlyUsingReadWriteWithPrivateSet()
             Dim source =
 <compilation>
     <file name="a.vb">

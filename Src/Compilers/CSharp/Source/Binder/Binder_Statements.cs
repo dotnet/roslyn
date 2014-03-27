@@ -1,21 +1,19 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This portion of the binder converts StatementSyntax nodes into BoundStatements
     /// </summary>
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         /// <summary>
         /// This is the set of parameters and local variables that were used as arguments to 

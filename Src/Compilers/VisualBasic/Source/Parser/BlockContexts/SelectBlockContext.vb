@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Else
                     ' TODO - davidsch
                     ' 1. Dev10 the error is reported on the keyword that introduces the statement.  If the error is
-                    ' reported here it is easier to mark the whole statment and much harder to just mark the keyword.
+                    ' reported here it is easier to mark the whole statement and much harder to just mark the keyword.
                     ' 2. The bad statement is going into an empty case block.  Is this the correct error model.  Do we need
                     ' a BadCaseStatement? Compile a list of all uses of missing statements.
 

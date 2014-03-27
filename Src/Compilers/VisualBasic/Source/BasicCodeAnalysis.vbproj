@@ -3,7 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props" Condition="Exists('..\..\..\packages\RoslynCompilers.0.6.0\build\RoslynCompilers.props')" />
+    <Import Project="..\..\..\packages\RoslynCompilers.0.7.0\build\RoslynCompilers.props" Condition="Exists('..\..\..\packages\RoslynCompilers.0.7.0\build\RoslynCompilers.props')" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -832,6 +832,7 @@
     <Compile Include="Symbols\WellKnownMembers.vb" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.vb" />
     <Compile Include="Syntax\BaseSyntaxExtensions.vb" />
+    <Compile Include="Syntax\BeginOfBlockSyntaxReference.vb" />
     <Compile Include="Syntax\CompilationUnitSyntax.vb" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\BadTokenSyntax.vb" />
@@ -855,6 +856,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxSubKind.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.vb" />
+    <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.vb" />
     <Compile Include="Syntax\NameSyntax.vb" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
@@ -883,7 +885,6 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
-    <Compile Include="Syntax\TranslationSyntaxReference.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
     <Compile Include="Syntax\VisualBasicLineDirectiveMap.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxNode.vb" />

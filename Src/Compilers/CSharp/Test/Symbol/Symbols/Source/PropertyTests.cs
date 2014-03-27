@@ -2223,7 +2223,7 @@ public interface IA
             var iam2 = ia.GetMember<MethodSymbol>("M2");
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
-            var compRef = CreateCompilationReference(refComp, embedInteropTypes: false);
+            var compRef = refComp.ToMetadataReference(embedInteropTypes: false);
             comp = CreateCompilationWithMscorlib("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
@@ -2259,7 +2259,7 @@ public interface IA
             iam2 = ia.GetMember<MethodSymbol>("M2");
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
-            compRef = CreateCompilationReference(refComp, embedInteropTypes: true);
+            compRef = refComp.ToMetadataReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
@@ -2316,7 +2316,7 @@ public interface IA
             iam2 = ia.GetMember<MethodSymbol>("M2");
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
-            compRef = CreateCompilationReference(refComp, embedInteropTypes: true);
+            compRef = refComp.ToMetadataReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);

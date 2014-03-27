@@ -2120,7 +2120,7 @@ class C
 ";
             var lib = CreateCompilationWithMscorlibAndDocumentationComments(libSource, assemblyName: "Lib");
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, alias: "LibAlias") });
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("LibAlias")) });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
@@ -2150,7 +2150,7 @@ class C
 ";
             var lib = CreateCompilationWithMscorlibAndDocumentationComments(libSource, assemblyName: "Lib");
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, alias: "LibAlias") });
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("LibAlias")) });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
@@ -2180,7 +2180,7 @@ class C
 ";
             var lib = CreateCompilationWithMscorlibAndDocumentationComments(libSource, assemblyName: "Lib");
 
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, alias: "LibAlias") });
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("LibAlias")) });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,

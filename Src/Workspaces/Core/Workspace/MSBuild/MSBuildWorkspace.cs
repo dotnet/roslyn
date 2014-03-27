@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -411,8 +412,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // metadata references
                 var metadataReferences = projectFileInfo.MetadataReferences
                     .Select(mi => new MetadataFileReference(mi.Path, mi.Properties, this.GetDocumentationProvider(mi.Path)))
-                    .Concat(resolvedReferences.MetadataReferences)
-                    .ToList<MetadataReference>();
+                    .Concat(resolvedReferences.MetadataReferences);
 
                 var outputFilePath = projectFileInfo.OutputFilePath;
                 var assemblyName = projectFileInfo.AssemblyName;
@@ -443,6 +443,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         docs.ToImmutableListOrEmpty(),
                         resolvedReferences.ProjectReferences.ToImmutableListOrEmpty(),
                         metadataReferences.ToImmutableListOrEmpty(),
+                        analyzerReferences: projectFileInfo.AnalyzerReferences,
                         isSubmission: false,
                         hostObjectType: null));
 
@@ -507,7 +508,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var existingProjectId = this.GetProjectId(fullPath);
                 if (existingProjectId != null)
                 { 
-                    resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Alias));
+                    resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases));
                     continue;
                 }
 
@@ -515,7 +516,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (preferMetadata || loader == null)
                 {
                     // attempt to find project's metadata
-                    var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Alias, this.properties, cancellationToken).ConfigureAwait(false);
+                    var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, this.properties, cancellationToken).ConfigureAwait(false);
                     if (projectMetadata != null)
                     {
                         resolvedReferences.MetadataReferences.Add(projectMetadata);
@@ -525,14 +526,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         // cannot find metadata and project cannot be loaded, so leave a project reference to a non-existent project.
                         var id = this.GetOrCreateProjectId(fullPath);
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Alias));
+                        resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases));
                         continue;
                     }
                 }
 
                 // load the project
                 var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-                resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Alias));
+                resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
             }
 
             return resolvedReferences;
@@ -541,7 +542,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Gets a MetadataReference to a project's output assembly.
         /// </summary>
-        private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, string alias, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, ImmutableArray<string> aliases, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             try
             {
@@ -557,12 +558,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         return new MetadataImageReference(
                             AssemblyMetadata.CreateFromImage(ImmutableArray.Create(File.ReadAllBytes(outputFilePath))),
                             documentation: docProvider,
-                            alias: alias,
+                            aliases: aliases,
                             display: outputFilePath);
                     }
                     else
                     {
-                        return new MetadataFileReference(outputFilePath, alias: alias, documentation: docProvider);
+                        return new MetadataFileReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases), docProvider);
                     }
                 }
             }

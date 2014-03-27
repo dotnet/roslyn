@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using Roslyn.Utilities;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis
     {
         private Metadata lazyMetadata;
 
-        public MetadataFileReference(string fullPath, MetadataImageKind kind = MetadataImageKind.Assembly, string alias = null, bool embedInteropTypes = false, DocumentationProvider documentation = null)
-            : this(fullPath, new MetadataReferenceProperties(kind, alias, embedInteropTypes), documentation)
+        public MetadataFileReference(string fullPath, MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, DocumentationProvider documentation = null)
+            : this(fullPath, new MetadataReferenceProperties(kind, aliases, embedInteropTypes), documentation)
         {
         }
 

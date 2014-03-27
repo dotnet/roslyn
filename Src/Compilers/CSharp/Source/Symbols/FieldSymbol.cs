@@ -316,18 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (newOwner == this.ContainingSymbol) ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
-        public override bool Equals(object obj)
-        {
-            FieldSymbol other = obj as FieldSymbol;
-            return (object)other != null && ContainingType == other.ContainingType && ReferenceEquals(OriginalDefinition, other.OriginalDefinition);
-        }
-
-        public override int GetHashCode()
-        {
-            // TODO: consider mixing in containing type
-            return RuntimeHelpers.GetHashCode(this.OriginalDefinition);
-        }
-
         #region Use-Site Diagnostics
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

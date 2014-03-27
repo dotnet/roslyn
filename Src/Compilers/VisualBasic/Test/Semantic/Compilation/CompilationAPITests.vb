@@ -19,34 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
 
-        <WorkItem(538349)>
-        <WorkItem(545062)>
-        <Fact>
-        Public Sub DuplicateReferences()
-            Dim mscorlibPath = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path
-
-            Dim mscorlib1 = New MetadataFileReference(mscorlibPath)
-            Dim mscorlib2 = New MetadataFileReference(mscorlibPath)
-
-            Dim comp = VisualBasicCompilation.Create("test", references:={mscorlib1, mscorlib2})
-            Assert.Equal(2, comp.ExternalReferences.Length)
-            Assert.Null(comp.GetReferencedAssemblySymbol(mscorlib1))             ' ignored
-            Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlib2))
-
-            Dim mscorlibNoEmbed = New MetadataFileReference(mscorlibPath)
-            Dim mscorlibEmbed = New MetadataFileReference(mscorlibPath, embedInteropTypes:=True)
-
-            comp = VisualBasicCompilation.Create("test", references:={mscorlibNoEmbed, mscorlibEmbed})
-            Assert.Equal(2, comp.ExternalReferences.Length)
-            Assert.Null(comp.GetReferencedAssemblySymbol(mscorlibNoEmbed))       ' ignored
-            Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlibEmbed))
-
-            comp = VisualBasicCompilation.Create("test", references:={mscorlibEmbed, mscorlibNoEmbed})
-            Assert.Equal(2, comp.ExternalReferences.Length)
-            Assert.Null(comp.GetReferencedAssemblySymbol(mscorlibEmbed))         ' ignored
-            Assert.NotNull(comp.GetReferencedAssemblySymbol(mscorlibNoEmbed))
-        End Sub
-
         <WorkItem(538778)>
         <WorkItem(537623)>
         <Fact>
@@ -286,13 +258,10 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim sysloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path
-            Dim coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path
-            Dim ref1 = New MetadataFileReference(coreloc)
-            Dim ref2 = New MetadataFileReference(sysloc)
-            Dim ref3 = New MetadataFileReference("c:\xml.bms")
-            Dim ref4 = New MetadataFileReference("c:\aaa.dll")
-            Dim ref5 = New MetadataFileReference("c:\aaa.bbb")
+            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
+            Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
             ' Add a new empty item 
             comp = comp.AddReferences(Enumerable.Empty(Of MetadataReference)())
@@ -306,14 +275,12 @@ End Namespace
             Assert.Equal(1, comp.References.Count)
             Assert.Equal(MetadataImageKind.Assembly, comp.References(0).Properties.Kind)
             Assert.Same(ref1, comp.References(0))
-            Assert.Equal(coreloc, CType(comp.References(0), MetadataFileReference).FullPath)
 
             ' Replace an existing item with another valid item 
             comp = comp.ReplaceReference(ref1, ref2)
             Assert.Equal(1, comp.References.Count)
             Assert.Equal(MetadataImageKind.Assembly, comp.References(0).Properties.Kind)
             Assert.Equal(ref2, comp.References(0))
-            Assert.Equal(sysloc, CType(comp.References(0), MetadataFileReference).FullPath)
 
             ' Remove an existing item 
             comp = comp.RemoveReferences(ref2)
@@ -920,9 +887,9 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         End Sub
 
         <Fact>
-        Public Sub AssemblyFileReferenceNotFound()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataFileReference("c:\file_that_does_not_exist.bbb")})
-            Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_LibNotFound)
+        Public Sub ModuleSuppliedAsAssembly()
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataImageReference(TestResources.MetadataTests.NetModule01.ModuleVB01.AsImmutableOrNull())})
+            Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotAssembly)
         End Sub
 
         <Fact>
@@ -930,19 +897,6 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataImageReference(ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System))})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
-
-        <Fact>
-        Public Sub ModuleSuppliedAsAssembly()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataImageReference(TestResources.MetadataTests.NetModule01.ModuleVB01.AsImmutableOrNull())})
-            Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotAssembly)
-        End Sub
-
-        <Fact>
-        Public Sub ModuleFileReferenceNotFound()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={New MetadataFileReference("c:\file_that_does_not_exist.bbb", MetadataImageKind.Module)})
-            Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_LibNotFound)
-        End Sub
-
 
         '' Get nonexistent Referenced Assembly Symbol
         <WorkItem(537637)>
@@ -960,19 +914,20 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <WorkItem(537617)>
         <Fact>
         Public Sub NegReference2()
-            Dim comp = VisualBasicCompilation.Create("Compilation",)
+            Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
+            Dim ref3 = ref2
+            Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
+
             comp = comp.AddReferences(ref1, ref1)
 
             Assert.Equal(1, comp.References.Count)
             Assert.Equal(ref1, comp.References(0))
 
             ' Remove non-existing item 
-            Dim ref2 = New MetadataFileReference("c:\a\xml.bms")
             Assert.Throws(Of ArgumentException)(Function() comp.RemoveReferences(ref2))
 
-            Dim ref3 = ref2
-            Dim ref4 = New MetadataFileReference("c:\aaa.dll")
             Dim listRef = New List(Of MetadataReference) From {ref1, ref2, ref3, ref4}
 
             comp = comp.AddReferences(listRef).AddReferences(ref2).ReplaceReference(ref2, ref2)
@@ -987,7 +942,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = New MetadataFileReference("c:\xml.bms")
+            Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref2 = TestReferences.NetFx.v4_0_30319.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
@@ -1006,7 +961,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference4()
             Dim opt = OptionsExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = New MetadataFileReference("c:\xml.bms")
+            Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
 
             Assert.Throws(Of ArgumentException)(
                Sub()
@@ -1026,7 +981,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = New MetadataFileReference("c:\xml.bms")
+            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
             Dim ref2 = TestReferences.NetFx.v4_0_30319.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
@@ -1072,7 +1027,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(0, comp.SyntaxTrees.Length)
         End Sub
 
-        '' Throw exception when the parameter of ContainsSyntaxTrees is null
+        ' Throw exception when the parameter of ContainsSyntaxTrees is null
         <WorkItem(527256)>
         <Fact>
         Public Sub NegContainsSyntaxTrees()
@@ -1081,22 +1036,18 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.False(comp.SyntaxTrees.Contains(Nothing))
         End Sub
 
-        '' Throw exception when the parameter of the parameter type of GetReferencedAssemblySymbol
-        'is CS.VisualBasicCompilationReference
+        ' Throw exception when the parameter of AddReferences is CSharpCompilationReference
         <WorkItem(537778)>
         <Fact>
         Public Sub NegGetSymbol()
             Dim opt = OptionsExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Throws(Of ArgumentException)(
-                Sub()
-                    Dim csComp = CS.CSharpCompilation.Create("CompilationCS")
-                    csComp = csComp.AddReferences(New MetadataFileReference("c:\a.dll"))
-                    Dim compRef = csComp.ToMetadataReference()
-                    comp = comp.AddReferences(compRef)
-                    Dim smb = comp.GetReferencedAssemblySymbol(compRef)
-                End Sub)
+            Dim csComp = CS.CSharpCompilation.Create("CompilationCS")
+            Dim compRef = csComp.ToMetadataReference()
+
+            Assert.Throws(Of ArgumentException)(Function() comp.AddReferences(compRef))
+
             '' Throw exception when the parameter of GetReferencedAssemblySymbol is null
             'Assert.Throws(Of ArgumentNullException)(Sub() comp.GetReferencedAssemblySymbol(Nothing))
 
@@ -1636,8 +1587,7 @@ End Class
         <WorkItem(797640)>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path
-            Dim metadata = New MetadataFileReference(coreloc)
+            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)

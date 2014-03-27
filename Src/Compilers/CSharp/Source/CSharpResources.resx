@@ -1439,7 +1439,7 @@
   <data name="ERR_InterfacesCantContainOperators" xml:space="preserve">
     <value>Interfaces cannot contain operators</value>
   </data>
-  <data name="ERR_StructsCantContainDefaultContructor" xml:space="preserve">
+  <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>
   </data>
   <data name="ERR_CantOverrideBogusMethod" xml:space="preserve">
@@ -2136,7 +2136,7 @@
     <value>A parameter can only have one '{0}' modifier</value>
   </data>
   <data name="ERR_MultiParamMod" xml:space="preserve">
-    <value>A parameter cannot have all the specified modifiers; there are too many modifers on the parameter</value>
+    <value>A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter</value>
   </data>
   <data name="ERR_ExtensionMethodsDecl" xml:space="preserve">
     <value>Extension methods must be defined in a top level static class; {0} is a nested class</value>
@@ -2163,7 +2163,7 @@
     <value>Argument {0}: cannot convert from '{1}' to '{2}'</value>
   </data>
   <data name="ERR_NoSourceFile" xml:space="preserve">
-    <value>Source file '{0}' could not be opened: {1}</value>
+    <value>Source file '{0}' could not be opened -- {1}</value>
   </data>
   <data name="ERR_CantRefResource" xml:space="preserve">
     <value>Cannot link resource files when building a module</value>

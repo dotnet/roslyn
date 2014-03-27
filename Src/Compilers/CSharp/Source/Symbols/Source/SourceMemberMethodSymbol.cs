@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -160,6 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.NotePartComplete(CompletionPart.FinishMethodChecks);
 
                 this.constraintClauseBinder = null;
+            }
+
+            if (bodyOpt == null)
+            {
+                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
         }
 

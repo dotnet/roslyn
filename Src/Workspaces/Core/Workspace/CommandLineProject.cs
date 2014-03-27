@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
@@ -36,12 +37,20 @@ namespace Microsoft.CodeAnalysis
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
-            // resolve all references, ignore those that can't be resolved
-            var boundReferences = commandLineArguments.ResolveMetadataReferences(referenceResolver, referenceProvider);
-            var unresolved = boundReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
-            if (unresolved != null)
+            // resolve all metadata references.
+            var boundMetadataReferences = commandLineArguments.ResolveMetadataReferences(referenceResolver, referenceProvider);
+            var unresolvedMetadataReferences = boundMetadataReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
+            if (unresolvedMetadataReferences != null)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CantResolveMetadataReference, ((UnresolvedMetadataReference)unresolved).Reference));
+                throw new ArgumentException(string.Format(WorkspacesResources.CantResolveMetadataReference, ((UnresolvedMetadataReference)unresolvedMetadataReferences).Reference));
+            }
+
+            // resolve all analyzer references.
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(referenceResolver);
+            var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
+            if (unresolvedAnalyzerReferences != null)
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources.CantResolveAnalyzerReference, ((UnresolvedAnalyzerReference)unresolvedAnalyzerReferences).Display));
             }
 
             AssemblyIdentityComparer assemblyIdentityComparer;
@@ -117,7 +126,8 @@ namespace Microsoft.CodeAnalysis
                     .WithMetadataReferenceProvider(referenceProvider),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: docs,
-                metadataReferences: boundReferences);
+                metadataReferences: boundMetadataReferences,
+                analyzerReferences: boundAnalyzerReferences);
 
             return projectInfo;
         }

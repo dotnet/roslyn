@@ -3,9 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.MSBuild
-
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports MSB = Microsoft.Build
 
@@ -92,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.GetDocuments(compilerInputs, executedProject),
                     Me.GetProjectReferences(executedProject),
                     Me.GetMetadataReferences(compilerInputs),
+                    Me.GetAnalyzerReferences(compilerInputs),
                     appConfigPath:=Nothing)
             End Function
 
@@ -149,6 +149,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return refs.ToImmutableList()
+            End Function
+
+            Private Function GetAnalyzerReferences(compilerInputs As VisualBasicCompilerInputs) As IEnumerable(Of AnalyzerReference)
+                Return compilerInputs.AnalyzerReferences.Select(Function(r) New AnalyzerFileReference(GetDocumentFilePath(r)))
             End Function
 
             Private Sub InitializeFromModel(compilerInputs As VisualBasicCompilerInputs, executedProject As MSB.Execution.ProjectInstance)
@@ -218,12 +222,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.SetSubsystemVersion(Me.ReadPropertyString(executedProject, "SubsystemVersion"))
                 compilerInputs.SetTargetCompactFramework(Me.ReadPropertyBool(executedProject, "TargetCompactFramework"))
                 compilerInputs.SetTargetType(Me.ReadPropertyString(executedProject, "OutputType"))
+
+                ' Decode the warning options from RuleSet file prior to reading explicit settings in the project file, so that project file settings prevail for duplicates.
+                compilerInputs.SetRuleSet(Me.ReadPropertyString(executedProject, "RuleSet"))
                 compilerInputs.SetTreatWarningsAsErrors(Me.ReadPropertyBool(executedProject, "SetTreatWarningsAsErrors"))
                 compilerInputs.SetVBRuntime(ReadPropertyString(executedProject, "VbRuntime"))
                 compilerInputs.SetWarningsAsErrors(Me.ReadPropertyString(executedProject, "WarningsAsErrors"))
                 compilerInputs.SetWarningsNotAsErrors(Me.ReadPropertyString(executedProject, "WarningsNotAsErrors"))
 
                 compilerInputs.SetReferences(Me.GetMetadataReferencesFromModel(executedProject).ToArray())
+                compilerInputs.SetAnalyzers(Me.GetAnalyzerReferencesFromModel(executedProject).ToArray())
                 compilerInputs.SetSources(Me.GetDocumentsFromModel(executedProject).ToArray())
 
                 compilerInputs.EndInitialization()
@@ -241,8 +249,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
+
+            ' TODO: Uncomment the below Implements clause once MSBuild support for analyzers/ruleset has been added
             Private Class VisualBasicCompilerInputs
-                Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
+                Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded ', MSB.Tasks.Hosting.IAnalyzerHostObject
 
                 Private _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
@@ -250,6 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _compilationOptions As VisualBasicCompilationOptions
                 Private _sources As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _references As IEnumerable(Of MSB.Framework.ITaskItem)
+                Private _analyzerReferences As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _noStandardLib As Boolean
                 Private _warnings As Dictionary(Of String, ReportDiagnostic)
                 Private _sdkPath As String
@@ -271,6 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
                     Me._sources = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._references = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
+                    Me._analyzerReferences = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._warnings = New Dictionary(Of String, ReportDiagnostic)()
                 End Sub
 
@@ -295,6 +307,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public ReadOnly Property References As IEnumerable(Of MSB.Framework.ITaskItem)
                     Get
                         Return Me._references
+                    End Get
+                End Property
+
+                Public ReadOnly Property AnalyzerReferences As IEnumerable(Of MSB.Framework.ITaskItem)
+                    Get
+                        Return Me._analyzerReferences
                     End Get
                 End Property
 
@@ -547,6 +565,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
+                ' TODO: Uncomment the below Implements clause once MSBuild support for analyzers has been added
+                Public Function SetAnalyzers(analyzerReferences() As Microsoft.Build.Framework.ITaskItem) As Boolean ' Implements Microsoft.Build.Tasks.Hosting.IAnalyzerHostObject.SetAnalyzers
+                    Me._analyzerReferences = If(analyzerReferences, SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)())
+                    Return True
+                End Function
+
                 Public Function SetRemoveIntegerChecks(removeIntegerChecks As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetRemoveIntegerChecks
                     Me._compilationOptions = Me._compilationOptions.WithOverflowChecks(Not removeIntegerChecks)
                     Return True
@@ -596,6 +620,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                     Return False
+                End Function
+
+                ' TODO: Uncomment the below Implements clause once MSBuild support for ruleset has been added
+                Public Function SetRuleSet(ruleSetFile As String) As Boolean ' Implements Microsoft.Build.Tasks.Hosting.IAnalyzerHostObject.SetRuleSet
+                    If Not String.IsNullOrEmpty(ruleSetFile) Then
+                        Dim fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(Me._projectFile.FilePath))
+
+                        Dim specificDiagnosticOptions As Dictionary(Of String, ReportDiagnostic) = Nothing
+                        Dim generalDiagnosticOption = RuleSet.GetDiagnosticOptionsFromRulesetFile(fullPath, specificDiagnosticOptions)
+                        Me._compilationOptions = Me._compilationOptions.WithGeneralDiagnosticOption(generalDiagnosticOption)
+                        Me._warnings.AddRange(specificDiagnosticOptions)
+                    End If
+
+                    Return True
                 End Function
 
                 Public Function SetTreatWarningsAsErrors(treatWarningsAsErrors As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetTreatWarningsAsErrors

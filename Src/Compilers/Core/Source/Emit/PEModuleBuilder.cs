@@ -671,19 +671,27 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Compilation compilation = this.compilation;
+                var referenceManager = this.compilation.GetBoundReferenceManager();
 
                 // Enumerate external references (#r's don't define aliases) to preserve the order.
                 foreach (MetadataReference reference in compilation.ExternalReferences)
                 {
-                    if (reference.Properties.Alias != null)
-                    {
-                        IAssemblySymbol referencedAssembly = this.Compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    // duplicate references might have been skipped by the assembly binder:
 
-                        // duplicate references might have been skipped by the assembly binder:
-                        if (referencedAssembly != null)
+                    IAssemblySymbol symbol;
+                    ImmutableArray<string> aliases;
+                    if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                    {
+                        var displayName = symbol.Identity.GetDisplayName();
+                        for (int i = 0; i < aliases.Length; i++)
                         {
-                            yield return new ExternNamespace(reference.Properties.Alias, referencedAssembly.Identity.GetDisplayName());
+                            string alias = aliases[i];
+
+                            // filter out duplicates and global aliases:
+                            if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                            {
+                                yield return new ExternNamespace(alias, displayName);
+                            }
                         }
                     }
                 }

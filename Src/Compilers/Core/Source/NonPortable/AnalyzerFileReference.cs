@@ -9,7 +9,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// Represents analyzers stored in an analyzer assembly file.

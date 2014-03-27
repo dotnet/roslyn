@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyImage">Read-only assembly image.</param>
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
-        /// <param name="alias">Reference alias.</param>
+        /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
         /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(ImmutableArray<byte> assemblyImage, DocumentationProvider documentation = null, string alias = null, bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(AssemblyMetadata.CreateFromImage(RequireNonNull(assemblyImage, "assemblyImage")), documentation, alias, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(ImmutableArray<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
+            : this(AssemblyMetadata.CreateFromImage(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, fullPath, display)
         {
         }
 
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyImage">Read-only assembly image.</param>
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
-        /// <param name="alias">Reference alias.</param>
+        /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
         /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(IEnumerable<byte> assemblyImage, DocumentationProvider documentation = null, string alias = null, bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(assemblyImage.AsImmutableOrNull(), documentation, alias, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(IEnumerable<byte> assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
+            : this(assemblyImage.AsImmutableOrNull(), documentation, aliases, embedInteropTypes, fullPath, display)
         {
         }
 
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyImage">Stream with assembly image, it should support seek operations.</param>
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
-        /// <param name="alias">Reference alias.</param>
+        /// <param name="aliases">Reference alias.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
         /// <param name="fullPath">Optional full path used for reference comparison when used in compilation. The file doesn't need to exist.</param>
         /// <param name="display">Display string for error reporting.</param>
-        public MetadataImageReference(System.IO.Stream assemblyImage, DocumentationProvider documentation = null, string alias = null, bool embedInteropTypes = false, string fullPath = null, string display = null)
-            : this(AssemblyMetadata.CreateFromImageStream(RequireNonNull(assemblyImage, "assemblyImage")), documentation, alias, embedInteropTypes, fullPath, display)
+        public MetadataImageReference(System.IO.Stream assemblyImage, DocumentationProvider documentation = null, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, string fullPath = null, string display = null)
+            : this(AssemblyMetadata.CreateFromImageStream(RequireNonNull(assemblyImage, "assemblyImage")), documentation, aliases, embedInteropTypes, fullPath, display)
         {
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="metadata">Assembly or module metadata.</param>
         /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
-        /// <param name="alias">Reference alias.</param>
+        /// <param name="aliases">Reference aliases.</param>
         /// <param name="embedInteropTypes">True if interop types contained in the reference should be embedded to the compilation that uses the reference.</param>
         /// <param name="fullPath">
         /// Optional full path used for reference comparison when used in compilation. 
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis
         public MetadataImageReference(
             AssemblyMetadata metadata,
             DocumentationProvider documentation = null,
-            string alias = null,
+            ImmutableArray<string> aliases = default(ImmutableArray<string>),
             bool embedInteropTypes = false,
             string fullPath = null,
             string display = null)
             : this(RequireNonNull(metadata, "metadata"),
                    documentation,
-                   new MetadataReferenceProperties(metadata.Kind, alias, embedInteropTypes),
+                   new MetadataReferenceProperties(metadata.Kind, aliases, embedInteropTypes),
                    fullPath,
                    display)
         {
@@ -123,13 +123,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns an instance of the reference with specified alias.
+        /// Returns an instance of the reference with specified aliases.
         /// </summary>
-        /// <param name="alias">The new alias for the reference.</param>
+        /// <param name="aliases">The new aliases for the reference.</param>
         /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
-        public MetadataImageReference WithAlias(string alias)
+        public MetadataImageReference WithAliases(IEnumerable<string> aliases)
         {
-            if (alias == this.Properties.Alias)
+            return WithAliases(ImmutableArray.CreateRange(aliases));
+        }
+
+        /// <summary>
+        /// Returns an instance of the reference with specified aliases.
+        /// </summary>
+        /// <param name="aliases">The new aliases for the reference.</param>
+        /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
+        public MetadataImageReference WithAliases(ImmutableArray<string> aliases)
+        {
+            if (aliases == this.Properties.Aliases)
             {
                 return this;
             }
@@ -137,7 +147,7 @@ namespace Microsoft.CodeAnalysis
             return new MetadataImageReference(
                 this.metadata,
                 this.DocumentationProvider,
-                new MetadataReferenceProperties(this.Properties.Kind, alias, this.Properties.EmbedInteropTypes),
+                new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes),
                 this.FullPath,
                 this.display);
         }
@@ -157,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             return new MetadataImageReference(
                 this.metadata,
                 this.DocumentationProvider,
-                new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Alias, value),
+                new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value),
                 this.FullPath,
                 this.display);
         }
@@ -219,11 +229,11 @@ namespace Microsoft.CodeAnalysis
         {
             var sb = new StringBuilder();
             sb.Append(Properties.Kind == MetadataImageKind.Module ? "Module" : "Assembly");
-            if (Properties.Alias != null)
+            if (!Properties.Aliases.IsDefaultOrEmpty)
             {
-                sb.Append(" Alias='");
-                sb.Append(Properties.Alias);
-                sb.Append("'");
+                sb.Append(" Aliases={");
+                sb.Append(string.Join(", ", Properties.Aliases));
+                sb.Append("}");
             }
 
             if (Properties.EmbedInteropTypes)

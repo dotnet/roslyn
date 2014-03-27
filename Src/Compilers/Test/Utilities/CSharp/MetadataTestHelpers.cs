@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static AssemblySymbol[] GetSymbolsForReferences(params MetadataReference[] mrefs)
         {
-            return GetSymbolsForReferences(files: null, compilations: null, bytes: null, mrefs: mrefs, options: null);
+            return GetSymbolsForReferences(compilations: null, bytes: null, mrefs: mrefs, options: null);
         }
 
         internal static AssemblySymbol[] GetSymbolsForReferences(MetadataReference[] mrefs, Compilation[] compilations)
@@ -36,21 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         internal static AssemblySymbol[] GetSymbolsForReferences(
-            string[] files = null,
             CSharpCompilation[] compilations = null,
             byte[][] bytes = null,
             MetadataReference[] mrefs = null,
             CSharpCompilationOptions options = null)
         {
             var refs = new List<MetadataReference>();
-
-            if (files != null)
-            {
-                foreach (var f in files)
-                {
-                    refs.Add(new MetadataFileReference(f));
-                }
-            }
 
             if (compilations != null)
             {

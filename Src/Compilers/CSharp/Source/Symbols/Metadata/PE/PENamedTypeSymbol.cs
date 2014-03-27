@@ -299,7 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // check if this is one of the COR library types
             if (emittedNamespaceName != null &&
-                moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes)
+                moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes &&
+                this.DeclaredAccessibility == Accessibility.Public) // NB: this.flags was set above.
             {
                 corTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, metadataName));
             }

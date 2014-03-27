@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.ProjectState.LanguageServices == fromProject.LanguageServices
                     && this.TryGetCompilation(out compilation))
                 {
-                    return compilation.ToMetadataReference(projectReference.Alias, projectReference.EmbedInteropTypes);
+                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 // If same language then we can wrap the other project's compilation into a compilation reference
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // otherwise, base it off the compilation by building it first.
                     compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return compilation.ToMetadataReference(projectReference.Alias, projectReference.EmbedInteropTypes);
+                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
                 else
                 {
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis
                     && this.ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference
-                    return compilation.ToMetadataReference(projectReference.Alias, projectReference.EmbedInteropTypes);
+                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 return null;

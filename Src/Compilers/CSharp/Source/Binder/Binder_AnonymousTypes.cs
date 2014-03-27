@@ -2,11 +2,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This portion of the binder converts a AnonymousObjectCreationExpressionSyntax into 
     /// a bound anonymous object creation node
     /// </summary>
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         private BoundExpression BindAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {

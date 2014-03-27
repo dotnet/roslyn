@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol result = this.Assembly.GetTypeByMetadataName(
-                    mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, warnings: warnings);
+                    mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
 
                 if ((object)result == null)
                 {
@@ -100,8 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
                 }
-
-                // TODO (tomat): check that the type is public, it has no generic constarints, etc. See bug 530436.
 
                 if ((object)Interlocked.CompareExchange(ref lazyWellKnownTypes[index], result, null) != null)
                 {
@@ -202,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(member.Name.Equals(descriptor.Name));
 
-                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic)
+                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic || member.DeclaredAccessibility != Accessibility.Public)
                 {
                     continue;
                 }

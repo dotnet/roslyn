@@ -13275,12 +13275,12 @@ class cls1 : i1
             var text =
 @"namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class String { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class String { }
 }
 class C
 {
@@ -13310,13 +13310,13 @@ class C
             var text =
 @"namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class Type { }
-    class TypedReference { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class Type { }
+    public class TypedReference { }
 }
 class C
 {
@@ -13343,13 +13343,13 @@ class C
             var text =
 @"namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class Type { }
-    class TypedReference { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class Type { }
+    public class TypedReference { }
 }
 class C
 {

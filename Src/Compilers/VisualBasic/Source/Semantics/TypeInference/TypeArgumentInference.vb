@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             None = 0
             ' None is used to indicate uninitialized  but semantically it should not matter if there is a whidbey delegate
             ' or no delegate in the overload resolution hence both have value 0 such that overload resolution 
-            ' will not prefferer a non inferred method over an inferred one.
+            ' will not prefer a non inferred method over an inferred one.
             Whidbey = 0
             Orcas = 1
 

@@ -7470,33 +7470,33 @@ BC36604: Late binding operations cannot be converted to an expression tree.
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Class MulticastDelegate
+    Public Class MulticastDelegate
     End Class
-    Structure IntPtr
+    Public Structure IntPtr
     End Structure
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [Type]
+    Public Class [Type]
     End Class
-    Interface IAsyncResult
+    Public Interface IAsyncResult
     End Interface
-    Class AsyncCallback
+    Public Class AsyncCallback
     End Class
 End Namespace
 Namespace System.Collections.Generic
-    Interface IEnumerable(Of T)
+    Public Interface IEnumerable(Of T)
     End Interface
 End Namespace
 Namespace System.Linq.Expressions
-    Class Expression
+    Public Class Expression
         Public Shared Function [New](t As Type) As Expression
             Return Nothing
         End Function
@@ -7504,9 +7504,9 @@ Namespace System.Linq.Expressions
             Return Nothing
         End Function
     End Class
-    Class Expression(Of T)
+    Public Class Expression(Of T)
     End Class
-    Class ParameterExpression
+    Public Class ParameterExpression
         Inherits Expression
     End Class
 End Namespace
@@ -7533,35 +7533,35 @@ BC35000: Requested operation is not available because the runtime library functi
 Imports System.Linq.Expressions
 Imports System.Reflection
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Class MulticastDelegate
+    Public Class MulticastDelegate
     End Class
-    Structure IntPtr
+    Public Structure IntPtr
     End Structure
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [Type]
+    Public Class [Type]
     End Class
-    Class Array
+    Public Class Array
     End Class
-    Interface IAsyncResult
+    Public Interface IAsyncResult
     End Interface
-    Class AsyncCallback
+    Public Class AsyncCallback
     End Class
 End Namespace
 Namespace System.Collections.Generic
-    Interface IEnumerable(Of T)
+    Public Interface IEnumerable(Of T)
     End Interface
 End Namespace
 Namespace System.Linq.Expressions
-    Class Expression
+    Public Class Expression
         Public Shared Function Field(e As Expression, f As FieldInfo) As Expression
             Return Nothing
         End Function
@@ -7569,14 +7569,14 @@ Namespace System.Linq.Expressions
             Return Nothing
         End Function
     End Class
-    Class Expression(Of T)
+    Public Class Expression(Of T)
     End Class
-    Class ParameterExpression
+    Public Class ParameterExpression
         Inherits Expression
     End Class
 End Namespace
 Namespace System.Reflection
-    Class FieldInfo
+    Public Class FieldInfo
     End Class
 End Namespace
 Delegate Function D() As Object
@@ -7611,40 +7611,40 @@ Imports System.Collections.Generic
 Imports System.Linq.Expressions
 Imports System.Reflection
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
-    Structure Void
+    Public Structure Void
     End Structure
-    Class ValueType
+    Public Class ValueType
     End Class
-    Class MulticastDelegate
+    Public Class MulticastDelegate
     End Class
-    Structure IntPtr
+    Public Structure IntPtr
     End Structure
-    Structure Int32
+    Public Structure Int32
     End Structure
-    Structure Nullable(Of T)
+    Public Structure Nullable(Of T)
     End Structure
-    Class [Type]
+    Public Class [Type]
         Public Shared Function GetTypeFromHandle(h As RuntimeTypeHandle) As [Type]
             Return Nothing
         End Function
     End Class
-    Structure RuntimeTypeHandle
+    Public Structure RuntimeTypeHandle
     End Structure
-    Class Array
+    Public Class Array
     End Class
-    Interface IAsyncResult
+    Public Interface IAsyncResult
     End Interface
-    Class AsyncCallback
+    Public Class AsyncCallback
     End Class
 End Namespace
 Namespace System.Collections.Generic
-    Interface IEnumerable(Of T)
+    Public Interface IEnumerable(Of T)
     End Interface
 End Namespace
 Namespace System.Linq.Expressions
-    Class Expression
+    Public Class Expression
         Public Shared Function [Call](e As Expression, m As MethodInfo, args As Expression()) As Expression
             Return Nothing
         End Function
@@ -7661,16 +7661,16 @@ Namespace System.Linq.Expressions
             Return Nothing
         End Function
     End Class
-    Class Expression(Of T)
+    Public Class Expression(Of T)
     End Class
-    Class ParameterExpression
+    Public Class ParameterExpression
         Inherits Expression
     End Class
 End Namespace
 Namespace System.Reflection
-    Class ConstructorInfo
+    Public Class ConstructorInfo
     End Class
-    Class MethodInfo
+    Public Class MethodInfo
     End Class
 End Namespace
 Delegate Function D() As Object

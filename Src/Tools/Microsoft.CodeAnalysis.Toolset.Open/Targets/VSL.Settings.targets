@@ -20,7 +20,7 @@
 
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
 
-    <MajorRoslynVersion>0.6</MajorRoslynVersion>
+    <MajorRoslynVersion>0.7</MajorRoslynVersion>
   </PropertyGroup>
   
     <!-- Build reliability -->
@@ -35,7 +35,7 @@
     <DeployToPackageFolders>true</DeployToPackageFolders>
     <DelaySignBuild Condition="'$(DelaySignBuild)' == ''">true</DelaySignBuild>
     <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
-    <BuildVersion>0.6.0.0</BuildVersion>
+    <BuildVersion>0.7.0.0</BuildVersion>
   </PropertyGroup>
 
   <Choose>

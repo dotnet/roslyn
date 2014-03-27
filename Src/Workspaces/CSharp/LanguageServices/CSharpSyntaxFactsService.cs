@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // make sure position doesnt touch end of root
+            // make sure position doesn't touch end of root
             position = Math.Min(position, end - 1);
 
             var node = root.FindToken(position).Parent;

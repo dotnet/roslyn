@@ -190,54 +190,23 @@ public class B
             }
         }
 
-        [Fact(), WorkItem(530211)]
+        [Fact, WorkItem(530211)]
         public void ModuleNameMismatch()
         {
-            var netModule = CreateCompilationWithMscorlib(
-@"
-class Test
-{}
-", compOptions: TestOptions.NetModule, assemblyName: "ModuleNameMismatch");
+            var moduleSource = "class Test {}";
+            var netModule = CreateCompilationWithMscorlib(moduleSource, compOptions: TestOptions.NetModule, assemblyName: "ModuleNameMismatch");
 
-            CompileAndVerify(netModule, verify: false);
-            var moduleImage = netModule.EmitToArray();
+            var moduleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray());
 
-            var tempDir = Temp.CreateDirectory();
+            var source = @"class Module1 { }";
 
-            var match = tempDir.CreateFile("ModuleNameMismatch.netmodule");
-            var mismatch = tempDir.CreateFile("ModuleNameMismatch.mod");
-            match.WriteAllBytes(moduleImage);
-            mismatch.WriteAllBytes(moduleImage);
+            var compilationOK = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(moduleMetadata, fullPath: @"R:\A\B\ModuleNameMismatch.netmodule") });
 
-            var source = @"
-class Module1
-{
-    public static void Main()
-    {}
-}
-";
-            var compilation1 = CreateCompilationWithMscorlib(source, new MetadataReference [] {new MetadataFileReference(match.Path, MetadataImageKind.Module)}, 
-                                                             compOptions: TestOptions.Exe );
-            CompileAndVerify(compilation1);
+            CompileAndVerify(compilationOK);
 
-            var compilation2 = CreateCompilationWithMscorlib(source, new MetadataReference [] {new MetadataFileReference(mismatch.Path, MetadataImageKind.Module)}, 
-                                                             compOptions: TestOptions.Exe );
+            var compilationError = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(moduleMetadata, fullPath: @"R:\A\B\ModuleNameMismatch.mod") });
 
-            compilation2.VerifyDiagnostics(
-                // error CS7086: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatch.mod' must match its filename.
-                Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
-
-            var imageData = ModuleMetadata.CreateFromImage(moduleImage);
-
-            var compilation3 = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(imageData, fullPath: match.Path) },
-                                                             compOptions: TestOptions.Exe);
-
-            CompileAndVerify(compilation3);
-
-            var compilation4 = CreateCompilationWithMscorlib(source, new MetadataReference[] { new MetadataImageReference(imageData, fullPath: mismatch.Path) },
-                                                             compOptions: TestOptions.Exe);
-
-            compilation4.VerifyDiagnostics(
+            compilationError.VerifyDiagnostics(
                 // error CS7086: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatch.mod' must match its filename.
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }

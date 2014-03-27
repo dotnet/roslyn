@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return LocalSymbol.Create(Me.CurrentMethod,
                                               Me.CurrentMethod.Name,
                                               originalLocal.IdentifierToken,
-                                              originalLocal._DeclarationKind,
+                                              originalLocal.DeclarationKind,
                                               newType)
                 Else
                     wasReplaced = True
@@ -448,8 +448,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Return LocalSymbol.Create(Me.CurrentMethod,
-                                              originalLocal.IdentifierToken,
-                                              originalLocal._DeclarationKind,
+                                              originalLocal.IdentifierToken.GetIdentifierText(),
+                                              originalLocal.DeclarationKind,
                                               newType)
                 End If
             Else

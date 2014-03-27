@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -988,7 +989,7 @@ class C : Q::I
             var libComp = CreateCompilationWithMscorlib(libSource);
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp, alias: "Q") });
+            var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp, aliases: ImmutableArray.Create("Q")) });
             comp.VerifyDiagnostics();
 
             var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1037,14 +1038,14 @@ class C : A::I, B::I
             libComp2.VerifyDiagnostics();
 
             // Same reference, two aliases.
-            var comp1 = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp1, alias: "A"), new CSharpCompilationReference(libComp1, alias: "B") });
+            var comp1 = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("B")) });
             comp1.VerifyDiagnostics(
                 // (5,17): error CS0528: 'I' is already listed in interface list
                 // class C : A::I, B::I
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "B::I").WithArguments("I"));
 
             // Two assemblies with the same content, two aliases.
-            var comp2 = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp1, alias: "A"), new CSharpCompilationReference(libComp2, alias: "B") });
+            var comp2 = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
             var verifier2 = CompileAndVerify(comp2, expectedSignatures: new []
             {
                 Signature("C", "A::I.M", ".method private hidebysig newslot virtual final instance System.Void A::I.M() cil managed"),

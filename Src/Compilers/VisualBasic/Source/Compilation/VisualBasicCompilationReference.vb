@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -40,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="compilation">The compilation to reference.</param>
         ''' <param name="embedInteropTypes">Should interop types be embedded in the created assembly?</param>
-        ''' <param name="alias">A namespace alias for this reference.</param>
-        Public Sub New(compilation As VisualBasicCompilation, Optional [alias] As String = Nothing, Optional embedInteropTypes As Boolean = False)
-            MyBase.New(GetProperties(compilation, [alias], embedInteropTypes))
+        ''' <param name="aliases">Namespace aliases for this reference.</param>
+        Public Sub New(compilation As VisualBasicCompilation, Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False)
+            MyBase.New(GetProperties(compilation, aliases, embedInteropTypes))
 
             Dim NewCompilation As VisualBasicCompilation = Nothing
             'This retargeting code should only be enabled to verify all compilation references used in unit tests continue to work correctly

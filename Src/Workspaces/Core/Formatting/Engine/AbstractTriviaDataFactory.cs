@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // we can use cache
             //  #1. if whitespace trivia don't have any elastic trivia and
-            //  #2. analysis (Item1) didnt find anything preventing us from using cache such as trailing whitespace before new line
+            //  #2. analysis (Item1) didn't find anything preventing us from using cache such as trailing whitespace before new line
             //  #3. number of line breaks (Item2) are under cache capacity (line breaks)
-            //  #4. indenation (Item3) is aligned to indentation level
+            //  #4. indentation (Item3) is aligned to indentation level
             var canUseCache = !elastic &&
                               useTriviaAsItIs &&
                               lineBreaks > 0 &&

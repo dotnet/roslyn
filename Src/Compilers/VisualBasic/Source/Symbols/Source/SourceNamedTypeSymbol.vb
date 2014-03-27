@@ -73,7 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' check if this is one of the COR library types
             If containingSymbol.Kind = SymbolKind.Namespace AndAlso
-               containingSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes Then
+               containingSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes AndAlso
+               Me.DeclaredAccessibility = Accessibility.Public Then
 
                 Dim emittedName As String = If(Me.GetEmittedNamespaceName(), Me.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
 
@@ -1122,12 +1123,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return DirectCast(baseClassType, NamedTypeSymbol)
 
                 Case TYPEKIND.Class
-                    If IsRestrictedBaseClass(baseClassType, baseClassSyntax, binder, diagBag) Then
-                        binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromRestrictedType1, baseClassType)
+                    If IsRestrictedBaseClass(baseClassType.SpecialType) Then
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromRestrictedType1, baseClassType)
                         Return Nothing
 
                     ElseIf DirectCast(baseClassType, NamedTypeSymbol).IsNotInheritable Then
-                        binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromCantInherit3, Me.Name, baseClassType.Name, baseClassType.GetKindText())
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromCantInherit3, Me.Name, baseClassType.Name, baseClassType.GetKindText())
                         Return Nothing
                     End If
             End Select
@@ -1257,17 +1258,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Determines if this type is one of the special types we can't inherit from
-        Private Function IsRestrictedBaseClass(potentialBaseType As TypeSymbol,
-                                               node As VisualBasicSyntaxNode,
-                                               binder As Binder,
-                                               diagBag As DiagnosticBag) As Boolean
-            If potentialBaseType.ContainingSymbol.Name <> "System" Then Return False ' quick check, all restricted types inside System
-
-            Return potentialBaseType.Equals(binder.GetSpecialType(SpecialType.System_Array, node, diagBag)) OrElse
-                   potentialBaseType.Equals(binder.GetSpecialType(SpecialType.System_Delegate, node, diagBag)) OrElse
-                   potentialBaseType.Equals(binder.GetSpecialType(SpecialType.System_MulticastDelegate, node, diagBag)) OrElse
-                   potentialBaseType.Equals(binder.GetSpecialType(SpecialType.System_Enum, node, diagBag)) OrElse
-                   potentialBaseType.Equals(binder.GetSpecialType(SpecialType.System_ValueType, node, diagBag))
+        Private Function IsRestrictedBaseClass(type As SpecialType) As Boolean
+            Select Case type
+                Case SpecialType.System_Array,
+                     SpecialType.System_Delegate,
+                     SpecialType.System_MulticastDelegate,
+                     SpecialType.System_Enum,
+                     SpecialType.System_ValueType
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Private Function AsPeOrRetargetingType(potentialBaseType As TypeSymbol) As NamedTypeSymbol

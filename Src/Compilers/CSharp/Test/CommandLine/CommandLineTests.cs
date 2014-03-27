@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -111,6 +112,8 @@ a.cs
 
             AssertEx.Equal(new[] { "System.dll" }, cmd.Arguments.MetadataReferences.Select(r => r.Reference));
             AssertEx.Equal(new[] { Path.Combine(baseDirectory, "a.cs"), Path.Combine(baseDirectory, "b.cs") }, cmd.Arguments.SourceFiles.Select(file => file.Path));
+
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [Fact]
@@ -150,6 +153,8 @@ a.cs
                 "System.Linq",
                 "System.Text",
             }, cmd.Arguments.CompilationOptions.Usings.AsEnumerable());
+
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [Fact]
@@ -432,6 +437,8 @@ d.cs
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_ErrorBuildingWin32Resources, errors.First().Code);
             Assert.Equal(1, errors.First().Arguments.Count());
+
+            CleanupAllGeneratedFiles(tmpFileName );
         }
 
         [Fact]
@@ -807,6 +814,12 @@ d.cs
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/recurse-:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/recurse-:"));
+        
+            CleanupAllGeneratedFiles(file1.Path);
+            CleanupAllGeneratedFiles(file2.Path);
+            CleanupAllGeneratedFiles(file3.Path);
+            CleanupAllGeneratedFiles(file4.Path);
+            CleanupAllGeneratedFiles(file5.Path);
         }
 
         [Fact]
@@ -828,10 +841,8 @@ d.cs
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/Reference:a=b,,,", "/nostdlib", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            AssertEx.Equal(new[] { "a:b" },
-                           parsedArgs.MetadataReferences.
-                                      Where((res) => !res.Properties.EmbedInteropTypes).
-                                      Select((res) => res.Properties.Alias + ":" + res.Reference));
+            Assert.Equal("a", parsedArgs.MetadataReferences.Single().Properties.Aliases.Single());
+            Assert.Equal("b", parsedArgs.MetadataReferences.Single().Reference);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/r:a=b,,,c", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithArguments("b,,,c"));
@@ -1427,10 +1438,10 @@ d.cs
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
             Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
-            Assert.Equal(MetadataReferenceProperties.Assembly.WithAlias("a"), parsedArgs.MetadataReferences[1].Properties);
+            Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "a" }), parsedArgs.MetadataReferences[1].Properties);
             
             Assert.Equal("bar.dll", parsedArgs.MetadataReferences[2].Reference);
-            Assert.Equal(MetadataReferenceProperties.Assembly.WithAlias("b").WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[2].Properties);
+            Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "b" }).WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[2].Properties);
 
             Assert.Equal("c=mod.dll", parsedArgs.MetadataReferences[3].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[3].Properties);
@@ -1443,24 +1454,24 @@ d.cs
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
             
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/analyzer:foo.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/analyzer:\"foo.dll\"", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(1, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
+            Assert.Equal(1, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:foo.dll;bar.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(2, parsedArgs.Analyzers.Length);
-            Assert.Equal("foo.dll", parsedArgs.Analyzers[0].FilePath);
-            Assert.Equal("bar.dll", parsedArgs.Analyzers[1].FilePath);
+            Assert.Equal(2, parsedArgs.AnalyzerReferences.Length);
+            Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences[0].FilePath);
+            Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences[1].FilePath);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/a:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -1489,6 +1500,9 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS0006: Metadata file 'missing.dll' could not be found", outWriter.ToString().Trim());
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
@@ -1509,6 +1523,8 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("warning CS8033: The assembly "+ typeof(object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         private TempFile CreateRuleSetFile(string source)
@@ -1592,6 +1608,8 @@ class C
             Assert.True(outWriter.ToString().Contains("a.cs(2,7): warning Test01: Throwing a test diagnostic for types declared"));
             // Diagnostic cannot be instantiated
             Assert.True(outWriter.ToString().Contains("warning CS8032"));
+
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
@@ -1624,6 +1642,9 @@ class C
             Assert.Equal(1, exitCode);
             // Diagnostic thrown as error.
             Assert.True(outWriter.ToString().Contains("a.cs(2,7): error Test01: Warning as Error: Throwing a test diagnostic for types declared"));
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         [Fact]
@@ -2062,6 +2083,9 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                         srcFile.Path }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+            CleanupAllGeneratedFiles(appConfigFile.Path);
         }
 
         [Fact]
@@ -2077,6 +2101,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                         srcFile.Path }).Run(outWriter);
             Assert.NotEqual(0, exitCode);
             Assert.Equal(@"error CS7093: Cannot read config file 'I:\DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path 'I:\DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(srcFile.Path);
         }
 
         [Fact]
@@ -2348,6 +2374,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/lib:temp", "/r:abc.xyz", "/t:library", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(src.Path);
         }
 
         [Fact]
@@ -2364,6 +2392,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             int exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/t:library", "/out:" + subFolder.ToString(), src.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS2012: Cannot open '" + subFolder.ToString() + "' for writing -- 'Cannot create a file when that file already exists.\r\n'", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(src.Path);
         }
 
         [Fact]
@@ -2938,6 +2968,10 @@ class Test { static void Main() {} }").Path;
             Assert.Equal(1, exitCode);
             // Dev11: CS0647 (Emit)
             Assert.Contains("error CS7061: Duplicate 'CompilationRelaxationsAttribute' attribute in", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(source1);
+            CleanupAllGeneratedFiles(source2);
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact, WorkItem(530780)]
@@ -2955,6 +2989,9 @@ class Test { static void Main() {} }").Path;
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", "/addmodule:" + modfile, source2 }).Run(outWriter);
             Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(source1);
+            CleanupAllGeneratedFiles(source2);
         }
 
         [Fact, WorkItem(546297)]
@@ -2974,6 +3011,9 @@ class Test { static void Main() {} }").Path;
             Assert.Equal(1, exitCode);
             // Native gives CS0013 at emit stage
             Assert.Equal("error CS7041: Each linked resource and module must have a unique filename. Filename '"+ Path.GetFileName(modfile) + "' is specified more than once in this assembly", outWriter.ToString().Trim());
+            
+            CleanupAllGeneratedFiles(source1);
+            CleanupAllGeneratedFiles(source2);
         }
 
         [Fact]
@@ -3003,6 +3043,9 @@ class Test { static void Main() {} }").Path;
 
             Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name '???' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
                         tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+
+            CleanupAllGeneratedFiles(srcFile);
+            CleanupAllGeneratedFiles(tempOut.Path );
         }
 
         [Fact]
@@ -3017,6 +3060,9 @@ class Test { static void Main() {} }").Path;
 
             Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name '\u0410\u0411\u0412' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
                         tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+
+            CleanupAllGeneratedFiles(srcFile);
+            CleanupAllGeneratedFiles(tempOut.Path);
         }
 
         [WorkItem(546653)]
@@ -3035,6 +3081,8 @@ class Test { static void Main() {} }").Path;
 
             output = RunAndGetOutput(CSharpCompilerCommand, "/nologo /t:module /out:b.dll /addmodule:a.netmodule ", startFolder: folder.ToString());
             Assert.Equal("warning CS2008: No source files specified.", output.Trim());
+
+            CleanupAllGeneratedFiles(aCs.Path);
         }
 
         [WorkItem(546653)]
@@ -3047,6 +3095,8 @@ class Test { static void Main() {} }").Path;
 
             var output = RunAndGetOutput(CSharpCompilerCommand, "/nologo /t:library /out:b.dll /resource:a.cs", startFolder: folder.ToString());
             Assert.Equal("", output.Trim());
+
+            CleanupAllGeneratedFiles(aCs.Path);
         }
 
         [WorkItem(546653)]
@@ -3059,6 +3109,8 @@ class Test { static void Main() {} }").Path;
 
             var output = RunAndGetOutput(CSharpCompilerCommand, "/nologo /t:library /out:b.dll /linkresource:a.cs", startFolder: folder.ToString());
             Assert.Equal("", output.Trim());
+
+            CleanupAllGeneratedFiles(aCs.Path);
         }
 
         [Fact]
@@ -3175,6 +3227,11 @@ public class CS1698_a {}
             // does not match the output assembly name 'CS1698a, Version = 3.0.0.0, Culture = neutral, PublicKeyToken = 9e9d6755e7bb4c10'.
             // Try adding a reference to 'CS1698a, Version = 2.0.0.0, Culture = neutral, PublicKeyToken = 9e9d6755e7bb4c10' or changing the output assembly name to match.
             parsedArgs.Errors.Verify();
+
+            CleanupAllGeneratedFiles(snkFile.Path);
+            CleanupAllGeneratedFiles(cs1698a.Path);
+            CleanupAllGeneratedFiles(cs1698b.Path);
+            CleanupAllGeneratedFiles(cs1698.Path);
         }
 
         [Fact]
@@ -3217,6 +3274,8 @@ public class CS1698_a {}
             Assert.Equal(
                 "error CS2015: '" + binaryPath + "' is a binary file instead of a text file",
                 outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(binaryPath);
         }
 
 
@@ -3244,6 +3303,8 @@ public class CS1698_a {}
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
                 File.Delete(_ref);
             }
+
+            CleanupAllGeneratedFiles(source);
         }
 
         [WorkItem(545832)]
@@ -3283,6 +3344,9 @@ class myClass
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS1680: Invalid reference alias option: 'myAlias=' -- missing filename", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [WorkItem(545832)]
@@ -3322,6 +3386,9 @@ class myClass
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS1680: Invalid reference alias option: 'myAlias=' -- missing filename", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [Fact]
@@ -3655,6 +3722,8 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.NotEqual(0, exitCode);
             Assert.Equal("error CS5001: Program does not contain a static 'Main' method suitable for an entry point", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path );
         }
 
         [Fact]
@@ -3676,6 +3745,8 @@ class C
             Assert.Equal(0, exitCode);
             Assert.Equal(@"",
                 outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path );
         }
 
         [Fact]
@@ -3701,6 +3772,8 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D"));
             // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
             // making the last part optional will fix this.
+
+            CleanupAllGeneratedFiles(file.Path);
         }
 
         private void CheckOutputFileName(string source1, string source2, string inputName1, string inputName2, string[] commandLineArguments, string expectedOutputName)
@@ -3734,6 +3807,14 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 Assert.Equal(PathUtilities.RemoveExtension(expectedOutputName), peReader.GetString(peReader.GetAssemblyDefinition().Name));
                 Assert.Equal(expectedOutputName, peReader.GetString(peReader.GetModuleDefinition().Name));
             }
+
+            if ( System.IO.File.Exists(expectedOutputName))
+                {
+                System.IO.File.Delete(expectedOutputName);
+                }
+
+            CleanupAllGeneratedFiles(file1.Path);
+            CleanupAllGeneratedFiles(file2.Path);
         }
 
         [Fact]
@@ -3754,6 +3835,8 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS0006: Metadata file 'missing.dll' could not be found", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [WorkItem(545025)]
@@ -3852,6 +3935,8 @@ public class C
 
             Assert.Equal(1, exitCode);
             Assert.Contains("error CS2012: Cannot open '" + dir.Path + "\\sub\\a.exe' for writing", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [WorkItem(545247)]
@@ -3878,6 +3963,8 @@ public class C
             var message = outWriter.ToString();
             Assert.Contains("error CS2021: File name", message);
             Assert.Contains("sub", message);
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [WorkItem(545247)]
@@ -3904,6 +3991,8 @@ public class C
             var message = outWriter.ToString();
             Assert.Contains("error CS2021: File name", message);
             Assert.Contains("sub", message);
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [WorkItem(545247)]
@@ -3928,6 +4017,8 @@ public class C
 
             Assert.Equal(1, exitCode);
             Assert.Contains(@"error CS2021: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [WorkItem(545247)]
@@ -3952,6 +4043,8 @@ public class C
 
             Assert.Equal(1, exitCode);
             Assert.Contains("error CS2005: Missing file specification for '/out:' option", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [Fact]
@@ -4025,6 +4118,8 @@ public class C
 
             comp = CSharpCompilation.Create("a.dll", options: options);
             comp.GetDiagnostics().Verify();
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [Fact]
@@ -4059,6 +4154,8 @@ a.cs(1,7): error CS1513: } expected
 a.cs(1,7): error CS1022: Type or namespace definition, or end-of-file expected
 a.cs(1,10): error CS1022: Type or namespace definition, or end-of-file expected".Trim(),
                 Regex.Replace(output, "^.*a.cs", "a.cs", RegexOptions.Multiline).Trim());
+
+            CleanupAllGeneratedFiles(file.Path); 
         }
 
         [Fact]
@@ -4416,6 +4513,9 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains("warning CS0168: The variable 'x' is declared but never used\r\n", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [WorkItem(544926)]
@@ -4447,6 +4547,9 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [WorkItem(544926)]
@@ -4478,6 +4581,9 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString());
+        
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [WorkItem(544926)]
@@ -4509,6 +4615,9 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains("warning CS2023: Ignoring /noconfig option because it was specified in a response file\r\n", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(rsp);
         }
 
         [Fact, WorkItem(530024)]
@@ -4535,6 +4644,8 @@ public class C
             exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(src.Path );
         }
 
         private string GetDefaultResponseFilePath()
@@ -4591,7 +4702,7 @@ class ClassCollection : IEnumerable
 
 namespace System.Collections
 {
-    interface IEnumerable
+    public interface IEnumerable
     {
         void Add(int t);
     }
@@ -4678,6 +4789,7 @@ namespace System
             exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+            string OriginalSource = src.Path;
 
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
@@ -4685,6 +4797,9 @@ namespace System
             exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(OriginalSource);
+            CleanupAllGeneratedFiles(src.Path);
         }
 
         [Fact, WorkItem(546018), WorkItem(546020), WorkItem(546024), WorkItem(546049)]
@@ -4741,6 +4856,7 @@ namespace System
             Assert.Equal(@"warning CS2029: Invalid value for '/define'; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier
 warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identifier", outWriter.ToString().Trim());
 
+            CleanupAllGeneratedFiles(src.Path);
         }
 
         [Fact, WorkItem(733242)]
@@ -4781,6 +4897,9 @@ class C {} ");
 </doc>".Trim(), content.Trim());
                 }
             }
+
+            CleanupAllGeneratedFiles(src.Path);
+            CleanupAllGeneratedFiles(xml.Path); 
         }
 
         [Fact, WorkItem(768605)]
@@ -4848,6 +4967,9 @@ class C {}
     </members>
 </doc>".Trim(), content.Trim());
             }
+
+            CleanupAllGeneratedFiles(src.Path);
+            CleanupAllGeneratedFiles(xml.Path); 
         }
 
         [Fact]
@@ -4945,6 +5067,8 @@ public class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString());
+
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact]
@@ -5035,6 +5159,8 @@ static void Main() {
             exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", Path.Combine(baseDir, "nonexistent.cs"), source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS2001: Source file '" + Path.Combine(baseDir, "nonexistent.cs") + "' could not be found.", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);            
         }
 
         [Fact, WorkItem(546058)]
@@ -5062,6 +5188,8 @@ class Test
             int exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/nowarn:1522,642", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact, WorkItem(546076)]
@@ -5093,6 +5221,8 @@ public class Test
             int exitCode = new MockCSharpCompiler(null, baseDir, new[] { "/nologo", "/warn:3", "/warnaserror", source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal(fileName + "(12,20): error CS1522: Warning as Error: Empty switch block", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact(), WorkItem(546025)]
@@ -5114,6 +5244,9 @@ public class Test
 
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS1583: Error reading Win32 resources -- Image too small to contain number of sections claimed by COFF header.", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(badres);
         }
 
         [Fact, WorkItem(546114)]
@@ -5131,6 +5264,9 @@ static void Main() { }
             int exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/target:library", "/out:foo.dll", "/nowarn:2008" }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            System.IO.File.Delete(System.IO.Path.Combine(baseDir, "foo.dll"));
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact, WorkItem(546452)]
@@ -5154,6 +5290,8 @@ class Program
             exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/nowarn:1998", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
         }
 
         [Fact]
@@ -5260,6 +5398,7 @@ class Program
             Assert.Equal(2, tempFilePaths.Count);
 
             tempFilePaths.Free();
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5291,6 +5430,11 @@ class Program
             Assert.Equal(1, tempFilePaths.Count);
 
             tempFilePaths.Free();
+
+            System.IO.File.Delete(xmlPath);
+            System.IO.File.Delete(sourcePath);
+            CleanupAllGeneratedFiles(sourcePath);
+
         }
 
         [Fact]
@@ -5322,6 +5466,9 @@ class Program
             Assert.Equal(1, tempFilePaths.Count);
 
             tempFilePaths.Free();
+
+            CleanupAllGeneratedFiles(existingExePath);
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5353,6 +5500,9 @@ class Program
             Assert.Equal(2, tempFilePaths.Count);
 
             tempFilePaths.Free();
+
+            CleanupAllGeneratedFiles(existingPdbPath);
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5382,6 +5532,8 @@ class Program
             Assert.Equal(1, tempFilePaths.Count);
 
             tempFilePaths.Free();
+
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5411,6 +5563,7 @@ class Program
             Assert.Equal(2, tempFilePaths.Count);
 
             tempFilePaths.Free();
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5441,7 +5594,11 @@ class Program
             Assert.Equal(1, tempFilePaths.Count);
 
             tempFilePaths.Free();
-        }
+
+            System.IO.File.Delete(xmlPath);
+            System.IO.File.Delete(sourcePath);
+            CleanupAllGeneratedFiles(sourcePath);                
+       }
 
         private string MakeTrivialExe()
         {
@@ -5533,6 +5690,8 @@ public class C
                     }
                 }
             }
+
+            CleanupAllGeneratedFiles(sourcePath);
         }
 
         [Fact]
@@ -5575,6 +5734,12 @@ public class C { }
 </doc>
 ";
             Assert.Equal(expected.Trim(), actual.Trim());
+
+            System.IO.File.Delete(xmlPath);
+            System.IO.File.Delete(sourcePath);
+
+            CleanupAllGeneratedFiles(sourcePath);
+            CleanupAllGeneratedFiles(xmlPath);
         }
 
         [Fact, WorkItem(546468)]
@@ -5637,7 +5802,7 @@ public class C { }
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // Invalid file/path characters
-            const string cs1504 = @"error CS1504: Source file '{0}' could not be opened: {1}";
+            const string cs1504 = @"error CS1504: Source file '{0}' could not be opened -- {1}";
             commandLineArgs = new[] { tempFile.Path, "tmpDir\a.cs" };
             // error CS1504: Source file '{0}' could not be opened: Illegal characters in path.
             var formattedcs1504Str = String.Format(cs1504, PathUtilities.CombineAbsoluteAndRelativePaths(tempParentDir.Path, "tmpDir\a.cs"), "Illegal characters in path.");
@@ -5662,6 +5827,9 @@ public class C { }
             // error CS1504: Source file '{0}' could not be opened: {1}
             var formattedcs1504 = String.Format(cs1504, PathUtilities.CombineAbsoluteAndRelativePaths(tempParentDir.Path, @":a.cs"), @"The given path's format is not supported.");
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, formattedcs1504);
+
+            CleanupAllGeneratedFiles(tempFile.Path);
+            System.IO.Directory.Delete(tempParentDir.Path, true);
         }
 
         private static void TestCS2002(string[] commandLineArgs, string baseDirectory, int expectedExitCode, string compileDiagnostic, params DiagnosticDescription[] parseDiagnostics)
@@ -5825,6 +5993,8 @@ using System.Diagnostics; // Unused.
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(filePath);
         }
 
         [Fact]
@@ -5892,6 +6062,8 @@ using System.Diagnostics; // Unused.
             CSharpCommandLineParser.Default.Parse(new[] { sourceFile.Path }, baseDirectory, nonExistentPath).Errors.Verify(
                 // warning CS1668: Invalid search path 'DoesNotExist' specified in 'LIB environment variable' -- 'directory does not exist'
                 Diagnostic(ErrorCode.WRN_InvalidSearchPathDir).WithArguments("DoesNotExist", "LIB environment variable", "directory does not exist"));
+
+            CleanupAllGeneratedFiles(sourceFile.Path );
         }
 
         [Fact, WorkItem(650083)]
@@ -5944,6 +6116,8 @@ using System.Diagnostics; // Unused.
             exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Contains("warning CS1668: Invalid search path 'aux' specified in '/LIB option' -- 'directory does not exist'", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(filePath);
         }
     }
 

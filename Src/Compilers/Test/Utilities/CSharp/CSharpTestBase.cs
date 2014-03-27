@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.MetadataUtilities;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -526,42 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 trees,
                 references,
                 compOptions);
-        }
-
-        public static CSharpCompilation CreateCompilation(
-            AssemblyIdentity identity,
-            string[] sources,
-            string[] files,
-            CSharpCompilation[] compilations,
-            string[] modules = null)
-        {
-            var refs = new List<MetadataReference>();
-
-            if (files != null)
-            {
-                foreach (var f in files)
-                {
-                    refs.Add(new MetadataFileReference(f));
-                }
-            }
-
-            if (compilations != null)
-            {
-                foreach (var c in compilations)
-                {
-                    refs.Add(new CSharpCompilationReference(c));
-                }
-            }
-
-            if (modules != null)
-            {
-                foreach (var m in modules)
-                {
-                    refs.Add(new MetadataFileReference(m, MetadataImageKind.Module));
-                }
-            }
-
-            return CreateCompilation(identity, sources, refs.ToArray());
         }
 
         public static CSharpCompilation CreateCompilation(

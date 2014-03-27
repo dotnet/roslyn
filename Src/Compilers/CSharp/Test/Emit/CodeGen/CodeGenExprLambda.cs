@@ -4230,28 +4230,28 @@ class Test
 @"using System.Linq.Expressions;
 namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    class MulticastDelegate { }
-    struct IntPtr { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class Type { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public class MulticastDelegate { }
+    public struct IntPtr { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class Type { }
 }
 namespace System.Collections.Generic
 {
-    interface IEnumerable<T> { }
+    public interface IEnumerable<T> { }
 }
 namespace System.Linq.Expressions
 {
-    class Expression
+    public class Expression
     {
         public static Expression New(Type t) { return null; }
         public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
     }
-    class Expression<T> { }
-    class ParameterExpression : Expression { }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
 }
 delegate C D();
 class C
@@ -4281,33 +4281,33 @@ class C
 using System.Reflection;
 namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    class MulticastDelegate { }
-    struct IntPtr { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class Type { }
-    class Array { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public class MulticastDelegate { }
+    public struct IntPtr { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class Type { }
+    public class Array { }
 }
 namespace System.Collections.Generic
 {
-    interface IEnumerable<T> { }
+    public interface IEnumerable<T> { }
 }
 namespace System.Linq.Expressions
 {
-    class Expression
+    public class Expression
     {
         public static Expression Field(Expression e, FieldInfo f) { return null; }
         public static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
     }
-    class Expression<T> { }
-    class ParameterExpression : Expression { }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
 }
 namespace System.Reflection
 {
-    class FieldInfo { }
+    public class FieldInfo { }
 }
 delegate object D();
 class A
@@ -4348,35 +4348,35 @@ using System.Linq.Expressions;
 using System.Reflection;
 namespace System
 {
-    class Object { }
-    struct Void { }
-    class ValueType { }
-    class MulticastDelegate { }
-    struct IntPtr { }
-    struct Int32 { }
-    struct Nullable<T> { }
-    class Type { }
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public class MulticastDelegate { }
+    public struct IntPtr { }
+    public struct Int32 { }
+    public struct Nullable<T> { }
+    public class Type { }
 }
 namespace System.Collections.Generic
 {
-    interface IEnumerable<T> { }
+    public interface IEnumerable<T> { }
 }
 namespace System.Linq.Expressions
 {
-    class Expression
+    public class Expression
     {
         public static Expression Constant(object o, Type t) { return null; }
         public static Expression Call(Expression e, MethodInfo m, Expression[] args) { return null; }
         public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
         public static Expression New(ConstructorInfo c, IEnumerable<Expression> args) { return null; }
     }
-    class Expression<T> { }
-    class ParameterExpression : Expression { }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
 }
 namespace System.Reflection
 {
-    class ConstructorInfo { }
-    class MethodInfo { }
+    public class ConstructorInfo { }
+    public class MethodInfo { }
 }
 delegate void D();
 class A

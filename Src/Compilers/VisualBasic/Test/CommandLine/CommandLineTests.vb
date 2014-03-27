@@ -16,6 +16,7 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 
 Partial Public Class CommandLineTests
     Inherits BasicTestBase
@@ -64,6 +65,9 @@ End Class
 
         cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", "/warnaserror+", "/nowarn", src})
         Assert.Equal(cmd.Arguments.CompilationOptions.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <WorkItem(546536)>
@@ -123,6 +127,9 @@ warning BC2026: warning number '2034' for the option 'nowarn' is either not conf
         Assert.Equal(<result>
 warning BC2026: warning number '42325' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <WorkItem(722561)>
@@ -156,6 +163,9 @@ error BC2014: the value '-12345678901234567890' is invalid for option 'nowarn'
         Assert.Equal(<result>
 warning BC2026: warning number '-1234567890123456789' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact>
@@ -182,6 +192,9 @@ End Class
 
         Assert.Equal(0, exitCode)
         Assert.Equal("", output.ToString().Trim())
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact>
@@ -198,6 +211,9 @@ End Class
 
         Assert.Equal(0, exitCode)
         Assert.Equal("", output.ToString().Trim())
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact>
@@ -220,6 +236,9 @@ Copyright (C) Microsoft Corporation. All rights reserved.
             Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
         ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
         ' making the last part optional will fix this.
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact>
@@ -242,6 +261,9 @@ Copyright (C) Microsoft Corporation. All rights reserved.
             Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
         ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
         ' making the last part optional will fix this.
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact()>
@@ -263,6 +285,9 @@ SRC.VB(3) : error BC30002: Type '???' is not defined.
     Public c As ???
                 ~~~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact()>
@@ -284,6 +309,9 @@ SRC.VB(3) : error BC30002: Type 'АБВ' is not defined.
     Public c As АБВ
                 ~~~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+
+
+        CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact()>
@@ -306,6 +334,9 @@ a.vb
         },
         cmd.Arguments.SourceFiles.Select(Function(file) file.Path))
         Assert.NotEmpty(cmd.Arguments.Errors)
+
+
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(685392)>
@@ -319,6 +350,8 @@ a.vb
         Dim cmd = New MockVisualBasicCompiler(rsp, _baseDirectory, {"b.vb"})
 
         Assert.Equal("Hello", cmd.Arguments.CompilationOptions.RootNamespace)
+
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     Private Sub AssertGlobalImports(expectedImportStrings As String(), actualImports As GlobalImport())
@@ -437,6 +470,9 @@ a.vb
         Assert.Equal(1, errors.Count())
         Assert.Equal(DirectCast(ERRID.ERR_ErrorCreatingWin32ResourceFile, Integer), errors.First().Code)
         Assert.Equal(1, errors.First().Arguments.Count())
+
+
+        CleanupAllGeneratedFiles(tmpFileName)
     End Sub
 
     <Fact>
@@ -1564,6 +1600,12 @@ a.vb
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/recurse-:", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/recurse-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+
+        CleanupAllGeneratedFiles(file1.Path)
+        CleanupAllGeneratedFiles(file2.Path)
+        CleanupAllGeneratedFiles(file3.Path)
+        CleanupAllGeneratedFiles(file4.Path)
+        CleanupAllGeneratedFiles(file5.Path)
     End Sub
 
     <WorkItem(545991)>
@@ -1622,6 +1664,13 @@ a.vb
         args.Errors.Verify()
         resolvedSourceFiles = args.SourceFiles.Select(Function(f) f.Path).ToArray()
         Assert.Equal(2, resolvedSourceFiles.Length)
+
+        CleanupAllGeneratedFiles(file1.Path)
+        CleanupAllGeneratedFiles(file2.Path)
+        CleanupAllGeneratedFiles(file3.Path)
+        CleanupAllGeneratedFiles(file4.Path)
+        CleanupAllGeneratedFiles(file5.Path)
+        CleanupAllGeneratedFiles(file6.Path)
     End Sub
 
     <Fact>
@@ -1657,24 +1706,24 @@ a.vb
     Public Sub ParseAnalyzers()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
+        Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
+        Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:foo.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
+        Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
+        Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:""foo.dll""", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        Assert.Equal(1, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
+        Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
+        Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        Assert.Equal(2, parsedArgs.Analyzers.Length)
-        Assert.Equal("foo.dll", parsedArgs.Analyzers(0).FilePath)
-        Assert.Equal("bar.dll", parsedArgs.Analyzers(1).FilePath)
+        Assert.Equal(2, parsedArgs.AnalyzerReferences.Length)
+        Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
+        Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences(1).FilePath)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("a", ":<file_list>"))
@@ -1696,6 +1745,8 @@ a.vb
         Dim exitCode = vbc.Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
         Assert.Equal("error BC2017: could not find library 'missing.dll'", outWriter.ToString().Trim())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact>
@@ -1711,6 +1762,9 @@ a.vb
         Dim exitCode = vbc.Run(outWriter, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Equal("warning BC42377: The assembly " + GetType(Object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim())
+
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact>
@@ -1731,6 +1785,8 @@ a.vb
         ' Diagnostic is thrown
         Assert.True(outWriter.ToString().Contains("a.vb(2) : warning Test01: Throwing a test1 diagnostic for types declared"))
         Assert.True(outWriter.ToString().Contains("a.vb(2) : warning Test03: Throwing a test3 diagnostic for types declared"))
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact>
@@ -1765,6 +1821,8 @@ a.vb
         Assert.True(outWriter.ToString().Contains("error BC31072"))
         ' Diagnostic is suppressed
         Assert.False(outWriter.ToString().Contains("warning Test03"))
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact(Skip:="899050")>
@@ -1798,6 +1856,8 @@ a.vb
         ' User diagnostics not thrown due to compiler errors
         Assert.False(outWriter.ToString().Contains("Test01"))
         Assert.False(outWriter.ToString().Contains("Test03"))
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     Private Function CreateRuleSetFile(source As XDocument) As TempFile
@@ -2276,6 +2336,8 @@ End Class
         Assert.Equal(&HEF, fileContents(0))
         Assert.Equal(&HBB, fileContents(1))
         Assert.Equal(&HBF, fileContents(2))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(733242)>
@@ -2324,6 +2386,9 @@ content)
             End Using
 
         End Using
+
+        CleanupAllGeneratedFiles(src.Path)
+        CleanupAllGeneratedFiles(xml.Path)
     End Sub
 
     <Fact, WorkItem(768605)>
@@ -2402,6 +2467,9 @@ a
 </text>,
 content)
         End Using
+
+        CleanupAllGeneratedFiles(src.Path)
+        CleanupAllGeneratedFiles(xml.Path)
     End Sub
 
     <Fact, WorkItem(705148)>
@@ -2419,6 +2487,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(705148)>
@@ -2436,6 +2506,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "MyXml.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(705148)>
@@ -2453,6 +2525,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(705202)>
@@ -2470,6 +2544,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(705202)>
@@ -2487,6 +2563,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(705202)>
@@ -2504,6 +2582,8 @@ End Class
         AssertOutput(<text></text>, output)
 
         Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact, WorkItem(531021)>
@@ -2974,6 +3054,8 @@ End Class
         Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", binaryPath}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
         Assert.Equal("error BC2015: the file '" + binaryPath + "' is not a text file", outWriter.ToString.Trim())
+
+        CleanupAllGeneratedFiles(binaryPath)
     End Sub
 
     <Fact()>
@@ -3047,6 +3129,8 @@ End Class
         exitCode = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/libpath:temp", "/r:abc.xyz.dll", "/t:library", src.ToString()}).Run(outWriter, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Equal("", outWriter.ToString().Trim())
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact()>
@@ -3062,6 +3146,8 @@ End Class
         Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
         Assert.Equal("error BC2012: can't open '" & subFolder.ToString() & "' for writing: Cannot create a file when that file already exists.", outWriter.ToString().Trim())
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact()>
@@ -3167,6 +3253,8 @@ Dim b = Loc
         ~~~
 </text>, output)
 
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact()>
@@ -3248,6 +3336,7 @@ error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 
         File.Delete(msCorLib.Path)
 
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <WorkItem(598158)>
@@ -3293,6 +3382,7 @@ error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 </text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         File.Delete(msCorLib.Path)
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact()>
@@ -3324,6 +3414,8 @@ src.vb(2) : error BC31091: Import of type 'Object' from assembly or module 'src.
 Class C
       ~
 </text>, output)
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     Private Sub AssertOutput(expected As XElement, output As String, Optional fileName As String = "src.vb")
@@ -3345,6 +3437,8 @@ Class C
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\lib2;", "@" & file.ToString(), "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
         AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()) + "\", "c:\lib2")
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     Private Sub AssertReferencePathsEqual(refPaths As ImmutableArray(Of String), sdkPathOrNothing As String, ParamArray paths() As String)
@@ -3742,6 +3836,14 @@ End Class
 
         Assert.Equal(1, Directory.EnumerateFiles(dir.Path, "*" & PathUtilities.GetExtension(expectedOutputName)).Count())
         Assert.Equal(1, Directory.EnumerateFiles(dir.Path, expectedOutputName).Count())
+
+
+        If System.IO.File.Exists(expectedOutputName) Then
+            System.IO.File.Delete(expectedOutputName)
+        End If
+
+        CleanupAllGeneratedFiles(file1.Path)
+        CleanupAllGeneratedFiles(file2.Path)
     End Sub
 
     Private Shared Sub AssertSpecificDiagnostics(expectedCodes As Integer(), expectedOptions As ReportDiagnostic(), args As VisualBasicCommandLineArguments)
@@ -3921,6 +4023,9 @@ PATH(11) : warning BC42105: Function 'foo' doesn't return a value on all code pa
         Dim expected = result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf).Trim()
         Dim actual = output.ToString().Trim()
         Assert.Equal(expected, actual)
+
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -3971,6 +4076,8 @@ PATH(9) : error BC36640: Instance of restricted type 'System.ArgIterator' cannot
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -4009,6 +4116,8 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
         Dim expected = result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf).Trim()
         Dim actual = output.ToString().Trim()
         Assert.Equal(expected, actual)
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -4056,6 +4165,8 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -4099,6 +4210,8 @@ Module _
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -4146,6 +4259,8 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545214)>
@@ -4191,6 +4306,8 @@ End Class
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(531606)>
@@ -4232,6 +4349,8 @@ PATH(6) : error BC30203: Identifier expected.
 
         Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
         Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545247)>
@@ -4262,6 +4381,8 @@ End Module
 
         Assert.Equal(1, exitCode)
         Assert.Contains("error BC2012: can't open '" + dir.Path + "\sub\a.exe' for writing", output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545247)>
@@ -4294,6 +4415,8 @@ End Module
         Dim message = output.ToString()
         Assert.Contains("error BC2032: File name", message)
         Assert.Contains("sub", message)
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545247)>
@@ -4326,6 +4449,8 @@ End Module
         Dim message = output.ToString()
         Assert.Contains("error BC2032: File name", message)
         Assert.Contains("sub", message)
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545247)>
@@ -4356,6 +4481,8 @@ End Module
 
         Assert.Equal(1, exitCode)
         Assert.Contains("error BC2032: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <WorkItem(545247)>
@@ -4386,6 +4513,8 @@ End Module
 
         Assert.Equal(1, exitCode)
         Assert.Contains("error BC2006: option 'out' requires ':<file>'", output.ToString())
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact()>
@@ -4429,9 +4558,11 @@ Class ??
 </text>.Value.Replace(vbLf, vbCrLf))
 
         Dim comp = VisualBasicCompilation.Create("a.dll", options:=Options.OptionsDll.WithSubsystemVersion(SubsystemVersion.Create(5, 1)))
-        Dim peHeaders = New peHeaders(comp.EmitToStream())
+        Dim peHeaders = New PEHeaders(comp.EmitToStream())
         Assert.Equal(5, peHeaders.PEHeader.MajorSubsystemVersion)
         Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion)
+
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     <Fact>
@@ -4742,22 +4873,22 @@ End Module
         Dim outputFileName As String
         Dim target As String
         Select Case outputKind
-            Case outputKind.ConsoleApplication
+            Case OutputKind.ConsoleApplication
                 outputFileName = "Test.exe"
                 target = "exe"
-            Case outputKind.WindowsApplication
+            Case OutputKind.WindowsApplication
                 outputFileName = "Test.exe"
                 target = "winexe"
-            Case outputKind.DynamicallyLinkedLibrary
+            Case OutputKind.DynamicallyLinkedLibrary
                 outputFileName = "Test.dll"
                 target = "library"
-            Case outputKind.NetModule
+            Case OutputKind.NetModule
                 outputFileName = "Test.netmodule"
                 target = "module"
-            Case outputKind.WindowsRuntimeMetadata
+            Case OutputKind.WindowsRuntimeMetadata
                 outputFileName = "Test.winmdobj"
                 target = "winmdobj"
-            Case outputKind.WindowsRuntimeApplication
+            Case OutputKind.WindowsRuntimeApplication
                 outputFileName = "Test.exe"
                 target = "appcontainerexe"
             Case Else
@@ -4765,6 +4896,7 @@ End Module
         End Select
 
         Dim vbc As VisualBasicCompiler
+        Dim manifestFile As TempFile
         If explicitManifest Is Nothing Then
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
             {
@@ -4773,7 +4905,7 @@ End Module
                 Path.GetFileName(sourceFile.Path)
             })
         Else
-            Dim manifestFile = dir.CreateFile("Test.config").WriteAllText(explicitManifest.ToString())
+            manifestFile = dir.CreateFile("Test.config").WriteAllText(explicitManifest.ToString())
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
             {
                 String.Format("/target:{0}", target),
@@ -4790,7 +4922,7 @@ End Module
         End If
 
         Const resourceType As String = "#24"
-        Dim resourceId As String = If(outputKind = outputKind.DynamicallyLinkedLibrary, "#2", "#1")
+        Dim resourceId As String = If(outputKind = OutputKind.DynamicallyLinkedLibrary, "#2", "#1")
 
         Dim manifestSize As UInteger = Nothing
         If expectedManifest Is Nothing Then
@@ -4802,6 +4934,8 @@ End Module
         End If
 
         FreeLibrary(library)
+
+        CleanupAllGeneratedFiles(sourceFile.Path)
     End Sub
 
     <WorkItem(530221)>
@@ -4826,6 +4960,8 @@ End Module
             Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
             File.Delete(ref)
         End Try
+
+        CleanupAllGeneratedFiles(source)
     End Sub
 
     <WorkItem(544926)>
@@ -4872,6 +5008,9 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+
+        CleanupAllGeneratedFiles(source)
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(544926)>
@@ -4903,6 +5042,9 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+
+        CleanupAllGeneratedFiles(source)
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(544926)>
@@ -4934,6 +5076,9 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+
+        CleanupAllGeneratedFiles(source)
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(544926)>
@@ -4965,6 +5110,9 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+
+        CleanupAllGeneratedFiles(source)
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(545832)>
@@ -4984,6 +5132,9 @@ Imports System
         Dim exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
         Assert.Equal("error BC2017: could not find library 'a='", output.ToString().Trim())
+
+        CleanupAllGeneratedFiles(source)
+        CleanupAllGeneratedFiles(rsp)
     End Sub
 
     <WorkItem(546031)>
@@ -5054,6 +5205,8 @@ Imports System
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
         Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+
+        CleanupAllGeneratedFiles(source)
     End Sub
 
     <Fact()>
@@ -5187,6 +5340,7 @@ End Module
         Assert.Contains("warning BC2026: warning number '1234' for the option 'nowarn' is either not configurable or not valid", output.ToString().Trim())
         Assert.Contains("warning BC2026: warning number '2026' for the option 'nowarn' is either not configurable or not valid", output.ToString().Trim())
 
+        CleanupAllGeneratedFiles(source)
     End Sub
 
     <WorkItem(546305)>
@@ -5302,6 +5456,8 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
         Assert.Equal("", output.ToString().Trim())
+
+        CleanupAllGeneratedFiles(source)
     End Sub
 
     <WorkItem(531263)>
@@ -5412,6 +5568,7 @@ End Module
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(0, exitCode)
 
+        CleanupAllGeneratedFiles(source)
     End Sub
 
     <Fact(Skip:="574361"), WorkItem(574361)>
@@ -5472,6 +5629,8 @@ error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
 ]]>
 </text>, output)
 
+
+        CleanupAllGeneratedFiles(src.Path)
     End Sub
 
     <Fact>
@@ -5568,6 +5727,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         ~~~    
 "
         AssertOutput(expected.Replace(vbCrLf, vbLf), outWriter.ToString())
+        CleanupAllGeneratedFiles(file.Path)
     End Sub
 
     Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())

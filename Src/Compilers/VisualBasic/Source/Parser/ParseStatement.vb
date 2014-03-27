@@ -1314,7 +1314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' davidsch
         ' used by While/With/Synclock
-        ' The return type can't be mroe specific because these statements don't share a more
+        ' The return type can't be more specific because these statements don't share a more
         ' specific class.
 
         'TODO - Rename ParseKeywordExpression and share with other statements that follow this pattern

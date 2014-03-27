@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol IsNot Nothing Then
 
-                If symbol.Kind = SymbolKind.Local AndAlso DirectCast(symbol, LocalSymbol)._DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                If symbol.Kind = SymbolKind.Local AndAlso DirectCast(symbol, LocalSymbol).DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                     ' We have several locals grouped in AmbiguousLocalsPseudoSymbol
                     For Each local In DirectCast(symbol, AmbiguousLocalsPseudoSymbol).Locals
                         NoteWrite(local, value)
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim symbol As Symbol = GetNodeSymbol(fieldAccess)
             If symbol IsNot Nothing Then
 
-                If symbol.Kind = SymbolKind.Local AndAlso DirectCast(symbol, LocalSymbol)._DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                If symbol.Kind = SymbolKind.Local AndAlso DirectCast(symbol, LocalSymbol).DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                     ' We have several locals grouped in AmbiguousLocalsPseudoSymbol
                     For Each local In DirectCast(symbol, AmbiguousLocalsPseudoSymbol).Locals
                         NoteRead(local)
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Local
                     Dim local As LocalSymbol = DirectCast(node, BoundLocal).LocalSymbol
 
-                    If local._DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                    If local.DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                         ' multiple locals
                         For Each loc In DirectCast(local, AmbiguousLocalsPseudoSymbol).Locals
                             result.Append(MakeSlot(loc))
@@ -625,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.tryState = tryState
                     End If
 
-                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol)._DeclarationKind = LocalSymbol.LocalDeclarationKind.FunctionValue Then
+                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).DeclarationKind = LocalSymbol.LocalDeclarationKind.FunctionValue Then
                         Me.State.Unassign(SlotKind.FunctionValue)
                         If Me.tryState IsNot Nothing Then
                             Dim tryState = Me.tryState.Value
@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     '  otherwise the parent can be set to assigned
                     state.Assign(parentSlot)
-                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol)._DeclarationKind = LocalSymbol.LocalDeclarationKind.FunctionValue Then
+                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).DeclarationKind = LocalSymbol.LocalDeclarationKind.FunctionValue Then
                         state.Assign(SlotKind.FunctionValue)
                     End If
                     id = parentIdentifier
@@ -871,7 +871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' 'local' can be a pseudo-local representing a set of real locals
-                If local IsNot Nothing AndAlso local._DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                If local IsNot Nothing AndAlso local.DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                     Dim ambiguous = DirectCast(local, AmbiguousLocalsPseudoSymbol)
 
                     ' Ambiguous implicit receiver is always considered to be assigned
@@ -916,7 +916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If node.Kind = BoundKind.Local Then
                 Dim symbol As LocalSymbol = DirectCast(node, BoundLocal).LocalSymbol
-                If symbol._DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                If symbol.DeclarationKind = LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                     VisitAmbiguousLocalSymbol(DirectCast(symbol, AmbiguousLocalsPseudoSymbol))
                 End If
             End If
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.Local
                     Dim local As LocalSymbol = DirectCast(node, BoundLocal).LocalSymbol
-                    If local._DeclarationKind <> LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
+                    If local.DeclarationKind <> LocalSymbol.LocalDeclarationKind.AmbiguousLocals Then
                         unassignedSlot = VariableSlot(local)
 
                     Else

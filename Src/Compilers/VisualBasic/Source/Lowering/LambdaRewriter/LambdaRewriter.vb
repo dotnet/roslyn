@@ -362,7 +362,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Optional origLambda As LambdaSymbol = Nothing) As BoundNode
 
             Dim frameType As NamedTypeSymbol = ConstructFrameType(frame, currentTypeParameters)
-            Dim framePointer As LocalSymbol = New FrameReference(Me._topLevelMethod, frameType, CompilationState.GenerateTempNumber())
+            Dim framePointer As LocalSymbol = LocalSymbol.Create(Me._topLevelMethod,
+                                                                 StringConstants.ClosureVariablePrefix & CompilationState.GenerateTempNumber(), 'TODO: VB10 adds line/column numbers in hex here. Not sure if that is important or always meaningful.
+                                                                 LocalSymbol.LocalDeclarationKind.CompilerGenerated,
+                                                                 frameType)
 
             CompilationState.AddMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()

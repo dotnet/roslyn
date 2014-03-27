@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
@@ -46,13 +47,15 @@ namespace Microsoft.CodeAnalysis
             Type submissionReturnType,
             Type hostObjectType,
             bool isSubmission,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap)
+            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
+            AsyncQueue<CompilationEvent> eventQueue)
         {
             Debug.Assert(!references.IsDefault);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
             this.syntaxTreeOrdinalMap = syntaxTreeOrdinalMap;
+            this.EventQueue = eventQueue;
 
             if (isSubmission)
             {
@@ -439,6 +442,11 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract bool CommonContainsSyntaxTree(SyntaxTree syntaxTree);
 
+        /// <summary>
+        /// The event queue that this compilation was created with.
+        /// </summary>
+        internal readonly AsyncQueue<CompilationEvent> EventQueue;
+
         #endregion
 
         #region References
@@ -516,15 +524,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a metadata reference for this compilation.
         /// </summary>
-        /// <param name="alias">
-        /// An optional alias to define a root namespace that will contain
-        /// all namespaces in the assembly.
+        /// <param name="aliases">
+        /// Optional aliases that can be used to refer to the compilation root namespace via extern alias directive.
         /// </param>
         /// <param name="embedInteropTypes">
         /// Embed the COM types from the reference so that the compiled
         /// application no longer requires a primary interop assembly (PIA).
         /// </param>
-        public abstract CompilationReference ToMetadataReference(string alias = null, bool embedInteropTypes = false);
+        public abstract CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false);
 
         /// <summary>
         /// Creates a new compilation with the specified references.

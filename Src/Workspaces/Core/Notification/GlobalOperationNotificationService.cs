@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Notification
                     var operations = this.operations.AsImmutable();
                     this.operations.Clear();
 
-                    // it doesnt care whether indivisual operation has canceled or not.
-                    // it only care whether whole thing has cancelled or not.
+                    // We don't care if an individual operation has canceled.
+                    // We only care whether whole thing has cancelled or not.
                     RaiseGlobalOperationStopped(operations, cancelled: true);
                 }
             }

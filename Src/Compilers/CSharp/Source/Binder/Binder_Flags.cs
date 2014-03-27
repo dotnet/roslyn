@@ -1,24 +1,29 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class Binder
+    internal partial class Binder
     {
         /// <summary>
         /// Represents a small change from the enclosing/next binder.
-        /// Can specify a BindingLocation and/or a ContainingMemberOrLambda.
+        /// Can specify a BindingLocation and a ContainingMemberOrLambda.
         /// </summary>
-        private sealed class DeltaBinder : Binder
+        private sealed class BinderWithContainingMemberOrLambda : Binder
         {
             private readonly Symbol containingMemberOrLambda;
 
-            internal DeltaBinder(BinderFlags location, Binder next, Symbol containingMemberOrLambda = null)
-                : base(next, location)
+            internal BinderWithContainingMemberOrLambda(Binder next, Symbol containingMemberOrLambda)
+                : base(next)
             {
-                this.containingMemberOrLambda = containingMemberOrLambda ?? Next.ContainingMemberOrLambda;
+                this.containingMemberOrLambda = containingMemberOrLambda;
+            }
+
+            internal BinderWithContainingMemberOrLambda(Binder next, BinderFlags flags, Symbol containingMemberOrLambda)
+                : base(next, flags)
+            {
+                this.containingMemberOrLambda = containingMemberOrLambda;
             }
 
             internal override Symbol ContainingMemberOrLambda
@@ -31,20 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.Flags == flags
                 ? this
-                : new DeltaBinder(flags, this);
+                : new Binder(this, flags);
         }
 
         internal Binder WithAdditionalFlags(BinderFlags flags)
         {
             return this.Flags.Includes(flags)
                 ? this
-                : new DeltaBinder(this.Flags | flags, this);
+                : new Binder(this, this.Flags | flags);
         }
 
         internal Binder WithContainingMemberOrLambda(Symbol containing)
         {
             Debug.Assert((object)containing != null);
-            return new DeltaBinder(this.Flags, this, containing);
+            return new BinderWithContainingMemberOrLambda(this, containing);
         }
 
         /// <remarks>
@@ -54,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Binder WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags flags, Symbol containing)
         {
             Debug.Assert((object)containing != null);
-            return new DeltaBinder(this.Flags | flags, this, containing);
+            return new BinderWithContainingMemberOrLambda(this, this.Flags | flags, containing);
         }
 
         internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers)
         {
             return (this.Flags.Includes(BinderFlags.UnsafeRegion) || !modifiers.Any(SyntaxKind.UnsafeKeyword))
                 ? this
-                : new DeltaBinder(this.Flags | BinderFlags.UnsafeRegion, this);
+                : new Binder(this, this.Flags | BinderFlags.UnsafeRegion);
         }
 
         internal Binder WithCheckedOrUncheckedRegion(bool @checked)
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return this.Flags.Includes(added)
                 ? this
-                : new DeltaBinder((this.Flags & ~removed) | added, this);
+                : new Binder(this, (this.Flags & ~removed) | added);
         }
     }
 }

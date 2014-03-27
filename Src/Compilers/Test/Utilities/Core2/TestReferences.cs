@@ -247,7 +247,7 @@ public static class TestReferences
                 {
                     if (_mscorlib == null)
                     {
-                        _mscorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib, display: "mscorlib.dll");
+                        _mscorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib, fullPath: @"R:\v4_0_30319\mscorlib.dll", display: "mscorlib.dll");
                     }
 
                     return _mscorlib;
@@ -261,7 +261,7 @@ public static class TestReferences
                 {
                     if (_System_Core == null)
                     {
-                        _System_Core = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, display: "System.Core.dll");
+                        _System_Core = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, fullPath: @"R:\v4_0_30319\System.Core.dll", display: "System.Core.dll");
                     }
 
                     return _System_Core;
@@ -275,7 +275,7 @@ public static class TestReferences
                 {
                     if (_System_Configuration == null)
                     {
-                        _System_Configuration = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Configuration, display: "System.Configuration.dll");
+                        _System_Configuration = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Configuration, fullPath: @"R:\v4_0_30319\System.Configuration.dll", display: "System.Configuration.dll");
                     }
 
                     return _System_Configuration;
@@ -289,7 +289,7 @@ public static class TestReferences
                 {
                     if (_System == null)
                     {
-                        _System = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System, display: "System.dll");
+                        _System = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System, fullPath: @"R:\v4_0_30319\System.dll", display: "System.dll");
                     }
 
                     return _System;
@@ -303,7 +303,7 @@ public static class TestReferences
                 {
                     if (_System_Data == null)
                     {
-                        _System_Data = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Data, display: "System.Data.dll");
+                        _System_Data = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Data, fullPath: @"R:\v4_0_30319\System.Data.dll", display: "System.Data.dll");
                     }
 
                     return _System_Data;
@@ -317,7 +317,7 @@ public static class TestReferences
                 {
                     if (_System_Xml == null)
                     {
-                        _System_Xml = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml, display: "System.Xml.dll");
+                        _System_Xml = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml, fullPath: @"R:\v4_0_30319\System.Xml.dll", display: "System.Xml.dll");
                     }
 
                     return _System_Xml;
@@ -331,7 +331,7 @@ public static class TestReferences
                 {
                     if (_System_Xml_Linq == null)
                     {
-                        _System_Xml_Linq = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq, display: "System.Xml.Linq.dll");
+                        _System_Xml_Linq = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq, fullPath: @"R:\v4_0_30319\System.Xml.Linq.dll", display: "System.Xml.Linq.dll");
                     }
 
                     return _System_Xml_Linq;
@@ -345,7 +345,7 @@ public static class TestReferences
                 {
                     if (_System_Windows_Forms == null)
                     {
-                        _System_Windows_Forms = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms, display: "System.Windows.Forms.dll");
+                        _System_Windows_Forms = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms, fullPath: @"R:\v4_0_30319\System.Windows.Forms.dll", display: "System.Windows.Forms.dll");
                     }
 
                     return _System_Windows_Forms;
@@ -359,7 +359,7 @@ public static class TestReferences
                 {
                     if (_Microsoft_CSharp == null)
                     {
-                        _Microsoft_CSharp = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp, display: "Microsoft.CSharp.dll");
+                        _Microsoft_CSharp = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp, fullPath: @"R:\v4_0_30319\Microsoft.CSharp.dll", display: "Microsoft.CSharp.dll");
                     }
 
                     return _Microsoft_CSharp;
@@ -373,7 +373,7 @@ public static class TestReferences
                 {
                     if (_Microsoft_VisualBasic == null)
                     {
-                        _Microsoft_VisualBasic = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic, display: "Microsoft.VisualBasic.dll");
+                        _Microsoft_VisualBasic = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic, fullPath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll", display: "Microsoft.VisualBasic.dll");
                     }
 
                     return _Microsoft_VisualBasic;
@@ -1164,20 +1164,17 @@ public static class TestReferences
                 }
             }
 
-            public static class NoMsCorLibRef
+            private static MetadataImageReference _NoMsCorLibRef;
+            public static MetadataImageReference NoMsCorLibRef
             {
-                private static MetadataImageReference _dll;
-                public static MetadataImageReference dll
+                get
                 {
-                    get
+                    if (_NoMsCorLibRef == null)
                     {
-                        if (_dll == null)
-                        {
-                            _dll = new MetadataImageReference(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef, display: "NoMsCorLibRef.dll");
-                        }
-
-                        return _dll;
+                        _NoMsCorLibRef = new MetadataImageReference(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef, display: "NoMsCorLibRef.dll");
                     }
+
+                    return _NoMsCorLibRef;
                 }
             }
 

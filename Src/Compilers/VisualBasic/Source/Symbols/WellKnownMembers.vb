@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer)
+                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, m_WellKnownMemberSignatureComparer, Me)
                 End If
 
                 Interlocked.CompareExchange(m_LazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
-                Dim result As NamedTypeSymbol = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, useCLSCompliantNameArityEncoding:=True)
+                Dim result As NamedTypeSymbol = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, wellKnownTypeCompilation:=Me, useCLSCompliantNameArityEncoding:=True)
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
@@ -302,7 +302,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GetRuntimeMember(
             ByVal declaringType As NamedTypeSymbol,
             ByRef descriptor As MemberDescriptor,
-            ByVal comparer As SignatureComparer(Of MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol)
+            ByVal comparer As SignatureComparer(Of MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol),
+            ByVal wellKnownMemberCompilation As VisualBasicCompilation
         ) As Symbol
             Dim result As Symbol = Nothing
 
@@ -336,7 +337,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             For Each m In declaringType.GetMembers(descriptor.Name)
-                If m.Kind <> targetSymbolKind OrElse m.IsShared <> isShared Then
+                If m.Kind <> targetSymbolKind OrElse m.IsShared <> isShared OrElse
+                    Not (m.DeclaredAccessibility = Accessibility.Public OrElse (declaringType.SpecialType = SpecialType.None AndAlso m.DeclaringCompilation Is wellKnownMemberCompilation)) Then ' A few well-known types aren't public
                     Continue For
                 End If
 
@@ -351,8 +353,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Treat user-defined conversions and operators as ordinary methods for the purpose
                         ' of matching them here.
-                        If methodKind = methodKind.Conversion OrElse methodKind = methodKind.UserDefinedOperator Then
-                            methodKind = methodKind.Ordinary
+                        If methodKind = MethodKind.Conversion OrElse methodKind = MethodKind.UserDefinedOperator Then
+                            methodKind = MethodKind.Ordinary
                         End If
 
                         If method.Arity <> descriptor.Arity OrElse methodKind <> targetMethodKind OrElse

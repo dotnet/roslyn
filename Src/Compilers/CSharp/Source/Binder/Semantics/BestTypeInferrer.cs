@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hadMultipleCandidates = candidateTypes.Count > 1;
 
-            // Perfom best type inference on candidate types.
+            // Perform best type inference on candidate types.
             return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics);
         }
 

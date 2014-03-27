@@ -550,10 +550,10 @@ namespace Microsoft.CodeAnalysis
             internal readonly bool IsOptional;
             internal readonly TypeSymbol Modifier;
 
-            public ModifierInfo(bool isOptional, TypeSymbol modifer)
+            public ModifierInfo(bool isOptional, TypeSymbol modifier)
             {
                 IsOptional = isOptional;
-                Modifier = modifer;
+                Modifier = modifier;
             }
         }
 

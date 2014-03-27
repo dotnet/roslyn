@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     // Explicit cast not required if we are comparing with type parameter with a class constraint.
                     var otherType = semanticModel.GetTypeInfo(other).Type;
-                    if (otherType == null || otherType.TypeKind != TypeKind.TypeParameter)
+                    if (otherType != null && otherType.TypeKind != TypeKind.TypeParameter)
                     {
                         return !other.WalkDownParentheses().IsKind(SyntaxKind.CastExpression);
                     }

@@ -307,5 +307,83 @@ public class C : NotFound
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x3").WithArguments("x3").WithWarningAsError(true));
 
         }
+
+        class SyntaxAndSymbolAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>, ISymbolAnalyzer
+        {
+            private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor("XX0001", "My Syntax/Symbol Diagnostic", "My Syntax/Symbol Diagnostic for '{0}'", "Compiler", DiagnosticSeverity.Warning);
+            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(descriptor);
+                }
+            }
+
+            public ImmutableArray<SymbolKind> SymbolKindsOfInterest
+            {
+                get
+                {
+                    return ImmutableArray.Create(SymbolKind.NamedType);
+                }
+            }
+
+            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+            {
+                get
+                {
+                    return ImmutableArray.Create(SyntaxKind.Attribute, SyntaxKind.ClassDeclaration, SyntaxKind.UsingStatement);
+                }
+            }
+
+            public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            {
+                switch (node.CSharpKind())
+                {
+                    case SyntaxKind.Attribute:
+                        var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "Attribute");
+                        addDiagnostic(diag1);
+                        break;
+
+                    case SyntaxKind.ClassDeclaration:
+                        var diag2 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "ClassDeclaration");
+                        addDiagnostic(diag2);
+                        break;
+
+                    case SyntaxKind.UsingStatement:
+                        var diag3 = CodeAnalysis.Diagnostic.Create(descriptor, node.GetLocation(), "UsingStatement");
+                        addDiagnostic(diag3);
+                        break;
+                }
+            }
+
+            public void AnalyzeSymbol(ISymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+            {
+                var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, symbol.Locations[0], "NamedType");
+                addDiagnostic(diag1);
+            }
+        }
+
+        [WorkItem(914236)]
+        [Fact(Skip = "914236")]
+        public void DiagnosticAnalyzerSyntaxNodeAndSymbolAnalysis()
+        {
+            string source = @"
+using System;
+
+[Obsolete]
+public class C { }";
+            var options = TestOptions.Dll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+
+            CreateCompilationWithMscorlib45(source, compOptions: options)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(new IDiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() },
+                    // Symbol diagnostics
+                    Diagnostic("XX0001", "C").WithWarningAsError(true),
+                    // Syntax diagnostics
+                    Diagnostic("XX0001", "using System;").WithWarningAsError(true),
+                    Diagnostic("XX0001", "[Obsolete]").WithWarningAsError(true),
+                    Diagnostic("XX0001", "C").WithWarningAsError(true));
+
+        }
     }
 }

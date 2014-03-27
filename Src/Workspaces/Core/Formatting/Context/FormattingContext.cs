@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            // get indentation based on its previous indentaiton
+            // get indentation based on its previous indentation
             var indentationGetter = new Lazy<int>(() =>
             {
                 var indentationDelta = operation.IndentationDeltaOrPosition * this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.language);

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            // increase indentation - embeded statement cases
+            // increase indentation - embedded statement cases
             var ifStatement = node as IfStatementSyntax;
             if (ifStatement != null && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
             {
@@ -259,12 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (lastToken.IsMissing)
             {
-                // embeded statement is not done, consider following as part of embeded statement
+                // embedded statement is not done, consider following as part of embeded statement
                 AddIndentBlockOperation(list, firstToken, lastToken);
             }
             else
             {
-                // embeded statement is done
+                // embedded statement is done
                 AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
             }
         }

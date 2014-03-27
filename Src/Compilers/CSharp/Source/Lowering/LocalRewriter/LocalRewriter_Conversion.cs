@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   An identity conversion converts from any type to the same type. 
                     //   This conversion exists such that an entity that already has a required type can be said to be convertible to that type.
                     //   Because object and dynamic are considered equivalent there is an identity conversion between object and dynamic, 
-                    //   and between constructed types that are the same when replacing all occurences of dynamic with object.
+                    //   and between constructed types that are the same when replacing all occurrences of dynamic with object.
 
                     // Why ignoreDynamic: false?
                     // Lowering phase treats object and dynamic as equivalent types. So we don't need to produce any conversion here,
                     // but we need to change the Type property on the resulting BoundExpression to match the rewrittenType.
-                    // This is neccessary so that subsequent lowering transformations see that the expression is dynamic.
+                    // This is necessary so that subsequent lowering transformations see that the expression is dynamic.
 
                     if (inExpressionLambda || !rewrittenOperand.Type.Equals(rewrittenType, ignoreCustomModifiers: false, ignoreDynamic: false))
                     {

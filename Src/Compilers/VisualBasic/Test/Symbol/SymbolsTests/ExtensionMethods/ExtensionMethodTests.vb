@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -1008,7 +1009,7 @@ End Module
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataFileReference(reference.Path, MetadataImageKind.Module)
+                Dim ILRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -2244,7 +2245,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 
             Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
-                Dim ILRef = New MetadataFileReference(reference.Path, MetadataImageKind.Module)
+                Dim ILRef = New MetadataImageReference(ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)))
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation name="ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible">

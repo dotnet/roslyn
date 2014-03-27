@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             // 2. created by modifing existing item (text changes, project changes etc).
             //    "increment" will have either 0 or previous increment + 1 if there was a collision.
             // 3. created from deserialization (probably by using persistent service).
-            // 4. created by accumulating versions of mutliple items.
+            // 4. created by accumulating versions of multiple items.
             //
             // and this method is the one that is responsible for #4 case.
 

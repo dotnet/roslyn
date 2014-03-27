@@ -106,6 +106,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t resolve analyzer reference: &apos;{0}&apos;..
+        /// </summary>
+        internal static string CantResolveAnalyzerReference {
+            get {
+                return ResourceManager.GetString("CantResolveAnalyzerReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t resolve metadata reference: &apos;{0}&apos;..
         /// </summary>
         internal static string CantResolveMetadataReference {

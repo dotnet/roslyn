@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly ConditionalWeakTable<MetadataReference, Stream> lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
 
-        public MetadataReference CreateReference(string alias, bool embedInteropTypes, DocumentationProvider documentationProvider)
+        public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
         {
             if (this.IsEmpty)
             {
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 var referenceWithNativeMemory = new MetadataImageReference(
                     AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length)),
                     documentation: documentationProvider,
-                    alias: alias,
+                    aliases: aliases,
                     embedInteropTypes: embedInteropTypes,
                     display: this.assemblyName);
 
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             return new MetadataImageReference(
                 stream,
                 documentation: documentationProvider,
-                alias: alias,
+                aliases: aliases,
                 embedInteropTypes: embedInteropTypes,
                 display: this.assemblyName);
         }

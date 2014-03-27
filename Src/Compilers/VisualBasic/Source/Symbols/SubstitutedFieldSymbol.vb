@@ -111,7 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return Nothing
+                Dim underlying = OriginalDefinition.AssociatedSymbol
+                Return If(underlying Is Nothing, Nothing, underlying.AsMember(ContainingType))
             End Get
         End Property
 

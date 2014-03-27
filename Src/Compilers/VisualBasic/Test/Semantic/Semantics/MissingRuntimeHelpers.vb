@@ -48,37 +48,37 @@ Class Program
 End Class
 
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
 
-    Class [String]
+    Public Class [String]
     End Class
 
-    Class Array
+    Public Class Array
     End Class
 
-    Structure Void
+    Public Structure Void
     End Structure
 
-    Structure [Double]
+    Public Structure [Double]
     End Structure
 
-    Structure Int32
+    Public Structure Int32
     End Structure
 
-    Structure [Boolean]
+    Public Structure [Boolean]
     End Structure
 
-    Structure DateTime
+    Public Structure DateTime
     End Structure
 
-    Structure [Decimal]
+    Public Structure [Decimal]
     End Structure
 
-    Structure [Char]
+    Public Structure [Char]
     End Structure
 
-    Class ValueType
+    Public Class ValueType
     End Class
 End Namespace
 
@@ -218,46 +218,46 @@ Class Program
 End Class
 
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
 
-    Class [String]
+    Public Class [String]
     End Class
 
-    Class Array
+    Public Class Array
     End Class
 
-    Structure Void
+    Public Structure Void
     End Structure
 
-    Structure [Double]
+    Public Structure [Double]
     End Structure
 
-    Structure Int32
+    Public Structure Int32
     End Structure
 
-    Structure [Boolean]
+    Public Structure [Boolean]
     End Structure
 
-    Structure DateTime
+    Public Structure DateTime
     End Structure
 
-    Structure [Decimal]
+    Public Structure [Decimal]
     End Structure
 
-    Structure [Char]
+    Public Structure [Char]
     End Structure
 
-    Structure IntPtr
+    Public Structure IntPtr
     End Structure
 
-    Class ValueType
+    Public Class ValueType
     End Class
 
-    Class [Delegate]
+    Public Class [Delegate]
     End Class
 
-    Class MulticastDelegate
+    Public Class MulticastDelegate
     End Class
 End Namespace
 
@@ -313,13 +313,13 @@ Class Program
 End Class
 
 Namespace System
-    Class [Object]
+    Public Class [Object]
     End Class
 
-    Class [String]
+    Public Class [String]
     End Class
 
-    Class Array
+    Public Class Array
         Public Readonly Property Length as integer
             Get
                 return 0
@@ -327,31 +327,31 @@ Namespace System
         end property
     End Class
 
-    Structure Void
+    Public Structure Void
     End Structure
 
-    Structure [Double]
+    Public Structure [Double]
     End Structure
 
-    Structure Int32
+    Public Structure Int32
     End Structure
 
-    Structure [Boolean]
+    Public Structure [Boolean]
     End Structure
 
-    Structure DateTime
+    Public Structure DateTime
     End Structure
 
-    Structure [Decimal]
+    Public Structure [Decimal]
     End Structure
 
-    Structure [Char]
+    Public Structure [Char]
     End Structure
 
-    Structure IntPtr
+    Public Structure IntPtr
     End Structure
 
-    Class ValueType
+    Public Class ValueType
     End Class
 End Namespace
 

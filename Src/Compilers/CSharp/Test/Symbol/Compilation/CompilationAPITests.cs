@@ -7,22 +7,18 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -87,7 +83,7 @@ namespace A.B {
             Assert.Equal(1, comp.ExternalReferences.Length);
             var ref1 = comp.ExternalReferences[0];
             Assert.True(ref1.Properties.EmbedInteropTypes);
-            Assert.Null(ref1.Properties.Alias);
+            Assert.True(ref1.Properties.Aliases.IsDefault);
 
             // Create Compilation with PreProcessorSymbols of Option is empty
             var ops1 = TestOptions.Exe.WithOptimizations(false);
@@ -241,13 +237,10 @@ namespace A.B {
             var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
             // Create Compilation takes two args
             var comp = CSharpCompilation.Create("Compilation", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            var sysloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-            var coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path;
-            var ref1 = new MetadataFileReference(coreloc);
-            var ref2 = new MetadataFileReference(sysloc);
-            var ref3 = new MetadataFileReference(@"C:\xml.bms");
-            var ref4 = new MetadataFileReference(@"C:\aaa.dll");
-            var ref5 = new MetadataFileReference(@"C:\aaa.bbb");
+            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
+            var ref4 = new TestMetadataReference(fullPath: @"c:\aaa.dll");
             // Add a new empty item 
             comp = comp.AddReferences(Enumerable.Empty<MetadataReference>());
             Assert.Equal(0, comp.ExternalReferences.Length);
@@ -260,15 +253,12 @@ namespace A.B {
             Assert.Equal(1, comp.ExternalReferences.Length);
             Assert.Equal(MetadataImageKind.Assembly, comp.ExternalReferences[0].Properties.Kind);
             Assert.Equal(ref1, comp.ExternalReferences[0]);
-            Assert.Equal(coreloc, ((MetadataFileReference)comp.ExternalReferences[0]).FullPath);
-            Assert.Equal(coreloc, ((MetadataFileReference)comp.ExternalReferences[0]).Display);
 
             // Replace an existing item with another valid item 
             comp = comp.ReplaceReference(ref1, ref2);
             Assert.Equal(1, comp.ExternalReferences.Length);
             Assert.Equal(MetadataImageKind.Assembly, comp.ExternalReferences[0].Properties.Kind);
             Assert.Equal(ref2, comp.ExternalReferences[0]);
-            Assert.Equal(sysloc, ((MetadataFileReference)comp.ExternalReferences[0]).FullPath);
 
             // Remove an existing item 
             comp = comp.RemoveReferences(ref2);
@@ -323,7 +313,7 @@ namespace A.B {
                 );
             
             var refdata = refcomp.EmitToArray();
-            var mtref = new MetadataImageReference(refdata, alias: "Alias(*#$@^%*&)");
+            var mtref = new MetadataImageReference(refdata, aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
 
             // not use exported type
             var comp = CSharpCompilation.Create("APP", 
@@ -1017,51 +1007,20 @@ var a = new C2();
             //});
         }
 
-        [Fact]
-        public void AssemblyFileReferenceNotFound()
-        {
-            CSharpCompilation comp = CSharpCompilation.Create(
-                assemblyName: "Compilation",
-                options: TestOptions.Dll,
-                references: new[] { new MetadataFileReference(@"c:\file_that_does_not_exist.bbb") });
-
-            comp.VerifyDiagnostics(
-                // error CS0006: Metadata file 'c:\file_that_does_not_exist.bbb' could not be found
-                Diagnostic(ErrorCode.ERR_NoMetadataFile).WithArguments(@"c:\file_that_does_not_exist.bbb"));
-        }
-
-        [Fact]
-        public void ModuleFileReferenceNotFound()
-        {
-            CSharpCompilation comp = CSharpCompilation.Create(
-                assemblyName: "Compilation",
-                options: TestOptions.Dll,
-                references: new[] { new MetadataFileReference(@"c:\file_that_does_not_exist.bbb", MetadataImageKind.Module) });
-
-            comp.VerifyDiagnostics(
-                // error CS0006: Metadata file 'c:\file_that_does_not_exist.bbb' could not be found
-                Diagnostic(ErrorCode.ERR_NoMetadataFile).WithArguments(@"c:\file_that_does_not_exist.bbb"));
-        }
-
-        [WorkItem(537574)]
         // Add already existing item 
-        [Fact]
+        [Fact, WorkItem(537574)]
         public void NegReference2()
         {
-            var sysloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-            var coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path;
-            var ref1 = new MetadataFileReference(coreloc);
-            var ref2 = new MetadataFileReference(sysloc);
-            var ref3 = new MetadataFileReference(@"C:\xml.bms");
-            var ref4 = new MetadataFileReference(@"C:\aaa.dll");
-            var ref5 = new MetadataFileReference(@"C:\aaa.bbb");
+            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref3 = TestReferences.NetFx.v4_0_30319.System_Data;
+            var ref4 = TestReferences.NetFx.v4_0_30319.System_Xml;
             var comp = CSharpCompilation.Create("Compilation");
 
             comp = comp.AddReferences(ref1, ref1);
             Assert.Equal(1, comp.ExternalReferences.Length);
             Assert.Equal(MetadataImageKind.Assembly, comp.ExternalReferences[0].Properties.Kind);
             Assert.Equal(ref1, comp.ExternalReferences[0]);
-            Assert.Equal(coreloc, ((MetadataFileReference)comp.ExternalReferences[0]).FullPath);
 
             var listRef = new List<MetadataReference> { ref1, ref2, ref3, ref4 };
             // Chained operation count > 3
@@ -1070,16 +1029,14 @@ var a = new C2();
             Assert.Equal(1, comp.ExternalReferences.Length);
             Assert.Equal(MetadataImageKind.Assembly, comp.ExternalReferences[0].Properties.Kind);
             Assert.Equal(ref2, comp.ExternalReferences[0]);
-            Assert.Equal(sysloc, ((MetadataFileReference)comp.ExternalReferences[0]).FullPath);
             Assert.Throws<ArgumentException>(() => comp.AddReferences(listRef).AddReferences(ref2).RemoveReferences(ref1, ref2, ref3, ref4).ReplaceReference(ref2, ref2));
         }
 
-        [WorkItem(537575)]
         // Add a new invalid item 
-        [Fact]
+        [Fact, WorkItem(537575)]
         public void NegReference3()
         {
-            var ref1 = new MetadataFileReference(@"C:\xml.bms");
+            var ref1 = InvalidRef;
             var comp = CSharpCompilation.Create("Compilation");
             // Remove non-existing item
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveReferences(ref1));
@@ -1091,9 +1048,8 @@ var a = new C2();
             Assert.Equal(1, comp.ExternalReferences.Length);
         }
 
-        [WorkItem(537567)]
         // Replace an non-existing item with null
-        [Fact]
+        [Fact, WorkItem(537567)]
         public void NegReference4()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1113,15 +1069,12 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537566)]
-        // Replace an non-existing item with another valid item
-        [Fact]
+        // Replace a non-existing item with another valid item
+        [Fact, WorkItem(537566)]
         public void NegReference5()
         {
-            var sysloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-            var coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path;
-            var ref1 = new MetadataFileReference(coreloc);
-            var ref2 = new MetadataFileReference(sysloc);
+            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref2 = TestReferences.NetFx.v4_0_30319.System_Xml;
             var comp = CSharpCompilation.Create("Compilation");
             Assert.Throws<ArgumentException>(
             delegate
@@ -1135,7 +1088,7 @@ var a = new C2();
             Assert.Throws<ArgumentException>(
             delegate
             {
-                comp.ReplaceReference(newReference: new MetadataFileReference(coreloc), oldReference: ref2);
+                comp.ReplaceReference(newReference: TestReferences.NetFx.v4_0_30319.System, oldReference: ref2);
             });
             Assert.Equal(0, comp.SyntaxTrees.Length);
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(newTree: SyntaxFactory.ParseSyntaxTree("Using System;"), oldTree: t1));
@@ -1430,42 +1383,16 @@ class B
         public void CanReadAndWriteDefaultWin32Res()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var mft = new System.IO.MemoryStream(new byte[] { 0, 1, 2, 3, });
+            var mft = new MemoryStream(new byte[] { 0, 1, 2, 3, });
             var res = comp.CreateDefaultWin32Resources(true, false, mft, null);
             var list = comp.MakeWin32ResourceList(res, new DiagnosticBag());
             Assert.Equal(2, list.Count);
         }
 
-        [Fact, WorkItem(545062)]
-        public void ExternAliasToSameDll()
-        {
-            var systemDllPath = typeof(Uri).Assembly.Location;
-            var alias1 = new MetadataFileReference(systemDllPath, alias: "Alias1");
-            var alias2 = new MetadataFileReference(systemDllPath, alias: "Alias2");
-
-            var text = @"
-extern alias Alias1;
-extern alias Alias2;
-
-class A { }
-";
-            var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias1, alias2 });
-            Assert.Equal(3, comp.References.Count());
-            Assert.Equal("Alias2", comp.References.Last().Properties.Alias);
-            comp.VerifyDiagnostics(
-                // (2,1): info CS8020: Unused extern alias.
-                // extern alias Alias1;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Alias1;"),
-                // (3,1): info CS8020: Unused extern alias.
-                // extern alias Alias2;
-                Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Alias2;"));
-        }
-
         [Fact, WorkItem(750437)]
         public void ConflictingAliases()
         {
-            var systemDllPath = typeof(Uri).Assembly.Location;
-            var alias = new MetadataFileReference(systemDllPath, alias: "alias");
+            var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
 
             var text =
 @"extern alias alias;
@@ -1475,15 +1402,14 @@ class myClass : alias::Uri
 }";
             var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias });
             Assert.Equal(2, comp.References.Count());
-            Assert.Equal("alias", comp.References.Last().Properties.Alias);
+            Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
                 // (2,1): error CS1537: The using alias 'alias' appeared previously in this namespace
                 // using alias=alias;
                 Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias"),
                 // (3,17): error CS0104: 'alias' is an ambiguous reference between '<global namespace>' and '<global namespace>'
                 // class myClass : alias::Uri
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>")
-                );
+                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
         }
 
         [WorkItem(546088)]
@@ -1962,8 +1888,7 @@ class C
         public void GetMetadataReferenceAPITest()
         {         
             var comp = CSharpCompilation.Create("Compilation");
-            var coreloc = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path;
-            var metadata = new MetadataFileReference(coreloc);
+            var metadata = TestReferences.NetFx.v4_0_30319.mscorlib;
             comp = comp.AddReferences(metadata);
             var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);           
             var reference = comp.GetMetadataReference(assemblySmb);

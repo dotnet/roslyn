@@ -6758,7 +6758,7 @@ public class CF3<T>
                 { 
                     module1_FT1_Ref,
                     forwardedTypes2Ref,
-                    new CSharpCompilationReference(forwardedTypes1, "FT1")
+                    new CSharpCompilationReference(forwardedTypes1, aliases: ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
@@ -6778,7 +6778,7 @@ extern alias FT1;
                 new List<MetadataReference>() 
                 { 
                     forwardedTypesModRef,
-                    new CSharpCompilationReference(forwardedTypes1, "FT1")
+                    new CSharpCompilationReference(forwardedTypes1, ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
@@ -8902,7 +8902,7 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";
@@ -8921,10 +8921,10 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    interface ICloneable
+    public interface ICloneable
     {
     }
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";
@@ -8941,10 +8941,10 @@ public class B : A { }   // CS0535 A::F is not implemented
         {
             var text = @"namespace System
 {
-    interface ICloneable
+    public interface ICloneable
     {
     }
-    class Object : ICloneable
+    public class Object : ICloneable
     {
     }
 }";
@@ -10014,7 +10014,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void CS0568ERR_StructsCantContainDefaultContructor01()
+        public void CS0568ERR_StructsCantContainDefaultConstructor01()
         {
             var text = @"namespace NS
 {
@@ -10030,8 +10030,8 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultContructor, Line = 5, Column = 16 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultContructor, Line = 9, Column = 13 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultConstructor, Line = 5, Column = 16 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StructsCantContainDefaultConstructor, Line = 9, Column = 13 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -13902,45 +13902,6 @@ static class B
             CreateCompilationWithMscorlib(text, new[] { ref1 }).VerifyDiagnostics(
                 // error CS1509: The referenced file 'NetModule.mod' is not an assembly
                 Diagnostic(ErrorCode.ERR_ImportNonAssembly).WithArguments(@"NetModule.mod"));
-        }
-
-        [Fact]
-        public void CS1009FTL_MetadataCantOpenFileAssembly()
-        {
-            //CSC /TARGET:library /reference:class1.netmodule text.CS
-            var text = @"class Test
-{
-    public static int Main()
-    {
-        return 1;
-    }
-}";
-
-            var refFile = Temp.CreateFile();
-            var reference = new MetadataFileReference(refFile.Path);
-
-            CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
-        }
-
-        [Fact]
-        public void CS1009FTL_MetadataCantOpenFileModule()
-        {
-            //CSC /TARGET:library /addmodule:class1.netmodule text.CS
-            var text = @"class Test
-{
-    public static int Main()
-    {
-        return 1;
-    }
-}";
-            var refFile = Temp.CreateFile();
-            var reference = new MetadataFileReference(refFile.Path, MetadataImageKind.Module);
-
-            CreateCompilationWithMscorlib(text, new[] { reference }).VerifyDiagnostics(
-                // error CS0009: Metadata file '...' could not be opened -- Image too small to contain DOS header.
-                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(refFile.Path, "Image too small to contain DOS header."));
         }
 
         [Fact]

@@ -182,11 +182,7 @@ namespace Microsoft.CodeAnalysis
                 MetadataReference existingReference;
                 if (boundReferences.TryGetValue(boundReference, out existingReference))
                 {
-                    if (CheckPropertiesConsistency(boundReference, existingReference, diagnostics))
-                    {
-                        AddAlias(existingReference, boundReference.Properties.Alias, ref aliasMap);
-                    }
-
+                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
                     continue;
                 }
 
@@ -220,7 +216,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (existingReference != null)
                             {
-                                AddAlias(existingReference, boundReference.Properties.Alias, ref aliasMap);
+                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
                                 continue;
                             }
 
@@ -267,7 +263,7 @@ namespace Microsoft.CodeAnalysis
 
                                 if (existingReference != null)
                                 {
-                                    AddAlias(existingReference, boundReference.Properties.Alias, ref aliasMap);
+                                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
                                     continue;
                                 }
 
@@ -368,12 +364,7 @@ namespace Microsoft.CodeAnalysis
                 return aliases.ToImmutableAndFree();
             }
 
-            if (reference.Properties.Alias != null)
-            {
-                return ImmutableArray.Create(reference.Properties.Alias);
-            }
-
-            return ImmutableArray<string>.Empty;
+            return reference.Properties.Aliases.NullToEmpty();
         }
 
         /// <summary>
@@ -492,8 +483,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void AddAlias(MetadataReference primaryReference, string newAlias, ref Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap)
+        /// <summary>
+        /// Merges aliases of the first observed reference (<paramref name="primaryReference"/>) with aliases specified for an equivalent reference (<paramref name="newReference"/>).
+        /// Empty alias list is considered to be the same as a list containing "global", since in both cases C# allows unqualified access to the symbols.
+        /// </summary>
+        private void MergeReferenceProperties(MetadataReference primaryReference, MetadataReference newReference, DiagnosticBag diagnostics, ref Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap)
         {
+            if (!CheckPropertiesConsistency(newReference, primaryReference, diagnostics))
+            {
+                return;
+            }
+
             if (aliasMap == null)
             {
                 aliasMap = new Dictionary<MetadataReference, ArrayBuilder<string>>();
@@ -505,12 +505,25 @@ namespace Microsoft.CodeAnalysis
                 aliases = ArrayBuilder<string>.GetInstance();
                 aliasMap.Add(primaryReference, aliases);
 
-                // even if the alias is null we want to add it since C# then allows to use symbols from the assembly unqualified:
-                aliases.Add(primaryReference.Properties.Alias);
+                if (primaryReference.Properties.Aliases.IsDefaultOrEmpty)
+                {
+                    aliases.Add(MetadataReferenceProperties.GlobalAlias);
+                }
+                else
+                {
+                    aliases.AddRange(primaryReference.Properties.Aliases);
+                }
             }
 
             // we could avoid duplicates but there is no need to do so:
-            aliases.Add(newAlias);
+            if (newReference.Properties.Aliases.IsDefaultOrEmpty)
+            {
+                aliases.Add(MetadataReferenceProperties.GlobalAlias);
+            }
+            else
+            {
+                aliases.AddRange(newReference.Properties.Aliases);
+            }
         }
 
         /// <remarks>

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                 image.Cleanup();
 
                 // return new reference
-                return referenceSet.GetMetadataReference(finalCompilation, projectReference.Alias, projectReference.EmbedInteropTypes);
+                return referenceSet.GetMetadataReference(finalCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
             }
 
             // record it to version based cache as well. snapshot cache always has a higher priority. we don't need to check returned set here
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             mapFromBranch.GetValue(projectReference.ProjectId, _ => referenceSet);
 
             // return new reference
-            return referenceSet.GetMetadataReference(finalCompilation, projectReference.Alias, projectReference.EmbedInteropTypes);
+            return referenceSet.GetMetadataReference(finalCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
         }
 
         internal static bool TryGetReference(
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             MetadataOnlyReferenceSet referenceSet;
             if (snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
             {
-                reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Alias, projectReference.EmbedInteropTypes);
+                reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
             }
 
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 // record it to snapshot based cache.
                 var newReferenceSet = snapshotCache.GetValue(finalOrDeclarationCompilation, _ => referenceSet);
 
-                reference = newReferenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Alias, projectReference.EmbedInteropTypes);
+                reference = newReferenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
             }
 
@@ -143,8 +144,8 @@ namespace Microsoft.CodeAnalysis
             // I don't believe it will actually happen in real life situation. basically, for leak to happen, 
             // every image creation except the first one has to fail so that we end up re-use old reference set.
             // and the user creates many different metadata references with multiple combination of the key (tuple).
-            private readonly Dictionary<Tuple<string, bool>, WeakReference<MetadataReference>> metadataReferences
-                = new Dictionary<Tuple<string, bool>, WeakReference<MetadataReference>>();
+            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> metadataReferences
+                = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
 
             private readonly VersionStamp version;
             private readonly MetadataOnlyImage image;
@@ -163,9 +164,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public MetadataReference GetMetadataReference(Compilation compilation, string alias, bool embedInteropTypes)
+            public MetadataReference GetMetadataReference(Compilation compilation, ImmutableArray<string> aliases, bool embedInteropTypes)
             {
-                var key = Tuple.Create(alias, embedInteropTypes);
+                var key = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
 
                 using (gate.DisposableWait())
                 {
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                         // there is one case where we could have 2 compilations for same project alive. if a user opens a file that requires a skeleton assembly when the skeleton
                         // assembly project didn't reach the final stage yet and then the user opens another document that is part of the skeleton assembly project 
                         // and then never change it. declaration compilation will be alive by skeleton assembly and final compilation will be alive by background compiler.
-                        metadataReference = this.image.CreateReference(alias, embedInteropTypes, new DeferredDocumentationProvider(compilation));
+                        metadataReference = this.image.CreateReference(aliases, embedInteropTypes, new DeferredDocumentationProvider(compilation));
                         weakMetadata = new WeakReference<MetadataReference>(metadataReference);
                         this.metadataReferences[key] = weakMetadata;
                     }

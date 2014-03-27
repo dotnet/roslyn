@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // disposed yet, the accessor each stream has will simply stop working.
                     //
                     // it is caller's responsibility to make sure all streams it got from
-                    // the temporary storage are disposed before calling dispoe on the stroage.
+                    // the temporary storage are disposed before calling dispose on the stroage.
                     //
                     // otherwise, finalizer will take care of disposing stuff as we used to be.
                     this.accessor.Dispose();

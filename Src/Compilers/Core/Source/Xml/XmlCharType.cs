@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis
 
 #if XML10_FIFTH_EDITION
         // !!! NOTE: These is no IsStartNCNameSurrogateChar, use IsNCNameSurrogateChar instead.
-        // Surrogate ranges for start name charaters are the same as for name characters.
+        // Surrogate ranges for start name characters are the same as for name characters.
 #endif
 
         public static bool IsNameSingleChar(char ch)

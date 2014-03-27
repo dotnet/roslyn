@@ -4288,7 +4288,7 @@ class MyClass
             ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
 
-        [Fact(Skip = "529895"), WorkItem(529895)]
+        [Fact, WorkItem(529895)]
         public void AttributeInMethodBody()
         {
             var test = @"
@@ -4299,11 +4299,13 @@ public class Class1
 ";
             ParseAndValidate(test,
                 // (4,27): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "["),
-                // (4,35): error CS1519: Unexpected token 'return', member declaration expected.
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return"),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(4, 27),
+                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
+                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
                 // (5,1): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 1));
         }
 
         // Preprocessor:

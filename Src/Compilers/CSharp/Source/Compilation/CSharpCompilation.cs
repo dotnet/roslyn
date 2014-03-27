@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
@@ -106,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Contains the main method of this assembly, if there is one.
         /// </summary>
         private EntryPoint lazyEntryPoint;
+
+        /// <summary>
+        /// The set of trees for which a <see cref="CompilationEvent.CompilationCompleted"/> has been added to the queue.
+        /// </summary>
+        private HashSet<SyntaxTree> lazyCompilationUnitCompletedTrees;
 
         public override string Language
         {
@@ -288,8 +294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Type hostObjectType,
             bool isSubmission,
             ReferenceManager referenceManager,
-            bool reuseReferenceManager)
-            : base(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap)
+            bool reuseReferenceManager,
+            AsyncQueue<CompilationEvent> eventQueue = null)
+            : base(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
         {
             using (Logger.LogBlock(FunctionId.CSharp_Compilation_Create, message: assemblyName))
             {
@@ -334,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert((object)this.lazyAssemblySymbol == null);
+                if (EventQueue != null) EventQueue.Enqueue(new CompilationEvent.CompilationStarted(this));
             }
         }
 
@@ -498,6 +506,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 this.referenceManager,
                 reuseReferenceManager: true);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with a given event queue.
+        /// </summary>
+        internal CSharpCompilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        {
+            return new CSharpCompilation(
+                this.AssemblyName,
+                this.options,
+                this.ExternalReferences,
+                this.SyntaxTrees,
+                this.syntaxTreeOrdinalMap,
+                this.rootNamespaces,
+                this.declarationTable,
+                this.previousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
+                this.referenceManager,
+                reuseReferenceManager: true,
+                eventQueue: eventQueue);
         }
 
         #endregion
@@ -815,14 +845,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(ordinalMap.ContainsKey(oldTree)); // Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
                 var oldOrdinal = ordinalMap[oldTree];
 
-                var newArray = this.SyntaxTrees.ToArray();
-                newArray[oldOrdinal] = (SyntaxTree)newTree;
+                var newArray = this.SyntaxTrees.SetItem(oldOrdinal, newTree);
 
                 // CONSIDER: should this be an operation on ImmutableDictionary?
                 ordinalMap = ordinalMap.Remove(oldTree);
                 ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
 
-                return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged);
+                return UpdateSyntaxTrees(newArray, ordinalMap, declMap, declTable, referenceDirectivesChanged);
             }
         }
 
@@ -979,9 +1008,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (CSharpCompilation)base.ReplaceReference(oldReference, newReference);
         }
 
-        public override CompilationReference ToMetadataReference(string alias = null, bool embedInteropTypes = false)
+        public override CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
         {
-            return new CSharpCompilationReference(this, alias, embedInteropTypes);
+            return new CSharpCompilationReference(this, aliases, embedInteropTypes);
         }
 
         // Get all modules in this compilation, including the source module, added modules, and all
@@ -1003,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
                 if (reference.Properties.Kind == MetadataImageKind.Assembly) // Already handled modules above.
                 {
-                    if (referencedAssembly.Aliases.Length == 0 || referencedAssembly.Aliases.IndexOf(null) >= 0)
+                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
                     {
                         modules.AddRange(referencedAssembly.Symbol.Modules);
                     }
@@ -1300,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true);
+            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false);
         }
 
         /// <summary>
@@ -1701,24 +1730,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
         }
 
+        void CompleteTree(SyntaxTree tree)
+        {
+            bool completedCompilationUnit = false;
+            bool completedCompilation = false;
+
+            if (lazyCompilationUnitCompletedTrees == null) Interlocked.CompareExchange(ref lazyCompilationUnitCompletedTrees, new HashSet<SyntaxTree>(), null);
+            lock (lazyCompilationUnitCompletedTrees)
+            {
+                if (lazyCompilationUnitCompletedTrees.Add(tree))
+                {
+                    completedCompilationUnit = true;
+                    if (lazyCompilationUnitCompletedTrees.Count == SyntaxTrees.Length)
+                    {
+                        completedCompilation = true;
+                    }
+                }
+            }
+
+            if (completedCompilationUnit)
+            {
+                EventQueue.Enqueue(new CompilationEvent.CompilationUnitCompleted(this, null, tree));
+            }
+
+            if (completedCompilation)
+            {
+                EventQueue.Enqueue(new CompilationEvent.CompilationCompleted(this));
+                EventQueue.Complete(); // signal the end of compilation events
+            }
+        }
+
         internal void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null)
         {
-            if (this.lazyImportInfos == null) return;
-
-            foreach (ImportInfo info in this.lazyImportInfos)
+            if (this.lazyImportInfos != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                SyntaxTree infoTree = info.Tree;
-                if (filterTree == null || filterTree == infoTree)
+                foreach (ImportInfo info in this.lazyImportInfos)
                 {
-                    TextSpan infoSpan = info.Span;
-                    if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    SyntaxTree infoTree = info.Tree;
+                    if (filterTree == null || filterTree == infoTree)
                     {
-                        ErrorCode code = info.Kind == SyntaxKind.ExternAliasDirective
-                            ? ErrorCode.INF_UnusedExternAlias
-                            : ErrorCode.INF_UnusedUsingDirective;
-                        diagnostics.Add(code, infoTree.GetLocation(infoSpan));
+                        TextSpan infoSpan = info.Span;
+                        if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
+                        {
+                            ErrorCode code = info.Kind == SyntaxKind.ExternAliasDirective
+                                ? ErrorCode.INF_UnusedExternAlias
+                                : ErrorCode.INF_UnusedUsingDirective;
+                            diagnostics.Add(code, infoTree.GetLocation(infoSpan));
+                        }
+                    }
+                }
+            }
+
+            // By definition, a tree is complete when all of its compiler diagnostics have been reported.
+            // Since unused imports are the last thing we compute and report, a tree is complete when
+            // the unused imports have been reported.
+            if (EventQueue != null)
+            {
+                if (filterTree != null)
+                {
+                    CompleteTree(filterTree);
+                }
+                else
+                {
+                    foreach (var tree in SyntaxTrees)
+                    {
+                        CompleteTree(tree);
                     }
                 }
             }
@@ -2014,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Take a warning and return the final deposition of the given warning,
-        // based on both commmand line options and pragmas
+        // based on both command line options and pragmas
         internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, string id, int warningLevel, Location location, CompilationOptions options, string kind)
         {
             switch (severity)
@@ -2051,7 +2129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            // Unless sepcific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
+            // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
             {
@@ -2982,6 +3060,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsMemberMissing(int member)
         {
             return lazyMakeMemberMissingMap != null && lazyMakeMemberMissingMap.ContainsKey(member);
+        }
+
+        internal void SymbolDeclaredEvent(Symbol symbol)
+        {
+            if (EventQueue != null) EventQueue.Enqueue(new CompilationEvent.SymbolDeclared(this, symbol));
         }
     }
 }

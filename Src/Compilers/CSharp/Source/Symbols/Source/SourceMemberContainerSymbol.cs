@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.declaration = declaration;
 
             TypeKind typeKind = declaration.Kind.ToTypeKind();
-            var specialType = MakeSpecialType();
             var modifiers = MakeModifiers(typeKind, diagnostics);
 
             int access = (int)(modifiers & DeclarationModifiers.AccessibilityMask);
@@ -117,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers &= ~DeclarationModifiers.AccessibilityMask; // remove them all
                 modifiers |= (DeclarationModifiers)access; // except the one
             }
+
+            var specialType = access == (int)DeclarationModifiers.Public
+                ? MakeSpecialType()
+                : SpecialType.None;
 
             this.flags = CreateFlags(specialType, modifiers);
             this.flags2 = CreateFlags2(typeKind);
@@ -977,13 +980,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (allMembers.Length > 1)
                 {
                     // The array isn't sorted. Sort it and remember that we sorted it.
-                    Symbol[] membersArray = allMembers.ToArray();
-                    Array.Sort(membersArray, LexicalOrderSymbolComparer.Instance);
-                    ImmutableInterlocked.InterlockedExchange(ref this.lazyMembersFlattened, membersArray.AsImmutableOrNull());
+                    allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance);
+                    ImmutableInterlocked.InterlockedExchange(ref this.lazyMembersFlattened, allMembers);
                 }
 
                 ThreadSafeFlagOperations.Set(ref flags2, (FlattenedMembersIsSortedMask << FlattenedMembersIsSortedOffset));
-                return lazyMembersFlattened;
+                return allMembers;
             }
         }
 
@@ -2549,7 +2551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
-                        diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultContructor, m.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
                     }
                 }
             }

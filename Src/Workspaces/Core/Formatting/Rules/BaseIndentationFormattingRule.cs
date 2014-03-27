@@ -153,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             token1 = root.FindToken(span.Start);
             token2 = root.FindTokenFromEnd(span.End);
 
-            // it is possible the given span doesnt have any tokens in them. in that case, 
-            // make tokens to be the adjacent ones to the given span
+            // It is possible the given span doesn't have any tokens in them. In that case, 
+            // make tokens to be the adjacent ones to the given span.
             if (span.End < token1.Span.Start)
             {
                 token1 = token1.GetPreviousToken();

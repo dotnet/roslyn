@@ -630,7 +630,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             propertyGrid.SelectedObject = symbol;
         }
-        
+
         private static TreeViewItem FindTreeViewItem(DependencyObject source)
         {
             while (source != null && !(source is TreeViewItem))
@@ -681,6 +681,11 @@ namespace Roslyn.SyntaxVisualizer.Control
                 directedSyntaxGraphMenuItem.Visibility = directedSyntaxGraphEnabled ? Visibility.Visible : Visibility.Collapsed;
                 symbolDetailsMenuItem.Visibility = symbolDetailsEnabled ? Visibility.Visible : Visibility.Collapsed;
                 typeSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
+                convertedTypeSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
+                aliasSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
+                constantValueDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
+                menuItemSeparator1.Visibility = symbolDetailsMenuItem.Visibility;
+                menuItemSeparator2.Visibility = symbolDetailsMenuItem.Visibility;
             }
         }
 
@@ -716,10 +721,15 @@ namespace Roslyn.SyntaxVisualizer.Control
                     symbol = SemanticModel.GetDeclaredSymbol(currentTag.SyntaxNode);
                 }
 
+                if (symbol == null)
+                {
+                    symbol = SemanticModel.GetPreprocessingSymbolInfo(currentTag.SyntaxNode).Symbol;
+                }
+
                 DisplaySymbolInPropertyGrid(symbol);
             }
         }
-        
+
         private void TypeSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var currentTag = (SyntaxTag)currentSelection.Tag;
@@ -727,6 +737,50 @@ namespace Roslyn.SyntaxVisualizer.Control
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).Type;
                 DisplaySymbolInPropertyGrid(symbol);
+            }
+        }
+
+        private void ConvertedTypeSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTag = (SyntaxTag)currentSelection.Tag;
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            {
+                var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).ConvertedType;
+                DisplaySymbolInPropertyGrid(symbol);
+            }
+        }
+
+        private void AliasSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTag = (SyntaxTag)currentSelection.Tag;
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            {
+                var symbol = SemanticModel.GetAliasInfo(currentTag.SyntaxNode);
+                DisplaySymbolInPropertyGrid(symbol);
+            }
+        }
+
+        private void ConstantValueDetailsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTag = (SyntaxTag)currentSelection.Tag;
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
+            {
+                var value = SemanticModel.GetConstantValue(currentTag.SyntaxNode);
+                kindTextLabel.Visibility = Visibility.Hidden;
+                kindValueLabel.Content = string.Empty;
+
+                if (!value.HasValue)
+                {
+                    typeTextLabel.Visibility = Visibility.Hidden;
+                    typeValueLabel.Content = string.Empty;
+                    propertyGrid.SelectedObject = null;
+                }
+                else
+                {
+                    typeTextLabel.Visibility = Visibility.Visible;
+                    typeValueLabel.Content = value.Value.GetType().Name;
+                    propertyGrid.SelectedObject = value;
+                }
             }
         }
 

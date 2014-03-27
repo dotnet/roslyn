@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     internal static class SharedPools
     {
         /// <summary>
-        /// pool that uses default contructor with 100 elements pooled
+        /// pool that uses default constructor with 100 elements pooled
         /// </summary>
         public static ObjectPool<T> BigDefault<T>() where T : class, new()
         {
@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// pool that uses default contructor with 20 elements pooled
+        /// pool that uses default constructor with 20 elements pooled
         /// </summary>
         public static ObjectPool<T> Default<T>() where T : class, new()
         {

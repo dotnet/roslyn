@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                  replacedControlVariable), BoundExpression)
 
                 ' if a reference to the control variable was found we add the temporary local and we need to make sure
-                ' that this variable does not get captured by using a copy contructor.
+                ' that this variable does not get captured by using a copy constructor.
                 ' Example:
                 ' for i = 0 to 3 do
                 '     for each x in (function() {x+1})()

@@ -282,8 +282,7 @@ public class LocalTypes3
             var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL, compOptions: TestOptions.Dll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] {},
-                                                                         new CSharpCompilation[] {LocalTypes1, LocalTypes2},
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] {LocalTypes1, LocalTypes2},
                                                                          null,
                                                                          new MetadataReference[] {MscorlibRef} );
 
@@ -354,8 +353,7 @@ public class LocalTypes3
                 var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL, compOptions: TestOptions.Dll, assemblyName: "LocalTypes2");
                 CompileAndVerify(LocalTypes2);
 
-                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new string[] {},
-                                                                              new CSharpCompilation[] {LocalTypes1, LocalTypes2},
+                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] {LocalTypes1, LocalTypes2},
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -397,8 +395,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -429,8 +426,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new string[] {},
-                                                                              new CSharpCompilation[] {LocalTypes1, LocalTypes2},
+                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] {LocalTypes1, LocalTypes2},
                                                                               null,
                                                                               new MetadataReference[] { TestReferences.SymbolsTests.NoPia.Pia1 }, 
                                                                               null);
@@ -474,8 +470,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -488,8 +483,7 @@ public class LocalTypes3
                     Assert.Same(assemblies1[i], assemblies4[i]);
                 }
 
-                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia2,
@@ -525,8 +519,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia3,
@@ -555,8 +548,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -586,8 +578,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -619,8 +610,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -630,10 +620,9 @@ public class LocalTypes3
                 var library1_9 = assemblies9[0];
                 var localTypes1_9 = assemblies9[1];
 
-                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
-                                                                              null,
-                                                                              new MetadataReference[] {
+                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                                                                               null,
+                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
                                                                                                         MscorlibRef,
                                                                                                         TestReferences.SymbolsTests.MDTestLib1
@@ -666,8 +655,7 @@ public class LocalTypes3
                                             references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
                 CompileAndVerify(LocalTypes2);
 
-                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -709,8 +697,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -741,8 +728,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] { TestReferences.SymbolsTests.NoPia.Pia1 },
                                                                               null);
@@ -786,8 +772,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -800,8 +785,7 @@ public class LocalTypes3
                     Assert.Same(assemblies1[i], assemblies4[i]);
                 }
 
-                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia2,
@@ -837,8 +821,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia3,
@@ -867,8 +850,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -898,8 +880,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -931,8 +912,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -942,8 +922,7 @@ public class LocalTypes3
                 var library1_9 = assemblies9[0];
                 var localTypes1_9 = assemblies9[1];
 
-                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -981,8 +960,7 @@ public class LocalTypes3
                                             references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
                 CompileAndVerify(LocalTypes2);
 
-                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -1024,8 +1002,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -1056,8 +1033,7 @@ public class LocalTypes3
                 Assert.Same(varS1, param[0].Type);
                 Assert.Same(varS2, param[1].Type);
 
-                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] { TestReferences.SymbolsTests.NoPia.Pia1 },
                                                                               null);
@@ -1101,8 +1077,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia1,
@@ -1115,8 +1090,7 @@ public class LocalTypes3
                     Assert.Same(assemblies1[i], assemblies4[i]);
                 }
 
-                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia2,
@@ -1152,8 +1126,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia3,
@@ -1182,8 +1155,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -1213,8 +1185,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -1246,8 +1217,7 @@ public class LocalTypes3
                 Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
                 Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
 
-                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -1257,8 +1227,7 @@ public class LocalTypes3
                 var library1_9 = assemblies9[0];
                 var localTypes1_9 = assemblies9[1];
 
-                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
-                                                                              new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
+                var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                               null,
                                                                               new MetadataReference[] {
                                                                                                         TestReferences.SymbolsTests.NoPia.Pia4,
@@ -1376,7 +1345,7 @@ public class LocalTypes3
             var LocalTypes3 = CreateCompilationWithMscorlib(SourceLocalTypes3_IL, compOptions: TestOptions.Dll, assemblyName: "LocalTypes3");
             CompileAndVerify(LocalTypes3);
 
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] {},
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] {LocalTypes3},
                                 null,
                                 new MetadataReference []
@@ -1397,7 +1366,7 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
                                 null,
                                 new MetadataReference[]
@@ -1423,7 +1392,7 @@ public class LocalTypes3
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes3);
 
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
                                 null,
                                 new MetadataReference[]
@@ -1444,7 +1413,7 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
                                 null,
                                 new MetadataReference[]
@@ -1473,7 +1442,7 @@ public class LocalTypes3
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes3);
 
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
                                 null,
                                 new MetadataReference[]
@@ -1494,7 +1463,7 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(new string[] { },
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
                                 null,
                                 new MetadataReference[]

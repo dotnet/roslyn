@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Verify TypeSubstitution to make sure it dosn't map any 
+        ''' Verify TypeSubstitution to make sure it doesn't map any 
         ''' type parameter to an alpha-renamed type parameter.
         ''' </summary>
         ''' <remarks></remarks>
@@ -501,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Create TypeSubstitution that can be used to substitute method's type parameters
         ''' in types involved in method's signature. 
         ''' 
-        ''' Unlike for other contruction methods in this class, targetMethod doesn't have to be 
+        ''' Unlike for other construction methods in this class, targetMethod doesn't have to be 
         ''' original definition, it is allowed to be specialized unconstructed generic method.
         ''' 
         ''' An item in typeArguments can be an alpha-renamed type parameter, but it must belong

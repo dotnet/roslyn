@@ -122,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         static MetadataAndSymbolCache mdCache = new MetadataAndSymbolCache();
 
-        internal CachingMetadataReference(string fullPath, MetadataImageKind kind, string alias = null, bool embedInteropTypes = false)
-            : base(new MetadataReferenceProperties(kind, alias, embedInteropTypes), fullPath)
+        internal CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
+            : base(properties, fullPath)
         {
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return new CachingMetadataReference(fullPath, properties.Kind, properties.Alias, properties.EmbedInteropTypes);
+            return new CachingMetadataReference(fullPath, properties);
         }
     }
 }

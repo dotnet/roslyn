@@ -21,10 +21,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.path = path;
         }
 
-        internal TempFile(string prefix, string extension, string directory)
+        internal TempFile(string prefix, string extension, string directory, string callerSourcePath, int callerLineNumber)
         {
             while (true)
             {
+                if (prefix == null)
+                {
+                    prefix = System.IO.Path.GetFileName(callerSourcePath) + "_" + callerLineNumber.ToString() + "_";
+                }
+
                 path = System.IO.Path.Combine(directory ?? TempRoot.Root, prefix + Guid.NewGuid() + (extension ?? ".tmp"));
 
                 try

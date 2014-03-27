@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
                 If Me.IsShared Then
-                    ' Shared constructor is suppoed to be private
+                    ' Shared constructor is supposed to be private
                     Return Accessibility.Private
                 ElseIf m_containingType.IsMustInherit Then
                     Return Accessibility.Protected

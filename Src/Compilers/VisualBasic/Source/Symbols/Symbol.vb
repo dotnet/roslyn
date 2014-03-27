@@ -329,8 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each reference In references
                 Dim tree = reference.SyntaxTree
                 If Not tree.IsEmbeddedOrMyTemplateTree() Then
-                    builder.Add(New TranslationSyntaxReference(reference, Function(r) DirectCast(SyntaxFacts.BeginOfBlockStatementIfAny(r.GetSyntax()), VisualBasicSyntaxNode)))
-
+                    builder.Add(New BeginOfBlockSyntaxReference(reference))
                 End If
             Next
 
@@ -341,8 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If reference IsNot Nothing Then
                 Dim tree = reference.SyntaxTree
                 If Not tree.IsEmbeddedOrMyTemplateTree() Then
-                    Return ImmutableArray.Create(Of SyntaxReference)(New TranslationSyntaxReference(reference, Function(r) DirectCast(SyntaxFacts.BeginOfBlockStatementIfAny(r.GetSyntax()), VisualBasicSyntaxNode)))
-
+                    Return ImmutableArray.Create(Of SyntaxReference)(New BeginOfBlockSyntaxReference(reference))
                 End If
             End If
 

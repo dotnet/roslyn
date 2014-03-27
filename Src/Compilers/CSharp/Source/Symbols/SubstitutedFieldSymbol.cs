@@ -227,5 +227,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // translated implementation type.
             return (NamedTypeSymbol)containingType.TypeSubstitution.SubstituteType(originalDefinition.FixedImplementationType(emitModule));
         }
+
+        public override bool Equals(object obj)
+        {
+            if ((object)this == obj)
+            {
+                return true;
+            }
+
+            var other = obj as SubstitutedFieldSymbol;
+            return (object)other != null && this.containingType == other.containingType && this.originalDefinition == other.originalDefinition;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(containingType, originalDefinition.GetHashCode());
+        }
     }
 }

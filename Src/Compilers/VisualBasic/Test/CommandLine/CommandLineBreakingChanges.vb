@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 
 Partial Public Class CommandLineTests
     <Fact, WorkItem(530256)>
@@ -38,6 +39,10 @@ SRC.VB(5) : warning BC42104: Variable 'x' is used before it has been assigned a 
         Console.WriteLine(x.ToString)
                           ~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempLog.ReadAllText().Trim().Replace(src, "SRC.VB"))
+
+        CleanupAllGeneratedFiles(src)
+        CleanupAllGeneratedFiles(tempBinary.Path)
+        CleanupAllGeneratedFiles(tempLog.Path)
     End Sub
 
     <Fact, WorkItem(530668)>
@@ -118,5 +123,8 @@ SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
         if (a.Something &lt;&gt; 2)
            ~~~~~~~~~~~~~~~~~~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+
+        CleanupAllGeneratedFiles(src)
+        CleanupAllGeneratedFiles(tempOut.Path)
     End Sub
 End Class

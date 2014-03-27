@@ -84,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(False, "base is always a reference type, why one may need a reference to it?")
 
                 Case BoundKind.Parenthesized
-                    ' rewriter should take care of Parethesized
+                    ' rewriter should take care of Parenthesized
                     '
-                    ' we do not know how to emit address of a parethesized without context.
+                    ' we do not know how to emit address of a parenthesized without context.
                     ' when it is an argument like  foo((arg)), it must be cloned, 
                     ' in other cases like (receiver).foo() it might not need to be...
                     '

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             m_EmittedNamespaceName = emittedNamespaceName
 
             ' check if this is one of the COR library types
-            If (Arity = 0 OrElse MangleName) AndAlso (moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes) Then
+            If (Arity = 0 OrElse MangleName) AndAlso (moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes) AndAlso Me.DeclaredAccessibility = Accessibility.Public Then
                 Debug.Assert(emittedNamespaceName.Length > 0)
                 m_CorTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, MetadataName))
             Else

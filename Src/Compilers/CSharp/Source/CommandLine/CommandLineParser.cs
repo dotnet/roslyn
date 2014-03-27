@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SourceFiles = sourceFiles.AsImmutable(),
                     Encoding = codepage,
                     MetadataReferences = metadataReferences.AsImmutable(),
-                    Analyzers = analyzers.AsImmutable(),
+                    AnalyzerReferences = analyzers.AsImmutable(),
                     ReferencePaths = referencePaths,
                     KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     Win32ResourceFile = win32ResourceFile,
@@ -1301,8 +1301,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                 // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
 
+                var aliases = (alias != null) ? ImmutableArray.Create(alias) : ImmutableArray<string>.Empty;
+
                 bool isAssemblyName = IsInteractive && !MetadataFileReferenceResolver.IsFilePath(path);
-                yield return new CommandLineReference(path, new MetadataReferenceProperties(MetadataImageKind.Assembly, alias, embedInteropTypes), isAssemblyName);
+                var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
+                yield return new CommandLineReference(path, properties, isAssemblyName);
             }
         }
 

@@ -23,7 +23,7 @@
             <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
           </PropertyGroup>
         </When>
-        
+
         <!-- Non-shipping binaries in "official" builds, and any binary in an "unofficial" build, are simply
              signed with the Roslyn internal key. -->
         <Otherwise>
@@ -64,7 +64,7 @@
        
        ==================================================================================== -->
 
-  <Target Name="SetLargeAddressAwareBit" Condition="'$(OutputType)' == 'Exe' AND '$(LargeAddressAware)' == 'true' AND Exists('$(IntermediateOutputPath)\$(TargetFileName)')" 
+  <Target Name="SetLargeAddressAwareBit" Condition="'$(OutputType)' == 'Exe' AND '$(LargeAddressAware)' == 'true' AND Exists('$(IntermediateOutputPath)\$(TargetFileName)')"
           BeforeTargets="AfterCompile" DependsOnTargets="CoreCompile">
     <CombinePath BasePath="$(IntermediateOutputPath)" Paths="$(TargetFileName)">
       <Output TaskParameter="CombinedPaths" PropertyName="OutputFilePath" />
@@ -86,7 +86,7 @@
     <Error Condition="'$(RealSignBuild)' == 'true' AND '$(BuildVersion)' == '42.42.42.42'"
            Text="Must specify a build version in order to real sign a build." />
   </Target>
-  
+
   <!-- ====================================================================================
   
          Ensure we rebuild if we do a build with a different strong name key
@@ -116,18 +116,18 @@
       <Compile Include="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" />
     </ItemGroup>
   </Target>
-  
+
   <!-- ====================================================================================
   
         Deploy binary to Preview Package folders
 
     ==================================================================================== -->
-    
+
   <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true'">
     <ItemGroup>
       <FilesToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt)" />
       <ConfigsToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt).Config" />
-      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache; $(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\vssqmmulti.dll;" />
+      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\ComponentModelCache\**\*.cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache; $(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\vssqmmulti.dll;" />
     </ItemGroup>
 
     <Message Text="Source: @(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')"/>
@@ -159,7 +159,7 @@
         <!-- Sets VSIXSubPath for content items that are linked files -->
         <VSIXSubPath Condition="'%(Content.Link)'!=''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
       </VSIXSourceItemLocalOnly>
-    
+
       <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)'=='true' AND '%(Content.VSIXSubPath)'!=''" />
     </ItemGroup>
   </Target>
@@ -194,6 +194,6 @@
          VSSDK
        
        ==================================================================================== -->
-  
+
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
 </Project>

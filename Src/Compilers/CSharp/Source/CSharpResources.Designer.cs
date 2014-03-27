@@ -5515,7 +5515,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter cannot have all the specified modifiers; there are too many modifers on the parameter.
+        ///   Looks up a localized string similar to A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter.
         /// </summary>
         internal static string ERR_MultiParamMod {
             get {
@@ -6082,7 +6082,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened: {1}.
+        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened -- {1}.
         /// </summary>
         internal static string ERR_NoSourceFile {
             get {
@@ -7614,9 +7614,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Structs cannot contain explicit parameterless constructors.
         /// </summary>
-        internal static string ERR_StructsCantContainDefaultContructor {
+        internal static string ERR_StructsCantContainDefaultConstructor {
             get {
-                return ResourceManager.GetString("ERR_StructsCantContainDefaultContructor", resourceCulture);
+                return ResourceManager.GetString("ERR_StructsCantContainDefaultConstructor", resourceCulture);
             }
         }
         

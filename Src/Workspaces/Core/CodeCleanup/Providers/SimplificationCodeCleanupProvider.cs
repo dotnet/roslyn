@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
-            // simplifier doesnt work without semantic information
+            // Simplifier doesn't work without semantic information
             return root;
         }
     }

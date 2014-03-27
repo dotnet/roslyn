@@ -1079,7 +1079,7 @@ lVbRuntimePlus:
                     .SourceFiles = sourceFiles.AsImmutable(),
                     .Encoding = codepage,
                     .MetadataReferences = metadataReferences.AsImmutable(),
-                    .Analyzers = analyzers.AsImmutable(),
+                    .AnalyzerReferences = analyzers.AsImmutable(),
                     .ReferencePaths = searchPaths,
                     .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     .Win32ResourceFile = win32ResourceFile,

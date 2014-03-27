@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return
             End If
 
-            ' parent is xml node but embeded expression, then always set the indentation
+            ' parent is xml node but embedded expression, then always set the indentation
             If TypeOf xmlNode.Parent Is XmlEmbeddedExpressionSyntax Then
                 AddIndentBlockOperation(operations, baseToken, indentationStartToken, indentationEndToken)
                 Return

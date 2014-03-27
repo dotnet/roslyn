@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 interfaces.SelectMany(i => i.GetAllInterfacesIncludingThis()).Distinct());
 
             // However, there's no need to reimplement any interfaces that our base types already
-            // implement.  By definition they must contain all the neccessary methods.
+            // implement.  By definition they must contain all the necessary methods.
             var baseType = classOrStructType.BaseType;
             var alreadyImplementedInterfaces = baseType == null
                 ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()

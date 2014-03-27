@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -674,6 +675,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodSymbol.IsAbstract)
             {
+                // TODO: ensure that we only send a single event for each method
+                if (methodSymbol.DeclaringSyntaxReferences.Length != 0)
+                {
+                    compilation.SymbolDeclaredEvent(methodSymbol);
+                }
+                else
+                {
+                    // what about source symbols with no declaration? How does that happen?
+                }
                 return;
             }
 
@@ -779,7 +789,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DiagnosticsPass.IssueDiagnostics(compilation, body, diagsForCurrentMethod, methodSymbol);
                 }
 
-                BoundBlock flowAnalyzedBody = (body == null) ? null : FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
+                BoundBlock flowAnalyzedBody = null;
+                if (body == null)
+                {
+                    compilation.SymbolDeclaredEvent(methodSymbol);
+                }
+                else
+                {
+                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
+                }
                 
                 bool hasErrors = hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
 
