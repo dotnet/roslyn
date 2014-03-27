@@ -1634,5 +1634,12 @@ End Class
             Dim mrp2 As MetadataReferenceProperties = refb.Properties
             Assert.NotEqual(0, mrp2.GetHashCode)
         End Sub
+
+        <Fact, WorkItem(905495)>
+        Public Sub ReferenceWithNoMetadataSection()
+            Dim c = CreateCompilationWithMscorlib({}, {New TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe")}, Options.OptionsDll)
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", "PE image doesn't contain managed metadata."))
+        End Sub
     End Class
 End Namespace

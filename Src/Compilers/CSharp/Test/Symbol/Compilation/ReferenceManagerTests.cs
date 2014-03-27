@@ -2200,5 +2200,14 @@ public class Source
                 //         a.Extension();
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.Extension").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
+
+        [Fact, WorkItem(905495)]
+        public void ReferenceWithNoMetadataSection()
+        {
+            var c = CreateCompilationWithMscorlib("", new[] { new TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe") });
+            c.VerifyDiagnostics(
+                // error CS0009: Metadata file 'NativeApp.exe' could not be opened -- PE image doesn't contain managed metadata.
+                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", "PE image doesn't contain managed metadata."));
+        }
     }
 }

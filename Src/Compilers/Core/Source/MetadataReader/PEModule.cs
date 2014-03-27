@@ -147,6 +147,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     // PEModule is either craeted with metadata reader or PE reader.
                     Debug.Assert(peReaderOpt != null);
+                    if (!peReaderOpt.HasMetadata)
+                    {
+                        throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
+                    }
 
                     var newReader = peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, stringInterner: StringTable.AddShared);
                     Interlocked.CompareExchange(ref lazyMetadataReader, newReader, null);

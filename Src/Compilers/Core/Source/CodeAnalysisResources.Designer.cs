@@ -583,6 +583,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PE image doesn&apos;t contain managed metadata..
+        /// </summary>
+        internal static string PEImageDoesntContainManagedMetadata {
+            get {
+                return ResourceManager.GetString("PEImageDoesntContainManagedMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PE image not available..
         /// </summary>
         internal static string PEImageNotAvailable {

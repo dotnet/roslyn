@@ -5802,7 +5802,7 @@ public class C { }
             TestCS2002(commandLineArgs, tempParentDir.Path, 0, tmpDiraString);
 
             // Invalid file/path characters
-            const string cs1504 = @"error CS1504: Source file '{0}' could not be opened: {1}";
+            const string cs1504 = @"error CS1504: Source file '{0}' could not be opened -- {1}";
             commandLineArgs = new[] { tempFile.Path, "tmpDir\a.cs" };
             // error CS1504: Source file '{0}' could not be opened: Illegal characters in path.
             var formattedcs1504Str = String.Format(cs1504, PathUtilities.CombineAbsoluteAndRelativePaths(tempParentDir.Path, "tmpDir\a.cs"), "Illegal characters in path.");

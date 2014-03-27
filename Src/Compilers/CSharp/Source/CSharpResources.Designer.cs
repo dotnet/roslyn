@@ -6082,7 +6082,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened: {1}.
+        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened -- {1}.
         /// </summary>
         internal static string ERR_NoSourceFile {
             get {

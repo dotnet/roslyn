@@ -2163,7 +2163,7 @@
     <value>Argument {0}: cannot convert from '{1}' to '{2}'</value>
   </data>
   <data name="ERR_NoSourceFile" xml:space="preserve">
-    <value>Source file '{0}' could not be opened: {1}</value>
+    <value>Source file '{0}' could not be opened -- {1}</value>
   </data>
   <data name="ERR_CantRefResource" xml:space="preserve">
     <value>Cannot link resource files when building a module</value>

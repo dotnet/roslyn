@@ -442,7 +442,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static MetadataReference InvalidRef = new TestMetadataReference(@"R:\Invalid.dll");
+        public static MetadataReference InvalidRef = new TestMetadataReference(fullPath: @"R:\Invalid.dll");
 
         #endregion
 

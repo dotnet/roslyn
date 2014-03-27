@@ -172,7 +172,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MetadataReader\CPPClassLibrary2.h" />
     <None Include="Resources\default.win32manifest" />
     <None Include="Resources\nativeWithStringIDsAndTypesAndIntTypes.res" />
     <None Include="Resources\Roslyn.ico.blah" />

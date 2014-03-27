@@ -239,8 +239,8 @@ namespace A.B {
             var comp = CSharpCompilation.Create("Compilation", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
             var ref2 = TestReferences.NetFx.v4_0_30319.System;
-            var ref3 = new TestMetadataReference(@"c:\xml.bms");
-            var ref4 = new TestMetadataReference(@"c:\aaa.dll");
+            var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
+            var ref4 = new TestMetadataReference(fullPath: @"c:\aaa.dll");
             // Add a new empty item 
             comp = comp.AddReferences(Enumerable.Empty<MetadataReference>());
             Assert.Equal(0, comp.ExternalReferences.Length);

@@ -99,6 +99,7 @@
     <Content Include="MetadataTests\Invalid\Obfuscated2.dll" />
     <Content Include="MetadataTests\Members.cs" />
     <Content Include="MetadataTests\Members.dll" />
+    <Content Include="MetadataTests\NativeApp.exe" />
     <Content Include="MetadataTests\NetModule01\AppCS.cs" />
     <Content Include="MetadataTests\NetModule01\AppCS.exe" />
     <Content Include="MetadataTests\NetModule01\ModuleCS00.cs" />

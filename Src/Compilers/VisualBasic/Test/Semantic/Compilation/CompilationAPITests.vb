@@ -260,8 +260,8 @@ End Namespace
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
             Dim ref2 = TestReferences.NetFx.v4_0_30319.System
-            Dim ref3 = New TestMetadataReference("c:\xml.bms")
-            Dim ref4 = New TestMetadataReference("c:\aaa.dll")
+            Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
+            Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
             ' Add a new empty item 
             comp = comp.AddReferences(Enumerable.Empty(Of MetadataReference)())
@@ -916,9 +916,9 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = TestReferences.NetFx.v4_0_30319.System
-            Dim ref2 = New TestMetadataReference("c:\a\xml.bms")
+            Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
-            Dim ref4 = New TestMetadataReference("c:\aaa.dll")
+            Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
             comp = comp.AddReferences(ref1, ref1)
 
@@ -942,7 +942,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = New TestMetadataReference("c:\xml.bms")
+            Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref2 = TestReferences.NetFx.v4_0_30319.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
@@ -961,7 +961,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference4()
             Dim opt = OptionsExe
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = New TestMetadataReference("c:\xml.bms")
+            Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
 
             Assert.Throws(Of ArgumentException)(
                Sub()
