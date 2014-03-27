@@ -807,12 +807,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CSharpCompilation.ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
-                    if (referencedAssembly.Aliases.Length == 0 || referencedAssembly.Aliases.IndexOf(null) >= 0)
+                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
                     {
                         if (references == null)
                         {
                             references = ArrayBuilder<AssemblySymbol>.GetInstance();
                         }
+
                         references.Add(referencedAssembly.Symbol);
                     }
                 }

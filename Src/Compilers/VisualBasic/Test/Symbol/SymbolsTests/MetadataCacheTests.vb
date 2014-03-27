@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim mscorlibRef As New MetadataFileReference(mscorlibPath)
 
-            Assert.Same(mscorlibRef.Properties.Alias, Nothing)
+            Assert.True(mscorlibRef.Properties.Aliases.IsDefault)
             Assert.Equal(False, mscorlibRef.Properties.EmbedInteropTypes)
             Assert.Equal(mscorlibPath, mscorlibRef.FullPath, StringComparer.OrdinalIgnoreCase)
             Assert.Equal(MetadataImageKind.Assembly, mscorlibRef.Properties.Kind)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim c1Ref As New VisualBasicCompilationReference(tc1)
 
-                Assert.Same(c1Ref.Properties.Alias, Nothing)
+                Assert.True(c1Ref.Properties.Aliases.IsDefault)
                 Assert.Equal(False, c1Ref.Properties.EmbedInteropTypes)
                 Assert.Same(c1Ref.Compilation, tc1)
                 Assert.Same(tc1.Assembly, tc1.Assembly.CorLibrary)
@@ -440,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim module1Path = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.netModule.netModule1).Path
                 Dim module1Ref As New MetadataFileReference(module1Path, MetadataImageKind.Module)
-                Assert.Same(module1Ref.Properties.Alias, Nothing)
+                Assert.True(module1Ref.Properties.Aliases.IsDefault)
                 Assert.Equal(False, module1Ref.Properties.EmbedInteropTypes)
                 Assert.Equal(MetadataImageKind.Module, module1Ref.Properties.Kind)
 

@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -20,14 +18,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public override bool Equals(object obj)
         {
-            if (obj is MetadataInfo)
-            {
-                return base.Equals((MetadataInfo)obj);
-            }
-            else
-            {
-                return false;
-            }
+            return obj is MetadataInfo && base.Equals((MetadataInfo)obj);
         }
 
         public bool Equals(MetadataInfo other)

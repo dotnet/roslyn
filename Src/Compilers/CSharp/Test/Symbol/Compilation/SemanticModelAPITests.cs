@@ -2,13 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit; 
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1000,7 +1001,7 @@ class Test
 }
 ";
             var comp1 = CreateCompilationWithMscorlib("public class C { }");
-            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, alias: "X");
+            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
 
             var comp2 = CreateCompilationWithMscorlib(source, new[] { ref1 });
             var tree = comp2.SyntaxTrees.Single();

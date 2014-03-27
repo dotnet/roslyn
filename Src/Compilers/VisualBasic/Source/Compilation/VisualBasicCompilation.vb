@@ -1130,8 +1130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides Function ToMetadataReference(Optional [alias] As String = Nothing, Optional embedInteropTypes As Boolean = False) As CompilationReference
-            Return New VisualBasicCompilationReference(Me, [alias], embedInteropTypes)
+        Public Overrides Function ToMetadataReference(Optional aliases As ImmutableArray(Of String) = Nothing, Optional embedInteropTypes As Boolean = False) As CompilationReference
+            Return New VisualBasicCompilationReference(Me, aliases, embedInteropTypes)
         End Function
 
         Public Shadows Function AddReferences(ParamArray references As MetadataReference()) As VisualBasicCompilation

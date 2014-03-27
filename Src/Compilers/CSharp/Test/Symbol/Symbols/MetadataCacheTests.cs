@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var mscorlibRef = new MetadataFileReference(mscorlibPath);
 
-            Assert.Equal(null, mscorlibRef.Properties.Alias);
+            Assert.True(mscorlibRef.Properties.Aliases.IsDefault);
             Assert.Equal(false, mscorlibRef.Properties.EmbedInteropTypes);
             Assert.Equal(mscorlibPath, mscorlibRef.FullPath, StringComparer.OrdinalIgnoreCase);
             Assert.Equal(MetadataImageKind.Assembly, mscorlibRef.Properties.Kind);
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var varC1Ref = new CSharpCompilationReference(tc1);
 
-                Assert.Equal(null, varC1Ref.Properties.Alias);
+                Assert.True(varC1Ref.Properties.Aliases.IsDefault);
                 Assert.Equal(false, varC1Ref.Properties.EmbedInteropTypes);
                 Assert.Same(varC1Ref.Compilation, tc1);
                 Assert.Equal(MetadataImageKind.Assembly, varC1Ref.Properties.Kind);
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var module1Path = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.netModule.netModule1).Path;
                 var module1Ref = new MetadataFileReference(module1Path, MetadataImageKind.Module);
-                Assert.Equal(null, module1Ref.Properties.Alias);
+                Assert.True(module1Ref.Properties.Aliases.IsDefault);
                 Assert.Equal(false, module1Ref.Properties.EmbedInteropTypes);
                 Assert.Equal(MetadataImageKind.Module, module1Ref.Properties.Kind);
 

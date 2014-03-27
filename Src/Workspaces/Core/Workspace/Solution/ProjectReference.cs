@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,19 +14,19 @@ namespace Microsoft.CodeAnalysis
     public sealed class ProjectReference : IEquatable<ProjectReference>
     {
         private readonly ProjectId projectId;
-        private readonly string alias;
+        private readonly ImmutableArray<string> aliases;
         private readonly bool embedInteropTypes;
 
-        public ProjectReference(ProjectId projectId, string alias = null, bool embedInteropTypes = false)
+        public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
         {
             Contract.ThrowIfNull(projectId);
             this.projectId = projectId;
-            this.alias = alias;
+            this.aliases = aliases;
             this.embedInteropTypes = embedInteropTypes;
         }
 
         public ProjectId ProjectId { get { return projectId; } }
-        public string Alias { get { return alias; } }
+        public ImmutableArray<string> Aliases { get { return aliases; } }
         public bool EmbedInteropTypes { get { return embedInteropTypes; } }
 
         public override bool Equals(object obj)
@@ -34,9 +36,14 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(ProjectReference reference)
         {
+            if (ReferenceEquals(this, reference))
+            {
+                return true;
+            }
+
             return !ReferenceEquals(reference, null) &&
                    this.ProjectId == reference.ProjectId &&
-                   this.Alias == reference.Alias &&
+                   this.Aliases.NullToEmpty().SequenceEqual(reference.Aliases.NullToEmpty()) &&
                    this.EmbedInteropTypes == reference.EmbedInteropTypes;
         }
 
@@ -52,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(alias, Hash.Combine(projectId, embedInteropTypes.GetHashCode()));
+            return Hash.CombineValues(aliases, Hash.Combine(projectId, embedInteropTypes.GetHashCode()));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

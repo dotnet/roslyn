@@ -516,15 +516,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a metadata reference for this compilation.
         /// </summary>
-        /// <param name="alias">
-        /// An optional alias to define a root namespace that will contain
-        /// all namespaces in the assembly.
+        /// <param name="aliases">
+        /// Optional aliases that can be used to refer to the compilation root namespace via extern alias directive.
         /// </param>
         /// <param name="embedInteropTypes">
         /// Embed the COM types from the reference so that the compiled
         /// application no longer requires a primary interop assembly (PIA).
         /// </param>
-        public abstract CompilationReference ToMetadataReference(string alias = null, bool embedInteropTypes = false);
+        public abstract CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false);
 
         /// <summary>
         /// Creates a new compilation with the specified references.

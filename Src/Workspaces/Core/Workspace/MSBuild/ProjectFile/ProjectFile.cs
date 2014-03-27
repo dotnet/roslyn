@@ -217,15 +217,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
         {
-            var builder = ImmutableList.CreateBuilder<ProjectFileReference>();
-            foreach (var referenceItem in GetProjectReferenceItems(executedProject))
-            {
-                Guid guid;
-                Guid.TryParse(referenceItem.GetMetadataValue("Project"), out guid);
-                builder.Add(new ProjectFileReference(guid, referenceItem.EvaluatedInclude));
-            }
-
-            return builder.ToImmutable();
+            return executedProject.GetItems("ProjectReference")
+                .Select(reference => new ProjectFileReference(
+                    guid: Guid.Parse(reference.GetMetadataValue("Project")), 
+                    path: reference.EvaluatedInclude,
+                    aliases: default(ImmutableArray<string>)));
         }
 
         protected IEnumerable<ProjectItemInstance> GetProjectReferenceItems(ProjectInstance executedProject)

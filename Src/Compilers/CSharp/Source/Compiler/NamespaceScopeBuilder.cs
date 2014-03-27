@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -89,7 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamespaceSymbol @namespace = (NamespaceSymbol)namespaceOrType;
                             string namespaceString = GetNamespaceOrTypeString(@namespace);
-                            string externAlias = GetExternAlias(@namespace);
+
+                            // TODO: incorrect, see bug #913022
+                            string externAlias = GetExternAliases(@namespace).FirstOrDefault();
+
                             usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpNamespace(namespaceString, externAlias));
                         }
                         else
@@ -116,7 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var targetString = GetNamespaceOrTypeString(target);
                         if (target.Kind == SymbolKind.Namespace)
                         {
-                            string externAlias = GetExternAlias((NamespaceSymbol)target);
+                            // TODO: incorrect, see bug #913022
+                            string externAlias = GetExternAliases((NamespaceSymbol)target).FirstOrDefault();
+
                             usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpNamespaceAlias(targetString, alias, externAlias));
                         }
                         else
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceScopes.ToImmutableAndFree(); //NOTE: inner-to-outer order matches dev10
         }
 
-        private string GetExternAlias(NamespaceSymbol @namespace)
+        private ImmutableArray<string> GetExternAliases(NamespaceSymbol @namespace)
         {
             AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
             if ((object)containingAssembly != null && containingAssembly != this.compilation.Assembly)
@@ -141,13 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MetadataReference reference = this.compilation.GetMetadataReference(containingAssembly);
                 if (reference != null)
                 {
-                    string externAlias = reference.Properties.Alias;
-                    Debug.Assert(externAlias == null || externAlias.Length > 0);
-                    return externAlias;
+                    return reference.Properties.Aliases.NullToEmpty();
                 }
             }
 
-            return null;
+            return ImmutableArray<string>.Empty;
         }
 
         private string GetNamespaceOrTypeString(NamespaceOrTypeSymbol symbol)

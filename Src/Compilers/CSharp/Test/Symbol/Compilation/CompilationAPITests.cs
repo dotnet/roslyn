@@ -83,7 +83,7 @@ namespace A.B {
             Assert.Equal(1, comp.ExternalReferences.Length);
             var ref1 = comp.ExternalReferences[0];
             Assert.True(ref1.Properties.EmbedInteropTypes);
-            Assert.Null(ref1.Properties.Alias);
+            Assert.True(ref1.Properties.Aliases.IsDefault);
 
             // Create Compilation with PreProcessorSymbols of Option is empty
             var ops1 = TestOptions.Exe.WithOptimizations(false);
@@ -313,7 +313,7 @@ namespace A.B {
                 );
             
             var refdata = refcomp.EmitToArray();
-            var mtref = new MetadataImageReference(refdata, alias: "Alias(*#$@^%*&)");
+            var mtref = new MetadataImageReference(refdata, aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
 
             // not use exported type
             var comp = CSharpCompilation.Create("APP", 
@@ -1392,7 +1392,7 @@ class B
         [Fact, WorkItem(750437)]
         public void ConflictingAliases()
         {
-            var alias = TestReferences.NetFx.v4_0_30319.System.WithAlias("alias");
+            var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
 
             var text =
 @"extern alias alias;
@@ -1402,7 +1402,7 @@ class myClass : alias::Uri
 }";
             var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias });
             Assert.Equal(2, comp.References.Count());
-            Assert.Equal("alias", comp.References.Last().Properties.Alias);
+            Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
                 // (2,1): error CS1537: The using alias 'alias' appeared previously in this namespace
                 // using alias=alias;

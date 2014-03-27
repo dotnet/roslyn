@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -381,9 +382,9 @@ namespace X
                 compOptions: TestOptions.Dll,
                 references: new [] 
                 { 
-                    new CSharpCompilationReference(dummyCompilation1, "P") , 
-                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
-                    new CSharpCompilationReference(dummyCompilation3, "R") 
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) , 
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")), 
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")) 
                 });
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
@@ -488,7 +489,7 @@ namespace N
             var compilation = CreateCompilationWithMscorlib(text,
                 assemblyName: "Test",
                 compOptions: TestOptions.Dll,
-                references: new[] { new CSharpCompilationReference(libComp, "P") });
+                references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
             compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             string actual = GetPdbXml(compilation);
@@ -563,9 +564,9 @@ namespace X
                 compOptions: TestOptions.Dll,
                 references: new[] 
                 { 
-                    new CSharpCompilationReference(dummyCompilation1, "P") , 
-                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
-                    new CSharpCompilationReference(dummyCompilation3, "R") 
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) , 
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")), 
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")) 
                 });
             compilation.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -689,6 +690,140 @@ namespace X
             AssertXmlEqual(expected, actual);
         }
 
+        [Fact(Skip = "913022"), WorkItem(913022)]
+        public void ReferenceWithMultipleAliases()
+        {
+            var source1 = @"
+namespace N { public class D { } }
+namespace M { public class E { } }
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll);
+
+            var source2 = @"
+extern alias A;
+extern alias B;
+
+using A::N;
+using B::M;
+using X = A::N;
+using Y = B::N;
+
+public class C
+{
+	public static void Main() 
+    {
+        System.Console.WriteLine(new D()); 
+        System.Console.WriteLine(new E()); 
+        System.Console.WriteLine(new X.D()); 
+        System.Console.WriteLine(new Y.D()); 
+    }
+}";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2,
+                compOptions: TestOptions.Dll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(compilation1, ImmutableArray.Create("A", "B"))
+                });
+
+            compilation2.VerifyDiagnostics();
+
+            string actual = GetPdbXml(compilation2);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""4"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""4"">
+        <entry il_offset=""0x0"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""43"" file_ref=""0"" />
+        <entry il_offset=""0xc"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""43"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x18"">
+        <extern alias=""A"" />
+        <extern alias=""B"" />
+        <namespace qualifier=""A"" name=""N"" />
+        <namespace qualifier=""B"" name=""M"" />
+        <alias name = ""X"" qualifier=""A"" target=""N"" kind=""namespace"" />
+        <alias name = ""Y"" qualifier=""B"" target=""N"" kind=""namespace"" />
+        <externinfo alias = ""A"" assembly=""" + compilation1.AssemblyName + @", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias = ""B"" assembly=""" + compilation1.AssemblyName + @", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+";
+            AssertXmlEqual(expected, actual);
+        }
+
+        [Fact, WorkItem(913022)]
+        public void ReferenceWithGlobalAndDuplicateAliases()
+        {
+            var source1 = @"
+namespace N { public class D { } }
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.Dll);
+
+            var source2 = @"
+extern alias A;
+extern alias B;
+
+public class C
+{
+	public static void Main() 
+    {
+        System.Console.WriteLine(new N.D()); 
+        System.Console.WriteLine(new A::N.D()); 
+        System.Console.WriteLine(new B::N.D()); 
+    }
+}";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2,
+                compOptions: TestOptions.Dll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(compilation1, ImmutableArray.Create("global", "B", "A", "A", "global"))
+                });
+
+            compilation2.VerifyDiagnostics();
+
+            string actual = GetPdbXml(compilation2);
+            string expected = @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""Main"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""2"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""5"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""45"" file_ref=""0"" />
+        <entry il_offset=""0xc"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""48"" file_ref=""0"" />
+        <entry il_offset=""0x17"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""48"" file_ref=""0"" />
+        <entry il_offset=""0x22"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x23"">
+        <extern alias=""A"" />
+        <extern alias=""B"" />
+        <externinfo alias=""B"" assembly=""" + compilation1.AssemblyName + @", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+        <externinfo alias=""A"" assembly=""" + compilation1.AssemblyName + @", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+";
+            AssertXmlEqual(expected, actual);
+        }
+
         [Fact]
         public void TestPartialTypeInOneFile()
         {
@@ -736,9 +871,9 @@ namespace X
                 compOptions: TestOptions.Dll,
                 references: new[] 
                 { 
-                    new CSharpCompilationReference(dummyCompilation1, "P"), 
-                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
-                    new CSharpCompilationReference(dummyCompilation3, "R"), 
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")), 
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")), 
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")), 
                 });
             compilation.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -916,10 +1051,10 @@ namespace X
                 compOptions: TestOptions.Dll,
                 references: new[] 
                 { 
-                    new CSharpCompilationReference(dummyCompilation1, "P"), 
-                    new CSharpCompilationReference(dummyCompilation2, "Q"), 
-                    new CSharpCompilationReference(dummyCompilation3, "R"), 
-                    new CSharpCompilationReference(dummyCompilation4, "S"), 
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")), 
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")), 
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")), 
+                    new CSharpCompilationReference(dummyCompilation4, ImmutableArray.Create("S")), 
                 });
             compilation.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -1556,7 +1691,8 @@ class Test { static void Main() { } }
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
-            var libRef = new MetadataImageReference(CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToArray(), alias: "Q");
+            var peImage = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToArray();
+            var libRef = new MetadataImageReference(peImage, aliases: ImmutableArray.Create("Q"));
 
             var source = @"
 extern alias Q;

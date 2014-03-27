@@ -687,11 +687,6 @@ Example app.config:
             }
         }
 
-        protected CompilationReference CreateCompilationReference(Compilation compilation, string alias = null, bool embedInteropTypes = false)
-        {
-            return compilation.ToMetadataReference(alias, embedInteropTypes);
-        }
-
         #endregion
 
         #region IL Verification

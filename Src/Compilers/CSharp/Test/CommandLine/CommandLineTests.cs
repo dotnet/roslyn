@@ -841,10 +841,8 @@ d.cs
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/Reference:a=b,,,", "/nostdlib", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
-            AssertEx.Equal(new[] { "a:b" },
-                           parsedArgs.MetadataReferences.
-                                      Where((res) => !res.Properties.EmbedInteropTypes).
-                                      Select((res) => res.Properties.Alias + ":" + res.Reference));
+            Assert.Equal("a", parsedArgs.MetadataReferences.Single().Properties.Aliases.Single());
+            Assert.Equal("b", parsedArgs.MetadataReferences.Single().Reference);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/r:a=b,,,c", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithArguments("b,,,c"));
@@ -1440,10 +1438,10 @@ d.cs
             Assert.Equal(MetadataReferenceProperties.Assembly, parsedArgs.MetadataReferences[0].Properties);
 
             Assert.Equal("foo.dll", parsedArgs.MetadataReferences[1].Reference);
-            Assert.Equal(MetadataReferenceProperties.Assembly.WithAlias("a"), parsedArgs.MetadataReferences[1].Properties);
+            Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "a" }), parsedArgs.MetadataReferences[1].Properties);
             
             Assert.Equal("bar.dll", parsedArgs.MetadataReferences[2].Reference);
-            Assert.Equal(MetadataReferenceProperties.Assembly.WithAlias("b").WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[2].Properties);
+            Assert.Equal(MetadataReferenceProperties.Assembly.WithAliases(new[] { "b" }).WithEmbedInteropTypes(true), parsedArgs.MetadataReferences[2].Properties);
 
             Assert.Equal("c=mod.dll", parsedArgs.MetadataReferences[3].Reference);
             Assert.Equal(MetadataReferenceProperties.Module, parsedArgs.MetadataReferences[3].Properties);

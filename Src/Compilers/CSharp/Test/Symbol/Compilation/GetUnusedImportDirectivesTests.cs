@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -315,7 +316,7 @@ using C = System.Console;
 extern alias A;
 ";
             var lib = CreateCompilation("", assemblyName: "lib");
-            var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(lib, alias: "A") });
+            var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.

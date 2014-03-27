@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExternAliasToSameDll()
         {
             var systemDllPath = typeof(Uri).Assembly.Location;
-            var alias1 = new MetadataFileReference(systemDllPath, alias: "Alias1");
-            var alias2 = new MetadataFileReference(systemDllPath, alias: "Alias2");
+            var alias1 = new MetadataFileReference(systemDllPath, aliases: ImmutableArray.Create("Alias1"));
+            var alias2 = new MetadataFileReference(systemDllPath, aliases: ImmutableArray.Create("Alias2"));
 
             var text = @"
 extern alias Alias1;
@@ -50,7 +51,7 @@ class A { }
 ";
             var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias1, alias2 });
             Assert.Equal(3, comp.References.Count());
-            Assert.Equal("Alias2", comp.References.Last().Properties.Alias);
+            Assert.Equal("Alias2", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
                 // extern alias Alias1;

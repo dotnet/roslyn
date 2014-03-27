@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(r.GetMetadata());
             Assert.Equal(false, r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
-            Assert.Equal(null, r.Properties.Alias);
+            Assert.True(r.Properties.Aliases.IsDefault);
             Assert.Equal(@"c:\temp", r.FullPath);
 
-            var r1 = r.WithAlias(null);
+            var r1 = r.WithAliases(default(ImmutableArray<string>));
             Assert.Same(r, r1);
 
             var r2 = r.WithEmbedInteropTypes(false);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r3 = r.WithDocumentationProvider(doc);
             Assert.Same(r, r3);
             
-            Assert.Throws<ArgumentException>(() => r.WithAlias("bar"));
+            Assert.Throws<ArgumentException>(() => r.WithAliases(new[] { "bar" }));
             Assert.Throws<ArgumentException>(() => r.WithEmbedInteropTypes(true));
         }
 
@@ -96,24 +96,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var doc = new TestDocumentationProvider();
             var assembly = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
          
-            var r = new MetadataImageReference(assembly, documentation: doc, alias: "a", embedInteropTypes: true, fullPath: @"c:\temp", display: "hello");
+            var r = new MetadataImageReference(
+                assembly,
+                documentation: doc, 
+                aliases: ImmutableArray.Create("a"), 
+                embedInteropTypes: true, 
+                fullPath: @"c:\temp", 
+                display: "hello");
+
             Assert.Same(doc, r.DocumentationProvider);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.NotNull(r.GetMetadata());
             Assert.Equal(true, r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
-            Assert.Equal("a", r.Properties.Alias);
+            AssertEx.Equal(new[] { "a" }, r.Properties.Aliases);
             Assert.Equal(@"c:\temp", r.FullPath);
 
             var r2 = r.WithEmbedInteropTypes(true);
             Assert.Equal(r, r2);
 
-            var r3 = r.WithAlias("b");
+            var r3 = r.WithAliases(ImmutableArray.Create("b", "c"));
             Assert.Same(r.DocumentationProvider, r3.DocumentationProvider);
             Assert.Same(r.GetMetadata(), r3.GetMetadata());
             Assert.Equal(r.Properties.EmbedInteropTypes, r3.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r3.Properties.Kind);
-            Assert.Equal("b", r3.Properties.Alias);
+            AssertEx.Equal(new[] { "b", "c" }, r3.Properties.Aliases);
             Assert.Equal(r.FullPath, r3.FullPath);
 
             var r4 = r.WithEmbedInteropTypes(false);
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(r.GetMetadata(), r4.GetMetadata());
             Assert.Equal(false, r4.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r4.Properties.Kind);
-            Assert.Equal(r.Properties.Alias, r4.Properties.Alias);
+            AssertEx.Equal(r.Properties.Aliases, r4.Properties.Aliases);
             Assert.Equal(r.FullPath, r4.FullPath);
 
             Assert.Throws<ArgumentNullException>(() => r.WithDocumentationProvider(null));
@@ -134,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(r.GetMetadata(), r5.GetMetadata());
             Assert.Equal(r.Properties.EmbedInteropTypes, r5.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r5.Properties.Kind);
-            Assert.Equal(r.Properties.Alias, r5.Properties.Alias);
+            AssertEx.Equal(r.Properties.Aliases, r5.Properties.Aliases);
             Assert.Equal(r.FullPath, r5.FullPath);
         }
 

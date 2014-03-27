@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -366,7 +367,7 @@ namespace Foo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, alias: "Foo");
+            var aliasedCorlib = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, aliases: ImmutableArray.Create("Foo"));
 
             var comp = CreateCompilation(source, new [] { aliasedCorlib });
 
@@ -406,7 +407,7 @@ class App
 ";
 
             var libComp = CreateCompilationWithMscorlib45(lib, assemblyName: "lib");
-            var libRef = new MetadataImageReference(libComp.EmitToArray(), alias: "myTask");
+            var libRef = new MetadataImageReference(libComp.EmitToArray(), aliases: ImmutableArray.Create("myTask"));
 
             var comp = CreateCompilationWithMscorlib45(source, new[] { libRef });
 

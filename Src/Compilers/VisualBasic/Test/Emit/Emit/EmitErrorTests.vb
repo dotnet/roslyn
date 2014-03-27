@@ -526,14 +526,14 @@ End Class
             Dim netModuleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray())
 
             Dim source =
-<compilation>
-    <file name="a.vb">
+    <compilation>
+        <file name="a.vb">
 Module Module1
     Sub Main()
     End Sub
 End Module
-    </file>
-</compilation>
+        </file>
+    </compilation>
 
 
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New MetadataImageReference(netModuleMetadata, fullPath:="R:\A\B\ModuleNameMismatch.netmodule")})

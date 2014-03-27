@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,7 +32,7 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", compOptions: TestOptions.Dll);
-                    foo1 = new MetadataImageReference(comp.EmitToArray(), alias: "Bar");
+                    foo1 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
                 }
 
                 return foo1;
@@ -56,7 +57,7 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", compOptions: TestOptions.Dll);
-                    foo2 = new MetadataImageReference(comp.EmitToArray(), alias: "Bar");
+                    foo2 = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("Bar"));
                 }
 
                 return foo2;
@@ -213,7 +214,7 @@ namespace NS
             var comp = CreateCompilationWithMscorlib(src, assemblyName: "Baz.dll", compOptions: TestOptions.Dll);
             var outputBytes = comp.EmitToArray();
             var foo1 = new MetadataImageReference(outputBytes);
-            var foo1Alias = new MetadataImageReference(outputBytes, alias: "Baz");
+            var foo1Alias = new MetadataImageReference(outputBytes, aliases: ImmutableArray.Create("Baz"));
 
             src =
         @"
@@ -313,7 +314,7 @@ namespace NS
 }
 ";
             var comp = CreateCompilationWithMscorlib(src, compOptions: TestOptions.Dll);
-            var foo1Alias = new MetadataImageReference(comp.EmitToArray(), alias: "global");
+            var foo1Alias = new MetadataImageReference(comp.EmitToArray(), aliases: ImmutableArray.Create("global"));
 
             src =
             @"
@@ -392,10 +393,10 @@ class A : Bar::NS.Foo {}
         public void SameExternAliasInMultipleTreesValid()
         {
             var comp1 = CreateCompilationWithMscorlib("public class C { }", assemblyName: "A1");
-            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, alias: "X");
+            var ref1 = new MetadataImageReference(CompileAndVerify(comp1).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
 
             var comp2 = CreateCompilationWithMscorlib("public class D { }", assemblyName: "A2");
-            var ref2 = new MetadataImageReference(CompileAndVerify(comp2).EmittedAssemblyData, alias: "X");
+            var ref2 = new MetadataImageReference(CompileAndVerify(comp2).EmittedAssemblyData, aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
             var comp3 = CreateCompilationWithMscorlib(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");
@@ -467,7 +468,7 @@ class Test
         C c = new C();
     }
 }";
-            var libRef = new CSharpCompilationReference(CreateCompilationWithMscorlib(libSource, assemblyName: "lib"), alias: "A");
+            var libRef = new CSharpCompilationReference(CreateCompilationWithMscorlib(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
             comp.VerifyDiagnostics();
 

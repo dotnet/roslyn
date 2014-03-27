@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -515,7 +516,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib As New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, alias:="Foo")
+            Dim aliasedCorlib As New MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib, aliases:=ImmutableArray.Create("Foo"))
 
             Dim comp = CreateCompilationWithReferences(source, {aliasedCorlib})
 
@@ -557,7 +558,7 @@ End Class
                 </compilation>
 
             Dim libComp = CreateCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
-            Dim libRef As New MetadataImageReference(libComp.EmitToArray(), alias:="myTask")
+            Dim libRef As New MetadataImageReference(libComp.EmitToArray(), aliases:=ImmutableArray.Create("myTask"))
 
             Dim comp = CreateCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
 

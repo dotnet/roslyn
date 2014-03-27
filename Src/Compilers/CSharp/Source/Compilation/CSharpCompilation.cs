@@ -978,9 +978,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (CSharpCompilation)base.ReplaceReference(oldReference, newReference);
         }
 
-        public override CompilationReference ToMetadataReference(string alias = null, bool embedInteropTypes = false)
+        public override CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
         {
-            return new CSharpCompilationReference(this, alias, embedInteropTypes);
+            return new CSharpCompilationReference(this, aliases, embedInteropTypes);
         }
 
         // Get all modules in this compilation, including the source module, added modules, and all
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
                 if (reference.Properties.Kind == MetadataImageKind.Assembly) // Already handled modules above.
                 {
-                    if (referencedAssembly.Aliases.Length == 0 || referencedAssembly.Aliases.IndexOf(null) >= 0)
+                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
                     {
                         modules.AddRange(referencedAssembly.Symbol.Modules);
                     }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -592,7 +593,7 @@ class C1
             var projRefs = project.ProjectReferences.ToList();
             var metaRefs = project.MetadataReferences.ToList();
             Assert.Equal(1, projRefs.Count);
-            Assert.Equal(false, metaRefs.Any(r => r.Properties.Alias != null && r.Properties.Alias.Contains("CSharpProject")));
+            Assert.False(metaRefs.Any(r => !r.Properties.Aliases.IsDefault && r.Properties.Aliases.Contains("CSharpProject")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1815,38 +1816,6 @@ class C1
             var solution1 = LoadSolution(GetSolutionFileName("TestSolution1.sln"));
             var solution2 = LoadSolution(GetSolutionFileName("TestSolution2.sln"));
             var solution3 = LoadSolution(GetSolutionFileName("TestSolution3.sln"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void MetaDataReferencepropertiesConstructorFailures()
-        {
-            // verify Invalid Constructor Scenarios for MetadataReferenceProperties 
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                Microsoft.CodeAnalysis.MetadataReferenceProperties mdr = new MetadataReferenceProperties(kind: MetadataImageKind.Module, alias: null, embedInteropTypes: true);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                Microsoft.CodeAnalysis.MetadataReferenceProperties mdr = new MetadataReferenceProperties(kind: MetadataImageKind.Module, alias: "foo", embedInteropTypes: true);
-            });
-
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                Microsoft.CodeAnalysis.MetadataReferenceProperties mdr = new MetadataReferenceProperties(kind: MetadataImageKind.Assembly, alias: "", embedInteropTypes: true);
-            });
-            Assert.Throws<System.ArgumentException>(delegate
-            {
-                Microsoft.CodeAnalysis.MetadataReferenceProperties mdr = new MetadataReferenceProperties(kind: MetadataImageKind.Assembly, alias: string.Empty, embedInteropTypes: true);
-            });
-
-            Assert.Throws<System.ArgumentOutOfRangeException>(delegate
-            {
-                byte b = Convert.ToByte(2);
-                Microsoft.CodeAnalysis.MetadataReferenceProperties mdr = new MetadataReferenceProperties(kind: (MetadataImageKind)b, alias: string.Empty, embedInteropTypes: true);
-            });
-
-            Microsoft.CodeAnalysis.MetadataReferenceProperties mdr1 = new MetadataReferenceProperties(kind: MetadataImageKind.Assembly, alias: null, embedInteropTypes: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

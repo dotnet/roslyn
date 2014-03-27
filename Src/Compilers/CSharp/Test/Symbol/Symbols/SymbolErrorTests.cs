@@ -6758,7 +6758,7 @@ public class CF3<T>
                 { 
                     module1_FT1_Ref,
                     forwardedTypes2Ref,
-                    new CSharpCompilationReference(forwardedTypes1, "FT1")
+                    new CSharpCompilationReference(forwardedTypes1, aliases: ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
@@ -6778,7 +6778,7 @@ extern alias FT1;
                 new List<MetadataReference>() 
                 { 
                     forwardedTypesModRef,
-                    new CSharpCompilationReference(forwardedTypes1, "FT1")
+                    new CSharpCompilationReference(forwardedTypes1, ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(

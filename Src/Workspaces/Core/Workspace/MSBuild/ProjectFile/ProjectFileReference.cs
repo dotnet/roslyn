@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,15 +25,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string Path { get; private set; }
 
         /// <summary>
-        /// The alias assigned to this reference, if any.
+        /// The aliases assigned to this reference, if any.
         /// </summary>
-        public string Alias { get; private set; }
+        public ImmutableArray<string> Aliases { get; private set; }
 
-        public ProjectFileReference(Guid guid, string path, string alias = null)
+        public ProjectFileReference(Guid guid, string path, ImmutableArray<string> aliases)
         {
             this.Guid = guid;
             this.Path = path;
-            this.Alias = alias;
+            this.Aliases = aliases;
         }
     }
 }

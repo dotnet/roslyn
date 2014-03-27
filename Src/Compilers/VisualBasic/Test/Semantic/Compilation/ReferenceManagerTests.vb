@@ -1630,7 +1630,7 @@ End Class
             Assert.Equal(0, mrp1.GetHashCode)
 
             'With the use of the alias this will generate a hashcode
-            Dim refb = New MetadataImageReference(a.EmitToArray(), display:="A", [alias]:="Alias1")
+            Dim refb = New MetadataImageReference(a.EmitToArray(), display:="A", aliases:=ImmutableArray.Create("Alias1"))
             Dim mrp2 As MetadataReferenceProperties = refb.Properties
             Assert.NotEqual(0, mrp2.GetHashCode)
         End Sub

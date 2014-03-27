@@ -721,7 +721,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             var tree = Parse(source);
             var r1 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, fullPath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2 = new MetadataImageReference(ProprietaryTestResources.NetFX.v4_0_30319.System_Core, fullPath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
-            var r2_SysCore = r2.WithAlias("SysCore");
+            var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRef, r1, r2_SysCore }, new CSharpCompilationOptions(OutputKind.ConsoleApplication), "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
@@ -736,8 +736,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
 
             var r1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, fullPath: @"c:\temp\a.dll", display: "R1");
             var r2 = new MetadataImageReference(TestResources.SymbolsTests.General.C1, fullPath: @"c:\temp\a.dll", display: "R2");
-            var rFoo = r2.WithAlias("foo");
-            var rBar = r2.WithAlias("bar");
+            var rFoo = r2.WithAliases(new[] { "foo" });
+            var rBar = r2.WithAliases(new[] { "bar" });
             var rEmbed = r1.WithEmbedInteropTypes(true);
 
             source = @"
@@ -763,7 +763,7 @@ class D : C { }
             c = CreateCompilationWithMscorlib(source, new[] { rFoo, r2 });
             Assert.Null(c.GetReferencedAssemblySymbol(rFoo));
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
-            AssertEx.SetEqual(new[] { "foo", null }, c.ExternAliases);
+            AssertEx.SetEqual(new[] { "foo", "global" }, c.ExternAliases);
             c.VerifyDiagnostics();
 
             // 2 aliases for the same path, aliases not used to qualify name
@@ -787,15 +787,14 @@ class D : C { }
 
             c.VerifyDiagnostics(
                 // error CS1760: Assemblies 'R1' and 'R2' refer to the same metadata but only one is a linked reference (specified using /link option); consider removing one of the references.
-    Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("R1", "R2"),
+                Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("R1", "R2"),
                 // error CS1747: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
-    Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttribute).WithArguments("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", "System.Runtime.InteropServices.GuidAttribute"),
+                Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttribute).WithArguments("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", "System.Runtime.InteropServices.GuidAttribute"),
                 // error CS1759: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing either the 'System.Runtime.InteropServices.ImportedFromTypeLibAttribute' attribute or the 'System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute' attribute.
-    Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttributes).WithArguments("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", "System.Runtime.InteropServices.ImportedFromTypeLibAttribute", "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"),
+                Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttributes).WithArguments("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", "System.Runtime.InteropServices.ImportedFromTypeLibAttribute", "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"),
                 // (2,11): error CS1752: Interop type 'C' cannot be embedded. Use the applicable interface instead.
                 // class D : C { }
-    Diagnostic(ErrorCode.ERR_NewCoClassOnLink, "C").WithArguments("C")
-                );
+                Diagnostic(ErrorCode.ERR_NewCoClassOnLink, "C").WithArguments("C"));
 
             source = @"
 extern alias foo;
@@ -881,9 +880,9 @@ public class E : bar::C { }
                 Assert.Equal(MetadataImageKind.Assembly, dr2.Properties.Kind);
                 Assert.Equal(MetadataImageKind.Assembly, dr3.Properties.Kind);
 
-                Assert.Null(dr1.Properties.Alias);
-                Assert.Null(dr2.Properties.Alias);
-                Assert.Null(dr3.Properties.Alias);
+                Assert.True(dr1.Properties.Aliases.IsDefault);
+                Assert.True(dr2.Properties.Aliases.IsDefault);
+                Assert.True(dr3.Properties.Aliases.IsDefault);
 
                 Assert.False(dr1.Properties.EmbedInteropTypes);
                 Assert.False(dr2.Properties.EmbedInteropTypes);
@@ -920,7 +919,44 @@ public class E : bar::C { }
                 Assert.NotNull(compilation.GetReferencedModuleSymbol(m2));
             }
         }
-        
+
+        /// <summary>
+        /// Two metadata files with the same strong identity referenced twice, with embedInteropTypes=true and embedInteropTypes=false.
+        /// </summary>
+        [Fact]
+        public void DuplicateAssemblyReferences_EquivalentStrongNames_Metadata()
+        {
+            var ref1 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: true, fullPath: @"R:\A\MTTestLib1.dll");
+            var ref2 = new MetadataImageReference(TestResources.SymbolsTests.General.C2, embedInteropTypes: false, fullPath: @"R:\B\MTTestLib1.dll");
+
+            var c = CreateCompilationWithMscorlib("class C {}", new[] { ref1, ref2 });
+            c.VerifyDiagnostics(
+                // error CS1760: Assemblies 'R:\B\MTTestLib1.dll' and 'R:\A\MTTestLib1.dll' refer to the same metadata but only one is a linked reference (specified using /link option); consider removing one of the references.
+                Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments(@"R:\B\MTTestLib1.dll", @"R:\A\MTTestLib1.dll"));
+        }
+
+        /// <summary>
+        /// Two compilations with the same strong identity referenced twice, with embedInteropTypes=true and embedInteropTypes=false.
+        /// </summary>
+        [Fact]
+        public void DuplicateAssemblyReferences_EquivalentStrongNames_Compilations()
+        {
+            var sourceLib = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public interface I {}";
+
+            var lib1 = CreateCompilationWithMscorlib(sourceLib, compOptions: SignedDll, assemblyName: "Lib");
+            var lib2 = CreateCompilationWithMscorlib(sourceLib, compOptions: SignedDll, assemblyName: "Lib");
+
+            var ref1 = lib1.ToMetadataReference(embedInteropTypes: true);
+            var ref2 = lib2.ToMetadataReference(embedInteropTypes: false);
+
+            var c = CreateCompilationWithMscorlib("class C {}", new[] { ref1, ref2 });
+            c.VerifyDiagnostics(
+                // error CS1760: Assemblies 'Lib' and 'Lib' refer to the same metadata but only one is a linked reference (specified using /link option); consider removing one of the references.
+                Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("Lib", "Lib"));
+        }
+
         private class TestException : Exception
         {
         }
@@ -1037,8 +1073,8 @@ public class A { }";
                     }
                 }
 
-                var ref1 = new MetadataFileReference(exe1.Path, alias: "A1");
-                var ref2 = new MetadataFileReference(exe2.Path, alias: "A2");
+                var ref1 = new MetadataFileReference(exe1.Path, aliases: ImmutableArray.Create("A1"));
+                var ref2 = new MetadataFileReference(exe2.Path, aliases: ImmutableArray.Create("A2"));
 
                 CreateCompilationWithMscorlib(text, new[] { ref1, ref2 }).VerifyDiagnostics(
                     // error CS1704: An assembly with the same simple name 'CS1704' has already been imported. 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create a metadata reference to a compilation.
         /// </summary>
         /// <param name="compilation">The compilation to reference.</param>
-        /// <param name="alias">A namespace alias for this reference.</param>
+        /// <param name="aliases">Extern aliases for this reference.</param>
         /// <param name="embedInteropTypes">Should interop types be embedded in the created assembly?</param>
         public CSharpCompilationReference(
             CSharpCompilation compilation,
-            string alias = null,
+            ImmutableArray<string> aliases = default(ImmutableArray<string>),
             bool embedInteropTypes = false)
-            : base(GetProperties(compilation, alias, embedInteropTypes))
+            : base(GetProperties(compilation, aliases, embedInteropTypes))
         {
             this.Compilation = compilation;
         }

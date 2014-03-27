@@ -1642,46 +1642,46 @@ Public Class C1(Of T)
     End Class
 End Class
 </s1>
-                Dim c1_V1_Name = New AssemblyIdentity("c1", New Version("1.0.0.0"))
+            Dim c1_V1_Name = New AssemblyIdentity("c1", New Version("1.0.0.0"))
 
-                Dim c1_V1 As VisualBasicCompilation = CreateCompilation(c1_V1_Name,
+            Dim c1_V1 As VisualBasicCompilation = CreateCompilation(c1_V1_Name,
                                {source1.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
-                Dim asm1_V1 = c1_V1.SourceAssembly
+            Dim asm1_V1 = c1_V1.SourceAssembly
 
-                Dim c1_V2_Name = New AssemblyIdentity("c1", New Version("2.0.0.0"))
+            Dim c1_V2_Name = New AssemblyIdentity("c1", New Version("2.0.0.0"))
 
-                Dim c1_V2 As VisualBasicCompilation = CreateCompilation(c1_V2_Name,
+            Dim c1_V2 As VisualBasicCompilation = CreateCompilation(c1_V2_Name,
                                {source1.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
-                Dim asm1_V2 = c1_V2.SourceAssembly
+            Dim asm1_V2 = c1_V2.SourceAssembly
 
-                Dim source4 =
+            Dim source4 =
         <s4>
 Public Class C4
 End Class
 </s4>
 
 
-                Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
+            Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
 
-                Dim c4_V1 As VisualBasicCompilation = CreateCompilation(c4_V1_Name,
+            Dim c4_V1 As VisualBasicCompilation = CreateCompilation(c4_V1_Name,
                                {source4.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
-                Dim asm4_V1 = c4_V1.SourceAssembly
+            Dim asm4_V1 = c4_V1.SourceAssembly
 
-                Dim c4_V2_Name = New AssemblyIdentity("c4", New Version("2.0.0.0"))
+            Dim c4_V2_Name = New AssemblyIdentity("c4", New Version("2.0.0.0"))
 
-                Dim c4_V2 As VisualBasicCompilation = CreateCompilation(c4_V2_Name,
+            Dim c4_V2 As VisualBasicCompilation = CreateCompilation(c4_V2_Name,
                                {source4.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
-                Dim asm4_V2 = c4_V2.SourceAssembly
+            Dim asm4_V2 = c4_V2.SourceAssembly
 
-                Dim source7 =
+            Dim source7 =
         <s3>
 Public Class C7
 End Class
@@ -1690,14 +1690,14 @@ Public Class C8(Of T)
 End Class
 </s3>
 
-                Dim c7 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C7"),
+            Dim c7 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C7"),
                                {source7.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib})
 
-                Dim asm7 = c7.SourceAssembly
+            Dim asm7 = c7.SourceAssembly
 
 
-                Dim source3 =
+            Dim source3 =
         <s3>
 Public Class C3
     Public Function Foo() As C1(Of C3).C2(Of C4)
@@ -1765,26 +1765,26 @@ Namespace ns1
 End Namespace
 </s3>
 
-                Dim c3 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C3"),
+            Dim c3 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C3"),
                                {source3.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib,
                                 New VisualBasicCompilationReference(c1_V1),
                                 New VisualBasicCompilationReference(c4_V1),
                                 New VisualBasicCompilationReference(c7)})
 
-                Dim asm3 = c3.SourceAssembly
+            Dim asm3 = c3.SourceAssembly
 
-                Dim localC3Foo2 = asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
+            Dim localC3Foo2 = asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
 
 
-                Dim source5 =
+            Dim source5 =
         <s5>
 Public Class C5
     Inherits ns1.C304.C305
 End Class
 </s5>
 
-                Dim c5 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C5"),
+            Dim c5 As VisualBasicCompilation = CreateCompilation(New AssemblyIdentity("C5"),
                                {source5.Value},
                                {TestReferences.NetFx.v4_0_30319.mscorlib,
                                New VisualBasicCompilationReference(c3),
@@ -1792,183 +1792,183 @@ End Class
                                New VisualBasicCompilationReference(c4_V2),
                                New VisualBasicCompilationReference(c7)})
 
-                Dim asm5 = c5.SourceAssembly.BoundReferences
+            Dim asm5 = c5.SourceAssembly.BoundReferences
 
-                Assert.NotSame(asm5(1), asm3)
-                Assert.Same(DirectCast(asm5(1), RetargetingAssemblySymbol).UnderlyingAssembly, asm3)
-                Assert.Same(asm5(2), asm1_V2)
-                Assert.Same(asm5(3), asm4_V2)
-                Assert.Same(asm5(4), asm7)
+            Assert.NotSame(asm5(1), asm3)
+            Assert.Same(DirectCast(asm5(1), RetargetingAssemblySymbol).UnderlyingAssembly, asm3)
+            Assert.Same(asm5(2), asm1_V2)
+            Assert.Same(asm5(3), asm4_V2)
+            Assert.Same(asm5(4), asm7)
 
-                Dim type3 = asm5(1).GlobalNamespace.GetTypeMembers("C3").Single()
-                Dim type1 = asm1_V2.GlobalNamespace.GetTypeMembers("C1").Single()
-                Dim type2 = type1.GetTypeMembers("C2").Single()
-                Dim type4 = asm4_V2.GlobalNamespace.GetTypeMembers("C4").Single()
-                Dim retval1 = DirectCast(type3.GetMembers("Foo").OfType(Of MethodSymbol)().Single().ReturnType, NamedTypeSymbol)
-                Assert.Equal("C1(Of C3).C2(Of C4)", retval1.ToTestDisplayString())
-                Assert.Same(retval1.OriginalDefinition, type2)
-                Dim args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments)
-                Dim params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters)
-                Assert.Same(params1(0), type1.TypeParameters(0))
-                Assert.Same(params1(1).OriginalDefinition, type2.TypeParameters(0).OriginalDefinition)
-                Assert.Same(args1(0), type3)
-                Assert.Same(args1(0).ContainingAssembly, asm5(1))
-                Assert.Same(args1(1), type4)
-                Dim retval2 = retval1.ContainingType
-                Assert.Equal("C1(Of C3)", retval2.ToTestDisplayString())
-                Assert.Same(retval2.OriginalDefinition, type1)
-                Dim bar = type3.GetMembers("Bar").OfType(Of MethodSymbol)().Single()
-                Dim retval3 = DirectCast(bar.ReturnType, NamedTypeSymbol)
-                Dim type6 = asm5(1).GlobalNamespace.GetTypeMembers("C6").Single()
-                Assert.Equal("C6(Of C4)", retval3.ToTestDisplayString())
-                Assert.Same(retval3.OriginalDefinition, type6)
-                Assert.Same(retval3.ContainingAssembly, asm5(1))
-                Dim args3 = retval3.TypeArguments
-                Dim params3 = retval3.TypeParameters
-                Assert.Same(params3(0), type6.TypeParameters(0))
-                Assert.Same(params3(0).ContainingAssembly, asm5(1))
-                Assert.Same(args3(0), type4)
-                Dim foo1 = type3.GetMembers("Foo1").OfType(Of MethodSymbol)().Single()
-                Dim retval4 = foo1.ReturnType
-                Assert.Equal("C8(Of C7)", retval4.ToTestDisplayString())
-                Assert.Same(retval4, asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo1").OfType(Of MethodSymbol)().Single().ReturnType)
-                Dim foo1Params = foo1.Parameters
-                Assert.Equal(0, foo1Params.Length)
-                Dim foo2 = type3.GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
-                Assert.NotEqual(localC3Foo2, foo2)
-                Assert.Same(localC3Foo2, (DirectCast(foo2, RetargetingMethodSymbol)).UnderlyingMethod)
-                Assert.Equal(1, ((DirectCast(foo2, RetargetingMethodSymbol)).Locations).Length)
-                Dim foo2Params = foo2.Parameters
-                Assert.Equal(4, foo2Params.Length)
-                Assert.Same(localC3Foo2.Parameters(0), (DirectCast(foo2Params(0), RetargetingParameterSymbol)).UnderlyingParameter)
-                Assert.Same(localC3Foo2.Parameters(1), (DirectCast(foo2Params(1), RetargetingParameterSymbol)).UnderlyingParameter)
-                Assert.Same(localC3Foo2.Parameters(2), (DirectCast(foo2Params(2), RetargetingParameterSymbol)).UnderlyingParameter)
-                Assert.Same(localC3Foo2.Parameters(3), (DirectCast(foo2Params(3), RetargetingParameterSymbol)).UnderlyingParameter)
-                Dim x1 = foo2Params(0)
-                Dim x2 = foo2Params(1)
-                Dim x3 = foo2Params(2)
-                Dim x4 = foo2Params(3)
-                Assert.Equal("x1", x1.Name)
-                Assert.NotEqual(localC3Foo2.Parameters(0).[Type], x1.[Type])
-                Assert.Equal(localC3Foo2.Parameters(0).ToTestDisplayString(), x1.ToTestDisplayString())
-                Assert.Same(asm5(1), x1.ContainingAssembly)
-                Assert.Same(foo2, x1.ContainingSymbol)
-                Assert.[False](x1.HasExplicitDefaultValue)
-                Assert.[False](x1.IsOptional)
-                Assert.True(x1.IsByRef)
-                Assert.Equal(2, (DirectCast(x1.[Type], ArrayTypeSymbol)).Rank)
-                Assert.Equal("x2", x2.Name)
-                Assert.NotEqual(localC3Foo2.Parameters(1).[Type], x2.[Type])
-                Assert.True(x2.IsByRef)
-                Assert.Equal("x3", x3.Name)
-                Assert.Same(localC3Foo2.Parameters(2).[Type], x3.[Type])
-                Assert.Equal("x4", x4.Name)
+            Dim type3 = asm5(1).GlobalNamespace.GetTypeMembers("C3").Single()
+            Dim type1 = asm1_V2.GlobalNamespace.GetTypeMembers("C1").Single()
+            Dim type2 = type1.GetTypeMembers("C2").Single()
+            Dim type4 = asm4_V2.GlobalNamespace.GetTypeMembers("C4").Single()
+            Dim retval1 = DirectCast(type3.GetMembers("Foo").OfType(Of MethodSymbol)().Single().ReturnType, NamedTypeSymbol)
+            Assert.Equal("C1(Of C3).C2(Of C4)", retval1.ToTestDisplayString())
+            Assert.Same(retval1.OriginalDefinition, type2)
+            Dim args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments)
+            Dim params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters)
+            Assert.Same(params1(0), type1.TypeParameters(0))
+            Assert.Same(params1(1).OriginalDefinition, type2.TypeParameters(0).OriginalDefinition)
+            Assert.Same(args1(0), type3)
+            Assert.Same(args1(0).ContainingAssembly, asm5(1))
+            Assert.Same(args1(1), type4)
+            Dim retval2 = retval1.ContainingType
+            Assert.Equal("C1(Of C3)", retval2.ToTestDisplayString())
+            Assert.Same(retval2.OriginalDefinition, type1)
+            Dim bar = type3.GetMembers("Bar").OfType(Of MethodSymbol)().Single()
+            Dim retval3 = DirectCast(bar.ReturnType, NamedTypeSymbol)
+            Dim type6 = asm5(1).GlobalNamespace.GetTypeMembers("C6").Single()
+            Assert.Equal("C6(Of C4)", retval3.ToTestDisplayString())
+            Assert.Same(retval3.OriginalDefinition, type6)
+            Assert.Same(retval3.ContainingAssembly, asm5(1))
+            Dim args3 = retval3.TypeArguments
+            Dim params3 = retval3.TypeParameters
+            Assert.Same(params3(0), type6.TypeParameters(0))
+            Assert.Same(params3(0).ContainingAssembly, asm5(1))
+            Assert.Same(args3(0), type4)
+            Dim foo1 = type3.GetMembers("Foo1").OfType(Of MethodSymbol)().Single()
+            Dim retval4 = foo1.ReturnType
+            Assert.Equal("C8(Of C7)", retval4.ToTestDisplayString())
+            Assert.Same(retval4, asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo1").OfType(Of MethodSymbol)().Single().ReturnType)
+            Dim foo1Params = foo1.Parameters
+            Assert.Equal(0, foo1Params.Length)
+            Dim foo2 = type3.GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
+            Assert.NotEqual(localC3Foo2, foo2)
+            Assert.Same(localC3Foo2, (DirectCast(foo2, RetargetingMethodSymbol)).UnderlyingMethod)
+            Assert.Equal(1, ((DirectCast(foo2, RetargetingMethodSymbol)).Locations).Length)
+            Dim foo2Params = foo2.Parameters
+            Assert.Equal(4, foo2Params.Length)
+            Assert.Same(localC3Foo2.Parameters(0), (DirectCast(foo2Params(0), RetargetingParameterSymbol)).UnderlyingParameter)
+            Assert.Same(localC3Foo2.Parameters(1), (DirectCast(foo2Params(1), RetargetingParameterSymbol)).UnderlyingParameter)
+            Assert.Same(localC3Foo2.Parameters(2), (DirectCast(foo2Params(2), RetargetingParameterSymbol)).UnderlyingParameter)
+            Assert.Same(localC3Foo2.Parameters(3), (DirectCast(foo2Params(3), RetargetingParameterSymbol)).UnderlyingParameter)
+            Dim x1 = foo2Params(0)
+            Dim x2 = foo2Params(1)
+            Dim x3 = foo2Params(2)
+            Dim x4 = foo2Params(3)
+            Assert.Equal("x1", x1.Name)
+            Assert.NotEqual(localC3Foo2.Parameters(0).[Type], x1.[Type])
+            Assert.Equal(localC3Foo2.Parameters(0).ToTestDisplayString(), x1.ToTestDisplayString())
+            Assert.Same(asm5(1), x1.ContainingAssembly)
+            Assert.Same(foo2, x1.ContainingSymbol)
+            Assert.[False](x1.HasExplicitDefaultValue)
+            Assert.[False](x1.IsOptional)
+            Assert.True(x1.IsByRef)
+            Assert.Equal(2, (DirectCast(x1.[Type], ArrayTypeSymbol)).Rank)
+            Assert.Equal("x2", x2.Name)
+            Assert.NotEqual(localC3Foo2.Parameters(1).[Type], x2.[Type])
+            Assert.True(x2.IsByRef)
+            Assert.Equal("x3", x3.Name)
+            Assert.Same(localC3Foo2.Parameters(2).[Type], x3.[Type])
+            Assert.Equal("x4", x4.Name)
 
-                Assert.True(x4.HasExplicitDefaultValue)
-                Assert.[True](x4.IsOptional)
-                Assert.Equal("Foo2", foo2.Name)
-                Assert.Equal(localC3Foo2.ToTestDisplayString(), foo2.ToTestDisplayString())
-                Assert.Same(asm5(1), foo2.ContainingAssembly)
-                Assert.Same(type3, foo2.ContainingSymbol)
-                Assert.Equal(Accessibility.[Public], foo2.DeclaredAccessibility)
-                Assert.False(foo2.IsOverloads)
-                Assert.[False](foo2.IsMustOverride)
-                Assert.[False](foo2.IsExternalMethod)
-                Assert.[False](foo2.IsGenericMethod)
-                Assert.[False](foo2.IsOverrides)
-                Assert.[False](foo2.IsNotOverridable)
-                Assert.[False](foo2.IsShared)
-                Assert.[False](foo2.IsVararg)
-                Assert.[False](foo2.IsOverridable)
-                Assert.[True](foo2.IsSub)
-                Assert.Equal(0, foo2.TypeParameters.Length)
-                Assert.Equal(0, foo2.TypeArguments.Length)
-                Assert.[True](bar.IsShared)
-                Assert.[False](bar.IsSub)
-                Dim foo3 = type3.GetMembers("Foo3").OfType(Of MethodSymbol)().Single()
-                Assert.Equal(Accessibility.Friend, foo3.DeclaredAccessibility)
-                Assert.[True](foo3.IsGenericMethod)
-                Assert.[True](foo3.IsOverridable)
-                Dim foo3TypeParams = foo3.TypeParameters
-                Assert.Equal(1, foo3TypeParams.Length)
-                Assert.Equal(1, foo3.TypeArguments.Length)
-                Assert.Same(foo3TypeParams(0), foo3.TypeArguments(0))
-                Dim typeC301 = type3.GetTypeMembers("C301").Single()
-                Dim typeC302 = type3.GetTypeMembers("C302").Single()
-                Dim typeC6 = asm5(1).GlobalNamespace.GetTypeMembers("C6").Single()
-                Assert.Equal(typeC301.ToTestDisplayString(), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers("C301").Single().ToTestDisplayString())
-                Assert.Equal(typeC6.ToTestDisplayString(), asm3.GlobalNamespace.GetTypeMembers("C6").Single().ToTestDisplayString())
-                Assert.Equal(typeC301.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers("C301").Single().ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
-                Assert.Equal(typeC6.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat), asm3.GlobalNamespace.GetTypeMembers("C6").Single().ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
-                Assert.Equal(type3.GetMembers().Length, asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers().Length)
-                Assert.Equal(type3.GetTypeMembers().Length(), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers().Length())
-                Assert.Same(typeC301, type3.GetTypeMembers("C301", 0).Single())
-                Assert.Equal(0, type3.Arity)
-                Assert.Equal(1, typeC6.Arity)
-                Assert.NotNull(type3.BaseType)
-                Assert.Equal("System.Object", type3.BaseType.ToTestDisplayString())
-                Assert.Equal(Accessibility.[Public], type3.DeclaredAccessibility)
-                Assert.Equal(Accessibility.Friend, typeC302.DeclaredAccessibility)
-                Assert.Equal(0, type3.Interfaces.Length)
-                Assert.Equal(1, typeC301.Interfaces.Length)
-                Assert.Equal("I1", typeC301.Interfaces.Single().Name)
-                Assert.[False](type3.IsMustInherit)
-                Assert.[True](typeC301.IsMustInherit)
-                Assert.[False](type3.IsNotInheritable)
-                Assert.[False](type3.IsShared)
-                Assert.Equal(0, type3.TypeArguments.Length)
-                Assert.Equal(0, type3.TypeParameters.Length)
-                Dim localC6Params = typeC6.TypeParameters
-                Assert.Equal(1, localC6Params.Length)
-                Assert.Equal(1, typeC6.TypeArguments.Length)
-                Assert.Same(localC6Params(0), typeC6.TypeArguments(0))
-                Assert.Same((DirectCast(type3, RetargetingNamedTypeSymbol)).UnderlyingNamedType, asm3.GlobalNamespace.GetTypeMembers("C3").Single())
-                Assert.Equal(1, ((DirectCast(type3, RetargetingNamedTypeSymbol)).Locations).Length)
-                Assert.Equal(TypeKind.[Class], type3.TypeKind)
-                Assert.Equal(TypeKind.[Interface], asm5(1).GlobalNamespace.GetTypeMembers("I1").Single().TypeKind)
-                Dim localC6_T = localC6Params(0)
-                Dim foo3TypeParam = foo3TypeParams(0)
-                Assert.Equal(0, localC6_T.ConstraintTypes.Length)
-                Assert.Equal(1, foo3TypeParam.ConstraintTypes.Length)
-                Assert.Same(type4, foo3TypeParam.ConstraintTypes(0))
-                Assert.Same(typeC6, localC6_T.ContainingSymbol)
-                Assert.[False](foo3TypeParam.HasConstructorConstraint)
-                Assert.[True](localC6_T.HasConstructorConstraint)
-                Assert.[False](foo3TypeParam.HasReferenceTypeConstraint)
-                Assert.[False](foo3TypeParam.HasValueTypeConstraint)
-                Assert.Equal("TFoo3", foo3TypeParam.Name)
-                Assert.Equal("T", localC6_T.Name)
-                Assert.Equal(0, foo3TypeParam.Ordinal)
-                Assert.Equal(0, localC6_T.Ordinal)
-                Assert.Equal(VarianceKind.None, foo3TypeParam.Variance)
-                Assert.Same((DirectCast(localC6_T, RetargetingTypeParameterSymbol)).UnderlyingTypeParameter, asm3.GlobalNamespace.GetTypeMembers("C6").Single().TypeParameters(0))
-                Dim ns1 = asm5(1).GlobalNamespace.GetMembers("ns1").OfType(Of NamespaceSymbol)().Single()
-                Dim ns2 = ns1.GetMembers("ns2").OfType(Of NamespaceSymbol)().Single()
-                Assert.Equal("ns1.ns2", ns2.ToTestDisplayString())
-                Assert.Equal(2, ns1.GetMembers().Length)
-                Assert.Equal(1, ns1.GetTypeMembers().Length())
-                Assert.Same(ns1.GetTypeMembers("C304").Single(), ns1.GetTypeMembers("C304", 0).Single())
-                Assert.Same(asm5(1).Modules(0), asm5(1).Modules(0).GlobalNamespace.ContainingSymbol)
-                Assert.Same(asm5(1).Modules(0).GlobalNamespace, ns1.ContainingSymbol)
-                Assert.Same(asm5(1).Modules(0), ns1.Extent.[Module])
-                Assert.Equal(1, ns1.ConstituentNamespaces.Length)
-                Assert.Same(ns1, ns1.ConstituentNamespaces(0))
-                Assert.[False](ns1.IsGlobalNamespace)
-                Assert.Equal(DirectCast(ns2, RetargetingNamespaceSymbol).DeclaredAccessibilityOfMostAccessibleDescendantType, ns2.DeclaredAccessibilityOfMostAccessibleDescendantType)
-                Assert.[True](asm5(1).Modules(0).GlobalNamespace.IsGlobalNamespace)
-                Assert.Same(asm3.Modules(0).GlobalNamespace, (DirectCast(asm5(1).Modules(0).GlobalNamespace, RetargetingNamespaceSymbol)).UnderlyingNamespace)
-                Assert.Same(asm3.Modules(0).GlobalNamespace.GetMembers("ns1").Single(), (DirectCast(ns1, RetargetingNamespaceSymbol)).UnderlyingNamespace)
-                Dim module3 = DirectCast(asm5(1).Modules(0), RetargetingModuleSymbol)
-                Assert.Equal("C3.exe", module3.ToTestDisplayString())
-                Assert.Equal("C3.exe", module3.Name)
-                Assert.Same(asm5(1), module3.ContainingSymbol)
-                Assert.Same(asm5(1), module3.ContainingAssembly)
-                Assert.Null(module3.ContainingType)
-                Dim retval5 = type3.GetMembers("Foo4").OfType(Of MethodSymbol)().Single().ReturnType
-                Assert.Equal("C8(Of C4)", retval5.ToTestDisplayString())
-                Dim typeC5 = c5.[Assembly].GlobalNamespace.GetTypeMembers("C5").Single()
-                Assert.Same(asm5(1), typeC5.BaseType.ContainingAssembly)
-                Assert.Equal("ns1.C304.C305", typeC5.BaseType.ToTestDisplayString())
+            Assert.True(x4.HasExplicitDefaultValue)
+            Assert.[True](x4.IsOptional)
+            Assert.Equal("Foo2", foo2.Name)
+            Assert.Equal(localC3Foo2.ToTestDisplayString(), foo2.ToTestDisplayString())
+            Assert.Same(asm5(1), foo2.ContainingAssembly)
+            Assert.Same(type3, foo2.ContainingSymbol)
+            Assert.Equal(Accessibility.[Public], foo2.DeclaredAccessibility)
+            Assert.False(foo2.IsOverloads)
+            Assert.[False](foo2.IsMustOverride)
+            Assert.[False](foo2.IsExternalMethod)
+            Assert.[False](foo2.IsGenericMethod)
+            Assert.[False](foo2.IsOverrides)
+            Assert.[False](foo2.IsNotOverridable)
+            Assert.[False](foo2.IsShared)
+            Assert.[False](foo2.IsVararg)
+            Assert.[False](foo2.IsOverridable)
+            Assert.[True](foo2.IsSub)
+            Assert.Equal(0, foo2.TypeParameters.Length)
+            Assert.Equal(0, foo2.TypeArguments.Length)
+            Assert.[True](bar.IsShared)
+            Assert.[False](bar.IsSub)
+            Dim foo3 = type3.GetMembers("Foo3").OfType(Of MethodSymbol)().Single()
+            Assert.Equal(Accessibility.Friend, foo3.DeclaredAccessibility)
+            Assert.[True](foo3.IsGenericMethod)
+            Assert.[True](foo3.IsOverridable)
+            Dim foo3TypeParams = foo3.TypeParameters
+            Assert.Equal(1, foo3TypeParams.Length)
+            Assert.Equal(1, foo3.TypeArguments.Length)
+            Assert.Same(foo3TypeParams(0), foo3.TypeArguments(0))
+            Dim typeC301 = type3.GetTypeMembers("C301").Single()
+            Dim typeC302 = type3.GetTypeMembers("C302").Single()
+            Dim typeC6 = asm5(1).GlobalNamespace.GetTypeMembers("C6").Single()
+            Assert.Equal(typeC301.ToTestDisplayString(), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers("C301").Single().ToTestDisplayString())
+            Assert.Equal(typeC6.ToTestDisplayString(), asm3.GlobalNamespace.GetTypeMembers("C6").Single().ToTestDisplayString())
+            Assert.Equal(typeC301.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers("C301").Single().ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+            Assert.Equal(typeC6.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat), asm3.GlobalNamespace.GetTypeMembers("C6").Single().ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+            Assert.Equal(type3.GetMembers().Length, asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers().Length)
+            Assert.Equal(type3.GetTypeMembers().Length(), asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetTypeMembers().Length())
+            Assert.Same(typeC301, type3.GetTypeMembers("C301", 0).Single())
+            Assert.Equal(0, type3.Arity)
+            Assert.Equal(1, typeC6.Arity)
+            Assert.NotNull(type3.BaseType)
+            Assert.Equal("System.Object", type3.BaseType.ToTestDisplayString())
+            Assert.Equal(Accessibility.[Public], type3.DeclaredAccessibility)
+            Assert.Equal(Accessibility.Friend, typeC302.DeclaredAccessibility)
+            Assert.Equal(0, type3.Interfaces.Length)
+            Assert.Equal(1, typeC301.Interfaces.Length)
+            Assert.Equal("I1", typeC301.Interfaces.Single().Name)
+            Assert.[False](type3.IsMustInherit)
+            Assert.[True](typeC301.IsMustInherit)
+            Assert.[False](type3.IsNotInheritable)
+            Assert.[False](type3.IsShared)
+            Assert.Equal(0, type3.TypeArguments.Length)
+            Assert.Equal(0, type3.TypeParameters.Length)
+            Dim localC6Params = typeC6.TypeParameters
+            Assert.Equal(1, localC6Params.Length)
+            Assert.Equal(1, typeC6.TypeArguments.Length)
+            Assert.Same(localC6Params(0), typeC6.TypeArguments(0))
+            Assert.Same((DirectCast(type3, RetargetingNamedTypeSymbol)).UnderlyingNamedType, asm3.GlobalNamespace.GetTypeMembers("C3").Single())
+            Assert.Equal(1, ((DirectCast(type3, RetargetingNamedTypeSymbol)).Locations).Length)
+            Assert.Equal(TypeKind.[Class], type3.TypeKind)
+            Assert.Equal(TypeKind.[Interface], asm5(1).GlobalNamespace.GetTypeMembers("I1").Single().TypeKind)
+            Dim localC6_T = localC6Params(0)
+            Dim foo3TypeParam = foo3TypeParams(0)
+            Assert.Equal(0, localC6_T.ConstraintTypes.Length)
+            Assert.Equal(1, foo3TypeParam.ConstraintTypes.Length)
+            Assert.Same(type4, foo3TypeParam.ConstraintTypes(0))
+            Assert.Same(typeC6, localC6_T.ContainingSymbol)
+            Assert.[False](foo3TypeParam.HasConstructorConstraint)
+            Assert.[True](localC6_T.HasConstructorConstraint)
+            Assert.[False](foo3TypeParam.HasReferenceTypeConstraint)
+            Assert.[False](foo3TypeParam.HasValueTypeConstraint)
+            Assert.Equal("TFoo3", foo3TypeParam.Name)
+            Assert.Equal("T", localC6_T.Name)
+            Assert.Equal(0, foo3TypeParam.Ordinal)
+            Assert.Equal(0, localC6_T.Ordinal)
+            Assert.Equal(VarianceKind.None, foo3TypeParam.Variance)
+            Assert.Same((DirectCast(localC6_T, RetargetingTypeParameterSymbol)).UnderlyingTypeParameter, asm3.GlobalNamespace.GetTypeMembers("C6").Single().TypeParameters(0))
+            Dim ns1 = asm5(1).GlobalNamespace.GetMembers("ns1").OfType(Of NamespaceSymbol)().Single()
+            Dim ns2 = ns1.GetMembers("ns2").OfType(Of NamespaceSymbol)().Single()
+            Assert.Equal("ns1.ns2", ns2.ToTestDisplayString())
+            Assert.Equal(2, ns1.GetMembers().Length)
+            Assert.Equal(1, ns1.GetTypeMembers().Length())
+            Assert.Same(ns1.GetTypeMembers("C304").Single(), ns1.GetTypeMembers("C304", 0).Single())
+            Assert.Same(asm5(1).Modules(0), asm5(1).Modules(0).GlobalNamespace.ContainingSymbol)
+            Assert.Same(asm5(1).Modules(0).GlobalNamespace, ns1.ContainingSymbol)
+            Assert.Same(asm5(1).Modules(0), ns1.Extent.[Module])
+            Assert.Equal(1, ns1.ConstituentNamespaces.Length)
+            Assert.Same(ns1, ns1.ConstituentNamespaces(0))
+            Assert.[False](ns1.IsGlobalNamespace)
+            Assert.Equal(DirectCast(ns2, RetargetingNamespaceSymbol).DeclaredAccessibilityOfMostAccessibleDescendantType, ns2.DeclaredAccessibilityOfMostAccessibleDescendantType)
+            Assert.[True](asm5(1).Modules(0).GlobalNamespace.IsGlobalNamespace)
+            Assert.Same(asm3.Modules(0).GlobalNamespace, (DirectCast(asm5(1).Modules(0).GlobalNamespace, RetargetingNamespaceSymbol)).UnderlyingNamespace)
+            Assert.Same(asm3.Modules(0).GlobalNamespace.GetMembers("ns1").Single(), (DirectCast(ns1, RetargetingNamespaceSymbol)).UnderlyingNamespace)
+            Dim module3 = DirectCast(asm5(1).Modules(0), RetargetingModuleSymbol)
+            Assert.Equal("C3.exe", module3.ToTestDisplayString())
+            Assert.Equal("C3.exe", module3.Name)
+            Assert.Same(asm5(1), module3.ContainingSymbol)
+            Assert.Same(asm5(1), module3.ContainingAssembly)
+            Assert.Null(module3.ContainingType)
+            Dim retval5 = type3.GetMembers("Foo4").OfType(Of MethodSymbol)().Single().ReturnType
+            Assert.Equal("C8(Of C4)", retval5.ToTestDisplayString())
+            Dim typeC5 = c5.[Assembly].GlobalNamespace.GetTypeMembers("C5").Single()
+            Assert.Same(asm5(1), typeC5.BaseType.ContainingAssembly)
+            Assert.Equal("ns1.C304.C305", typeC5.BaseType.ToTestDisplayString())
             Assert.NotEqual(SymbolKind.ErrorType, typeC5.Kind)
         End Sub
 

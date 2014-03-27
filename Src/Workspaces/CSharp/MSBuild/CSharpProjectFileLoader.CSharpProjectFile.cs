@@ -70,22 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var projectReference in GetProjectReferenceItems(executedProject))
                 {
                     Guid guid;
-                    Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid);
+                    if (!Guid.TryParse(projectReference.GetMetadataValue("Project"), out guid))
+                    {
+                        continue;
+                    }
 
                     var filePath = projectReference.EvaluatedInclude;
+                    var aliases = GetAliases(projectReference);
 
-                    string[] aliases;
-                    if (TryGetAliases(projectReference, out aliases))
-                    {
-                        foreach (var alias in aliases)
-                        {
-                            yield return new ProjectFileReference(guid, filePath, alias);
-                        }
-                    }
-                    else
-                    {
-                        yield return new ProjectFileReference(guid, filePath);
-                    }
+                    yield return new ProjectFileReference(guid, filePath, aliases);
                 }
             }
 
@@ -138,27 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var filePath = GetDocumentFilePath(item);
 
-                string[] aliases;
-                if (TryGetAliases(item, out aliases))
-                {
-                    return aliases.Select(alias => new MetadataInfo(filePath, new MetadataReferenceProperties(alias: alias)));
-                }
-
-                return new MetadataInfo[] { new MetadataInfo(filePath) };
+                var aliases = GetAliases(item);
+                return new MetadataInfo[] { new MetadataInfo(filePath, new MetadataReferenceProperties(aliases: aliases)) };
             }
 
-            private bool TryGetAliases(MSB.Framework.ITaskItem item, out string[] aliases)
+            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
             {
                 var aliasesText = item.GetMetadata("Aliases");
 
-                if (!string.IsNullOrEmpty(aliasesText))
+                if (string.IsNullOrEmpty(aliasesText))
                 {
-                    aliases = aliasesText.Split(new char[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    return aliases.Length >= 1;
+                    return ImmutableArray<string>.Empty;
                 }
 
-                aliases = null;
-                return false;
+                return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)

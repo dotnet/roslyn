@@ -202,29 +202,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Debug.Assert(!peImage.IsDefault);
 
-                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, compilation.Options.OutputKind , display: compilation.AssemblyName);
+                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, compilation.Options.OutputKind, display: compilation.AssemblyName);
                     var references = compilation.References.Concat(new[] { targetReference });
                     var assemblies = test.ReferencesToModuleSymbols(references, compilation.Options.MetadataImportOptions);
                     var module = assemblies.Last();
-                    moduleSymbol = (IModuleSymbol)module;
+                    moduleSymbol = module;
                 }
 
                 return moduleSymbol;
             }
 
-            private static MetadataImageReference LoadTestEmittedExecutableForSymbolValidation(ImmutableArray<byte> image, OutputKind outputKind, DocumentationProvider documentation = null, string alias = null, bool embedInteropTypes = false, string fullPath = null, string display = null)
+            private static MetadataImageReference LoadTestEmittedExecutableForSymbolValidation(
+                ImmutableArray<byte> image,
+                OutputKind outputKind,
+                string display = null)
             {
                 var moduleMetadata = ModuleMetadata.CreateFromImage(image);
                 moduleMetadata.Module.PretendThereArentNoPiaLocalTypes();
 
                 if (outputKind == OutputKind.NetModule)
                 {
-                    return new MetadataImageReference(moduleMetadata, documentation, fullPath, display);
+                    return new MetadataImageReference(moduleMetadata, display: display);
                 }
                 else
                 {
                     var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
-                    return new MetadataImageReference(assemblyMetadata, documentation, alias, embedInteropTypes, fullPath, display);
+                    return new MetadataImageReference(assemblyMetadata, display: display);
                 }
             }
         }

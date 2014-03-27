@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis
         /// Enumerates all referenced assemblies.
         /// </summary>
         internal abstract IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies();
+
+        internal abstract bool TryGetReferencedAssemblySymbol(MetadataReference reference, out IAssemblySymbol symbol, out ImmutableArray<string> aliases);
     }
 
     partial class CommonReferenceManager<TCompilation, TAssemblySymbol> : CommonReferenceManager
@@ -53,6 +55,11 @@ namespace Microsoft.CodeAnalysis
 
                 this.Symbol = symbol;
                 this.Aliases = aliases;
+            }
+
+            public bool DeclarationsAccessibleWithoutAlias()
+            {
+                return Aliases.Length == 0 || Aliases.IndexOf(MetadataReferenceProperties.GlobalAlias) >= 0;
             }
         }
 
@@ -92,7 +99,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// A map from a metadata reference to an AssemblySymbol used for it. Do not access
-        /// directly, use <see cref="P:ReferencedAssembliesMap"/> property instead.
+        /// directly, use <see cref="ReferencedAssembliesMap"/> property instead.
         /// </summary>
         private Dictionary<MetadataReference, ReferencedAssembly> lazyReferencedAssembliesMap;
 
@@ -199,11 +206,6 @@ namespace Microsoft.CodeAnalysis
                 AssertBound();
                 return lazyReferencedAssembliesMap;
             }
-        }
-
-        internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies()
-        {
-            return ReferencedAssembliesMap.Select(ra => KeyValuePair.Create(ra.Key, (IAssemblySymbol)ra.Value.Symbol));
         }
 
         internal Dictionary<MetadataReference, int> ReferencedModuleIndexMap
@@ -378,6 +380,26 @@ namespace Microsoft.CodeAnalysis
             {
                 return ReferencedAssembliesMap.Values.SelectMany(entry => entry.Aliases);
             }
+        }
+
+        internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies()
+        {
+            return ReferencedAssembliesMap.Select(ra => KeyValuePair.Create(ra.Key, (IAssemblySymbol)ra.Value.Symbol));
+        }
+
+        internal sealed override bool TryGetReferencedAssemblySymbol(MetadataReference reference, out IAssemblySymbol symbol, out ImmutableArray<string> aliases)
+        {
+            ReferencedAssembly result;
+            if (ReferencedAssembliesMap.TryGetValue(reference, out result))
+            {
+                symbol = result.Symbol;
+                aliases = result.Aliases;
+                return true;
+            }
+
+            symbol = null;
+            aliases = default(ImmutableArray<string>);
+            return false;
         }
 
         internal TAssemblySymbol GetReferencedAssemblySymbol(MetadataReference reference)
