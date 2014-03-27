@@ -22,12 +22,4 @@
 	  		RootSuffix="$(DeployVSHive)"
 	  		FailIfNotInstalled="false" />
   </Target>
-
-  <!-- ====================================================================================
-       
-         VSSDK
-       
-       ==================================================================================== -->
- 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
 </Project>
