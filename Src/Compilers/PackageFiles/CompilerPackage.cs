@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CompilerPackage
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [PackageLoadKey("0.7.0.0", "CompilerPackage", "Microsoft", WDExpressId = 1, VWDExpressId = 2, VsWinExpressId = 3)]
+    [PackageLoadKey("0.6.0.0", "CompilerPackage", "Microsoft", WDExpressId = 1, VWDExpressId = 2, VsWinExpressId = 3)]
     [Guid("fc8d0600-8f16-4a89-a49c-a4f6c38b216a")]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class CompilerPackage : Package
