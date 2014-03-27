@@ -83,6 +83,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// <code>true</code> if this Project supports providing data through the
+        /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
+        /// 
+        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// </summary>
+        public bool SupportsCompilation
+        {
+            get
+            {
+                return LanguageService.GetService<ICompilationFactoryService>(this) != null;
+            }
+        }
+
         internal ILanguageServiceProvider GetLanguageServiceProviderInternal()
         {
             return projectState.LanguageServices;
@@ -293,6 +307,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (!this.SupportsCompilation)
+            {
+                return Task.FromResult<Compilation>(null);
+            }
+
             return this.solution.GetCompilationAsync(this.Id, cancellationToken);
         }
 

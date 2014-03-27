@@ -621,11 +621,15 @@ namespace Microsoft.CodeAnalysis
             {
                 return treeAndVersion.Version;
             }
-            else
+
+            var syntaxTreeFactory = this.LanguageServices.GetService<ISyntaxTreeFactoryService>();
+            if (syntaxTreeFactory == null)
             {
-                treeAndVersion = await this.treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return treeAndVersion.Version;
+                return await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             }
+
+            treeAndVersion = await this.treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return treeAndVersion.Version;
         }
 
         private static readonly ReaderWriterLockSlim syntaxTreeToIdMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);

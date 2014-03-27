@@ -189,6 +189,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static async Task<SymbolTreeInfo> GetInfoForProjectAsync(Project project, CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+            {
+                return null;
+            }
+
             var branchId = project.Solution.BranchId;
             var workspace = project.Solution.Workspace;
 

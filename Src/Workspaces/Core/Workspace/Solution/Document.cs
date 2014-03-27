@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -201,10 +202,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// <code>true</code> if this Document supports providing data through the
+        /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
+        /// 
+        /// If <code>false</code> then these methods will return <code>null</code> instead.
+        /// </summary>
+        public bool SupportsSyntaxTree
+        {
+            get
+            {
+                return LanguageService.GetService<ISyntaxTreeFactoryService>(this) != null;
+            }
+        }
+
+        /// <summary>
+        /// <code>true</code> if this Document supports providing data through the
+        /// <see cref="GetSemanticModelAsync"/> method.
+        /// 
+        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// </summary>
+        public bool SupportsSemanticModel
+        {
+            get
+            {
+                return this.SupportsSyntaxTree && this.Project.SupportsCompilation;
+            }
+        }
+
+        /// <summary>
         /// Gets the SyntaxTree for this document asynchronously.
         /// </summary>
         public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            // If the language doesn't support getting syntax trees for a document, then bail out
+            // immediately.
+            if (!this.SupportsSyntaxTree)
+            {
+                return Task.FromResult<SyntaxTree>(null);
+            }
+
             if (syntaxTreeResultTask != null)
             {
                 return syntaxTreeResultTask;
@@ -254,6 +290,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (!this.SupportsSyntaxTree)
+            {
+                return null;
+            }
+
             var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -272,6 +313,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (!this.SupportsSemanticModel)
+            {
+                return null;
+            }
+
             SemanticModel semanticModel;
             if (this.TryGetSemanticModel(out semanticModel))
             {

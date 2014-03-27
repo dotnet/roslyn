@@ -71,12 +71,20 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectInfo.CompilationOptions == null)
             {
-                projectInfo = projectInfo.WithCompilationOptions(this.languageServices.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions());
+                var compilationFactory = this.languageServices.GetService<ICompilationFactoryService>();
+                if (compilationFactory != null)
+                {
+                    projectInfo = projectInfo.WithCompilationOptions(compilationFactory.GetDefaultCompilationOptions());
+                }
             }
 
             if (projectInfo.ParseOptions == null)
             {
-                projectInfo = projectInfo.WithParseOptions(this.languageServices.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions());
+                var syntaxTreeFactory = this.languageServices.GetService<ISyntaxTreeFactoryService>();
+                if (syntaxTreeFactory != null)
+                {
+                    projectInfo = projectInfo.WithParseOptions(syntaxTreeFactory.GetDefaultParseOptions());
+                }
             }
 
             return projectInfo;
