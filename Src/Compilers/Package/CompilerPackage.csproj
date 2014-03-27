@@ -18,9 +18,9 @@
     <PlatformTarget>x86</PlatformTarget>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <DeployExtension>False</DeployExtension>
+    <StartArguments>/rootsuffix Roslyn /log</StartArguments>
+    <VSSDKTargetPlatformRegRootSuffix>Roslyn</VSSDKTargetPlatformRegRootSuffix>
+    <DeployExtension>true</DeployExtension>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <StyleCopEnabled>false</StyleCopEnabled>

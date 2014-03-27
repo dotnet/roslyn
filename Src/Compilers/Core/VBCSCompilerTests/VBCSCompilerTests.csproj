@@ -25,16 +25,6 @@
       <Name>VBCSCompiler</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\rcsc2\rcsc2.vcxproj">
-      <Project>{63D0F073-F0B3-42CD-829F-E48B977B48BA}</Project>
-      <Name>rcsc2</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\rvbc2\rvbc2.vcxproj">
-      <Project>{4A40DFE7-34B3-5931-D055-4258510BA9D1}</Project>
-      <Name>rvbc2</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
