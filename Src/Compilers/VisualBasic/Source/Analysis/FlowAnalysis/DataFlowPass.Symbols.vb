@@ -14,11 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' but uses the same object initializer for all of them, like: 
         '''     Dim a,b As New C() With { .X = .Y } 
         ''' </summary>
-        Protected Class AmbiguousLocalsPseudoSymbol
+        Protected NotInheritable Class AmbiguousLocalsPseudoSymbol
             Inherits LocalSymbol
 
             Private Sub New(container As Symbol, type As TypeSymbol, locals As ImmutableArray(Of LocalSymbol))
-                MyBase.New(container, Nothing, LocalDeclarationKind.AmbiguousLocals, type)
+                MyBase.New(container, LocalDeclarationKind.AmbiguousLocals, type)
+
+                Debug.Assert(type IsNot Nothing)
                 Me.Locals = locals
             End Sub
 
@@ -39,6 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
                     Return ImmutableArray(Of SyntaxReference).Empty
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IdentifierToken As SyntaxToken
+                Get
+                    Return Nothing
                 End Get
             End Property
 

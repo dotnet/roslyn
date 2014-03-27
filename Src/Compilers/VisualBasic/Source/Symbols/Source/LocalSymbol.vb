@@ -41,8 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared ReadOnly UseBeforeDeclarationResultType As ErrorTypeSymbol = New ErrorTypeSymbol()
 
         Private ReadOnly _container As Symbol ' the method, field or property that contains the declaration of this variable
-        Private ReadOnly _declaringIdentifier As SyntaxToken ' the identifier that declared the variable. This is used as its location.
-        Friend ReadOnly _DeclarationKind As LocalDeclarationKind
+        Friend ReadOnly DeclarationKind As LocalDeclarationKind
 
         Friend Overridable ReadOnly Property TempKind As TempKind
             Get
@@ -61,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             modifiedIdentifierOpt As ModifiedIdentifierSyntax,
             asClauseOpt As AsClauseSyntax,
             initializerOpt As EqualsValueSyntax,
-            DeclarationKind As LocalDeclarationKind) As LocalSymbol
+            declarationKind As LocalDeclarationKind) As LocalSymbol
 
-            Return New VariableLocalSymbol(container, binder, declaringIdentifier, modifiedIdentifierOpt, asClauseOpt, initializerOpt, DeclarationKind)
+            Return New VariableLocalSymbol(container, binder, declaringIdentifier, modifiedIdentifierOpt, asClauseOpt, initializerOpt, declarationKind)
         End Function
 
         ''' <summary>
@@ -72,35 +71,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function Create(container As Symbol,
             binder As Binder,
             declaringIdentifier As SyntaxToken,
-            DeclarationKind As LocalDeclarationKind,
+            declarationKind As LocalDeclarationKind,
             type As TypeSymbol) As LocalSymbol
 
-            Return New LocalSymbolWithBinder(container, binder, declaringIdentifier, DeclarationKind, type)
+            Return New LocalSymbolWithBinder(container, binder, declaringIdentifier, declarationKind, type)
         End Function
 
         ''' <summary>
-        ''' Create a local symbol associated with an identifier token and a different name (used for operators)
-        ''' </summary>
-        Friend Shared Function Create(container As Symbol,
-            binder As Binder,
-            aliasName As String,
-            declaringIdentifier As SyntaxToken,
-            DeclarationKind As LocalDeclarationKind,
-            type As TypeSymbol) As LocalSymbol
-
-            Return New AliasLocalSymbolWithBinder(container, binder, aliasName, declaringIdentifier, DeclarationKind, type)
-        End Function
-
-        ''' <summary>
-        ''' Create a local symbol associated with an identifier token but a different name.
+        ''' Create a local symbol associated with an identifier token and a different name (used for operators, etc.)
         ''' </summary>
         Friend Shared Function Create(container As Symbol,
             aliasName As String,
             declaringIdentifier As SyntaxToken,
-            DeclarationKind As LocalDeclarationKind,
+            declarationKind As LocalDeclarationKind,
             type As TypeSymbol) As LocalSymbol
 
-            Return New AliasLocalSymbol(container, aliasName, declaringIdentifier, DeclarationKind, type)
+            Return New AliasLocalSymbol(container, aliasName, declaringIdentifier, declarationKind, type)
         End Function
 
         ''' <summary>
@@ -108,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>Generally used for temporary locals past the initial binding phase.</remarks>
         Friend Shared Function Create(container As Symbol,
-            declaringIdentifier As SyntaxToken,
-            DeclarationKind As LocalDeclarationKind,
+            name As String,
+            declarationKind As LocalDeclarationKind,
             type As TypeSymbol) As LocalSymbol
 
-            Return New NoLocationVariable(container, declaringIdentifier, DeclarationKind, type)
+            Return New NoLocationVariable(container, name, declarationKind, type)
         End Function
 
         ''' <summary>
@@ -144,8 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' local binder so that it can be found by lookup.
         ''' </summary>
         Friend Sub New(container As Symbol,
-                    declaringIdentifier As SyntaxToken,
-                    DeclarationKind As LocalDeclarationKind,
+                    declarationKind As LocalDeclarationKind,
                     type As TypeSymbol)
 
             Debug.Assert(container IsNot Nothing, "local must belong to a method, field or property")
@@ -155,8 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          "Unsupported container. Must be method, field or property.")
 
             _container = container
-            _declaringIdentifier = declaringIdentifier
-            _DeclarationKind = DeclarationKind
+            Me.DeclarationKind = declarationKind
             _type = type
         End Sub
 
@@ -204,21 +188,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _type
         End Function
 
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return _declaringIdentifier.GetIdentifierText()
-            End Get
-        End Property
+        Public MustOverride Overrides ReadOnly Property Name As String
 
         ' Get the identifier token that defined this local symbol. This is useful for robustly checking
         ' if a local symbol actually matches a particular definition, even in the presence of duplicates.
-        Friend ReadOnly Property IdentifierToken As SyntaxToken
-            Get
-                Return _declaringIdentifier
-            End Get
-        End Property
+        Friend MustOverride ReadOnly Property IdentifierToken As SyntaxToken
 
-        Public Overrides ReadOnly Property Kind As SymbolKind
+        Public NotOverridable Overrides ReadOnly Property Kind As SymbolKind
             Get
                 Return SymbolKind.Local
             End Get
@@ -276,49 +252,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IsUsing As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.Using
+                Return Me.DeclarationKind = LocalDeclarationKind.Using
             End Get
         End Property
 
         Public ReadOnly Property IsCatch As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.Catch
+                Return Me.DeclarationKind = LocalDeclarationKind.Catch
             End Get
         End Property
 
         Public ReadOnly Property IsConst As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.Constant
+                Return Me.DeclarationKind = LocalDeclarationKind.Constant
             End Get
         End Property
 
         Public ReadOnly Property IsStatic As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.Static
+                Return Me.DeclarationKind = LocalDeclarationKind.Static
             End Get
         End Property
 
         Public ReadOnly Property IsFor As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.For
+                Return Me.DeclarationKind = LocalDeclarationKind.For
             End Get
         End Property
 
         Public ReadOnly Property IsForEach As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.ForEach
+                Return Me.DeclarationKind = LocalDeclarationKind.ForEach
             End Get
         End Property
 
         Public ReadOnly Property IsFunctionValue As Boolean Implements ILocalSymbol.IsFunctionValue
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.FunctionValue
+                Return Me.DeclarationKind = LocalDeclarationKind.FunctionValue
             End Get
         End Property
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.CompilerGenerated
+                Return Me.DeclarationKind = LocalDeclarationKind.CompilerGenerated
             End Get
         End Property
 
@@ -328,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._DeclarationKind = LocalDeclarationKind.ImplicitVariable
+                Return Me.DeclarationKind = LocalDeclarationKind.ImplicitVariable
             End Get
         End Property
 
@@ -374,25 +350,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable Function GetConstantValue(binder As Binder) As ConstantValue
             Return Nothing
         End Function
-
-#If True Then
-        Public Overrides Function Equals(obj As Object) As Boolean
-            'PERF: TryCast is to avoid going through GetObjectValue when calling ReferenceEquals
-            Dim other = TryCast(obj, LocalSymbol)
-
-            If Me.IdentifierToken.VisualBasicKind = SyntaxKind.None Then
-                ' this local is not from source (may be FrameReference, etc)
-                Return Me Is other
-            ElseIf Me Is other Then
-                Return True
-            End If
-            Return other IsNot Nothing AndAlso other.IdentifierToken.Equals(Me.IdentifierToken) AndAlso Equals(other._container, Me._container)
-        End Function
-
-        Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.IdentifierToken.GetHashCode(), Me._container.GetHashCode())
-        End Function
-#End If
 
         Friend Overridable ReadOnly Property HasInferredType As Boolean
             Get
@@ -452,15 +409,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #End Region
 
+#Region "SourceLocalSymbol"
+
+        ''' <summary>
+        ''' Base class for any local symbol that can be referenced in source, might be implicitly declared.
+        ''' </summary>
+        Private MustInherit Class SourceLocalSymbol
+            Inherits LocalSymbol
+
+            Protected ReadOnly _declaringIdentifier As SyntaxToken
+
+            Public Sub New(container As Symbol,
+                           declaringIdentifier As SyntaxToken,
+                           declarationKind As LocalDeclarationKind,
+                           type As TypeSymbol)
+                MyBase.New(container, declarationKind, type)
+
+                Debug.Assert(declaringIdentifier.VisualBasicKind <> SyntaxKind.None)
+                _declaringIdentifier = declaringIdentifier
+            End Sub
+
+
+            Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
+                Get
+                    Dim name = TryCast(Me._declaringIdentifier.Parent, IdentifierNameSyntax)
+                    If name IsNot Nothing Then
+                        Return ImmutableArray.Create(Of SyntaxReference)(name.GetReference())
+                    Else
+                        Return ImmutableArray(Of SyntaxReference).Empty
+                    End If
+                End Get
+            End Property
+
+            Friend NotOverridable Overrides ReadOnly Property IdentifierLocation As Location
+                Get
+                    Return _declaringIdentifier.GetLocation()
+                End Get
+            End Property
+
+            Friend NotOverridable Overrides ReadOnly Property IdentifierToken As SyntaxToken
+                Get
+                    Return _declaringIdentifier
+                End Get
+            End Property
+
+            Public Overrides Function Equals(obj As Object) As Boolean
+                If Me Is obj Then
+                    Return True
+                End If
+
+                Dim other = TryCast(obj, SourceLocalSymbol)
+
+                Return other IsNot Nothing AndAlso other._declaringIdentifier.Equals(Me._declaringIdentifier) AndAlso Equals(other._container, Me._container) AndAlso String.Equals(other.Name, Me.Name)
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return Hash.Combine(_declaringIdentifier.GetHashCode(), Me._container.GetHashCode())
+            End Function
+        End Class
+#End Region
+
 #Region "LocalSymbolWithBinder"
         ''' <summary>
         ''' Base class for any local symbol that needs a binder
         ''' </summary>
         ''' <remarks></remarks>
         Private Class LocalSymbolWithBinder
-            Inherits LocalSymbol
+            Inherits SourceLocalSymbol
 
-            Private _binder As Binder
+            Private ReadOnly _binder As Binder
 
             ''' <summary>
             ''' Create a local variable symbol. Note: this does not insert it automatically into a
@@ -469,13 +486,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub New(container As Symbol,
                            binder As Binder,
                            declaringIdentifier As SyntaxToken,
-                           DeclarationKind As LocalDeclarationKind,
+                           declarationKind As LocalDeclarationKind,
                            type As TypeSymbol)
-                MyBase.New(container, declaringIdentifier, DeclarationKind, type)
+                MyBase.New(container, declaringIdentifier, declarationKind, type)
 
                 Debug.Assert(binder IsNot Nothing, "expected a binder")
                 _binder = binder
             End Sub
+
+            Public NotOverridable Overrides ReadOnly Property Name As String
+                Get
+                    Return _declaringIdentifier.GetIdentifierText()
+                End Get
+            End Property
 
             Friend Overrides ReadOnly Property TempKind As TempKind
                 Get
@@ -486,23 +509,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend ReadOnly Property Binder As Binder
                 Get
                     Return _binder
-                End Get
-            End Property
-
-            Friend Overrides ReadOnly Property IdentifierLocation As Location
-                Get
-                    Return IdentifierToken.GetLocation()
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
-                Get
-                    Dim name = TryCast(Me._declaringIdentifier.Parent, IdentifierNameSyntax)
-                    If name IsNot Nothing Then
-                        Return ImmutableArray.Create(Of SyntaxReference)(name.GetReference())
-                    Else
-                        Return ImmutableArray(Of SyntaxReference).Empty
-                    End If
                 End Get
             End Property
 
@@ -521,52 +527,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #End Region
 
-#Region "AliasLocalSymbolWithBinder"
+#Region "AliasLocalSymbol"
         ''' <summary>
-        ''' Class for a local symbol that needs a binder and has a different name than the identifier token.
+        ''' Class for a local symbol that has a different name than the identifier token.
         ''' In this case the real name is returned by the name property and the "VB User visible name" can be
         ''' obtained by accessing the IdentifierToken.
         ''' </summary>
         ''' <remarks></remarks>
-        Private NotInheritable Class AliasLocalSymbolWithBinder
-            Inherits LocalSymbolWithBinder
-
-            Private _aliasName As String
-
-            ''' <summary>
-            ''' Create a local variable symbol. Note: this does not insert it automatically into a
-            ''' local binder so that it can be found by lookup.
-            ''' </summary>
-            Public Sub New(container As Symbol,
-                           binder As Binder,
-                           aliasName As String,
-                           declaringIdentifier As SyntaxToken,
-                           DeclarationKind As LocalDeclarationKind,
-                           type As TypeSymbol)
-                MyBase.New(container, binder, declaringIdentifier, DeclarationKind, type)
-
-                Debug.Assert(aliasName IsNot Nothing, "expected an alias")
-                _aliasName = aliasName
-            End Sub
-
-            Public Overrides ReadOnly Property Name As String
-                Get
-                    Return _aliasName
-                End Get
-            End Property
-        End Class
-
-#End Region
-
-#Region "AliasLocalSymbol"
-        ''' <summary>
-        ''' Class for a local symbol that has a different name than the identifier token.
-        ''' </summary>
-        ''' <remarks>Instances of this class are used in rewriting.</remarks>
         Private NotInheritable Class AliasLocalSymbol
-            Inherits LocalSymbol
+            Inherits SourceLocalSymbol
 
-            Private _aliasName As String
+            Private ReadOnly _aliasName As String
 
             ''' <summary>
             ''' Create a local variable symbol. Note: this does not insert it automatically into a
@@ -575,35 +546,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub New(container As Symbol,
                            aliasName As String,
                            declaringIdentifier As SyntaxToken,
-                           DeclarationKind As LocalDeclarationKind,
+                           declarationKind As LocalDeclarationKind,
                            type As TypeSymbol)
-                MyBase.New(container, declaringIdentifier, DeclarationKind, type)
+                MyBase.New(container, declaringIdentifier, declarationKind, type)
 
                 Debug.Assert(aliasName IsNot Nothing, "expected an alias")
+                Debug.Assert(type IsNot Nothing)
                 _aliasName = aliasName
             End Sub
-
-            Friend Overrides ReadOnly Property TempKind As TempKind
-                Get
-                    Return TempKind.None
-                End Get
-            End Property
 
             Public Overrides ReadOnly Property Name As String
                 Get
                     Return _aliasName
-                End Get
-            End Property
-
-            Friend Overrides ReadOnly Property IdentifierLocation As Location
-                Get
-                    Return IdentifierToken.GetLocation()
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
-                Get
-                    Return ImmutableArray(Of SyntaxReference).Empty
                 End Get
             End Property
         End Class
@@ -778,9 +732,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            modifiedIdentifierOpt As ModifiedIdentifierSyntax,
                            asClauseOpt As AsClauseSyntax,
                            initializerOpt As EqualsValueSyntax,
-                           DeclarationKind As LocalDeclarationKind)
+                           declarationKind As LocalDeclarationKind)
 
-                MyBase.New(container, binder, declaringIdentifier, DeclarationKind, Nothing)
+                MyBase.New(container, binder, declaringIdentifier, declarationKind, Nothing)
 
                 _modifiedIdentifierOpt = modifiedIdentifierOpt
                 _asClauseOpt = asClauseOpt
@@ -877,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Select Case _DeclarationKind
+                    Select Case DeclarationKind
                         Case LocalDeclarationKind.CompilerGenerated, LocalDeclarationKind.FunctionValue
                             Return ImmutableArray(Of SyntaxReference).Empty
 
@@ -899,15 +853,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Local symbol that is not associated with any source.
         ''' </summary>
         ''' <remarks>Generally used for temporary locals past the initial binding phase.</remarks>
-        Private Class NoLocationVariable
+        Private NotInheritable Class NoLocationVariable
             Inherits LocalSymbol
 
+            Private ReadOnly m_Name As String
+
             Public Sub New(container As Symbol,
-                declaringIdentifier As SyntaxToken,
-                DeclarationKind As LocalDeclarationKind,
+                name As String,
+                declarationKind As LocalDeclarationKind,
                 type As TypeSymbol)
-                MyBase.New(container, declaringIdentifier, DeclarationKind, type)
+                MyBase.New(container, declarationKind, type)
+
+                Debug.Assert(type IsNot Nothing)
+                m_Name = name
             End Sub
+
+            Public Overrides ReadOnly Property Name As String
+                Get
+                    Return m_Name
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IdentifierToken As SyntaxToken
+                Get
+                    Return Nothing
+                End Get
+            End Property
 
             Friend Overrides ReadOnly Property IdentifierLocation As Location
                 Get

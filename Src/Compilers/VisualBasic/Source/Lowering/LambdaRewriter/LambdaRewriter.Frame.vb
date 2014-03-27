@@ -498,55 +498,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
 
         ''' <summary>
-        ''' A local variable used to store a reference to the frame objects in which captured
-        ''' local variables have become fields.
-        ''' </summary>
-        Private Class FrameReference
-            Inherits LocalSymbol
-
-            Private ReadOnly m_name As String
-            Private ReadOnly containingMethod As MethodSymbol
-
-            Friend Sub New(containingMethod As MethodSymbol, frame As TypeSymbol, tempNumber As Integer)
-                MyBase.New(containingMethod, Nothing, LocalDeclarationKind.CompilerGenerated, frame)
-                'TODO: VB10 adds line/column numbers in hex here. 
-                'Not sure if that is important or always meaningful. 
-                Me.m_name = StringConstants.ClosureVariablePrefix & tempNumber
-                Me.containingMethod = containingMethod
-            End Sub
-
-            Public Overrides ReadOnly Property Name As String
-                Get
-                    Return m_name
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
-                Get
-                    Return ImmutableArray(Of Location).Empty
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
-                Get
-                    Return ImmutableArray(Of SyntaxReference).Empty
-                End Get
-            End Property
-
-            Friend Overrides ReadOnly Property IdentifierLocation As Location
-                Get
-                    Return NoLocation.Singleton
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property ContainingSymbol As Symbol
-                Get
-                    Return containingMethod
-                End Get
-            End Property
-        End Class
-
-        ''' <summary>
         ''' Copy constructor has one parameter of the same type as the enclosing type.
         ''' The purpose is to copy all the lifted values from previous version of the 
         ''' frame if there was any into the new one.

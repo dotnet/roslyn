@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OperatorBlock
                     ' in case of an operator, we need to create a symbol that uses the identifier token for error messages, but also
                     ' has an "alias" (the CLR operator name) which is used as the name of this local.
-                    Return LocalSymbol.Create(methodSymbol, Me,
+                    Return LocalSymbol.Create(methodSymbol,
                                               GeneratedNames.MakeOperatorLocalName(methodSymbol.Name),
                                               DirectCast(methodBlock, OperatorBlockSyntax).Begin.OperatorToken,
                                               LocalSymbol.LocalDeclarationKind.FunctionValue,
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim identifier = eventSyntax.Identifier
                         ' NOTE: To avoid a breaking change, we reproduce the dev11 behavior - the name of the local is
                         ' taken from the name of the accessor, rather than the name of the event (as it would be for a property).
-                        Return LocalSymbol.Create(methodSymbol, Me, methodSymbol.Name, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue,
+                        Return LocalSymbol.Create(methodSymbol, methodSymbol.Name, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue,
                                                   If(methodSymbol.ReturnType.IsVoidType(), ErrorTypeSymbol.UnknownResultType, methodSymbol.ReturnType))
                     End If
 

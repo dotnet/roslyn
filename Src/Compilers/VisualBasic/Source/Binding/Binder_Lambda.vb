@@ -1092,11 +1092,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We use an alias local to have the declaration identifier point to the function syntax token and a temporary name that
             ' does not shadow a local declared by the user (and thus allowing a local named "[function]").
             ' The lambda rewriter will have to give it a name that matches the emitted name of the lambda.
-            Dim identifier = header.Keyword
-            Dim functionValue = LocalSymbol.Create(lambdaSymbol, GeneratedNames.MakeTempLambdaLocalName, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue, Nothing)
-
             ' The local's type is the same as the lambdas's return type
-            functionValue.SetType(lambdaSymbol.ReturnType)
+            Dim identifier = header.Keyword
+            Dim functionValue = LocalSymbol.Create(lambdaSymbol, GeneratedNames.MakeTempLambdaLocalName, identifier, LocalSymbol.LocalDeclarationKind.FunctionValue, lambdaSymbol.ReturnType)
 
             Return functionValue
         End Function
