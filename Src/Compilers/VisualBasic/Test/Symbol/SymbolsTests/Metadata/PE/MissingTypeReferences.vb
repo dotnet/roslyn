@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class MissingTypeReferences
         Inherits BasicTestBase
 
-        <Fact(Skip:="910594"), WorkItem(910594)>
+        <Fact, WorkItem(910594)>
         Public Sub Test1()
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib2)
 
@@ -294,15 +294,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Dim wrongSubstitution = TypeSubstitution.Create(TC7, {TC7.TypeParameters(0)}.AsImmutableOrNull(),
                                                                               {DirectCast(param2, TypeSymbol)}.AsImmutableOrNull())
-            Dim gotException As Boolean
-            Try
-                gotException = False
-                missing.Construct(wrongSubstitution)
-            Catch x As Exception
-                gotException = True
-            End Try
-
-            'Assert.True(gotException)
 
             Dim substitution = TypeSubstitution.Create(missing, {TC.TypeParameters(0), TC.TypeParameters(1), missing.TypeParameters(0)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(TC.TypeParameters(1), TC.TypeParameters(0), TC.TypeParameters(1)))

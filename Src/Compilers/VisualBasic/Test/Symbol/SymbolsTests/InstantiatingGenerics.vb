@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
     Public Class InstantiatingGenerics
         Inherits BasicTestBase
 
-        <Fact(Skip:="910574"), WorkItem(910574)>
+        <Fact, WorkItem(910574)>
         Public Sub Test1()
 
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)
@@ -302,26 +302,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
             Assert.Equal(g2, g2_1)
 
             Dim s2_1 = TypeSubstitution.Create(C2, {C2_T}, {TC2_T2})
-
-            Dim gotException As Boolean
-
-            Try
-                gotException = False
-                TypeSubstitution.Concat(s2_1.TargetGenericDefinition, s2_1, s1)
-            Catch
-                gotException = True
-            End Try
-
-            Assert.True(gotException)
-
-            Try
-                gotException = False
-                TypeSubstitution.Concat(s1.TargetGenericDefinition, s2_1, s1)
-            Catch
-                gotException = True
-            End Try
-
-            Assert.True(gotException)
 
             Dim s3 = TypeSubstitution.Concat(s2_1.TargetGenericDefinition, s1, s2_1)
             Dim g2_2 = DirectCast(C2.Construct(s3), NamedTypeSymbol)
