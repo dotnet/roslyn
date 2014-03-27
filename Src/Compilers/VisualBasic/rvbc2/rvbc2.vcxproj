@@ -38,17 +38,10 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
+  <PropertyGroup Label="Globals" />
+  <PropertyGroup Label="Globals" />
+  <PropertyGroup Label="Globals" />
   <PropertyGroup Label="Globals">
-    <SccProjectName>SAK</SccProjectName>
-  </PropertyGroup>
-  <PropertyGroup Label="Globals">
-    <SccAuxPath>SAK</SccAuxPath>
-  </PropertyGroup>
-  <PropertyGroup Label="Globals">
-    <SccLocalPath>SAK</SccLocalPath>
-  </PropertyGroup>
-  <PropertyGroup Label="Globals">
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>rvbc2</RootNamespace>
     <ProjectGuid>{4A40DFE7-34B3-5931-D055-4258510BA9D1}</ProjectGuid>
