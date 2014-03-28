@@ -121,7 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (Interlocked.CompareExchange(ref this.fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
                     {
                         this.AddSemanticDiagnostics(diagnostics);
-                        this.state.NotePartComplete(CompletionPart.FixedSize);
+                        if (state.NotePartComplete(CompletionPart.FixedSize))
+                        {
+                            // FixedSize is the last completion part for fields.
+                            DeclaringCompilation.SymbolDeclaredEvent(this);
+                        }
                     }
 
                     diagnostics.Free();

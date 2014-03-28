@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return cachedDiagnostics; }
         }
 
-        internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet)
+        internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 
-            ImmutableInterlocked.InterlockedInitialize(ref cachedDiagnostics, newSet);
+            diagsWritten = ImmutableInterlocked.InterlockedInitialize(ref cachedDiagnostics, newSet);
             return cachedDiagnostics;
         }
 

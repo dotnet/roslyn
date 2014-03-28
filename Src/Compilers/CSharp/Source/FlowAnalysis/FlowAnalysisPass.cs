@@ -103,21 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
             DataFlowPass.Analyze(compilation, method, block, diagnostics);
-            if (compilation.EventQueue != null)
-            {
-                var lazySemanticModel = new Lazy<SemanticModel>(() =>
-                {
-                    var syntax = block.Syntax;
-                    var semanticModel = (CSharpSemanticModel)compilation.GetSemanticModel(syntax.SyntaxTree);
-                    var memberModel = semanticModel.GetMemberModel(syntax);
-                    if (memberModel != null)
-                    {
-                        memberModel.AddBoundTreeForStandaloneSyntax(syntax, block);
-                    }
-                    return semanticModel;
-                });
-                compilation.EventQueue.Enqueue(new CompilationEvent.SymbolDeclared(compilation, method, lazySemanticModel));
-            }
             DisposeCheckerPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }

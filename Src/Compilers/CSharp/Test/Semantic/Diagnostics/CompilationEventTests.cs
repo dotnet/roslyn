@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void VerifyEvents(AsyncQueue<CompilationEvent> queue, params string[] expectedEvents)
         {
             var expected = new HashSet<string>();
-            foreach (var s in expectedEvents) expected.Add(s);
+            foreach (var s in expectedEvents)
+            {
+                if (!expected.Add(s))
+                {
+                    Console.WriteLine("Expected duplicate " + s);
+                }
+            }
+
             var actual = ArrayBuilder<CompilationEvent>.GetInstance();
             while (queue.Count != 0 || !queue.IsCompleted)
             {
@@ -94,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .VerifyDiagnostics();
             VerifyEvents(q,
                 "CompilationStarted",
-                "SymbolDeclared(C N.C<T1> @ : (2,2)-(8,3))",
-                "SymbolDeclared(M N.C<T1>.M(int) @ : (4,4)-(4,27))",
                 "SymbolDeclared(P N.C<T1>.P @ : (5,4)-(5,40))",
                 "SymbolDeclared(F N.C<T1>.F @ : (6,8)-(6,14))",
+                "SymbolDeclared(M N.C<T1>.M(int) @ : (4,4)-(4,27))",
+                "SymbolDeclared(C N.C<T1> @ : (2,2)-(8,3))",
                 "SymbolDeclared(M N.C<T1>.M(int) @ : (11,4)-(11,29))",
                 "SymbolDeclared(get_P N.C<T1>.P.get @ : (5,21)-(5,25))",
                 "SymbolDeclared(set_P N.C<T1>.P.set @ : (5,26)-(5,38))",

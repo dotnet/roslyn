@@ -138,7 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.FixedSize:
                         Debug.Assert(!this.IsFixed);
-                        state.NotePartComplete(CompletionPart.FixedSize); // Not applicable.
+                        if (state.NotePartComplete(CompletionPart.FixedSize)) // Not applicable
+                        {
+                            // FixedSize is the last completion part for fields.
+                            DeclaringCompilation.SymbolDeclaredEvent(this);
+                        }
                         break;
 
                     case CompletionPart.None:

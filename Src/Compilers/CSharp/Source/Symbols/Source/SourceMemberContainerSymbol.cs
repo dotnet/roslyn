@@ -463,7 +463,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // We've completed all members, so we're ready for the PointedAtManagedTypeChecks;
                             // proceed to the next iteration.
-                            state.NotePartComplete(CompletionPart.MembersCompleted);
+                            if (state.NotePartComplete(CompletionPart.MembersCompleted))
+                            {
+                                DeclaringCompilation.SymbolDeclaredEvent(this);
+                            }
                             break;
                         }
 

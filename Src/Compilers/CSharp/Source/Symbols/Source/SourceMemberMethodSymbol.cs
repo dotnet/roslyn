@@ -159,13 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.NotePartComplete(CompletionPart.StartMethodChecks);
                 MethodChecks(syntax, withTypeParamsBinder, diagnostics);
                 state.NotePartComplete(CompletionPart.FinishMethodChecks);
-
                 this.constraintClauseBinder = null;
-            }
-
-            if (bodyOpt == null)
-            {
-                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
         }
 
@@ -406,7 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsAsync)
             {
                 state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
-                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
+
                 return;
             }
 
@@ -442,7 +440,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
                 AddSemanticDiagnostics(diagnostics);
-                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
             }
             else
             {

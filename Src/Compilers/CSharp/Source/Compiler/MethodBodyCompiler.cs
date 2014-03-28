@@ -672,25 +672,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            SourceMethodSymbol sourceMethod = methodSymbol as SourceMethodSymbol;
 
             if (methodSymbol.IsAbstract)
             {
-                // TODO: ensure that we only send a single event for each method
-                if (methodSymbol.DeclaringSyntaxReferences.Length != 0)
+                if ((object)sourceMethod != null)
                 {
-                    compilation.SymbolDeclaredEvent(methodSymbol);
+                    bool diagsWritten;
+                    sourceMethod.SetDiagnostics(ImmutableArray<Diagnostic>.Empty, out diagsWritten);
+                    if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && compilation.EventQueue != null)
+                    {
+                        compilation.SymbolDeclaredEvent(methodSymbol);
+                    }
                 }
-                else
-                {
-                    // what about source symbols with no declaration? How does that happen?
-                }
+
                 return;
             }
 
+            // get cached diagnostics if not building and we have 'em
             bool calculateDiagnosticsOnly = moduleBeingBuilt == null;
-            SourceMethodSymbol sourceMethod = methodSymbol as SourceMethodSymbol;
-            
-            //get cached diagnostics if not building and we have 'em
             if (calculateDiagnosticsOnly && ((object)sourceMethod != null))
             {
                 var cachedDiagnostics = sourceMethod.Diagnostics;
@@ -790,36 +790,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundBlock flowAnalyzedBody = null;
-                if (body == null)
-                {
-                    compilation.SymbolDeclaredEvent(methodSymbol);
-                }
-                else
+                if (body != null)
                 {
                     flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
                 }
-                
+
                 bool hasErrors = hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
 
                 // Record whether or not the bound tree for the lowered method body (including any initializers) contained any
                 // errors (note: errors, not diagnostics).
                 SetGlobalErrorIfTrue(hasErrors);
 
+                bool diagsWritten = false;
+                var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
+                if (sourceMethod != null) actualDiagnostics = sourceMethod.SetDiagnostics(actualDiagnostics, out diagsWritten);
+                if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && compilation.EventQueue != null)
+                {
+                    var lazySemanticModel = body == null ? null : new Lazy<SemanticModel>(() =>
+                    {
+                        var syntax = body.Syntax;
+                        var semanticModel = (CSharpSemanticModel)compilation.GetSemanticModel(syntax.SyntaxTree);
+                        var memberModel = semanticModel.GetMemberModel(syntax);
+                        if (memberModel != null)
+                        {
+                            memberModel.AddBoundTreeForStandaloneSyntax(syntax, body);
+                        }
+                        return semanticModel;
+                    });
+                    compilation.EventQueue.Enqueue(new CompilationEvent.SymbolDeclared(compilation, methodSymbol, lazySemanticModel));
+                }
+
                 // Don't lower if we're not emitting or if there were errors. 
                 // Methods that had binding errors are considered too broken to be lowered reliably.
                 if (calculateDiagnosticsOnly || hasErrors)
                 {
-                    //Don't bother writing to the cache if we're emitting. 
-                    if (calculateDiagnosticsOnly && (object)sourceMethod != null)
-                    {
-                        var actualDiags = sourceMethod.SetDiagnostics(diagsForCurrentMethod.ToReadOnly());
-                        this.diagnostics.AddRange(actualDiags);
-                    }
-                    else
-                    {
-                        this.diagnostics.AddRange(diagsForCurrentMethod);
-                    }
-
+                    this.diagnostics.AddRange(actualDiagnostics);
                     return;
                 }
 

@@ -430,7 +430,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
-                this.state.NotePartComplete(CompletionPart.FixedSize);
+                if (state.NotePartComplete(CompletionPart.FixedSize))
+                {
+                    // FixedSize is the last completion part for fields.
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
+
                 return 0;
             }
         }

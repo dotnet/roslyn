@@ -856,7 +856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);
-                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
 
             Debug.Assert(lazyCustomAttributesBag.IsSealed);
@@ -1117,13 +1116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (state.NotePartComplete(CompletionPart.Parameters))
                                 {
                                     this.AddSemanticDiagnostics(diagnostics);
+                                    DeclaringCompilation.SymbolDeclaredEvent(this);
                                 }
 
                                 diagnostics.Free();
                             }
                             else
                             {
-                                state.NotePartComplete(CompletionPart.Parameters);
+                                if (state.NotePartComplete(CompletionPart.Parameters))
+                                {
+                                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                                }
                             }
                         }
                         break;

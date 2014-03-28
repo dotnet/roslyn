@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);
-                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
 
             Debug.Assert(lazyCustomAttributesBag.IsSealed);
