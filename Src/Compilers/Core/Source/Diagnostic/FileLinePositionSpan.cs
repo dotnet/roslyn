@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis
             return span.Equals(other.span)
                 && hasMappedPath == other.hasMappedPath
                 && string.Equals(path, other.path, StringComparison.Ordinal);
-                
         }
 
         /// <summary>

@@ -50,14 +50,6 @@ namespace Microsoft.CodeAnalysis
             // when binding executable code anywhere, so it has no use.
         }
 
-        public override bool IsInSource
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public override string FilePath
         {
             get

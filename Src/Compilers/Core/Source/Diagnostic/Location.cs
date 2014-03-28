@@ -34,14 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if the location represents a specific location in a source code file.
-        /// If a location is from a source file, then <see cref="FilePath"/> can be used to 
-        /// identify the source file.  Also, <see cref="SourceTree"/> may be available if the
-        /// source code file also had an associated <see cref="SyntaxTree"/>.  Locations for
-        /// <see cref="ISymbol"/>s declared in source files will return <code>true</code> for
-        /// <see cref="IsInSource"/> and will have a non-<code>null</code> 
-        /// <see cref="SourceTree"/> as well.
         /// </summary>
-        public virtual bool IsInSource { get { return false; } }
+        public bool IsInSource { get { return SourceTree != null; } }
 
         /// <summary>
         /// Returns the path to this location if this is a location from source.
@@ -185,15 +179,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="textSpan"></param>
-        /// <returns></returns>
-        public static Location Create(string filePath, TextSpan textSpan)
+        /// <param name="lineSpan"></param>
+        public static Location Create(string filePath, TextSpan textSpan, LinePositionSpan lineSpan)
         {
             if (filePath == null)
             {
                 throw new ArgumentNullException("filePath");
             }
 
-            return new FilePathLocation(filePath, textSpan);
+            return new ExternalFileLocation(filePath, textSpan, lineSpan);
         }
     }
 }

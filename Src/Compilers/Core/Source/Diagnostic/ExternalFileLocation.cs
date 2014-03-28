@@ -12,15 +12,17 @@ namespace Microsoft.CodeAnalysis
     /// A program location in source code.
     /// </summary>
     [Serializable]
-    internal class FilePathLocation : Location, IEquatable<FilePathLocation>
+    internal class ExternalFileLocation : Location, IEquatable<ExternalFileLocation>
     {
         private readonly string filePath;
         private readonly TextSpan sourceSpan;
+        private readonly FileLinePositionSpan lineSpan;
 
-        public FilePathLocation(string filePath, TextSpan sourceSpan)
+        public ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan)
         {
             this.filePath = filePath;
             this.sourceSpan = sourceSpan;
+            this.lineSpan = new FileLinePositionSpan(filePath, lineSpan);
         }
 
         public override string FilePath
@@ -39,28 +41,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool IsInSource
+        public override FileLinePositionSpan GetLineSpan()
         {
-            get
-            {
-                return true;
-            }
+            return this.lineSpan;
+        }
+
+        public override FileLinePositionSpan GetMappedLineSpan()
+        {
+            return this.lineSpan;
         }
 
         public override LocationKind Kind
         {
             get
             {
-                return LocationKind.SourceFile;
+                return LocationKind.ExternalFile;
             }
         }
 
         public override bool Equals(object obj)
         {
-            return this.Equals(obj as FilePathLocation);
+            return this.Equals(obj as ExternalFileLocation);
         }
 
-        public bool Equals(FilePathLocation obj)
+        public bool Equals(ExternalFileLocation obj)
         {
             if (ReferenceEquals(obj, this))
             {
@@ -69,14 +73,15 @@ namespace Microsoft.CodeAnalysis
 
             return obj != null &&
                 StringComparer.OrdinalIgnoreCase.Equals(this.filePath, obj.filePath) &&
-                this.sourceSpan == obj.sourceSpan;
+                this.sourceSpan == obj.sourceSpan &&
+                this.lineSpan.Equals(obj.lineSpan);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(
-                this.sourceSpan.GetHashCode(),
-                StringComparer.OrdinalIgnoreCase.GetHashCode(this.filePath));
+            return
+                Hash.Combine(this.lineSpan.GetHashCode(),
+                Hash.Combine(this.sourceSpan.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(this.filePath)));
         }
     }
 }

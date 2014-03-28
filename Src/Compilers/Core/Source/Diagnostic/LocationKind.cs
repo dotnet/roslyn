@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis
         /// The location represents a position in an XML file.
         /// </summary>
         XmlFile,
+
+        /// <summary>
+        /// The location in some external file.
+        /// </summary>
+        ExternalFile,
     }
 }
