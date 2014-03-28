@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
-<root>
+  <root>
   <!-- 
     Microsoft ResX Schema 
     
@@ -217,7 +217,7 @@
   </data>
   <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
     <value>Metadata references not supported.</value>
-  </data>  
+  </data>
   <data name="ERR_IconFileAndWin32ResFile" xml:space="preserve">
     <value>cannot specify both /win32icon and /win32resource</value>
   </data>
@@ -4515,5 +4515,8 @@
   </data>
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
+  </data>
+  <data name="ERR_PlatformDoesntSupport" xml:space="preserve">
+    <value>{0} is not supported in current project type.</value>
   </data>
 </root>

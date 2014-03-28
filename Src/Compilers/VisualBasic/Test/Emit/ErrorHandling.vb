@@ -477,7 +477,132 @@ End Module
     foo:
         End Sub]]>
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, ExpectedOutput).WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError"))
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Unstructured exception handling").WithLocation(2, 9))
+        End Sub
+
+        <Fact()>
+        Sub Error_ErrorHandler_InVBCore_LateBound1()
+            Dim compilationDef =
+    <compilation>
+        <file name="a.vb">
+Module Module1
+    Dim a As Object
+
+    Sub Main()
+        a = New ABC
+        a = a + 1
+        
+        a = a &amp; "test"
+    End Sub
+End Module
+
+Class ABC
+
+End Class
+    </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+                                                                         references:={MscorlibRef, SystemRef, SystemCoreRef},
+                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 13),
+                                          Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a & ""test""").WithArguments("Late binding").WithLocation(8, 13)
+                                          )
+
+        End Sub
+
+        <Fact()>
+        Sub Error_ErrorHandler_InVBCore_LikeOperator()
+            Dim compilationDef =
+    <compilation>
+        <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim testCheck As Boolean      
+        testCheck = "F" Like "F"
+    End Sub
+End Module
+    </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+                                                                         references:={MscorlibRef, SystemRef, SystemCoreRef},
+                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+
+            Dim ExpectedOutput = <![CDATA["F" Like "F"]]>
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Like operator").WithLocation(5, 21))
+        End Sub
+
+        <Fact()>
+        Sub Error_ErrorHandler_InVBCore_ErrObject()
+            Dim compilationDef =
+    <compilation>
+        <file name="a.vb">
+        Module Module1
+
+            Sub Main()
+                 Error 1
+            End Sub
+        End Module
+            </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+                                                                         references:={MscorlibRef, SystemRef, SystemCoreRef},
+                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "Error 1").WithArguments("Unstructured exception handling").WithLocation(4, 18))
+        End Sub
+
+        <Fact()>
+        Sub Error_ErrorHandler_InVBCore_AnonymousType()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Module Module1
+    Dim a As Object
+
+    Sub Main()
+        a = "1"
+        Dim x = New With {.a = a, .b = a + 1}
+    End Sub
+
+End Module
+
+            </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
+                                                                         references:={MscorlibRef, SystemRef, SystemCoreRef},
+                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
+        End Sub
+
+
+        <Fact(), WorkItem(545772)>
+        Public Sub VbCoreMyNamespace()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Module Module1
+        Public Sub Main()
+            My.Computer.FileSystem.WriteAllText("Test.txt","abc")
+        End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
+                                                                         references:={MscorlibRef, SystemRef, SystemCoreRef},
+                                                                         options:=OptionsDll.WithEmbedVbCoreRuntime(True))
+
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "My").WithArguments("My").WithLocation(3, 13))
         End Sub
 
         <Fact()>

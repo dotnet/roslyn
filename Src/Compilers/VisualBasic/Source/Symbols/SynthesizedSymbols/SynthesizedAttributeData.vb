@@ -39,7 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
             Optional namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)) = Nothing) As SynthesizedAttributeData
 
-            If Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor) IsNot Nothing Then
+            ' If we reach here, unlikely a VBCore scenario.  Will result in ERR_MissingRuntimeHelper diagnostic            
+            If Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
                 If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                     Return Nothing
                 Else

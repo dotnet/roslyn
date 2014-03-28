@@ -26,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor))
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
+            Dim vbEmbedRuntime = Compilation.Options.EmbedVbCoreRuntime
+
             If hasDelegate Then
                 ' All symbols used for delegates.
                 ReportErrorOnSymbol(System_IntPtr, diagnostics, hasErrors)
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ReportErrorOnWellKnownMember(System_Diagnostics_DebuggerDisplayAttribute__Type,
                                              WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
-                                             diagnostics, hasErrors)
+                                             diagnostics, hasErrors, vbEmbedRuntime)
             End If
 
             If hasClass Then
@@ -43,14 +45,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportErrorOnSymbol(System_Int32, diagnostics, hasErrors)
                 ReportErrorOnSymbol(System_String, diagnostics, hasErrors)
 
-                ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, hasErrors)
-                ReportErrorOnSpecialMember(System_String__Format, SpecialMember.System_String__Format, diagnostics, hasErrors)
+                ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, hasErrors, vbEmbedRuntime)
+                ReportErrorOnSpecialMember(System_String__Format, SpecialMember.System_String__Format, diagnostics, hasErrors, vbEmbedRuntime)
 
                 ' Only symbols used if there are Key fields
                 If hasKeys Then
                     ReportErrorOnSymbol(System_Boolean, diagnostics, hasErrors)
-                    ReportErrorOnSpecialMember(System_Object__GetHashCode, SpecialMember.System_Object__GetHashCode, diagnostics, hasErrors)
-                    ReportErrorOnSpecialMember(System_Object__Equals, SpecialMember.System_Object__Equals, diagnostics, hasErrors)
+                    ReportErrorOnSpecialMember(System_Object__GetHashCode, SpecialMember.System_Object__GetHashCode, diagnostics, hasErrors, vbEmbedRuntime)
+                    ReportErrorOnSpecialMember(System_Object__Equals, SpecialMember.System_Object__Equals, diagnostics, hasErrors, vbEmbedRuntime)
 
                     ReportErrorOnSymbol(System_IEquatable_T, diagnostics, hasErrors)
                     ReportErrorOnSymbol(System_IEquatable_T_Equals, diagnostics, hasErrors)
@@ -70,11 +72,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
             If symbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
-                diagnostics.Add(ERRID.ERR_MissingRuntimeHelper, NoLocation.Singleton,
-                                CType(memberDescriptor.DeclaringTypeId, WellKnownType).GetMetadataName() & "." & memberDescriptor.Name)
+                Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(CType(memberDescriptor.DeclaringTypeId, WellKnownType).GetMetadataName(), memberDescriptor.Name, embedVBCore)
+                diagnostics.Add(diagInfo, NoLocation.Singleton)
                 hasError = True
 
             Else
@@ -83,13 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
             If symbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
-                diagnostics.Add(ERRID.ERR_MissingRuntimeHelper, NoLocation.Singleton,
-                                CType(memberDescriptor.DeclaringTypeId, SpecialType).GetMetadataName() & "." & memberDescriptor.Name)
+                Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(CType(memberDescriptor.DeclaringTypeId, SpecialType).GetMetadataName, memberDescriptor.Name, embedVBCore)
+                diagnostics.Add(diagInfo, NoLocation.Singleton)
                 hasError = True
-
             Else
                 ReportErrorOnSymbol(symbol, diagnostics, hasError)
             End If

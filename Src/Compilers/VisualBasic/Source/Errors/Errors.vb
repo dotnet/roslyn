@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadAttributeNonPublicConstructor = 30758
         'ERR_ArrayElementIsNothing1 = 30759
         'ERR_ObjectReferenceIsNothing = 30760
-        ' ERR_StarliteDisallowsLateBinding = 30762
+        ' ERR_StarliteDisallowsLateBinding = 30762   
         ' ERR_StarliteBadDeclareFlags = 30763
         ' ERR_NoStarliteOverloadResolution = 30764
         'ERR_NoSupportFileIOKeywords1 = 30766
@@ -1651,6 +1651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 37231
         ERR_CantReadRulesetFile = 37232
         ERR_MetadataReferencesNotSupported = 37233
+        ERR_PlatformDoesntSupport = 37234
 
         ERR_LastPlusOne
 

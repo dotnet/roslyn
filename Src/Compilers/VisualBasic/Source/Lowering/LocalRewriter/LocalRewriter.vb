@@ -579,16 +579,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
         Private Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol) As Boolean
-            Return ReportMissingOrBadRuntimeHelper(node, specialMember, memberSymbol, Me.diagnostics)
+            Return ReportMissingOrBadRuntimeHelper(node, specialMember, memberSymbol, Me.diagnostics, compilationState.Compilation.Options.EmbedVbCoreRuntime)
         End Function
 
         ''' <summary>
         ''' Checks for special member and reports diagnostics if the member is Nothing or has UseSiteError.
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
-        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol, diagnostics As DiagnosticBag) As Boolean
+        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, specialMember As SpecialMember, memberSymbol As Symbol, diagnostics As DiagnosticBag, Optional embedVBCoreRuntime As Boolean = False) As Boolean
             If memberSymbol Is Nothing Then
-                ReportMissingRuntimeHelper(node, specialMember, diagnostics)
+                ReportMissingRuntimeHelper(node, specialMember, diagnostics, embedVBCoreRuntime)
                 Return True
             Else
                 Dim useSiteError = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
@@ -600,14 +600,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, specialMember As SpecialMember, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, specialMember As SpecialMember, diagnostics As DiagnosticBag, Optional embedVBCoreRuntime As Boolean = False)
             Dim descriptor = SpecialMembers.GetDescriptor(specialMember)
 
             ' TODO: If the type is generic, we might want to use VB style name rather than emitted name.
             Dim typeName As String = SpecialTypes.GetMetadataName(CType(descriptor.DeclaringTypeId, SpecialType))
             Dim memberName As String = descriptor.Name
 
-            ReportMissingRuntimeHelper(node, typeName, memberName, diagnostics)
+            ReportMissingRuntimeHelper(node, typeName, memberName, diagnostics, embedVBCoreRuntime)
         End Sub
 
         ''' <summary>
@@ -615,16 +615,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
         Private Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol) As Boolean
-            Return ReportMissingOrBadRuntimeHelper(node, wellKnownMember, memberSymbol, Me.diagnostics)
+            Return ReportMissingOrBadRuntimeHelper(node, wellKnownMember, memberSymbol, Me.diagnostics, compilationState.Compilation.Options.EmbedVbCoreRuntime)
         End Function
 
         ''' <summary>
         ''' Checks for well known member and reports diagnostics if the member is Nothing or has UseSiteError.
         ''' Returns True in case diagnostics was actually reported
         ''' </summary>
-        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol, diagnostics As DiagnosticBag) As Boolean
+        Friend Shared Function ReportMissingOrBadRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, memberSymbol As Symbol, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean) As Boolean
             If memberSymbol Is Nothing Then
-                ReportMissingRuntimeHelper(node, wellKnownMember, diagnostics)
+                ReportMissingRuntimeHelper(node, wellKnownMember, diagnostics, embedVBCoreRuntime)
                 Return True
             Else
                 Dim useSiteError = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
@@ -636,22 +636,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, wellKnownMember As WellKnownMember, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean)
             Dim descriptor = WellKnownMembers.GetDescriptor(wellKnownMember)
 
             ' TODO: If the type is generic, we might want to use VB style name rather than emitted name.
             Dim typeName As String = WellKnownTypes.GetMetadataName(CType(descriptor.DeclaringTypeId, WellKnownType))
             Dim memberName As String = descriptor.Name
 
-            ReportMissingRuntimeHelper(node, typeName, memberName, diagnostics)
+            ReportMissingRuntimeHelper(node, typeName, memberName, diagnostics, embedVBCoreRuntime)
         End Sub
 
-        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, typeName As String, memberName As String, diagnostics As DiagnosticBag)
+
+        Private Shared Sub ReportMissingRuntimeHelper(node As BoundNode, typeName As String, memberName As String, diagnostics As DiagnosticBag, embedVBCoreRuntime As Boolean)
             If memberName.Equals(WellKnownMemberNames.InstanceConstructorName) OrElse memberName.Equals(WellKnownMemberNames.StaticConstructorName) Then
                 memberName = "New"
             End If
 
-            ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, typeName & "." & memberName), diagnostics)
+            Dim diag As DiagnosticInfo
+            diag = GetDiagnosticForMissingRuntimeHelper(typeName, memberName, embedVBCoreRuntime)
+            ReportDiagnostic(node, diag, diagnostics)
         End Sub
 
         Private Shared Sub ReportDiagnostic(node As BoundNode, diagnostic As DiagnosticInfo, diagnostics As DiagnosticBag)

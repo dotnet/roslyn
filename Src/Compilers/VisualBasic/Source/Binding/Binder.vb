@@ -490,17 +490,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, ByRef useSiteError As DiagnosticInfo) As Symbol
             Dim memberSymbol As Symbol = compilation.GetWellKnownTypeMember(member)
 
-            useSiteError = GetUseSiteErrorForWellKnownTypeMember(memberSymbol, member)
+            useSiteError = GetUseSiteErrorForWellKnownTypeMember(memberSymbol, member, compilation.Options.EmbedVbCoreRuntime)
 
             Return memberSymbol
         End Function
 
-        Friend Shared Function GetUseSiteErrorForWellKnownTypeMember(memberSymbol As Symbol, member As WellKnownMember) As DiagnosticInfo
+        Friend Shared Function GetUseSiteErrorForWellKnownTypeMember(memberSymbol As Symbol, member As WellKnownMember, embedVBRuntimeUsed As Boolean) As DiagnosticInfo
             If memberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
                 Dim containingType As WellKnownType = CType(memberDescriptor.DeclaringTypeId, WellKnownType)
 
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, containingType.GetMetadataName() & "." & memberDescriptor.Name)
+                Return GetDiagnosticForMissingRuntimeHelper(containingType.GetMetadataName(), memberDescriptor.Name, embedVBRuntimeUsed)
             Else
                 Return If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
             End If
@@ -901,6 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag
         ) As Boolean
             Dim useSiteError As DiagnosticInfo = Nothing
+
             Dim ctor As Symbol = GetWellKnownTypeMember(Me.Compilation, attributeCtor, useSiteError)
 
             If Not WellKnownMembers.IsSynthesizedAttributeOptional(attributeCtor) Then
@@ -927,7 +928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag
         ) As Boolean
             Dim memberSymbol = compilation.GetWellKnownTypeMember(attributeCtor)
-            Dim useSiteError As DiagnosticInfo = GetUseSiteErrorForWellKnownTypeMember(memberSymbol, attributeCtor)
+            Dim useSiteError As DiagnosticInfo = GetUseSiteErrorForWellKnownTypeMember(memberSymbol, attributeCtor, compilation.Options.EmbedVbCoreRuntime)
 
             If Not WellKnownMembers.IsSynthesizedAttributeOptional(attributeCtor) Then
                 Debug.Assert(diagnostics IsNot Nothing)

@@ -8793,6 +8793,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to {0} is not supported in current project type..
+        '''</summary>
+        Friend ReadOnly Property ERR_PlatformDoesntSupport() As String
+            Get
+                Return ResourceManager.GetString("ERR_PlatformDoesntSupport", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute..
         '''</summary>
         Friend ReadOnly Property ERR_PrincipalPermissionInvalidAction() As String

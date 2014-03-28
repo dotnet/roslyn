@@ -1973,8 +1973,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If errorInfo Is Nothing Then
-                    errorInfo = ErrorFactory.ErrorInfo(If(Me.IsInQuery, ERRID.ERR_QueryNameNotDeclared, ERRID.ERR_NameNotDeclared1),
+                    'Check for My and use of VB Embed Runtime usage for different diagnostic
+                    If IdentifierComparison.Equals(MissingRuntimeMemberDiagnosticHelper.MyVBNamespace, name) AndAlso Me.Compilation.Options.EmbedVbCoreRuntime Then
+                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_PlatformDoesntSupport, MissingRuntimeMemberDiagnosticHelper.MyVBNamespace)
+                    Else
+                        errorInfo = ErrorFactory.ErrorInfo(If(Me.IsInQuery, ERRID.ERR_QueryNameNotDeclared, ERRID.ERR_NameNotDeclared1),
                                                        name)
+                    End If
                 End If
 
                 Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, errorInfo)

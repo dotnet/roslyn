@@ -122,6 +122,7 @@
     <Compile Include="Analysis\ForLoopVerification.vb" />
     <Compile Include="Analysis\InitializerRewriter.vb" />
     <Compile Include="Analysis\IteratorAndAsyncAnalysis\IteratorAndAsyncCaptureWalker.vb" />
+    <Compile Include="Analysis\MissingRuntimeMemberDiagnosticHelper.vb" />
     <Compile Include="Binding\AttributeBinder.vb" />
     <Compile Include="Binding\AttributeSemanticModel.vb" />
     <Compile Include="Binding\BackstopBinder.vb" />
