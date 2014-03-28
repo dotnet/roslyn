@@ -19,6 +19,7 @@
       <VersionInfoFileFlags Condition="'$(Configuration)' == 'Debug'">($(VersionInfoFileFlags) | VS_FF_DEBUG)</VersionInfoFileFlags>
       <VersionInfoFileType Condition="'$(ConfigurationType)' == 'Application'">VFT_APP</VersionInfoFileType>
       <VersionInfoFileType Condition="'$(ConfigurationType)' == 'DynamicLibrary'">VFT_DLL</VersionInfoFileType>
+      <VersionInfoFileType Condition="'$(ConfigurationType)' == 'StaticLibrary'">VFT_STATIC_LIB</VersionInfoFileType>
       <VersionInfoFileContents>
       <![CDATA[
       
