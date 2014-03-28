@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return obj != null &&
-                StringComparer.OrdinalIgnoreCase.Equals(this.filePath, obj.filePath) &&
+                StringComparer.Ordinal.Equals(this.filePath, obj.filePath) &&
                 this.sourceSpan == obj.sourceSpan &&
                 this.lineSpan.Equals(obj.lineSpan);
         }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         {
             return
                 Hash.Combine(this.lineSpan.GetHashCode(),
-                Hash.Combine(this.sourceSpan.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(this.filePath)));
+                Hash.Combine(this.sourceSpan.GetHashCode(), StringComparer.Ordinal.GetHashCode(this.filePath)));
         }
     }
 }
