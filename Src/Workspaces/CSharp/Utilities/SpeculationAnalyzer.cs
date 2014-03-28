@@ -296,6 +296,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // very expensive and the benefit to the user is small.
                 var originalDeclarator = (VariableDeclaratorSyntax)currentOriginalNode;
                 var newDeclarator = (VariableDeclaratorSyntax)currentReplacedNode;
+
+                if (originalDeclarator.Initializer == null)
+                {
+                    return newDeclarator.Initializer != null;
+                }
+                else if (newDeclarator.Initializer == null)
+                {
+                    return true;
+                }
+
                 if (!originalDeclarator.Initializer.IsMissing &&
                     originalDeclarator.IsTypeInferred(this.OriginalSemanticModel) &&
                     !TypesAreCompatible(originalDeclarator.Initializer.Value, newDeclarator.Initializer.Value))
