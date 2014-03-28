@@ -9,10 +9,6 @@
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpErrorFactsGenerator</RootNamespace>
     <AssemblyName>CSharpErrorFactsGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
     <OutDir>..\..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup>

@@ -17,10 +17,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{63D0F073-F0B3-42CD-829F-E48B977B48BA}</ProjectGuid>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RosCompiler</RootNamespace>
     <ProjectName>rcsc2</ProjectName>

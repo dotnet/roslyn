@@ -9,10 +9,6 @@
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
     <AssemblyName>CSharpSyntaxGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
     <OutDir>..\..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
