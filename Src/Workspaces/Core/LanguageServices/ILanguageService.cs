@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// <summary>
     /// Empty interface just to mark language services.
     /// </summary>
-    internal interface ILanguageService
+    public interface ILanguageService
     {
     }
 }
