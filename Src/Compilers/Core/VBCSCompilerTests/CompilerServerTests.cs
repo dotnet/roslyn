@@ -1481,14 +1481,14 @@ End Module
         [Fact()]
         public void Utf8Output_WithRedirecting_Off_rcsc2()
         {
-            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("class C { АБВ x; }").Path;
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
             var result = ProcessLauncher.Run("cmd", "/C rcsc2.exe /nologo /t:library " + srcFile + " > " + tempOut.Path);
 
             Assert.Equal("", result.Output.Trim());
-            Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name '???' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
-                        tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
+                tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
             Assert.Equal(1, result.ExitCode);
         }
 
@@ -1496,20 +1496,16 @@ End Module
         [Fact()]
         public void Utf8Output_WithRedirecting_Off_rvbc2()
         {
-            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"
-Class C
-    Public c As АБВ
-End Class
-").Path;
+            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
             var result = ProcessLauncher.Run("cmd", "/C rvbc2.exe /nologo /t:library " + srcFile + " > " + tempOut.Path);
 
             Assert.Equal("", result.Output.Trim());
-            Assert.Equal(@"SRC.VB(3) : error BC30002: Type '???' is not defined.
+            Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
 
-    Public c As ???
-                ~~~
+?
+~
 ".Trim(),
                         tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
             Assert.Equal(1, result.ExitCode);
@@ -1519,14 +1515,14 @@ End Class
         [Fact()]
         public void Utf8Output_WithRedirecting_On_rcsc2()
         {
-            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("class C { АБВ x; }").Path;
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
             var result = ProcessLauncher.Run("cmd", "/C rcsc2.exe /utf8output /nologo /t:library " + srcFile + " > " + tempOut.Path);
 
             Assert.Equal("", result.Output.Trim());
-            Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name 'АБВ' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
-                                tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
+                tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
             Assert.Equal(1, result.ExitCode);
         }
 
@@ -1534,20 +1530,16 @@ End Class
         [Fact()]
         public void Utf8Output_WithRedirecting_On_rvbc2()
         {
-            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"
-Class C
-    Public c As АБВ
-End Class
-").Path;
+            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
             var result = ProcessLauncher.Run("cmd", "/C rvbc2.exe /utf8output /nologo /t:library " + srcFile + " > " + tempOut.Path);
 
             Assert.Equal("", result.Output.Trim());
-            Assert.Equal(@"SRC.VB(3) : error BC30002: Type 'АБВ' is not defined.
+            Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
 
-    Public c As АБВ
-                ~~~
+♕
+~
 ".Trim(),
                         tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
             Assert.Equal(1, result.ExitCode);
