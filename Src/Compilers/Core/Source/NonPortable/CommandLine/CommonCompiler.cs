@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis
     {
         protected const int Failed = 1;
         protected const int Succeeded = 0;
+        private readonly ObjectPool<MemoryStream> memoryStreamPool = new ObjectPool<MemoryStream>(() => new MemoryStream(), 4);
 
         protected static string ResponseFileDirectory
         {
@@ -213,26 +215,61 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                DiagnosticInfo diagnosticInfo;
-
-                if (e is FileNotFoundException || e is DirectoryNotFoundException)
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_FileNotFound, file.Path);
-                }
-                else if (e is InvalidDataException)
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_BinaryFile, file.Path);
-                }
-                else
-                {
-                    diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
-                }
-
-                diagnostics.Add(diagnosticInfo);
+                diagnostics.Add(ToFileReadDiagostics(e, file));
                 normalizedFilePath = null;
                 return null;
             }
         }
+
+        internal async Task<ValueTuple<SourceText, string>> ReadFileContentAsync(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding)
+        {
+            try
+            {
+                var bufferSize = 4096;
+                var useAsync = true;
+
+                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, useAsync))
+                {
+                    MemoryStream stream = memoryStreamPool.Allocate();
+                    stream.SetLength(0);
+
+                    await data.CopyToAsync(stream).ConfigureAwait(false);
+                    var normalizedFilePath = data.Name;
+                    var text = new EncodedStringText(stream, encoding);
+
+                    memoryStreamPool.Free(stream);
+
+                    return ValueTuple.Create<SourceText, string>(text, normalizedFilePath);
+                }
+
+            }
+            catch (Exception e)
+            {
+                diagnostics.Add(ToFileReadDiagostics(e, file));
+                return default(ValueTuple<SourceText, string>);
+            }
+        }
+
+        private DiagnosticInfo ToFileReadDiagostics(Exception e, CommandLineSourceFile file)
+        {
+            DiagnosticInfo diagnosticInfo;
+
+            if (e is FileNotFoundException || e is DirectoryNotFoundException)
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_FileNotFound, file.Path);
+            }
+            else if (e is InvalidDataException)
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_BinaryFile, file.Path);
+            }
+            else
+            {
+                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
+            }
+
+            return diagnosticInfo;
+        }
+
 
         internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
         {

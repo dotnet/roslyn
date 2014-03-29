@@ -78,13 +78,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
-                Parallel.For(0, sourceFiles.Length, i =>
+                var tasks = new Task[sourceFiles.Length];
+                for(int i = 0; i < sourceFiles.Length; i++)
                 {
-                    var file = sourceFiles[i];
-
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, file, out normalizedFilePaths[i]);
-                });
+                    var treeIndex = i;
+                    tasks[treeIndex] = Task.Run(async () =>
+                    {
+                        var file = sourceFiles[treeIndex];
+
+                        var fileReadDiagnostics = new List<DiagnosticInfo>();
+                        var result = await ReadFileContentAsync(file, fileReadDiagnostics, Arguments.Encoding).ConfigureAwait(false);
+
+                        var content = result.Item1;
+                        normalizedFilePaths[treeIndex] = result.Item2;
+
+                        if (content == null)
+                        {
+                            PrintErrors(fileReadDiagnostics, consoleOutput);
+                            fileReadDiagnostics.Clear();
+                            hadErrors = true;
+                            trees[treeIndex] = null;
+                        }
+                        else
+                        {
+                            trees[treeIndex] = ParseFile(parseOptions, scriptParseOptions, content, file);
+                        }
+                    });
+                }
+
+                Task.WaitAll(tasks);
             }
             else
             {
@@ -210,19 +233,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var tree = SyntaxFactory.ParseSyntaxTree(
-                    content,
-                    file.Path,
-                    file.IsScript ? scriptParseOptions : parseOptions);
-
-                // prepopulate line tables.
-                // we will need line tables anyways and it is better to not wait until we are in emit
-                // where things run sequentially.
-                bool isHiddenDummy;
-                tree.GetMappedLineSpanAndVisibility(default(TextSpan), out isHiddenDummy);
-
-                return tree;
+                return ParseFile(parseOptions, scriptParseOptions, content, file);
             }
+        }
+
+        private static SyntaxTree ParseFile(
+            CSharpParseOptions parseOptions, 
+            CSharpParseOptions scriptParseOptions,
+            SourceText content,
+            CommandLineSourceFile file)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(
+                                content,
+                                file.Path,
+                                file.IsScript ? scriptParseOptions : parseOptions);
+
+            // prepopulate line tables.
+            // we will need line tables anyways and it is better to not wait until we are in emit
+            // where things run sequentially.
+            bool isHiddenDummy;
+            tree.GetMappedLineSpanAndVisibility(default(TextSpan), out isHiddenDummy);
+
+            return tree;
         }
 
         /// <summary>
