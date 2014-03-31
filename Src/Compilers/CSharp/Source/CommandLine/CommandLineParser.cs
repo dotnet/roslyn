@@ -725,13 +725,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             case "m":
                             case "main":
-                                if (string.IsNullOrEmpty(value))
+                                // Remove any quotes for consistent behaviour as MSBuild can return quoted or 
+                                // unquoted main.    
+                                unquoted = RemoveAllQuotes(value);
+                                if (string.IsNullOrEmpty(unquoted))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                                     continue;
                                 }
 
-                                mainTypeName = value;
+                                mainTypeName = unquoted;
                                 continue;
 
                             case "fullpaths":

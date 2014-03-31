@@ -70,6 +70,60 @@ End Class
         CleanupAllGeneratedFiles(src)
     End Sub
 
+    <WorkItem(545247)>
+    <Fact()>
+    Public Sub CommandLineCompilationWithQuotedMainArgument()
+        ' Arguments with quoted rootnamespace and maintype are unquoted when
+        ' the arguments are read in by the command line compiler.
+        Dim src As String = Temp.CreateFile().WriteAllText(<text>
+Module Module1
+    Sub Main()
+    
+    End Sub
+End Module
+</text>.Value).Path
+
+        Dim output As New StringWriter()
+        Dim vbc As New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/target:exe", "/rootnamespace:""test""", "/main:""test.Module1""", src})
+
+        Dim exitCode = vbc.Run(output, Nothing)
+        Assert.Equal(0, exitCode)
+        Assert.Equal("", output.ToString().Trim())
+    End Sub
+
+    <Fact>
+    Public Sub ParseQuotedMainTypeAndRootnamespace()
+        'These options are always unquoted when parsed in VisualBasicCommandLineParser.Parse.
+
+        Dim args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:Test", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test", args.CompilationOptions.RootNamespace)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/main:Test", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test", args.CompilationOptions.MainTypeName)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/main:""Test""", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test", args.CompilationOptions.MainTypeName)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""Test""", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test", args.CompilationOptions.RootNamespace)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""test""", "/main:""test.Module1""", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("test.Module1", args.CompilationOptions.MainTypeName)
+        Assert.Equal("test", args.CompilationOptions.RootNamespace)
+
+        ' Use of Cyrillic namespace
+        args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""решения""", "/main:""решения.Module1""", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("решения.Module1", args.CompilationOptions.MainTypeName)
+        Assert.Equal("решения", args.CompilationOptions.RootNamespace)
+
+    End Sub
+
     <WorkItem(546536)>
     <Fact()>
     Public Sub EnsureLegacyWarningsAreMaintained()

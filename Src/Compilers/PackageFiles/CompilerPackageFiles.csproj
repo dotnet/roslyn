@@ -51,9 +51,6 @@
     <Compile Include="PackageLoadKeyAttribute.cs" />
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Content Include="Resources\Package.ico" />
-  </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>

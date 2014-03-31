@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -230,6 +230,47 @@ d.cs
             string[] resolvedSourceFiles = args.SourceFiles.Select(f => f.Path).ToArray();
 
             AssertEx.Equal(new[] { @"C:\temp\a.cs", @"C:\temp\b.cs", @"C:\temp\c.cs", @"C:\temp\a\x.cs", @"C:\temp\a\b\b.cs", @"C:\temp\a\c.cs" }, resolvedSourceFiles);
+        }
+
+        [Fact]
+        public void ParseQuotedMainType()
+        {
+            // Verify the main switch are unquoted when used because of the issue with
+            // MSBuild quoting some usages and not others. A quote character is not valid in either
+            // these names.
+
+            CSharpCommandLineArguments args;
+            var folder = Temp.CreateDirectory();
+            CreateFile(folder, "a.cs");
+ 
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/main:Test", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test", args.CompilationOptions.MainTypeName);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/main:\"Test\"", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test", args.CompilationOptions.MainTypeName);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/main:\"Test.Class1\"", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test.Class1", args.CompilationOptions.MainTypeName);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/m:Test", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test", args.CompilationOptions.MainTypeName);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/m:\"Test\"", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test", args.CompilationOptions.MainTypeName);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/m:\"Test.Class1\"", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("Test.Class1", args.CompilationOptions.MainTypeName);
+
+            // Use of Cyrillic namespace
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/m:\"решения.Class1\"", "a.cs" }, folder.Path);
+            args.Errors.Verify();
+            Assert.Equal("решения.Class1", args.CompilationOptions.MainTypeName);
         }
 
         [WorkItem(546009)]

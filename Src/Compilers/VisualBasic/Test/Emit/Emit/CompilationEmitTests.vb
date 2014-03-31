@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -45,6 +45,41 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
         NoSuchMethod("hello")
         ~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub CompilationEmitWithQuotedMainTypeAndRootnamespace()
+            ' Check that compilation with quoted main argument and rootnamespace switches produce diagnostics.
+            ' MSBuild can return quoted value which is removed from the command line arguments or by parsing
+            ' command line arguments , but we DO NOT unquote arguments which are 
+            ' provided by the WithMainTypeName function Or WithRootNamespace (was originally exposed through using 
+            ' a Cyrillic Namespace And building Using MSBuild.)
+
+            Dim source = <compilation>
+                             <file name="a.vb">
+Module Module1
+    Sub Main()        
+    End Sub
+End Module
+    </file>
+                         </compilation>
+
+            'Compilation with unquote Rootnamespace and MainTypename.
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
+
+            ' Compilation with quoted Rootnamepsace and MainTypename still produces diagnostics.
+            ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
+
+            ' Use of Cyrillic rootnamespace and maintypename
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=OptionsExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
+
+            CreateCompilationWithMscorlibAndVBRuntime(source, options:=Options.OptionsExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""решения""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
+
         End Sub
 
         <Fact>

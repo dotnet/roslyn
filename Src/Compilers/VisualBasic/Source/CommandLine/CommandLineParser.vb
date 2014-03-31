@@ -790,6 +790,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
 
                             Case "m", "main"
+                                ' MSBuild can result in maintypename being passed in quoted when cyrillic namespace was being used resulting
+                                ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
+                                ' valid character in typename.
+                                value = RemoveAllQuotes(value)
                                 If String.IsNullOrEmpty(value) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<class>")
                                     Continue For

@@ -48,6 +48,56 @@ class X
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x"));
         }
 
+
+        [Fact]
+        public void CompilationEmitWithQuotedMainType()
+        {
+            // Check that compilation with quoted main switch argument produce diagnostic.
+            // MSBuild can return quoted main argument value which is removed from the command line arguments or by parsing
+            // command line arguments, but we DO NOT unquote arguments which are provided by 
+            // the WithMainTypeName function - (was originally exposed through using 
+            // a Cyrillic Namespace And building Using MSBuild.)
+
+            string source = @"
+namespace abc
+{
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}
+}";
+            var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("abc.X"));
+            compilation.VerifyDiagnostics();
+            
+            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("\"abc.X\""));
+            compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
+                                          Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
+
+
+
+            // Verify use of cyrillic namespace results in same behavior
+            source = @"
+namespace решения
+{
+public class X
+{
+    public static void Main()
+    {
+  
+    }
+}
+}";
+            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("решения.X"));
+            compilation.VerifyDiagnostics();
+
+            compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("\"решения.X\""));
+            compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"решения.X\""));
+
+        }
+
         [Fact]
         public void CompilationGetDiagnostics()
         {
