@@ -2630,9 +2630,9 @@ class Module1
                 this.system = system;
             }
 
-            public override string ResolveAssemblyName(string assemblyName)
+            public override string ResolveReference(string reference, string baseFileName)
             {
-                switch (assemblyName)
+                switch (reference)
                 {
                     case "System.Data":
                         return data;
@@ -2644,7 +2644,7 @@ class Module1
                         return system;
 
                     default:
-                        return null;
+                        return base.ResolveReference(reference, baseFileName);
                 }
             }
         }
@@ -2752,9 +2752,9 @@ System.Diagnostics.Process.GetCurrentProcess();
 
         private class DummyRelativePathResolver : TestMetadataReferenceResolver
         {
-            public override string ResolveMetadataFile(string path, string basePath)
+            public override string ResolveReference(string reference, string baseFilePath)
             {
-                return path.EndsWith("-resolve") ? ResolvedPath : path;
+                return reference.EndsWith("-resolve") ? ResolvedPath : reference;
             }
         }
 

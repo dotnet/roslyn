@@ -176,17 +176,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var metadataProvider = GetMetadataProvider();
-            var xmlFileResolver = new XmlFileResolver(Arguments.BaseDirectory);
-            var sourceFileResolver = new SourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory);
+            var xmlFileResolver = new LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger);
+            var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
 
-            MetadataFileReferenceResolver referenceDirectiveResolver;
-            var resolvedReferences = ResolveMetadataReferences(metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
-            if (PrintErrors(diagnostics, consoleOutput))
+            var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger);
+            MetadataReferenceResolver referenceDirectiveResolver;
+            var resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
+            if (PrintErrors(diagnostics, consoleOutput))    
             {
                 return null;
             }
 
-            var strongNameProvider = new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger);
+            var strongNameProvider = new LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger);
 
             var compilation = CSharpCompilation.Create(
                 Arguments.CompilationName,

@@ -345,10 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                                     // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
                                     // An error will be reported by the assembly manager anyways.
-                                    metadataReferences.AddRange(
-                                        ParseSeparatedPaths(value).Select(
-                                            path => new CommandLineReference(path, MetadataReferenceProperties.Module, isAssemblyName: false)));
-
+                                    metadataReferences.AddRange(ParseSeparatedPaths(value).Select(path => new CommandLineReference(path, MetadataReferenceProperties.Module)));
                                     resourcesOrModulesSpecified = true;
                                 }
                                 continue;
@@ -867,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!noStdLib)
                 {
-                    metadataReferences.Insert(0, new CommandLineReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly, isAssemblyName: false));
+                    metadataReferences.Insert(0, new CommandLineReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly));
                 }
 
                 if (!platform.Requires64Bit())
@@ -1303,9 +1300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var aliases = (alias != null) ? ImmutableArray.Create(alias) : ImmutableArray<string>.Empty;
 
-                bool isAssemblyName = IsInteractive && !MetadataFileReferenceResolver.IsFilePath(path);
                 var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
-                yield return new CommandLineReference(path, properties, isAssemblyName);
+                yield return new CommandLineReference(path, properties);
             }
         }
 

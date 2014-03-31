@@ -957,38 +957,6 @@ public interface I {}";
                 Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("Lib", "Lib"));
         }
 
-        private class TestException : Exception
-        {
-        }
-
-        private class ErroneousReferenceResolver : TestMetadataReferenceResolver
-        {
-            public ErroneousReferenceResolver()
-            {
-            }
-
-            public override string ResolveAssemblyName(string assemblyName)
-            {
-                switch (assemblyName)
-                {
-                    case "throw": throw new TestException();
-                    case "rec": return "throw.dll";
-                }
-
-                return base.ResolveAssemblyName(assemblyName);
-            }
-
-            public override string ResolveMetadataFile(string path, string basePath)
-            {
-                switch (path)
-                {
-                    case "throw.dll": throw new TestException();
-                    case "relative.dll": return "relative";
-                }
-
-                return base.ResolveMetadataFile(path, basePath);
-            }
-        }
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentName()
         {
@@ -1275,35 +1243,24 @@ public class A
                 this.path2 = path2;
             }
 
-            public override string ResolveAssemblyName(string assemblyName)
+            public override string ResolveReference(string reference, string baseFilePath)
             {
-                if (assemblyName == "1")
+                switch (reference)
                 {
-                    resolved1 = true;
-                    return "resolved1";
-                }
-
-                return base.ResolveAssemblyName(assemblyName);
-            }
-
-            public override string ResolveMetadataFile(string path, string basePath)
-            {
-                switch (path)
-                {
-                    case "resolved1":
-                        resolved2 = true;
+                    case "1":
+                        resolved1 = true;
                         return path1;
 
                     case "2.dll":
-                        resolved3 = true;
+                        resolved2 = true;
                         return path2;
 
                     default:
-                        return base.ResolveMetadataFile(path, basePath);
+                        return base.ResolveReference(reference, baseFilePath);
                 }
             }
 
-            public bool resolved1, resolved2, resolved3;
+            public bool resolved1, resolved2;
         }
 
         [Fact]
@@ -1336,7 +1293,40 @@ public class A
 
                 Assert.True(resolver.resolved1);
                 Assert.True(resolver.resolved2);
-                Assert.True(resolver.resolved3);
+            }
+        }
+
+        private class TestException : Exception
+        {
+        }
+
+        private class ErroneousReferenceResolver : TestMetadataReferenceResolver
+        {
+            public ErroneousReferenceResolver()
+            {
+            }
+
+            public override string ResolveReference(string reference, string baseFilePath)
+            {
+                switch (reference)
+                {
+                    case "throw": throw new TestException();
+                }
+
+                return base.ResolveReference(reference, baseFilePath);
+            }
+        }
+
+        private class ErroneousMetadataReferenceProvider : MetadataReferenceProvider
+        {
+            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
+            {
+                switch (fullPath)
+                {
+                    case @"c:\throw.dll": throw new TestException();
+                }
+
+                return null;
             }
         }
 
@@ -1352,35 +1342,11 @@ public class A
                 foreach (var tree in new[] 
                 {
                     Parse("#r \"throw\"", options: TestOptions.Script),
-                    Parse("#r \"throw.dll\"", options: TestOptions.Script),
-                    Parse("#r \"rec\"", options: TestOptions.Script),
                 })
                 {
                     var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
                     Assert.Throws<TestException>(() => { var a = c.Assembly; });
                 }
-
-                foreach (var tree in new[] 
-                {
-                    Parse("#r \"relative.dll\"", options: TestOptions.Script),
-                })
-                {
-                    var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
-                    Assert.Throws<InvalidOperationException>(() => { var a = c.Assembly; });
-                }
-            }
-        }
-
-        private class ErroneousMetadataReferenceProvider : MetadataReferenceProvider
-        {
-            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-            {
-                switch (fullPath)
-                {
-                    case @"c:\throw.dll": throw new TestException();
-                }
-
-                return null;
             }
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var syntaxTreeCacheService = new TestSyntaxTreeCacheService();
             var temporaryStorageService = new TestTemporaryStorageService();
             var textFactoryService = new TextFactoryServiceFactory.TextFactoryService();
-            var metadataFileProviderService = new AssemblyShadowCopyProviderServiceFactory().CreateService(this);
+            var metadataFileProviderService = new MetadataReferenceProviderServiceFactory().CreateService(this);
 
             Add(workspaceTaskSchedulerFactory,
                 persistenceService,

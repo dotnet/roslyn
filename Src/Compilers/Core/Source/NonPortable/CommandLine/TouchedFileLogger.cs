@@ -5,13 +5,13 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Instrumentation
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Used for logging all the paths which are "touched" (used) in any way
     /// in the process of compilation.
     /// </summary>
-    public class TouchedFileLogger
+    internal class TouchedFileLogger
     {
         private ConcurrentSet<string> readFiles;
         private ConcurrentSet<string> writtenFiles;

@@ -215,7 +215,6 @@
     <Compile Include="Instrumentation\Logger.cs" />
     <Compile Include="Instrumentation\PerformanceGoals.cs" />
     <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
-    <Compile Include="Instrumentation\TouchedFileLogger.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\CompilerFatalError.cs" />
@@ -324,11 +323,16 @@
     <Compile Include="NonPortable\CommandLine\CommonCommandLineArguments.cs" />
     <Compile Include="NonPortable\CommandLine\CommonCommandLineParser.cs" />
     <Compile Include="NonPortable\CommandLine\CommonCompiler.cs" />
+    <Compile Include="NonPortable\CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
+    <Compile Include="NonPortable\CommandLine\CommonCompiler.LoggingSourceFileResolver.cs" />
+    <Compile Include="NonPortable\CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
+    <Compile Include="NonPortable\CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
     <Compile Include="NonPortable\CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
     <Compile Include="NonPortable\CommandLine\RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="NonPortable\CommandLine\RuleSet\RuleSet.cs" />
     <Compile Include="NonPortable\CommandLine\RuleSet\RuleSetInclude.cs" />
     <Compile Include="NonPortable\CommandLine\RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="NonPortable\CommandLine\TouchedFileLogger.cs" />
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.cs" />
     <Compile Include="NonPortable\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="NonPortable\DesktopStrongNameProvider.cs" />

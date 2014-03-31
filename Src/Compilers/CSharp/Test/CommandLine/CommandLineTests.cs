@@ -2897,20 +2897,16 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal(1, parsedArgs.MetadataReferences.Length);
             Assert.Equal("abc.netmodule", parsedArgs.MetadataReferences[0].Reference);
-            Assert.Equal(false, parsedArgs.MetadataReferences[0].IsAssemblyName);
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences[0].Properties.Kind);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/noconfig", "/nostdlib", "/aDDmodule:c:\\abc;c:\\abc;d:\\xyz", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(3, parsedArgs.MetadataReferences.Length);
             Assert.Equal("c:\\abc", parsedArgs.MetadataReferences[0].Reference);
-            Assert.Equal(false, parsedArgs.MetadataReferences[0].IsAssemblyName);
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences[0].Properties.Kind);
             Assert.Equal("c:\\abc", parsedArgs.MetadataReferences[1].Reference);
-            Assert.Equal(false, parsedArgs.MetadataReferences[1].IsAssemblyName);
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences[1].Properties.Kind);
             Assert.Equal("d:\\xyz", parsedArgs.MetadataReferences[2].Reference);
-            Assert.Equal(false, parsedArgs.MetadataReferences[2].IsAssemblyName);
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences[2].Properties.Kind);
 
             //  error

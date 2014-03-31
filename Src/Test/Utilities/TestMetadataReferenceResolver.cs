@@ -32,44 +32,37 @@ namespace Roslyn.Test.Utilities
             this.files = files;
         }
 
-        public override string ResolveAssemblyName(string assemblyName)
+        public override string ResolveReference(string reference, string baseFilePath)
         {
-            string result;
-            return assemblyNames != null && assemblyNames.TryGetValue(assemblyName, out result) ? result : null;
-        }
-
-        public override string ResolveMetadataFile(string path, string basePath)
-        {
-            if (PathUtilities.IsAbsolute(path))
+            if (PathUtilities.IsFilePath(reference))
             {
-                return path;
-            }
+                if (PathUtilities.IsAbsolute(reference))
+                {
+                    return reference;
+                }
 
-            string result;
-            return files != null && files.TryGetValue(path, out result) ? result : null;
+                string result;
+                return files != null && files.TryGetValue(reference, out result) ? result : null;
+            }
+            else
+            {
+                string result;
+                return assemblyNames != null && assemblyNames.TryGetValue(reference, out result) ? result : null;
+            }
         }
     }
 
-    public class VirtualizedReferenceResolver : MetadataFileReferenceResolver
+    public class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
     {
-        private readonly Dictionary<string, string> assemblyNames;
         private readonly HashSet<string> existingFullPaths;
 
-        public VirtualizedReferenceResolver(
-            Dictionary<string, string> assemblyNames = null, 
+        public VirtualizedFileReferenceResolver(
             IEnumerable<string> existingFullPaths = null, 
             string baseDirectory = null,
-            ImmutableArray<string> assemblySearchPaths = default(ImmutableArray<string>))
-            : base(assemblySearchPaths.NullToEmpty(), baseDirectory)
+            ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
+            : base(searchPaths.NullToEmpty(), baseDirectory)
         {
-            this.assemblyNames = assemblyNames;
             this.existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
-        }
-
-        public override string ResolveAssemblyName(string assemblyName)
-        {
-            string result;
-            return assemblyNames != null && assemblyNames.TryGetValue(assemblyName, out result) ? result : null;
         }
 
         protected override bool FileExists(string fullPath)

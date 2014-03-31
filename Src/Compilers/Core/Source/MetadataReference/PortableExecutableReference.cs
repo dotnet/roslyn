@@ -4,6 +4,7 @@ using Roslyn.Utilities;
 using System;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -111,55 +112,23 @@ namespace Microsoft.CodeAnalysis
             return GetMetadataImpl();
         }
 
-        /// <summary>
-        /// Handles exceptions caused by metadata loading in uniform way and returns a diagnostics, 
-        /// returns null if the exception was handled.
-        /// </summary>
-        internal static bool TryGetMetadata<T>(
-            bool isAssembly,
-            CommonMessageProvider messageProvider,
-            Location location,
-            string display,
-            Func<T> getResult,
-            out T result,
-            out Diagnostic diagnostic)
+        internal static Diagnostic ExceptionToDiagnostic(Exception e, CommonMessageProvider messageProvider, Location location, string display, MetadataImageKind kind)
         {
-            try
+            if (e is BadImageFormatException)
             {
-                diagnostic = null;
-                result = getResult();
-                return true;
+                int errorCode = (kind == MetadataImageKind.Assembly) ? messageProvider.ERR_InvalidAssemblyMetadata : messageProvider.ERR_InvalidModuleMetadata;
+                return messageProvider.CreateDiagnostic(errorCode, location, display, e.Message);
             }
-            catch (BadImageFormatException e)
-            {
-                int errorCode = isAssembly ?
-                    messageProvider.ERR_InvalidAssemblyMetadata :
-                    messageProvider.ERR_InvalidModuleMetadata;
 
-                diagnostic = messageProvider.CreateDiagnostic(errorCode, location, display, e.Message);
-                result = default(T);
-                return false;
+            var fileNotFound = e as FileNotFoundException;
+            if (fileNotFound != null)
+            {
+                return messageProvider.CreateDiagnostic(messageProvider.ERR_MetadataFileNotFound, location, fileNotFound.FileName ?? string.Empty);
             }
-            catch (FileNotFoundException e)
+            else
             {
-                int errorCode = isAssembly ?
-                    messageProvider.ERR_InvalidAssemblyMetadata :
-                    messageProvider.ERR_InvalidModuleMetadata;
-
-                result = default(T);
-                diagnostic = messageProvider.CreateDiagnostic(messageProvider.ERR_MetadataFileNotFound, location, e.FileName ?? string.Empty);
-                result = default(T);
-                return false;
-            }
-            catch (IOException e)
-            {
-                int errorCode = isAssembly ?
-                    messageProvider.ERR_ErrorOpeningAssemblyFile :
-                    messageProvider.ERR_ErrorOpeningModuleFile;
-
-                diagnostic = messageProvider.CreateDiagnostic(errorCode, location, display, e.Message);
-                result = default(T);
-                return false;
+                int errorCode = (kind == MetadataImageKind.Assembly) ? messageProvider.ERR_ErrorOpeningAssemblyFile : messageProvider.ERR_ErrorOpeningModuleFile;
+                return messageProvider.CreateDiagnostic(errorCode, location, display, e.Message);
             }
         }
     }

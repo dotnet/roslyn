@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// When scripts are included into a project we don't want #r's to reference other assemblies than those 
         /// specified explicitly in the project references.
         /// </summary>
-        internal sealed class ExistingReferencesResolver : MetadataFileReferenceResolver
+        internal sealed class ExistingReferencesResolver : LoggingMetadataReferencesResolver
         {
             private readonly ImmutableArray<MetadataFileReference> availableReferences;
             private readonly AssemblyIdentityComparer assemblyIdentityComparer;
@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<string> referencePaths,
                 string baseDirectory,
                 AssemblyIdentityComparer assemblyIdentityComparer,
-                TouchedFileLogger touchedFilesLogger)
-                : base(referencePaths, baseDirectory, touchedFilesLogger)
+                TouchedFileLogger logger)
+                : base(referencePaths, baseDirectory, logger)
             {
                 Debug.Assert(!availableReferences.Any(r => r.Properties.Kind != MetadataImageKind.Assembly));
 
@@ -38,10 +38,22 @@ namespace Microsoft.CodeAnalysis
                 this.assemblyIdentityComparer = assemblyIdentityComparer;
             }
 
+            public override string ResolveReference(string reference, string baseFilePath)
+            {
+                if (PathUtilities.IsFilePath(reference))
+                {
+                    return ResolveMetadataFile(reference, baseFilePath);
+                }
+                else
+                {
+                    return ResolveAssemblyName(reference);
+                }
+            }
+
             /// <summary>
             /// When compiling to a file all unresolved assembly names have to match one of the file references specified on command line.
             /// </summary>
-            public override string ResolveAssemblyName(string displayName)
+            private string ResolveAssemblyName(string displayName)
             {
                 foreach (var fileReference in availableReferences)
                 {
@@ -58,9 +70,9 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// When compiling to a file all relative paths have to match one of the file references specified on command line.
             /// </summary>
-            public override string ResolveMetadataFile(string path, string basePath)
+            private string ResolveMetadataFile(string path, string basePath)
             {
-                var fullPath = base.ResolveMetadataFile(path, basePath);
+                var fullPath = base.ResolveReference(path, basePath);
 
                 foreach (var fileReference in availableReferences)
                 {

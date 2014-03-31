@@ -76,26 +76,24 @@ namespace Microsoft.CodeAnalysis
             return MetadataFileReferenceProvider.Default;
         }
 
+        internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        {
+            return new LoggingMetadataReferencesResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, touchedFiles);
+        }
+
         /// <summary>
         /// Resolves metadata references stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
         internal List<MetadataReference> ResolveMetadataReferences(
-            MetadataFileReferenceProvider metadataProvider,
+            MetadataReferenceResolver externalReferenceResolver,
+            MetadataReferenceProvider metadataProvider,
             List<DiagnosticInfo> diagnostics,
             AssemblyIdentityComparer assemblyIdentityComparer,
             TouchedFileLogger touchedFiles,
-            out MetadataFileReferenceResolver referenceDirectiveResolver)
+            out MetadataReferenceResolver referenceDirectiveResolver)
         {
             using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
             {
-                string baseDirectory = Arguments.BaseDirectory;
-                ImmutableArray<string> absoluteReferencePaths = MakeAbsolute(Arguments.ReferencePaths, baseDirectory);
-
-                var externalReferenceResolver = new MetadataFileReferenceResolver(
-                    absoluteReferencePaths,
-                    baseDirectory,
-                    touchedFiles);
-
                 List<MetadataReference> resolved = new List<MetadataReference>();
                 ResolveMetadataReferencesFromArguments(externalReferenceResolver, metadataProvider, diagnostics, resolved);
 
@@ -108,8 +106,8 @@ namespace Microsoft.CodeAnalysis
                     // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
                     referenceDirectiveResolver = new ExistingReferencesResolver(
                         resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<MetadataFileReference>().AsImmutable(),
-                        absoluteReferencePaths,
-                        baseDirectory,
+                        Arguments.ReferencePaths,
+                        Arguments.BaseDirectory,
                         assemblyIdentityComparer,
                         touchedFiles);
                 }
@@ -119,23 +117,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Resolves analyzers stored in command line arguments and reports errors for those that can't be resolved.
-        /// </summary>
-        private ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, TouchedFileLogger touchedFiles)
-        {
-            List<IDiagnosticAnalyzer> analyzers = new List<IDiagnosticAnalyzer>();
-
-            string baseDirectory = Arguments.BaseDirectory;
-            ImmutableArray<string> absoluteReferencePaths = MakeAbsolute(Arguments.ReferencePaths, baseDirectory);
-            var referenceResolver = new MetadataFileReferenceResolver(absoluteReferencePaths, baseDirectory, touchedFiles);
-
-            return CommandLineAnalyzerReference.ResolveAndGetAnalyzers(Arguments.AnalyzerReferences, referenceResolver, diagnostics, MessageProvider);
-        }
-
-        /// <summary>
         /// Returns false if there were unresolved references in arguments, true otherwise.
         /// </summary>
-        protected virtual bool ResolveMetadataReferencesFromArguments(MetadataFileReferenceResolver externalReferenceResolver, MetadataFileReferenceProvider metadataProvider, List<DiagnosticInfo> diagnostics, List<MetadataReference> resolved)
+        protected virtual bool ResolveMetadataReferencesFromArguments(MetadataReferenceResolver externalReferenceResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnostics, List<MetadataReference> resolved)
         {
             bool result = true;
 
@@ -153,33 +137,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return result;
-        }
-
-        private static ImmutableArray<string> MakeAbsolute(ImmutableArray<string> paths, string baseDirectory)
-        {
-            if (paths.IsDefault)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            ArrayBuilder<string> builder = null;
-            for (int i = 0; i < paths.Length; i++)
-            {
-                string path = paths[i];
-                var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory);
-
-                if (builder == null && absolutePath != path)
-                {
-                    builder = ArrayBuilder<string>.GetInstance();
-                    builder.AddRange(paths, i);
-                }
-
-                if (builder != null && absolutePath != null)
-                {
-                    builder.Add(absolutePath);
-                }
-            }
-            return builder == null ? paths : builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -252,20 +209,20 @@ namespace Microsoft.CodeAnalysis
 
         private DiagnosticInfo ToFileReadDiagostics(Exception e, CommandLineSourceFile file)
         {
-            DiagnosticInfo diagnosticInfo;
+                DiagnosticInfo diagnosticInfo;
 
-            if (e is FileNotFoundException || e is DirectoryNotFoundException)
-            {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_FileNotFound, file.Path);
-            }
-            else if (e is InvalidDataException)
-            {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_BinaryFile, file.Path);
-            }
-            else
-            {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
-            }
+                if (e is FileNotFoundException || e is DirectoryNotFoundException)
+                {
+                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
+                }
+                else if (e is InvalidDataException)
+                {
+                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_BinaryFile, file.Path);
+                }
+                else
+                {
+                    diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
+                }
 
             return diagnosticInfo;
         }
@@ -365,7 +322,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            var analyzers = ResolveAnalyzersFromArguments(diagnostics, touchedFilesLogger);
+            var analyzers = Arguments.ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (PrintErrors(diagnostics, consoleOutput))
             {
                 return Failed;

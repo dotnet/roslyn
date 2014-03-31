@@ -251,9 +251,10 @@ namespace Microsoft.CodeAnalysis
                                 diagnostics.Add(Diagnostic.Create(messageProvider, messageProvider.WRN_NoConfigNotOnCommandLine));
                             }
                         }
+
                         if (responsePaths != null)
                         {
-                            responsePaths.Add(PathUtilities.GetDirectoryName(resolvedPath));
+                            responsePaths.Add(FileUtilities.NormalizeAbsolutePath(PathUtilities.GetDirectoryName(resolvedPath)));
                         }
                     }
                     else

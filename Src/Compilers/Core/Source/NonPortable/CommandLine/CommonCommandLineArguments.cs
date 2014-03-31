@@ -3,9 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Instrumentation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -149,11 +153,13 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineSourceFile> SourceFiles { get; internal set; }
 
         /// <summary>
-        /// The base path to a file to write the recorded output of the
-        /// <see cref="Instrumentation.TouchedFileLogger"/>. The output file
-        /// paths will be the base path with ".read" appended for the read files
-        /// and ".write" appended for the written files.
+        /// Fule path of a log of file paths accessed by the compiler, or null if file logging should be suppressed.
         /// </summary>
+        /// <remarks>
+        /// Two log files will be created: 
+        /// One with path <see cref="TouchedFilesPath"/> and extension ".read" logging the files read,
+        /// and second with path <see cref="TouchedFilesPath"/> and extension ".write" logging the files written to  during compilation.
+        /// </remarks>
         public string TouchedFilesPath { get; internal set; }
 
         /// <summary>
@@ -193,57 +199,133 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        /// <summary>
-        /// Resolves metadata references stored in <see cref="P:MetadataReferences"/> using given file resolver and metadata provider.
-        /// </summary>
-        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution, or null to use a default.</param>
-        /// <param name="metadataProvider"><see cref="MetadataReferenceProvider"/> to read metadata resolved paths, or null to use a default.</param>
-        /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
-        public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataFileReferenceResolver metadataResolver = null, MetadataReferenceProvider metadataProvider = null)
-        {
-            return ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt: null, messageProviderOpt: null);
-        }
+        #region Metadata References
 
         /// <summary>
-        /// Resolves metadata references stored in <see cref="P:MetadataReferences"/> using given file resolver and metadata provider.
-        /// If a non-null diagnostic bag <paramref name="diagnosticsOpt"/> is provided, it catches exceptions that may be generated while reading the metadata file and
-        /// reports appropriate diagnostics.
-        /// Otherwise, if <paramref name="diagnosticsOpt"/> is null, the exceptions are unhandled.
+        /// Resolves metadata references stored in <see cref="MetadataReferences"/> using given file resolver and metadata provider.
         /// </summary>
-        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataFileReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        /// <param name="metadataResolver"><see cref="MetadataReferenceResolver"/> to use for assembly name and relative path resolution.</param>
+        /// <param name="metadataProvider"><see cref="MetadataReferenceProvider"/> to read metadata from resolved paths.</param>
+        /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="metadataResolver"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="metadataProvider"/> is null.</exception>
+        public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider)
         {
             if (metadataResolver == null)
             {
-                metadataResolver = new MetadataFileReferenceResolver(ReferencePaths, BaseDirectory, touchedFiles: null);
+                throw new ArgumentNullException("metadataResolver");
             }
 
             if (metadataProvider == null)
             {
-                metadataProvider = MetadataFileReferenceProvider.Default;
+                throw new ArgumentNullException("metadataProvider");
             }
 
-            foreach (CommandLineReference cmdLineReference in MetadataReferences)
-            {
-                yield return cmdLineReference.Resolve(metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt);
-            }
+            return ResolveMetadataReferences(metadataResolver, metadataProvider, diagnosticsOpt: null, messageProviderOpt: null);
         }
 
         /// <summary>
-        /// Resolves analyzer references stored in <see cref="P:AnalyzerReferences"/> using given file resolver.
+        /// Resolves metadata references stored in <see cref="MetadataReferences"/> using given file resolver and metadata provider.
+        /// If a non-null diagnostic bag <paramref name="diagnosticsOpt"/> is provided, it catches exceptions that may be generated while reading the metadata file and
+        /// reports appropriate diagnostics.
+        /// Otherwise, if <paramref name="diagnosticsOpt"/> is null, the exceptions are unhandled.
         /// </summary>
-        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution, or null to use a default.</param>
-        /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
-        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(MetadataFileReferenceResolver metadataResolver = null)
+        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
-            if (metadataResolver == null)
-            {
-                metadataResolver = new MetadataFileReferenceResolver(ReferencePaths, BaseDirectory, touchedFiles: null);
-            }
+            Debug.Assert(metadataResolver != null);
+            Debug.Assert(metadataProvider != null);
 
-            foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
+            foreach (CommandLineReference cmdReference in MetadataReferences)
             {
-                yield return cmdLineReference.Resolve(metadataResolver, diagnosticsOpt: null, messageProviderOpt: null);
+                yield return ResolveMetadataReference(cmdReference, metadataResolver, metadataProvider, diagnosticsOpt, messageProviderOpt) ?? 
+                    new UnresolvedMetadataReference(cmdReference.Reference, cmdReference.Properties);
             }
         }
+
+        internal MetadataReference ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, MetadataReferenceProvider metadataProvider, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        {
+            Debug.Assert(metadataResolver != null);
+            Debug.Assert(metadataProvider != null);
+            Debug.Assert((diagnosticsOpt == null) == (messageProviderOpt == null));
+
+            string resolvedPath = metadataResolver.ResolveReference(cmdReference.Reference, baseFilePath: null);
+            if (resolvedPath == null)
+            {
+                if (diagnosticsOpt != null)
+                {
+                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
+                }
+
+                return null;
+            }
+
+            try
+            {
+                return metadataProvider.GetReference(resolvedPath, cmdReference.Properties);
+            }
+            catch (Exception e) if (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
+            {
+                var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
+                diagnosticsOpt.Add(((DiagnosticWithInfo)diagnostic).Info);
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Analyzer References
+
+        /// <summary>
+        /// Resolves analyzer references stored in <see cref="AnalyzerReferences"/> using given file resolver.
+        /// </summary>
+        /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
+        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences()
+        {
+            foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
+            {
+                yield return ResolveAnalyzerReference(cmdLineReference) ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
+            }
+        }
+
+        internal ImmutableArray<IDiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        {
+            var builder = ImmutableArray.CreateBuilder<IDiagnosticAnalyzer>();
+            foreach (var reference in AnalyzerReferences)
+            {
+                var resolvedReference = ResolveAnalyzerReference(reference);
+                if (resolvedReference != null)
+                {
+                    resolvedReference.AddAnalyzers(builder, diagnostics, messageProvider);
+                }
+                else
+                {
+                    diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_MetadataFileNotFound, reference.FilePath));
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference)
+        {
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
+            if (File.Exists(resolvedPath))
+            {
+                resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
+            }
+            else
+            {
+                resolvedPath = null;
+            }
+
+            if (resolvedPath != null)
+            {
+                return new AnalyzerFileReference(resolvedPath);
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }

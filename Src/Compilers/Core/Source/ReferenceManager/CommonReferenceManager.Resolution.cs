@@ -386,16 +386,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Metadata newMetadata;
-            Diagnostic newDiagnostic;
-            PortableExecutableReference.TryGetMetadata(
-                 peReference.Properties.Kind == MetadataImageKind.Assembly,
-                 messageProvider,
-                 location,
-                 peReference.Display,
-                 peReference.GetMetadata,
-                 out newMetadata,
-                 out newDiagnostic);
+            Metadata newMetadata = null;
+            Diagnostic newDiagnostic = null;
+            try
+            {
+                newMetadata = peReference.GetMetadata();
+            }
+            catch (Exception e) if (e is BadImageFormatException || e is IOException)
+            {
+                newDiagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProvider, location, peReference.Display, peReference.Properties.Kind);
+            }
 
             lock (ObservedMetadata)
             {

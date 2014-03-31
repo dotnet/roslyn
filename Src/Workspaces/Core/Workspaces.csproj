@@ -796,7 +796,7 @@
     <Compile Include="Workspace\Host\Caching\SyntaxTreeCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\TextCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\WeakAction.cs" />
-    <Compile Include="Workspace\Host\Metadata\AssemblyShadowCopyProviderServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Metadata\MetadataReferenceProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Metadata\IMetadataReferenceProviderService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\AbstractPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\IPersistentStorage.cs" />

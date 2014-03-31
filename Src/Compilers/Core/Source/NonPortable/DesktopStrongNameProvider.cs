@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private readonly TouchedFileLogger touchedFiles;
         private readonly ImmutableArray<string> keyFileSearchPaths;
 
         /// <summary>
@@ -53,12 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="keyFileSearchPaths">
         /// An ordered set of fully qualified paths which are searched when locating a cryptographic key file.
         /// </param>
-        /// <param name="touchedFiles">
-        /// Files touched ("used") in process of discovering the key file.
-        /// </param>
-        public DesktopStrongNameProvider(
-            ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>),
-            TouchedFileLogger touchedFiles = null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>))
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
@@ -66,17 +60,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
-            this.touchedFiles = touchedFiles;
         }
 
-        // internal virtual for testing
         internal virtual bool FileExists(string fullPath)
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
             return File.Exists(fullPath);
         }
 
-        // internal virtual for testing
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -97,11 +88,6 @@ namespace Microsoft.CodeAnalysis
             {
                 if (FileExists(path))
                 {
-                    if (touchedFiles != null)
-                    {
-                        touchedFiles.AddRead(path);
-                    }
-
                     return FileUtilities.TryNormalizeAbsolutePath(path);
                 }
 
@@ -116,11 +102,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (FileExists(combinedPath))
                 {
-                    if (touchedFiles != null)
-                    {
-                        touchedFiles.AddRead(combinedPath);
-                    }
-
                     return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
                 }
             }

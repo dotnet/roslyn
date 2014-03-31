@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -490,6 +491,21 @@ namespace Roslyn.Utilities
             {
                 return path;
             }
+        }
+
+        /// <summary>
+        /// Determines whether an assembly reference is considered an assembly file path or an assembly name.
+        /// used, for example, on values of /r and #r.
+        /// </summary>
+        internal static bool IsFilePath(string assemblyDisplayNameOrPath)
+        {
+            Debug.Assert(assemblyDisplayNameOrPath != null);
+
+            string extension = GetExtension(assemblyDisplayNameOrPath);
+            return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
+                || assemblyDisplayNameOrPath.IndexOf(DirectorySeparatorChar) != -1
+                || assemblyDisplayNameOrPath.IndexOf(AltDirectorySeparatorChar) != -1;
         }
     }
 }

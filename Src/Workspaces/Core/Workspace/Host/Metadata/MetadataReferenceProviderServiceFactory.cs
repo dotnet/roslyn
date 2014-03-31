@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -9,14 +7,14 @@ namespace Microsoft.CodeAnalysis.Host
 #if MEF
     [ExportWorkspaceServiceFactory(typeof(IMetadataReferenceProviderService), WorkspaceKind.Any)]
 #endif
-    internal sealed class AssemblyShadowCopyProviderServiceFactory : IWorkspaceServiceFactory
+    internal sealed class MetadataReferenceProviderServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
         {
-            return new AssemblyShadowCopyProviderService();
+            return new MetadataReferenceProviderService();
         }
 
-        internal sealed class AssemblyShadowCopyProviderService : IMetadataReferenceProviderService
+        internal sealed class MetadataReferenceProviderService : IMetadataReferenceProviderService
         {
             public MetadataReferenceProvider GetProvider()
             {

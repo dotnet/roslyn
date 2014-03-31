@@ -1,23 +1,14 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
-Imports System.Diagnostics
 Imports System.Globalization
 Imports System.IO
-Imports System.Linq
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Instrumentation
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -86,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim flattenedArgs As List(Of String) = New List(Of String)()
                 Dim scriptArgs As List(Of String) = If(IsInteractive, New List(Of String)(), Nothing)
 
+                ' normalized paths to directories containing response files:
                 Dim responsePaths As New List(Of String)
                 FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
 
@@ -118,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
                 Dim metadataReferences = New List(Of CommandLineReference)()
                 Dim analyzers = New List(Of CommandLineAnalyzerReference)()
-                Dim sdkPath As New List(Of String)()
+                Dim sdkPaths As New List(Of String)()
                 Dim libPaths As New List(Of String)()
                 Dim keyFileSearchPaths = New List(Of String)()
                 Dim globalImports = New List(Of GlobalImport)
@@ -430,8 +422,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Continue For
                                 End If
 
-                                sdkPath.Clear()
-                                sdkPath.AddRange(ParseSeparatedPaths(RemoveAllQuotes(value)))
+                                sdkPaths.Clear()
+                                sdkPaths.AddRange(ParseSeparatedPaths(RemoveAllQuotes(value)))
                                 Continue For
 
                             Case "recurse"
@@ -458,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' An error will be reported by the assembly manager anyways.
                                 metadataReferences.AddRange(
                                     ParseSeparatedPaths(value).Select(
-                                        Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Module), isAssemblyName:=False)))
+                                        Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Module))))
                                 Continue For
 
                             Case "l", "link"
@@ -939,24 +931,22 @@ lVbRuntimePlus:
                 End If
 
                 ' Prepare SDK PATH
-                If sdkPath.Count = 0 Then
-                    sdkPath.Add(RuntimeEnvironment.GetRuntimeDirectory)
+                If sdkPaths.Count = 0 Then
+                    sdkPaths.Add(RuntimeEnvironment.GetRuntimeDirectory)
                 End If
 
                 ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
-                Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPath, baseDirectory)
+                Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
 
                 ' If /nostdlib is not specified, load System.dll
                 ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
                 If Not noStdLib Then
-                    Dim systemDllPath As String = FindFileInSdkPath(sdkPath, "System.dll", baseDirectory)
+                    Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory)
                     If systemDllPath Is Nothing Then
                         AddDiagnostic(diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
                     Else
                         metadataReferences.Add(
-                            New CommandLineReference(systemDllPath,
-                                                     New MetadataReferenceProperties(MetadataImageKind.Assembly),
-                                                     isAssemblyName:=False))
+                            New CommandLineReference(systemDllPath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                     End If
                     ' Dev11 also adds System.Core.dll in VbHostedCompiler::CreateCompilerProject()
                 End If
@@ -964,17 +954,15 @@ lVbRuntimePlus:
                 ' Add reference to 'Microsoft.VisualBasic.dll' if needed
                 If includeVbRuntimeReference Then
                     If vbRuntimePath Is Nothing Then
-                        Dim msVbDllPath As String = FindFileInSdkPath(sdkPath, "Microsoft.VisualBasic.dll", baseDirectory)
+                        Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
                         If msVbDllPath Is Nothing Then
                             AddDiagnostic(diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
                         Else
                             metadataReferences.Add(
-                                New CommandLineReference(msVbDllPath,
-                                                         New MetadataReferenceProperties(MetadataImageKind.Assembly),
-                                                         isAssemblyName:=False))
+                                New CommandLineReference(msVbDllPath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                         End If
                     Else
-                        metadataReferences.Add(New CommandLineReference(vbRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isAssemblyName:=False))
+                        metadataReferences.Add(New CommandLineReference(vbRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                     End If
                 End If
 
@@ -984,7 +972,7 @@ lVbRuntimePlus:
                 End If
 
                 ' Build search path
-                Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPath, responsePaths, libPaths)
+                Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
                 ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
@@ -1116,7 +1104,7 @@ lVbRuntimePlus:
 
             If systemRuntimePath IsNot Nothing Then
                 If msCorLibPath Is Nothing Then
-                    Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isAssemblyName:=False)
+                    Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
                 End If
 
                 ' Load System.Runtime.dll and see if it has any references
@@ -1128,7 +1116,7 @@ lVbRuntimePlus:
                     If systemRuntimeMetadata.Kind = MetadataImageKind.Assembly Then
                         Dim assemblyMetadata = DirectCast(systemRuntimeMetadata, AssemblyMetadata)
                         If assemblyMetadata.ManifestModule.Module.IsLinkedModule AndAlso assemblyMetadata.Assembly.AssemblyReferences.Length = 0 Then
-                            Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isAssemblyName:=False)
+                            Return New CommandLineReference(systemRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
                         End If
                     End If
                 Catch
@@ -1136,12 +1124,12 @@ lVbRuntimePlus:
                 End Try
 
                 ' Otherwise prefer 'mscorlib.dll'
-                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isAssemblyName:=False)
+                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
             End If
 
             If msCorLibPath IsNot Nothing Then
                 ' We return a reference to 'mscorlib.dll'
-                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly), isAssemblyName:=False)
+                Return New CommandLineReference(msCorLibPath, New MetadataReferenceProperties(MetadataImageKind.Assembly))
             End If
 
             Return Nothing
@@ -1175,7 +1163,7 @@ lVbRuntimePlus:
             Return Nothing
         End Function
 
-        Private Shared Function BuildSearchPaths(baseDirectory As String, sdkPath As List(Of String), responsePaths As List(Of String), libPaths As List(Of String)) As ImmutableArray(Of String)
+        Private Shared Function BuildSearchPaths(baseDirectory As String, sdkPaths As List(Of String), responsePaths As List(Of String), libPaths As List(Of String)) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
             ' Match how Dev11 builds the list of search paths
@@ -1184,12 +1172,7 @@ lVbRuntimePlus:
             ' current folder -- base directory is searched by default by the FileResolver
 
             ' SDK path is specified or current runtime directory
-            For Each path In sdkPath
-                Dim absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory)
-                If absolutePath IsNot Nothing Then
-                    builder.Add(absolutePath)
-                End If
-            Next
+            AddNormalizedPaths(builder, sdkPaths, baseDirectory)
 
             ' Response file path, see the following comment from Dev11:
             '   // .NET FX 3.5 will have response file in the FX 3.5 directory but SdkPath will still be in 2.0 directory.
@@ -1198,10 +1181,22 @@ lVbRuntimePlus:
             builder.AddRange(responsePaths)
 
             ' libpath
-            builder.AddRange(libPaths)
+            AddNormalizedPaths(builder, libPaths, baseDirectory)
 
             Return builder.ToImmutableAndFree()
         End Function
+
+        Private Shared Sub AddNormalizedPaths(builder As ArrayBuilder(Of String), paths As List(Of String), baseDirectory As String)
+            For Each path In paths
+                Dim normalizedPath = FileUtilities.NormalizeRelativePath(path, basePath:=Nothing, baseDirectory:=baseDirectory)
+                If normalizedPath Is Nothing Then
+                    ' just ignore invalid paths, native compiler doesn't report any errors
+                    Continue For
+                End If
+
+                builder.Add(normalizedPath)
+            Next
+        End Sub
 
         Private Shared Sub ValidateWin32Settings(noWin32Manifest As Boolean, win32ResSetting As String, win32IconSetting As String, win32ManifestSetting As String, outputKind As OutputKind, diagnostics As List(Of Diagnostic))
             If noWin32Manifest AndAlso (win32ManifestSetting IsNot Nothing) Then
@@ -1286,10 +1281,7 @@ lVbRuntimePlus:
             ' /r:"unterminated_quotes
             ' /r:"quotes"in"the"middle
             Return ParseSeparatedPaths(value).
-                   Select(Function(path)
-                              Dim isAssemblyName = IsInteractive AndAlso Not MetadataFileReferenceResolver.IsFilePath(path)
-                              Return New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes), isAssemblyName)
-                          End Function)
+                   Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
         Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)

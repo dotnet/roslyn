@@ -103,10 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagnostics = New List(Of DiagnosticInfo)()
 
-            Dim referenceDirectiveResolver As MetadataFileReferenceResolver = Nothing
+            Dim assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
+            Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim metadataProvider As MetadataFileReferenceProvider = GetMetadataProvider()
 
-            Dim resolvedReferences = ResolveMetadataReferences(metadataProvider, diagnostics, Nothing, touchedFilesLogger, referenceDirectiveResolver)
+            Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
+            Dim resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, referenceDirectiveResolver)
             If PrintErrors(diagnostics, consoleOutput) Then
                 Return Nothing
             End If
@@ -115,11 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PrintReferences(resolvedReferences, consoleOutput)
             End If
 
-            Dim strongNameProvider = New DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger)
-            Dim xmlFileResolver = New XmlFileResolver(Arguments.BaseDirectory)
+            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger)
+            Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
-            Dim sourceFileResolver = New SourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory)
+            Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, touchedFilesLogger)
 
             Dim result = VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -128,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  Arguments.CompilationOptions.
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithMetadataReferenceProvider(metadataProvider).
-                     WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default).
+                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithSourceReferenceResolver(sourceFileResolver))
@@ -169,8 +171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function ResolveMetadataReferencesFromArguments(
-            externalReferenceResolver As MetadataFileReferenceResolver,
-            metadataProvider As MetadataFileReferenceProvider,
+            externalReferenceResolver As MetadataReferenceResolver,
+            metadataProvider As MetadataReferenceProvider,
             diagnostics As List(Of DiagnosticInfo),
             resolved As List(Of MetadataReference)
         ) As Boolean
@@ -218,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                     ' None of the supplied references could be used as a Cor library. Let's add a default one.
-                    Dim defaultCorLibrary As MetadataReference = Arguments.DefaultCoreLibraryReference.Value.Resolve(externalReferenceResolver, metadataProvider, diagnostics, MessageProvider)
+                    Dim defaultCorLibrary As MetadataReference = Arguments.ResolveMetadataReference(Arguments.DefaultCoreLibraryReference.Value, externalReferenceResolver, metadataProvider, diagnostics, MessageProvider)
 
                     If defaultCorLibrary.IsUnresolved Then
                         Debug.Assert(diagnostics.Any())

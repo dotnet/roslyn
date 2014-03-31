@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // resolve all analyzer references.
-            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(referenceResolver);
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences();
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {

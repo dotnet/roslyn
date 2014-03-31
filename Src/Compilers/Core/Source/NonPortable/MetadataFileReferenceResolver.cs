@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -5,7 +7,6 @@ using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Instrumentation;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,7 +19,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> searchPaths;
         private readonly string baseDirectory;
-        private readonly TouchedFileLogger touchedFiles;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetadataFileReferenceResolver"/> class.
@@ -26,13 +26,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="searchPaths">An ordered set of fully qualified 
         /// paths which are searched when resolving assembly names.</param>
         /// <param name="baseDirectory">Directory used when resolving relative paths.</param>
-        /// <param name="touchedFiles"></param>
-        public MetadataFileReferenceResolver(
-            ImmutableArray<string> searchPaths,
-            string baseDirectory,
-            TouchedFileLogger touchedFiles = null)
+        public MetadataFileReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
         {
-            ValidateSearchPaths(searchPaths, "assemblySearchPaths");
+            ValidateSearchPaths(searchPaths, "searchPaths");
 
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)
             {
@@ -41,7 +37,6 @@ namespace Microsoft.CodeAnalysis
 
             this.searchPaths = searchPaths;
             this.baseDirectory = baseDirectory;
-            this.touchedFiles = touchedFiles;
         }
 
         /// <summary>
@@ -50,12 +45,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="searchPaths">An ordered set of fully qualified 
         /// paths which are searched when resolving assembly names.</param>
         /// <param name="baseDirectory">Directory used when resolving relative paths.</param>
-        /// <param name="touchedFiles"></param>
-        public MetadataFileReferenceResolver(
-            IEnumerable<string> searchPaths,
-            string baseDirectory,
-            TouchedFileLogger touchedFiles = null)
-            : this(searchPaths.AsImmutableOrNull(), baseDirectory, touchedFiles)
+        public MetadataFileReferenceResolver(IEnumerable<string> searchPaths, string baseDirectory)
+            : this(searchPaths.AsImmutableOrNull(), baseDirectory)
         {
         }
 
@@ -103,10 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves a metadata reference that is a path or an assembly name.
         /// </summary>
-        /// <param name="reference">
-        /// Assembly name or file path. 
-        /// <see cref="M:IsFilePath"/> is used to determine whether to consider this value an assembly name or a file path.
-        /// </param>
+        /// <param name="reference">Reference path.</param>
         /// <param name="baseFilePath">
         /// The base file path to use to resolve relative paths against.
         /// Null to use the <see cref="BaseDirectory"/> as a base for relative paths.
@@ -116,47 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ResolveReference(string reference, string baseFilePath)
         {
-            string path;
-            if (!IsFilePath(reference))
-            {
-                path = ResolveAssemblyName(reference);
-                if (path == null)
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                path = reference;
-            }
-
-            return ResolveMetadataFileChecked(path, baseFilePath);
-        }
-
-        /// <summary>
-        /// Resolves given assembly name.
-        /// </summary>
-        /// <returns>Full path to an assembly file.</returns>
-        public virtual string ResolveAssemblyName(string displayName)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// Resolves a given reference path.
-        /// </summary>
-        /// <param name="path">Path to resolve.</param>
-        /// <param name="baseFilePath">
-        /// The base file path to use to resolve relative paths against.
-        /// Null to use the <see cref="BaseDirectory"/> as a base for relative paths.
-        /// </param>
-        /// <returns>
-        /// The resolved metadata reference path. A normalized absolute path or null.
-        /// </returns>
-        public virtual string ResolveMetadataFile(string path, string baseFilePath)
-        {
-            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, baseDirectory, searchPaths, FileExists);
-
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, baseDirectory, searchPaths, FileExists);
             if (!FileExists(resolvedPath))
             {
                 return null;
@@ -165,20 +113,12 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
         }
 
-        internal string ResolveMetadataFileChecked(string path, string baseFilePath)
+        internal string ResolveReferenceChecked(string reference, string baseFilePath)
         {
-            string fullPath = ResolveMetadataFile(path, baseFilePath);
-            if (fullPath != null)
+            string fullPath = ResolveReference(reference, baseFilePath);
+            if (fullPath != null && !PathUtilities.IsAbsolute(fullPath))
             {
-                if (!PathUtilities.IsAbsolute(fullPath))
-                {
-                    throw new InvalidOperationException(
-                        string.Format(CodeAnalysisResources.PathReturnedByResolveMetadataFileMustBeAbsolute, GetType().FullName, fullPath));
-                }
-                if (touchedFiles != null)
-                {
-                    touchedFiles.AddRead(fullPath);
-                }
+                throw new InvalidOperationException(string.Format(CodeAnalysisResources.PathReturnedByResolveMetadataFileMustBeAbsolute, GetType().FullName, fullPath));
             }
 
             return fullPath;
@@ -188,21 +128,6 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
             return File.Exists(fullPath);
-        }
-
-        /// <summary>
-        /// Determines whether an assembly reference is considered an assembly file path or an assembly name.
-        /// used, for example, on values of /r and #r.
-        /// </summary>
-        internal static bool IsFilePath(string assemblyDisplayNameOrPath)
-        {
-            Debug.Assert(assemblyDisplayNameOrPath != null);
-
-            string extension = PathUtilities.GetExtension(assemblyDisplayNameOrPath);
-            return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
-                || assemblyDisplayNameOrPath.IndexOf(PathUtilities.DirectorySeparatorChar) != -1
-                || assemblyDisplayNameOrPath.IndexOf(PathUtilities.AltDirectorySeparatorChar) != -1;
         }
     }
 }

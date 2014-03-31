@@ -2836,7 +2836,12 @@ End Class
         Dim parsedArgs As VisualBasicCommandLineArguments
         parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/rp:a;b", "/referencePath:c", "a.vb"}, _baseDirectory)
         Assert.Equal(False, parsedArgs.Errors.Any())
-        AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(), "a", "b", "c"}, parsedArgs.ReferencePaths, StringComparer.OrdinalIgnoreCase)
+        AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(),
+                        Path.Combine(_baseDirectory, "a"),
+                        Path.Combine(_baseDirectory, "b"),
+                        Path.Combine(_baseDirectory, "c")},
+                       parsedArgs.ReferencePaths,
+                       StringComparer.OrdinalIgnoreCase)
     End Sub
 
     <Fact, WorkItem(530088)>
@@ -3064,19 +3069,15 @@ End Class
         parsedArgs.Errors.Verify()
         Assert.Equal(3, parsedArgs.MetadataReferences.Length)
         Assert.Equal("c:\", parsedArgs.MetadataReferences(0).Reference)
-        Assert.Equal(False, parsedArgs.MetadataReferences(0).IsAssemblyName)
         Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(0).Properties.Kind)
         Assert.Equal("d:\x\y\z", parsedArgs.MetadataReferences(1).Reference)
-        Assert.Equal(False, parsedArgs.MetadataReferences(1).IsAssemblyName)
         Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(1).Properties.Kind)
         Assert.Equal("abc", parsedArgs.MetadataReferences(2).Reference)
-        Assert.Equal(False, parsedArgs.MetadataReferences(2).IsAssemblyName)
         Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(2).Properties.Kind)
         Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll"))
         Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll"))
         Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll"))
         Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll"))
-        Assert.Equal(False, parsedArgs.DefaultCoreLibraryReference.Value.IsAssemblyName)
         Assert.Equal(MetadataImageKind.Assembly, parsedArgs.DefaultCoreLibraryReference.Value.Properties.Kind)
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/ADDMODULE", "a.vb"}, _baseDirectory)
@@ -3093,11 +3094,11 @@ End Class
     Public Sub LibPathsAndLibEnvVariable()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\;d:\x\y\z;abc;;", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", "abc")
+        AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", Path.Combine(_baseDirectory, "abc"))
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\Windows", "/libpath:abc\def; ; ; ", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
-        AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", "abc\def", " ", " ")
+        AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", Path.Combine(_baseDirectory, "abc\def"))
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("libpath", ":<path_list>"))
@@ -3152,9 +3153,11 @@ End Class
 
     <Fact()>
     Public Sub SdkPathAndLibEnvVariable()
-        Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:lib2", "/sdkpath:d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+        Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:lib2", "/sdkpath:<>;d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+
+        ' invalid paths are ignored
         parsedArgs.Errors.Verify()
-        AssertReferencePathsEqual(parsedArgs.ReferencePaths, "d:\sdk1", "c:lib2")
+        AssertReferencePathsEqual(parsedArgs.ReferencePaths, "d:\sdk1")
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath:c:\Windows", "/sdkpath:d:\Windows", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
