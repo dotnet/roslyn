@@ -322,11 +322,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
     <Fact()>
     Public Sub VbcUtf8Output_WithRedirecting_Off()
-        Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-    Public c As АБВ
-End Class
-</text>.Value, System.Text.Encoding.UTF8).Path
+        Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
 
         Dim tempOut = Temp.CreateFile()
 
@@ -334,23 +330,18 @@ End Class
         Assert.Equal("", output.Trim())
 
         Assert.Equal(<text>
-SRC.VB(3) : error BC30002: Type '???' is not defined.
+SRC.VB(1) : error BC30037: Character is not valid.
 
-    Public c As ???
-                ~~~
+?
+~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
-
 
         CleanupAllGeneratedFiles(src)
     End Sub
 
     <Fact()>
     Public Sub VbcUtf8Output_WithRedirecting_On()
-        Dim src As String = Temp.CreateFile().WriteAllText(<text>
-Class C
-    Public c As АБВ
-End Class
-</text>.Value, System.Text.Encoding.UTF8).Path
+        Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
 
         Dim tempOut = Temp.CreateFile()
 
@@ -358,10 +349,10 @@ End Class
         Assert.Equal("", output.Trim())
 
         Assert.Equal(<text>
-SRC.VB(3) : error BC30002: Type 'АБВ' is not defined.
+SRC.VB(1) : error BC30037: Character is not valid.
 
-    Public c As АБВ
-                ~~~
+♚
+~
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
 
 

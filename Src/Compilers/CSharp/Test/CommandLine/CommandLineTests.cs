@@ -3069,34 +3069,30 @@ class Test { static void Main() {} }").Path;
         }
 
         [Fact]
-        public void VbcUtf8Output_WithRedirecting_Off()
+        public void CscUtf8Output_WithRedirecting_Off()
         {
-            var srcFile = Temp.CreateFile().WriteAllText("class C { \u0410\u0411\u0412 x; }").Path;
+            var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
 
             var tempOut = Temp.CreateFile();
 
             var output = RunAndGetOutput("cmd", "/C " + CSharpCompilerCommand + " /nologo /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
             Assert.Equal("", output.Trim());
-
-            Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name '???' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
-                        tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
 
             CleanupAllGeneratedFiles(srcFile);
             CleanupAllGeneratedFiles(tempOut.Path );
         }
 
         [Fact]
-        public void VbcUtf8Output_WithRedirecting_On()
+        public void CscUtf8Output_WithRedirecting_On()
         {
-            var srcFile = Temp.CreateFile().WriteAllText("class C { \u0410\u0411\u0412 x; }").Path;
+            var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
 
             var tempOut = Temp.CreateFile();
 
             var output = RunAndGetOutput("cmd", "/C " + CSharpCompilerCommand +" /utf8output /nologo /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
             Assert.Equal("", output.Trim());
-
-            Assert.Equal("SRC.CS(1,11): error CS0246: The type or namespace name '\u0410\u0411\u0412' could not be found (are you missing a using directive or an assembly reference?)".Trim(),
-                        tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♚'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
 
             CleanupAllGeneratedFiles(srcFile);
             CleanupAllGeneratedFiles(tempOut.Path);
