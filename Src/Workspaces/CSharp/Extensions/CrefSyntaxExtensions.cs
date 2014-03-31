@@ -56,14 +56,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             replacementNode = SyntaxFactory.TypeCref(
                                                 SyntaxFactory.PredefinedType(
                                                     SyntaxFactory.Token(crefSyntax.GetLeadingTrivia(), keywordKind, crefSyntax.GetTrailingTrivia())));
+                            replacementNode = crefSyntax.CopyAnnotationsTo(replacementNode);
 
-                            // SyntaxFactory.Token(crefSyntax.GetLeadingTrivia(), keywordKind, crefSyntax.GetTrailingTrivia()));
-
-                            issueSpan = crefSyntax.Span; // we want to show the whole name expression as unnecessary
+                            // we want to show the whole name expression as unnecessary
+                            issueSpan = crefSyntax.Span; 
 
                             return true;
                         }
                     }
+                }
+            }
+
+            var oldSymbol = semanticModel.GetSymbolInfo(crefSyntax, cancellationToken).Symbol;
+            if (oldSymbol != null)
+            {
+                var speculativeBindingOption = SpeculativeBindingOption.BindAsExpression;
+                if (oldSymbol is INamespaceOrTypeSymbol)
+                {
+                    speculativeBindingOption = SpeculativeBindingOption.BindAsTypeOrNamespace;
+                }
+
+                var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, memberCref, speculativeBindingOption).Symbol;
+
+                if (newSymbol == oldSymbol)
+                {
+                    // Copy Trivia and Annotations
+                    memberCref = memberCref.WithLeadingTrivia(crefSyntax.GetLeadingTrivia());
+                    memberCref = crefSyntax.CopyAnnotationsTo(memberCref);
+                    issueSpan = qualifiedCrefSyntax.Container.Span;
+                    replacementNode = memberCref;
+                    return true;
                 }
             }
 

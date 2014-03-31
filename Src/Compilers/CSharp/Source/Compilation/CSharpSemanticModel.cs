@@ -4327,6 +4327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return GetSpeculativeSymbolInfo(position, (AttributeSyntax)expression);
             }
+            else if (expression is CrefSyntax)
+            {
+                return GetSpeculativeSymbolInfo(position, (CrefSyntax)expression);
+            }
             else
             {
                 return default(SymbolInfo);

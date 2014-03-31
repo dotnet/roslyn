@@ -515,6 +515,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Binds the CrefSyntax expression in the context of the specified location and gets symbol information.
+        /// This method is used to get symbol information about an expression that did not actually
+        /// appear in the source code.
+        /// </summary>
+        public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel semanticModel, int position, CrefSyntax expression, SpeculativeBindingOption bindingOption)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSpeculativeSymbolInfo(position, expression, bindingOption);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
         /// Bind the attribute in the context of the specified location and get semantic information
         /// such as type, symbols and diagnostics. This method is used to get semantic information about an attribute
         /// that did not actually appear in the source code.
