@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
             return globalVersion;
         }
 
-        public static readonly VersionStamp Default = new VersionStamp(default(DateTime));
+        public static readonly VersionStamp Default = default(VersionStamp);
 
         /// <summary>
         /// True if this VersionStamp is newer than the specified one.
