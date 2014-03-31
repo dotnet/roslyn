@@ -2,14 +2,15 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-// HashBucket used when emitting hash table based string switch.
-// Each hash bucket contains the list of "<string constant, label>" keyvalue pairs
-// having identical hash value.
-using HashBucket = System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Microsoft.CodeAnalysis.ConstantValue, object>>;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    // HashBucket used when emitting hash table based string switch.
+    // Each hash bucket contains the list of "<string constant, label>" keyvalue pairs
+    // having identical hash value.
+    using HashBucket = List<KeyValuePair<ConstantValue, object>>;
+
     internal struct SwitchStringJumpTableEmitter
     {
         private readonly ILBuilder builder;

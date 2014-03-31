@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </summary>
         ''' <remarks>
         ''' This functionality exists for parity with C#, which requires it for
-        ''' legacy reasons (see Roslyn.Compilers.CSharp.Emit.Assembly.metadataName).
+        ''' legacy reasons (see Microsoft.CodeAnalysis.CSharp.Emit.PEAssemblyBuilderBase.metadataName).
         ''' </remarks>
         Private ReadOnly m_MetadataName As String
 
@@ -103,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of ManagedResource), diagnostics As DiagnosticBag)
+        Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             Dim modules = m_SourceAssembly.Modules
 
             For i As Integer = 1 To modules.Length - 1
@@ -111,11 +112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Try
                     For Each resource In DirectCast(modules(i), Symbols.Metadata.PE.PEModuleSymbol).Module.GetEmbeddedResourcesOrThrow()
-                        builder.Add(New ManagedResource(resource.Name,
-                                                        (resource.Attributes And ManifestResourceAttributes.Public) <> 0,
-                                                        Nothing,
-                                                        file,
-                                                        resource.Offset))
+                        builder.Add(New Cci.ManagedResource(
+                            resource.Name,
+                            (resource.Attributes And ManifestResourceAttributes.Public) <> 0,
+                            Nothing,
+                            file,
+                            resource.Offset))
                     Next
                 Catch mrEx As BadImageFormatException
                     diagnostics.Add(ERRID.ERR_UnsupportedModule1, NoLocation.Singleton, modules(i))
@@ -135,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyReferenceContentType As System.Reflection.AssemblyContentType Implements Cci.IAssemblyReference.ContentType
+        Private ReadOnly Property IAssemblyReferenceContentType As AssemblyContentType Implements Cci.IAssemblyReference.ContentType
             Get
                 Return m_SourceAssembly.Identity.ContentType
             End Get

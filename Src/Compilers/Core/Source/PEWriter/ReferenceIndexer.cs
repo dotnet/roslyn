@@ -33,13 +33,13 @@ namespace Microsoft.Cci
 
         protected abstract void RecordAssemblyReference(IAssemblyReference assemblyReference);
 
-        public override void Visit(IAliasForType aliasForType)
+        public override void Visit(ITypeExport aliasForType)
         {
             this.Visit(aliasForType.GetAttributes(Context));
 
             // do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
             // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
-            var definingUnit = TypeHelper.GetDefiningUnitReference(aliasForType.AliasedType, Context);
+            var definingUnit = TypeHelper.GetDefiningUnitReference(aliasForType.ExportedType, Context);
             var definingAssembly = definingUnit as IAssemblyReference;
             if (definingAssembly != null)
             {
@@ -261,55 +261,16 @@ namespace Microsoft.Cci
             RecordTypeReference(nestedTypeReference);
         }
 
-#if false //unused in Roslyn
-        public override void Visit(IOperation operation)
-        {
-            ITypeReference/*?*/ typeReference = operation.Value as ITypeReference;
-            if (typeReference != null)
-            {
-                this.typeReferenceNeedsToken = true;
-                if (operation.OperationCode == Microsoft.CodeAnalysis.ILOpCode.Newarr)
-                {
-                    // ^ assume operation.Value is IArrayTypeReference;
-                    this.Visit(((IArrayTypeReference)operation.Value).GetElementType(Context));
-                }
-                else
-                {
-                    this.Visit(typeReference);
-                }
-
-                Debug.Assert(!this.typeReferenceNeedsToken);
-            }
-            else
-            {
-                IFieldReference/*?*/ fieldReference = operation.Value as IFieldReference;
-                if (fieldReference != null)
-                {
-                    this.Visit(fieldReference);
-                }
-                else
-                {
-                    IMethodReference/*?*/ methodReference = operation.Value as IMethodReference;
-                    if (methodReference != null)
-                    {
-                        this.Visit(methodReference);
-                    }
-                }
-            }
-        }
-#endif
-
         public override void Visit(IPropertyDefinition propertyDefinition)
         {
             this.Visit(propertyDefinition.Parameters);
         }
 
-        public override void Visit(IResourceReference resourceReference)
+        public override void Visit(ManagedResource resourceReference)
         {
             this.Visit(resourceReference.Attributes);
 
-            IFileReference file = resourceReference.Resource.ExternalFile;
-
+            IFileReference file = resourceReference.ExternalFile;
             if (file != null)
             {
                 this.Visit(file);

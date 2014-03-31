@@ -4,14 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.Cci
 {
-    internal class ManagedResource : Cci.IResource
+    internal sealed class ManagedResource 
     {
         private readonly Func<Stream> streamProvider;
-        private readonly Cci.IFileReference fileReference;
+        private readonly IFileReference fileReference;
         private readonly uint offset;
         private readonly string name;
         private readonly bool isPublic;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="streamProvider"/> streamProvider callers will dispose result after use.
         /// <paramref name="streamProvider"/> and <paramref name="fileReference"/> are mutually exclusive.
         /// </summary>
-        internal ManagedResource(string name, bool isPublic, Func<Stream> streamProvider, Cci.IFileReference fileReference, uint offset)
+        internal ManagedResource(string name, bool isPublic, Func<Stream> streamProvider, IFileReference fileReference, uint offset)
         {
             Debug.Assert(streamProvider == null ^ fileReference == null);
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             this.isPublic = isPublic;
         }
 
-        public void WriteData(Cci.BinaryWriter resourceWriter)
+        public void WriteData(BinaryWriter resourceWriter)
         {
             if (fileReference == null)
             {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public Cci.IFileReference ExternalFile
+        public IFileReference ExternalFile
         {
             get
             {
@@ -79,9 +80,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public IEnumerable<Cci.ICustomAttribute> Attributes
+        public IEnumerable<ICustomAttribute> Attributes
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>(); }
+            get { return SpecializedCollections.EmptyEnumerable<ICustomAttribute>(); }
         }
 
         public bool IsPublic
@@ -92,11 +93,6 @@ namespace Microsoft.CodeAnalysis
         public string Name
         {
             get { return name; }
-        }
-
-        public Cci.IResource Resource
-        {
-            get { return this; }
         }
     }
 }

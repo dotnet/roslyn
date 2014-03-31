@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<ManagedResource> builder, DiagnosticBag diagnostics)
+        protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
             var modules = sourceAssembly.Modules;
             int count = modules.Length;
@@ -146,11 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     foreach (EmbeddedResource resource in ((Symbols.Metadata.PE.PEModuleSymbol)modules[i]).Module.GetEmbeddedResourcesOrThrow())
                     {
-                        builder.Add(new ManagedResource(resource.Name,
-                                                        (resource.Attributes & ManifestResourceAttributes.Public) != 0,
-                                                        null,
-                                                        file,
-                                                        resource.Offset));
+                        builder.Add(new Cci.ManagedResource(
+                            resource.Name,
+                            (resource.Attributes & ManifestResourceAttributes.Public) != 0,
+                            null,
+                            file,
+                            resource.Offset));
                     }
                 }
                 catch (BadImageFormatException)

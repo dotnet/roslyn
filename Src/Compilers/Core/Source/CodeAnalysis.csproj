@@ -209,6 +209,7 @@
     <Compile Include="Emit\NoPia\VtblGap.cs" />
     <Compile Include="Emit\PEModuleBuilder.cs" />
     <Compile Include="Emit\SemanticEdit.cs" />
+    <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
     <Compile Include="Instrumentation\FunctionId.cs" />
     <Compile Include="Instrumentation\Logger.cs" />
@@ -348,7 +349,6 @@
     <Compile Include="NonPortable\XmlFileResolver.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
-    <Compile Include="PEWriter\AliasForType.cs" />
     <Compile Include="PEWriter\BinaryWriter.cs" />
     <Compile Include="PEWriter\ClrHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
@@ -362,7 +362,6 @@
     <Compile Include="PEWriter\IFileReference.cs" />
     <Compile Include="PEWriter\InheritedTypeParameter.cs" />
     <Compile Include="PEWriter\InstructionOperandTypes.cs" />
-    <Compile Include="PEWriter\IResource.cs" />
     <Compile Include="PEWriter\ISymbolWriter.cs" />
     <Compile Include="PEWriter\ISymUnmanagedAsyncMethodPropertiesWriter.cs" />
     <Compile Include="PEWriter\ManagedResource.cs" />

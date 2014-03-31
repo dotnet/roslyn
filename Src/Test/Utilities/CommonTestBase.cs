@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

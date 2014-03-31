@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-
-// ^ using Microsoft.Contracts;
+using EmitContext = Microsoft.CodeAnalysis.Emit.Context;
 
 namespace Microsoft.Cci
 {
@@ -86,7 +84,7 @@ namespace Microsoft.Cci
         /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
         /// as any external resources. It corresonds to the File table of the .NET assembly file format.
         /// </summary>
-        IEnumerable<IFileReference> GetFiles(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IFileReference> GetFiles(EmitContext context);
 
         /// <summary>
         /// A set of bits and bit ranges representing properties of the assembly. The value of <see cref="Flags"/> can be set
@@ -149,7 +147,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
         /// </summary>
-        IEnumerable<IAliasForType> GetExportedTypes(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<ITypeExport> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
@@ -166,17 +164,17 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of the assemblies that are referenced by this module.
         /// </summary>
-        IEnumerable<IAssemblyReference> GetAssemblyReferences(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IAssemblyReference> GetAssemblyReferences(EmitContext context);
 
         /// <summary>
         /// A list of named byte sequences persisted with the assembly and used during execution, typically via .NET Framework helper classes.
         /// </summary>
-        IEnumerable<IResourceReference> GetResources(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<ManagedResource> GetResources(EmitContext context);
 
         /// <summary>
         /// CorLibrary assembly referenced by this module.
         /// </summary>
-        IAssemblyReference GetCorLibrary(Microsoft.CodeAnalysis.Emit.Context context);
+        IAssemblyReference GetCorLibrary(EmitContext context);
 
         /// <summary>
         /// The preferred memory address at which the module is to be loaded at runtime.
@@ -191,7 +189,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The Assembly that contains this module. If this module is main module then this returns this.
         /// </summary>
-        new IAssembly/*?*/ GetContainingAssembly(Microsoft.CodeAnalysis.Emit.Context context);
+        new IAssembly GetContainingAssembly(EmitContext context);
 
         /// <summary>
         /// Flags that control the behavior of the target operating system. CLI implementations are supposed to ignore this, but some operating system pay attention.
@@ -224,7 +222,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns all top-level (not nested) types defined in the current module. 
         /// </summary>
-        IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
 
         /// <summary>
         /// True if the module contains only IL and is processor independent.
@@ -379,7 +377,7 @@ namespace Microsoft.Cci
 
         IAssembly AsAssembly { get; }
 
-        ITypeReference GetPlatformType(PlatformType t, Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetPlatformType(PlatformType t, EmitContext context);
 
         bool IsPlatformType(ITypeReference typeRef, PlatformType t);
 
@@ -443,7 +441,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The Assembly that contains this module. May be null if the module is not part of an assembly.
         /// </summary>
-        IAssemblyReference/*?*/ GetContainingAssembly(Microsoft.CodeAnalysis.Emit.Context context);
+        IAssemblyReference GetContainingAssembly(EmitContext context);
     }
 
     /// <summary>

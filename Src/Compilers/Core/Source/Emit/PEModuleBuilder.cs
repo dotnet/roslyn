@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeGen;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class CommonPEModuleBuilder
     {
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis
             return GetTopLevelTypes(context);
         }
 
-        public abstract IEnumerable<Microsoft.Cci.IAliasForType> GetExportedTypes(Microsoft.CodeAnalysis.Emit.Context context);
+        public abstract IEnumerable<Microsoft.Cci.ITypeExport> GetExportedTypes(Microsoft.CodeAnalysis.Emit.Context context);
 
         Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, Microsoft.CodeAnalysis.Emit.Context context)
         {
@@ -743,13 +743,13 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
 
-        private IEnumerable<ManagedResource> lazyManagedResources;
+        private IEnumerable<Cci.ManagedResource> lazyManagedResources;
 
-        IEnumerable<Cci.IResourceReference> Cci.IModule.GetResources(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ManagedResource> Cci.IModule.GetResources(Microsoft.CodeAnalysis.Emit.Context context)
         {
             if (lazyManagedResources == null)
             {
-                var builder = ArrayBuilder<ManagedResource>.GetInstance();
+                var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
 
                 foreach (ResourceDescription r in ManifestResources)
                 {
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis
             return lazyManagedResources;
         }
 
-        protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<ManagedResource> builder, DiagnosticBag diagnostics);
+        protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
 
         Cci.IAssembly Cci.IModule.AsAssembly
         {

@@ -1,14 +1,11 @@
 ' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -23,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' See Assembly.MetadataName.
         Private ReadOnly m_MetadataName As String
 
-        Private m_LazyExportedTypes As ImmutableArray(Of Microsoft.Cci.AliasForType(Of NamedTypeSymbol))
+        Private m_LazyExportedTypes As ImmutableArray(Of TypeExport(Of NamedTypeSymbol))
 
         ' These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
         Private m_TestData As ConcurrentDictionary(Of String, CompilationTestData.MethodData)
@@ -325,11 +322,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         End Function
 
-        Public Overrides Function GetExportedTypes(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Microsoft.Cci.IAliasForType)
+        Public Overrides Function GetExportedTypes(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.ITypeExport)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If m_LazyExportedTypes.IsDefault Then
-                Dim builder = ArrayBuilder(Of Microsoft.Cci.AliasForType(Of NamedTypeSymbol)).GetInstance()
+                Dim builder = ArrayBuilder(Of TypeExport(Of NamedTypeSymbol)).GetInstance()
                 Dim sourceAssembly As SourceAssemblySymbol = SourceModule.ContainingSourceAssembly
 
                 If Not OutputKind.IsNetModule() Then
@@ -417,11 +414,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return m_LazyExportedTypes
         End Function
 
-        Private Overloads Sub GetExportedTypes(sym As NamespaceOrTypeSymbol, builder As ArrayBuilder(Of Microsoft.Cci.AliasForType(Of NamedTypeSymbol)))
+        Private Overloads Sub GetExportedTypes(sym As NamespaceOrTypeSymbol, builder As ArrayBuilder(Of TypeExport(Of NamedTypeSymbol)))
             If sym.Kind = SymbolKind.NamedType Then
                 If sym.DeclaredAccessibility = Accessibility.Public Then
                     Debug.Assert(sym.IsDefinition)
-                    builder.Add(New Microsoft.Cci.AliasForType(Of NamedTypeSymbol)(DirectCast(sym, NamedTypeSymbol)))
+                    builder.Add(New TypeExport(Of NamedTypeSymbol)(DirectCast(sym, NamedTypeSymbol)))
                 Else
                     Return
                 End If
@@ -439,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Shared Sub GetForwardedTypes(
             seenTopLevelTypes As HashSet(Of NamedTypeSymbol),
             wellKnownAttributeData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol),
-            builder As ArrayBuilder(Of Microsoft.Cci.AliasForType(Of NamedTypeSymbol))
+            builder As ArrayBuilder(Of TypeExport(Of NamedTypeSymbol))
         )
             If wellKnownAttributeData IsNot Nothing AndAlso wellKnownAttributeData.ForwardedTypes IsNot Nothing Then
                 For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
@@ -467,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                         ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(New Microsoft.Cci.AliasForType(Of NamedTypeSymbol)(curr))
+                        builder.Add(New TypeExport(Of NamedTypeSymbol)(curr))
 
                         ' Iterate backwards so they get popped in forward order.
                         Dim nested As ImmutableArray(Of NamedTypeSymbol) = curr.GetTypeMembers() ' Ordered.

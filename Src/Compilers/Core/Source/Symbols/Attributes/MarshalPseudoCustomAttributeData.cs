@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        object Cci.IMarshallingInformation.GetCustomMarshaller(Microsoft.CodeAnalysis.Emit.Context context)
+        object Cci.IMarshallingInformation.GetCustomMarshaller(Emit.Context context)
         {
             Debug.Assert(marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
             var typeSymbol = marshalTypeNameOrSymbol as ITypeSymbol;
             if (typeSymbol != null)
             {
-                return ((CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNodeOpt, context.Diagnostics);
+                return ((Emit.CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNodeOpt, context.Diagnostics);
             }
             else
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(Emit.Context context)
         {
             Debug.Assert(marshalType == UnmanagedType.SafeArray);
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ((CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
+            return ((Emit.CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
         }
 
         /// <summary>

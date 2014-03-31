@@ -62,7 +62,7 @@ namespace Microsoft.Cci
         protected PeWriter(
             Microsoft.CodeAnalysis.Emit.Context context,
             CommonMessageProvider messageProvider,
-            PdbWriter/*?*/ pdbWriter,
+            PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldIdenticalMethodBodies,
             CancellationToken cancellationToken)
@@ -463,7 +463,7 @@ namespace Microsoft.Cci
         private readonly bool emitRuntimeStartupStub;
         private readonly BinaryWriter coverageDataWriter = new BinaryWriter(new MemoryStream());
         private readonly SectionHeader coverSection = new SectionHeader();
-        private PeDebugDirectory/*?*/ debugDirectory;
+        private PeDebugDirectory debugDirectory;
         private MemoryStream headerStream = new MemoryStream(1024);
 
         // #String heap
@@ -769,7 +769,7 @@ namespace Microsoft.Cci
 
         private uint ComputeStrongNameSignatureSize()
         {
-            IAssembly/*?*/ assembly = this.module.AsAssembly;
+            IAssembly assembly = this.module.AsAssembly;
             if (assembly == null)
             {
                 return 0;
@@ -961,7 +961,7 @@ namespace Microsoft.Cci
             uint cur = 0;
             foreach (IReference o in referencesInIL)
             {
-                ITypeReference/*?*/ typeReference = o as ITypeReference;
+                ITypeReference typeReference = o as ITypeReference;
 
                 if (typeReference != null)
                 {
@@ -969,7 +969,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    IFieldReference/*?*/ fieldReference = o as IFieldReference;
+                    IFieldReference fieldReference = o as IFieldReference;
 
                     if (fieldReference != null)
                     {
@@ -977,7 +977,7 @@ namespace Microsoft.Cci
                     }
                     else
                     {
-                        IMethodReference/*?*/ methodReference = o as IMethodReference;
+                        IMethodReference methodReference = o as IMethodReference;
                         if (methodReference != null)
                         {
                             this.pseudoSymbolTokenToTokenMap[cur] = this.GetMethodToken(methodReference);
@@ -1055,9 +1055,9 @@ namespace Microsoft.Cci
             }
         }
 
-        protected IEnumerable<IGenericTypeParameter>/*?*/ GetConsolidatedTypeParameters(ITypeDefinition typeDef)
+        protected IEnumerable<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef)
         {
-            INestedTypeDefinition/*?*/ nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
+            INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
             if (nestedTypeDef == null)
             {
                 if (typeDef.IsGeneric)
@@ -1071,10 +1071,10 @@ namespace Microsoft.Cci
             return this.GetConsolidatedTypeParameters(typeDef, typeDef);
         }
 
-        private List<IGenericTypeParameter>/*?*/ GetConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
+        private List<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
         {
-            List<IGenericTypeParameter>/*?*/ result = null;
-            INestedTypeDefinition/*?*/ nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
+            List<IGenericTypeParameter> result = null;
+            INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
             if (nestedTypeDef != null)
             {
                 result = this.GetConsolidatedTypeParameters(nestedTypeDef.ContainingTypeDefinition, owner);
@@ -1156,9 +1156,9 @@ namespace Microsoft.Cci
 
             if (this.IsFullMetadata)
             {
-                foreach (IAliasForType alias in this.module.GetExportedTypes(Context))
+                foreach (ITypeExport alias in this.module.GetExportedTypes(Context))
                 {
-                    ITypeReference exportedType = alias.AliasedType;
+                    ITypeReference exportedType = alias.ExportedType;
                     if (!this.exportedTypeIndex.ContainsKey(exportedType))
                     {
                         this.exportedTypeList.Add(exportedType);
@@ -1447,7 +1447,7 @@ namespace Microsoft.Cci
 
         private uint GetBlobIndex(object value)
         {
-            string/*?*/ str = value as string;
+            string str = value as string;
             if (str != null)
             {
                 return this.GetBlobIndex(str);
@@ -1514,8 +1514,8 @@ namespace Microsoft.Cci
 
         private uint GetCustomAttributeTypeCodedIndex(IMethodReference methodReference)
         {
-            IMethodDefinition/*?*/ methodDef = null;
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IMethodDefinition methodDef = null;
+            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -1655,7 +1655,7 @@ namespace Microsoft.Cci
         internal uint GetFieldSignatureIndex(IFieldReference fieldReference)
         {
             uint result = 0;
-            ISpecializedFieldReference/*?*/ specializedFieldReference = fieldReference.AsSpecializedFieldReference;
+            ISpecializedFieldReference specializedFieldReference = fieldReference.AsSpecializedFieldReference;
             if (specializedFieldReference != null)
             {
                 fieldReference = specializedFieldReference.UnspecializedVersion;
@@ -1677,8 +1677,8 @@ namespace Microsoft.Cci
 
         internal virtual uint GetFieldToken(IFieldReference fieldReference)
         {
-            IFieldDefinition/*?*/ fieldDef = null;
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
+            IFieldDefinition fieldDef = null;
+            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 fieldDef = fieldReference.GetResolvedField(Context);
@@ -1784,16 +1784,16 @@ namespace Microsoft.Cci
             return 0;
         }
 
-        private uint GetManagedResourceOffset(IResourceReference resourceReference)
+        private uint GetManagedResourceOffset(ManagedResource resource)
         {
             Debug.Assert(!this.streamsAreComplete);
-            if (resourceReference.Resource.ExternalFile != null)
+            if (resource.ExternalFile != null)
             {
-                return resourceReference.Resource.Offset;
+                return resource.Offset;
             }
 
             uint result = this.resourceWriter.BaseStream.Position;
-            resourceReference.Resource.WriteData(this.resourceWriter);
+            resource.WriteData(this.resourceWriter);
             return result;
         }
 
@@ -1843,20 +1843,20 @@ namespace Microsoft.Cci
 
         internal uint GetMemberRefParentCodedIndex(ITypeMemberReference memberRef)
         {
-            ITypeDefinition/*?*/ parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
+            ITypeDefinition parentTypeDef = memberRef.GetContainingType(Context).AsTypeDefinition(Context);
             if (parentTypeDef != null)
             {
                 uint parentTypeDefIndex = 0;
                 this.TryGetTypeDefIndex(parentTypeDef, out parentTypeDefIndex);
                 if (parentTypeDefIndex > 0)
                 {
-                    IFieldReference/*?*/ fieldRef = memberRef as IFieldReference;
+                    IFieldReference fieldRef = memberRef as IFieldReference;
                     if (fieldRef != null)
                     {
                         return parentTypeDefIndex << 3;
                     }
 
-                    IMethodReference/*?*/ methodRef = memberRef as IMethodReference;
+                    IMethodReference methodRef = memberRef as IMethodReference;
                     if (methodRef != null)
                     {
                         if (methodRef.AcceptsExtraArguments)
@@ -1888,7 +1888,7 @@ namespace Microsoft.Cci
 
         private static bool IsTypeSpecification(ITypeReference typeReference)
         {
-            INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
+            INestedTypeReference nestedTypeReference = typeReference.AsNestedTypeReference;
             if (nestedTypeReference != null)
             {
                 return nestedTypeReference.AsSpecializedNestedTypeReference != null ||
@@ -1900,8 +1900,8 @@ namespace Microsoft.Cci
 
         internal uint GetMethodDefOrRefCodedIndex(IMethodReference methodReference)
         {
-            IMethodDefinition/*?*/ methodDef = null;
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IMethodDefinition methodDef = null;
+            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -2030,13 +2030,13 @@ namespace Microsoft.Cci
 
         private uint GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
         {
-            IFieldReference/*?*/ fieldReference = memberRef as IFieldReference;
+            IFieldReference fieldReference = memberRef as IFieldReference;
             if (fieldReference != null)
             {
                 return this.GetFieldSignatureIndex(fieldReference);
             }
 
-            IMethodReference/*?*/ methodReference = memberRef as IMethodReference;
+            IMethodReference methodReference = memberRef as IMethodReference;
             if (methodReference != null)
             {
                 return this.GetMethodSignatureIndex(methodReference);
@@ -2048,7 +2048,7 @@ namespace Microsoft.Cci
         internal uint GetMethodSignatureIndex(IMethodReference methodReference)
         {
             uint result = 0;
-            ISpecializedMethodReference/*?*/ specializedMethodReference = methodReference.AsSpecializedMethodReference;
+            ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
                 methodReference = specializedMethodReference.UnspecializedVersion;
@@ -2100,8 +2100,8 @@ namespace Microsoft.Cci
         internal virtual uint GetMethodToken(IMethodReference methodReference)
         {
             uint methodDefIndex = 0;
-            IMethodDefinition/*?*/ methodDef = null;
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IMethodDefinition methodDef = null;
+            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -2113,7 +2113,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                IGenericMethodInstanceReference/*?*/ methodSpec = methodReference.AsGenericMethodInstanceReference;
+                IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
                 if (methodSpec != null)
                 {
                     return 0x2B000000 | this.GetMethodSpecIndex(methodSpec);
@@ -2221,13 +2221,13 @@ namespace Microsoft.Cci
 
         private uint GetResolutionScopeCodedIndex(IUnitReference unitReference)
         {
-            IAssemblyReference/*?*/ aref = unitReference as IAssemblyReference;
+            IAssemblyReference aref = unitReference as IAssemblyReference;
             if (aref != null)
             {
                 return (this.GetAssemblyRefIndex(aref) << 2) | 2;
             }
 
-            IModuleReference/*?*/ mref = unitReference as IModuleReference;
+            IModuleReference mref = unitReference as IModuleReference;
             if (mref != null)
             {
                 // If this is a module from a referenced multi-module assembly,
@@ -2619,7 +2619,7 @@ namespace Microsoft.Cci
                 result |= TypeAttributes.BeforeFieldInit;
             }
 
-            INestedTypeDefinition/*?*/ nestedTypeDef = typeDef.AsNestedTypeDefinition(context);
+            INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(context);
             if (nestedTypeDef != null)
             {
                 switch (((ITypeDefinitionMember)typeDef).Visibility)
@@ -2647,7 +2647,7 @@ namespace Microsoft.Cci
                 return (uint)result;
             }
 
-            INamespaceTypeDefinition/*?*/ namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
+            INamespaceTypeDefinition namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
             if (namespaceTypeDef != null && namespaceTypeDef.IsPublic)
             {
                 result |= TypeAttributes.Public;
@@ -2705,13 +2705,13 @@ namespace Microsoft.Cci
 
         private uint GetTypeOrMethodDefCodedIndex(IGenericParameter genPar)
         {
-            IGenericTypeParameter/*?*/ genTypePar = genPar.AsGenericTypeParameter;
+            IGenericTypeParameter genTypePar = genPar.AsGenericTypeParameter;
             if (genTypePar != null)
             {
                 return this.GetTypeDefIndex(genTypePar.DefiningType) << 1;
             }
 
-            IGenericMethodParameter/*?*/ genMethPar = genPar.AsGenericMethodParameter;
+            IGenericMethodParameter genMethPar = genPar.AsGenericMethodParameter;
             if (genMethPar != null)
             {
                 return (this.GetMethodDefIndex(genMethPar.DefiningMethod) << 1) | 1;
@@ -2734,7 +2734,7 @@ namespace Microsoft.Cci
             // NOTE: ResolutionScope for its nested types should appear in TypeRef table
             // NOTE: *before* any of its nested types.
             // SEE ALSO: bug#570975 and test Bug570975()
-            INestedTypeReference/*?*/ nestedTypeRef = typeReference.AsNestedTypeReference;
+            INestedTypeReference nestedTypeRef = typeReference.AsNestedTypeReference;
             if (nestedTypeRef != null)
             {
                 GetTypeRefIndex(nestedTypeRef.GetContainingType(this.Context));
@@ -3621,7 +3621,7 @@ namespace Microsoft.Cci
 
         private void PopulateDeclSecurityTableRows()
         {
-            IAssembly/*?*/ assembly = this.module.AsAssembly;
+            IAssembly assembly = this.module.AsAssembly;
             if (assembly != null)
             {
                 this.PopulateDeclSecurityTableRowsFor((1 << 2) | 2, assembly.AssemblySecurityAttributes);
@@ -3757,11 +3757,11 @@ namespace Microsoft.Cci
             {
                 this.exportedTypeTable.Capacity = this.NumberOfTypeDefsEstimate;
 
-                foreach (IAliasForType alias in this.module.GetExportedTypes(Context))
+                foreach (ITypeExport typeExport in this.module.GetExportedTypes(Context))
                 {
-                    ITypeReference exportedType = alias.AliasedType;
-                    INestedTypeReference/*?*/ nestedRef = null;
-                    INamespaceTypeReference/*?*/ namespaceTypeRef = null;
+                    ITypeReference exportedType = typeExport.ExportedType;
+                    INestedTypeReference nestedRef = null;
+                    INamespaceTypeReference namespaceTypeRef = null;
                     ExportedTypeRow r = new ExportedTypeRow();
                     r.TypeDefId = (uint)MetadataTokens.GetToken(exportedType.TypeDef);
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
@@ -3972,7 +3972,7 @@ namespace Microsoft.Cci
 
         private void PopulateFileTableRows()
         {
-            IAssembly/*?*/ assembly = this.module.AsAssembly;
+            IAssembly assembly = this.module.AsAssembly;
             if (assembly == null)
             {
                 return;
@@ -4121,16 +4121,16 @@ namespace Microsoft.Cci
 
         private void PopulateManifestResourceTableRows()
         {
-            foreach (IResourceReference resourceReference in this.module.GetResources(Context))
+            foreach (var resource in this.module.GetResources(Context))
             {
                 ManifestResourceRow r = new ManifestResourceRow();
-                r.Offset = this.GetManagedResourceOffset(resourceReference);
-                r.Flags = resourceReference.Resource.IsPublic ? 1u : 2u;
-                r.Name = this.GetStringIndexForNameAndCheckLength(resourceReference.Name);
+                r.Offset = this.GetManagedResourceOffset(resource);
+                r.Flags = resource.IsPublic ? 1u : 2u;
+                r.Name = this.GetStringIndexForNameAndCheckLength(resource.Name);
 
-                if (resourceReference.Resource.ExternalFile != null)
+                if (resource.ExternalFile != null)
                 {
-                    IFileReference externalFile = resourceReference.Resource.ExternalFile;
+                    IFileReference externalFile = resource.ExternalFile;
                     // Length checked on insertion into the file table.
                     r.Implementation = this.GetFileRefIndex(externalFile) << 2;
                 }
@@ -4380,7 +4380,7 @@ namespace Microsoft.Cci
         {
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
             {
-                INestedTypeDefinition/*?*/ nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
+                INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
                 if (nestedTypeDef == null)
                 {
                     continue;
@@ -4465,7 +4465,7 @@ namespace Microsoft.Cci
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
                 TypeDefRow r = new TypeDefRow();
-                INamespaceTypeDefinition/*?*/ namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
+                INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
                 r.Flags = GetTypeDefFlags(typeDef);
                 string mangledTypeName = GetMangledName(typeDef);
                 r.Name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef);
@@ -4496,10 +4496,10 @@ namespace Microsoft.Cci
             foreach (ITypeReference typeRef in typeRefs)
             {
                 TypeRefRow r = new TypeRefRow();
-                INestedTypeReference/*?*/ nestedTypeRef = typeRef.AsNestedTypeReference;
+                INestedTypeReference nestedTypeRef = typeRef.AsNestedTypeReference;
                 if (nestedTypeRef != null)
                 {
-                    ISpecializedNestedTypeReference/*?*/ sneTypeRef = nestedTypeRef.AsSpecializedNestedTypeReference;
+                    ISpecializedNestedTypeReference sneTypeRef = nestedTypeRef.AsSpecializedNestedTypeReference;
                     if (sneTypeRef != null)
                     {
                         r.ResolutionScope = this.GetResolutionScopeCodedIndex(sneTypeRef.UnspecializedVersion.GetContainingType(Context));
@@ -4514,7 +4514,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    INamespaceTypeReference/*?*/ namespaceTypeRef = typeRef.AsNamespaceTypeReference;
+                    INamespaceTypeReference namespaceTypeRef = typeRef.AsNamespaceTypeReference;
                     if (namespaceTypeRef == null)
                     {
                         throw ExceptionUtilities.UnexpectedValue(typeRef);
@@ -5012,7 +5012,7 @@ namespace Microsoft.Cci
 
         private void SerializeAssemblyTable(BinaryWriter writer)
         {
-            IAssembly/*?*/ assembly = this.module.AsAssembly;
+            IAssembly assembly = this.module.AsAssembly;
             if (assembly == null)
             {
                 return;
@@ -6009,7 +6009,7 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataExpression(BinaryWriter writer, IMetadataExpression expression, ITypeReference targetType)
         {
-            IMetadataCreateArray/*?*/ a = expression as IMetadataCreateArray;
+            IMetadataCreateArray a = expression as IMetadataCreateArray;
             if (a != null)
             {
                 ITypeReference targetElementType;
@@ -6039,7 +6039,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                IMetadataConstant/*?*/ c = expression as IMetadataConstant;
+                IMetadataConstant c = expression as IMetadataConstant;
 
                 if (this.module.IsPlatformType(targetType, PlatformType.SystemObject))
                 {
@@ -6080,7 +6080,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    IMetadataTypeOf/*?*/ t = expression as IMetadataTypeOf;
+                    IMetadataTypeOf t = expression as IMetadataTypeOf;
                     if (t != null)
                     {
                         this.SerializeTypeName(t.TypeToGet, writer);
@@ -6206,7 +6206,7 @@ namespace Microsoft.Cci
         private string GetSerializedTypeName(ITypeReference typeReference, ref bool isAssemblyQualified)
         {
             StringBuilder sb = new StringBuilder();
-            IArrayTypeReference/*?*/ arrType = typeReference as IArrayTypeReference;
+            IArrayTypeReference arrType = typeReference as IArrayTypeReference;
             if (arrType != null)
             {
                 typeReference = arrType.GetElementType(Context);
@@ -6235,7 +6235,7 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-            IPointerTypeReference/*?*/ pointer = typeReference as IPointerTypeReference;
+            IPointerTypeReference pointer = typeReference as IPointerTypeReference;
             if (pointer != null)
             {
                 typeReference = pointer.GetTargetType(Context);
@@ -6245,7 +6245,7 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-            IManagedPointerTypeReference/*?*/ reference = typeReference as IManagedPointerTypeReference;
+            IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
             if (reference != null)
             {
                 typeReference = reference.GetTargetType(Context);
@@ -6255,7 +6255,7 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-            INamespaceTypeReference/*?*/ namespaceType = typeReference.AsNamespaceTypeReference;
+            INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
             if (namespaceType != null)
             {
                 if (!(namespaceType.NamespaceName.Length == 0))
@@ -6298,7 +6298,7 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-            INestedTypeReference/*?*/ nestedType = typeReference.AsNestedTypeReference;
+            INestedTypeReference nestedType = typeReference.AsNestedTypeReference;
             if (nestedType != null)
             {
                 sb.Append(this.GetSerializedTypeName(nestedType.GetContainingType(Context)));
@@ -6324,21 +6324,21 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                IArrayTypeReference /*?*/ arrType = typeReference as IArrayTypeReference;
+                IArrayTypeReference  arrType = typeReference as IArrayTypeReference;
                 if (arrType != null)
                 {
                     typeReference = arrType.GetElementType(Context);
                     continue;
                 }
 
-                IPointerTypeReference /*?*/ pointer = typeReference as IPointerTypeReference;
+                IPointerTypeReference  pointer = typeReference as IPointerTypeReference;
                 if (pointer != null)
                 {
                     typeReference = pointer.GetTargetType(Context);
                     continue;
                 }
 
-                IManagedPointerTypeReference /*?*/ reference = typeReference as IManagedPointerTypeReference;
+                IManagedPointerTypeReference  reference = typeReference as IManagedPointerTypeReference;
                 if (reference != null)
                 {
                     typeReference = reference.GetTargetType(Context);
@@ -6351,41 +6351,41 @@ namespace Microsoft.Cci
 
         private void AppendAssemblyQualifierIfNecessary(StringBuilder sb, ITypeReference typeReference, out bool isAssemQualified)
         {
-            INestedTypeReference/*?*/ nestedType = typeReference.AsNestedTypeReference;
+            INestedTypeReference nestedType = typeReference.AsNestedTypeReference;
             if (nestedType != null)
             {
                 this.AppendAssemblyQualifierIfNecessary(sb, nestedType.GetContainingType(Context), out isAssemQualified);
                 return;
             }
 
-            IGenericTypeInstanceReference/*?*/ genInst = typeReference.AsGenericTypeInstanceReference;
+            IGenericTypeInstanceReference genInst = typeReference.AsGenericTypeInstanceReference;
             if (genInst != null)
             {
                 this.AppendAssemblyQualifierIfNecessary(sb, genInst.GenericType, out isAssemQualified);
                 return;
             }
 
-            IArrayTypeReference/*?*/ arrType = typeReference as IArrayTypeReference;
+            IArrayTypeReference arrType = typeReference as IArrayTypeReference;
             if (arrType != null)
             {
                 this.AppendAssemblyQualifierIfNecessary(sb, arrType.GetElementType(Context), out isAssemQualified);
             }
 
-            IPointerTypeReference/*?*/ pointer = typeReference as IPointerTypeReference;
+            IPointerTypeReference pointer = typeReference as IPointerTypeReference;
             if (pointer != null)
             {
                 this.AppendAssemblyQualifierIfNecessary(sb, pointer.GetTargetType(Context), out isAssemQualified);
             }
 
-            IManagedPointerTypeReference/*?*/ reference = typeReference as IManagedPointerTypeReference;
+            IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
             if (reference != null)
             {
                 this.AppendAssemblyQualifierIfNecessary(sb, pointer.GetTargetType(Context), out isAssemQualified);
             }
 
             isAssemQualified = false;
-            IAssemblyReference/*?*/ referencedAssembly = null;
-            INamespaceTypeReference/*?*/ namespaceType = typeReference.AsNamespaceTypeReference;
+            IAssemblyReference referencedAssembly = null;
+            INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
             if (namespaceType != null)
             {
                 referencedAssembly = namespaceType.GetUnit(Context) as IAssemblyReference;
@@ -6427,8 +6427,8 @@ namespace Microsoft.Cci
                 string typeName = this.GetSerializedTypeName(customAttribute.GetType(Context), ref isAssemblyQualified);
                 if (!isAssemblyQualified)
                 {
-                    IAssemblyReference/*?*/ referencedAssembly = null;
-                    INamespaceTypeReference/*?*/ namespaceType = customAttribute.GetType(Context).AsNamespaceTypeReference;
+                    IAssemblyReference referencedAssembly = null;
+                    INamespaceTypeReference namespaceType = customAttribute.GetType(Context).AsNamespaceTypeReference;
                     if (namespaceType != null)
                     {
                         referencedAssembly = namespaceType.GetUnit(Context) as IAssemblyReference;
@@ -6603,10 +6603,10 @@ namespace Microsoft.Cci
                         return;
                 }
 
-                IArrayTypeReference/*?*/ arrayTypeReference;
-                IGenericMethodParameterReference/*?*/ genericMethodParameterReference;
-                IGenericTypeParameterReference/*?*/ genericTypeParameterReference;
-                IFunctionPointerTypeReference/*?*/ functionPointerTypeReference;
+                IArrayTypeReference arrayTypeReference;
+                IGenericMethodParameterReference genericMethodParameterReference;
+                IGenericTypeParameterReference genericTypeParameterReference;
+                IFunctionPointerTypeReference functionPointerTypeReference;
 
                 if ((genericTypeParameterReference = typeReference.AsGenericTypeParameterReference) != null)
                 {
@@ -6733,13 +6733,13 @@ namespace Microsoft.Cci
 
         private uint GetNumberOfInheritedTypeParameters(ITypeReference type)
         {
-            INestedTypeReference/*?*/ nestedType = type.AsNestedTypeReference;
+            INestedTypeReference nestedType = type.AsNestedTypeReference;
             if (nestedType == null)
             {
                 return 0;
             }
 
-            ISpecializedNestedTypeReference/*?*/ specializedNestedType = nestedType.AsSpecializedNestedTypeReference;
+            ISpecializedNestedTypeReference specializedNestedType = nestedType.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
                 nestedType = specializedNestedType.UnspecializedVersion;
@@ -6761,13 +6761,13 @@ namespace Microsoft.Cci
 
         private void GetConsolidatedTypeArguments(ArrayBuilder<ITypeReference> consolidatedTypeArguments, ITypeReference typeReference)
         {
-            INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
+            INestedTypeReference nestedTypeReference = typeReference.AsNestedTypeReference;
             if (nestedTypeReference != null)
             {
                 GetConsolidatedTypeArguments(consolidatedTypeArguments, nestedTypeReference.GetContainingType(Context));
             }
 
-            IGenericTypeInstanceReference/*?*/ genTypeInstance = typeReference.AsGenericTypeInstanceReference;
+            IGenericTypeInstanceReference genTypeInstance = typeReference.AsGenericTypeInstanceReference;
             if (genTypeInstance != null)
             {
                 consolidatedTypeArguments.AddRange(genTypeInstance.GetGenericArguments(Context));
@@ -6776,13 +6776,13 @@ namespace Microsoft.Cci
 
         private static ITypeReference GetUninstantiatedGenericType(ITypeReference typeReference)
         {
-            IGenericTypeInstanceReference/*?*/ genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
+            IGenericTypeInstanceReference genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
             if (genericTypeInstanceReference != null)
             {
                 return genericTypeInstanceReference.GenericType;
             }
 
-            ISpecializedNestedTypeReference/*?*/ specializedNestedType = typeReference.AsSpecializedNestedTypeReference;
+            ISpecializedNestedTypeReference specializedNestedType = typeReference.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
                 return specializedNestedType.UnspecializedVersion;
@@ -7556,7 +7556,7 @@ namespace Microsoft.Cci
 
         private void WriteDebugTable(System.IO.Stream peStream)
         {
-            PeDebugDirectory/*?*/ debugDirectory = this.debugDirectory;
+            PeDebugDirectory debugDirectory = this.debugDirectory;
             if (debugDirectory == null)
             {
                 return;

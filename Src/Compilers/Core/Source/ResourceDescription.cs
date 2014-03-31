@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis
             get { return FileName == null; }
         }
 
-        internal ManagedResource ToManagedResource(Cci.IModule moduleBeingBuilt)
+        internal Cci.ManagedResource ToManagedResource(Cci.IModule moduleBeingBuilt)
         {
-            return new ManagedResource(ResourceName, IsPublic, IsEmbedded ? DataProvider : null, IsEmbedded ? null : this, offset: 0);
+            return new Cci.ManagedResource(ResourceName, IsPublic, IsEmbedded ? DataProvider : null, IsEmbedded ? null : this, offset: 0);
         }
 
         ImmutableArray<byte> Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)

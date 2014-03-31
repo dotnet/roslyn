@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // See Assembly.MetadataName.
         private readonly string metadataName;
 
-        private ImmutableArray<Cci.AliasForType<NamedTypeSymbol>> lazyExportedTypes;
+        private ImmutableArray<TypeExport<NamedTypeSymbol>> lazyExportedTypes;
 
         /// <summary>
         /// The compiler-generated implementation type for each fixed-size buffer.
@@ -367,14 +368,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        private void GetExportedTypes(NamespaceOrTypeSymbol sym, ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>> builder)
+        private void GetExportedTypes(NamespaceOrTypeSymbol sym, ArrayBuilder<TypeExport<NamedTypeSymbol>> builder)
         {
             if (sym.Kind == SymbolKind.NamedType)
             {
                 if (sym.DeclaredAccessibility == Accessibility.Public)
                 {
                     Debug.Assert(sym.IsDefinition);
-                    builder.Add(new Cci.AliasForType<NamedTypeSymbol>((NamedTypeSymbol)sym));
+                    builder.Add(new TypeExport<NamedTypeSymbol>((NamedTypeSymbol)sym));
                 }
                 else
                 {
@@ -393,14 +394,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override IEnumerable<Cci.IAliasForType> GetExportedTypes(CodeAnalysis.Emit.Context context)
+        public override IEnumerable<Cci.ITypeExport> GetExportedTypes(CodeAnalysis.Emit.Context context)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
             if (lazyExportedTypes.IsDefault)
             {
                 SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
-                var builder = ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>>.GetInstance();
+                var builder = ArrayBuilder<TypeExport<NamedTypeSymbol>>.GetInstance();
 
                 if (!OutputKind.IsNetModule())
                 {
@@ -509,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private static void GetForwardedTypes(
             HashSet<NamedTypeSymbol> seenTopLevelTypes,
             CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
-            ArrayBuilder<Cci.AliasForType<NamedTypeSymbol>> builder)
+            ArrayBuilder<TypeExport<NamedTypeSymbol>> builder)
         {
             if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
             {
@@ -542,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(new Cci.AliasForType<NamedTypeSymbol>(curr));
+                        builder.Add(new TypeExport<NamedTypeSymbol>(curr));
 
                         // Iterate backwards so they get popped in forward order.
                         ImmutableArray<NamedTypeSymbol> nested = curr.GetTypeMembers(); // Ordered.

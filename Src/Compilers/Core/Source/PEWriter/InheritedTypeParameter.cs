@@ -216,11 +216,6 @@ namespace Microsoft.Cci
 
         #region ITypeReference Members
 
-        public IAliasForType AliasForType
-        {
-            get { return null; }
-        }
-
         public TypeHandle TypeDef
         {
             get

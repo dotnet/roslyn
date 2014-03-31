@@ -4,27 +4,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using EmitContext = Microsoft.CodeAnalysis.Emit.Context;
 
 namespace Microsoft.Cci
 {
-    // Consider A.B aliases to C.D, and C.D aliases to E.F.
-    // Then:
-    // typereference(A.B).IsAlias == true && typereference(A.B).AliasForType == aliasfortype(A.B).
-    // aliasfortype(A.B).AliasedType == typereference(C.D).
-    // typereference(C.D).IsAlias == true && typereference(C.D).AliasForType == aliasfortype(C.D).
-    // aliasfortype(C.D).AliasedType == typereference(E.F)
-    // typereference(E.F).IsAlias == false
-    // Also, typereference(A.B).ResolvedType == typereference(C.D).ResolvedType == typereference(E.F).ResolvedType
-
     /// <summary>
-    /// Alias type to represent exported types and typedef.
+    /// Represents an exported type.
     /// </summary>
-    internal interface IAliasForType : IDefinition
+    internal interface ITypeExport : IDefinition
     {
         /// <summary>
-        /// Type reference of the type for which this is the alias
+        /// Type reference of the exported type.
         /// </summary>
-        ITypeReference AliasedType { get; }
+        ITypeReference ExportedType { get; }
     }
 
     /// <summary>
@@ -35,7 +27,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of the elements of this array.
         /// </summary>
-        ITypeReference GetElementType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetElementType(EmitContext context);
 
         /// <summary>
         /// This type of array is a single dimensional array with zero lower bound for index values.
@@ -95,7 +87,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A type used as a tag that indicates which type of modification applies to the storage location.
         /// </summary>
-        ITypeReference GetModifier(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetModifier(EmitContext context);
     }
 
     /// <summary>
@@ -137,7 +129,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of argument value that corresponds to this parameter.
         /// </summary>
-        ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetType(EmitContext context);
     }
 
     /// <summary>
@@ -159,7 +151,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of classes or interfaces. All type arguments matching this parameter must be derived from all of the classes and implement all of the interfaces.
         /// </summary>
-        IEnumerable<ITypeReference> GetConstraints(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<ITypeReference> GetConstraints(EmitContext context);
 
         /// <summary>
         /// True if all type arguments matching this parameter are constrained to be reference types.
@@ -237,7 +229,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type arguments that were used to instantiate this.GenericType in order to create this type.
         /// </summary>
-        ImmutableArray<ITypeReference> GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<ITypeReference> GetGenericArguments(EmitContext context);
         // ^ ensures result.GetEnumerator().MoveNext(); // The collection is always non empty.
 
         /// <summary>
@@ -316,7 +308,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A reference to the unit that defines the referenced type.
         /// </summary>
-        IUnitReference GetUnit(Microsoft.CodeAnalysis.Emit.Context context);
+        IUnitReference GetUnit(EmitContext context);
 
         /// <summary>
         /// Fully qualified name of the containing namespace.
@@ -406,7 +398,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of value stored at the target memory location.
         /// </summary>
-        ITypeReference GetTargetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetTargetType(EmitContext context);
     }
 
     /// <summary>
@@ -419,7 +411,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of value stored at the target memory location.
         /// </summary>
-        ITypeReference GetTargetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetTargetType(EmitContext context);
     }
 
     /// <summary>
@@ -435,7 +427,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns null for interfaces and System.Object.
         /// </summary>
-        ITypeReference GetBaseClass(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetBaseClass(EmitContext context);
         // ^ ensures result == null || result.ResolvedType.IsClass;
 
         /// <summary>
@@ -446,12 +438,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more implementation overrides provided by the class.
         /// </summary>
-        IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(EmitContext context);
 
         /// <summary>
         /// Zero or more fields defined by this type.
         /// </summary>
-        IEnumerable<IFieldDefinition> GetFields(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IFieldDefinition> GetFields(EmitContext context);
 
         /// <summary>
         /// Zero or more parameters that can be used as type annotations.
@@ -481,7 +473,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more interfaces implemented by this type.
         /// </summary>
-        IEnumerable<ITypeReference> Interfaces(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<ITypeReference> Interfaces(EmitContext context);
 
         /// <summary>
         /// True if the type may not be instantiated.
@@ -547,17 +539,17 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more methods defined by this type.
         /// </summary>
-        IEnumerable<IMethodDefinition> GetMethods(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IMethodDefinition> GetMethods(EmitContext context);
 
         /// <summary>
         /// Zero or more nested types defined by this type.
         /// </summary>
-        IEnumerable<INestedTypeDefinition> GetNestedTypes(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context);
 
         /// <summary>
         /// Zero or more properties defined by this type.
         /// </summary>
-        IEnumerable<IPropertyDefinition> GetProperties(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<IPropertyDefinition> GetProperties(EmitContext context);
 
         /// <summary>
         /// Declarative security actions for this type. Will be empty if this.HasSecurity is false.
@@ -594,17 +586,14 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The type definition being referred to.
-        /// In case this type was alias, this is also the type of the aliased type
         /// </summary>
-        ITypeDefinition GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context);
-        // ^ ensures this.IsAlias ==> result == this.AliasForType.AliasedType.ResolvedType;
-        // ^ ensures (this is ITypeDefinition) ==> result == this;
-
+        ITypeDefinition GetResolvedType(EmitContext context);
+        
         /// <summary>
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
         /// the type code identifies which of the primitive types it corresponds to.
         /// </summary>
-        PrimitiveTypeCode TypeCode(Microsoft.CodeAnalysis.Emit.Context context);
+        PrimitiveTypeCode TypeCode(EmitContext context);
 
         /// <summary>
         /// TypeDefs defined in modules linked to the assembly being emitted are listed in the ExportedTypes table.
@@ -614,12 +603,12 @@ namespace Microsoft.Cci
         IGenericMethodParameterReference AsGenericMethodParameterReference { get; }
         IGenericTypeInstanceReference AsGenericTypeInstanceReference { get; }
         IGenericTypeParameterReference AsGenericTypeParameterReference { get; }
-        INamespaceTypeDefinition AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context);
+        INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context);
         INamespaceTypeReference AsNamespaceTypeReference { get; }
-        INestedTypeDefinition AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context);
+        INestedTypeDefinition AsNestedTypeDefinition(EmitContext context);
         INestedTypeReference AsNestedTypeReference { get; }
         ISpecializedNestedTypeReference AsSpecializedNestedTypeReference { get; }
-        ITypeDefinition AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeDefinition AsTypeDefinition(EmitContext context);
     }
 
     /// <summary>

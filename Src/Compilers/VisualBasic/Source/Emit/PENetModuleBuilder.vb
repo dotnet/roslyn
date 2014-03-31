@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -11,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceModule, outputName, CodeAnalysis.OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing)
         End Sub
 
-        Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of ManagedResource), diagnostics As DiagnosticBag)
+        Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             Throw ExceptionUtilities.Unreachable
         End Sub
     End Class
