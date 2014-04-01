@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
@@ -88,9 +83,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 this.TickleCache(this.rootSource.GetValue());
             }
 
-            internal abstract Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken);
-            internal abstract TRoot RecoverRoot(CancellationToken cancellationToken);
-            internal abstract Task SaveRootAsync(TRoot root, CancellationToken cancellationToken);
+            protected abstract Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken);
+            protected abstract TRoot RecoverRoot(CancellationToken cancellationToken);
+            protected abstract Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken);
 
             private TRoot TickleCache(TRoot root)
             {
@@ -108,6 +103,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected ISyntaxTreeFactoryService Service
             {
                 get { return this.service; }
+            }
+
+            protected ISyntaxTreeStorageService SyntaxTreeStorageService
+            {
+                get { return WorkspaceServices.GetService<ISyntaxTreeStorageService>(); }
+            }
+
+            protected ITemporaryStorageService TemporaryStorageService
+            {
+                get { return WorkspaceServices.GetService<ITemporaryStorageService>(); }
             }
 
             public string FilePath
@@ -217,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     {
                         if (!this.isSaved)
                         {
-                            await SaveRootAsync(cu, CancellationToken.None).ConfigureAwait(false);
+                            await SaveRootAsync(this.containingTree as SyntaxTree, cu, CancellationToken.None).ConfigureAwait(false);
                             this.isSaved = true;
                         }
                     }
@@ -234,7 +239,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     TRoot root;
                     if (!this.rootSource.TryGetValue(out root))
                     {
-                        root = containingTree.CloneNodeAsRoot(await this.RecoverRootAsync(cancellationToken).ConfigureAwait(false));
+                        root = containingTree.CloneNodeAsRoot(await this.RecoverFromStorageIfPossibleAsync(cancellationToken).ConfigureAwait(false));
                         Contract.ThrowIfFalse(root.SyntaxTree == containingTree);
 
                         // now keep it around until we get evicted again
@@ -243,6 +248,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     return root;
                 }
+            }
+
+            private async Task<TRoot> RecoverFromStorageIfPossibleAsync(CancellationToken cancellationToken)
+            {
+                var storageService = this.SyntaxTreeStorageService;
+                var tree = this.containingTree as SyntaxTree;
+
+                // if we have this tree already in the storage, get one from it.
+                if (storageService.CanRetrieve(tree))
+                {
+                    var node = await storageService.RetrieveAsync(tree, this.Service, cancellationToken).ConfigureAwait(false) as TRoot;
+                    if (node != null)
+                    {
+                        return node;
+                    }
+                }
+
+                return await this.RecoverRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private TRoot RestoreRoot(CancellationToken cancellationToken)
@@ -252,7 +275,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     TRoot root;
                     if (!this.rootSource.TryGetValue(out root))
                     {
-                        root = containingTree.CloneNodeAsRoot(this.RecoverRoot(cancellationToken));
+                        root = containingTree.CloneNodeAsRoot(this.RecoverFromStorageIfPossible(cancellationToken));
                         Contract.ThrowIfFalse(root.SyntaxTree == containingTree);
 
                         // now keep it around until we get evicted again
@@ -262,13 +285,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     return root;
                 }
             }
+
+            private TRoot RecoverFromStorageIfPossible(CancellationToken cancellationToken)
+            {
+                var storageService = this.SyntaxTreeStorageService;
+                var tree = this.containingTree as SyntaxTree;
+
+                // if we have this tree already in the storage, get one from it.
+                if (storageService.CanRetrieve(tree))
+                {
+                    var node = storageService.Retrieve(tree, this.Service, cancellationToken) as TRoot;
+                    if (node != null)
+                    {
+                        return node;
+                    }
+                }
+
+                return this.RecoverRoot(cancellationToken);
+            }
         }
 
         // a recoverable syntax tree that recovers its nodes from a serialized temporary storage
         internal class SerializedSyntaxRoot<TRoot> : AbstractRecoverableSyntaxRoot<TRoot> where TRoot : SyntaxNode
         {
-            private ITemporaryStorage storage;
-
             public SerializedSyntaxRoot(
                 AbstractSyntaxTreeFactoryService service,
                 string fileName,
@@ -279,32 +318,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
             }
 
-            internal override Task SaveRootAsync(TRoot root, CancellationToken cancellationToken)
+            protected override Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken)
             {
-                var storageService = this.WorkspaceServices.GetService<ITemporaryStorageService>();
-                this.storage = storageService.CreateTemporaryStorage(cancellationToken);
+                // rather than we store it right away, we enqueue request to do so, until it happens, root will stay alive
+                // in memory by store service
+                this.SyntaxTreeStorageService.EnqueueStore(tree, root, this.TemporaryStorageService, cancellationToken);
 
-                return SaveTreeAsync(root, this.storage);
+                return SpecializedTasks.EmptyTask;
             }
 
-            internal override async Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken)
+            protected override Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfNull(this.storage);
-
-                using (Logger.LogBlock(FeatureId.Recoverable, FunctionId.Recoverable_RecoverRootAsync, FilePath, cancellationToken))
-                using (var stream = await this.storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    return (TRoot)Service.DeserializeNodeFrom(stream, cancellationToken);
-                }
+                Contract.Fail("we shouldn't reach here");
+                return SpecializedTasks.Default<TRoot>();
             }
 
-            internal override TRoot RecoverRoot(CancellationToken cancellationToken)
+            protected override TRoot RecoverRoot(CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FeatureId.Recoverable, FunctionId.Recoverable_RecoverRoot, FilePath, cancellationToken))
-                using (var stream = this.storage.ReadStream(cancellationToken))
-                {
-                    return (TRoot)Service.DeserializeNodeFrom(stream, cancellationToken);
-                }
+                Contract.Fail("we shouldn't reach here");
+                return default(TRoot);
             }
         }
 
@@ -321,7 +353,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
             }
 
-            internal override Task SaveRootAsync(TRoot root, CancellationToken cancellationToken)
+            protected override Task SaveRootAsync(SyntaxTree tree, TRoot root, CancellationToken cancellationToken)
             {
                 // before kicking out the tree, touch the text if it is still in the cache
                 SourceText dummy;
@@ -331,14 +363,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return SpecializedTasks.EmptyTask;
             }
 
-            internal override async Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken)
+            protected override async Task<TRoot> RecoverRootAsync(CancellationToken cancellationToken)
             {
                 // get the text and parse it again
                 var text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 return RecoverRootFromText(text, cancellationToken);
             }
 
-            internal override TRoot RecoverRoot(CancellationToken cancellationToken)
+            protected override TRoot RecoverRoot(CancellationToken cancellationToken)
             {
                 return RecoverRootFromText(this.GetText(cancellationToken), cancellationToken);
             }

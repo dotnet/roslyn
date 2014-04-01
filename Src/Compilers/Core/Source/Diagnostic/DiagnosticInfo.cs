@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class DiagnosticInfo : ISerializable, IFormattable, IObjectWritable, IObjectReadable
     {
+        private static readonly object[] NoArguments = new object[0];
+
         private readonly CommonMessageProvider messageProvider;
         private readonly int errorCode;
         private readonly bool isWarningAsError;
@@ -172,7 +174,11 @@ namespace Microsoft.CodeAnalysis
             this.isWarningAsError = reader.ReadBoolean();
 
             var count = (int)reader.ReadCompressedUInt();
-            if (count > 0)
+            if (count == 0)
+            {
+                this.arguments = NoArguments;
+            }
+            else if (count > 0)
             {
                 this.arguments = new string[count];
                 for (int i = 0; i < count; i++)

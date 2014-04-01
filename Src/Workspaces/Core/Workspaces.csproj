@@ -804,6 +804,8 @@
     <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptions.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageServiceFactory.cs" />
+    <Compile Include="Workspace\Host\SyntaxTreeStorage\ISyntaxTreeStorageService.cs" />
+    <Compile Include="Workspace\Host\SyntaxTreeStorage\SyntaxTreeStorageService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskScheduler.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.cs" />

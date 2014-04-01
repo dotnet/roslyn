@@ -134,6 +134,7 @@
     <Compile Include="SyntaxNodeTests.cs" />
     <Compile Include="SyntaxPathTests.cs" />
     <Compile Include="SyntaxReferenceTests.cs" />
+    <Compile Include="SyntaxTreeStorageServiceTests.cs" />
     <Compile Include="TemporaryStorageServiceTests.cs" />
     <Compile Include="TestOptionService.cs" />
     <Compile Include="TestWorkspace.cs" />
