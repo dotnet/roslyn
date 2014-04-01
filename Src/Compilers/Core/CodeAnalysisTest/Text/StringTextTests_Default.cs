@@ -28,7 +28,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected virtual SourceText Create(string source)
         {
-            byte[] buffer = GetBytes(Encoding.Default, source);
+            return Create(source, null);
+        }
+
+        protected virtual SourceText Create(string source, Encoding encoding = null)
+        {
+            byte[] buffer = GetBytes(encoding ?? Encoding.Default, source);
             using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
             {
                 return new EncodedStringText(stream, encodingOpt: null);
@@ -154,7 +159,7 @@ bar baz");
         [Fact]
         public void GetTextDiacritic()
         {
-            var text = Create("Å");
+            var text = Create("Å", Encoding.GetEncoding(1252));
             Assert.Equal("Å", text.ToString());
         }
     }
