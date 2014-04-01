@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void Decode()
+        public void Decode_NonUtf8()
         {
             var encoding1252 = Encoding.GetEncoding(1252);
             var utf8 = new UTF8Encoding(false, true);
@@ -76,8 +76,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws(typeof(DecoderFallbackException), () => EncodedStringText.Decode(stream, utf8));
                 Assert.True(stream.CanRead);
             }
+        }
 
-            // Detect encoding should correctly pick 1252
+        [Fact]
+        public void Decode_Utf8()
+        {
+            var utf8 = new UTF8Encoding(false, true);
+            var text = "abc def baz aeiouy äëïöüû";
+            var bytes = GetBytes(utf8, text);
+
+            // Detect encoding should correctly pick UTF-8
             using (var stream = new MemoryStream(bytes))
             {
                 Assert.Equal(text, EncodedStringText.DetectEncodingAndDecode(stream));
