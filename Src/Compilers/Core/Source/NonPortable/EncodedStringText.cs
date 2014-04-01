@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (encoding == null)
                 {
-                    encoding = Encoding.Default;
+                    encoding = Encoding.GetEncoding(1252);
                 }
 
                 if (encoding.CodePage == 1252)
