@@ -35,15 +35,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            // Equality of ordinal and containing symbol is a correct
+            // implementation for all ParameterSymbols, but we don't 
+            // define it on the base type because most can simply use
+            // ReferenceEquals.
+
             var other = obj as WrappedParameterSymbol;
             return (object)other != null &&
-                this.underlyingParameter.Equals(other.underlyingParameter) &&
+                this.Ordinal == other.Ordinal &&
                 this.ContainingSymbol.Equals(other.ContainingSymbol);
         }
 
         public sealed override int GetHashCode()
         {
-            return Hash.Combine(ContainingSymbol, underlyingParameter.GetHashCode());
+            return Hash.Combine(ContainingSymbol, underlyingParameter.Ordinal);
         }
 
         #region Forwarded
