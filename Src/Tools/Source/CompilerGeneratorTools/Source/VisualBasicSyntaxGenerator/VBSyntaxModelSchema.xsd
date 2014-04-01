@@ -196,6 +196,8 @@ the definition of VB parse tree nodes. -->
                     <xs:attribute name="parent" type="xs:string" use="optional" />
                     <xs:attribute name="abstract" type="xs:boolean" use="optional" />
                     <xs:attribute name="partial" type="xs:boolean" use="optional" />
+                    <xs:attribute name="predefined" type="xs:boolean" use="optional" />
+                    <xs:attribute name="root" type="xs:boolean" use="optional" />
                     <xs:attribute name="token-root" type="xs:boolean" use="optional" />
                     <xs:attribute name="trivia-root" type="xs:boolean" use="optional" />
                     <xs:attribute name="default-trailing-trivia" type="xs:string" use="optional" />
