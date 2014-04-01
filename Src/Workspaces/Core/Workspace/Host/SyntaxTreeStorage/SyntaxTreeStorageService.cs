@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Host
                 return null;
             }
 
-            using (var stream = await storage.ReadStreamAsync(cancellationToken))
+            using (var stream = await storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
             {
                 return service.DeserializeNodeFrom(stream, cancellationToken);
             }
