@@ -2626,6 +2626,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The parameter that was declared.</returns>
         public abstract IParameterSymbol GetDeclaredSymbol(ParameterSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Given a base field declaration syntax, get the corresponding symbols.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares one or more fields or events.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbols that were declared.</returns>
+        internal abstract ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
         protected ParameterSymbol GetParameterSymbol(
             ImmutableArray<ParameterSymbol> parameters,
             ParameterSyntax parameter,
@@ -4441,6 +4449,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        protected sealed override ImmutableArray<ISymbol> GetDeclaredSymbolsCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var field = declaration as BaseFieldDeclarationSyntax;
+            if (field != null)
+            {
+                return this.GetDeclaredSymbols(field, cancellationToken);
+            }
+
+            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
+            if (symbol != null)
+            {
+                return ImmutableArray.Create(symbol);
+            }
+
+            return ImmutableArray.Create<ISymbol>();
         }
 
         protected internal override ImmutableArray<DeclarationInSpan> DeclarationsInSpanInternal(TextSpan span)

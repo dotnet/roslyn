@@ -1659,6 +1659,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Given a base field declaration syntax, get the corresponding symbols.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares one or more fields or events.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The field symbols that were declared.</returns>
+        internal override ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            var builder = new ArrayBuilder<ISymbol>();
+
+            foreach (var declarator in declarationSyntax.Declaration.Variables)
+            {
+                var field = this.GetDeclaredSymbol(declarator, cancellationToken) as ISymbol;
+                if (field != null)
+                {
+                    builder.Add(field);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)

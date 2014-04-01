@@ -177,7 +177,6 @@
     <Compile Include="DiagnosticAnalyzer\ISyntaxTreeAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageAttributeState.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
-    <Compile Include="DiagnosticAnalyzer\SuppressMessageAttributeState.WarningStateMap.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentIncludeCache.cs" />
     <Compile Include="DocumentationComments\DocumentationProvider.cs" />
     <Compile Include="DocumentationComments\DocumentationProvider.NullDocumentationProvider.cs" />

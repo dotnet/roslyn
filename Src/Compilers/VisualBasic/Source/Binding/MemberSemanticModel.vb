@@ -651,6 +651,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
         End Function
 
+        Friend Overrides Function GetDeclaredSymbols(declarationSyntax As FieldDeclarationSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
+            ' Can't define field inside member
+            Return ImmutableArray.Create(Of ISymbol)()
+        End Function
+
         ''' <summary>
         ''' Gets the semantic information of a for each statement.
         ''' </summary>

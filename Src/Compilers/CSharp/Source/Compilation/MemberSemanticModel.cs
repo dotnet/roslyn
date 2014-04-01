@@ -511,6 +511,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetLambdaParameterSymbol(declarationSyntax, cancellationToken);
         }
 
+        internal override ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define field inside member.
+            return ImmutableArray.Create<ISymbol>();
+        }
+
         private ParameterSymbol GetLambdaParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)

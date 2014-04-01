@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation compilation;
         private GlobalSuppressions lazyGlobalSuppressions;
         private ConcurrentDictionary<ISymbol, ImmutableArray<string>> localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
-        private ConcurrentDictionary<SyntaxTree, WarningStateMap> allSuppressionsBySyntaxTree = new ConcurrentDictionary<SyntaxTree, WarningStateMap>();
         private ISymbol lazySuppressMessageAttribute;
 
         private class GlobalSuppressions
@@ -72,24 +71,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.compilation = compilation;
         }
 
-        public bool IsDiagnosticSuppressed(string id, ISymbol symbolOpt)
+        public bool IsDiagnosticSuppressed(string id, Location locationOpt = null, ISymbol symbolOpt = null)
         {
             Debug.Assert(id != null);
 
-            if (symbolOpt == null)
-            {
-                return IsDiagnosticGloballySuppressed(id, null);
-            }
-
-            // Check for local suppression on symbol and global suppressions.
-            if (IsDiagnosticLocallySuppressed(id, symbolOpt) || IsDiagnosticGloballySuppressed(id, symbolOpt))
+            if (symbolOpt != null && IsDiagnosticSuppressed(id, symbolOpt))
             {
                 return true;
             }
 
-            if (symbolOpt.Kind == SymbolKind.Method)
+            return IsDiagnosticSuppressed(id, locationOpt ?? Location.None);
+        }
+
+        private bool IsDiagnosticSuppressed(string id, ISymbol symbol)
+        {
+            Debug.Assert(id != null);
+            Debug.Assert(symbol != null);
+
+            if (symbol.Kind == SymbolKind.Namespace)
             {
-                var associated = ((IMethodSymbol)symbolOpt).AssociatedSymbol;
+                // Suppressions associated with namespace symbols only apply to namespace declarations themselves
+                // and any syntax nodes immediately contained therein, not to nodes attached to any other symbols.
+                // Diagnostics those nodes will be filtered by location, not by associated symbol.
+                return false;
+            }
+
+            if (symbol.Kind == SymbolKind.Method)
+            {
+                var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
                 if (associated != null &&
                     (IsDiagnosticLocallySuppressed(id, associated) || IsDiagnosticGloballySuppressed(id, associated)))
                 {
@@ -97,12 +106,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            // Check for suppression on parent symbol, except for namespaces.
-            // FxCop suppressions on namespaces only apply to the namespace declarations, not their contents.
-            var parent = symbolOpt.ContainingSymbol;
-            return parent != null && parent.Kind != SymbolKind.Namespace ?
-                IsDiagnosticSuppressed(id, parent) :
-                false;
+            if (IsDiagnosticLocallySuppressed(id, symbol) || IsDiagnosticGloballySuppressed(id, symbol))
+            {
+                return true;
+            }
+
+            // Check for suppression on parent symbol
+            var parent = symbol.ContainingSymbol;
+            return parent != null ? IsDiagnosticSuppressed(id, parent) : false;
+        }
+
+        private bool IsDiagnosticSuppressed(string id, Location location)
+        {
+            Debug.Assert(id != null);
+            Debug.Assert(location != null);
+
+            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null))
+            {
+                return true;
+            }
+
+            // Walk up the syntax tree checking for suppression by any declared symbols encountered
+            if (location.IsInSource)
+            {
+                var model = this.compilation.GetSemanticModel(location.SourceTree);
+                bool inImmediatelyContainingSymbol = true;
+
+                for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
+                    node != null;
+                    node = node.Parent)
+                {
+                    var declaredSymbols = model.GetDeclaredSymbolsForNode(node);
+                    Debug.Assert(declaredSymbols != null);
+   
+                    foreach (var symbol in declaredSymbols)
+                    {
+                        if (symbol.Kind == SymbolKind.Namespace)
+                        {
+                            // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
+                            // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
+                            return inImmediatelyContainingSymbol && IsDiagnosticGloballySuppressed(id, symbol);
+                        }
+                        else if (IsDiagnosticLocallySuppressed(id, symbol) || IsDiagnosticGloballySuppressed(id, symbol))
+                        {
+                            return true;
+                        }
+
+                        inImmediatelyContainingSymbol = false;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt)
@@ -114,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol)
         {
-            var suppressions = this.DecodeSuppressMessageAttributes(symbol);
-            return suppressions.Any(s => s == id);
+            var suppressions = this.localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeSuppressMessageAttributes);
+            return suppressions.Contains(id);
         }
 
         private ISymbol SuppressMessageAttribute
@@ -124,34 +179,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (this.lazySuppressMessageAttribute == null)
                 {
-                    this.lazySuppressMessageAttribute = compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
+                    this.lazySuppressMessageAttribute = this.compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
                 }
 
                 return this.lazySuppressMessageAttribute;
             }
-        }
-
-        // NOTE: This API assumes that all the suppress message attributes for declared symbols in the source file have been cracked.
-        // NOTE: We need to consider removing this assumption and actually walk up the syntax tree to crack open the relevant attributes that can suppress diagnostic at this location.
-        internal bool IsDiagnosticSyntacticallySuppressed(string id, Location location)
-        {
-            Debug.Assert(id != null);
-            Debug.Assert(location != null);
-            
-            // Check for global compilation wide suppression.
-            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null))
-            {
-                return true;
-            }
-
-            // Check for suppression by syntax tree.
-            WarningStateMap warningStateMap;
-            if (location.SourceTree != null && this.allSuppressionsBySyntaxTree.TryGetValue(location.SourceTree, out warningStateMap))
-            {
-                return warningStateMap.GetWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress;
-            }
-
-            return false;
         }
 
         private void DecodeGlobalSuppressMessageAttributes()
@@ -159,43 +191,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (this.lazyGlobalSuppressions == null)
             {
                 var suppressions = new GlobalSuppressions();
-                DecodeGlobalSuppressMessageAttributes(compilation, compilation.Assembly, this.SuppressMessageAttribute, suppressions, this.allSuppressionsBySyntaxTree);
+                DecodeGlobalSuppressMessageAttributes(this.compilation, compilation.Assembly, this.SuppressMessageAttribute, suppressions);
 
-                foreach (var module in compilation.Assembly.Modules)
+                foreach (var module in this.compilation.Assembly.Modules)
                 {
-                    DecodeGlobalSuppressMessageAttributes(compilation, module, this.SuppressMessageAttribute, suppressions, this.allSuppressionsBySyntaxTree);
+                    DecodeGlobalSuppressMessageAttributes(this.compilation, module, this.SuppressMessageAttribute, suppressions);
                 }
 
                 Interlocked.CompareExchange(ref this.lazyGlobalSuppressions, suppressions, null);
             }
         }
 
-        internal ImmutableArray<string> DecodeSuppressMessageAttributes(ISymbol symbol)
+        private ImmutableArray<string> DecodeSuppressMessageAttributes(ISymbol symbol)
         {
-            if (!this.localSuppressionsBySymbol.ContainsKey(symbol))
+            var builder = new ArrayBuilder<string>();
+
+            foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute))
             {
-                var builder = new ArrayBuilder<string>();
-
-                foreach (var attribute in symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute))
+                SuppressMessageInfo info;
+                if (!TryDecodeSuppressMessageAttributeData(attribute, out info))
                 {
-                    SuppressMessageInfo info;
-                    if (!TryDecodeSuppressMessageAttributeData(attribute, out info))
-                    {
-                        continue;
-                    }
-
-                    builder.Add(info.Id);
-                    AddSuppressionToSyntaxTrees(info.Id, symbol, this.allSuppressionsBySyntaxTree);
+                    continue;
                 }
 
-                var suppressions = builder.ToImmutableAndFree();
-                return this.localSuppressionsBySymbol.AddOrUpdate(symbol, suppressions, (s, a) => suppressions);
+                builder.Add(info.Id);
             }
 
-            return this.localSuppressionsBySymbol[symbol];
+            return builder.ToImmutableAndFree();
         }
 
-        private static void DecodeGlobalSuppressMessageAttributes(Compilation compilation, ISymbol symbol, ISymbol suppressMessageAttribute, GlobalSuppressions globalSuppressions, ConcurrentDictionary<SyntaxTree, WarningStateMap> localSuppressionsBySyntaxTree)
+        private static void DecodeGlobalSuppressMessageAttributes(Compilation compilation, ISymbol symbol, ISymbol suppressMessageAttribute, GlobalSuppressions globalSuppressions)
         {
             Debug.Assert(symbol is IAssemblySymbol || symbol is IModuleSymbol);
 
@@ -209,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                // Decode Scope
                 string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
                 TargetScope scope;
 
@@ -237,8 +261,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var target in ResolveTargetSymbols(compilation, info.Target, scope))
                 {
                     globalSuppressions.AddGlobalSymbolSuppression(target, info.Id);
-
-                    AddSuppressionToSyntaxTrees(info.Id, target, localSuppressionsBySyntaxTree);
                 }
             }
         }
@@ -260,30 +282,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void AddSuppressionToSyntaxTrees(string id, ISymbol symbol, ConcurrentDictionary<SyntaxTree, WarningStateMap> allSuppressionsBySyntaxTree)
-        {
-            // TODO(naslotto): Instead of (node.)location.SourceSpan, use GetDeclarationsInSpan to get the actual declaration node and use its span
-            var namespaceSymbol = symbol as INamespaceSymbol;
-            if (namespaceSymbol != null)
-            {
-                // FxCop suppressions on namespaces only apply to the namespace declarations, not their contents
-                foreach (var location in symbol.Locations.Where(loc => loc.IsInSource))
-                {
-                    var warningStateMap = allSuppressionsBySyntaxTree.GetOrAdd(location.SourceTree, new WarningStateMap());
-                    warningStateMap.AddSuppression(id, location.SourceSpan);
-                }
-            }
-            else
-            {
-                // All other suppressions apply to the declaration and the contents
-                foreach (var node in symbol.DeclaringSyntaxReferences)
-                {
-                    var warningStateMap = allSuppressionsBySyntaxTree.GetOrAdd(node.SyntaxTree, new WarningStateMap());
-                    warningStateMap.AddSuppression(id, node.Span);
-                }
-            }
-        }
-
         private static bool TryDecodeSuppressMessageAttributeData(AttributeData attribute, out SuppressMessageInfo info)
         {
             info = default(SuppressMessageInfo);
@@ -297,7 +295,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ignore the category parameter because it does not identify the diagnostic
             // and category information can be obtained from diagnostics themselves.
-            info.Id = (string)attribute.CommonConstructorArguments[1].Value;
+            info.Id = attribute.CommonConstructorArguments[1].Value as string;
+            if (info.Id == null)
+            {
+                return false;
+            }
 
             // Allow an optional human-readable descriptive name on the end of an Id.
             // See http://msdn.microsoft.com/en-us/library/ms244717.aspx

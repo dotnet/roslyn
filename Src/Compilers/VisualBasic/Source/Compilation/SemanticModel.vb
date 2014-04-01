@@ -2733,6 +2733,13 @@ _Default:
         Public MustOverride Overloads Function GetDeclaredSymbol(declarationSyntax As AliasImportsClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
 
         ''' <summary>
+        ''' Given a field declaration syntax, get the corresponding symbols.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares one or more fields.</param>
+        ''' <returns>The field symbols that were declared.</returns>
+        Friend MustOverride Function GetDeclaredSymbols(declarationSyntax As FieldDeclarationSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
+
+        ''' <summary>
         ''' Gets bound node summary of the underlying invocation in a case of RaiseEvent
         ''' </summary>
         Friend MustOverride Function GetInvokeSummaryForRaiseEvent(node As RaiseEventStatementSyntax) As BoundNodeSummary
@@ -3340,6 +3347,22 @@ _Default:
             End If
 
             Return Nothing
+        End Function
+
+        Protected NotOverridable Overrides Function GetDeclaredSymbolsCore(declaration As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
+            cancellationToken.ThrowIfCancellationRequested()
+
+            Dim field = TryCast(declaration, FieldDeclarationSyntax)
+            If field IsNot Nothing Then
+                Return Me.GetDeclaredSymbols(field, cancellationToken)
+            End If
+
+            Dim symbol = GetDeclaredSymbolCore(declaration, cancellationToken)
+            If symbol IsNot Nothing Then
+                Return ImmutableArray.Create(symbol)
+            End If
+
+            Return ImmutableArray.Create(Of ISymbol)()
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As DataFlowAnalysis

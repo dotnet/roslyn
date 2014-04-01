@@ -1336,6 +1336,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Given a field declaration syntax, get the corresponding symbols.
+        ''' </summary>
+        ''' <param name="declarationSyntax">The syntax node that declares one or more fields.</param>
+        ''' <returns>The field symbols that were declared.</returns>
+        Friend Overrides Function GetDeclaredSymbols(declarationSyntax As FieldDeclarationSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
+            If declarationSyntax Is Nothing Then
+                Throw New ArgumentNullException("declarationSyntax")
+            End If
+
+            If Not IsInTree(declarationSyntax) Then
+                Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinTree)
+            End If
+
+            Dim builder = New ArrayBuilder(Of ISymbol)
+
+            For Each declarator In declarationSyntax.Declarators
+                For Each identifier In declarator.Names
+                    Dim field = TryCast(Me.GetDeclaredSymbol(identifier, cancellationToken), IFieldSymbol)
+                    If field IsNot Nothing Then
+                        builder.Add(field)
+                    End If
+                Next
+            Next
+
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was converted to a given
         ''' type.
         ''' </summary>

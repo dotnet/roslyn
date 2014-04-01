@@ -353,6 +353,35 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol GetDeclaredSymbolCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
+        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// </summary>
+        /// <param name="declaration">A syntax node that is a declaration. This can be any type
+        /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
+        /// NamespaceDeclarationSyntax, ParameterSyntax, TypeParameterSyntax, or the alias part of a
+        /// UsingDirectiveSyntax</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbols declared by the node.</returns>
+        internal ImmutableArray<ISymbol> GetDeclaredSymbolsForNode(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetDeclaredSymbolsCore(declaration, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
+        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// </summary>
+        /// <param name="declaration">A syntax node that is a declaration. This can be any type
+        /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
+        /// NamespaceDeclarationSyntax, ParameterSyntax, TypeParameterSyntax, or the alias part of a
+        /// UsingDirectiveSyntax</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbols declared by the node.</returns>
+        protected abstract ImmutableArray<ISymbol> GetDeclaredSymbolsCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Gets the available named symbols in the context of the specified location and optional container. Only
         /// symbols that are accessible and visible from the given location are returned.
         /// </summary>

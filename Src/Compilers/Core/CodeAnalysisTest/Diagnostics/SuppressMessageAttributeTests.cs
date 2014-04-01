@@ -1,20 +1,24 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
-    
     public partial class SuppressMessageAttributeTests
     {
+        #region Local Suppression
+
         [Fact]
-        public void TestLocalSuppressionOnType()
+        public void LocalSuppressionOnType()
         {
             VerifyCSharp(@"
 [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
@@ -26,11 +30,11 @@ public class C1
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") },
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "C1"));
+                Diagnostic("Declaration", "C1"));
         }
 
         [Fact]
-        public void TestMultipleLocalSuppressionsOnSingleSymbol()
+        public void MultipleLocalSuppressionsOnSingleSymbol()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -45,7 +49,7 @@ public class C
         }
 
         [Fact]
-        public void TestDuplicateLocalSuppressions()
+        public void DuplicateLocalSuppressions()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -60,7 +64,7 @@ public class C
         }
 
         [Fact]
-        public void TestLocalSuppressionOnMember()
+        public void LocalSuppressionOnMember()
         {
             VerifyCSharp(@"
 public class C
@@ -71,11 +75,15 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("Foo") },
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "Foo1"));
+                Diagnostic("Declaration", "Foo1"));
         }
 
+        #endregion
+
+        #region Global Suppression
+
         [Fact]
-        public void TestGlobalSuppressionOnNamespaces()
+        public void GlobalSuppressionOnNamespaces()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -99,20 +107,20 @@ namespace N4
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("N") },
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "N2"),
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "N3"));
+                Diagnostic("Declaration", "N2"),
+                Diagnostic("Declaration", "N3"));
         }
 
         [Fact]
-        public void TestGlobalSuppressionOnTypes()
+        public void GlobalSuppressionOnTypes()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
 [module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Ef"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""C"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Ele"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Egg"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Ele`2"")]
 
 public class E
 {
@@ -125,45 +133,11 @@ public struct Egg
 }
 public delegate void Ele<T1,T2>(T1 x, T2 y);
 ",
-                new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") },
-                new[] { GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "Egg"),
-                        GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "Ele")});
-        }
-
-        [Fact]
-        public void TestMultipleGlobalSuppressionsOnSingleSymbol()
-        {
-            VerifyCSharp(@"
-using System.Diagnostics.CodeAnalysis;
-
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[assembly: SuppressMessage(""Test"", ""TypeDeclaration"", Scope=""Type"", Target=""E"")]
-
-public class E
-{
-}
-",
-                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
-        }
-
-        [Fact]
-        public void TestDuplicateGlobalSuppressions()
-        {
-            VerifyCSharp(@"
-using System.Diagnostics.CodeAnalysis;
-
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-
-public class E
-{
-}
-",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") });
         }
 
         [Fact]
-        public void TestGlobalSuppressionOnTypesNested()
+        public void GlobalSuppressionOnNestedTypes()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -182,13 +156,27 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("A") },
-                new[] { GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "A1"),
-                        GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "A3"),
-                        GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "A4")});
+                Diagnostic("Declaration", "A1"),
+                Diagnostic("Declaration", "A3"),
+                Diagnostic("Declaration", "A4"));
         }
 
         [Fact]
-        public void TestGlobalSuppressionOnMembers()
+        public void GlobalSuppressionOnBasicModule()
+        {
+            VerifyBasic(@"
+<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"", Scope=""type"", Target=""M"")>
+
+Module M
+    Class C
+    End Class
+End Module
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") });
+        }
+
+        [Fact]
+        public void GlobalSuppressionOnMembers()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -204,240 +192,782 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") },
-                new[] { GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "M2")});
+                new[] { Diagnostic("Declaration", "M2") });
         }
 
         [Fact]
-        public void TestMockSyntaxDiagnosticAnalyzerCSharp()
-        {
-            VerifyCSharp("// Comment",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// Comment"));
-        }
-
-        [Fact]
-        public void TestMockSyntaxDiagnosticAnalyzerBasic()
-        {
-            VerifyBasic("' Comment",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' Comment"));
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInModuleCSharp()
-        {
-            VerifyCSharp(@"
-// 0
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"")]
-// 1
-public class C
-{
-    // 2
-    public void Foo() // 3
-    {
-        // 4
-    }
-}
-// 5
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() });
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInModuleBasic()
-        {
-            VerifyBasic(@"
-' 0
-<module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"")>
-' 1
-Public Class C
-    ' 2
-    Public Sub Foo() ' 3
-        ' 4
-    End Sub
-End Class
-' 5
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() });
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInModule()
-        {
-            VerifyBasic(@"
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"", Scope=""type"", Target=""M.C"")>
-
-Module M
-    Class C
-    End Class
-End Module
-",
-                new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") }, 
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "C"));
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInNamespaceDeclarationCSharp()
-        {
-            VerifyCSharp(@"
-// 0
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"", Scope=""namespace"", Target=""A"")]
-// 1
-namespace A
-// 2
-{
-    // 3
-    namespace B
-    {
-    }
-}
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 1"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 2"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 3"));
-        }
-
-        [Fact(Skip = "Bug 896727")]
-        public void TestSuppressSyntaxDiagnosticsInNamespaceDeclarationBasic()
-        {
-            VerifyBasic(@"
-' 0
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"", Scope:=""Namespace"", Target:=""A"")>
-' 1
-Namespace A
-' 2
-    Namespace B 
-    ' 3
-    End Namespace
-End Namespace
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 1"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 2"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 3"));
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInTypeDeclarationCSharp()
-        {
-            VerifyCSharp(@"
-// 0
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"")]
-// 1
-public class C
-{
-    // 2
-    public void Foo() // 3
-    {
-        // 4
-    }
-} // 5
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 5"));
-        }
-
-        [Fact(Skip = "Bug 896727")]
-        public void TestSuppressSyntaxDiagnosticsInTypeDeclarationBasic()
-        {
-            VerifyBasic(@"
-' 0
-<System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Syntax"")>
-' 1
-Public Class C
-    ' 2
-    Public Sub Foo() ' 3
-        ' 4
-    End Sub
-End Class ' 5
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 5"));
-        }
-
-        [Fact]
-        public void TestSuppressSyntaxDiagnosticsInMemberDeclarationsCSharp()
+        public void MultipleGlobalSuppressionsOnSingleSymbol()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
 
-public class C
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: SuppressMessage(""Test"", ""TypeDeclaration"", Scope=""Type"", Target=""E"")]
+
+public class E
 {
-    // 0
-    [SuppressMessage(""Test"", ""Syntax"")]
-    // 1
-    int x;
-    // 2
-
-    [SuppressMessage(""Test"", ""Syntax"")]
-    // 3
-    public void Foo() // 4
-    {
-        // 5
-    }
-
-    // 6
 }
 ",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 1"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 2"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "// 6"));
-        }
-
-        [Fact(Skip = "Bug 896727")]
-        public void TestSuppressSyntaxDiagnosticsInMemberDeclarationsBasic()
-        {
-            VerifyBasic(@"
-Imports System.Diagnostics.CodeAnalysis
-
-Public Class C
-    ' 0
-    <SuppressMessage(""Test"", ""Syntax"")> ' 1
-    Dim x As Integer ' 2
-
-    <SuppressMessage(""Test"", ""Syntax"")>
-    Public Sub Foo() ' 4
-        ' 5
-    End Sub
-
-    ' 6
-End Class
-",
-                new[] { new WarningOnSingleLineCommentAnalyzer() },
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 0"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 1"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 2"),
-                GetResult(WarningOnSingleLineCommentAnalyzer.Id, "' 6"));
+                new IDiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
         }
 
         [Fact]
-        public void TestSuppressMessageOnAnalysisCompleted()
-        {
-            VerifyCSharp(
-                @"[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""AnalysisCompleted"")]",
-                new[] { new WarningOnAnalysisCompletedAnalyzer() });
-        }
-
-        [Fact]
-        public void TestSuppressMessageOnTypeDeclaration()
+        public void DuplicateGlobalSuppressions()
         {
             VerifyCSharp(@"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""TypeDeclaration"")]
-public class C
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+
+public class E
 {
-}",
-                new[] { new WarningOnTypeDeclarationAnalyzer() });
+}
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") });
+        }
+
+        #endregion
+
+        #region Syntax Semantics
+
+        [Fact]
+        public void WarningOnCommentAnalyzerCSharp()
+        {
+            VerifyCSharp("// Comment\r\n /* Comment */",
+                new[] { new WarningOnCommentAnalyzer() },
+                Diagnostic("Comment", "// Comment"),
+                Diagnostic("Comment", "/* Comment */"));
         }
 
         [Fact]
-        public void TestSuppressMessageOnPropertyAccessors()
+        public void WarningOnCommentAnalyzerBasic()
+        {
+            VerifyBasic("' Comment",
+                new[] { new WarningOnCommentAnalyzer() },
+                Diagnostic("Comment", "' Comment"));
+        }
+
+        [Fact]
+        public void GloballySuppressSyntaxDiagnosticsCSharp()
+        {
+            VerifyCSharp(@"
+// before module attributes
+[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"")]
+// before class
+public class C
+{
+    // before method
+    public void Foo() // after method declaration
+    {
+        // inside method
+    }
+}
+// after class
+",
+                new[] { new WarningOnCommentAnalyzer() });
+        }
+
+        [Fact]
+        public void GloballySuppressSyntaxDiagnosticsBasic()
+        {
+            VerifyBasic(@"
+' before module attributes
+<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"")>
+' before class
+Public Class C
+    ' before sub
+    Public Sub Foo() ' after sub statement
+        ' inside sub
+    End Sub
+End Class
+' after class
+",
+                new[] { new WarningOnCommentAnalyzer() });
+        }
+
+        [Fact]
+        public void GloballySuppressSyntaxDiagnosticsOnTargetCSharp()
+        {
+            VerifyCSharp(@"
+// before module attributes
+[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Foo():System.Void"")]
+// before class
+public class C
+{
+    // before method
+    public void Foo() // after method declaration
+    {
+        // inside method
+    }
+}
+// after class
+",
+                new[] { new WarningOnCommentAnalyzer() },
+                Diagnostic("Comment", "// before module attributes"),
+                Diagnostic("Comment", "// before class"),
+                Diagnostic("Comment", "// after class"));
+        }
+
+        [Fact]
+        public void GloballySuppressSyntaxDiagnosticsOnTargetBasic()
+        {
+            VerifyBasic(@"
+' before module attributes
+<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Foo():System.Void"")>
+' before class
+Public Class C
+    ' before sub
+    Public Sub Foo() ' after sub statement
+        ' inside sub
+    End Sub
+End Class
+' after class
+",
+                new[] { new WarningOnCommentAnalyzer() },
+                Diagnostic("Comment", "' before module attributes"),
+                Diagnostic("Comment", "' before class"),
+                Diagnostic("Comment", "' after class"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnNamespaceDeclarationCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""namespace"", Target=""A.B"")]
+namespace A
+[|{
+    namespace B
+    {
+        class C {}
+    }
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(4, 1),
+                Diagnostic("Token", "class").WithLocation(7, 9),
+                Diagnostic("Token", "C").WithLocation(7, 15),
+                Diagnostic("Token", "{").WithLocation(7, 17),
+                Diagnostic("Token", "}").WithLocation(7, 18),
+                Diagnostic("Token", "}").WithLocation(9, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnNamespaceDeclarationBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""Namespace"", Target:=""A.B"")>
+Namespace [|A
+    Namespace B 
+        Class C
+        End Class
+    End Namespace
+End|] Namespace
+",
+                Diagnostic("Token", "A").WithLocation(3, 11),
+                Diagnostic("Token", "Class").WithLocation(5, 9),
+                Diagnostic("Token", "C").WithLocation(5, 15),
+                Diagnostic("Token", "End").WithLocation(6, 9),
+                Diagnostic("Token", "Class").WithLocation(6, 13),
+                Diagnostic("Token", "End").WithLocation(8, 1));
+        }
+
+        [Fact]
+        public void DontSuppressSyntaxDiagnosticsInRootNamespaceBasic()
+        {
+            VerifyBasic(@"
+<module: System.Diagnostics.SuppressMessage(""Test"", ""Comment"", Scope:=""Namespace"", Target:=""RootNamespace"")>
+' In root namespace
+",
+                rootNamespace: "RootNamespace",
+                analyzers: new[] { new WarningOnCommentAnalyzer() },
+                diagnostics: Diagnostic("Comment", "' In root namespace").WithLocation(3, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnTypesCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+namespace N
+[|{
+    [SuppressMessage(""Test"", ""Token"")]
+    class C<T> {}
+
+    [SuppressMessage(""Test"", ""Token"")]
+    struct S<T> {}
+
+    [SuppressMessage(""Test"", ""Token"")]
+    interface I<T>{}
+
+    [SuppressMessage(""Test"", ""Token"")]
+    enum E {}
+
+    [SuppressMessage(""Test"", ""Token"")]
+    delegate void D();
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(5, 1),
+                Diagnostic("Token", "}").WithLocation(20, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnTypesBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+Namespace [|N
+    <SuppressMessage(""Test"", ""Token"")>
+    Module M
+    End Module
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Class C
+    End Class
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Structure S
+    End Structure
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Interface I
+    End Interface
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Enum E
+        None
+    End Enum
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Delegate Sub D()
+End|] Namespace
+",
+                Diagnostic("Token", "N").WithLocation(4, 11),
+                Diagnostic("Token", "End").WithLocation(28, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnFieldsCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+[|{
+    [SuppressMessage(""Test"", ""Token"")]
+    int field1 = 1, field2 = 2;
+
+    [SuppressMessage(""Test"", ""Token"")]
+    int field3 = 3;
+}|]
+",
+                Diagnostic("Token", "{"),
+                Diagnostic("Token", "}"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnFieldsBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+Class [|C
+    <SuppressMessage(""Test"", ""Token"")>
+    Public field1 As Integer = 1,
+           field2 As Double = 2.0
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Public field3 As Integer = 3
+End|] Class
+",
+                Diagnostic("Token", "C"),
+                Diagnostic("Token", "End"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventsCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+[|{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    public event System.Action<int> E1;
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    public event System.Action<int> E2, E3;
+}|]
+",
+                Diagnostic("Token", "{"),
+                Diagnostic("Token", "}"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventsBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+Class [|C
+    <SuppressMessage(""Test"", ""Token"")>
+    Public Event E1 As System.Action(Of Integer)
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Public Event E2(ByVal arg As Integer)
+End|] Class
+",
+                Diagnostic("Token", "C"),
+                Diagnostic("Token", "End"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventAddAccessorCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    public event System.Action<int> E
+    [|{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        add {}
+        remove|] {}
+    }
+}
+",
+                Diagnostic("Token", "{").WithLocation(5, 5),
+                Diagnostic("Token", "remove").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventAddAccessorBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class C
+    Public Custom Event E As System.Action(Of Integer[|)
+        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        AddHandler(value As Action(Of Integer))
+        End AddHandler
+        RemoveHandler|](value As Action(Of Integer))
+        End RemoveHandler
+        RaiseEvent(obj As Integer)
+        End RaiseEvent
+    End Event
+End Class
+",
+                Diagnostic("Token", ")"),
+                Diagnostic("Token", "RemoveHandler"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventRemoveAccessorCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    public event System.Action<int> E
+    {
+        add {[|}
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        remove {}
+    }|]
+}
+",
+                Diagnostic("Token", "}").WithLocation(6, 14),
+                Diagnostic("Token", "}").WithLocation(9, 5));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnEventRemoveAccessorBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class C
+    Public Custom Event E As System.Action(Of Integer)
+        AddHandler(value As Action(Of Integer))
+        End [|AddHandler
+        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        RemoveHandler(value As Action(Of Integer))
+        End RemoveHandler
+        RaiseEvent|](obj As Integer)
+        End RaiseEvent
+    End Event
+End Class
+",
+                Diagnostic("Token", "AddHandler"),
+                Diagnostic("Token", "RaiseEvent"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class C
+    Public Custom Event E As System.Action(Of Integer)
+        AddHandler(value As Action(Of Integer))
+        End AddHandler
+        RemoveHandler(value As Action(Of Integer))
+        End [|RemoveHandler
+        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        RaiseEvent(obj As Integer)
+        End RaiseEvent
+    End|] Event
+End Class
+",
+                Diagnostic("Token", "RemoveHandler"),
+                Diagnostic("Token", "End"));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertyCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+[|{
+    [SuppressMessage(""Test"", ""Token"")]
+    int Property1 { get; set; }
+
+    [SuppressMessage(""Test"", ""Token"")]
+    int Property2
+    {
+        get { return 2; }
+        set { Property1 = 2; }
+    }
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(5, 1),
+                Diagnostic("Token", "}").WithLocation(15, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertyBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+Class [|C
+    <SuppressMessage(""Test"", ""Token"")>
+    Property Property1 As Integer
+
+    <SuppressMessage(""Test"", ""Token"")>
+    Property Property2 As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+            Property1 = value
+        End Set
+    End Property
+End|] Class
+",
+                Diagnostic("Token", "C").WithLocation(4, 7),
+                Diagnostic("Token", "End").WithLocation(17, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertyGetterCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    int x;
+    int Property
+    [|{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        get { return 2; }
+        set|] { x = 2; }
+    }
+}
+",
+                Diagnostic("Token", "{").WithLocation(6, 5),
+                Diagnostic("Token", "set").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertyGetterBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class C
+    Private x As Integer
+    Property [Property] As [|Integer
+        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        Get
+            Return 2
+        End Get
+        Set|](value As Integer)
+            x = value
+        End Set
+    End Property
+End Class
+",
+                Diagnostic("Token", "Integer").WithLocation(4, 28),
+                Diagnostic("Token", "Set").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertySetterCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    int x;
+    int Property
+    [|{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        get { return 2; }
+        set|] { x = 2; }
+    }
+}
+",
+                Diagnostic("Token", "{").WithLocation(6, 5),
+                Diagnostic("Token", "set").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnPropertySetterBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class C
+    Private x As Integer
+    Property [Property] As Integer
+        Get
+            Return 2
+        End [|Get
+        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        Set(value As Integer)
+            x = value
+        End Set
+    End|] Property
+End Class
+",
+                Diagnostic("Token", "Get").WithLocation(7, 13),
+                Diagnostic("Token", "End").WithLocation(12, 5));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnIndexerCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    int x[|;
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    int this[int i]
+    {
+        get { return 2; }
+        set { x = 2; }
+    }
+}|]
+",
+                Diagnostic("Token", ";").WithLocation(4, 10),
+                Diagnostic("Token", "}").WithLocation(11, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnIndexerGetterCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    int x;
+    int this[int i]
+    [|{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        get { return 2; }
+        set|] { x = 2; }
+    }
+}
+",
+                Diagnostic("Token", "{").WithLocation(6, 5),
+                Diagnostic("Token", "set").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnIndexerSetterCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+{
+    int x;
+    int this[int i]
+    {
+        get { return 2; [|}
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        set { x = 2; }
+    }|]
+}
+",
+                Diagnostic("Token", "}").WithLocation(7, 25),
+                Diagnostic("Token", "}").WithLocation(10, 5));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnMethodCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+using System.Diagnostics.CodeAnalysis;
+
+abstract class C
+[|{
+    [SuppressMessage(""Test"", ""Token"")]
+    public void M1<T>() {}
+
+    [SuppressMessage(""Test"", ""Token"")]
+    public abstract void M2();
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(5, 1),
+                Diagnostic("Token", "}").WithLocation(11, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnMethodBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+Public MustInherit Class [|C
+    <SuppressMessage(""Test"", ""Token"")> 
+    Public Function M2(Of T)() As Integer
+        Return 0
+    End Function 
+    
+    <SuppressMessage(""Test"", ""Token"")> 
+    Public MustOverride Sub M3() 
+End|] Class
+",
+                Diagnostic("Token", "C").WithLocation(4, 26),
+                Diagnostic("Token", "End").WithLocation(12, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnOperatorCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+[|{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    public static C operator +(C a, C b) 
+    {
+        return null;
+    } 
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(3, 1),
+                Diagnostic("Token", "}").WithLocation(9, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnOperatorBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class [|C
+    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")> 
+    Public Shared Operator +(ByVal a As C, ByVal b As C) As C 
+        Return Nothing
+    End Operator 
+End|] Class 
+",
+                Diagnostic("Token", "C").WithLocation(2, 7),
+                Diagnostic("Token", "End").WithLocation(7, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnConstructorCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class Base
+{
+    public Base(int x) {}
+}
+
+class C : Base
+[|{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    public C() : base(0) {} 
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(8, 1),
+                Diagnostic("Token", "}").WithLocation(11, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnConstructorBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class [|C
+    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+    Public Sub New()
+    End Sub
+End|] Class
+",
+                Diagnostic("Token", "C").WithLocation(2, 7),
+                Diagnostic("Token", "End").WithLocation(6, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnDestructorCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+[|{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    ~C() {}
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(3, 1),
+                Diagnostic("Token", "}").WithLocation(6, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnNestedTypeCSharp()
+        {
+            VerifyTokenDiagnosticsCSharp(@"
+class C
+[|{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    class D
+    {
+        class E
+        {
+        }
+    }
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(3, 1),
+                Diagnostic("Token", "}").WithLocation(11, 1));
+        }
+
+        [Fact]
+        public void SuppressSyntaxDiagnosticsOnNestedTypeBasic()
+        {
+            VerifyTokenDiagnosticsBasic(@"
+Class [|C
+    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+    Class D
+        Class E
+        End Class
+    End Class
+End|] Class
+",
+                Diagnostic("Token", "C").WithLocation(2, 7),
+                Diagnostic("Token", "End").WithLocation(8, 1));
+        }
+
+        #endregion
+
+        #region Special Cases
+
+        [Fact]
+        public void SuppressMessageCompilationEnded()
+        {
+            VerifyCSharp(
+                @"[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CompilationEnded"")]",
+                new[] { new WarningOnCompilationEndedAnalyzer() });
+        }
+
+        [Fact]
+        public void SuppressMessageOnPropertyAccessor()
         {
             VerifyCSharp(@"
 public class C
@@ -450,7 +980,7 @@ public class C
         }
 
         [Fact]
-        public void TestSuppressMessageOnDelegateInvoke()
+        public void SuppressMessageOnDelegateInvoke()
         {
             VerifyCSharp(@"
 public class C
@@ -463,7 +993,7 @@ public class C
         }
 
         [Fact]
-        public void TestSuppressMessageOnCodeBodyCSharp()
+        public void SuppressMessageOnCodeBodyCSharp()
         {
             VerifyCSharp(
                 @"
@@ -479,13 +1009,13 @@ public class C
                 new[] { new WarningOnCodeBodyAnalyzer(LanguageNames.CSharp) });
         }
 
-        [Fact(Skip = "Bug 896727")]
-        public void TestSuppressMessageOnCodeBodyBasic()
+        [Fact]
+        public void SuppressMessageOnCodeBodyBasic()
         {
             VerifyBasic(
                 @"
 Public Class C
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")]
+    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")>
     Sub Foo()
         Foo()
     End Sub
@@ -494,8 +1024,12 @@ End Class
                 new[] { new WarningOnCodeBodyAnalyzer(LanguageNames.VisualBasic) });
         }
 
+        #endregion
+
+        #region Attribute Decoding
+
         [Fact]
-        public void TestUnnecessaryScopeAndTarget()
+        public void UnnecessaryScopeAndTarget()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -519,7 +1053,7 @@ public class C3
         }
 
         [Fact]
-        public void TestInvalidScopeOrTarget()
+        public void InvalidScopeOrTarget()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -533,11 +1067,11 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") },
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "C"));
+                Diagnostic("Declaration", "C"));
         }
 
         [Fact]
-        public void TestMissingScopeOrTarget()
+        public void MissingScopeOrTarget()
         {
             VerifyCSharp(@"
 using System.Diagnostics.CodeAnalysis;
@@ -550,36 +1084,74 @@ public class C
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") },
-                GetResult(WarningOnNamePrefixDeclarationAnalyzer.Id, "C"));
+                Diagnostic("Declaration", "C"));
         }
 
-        private static void VerifyCSharp(string source, params IDiagnosticAnalyzer[] analyzers)
+        [Fact]
+        public void InvalidAttributeConstructorParameters()
         {
-            Verify(source, LanguageNames.CSharp, analyzers, new DiagnosticDescription[0]);
+            VerifyBasic(@"
+Imports System.Diagnostics.CodeAnalysis
+
+<module: SuppressMessage(UndeclaredIdentifier, ""Comment"")>
+<module: SuppressMessage(""Test"", UndeclaredIdentifier)>
+<module: SuppressMessage(""Test"", ""Comment"", Scope:=UndeclaredIdentifier, Target:=""C"")>
+<module: SuppressMessage(""Test"", ""Comment"", Scope:=""Type"", Target:=UndeclaredIdentifier)>
+
+Class C
+End Class
+",
+                new[] { new WarningOnTypeDeclarationAnalyzer() },
+                Diagnostic("TypeDeclaration", "C").WithLocation(9, 7));
         }
 
-        private static void VerifyCSharp(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        #endregion
+
+        protected void VerifyCSharp(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.CSharp, analyzers, diagnostics);
         }
 
-        private static void VerifyBasic(string source, params IDiagnosticAnalyzer[] analyzers)
+        protected void VerifyTokenDiagnosticsCSharp(string markup, params DiagnosticDescription[] diagnostics)
         {
-            Verify(source, LanguageNames.VisualBasic, analyzers, new DiagnosticDescription[0]);
+            VerifyTokenDiagnostics(markup, LanguageNames.CSharp, diagnostics);
         }
 
-        private static void VerifyBasic(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        protected void VerifyBasic(string source, string rootNamespace, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, rootNamespace);
+        }
+
+        protected void VerifyBasic(string source, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
 
-        private static void Verify(string source, string language, IDiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics)
+        protected void VerifyTokenDiagnosticsBasic(string markup, params DiagnosticDescription[] diagnostics)
         {
-            var compilation = CreateCompilation(source, language, analyzers);
+            VerifyTokenDiagnostics(markup, LanguageNames.VisualBasic, diagnostics);
+        }
+
+        protected virtual void Verify(string source, string language, IDiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null)
+        {
+            Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
+            var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
             compilation.VerifyAnalyzerDiagnostics(analyzers, diagnostics);
         }
 
-        private static Compilation CreateCompilation(string source, string language, IDiagnosticAnalyzer[] analyzers)
+        // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
+        private void VerifyTokenDiagnostics(string markup, string language, DiagnosticDescription[] diagnostics)
+        {
+            string source;
+            IList<TextSpan> spans;
+            MarkupTestFile.GetSpans(markup, out source, out spans);
+            Assert.True(spans.Count > 0, "Must specify a span within which to generate diagnostics on each token");
+
+            Verify(source, language, new IDiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
+        }
+
+        private static Compilation CreateCompilation(string source, string language, IDiagnosticAnalyzer[] analyzers, string rootNamespace)
         {
             string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
             string projectName = "TestProject";
@@ -600,11 +1172,14 @@ public class C
                 return VisualBasicCompilation.Create(
                     projectName,
                     syntaxTrees: new[] { syntaxTree },
-                    references: new[] { TestBase.MscorlibRef });
+                    references: new[] { TestBase.MscorlibRef },
+                    options: new VisualBasicCompilationOptions(
+                        OutputKind.DynamicallyLinkedLibrary,
+                        rootNamespace: rootNamespace));
             }
         }
 
-        private static DiagnosticDescription GetResult(string id, string squiggledText)
+        protected static DiagnosticDescription Diagnostic(string id, string squiggledText)
         {
             return new DiagnosticDescription(id, false, squiggledText, null, null, null, false);
         }
