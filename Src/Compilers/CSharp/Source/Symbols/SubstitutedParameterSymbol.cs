@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -66,24 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if ((object)this == obj)
-            {
-                return true;
-            }
-
-            var other = obj as SubstitutedParameterSymbol;
-            return (object)other != null &&
-                this.underlyingParameter.Equals(other.underlyingParameter) &&
-                this.containingSymbol.Equals(other.containingSymbol);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(containingSymbol, underlyingParameter.GetHashCode());
         }
     }
 }

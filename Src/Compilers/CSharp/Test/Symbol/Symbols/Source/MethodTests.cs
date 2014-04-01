@@ -1928,5 +1928,29 @@ class C
             Assert.NotSame(substitutedParameter1, substitutedParameter2);
         }
 
+        [WorkItem(910100)]
+        [Fact]
+        public void ReducedExtensionMethodParameterEquality()
+        {
+            var source = @"
+static class C
+{
+    static void M(this int i, string s) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var method = type.GetMember<MethodSymbol>("M");
+
+            var reducedMethod1 = method.ReduceExtensionMethod();
+            var reducedMethod2 = method.ReduceExtensionMethod();
+            Assert.Equal(reducedMethod1, reducedMethod2);
+            Assert.NotSame(reducedMethod1, reducedMethod2);
+
+            var extensionParameter1 = reducedMethod1.Parameters.Single();
+            var extensionParameter2 = reducedMethod2.Parameters.Single();
+            Assert.Equal(extensionParameter1, extensionParameter2);
+            Assert.NotSame(extensionParameter1, extensionParameter2);
+        }
     }
 }
