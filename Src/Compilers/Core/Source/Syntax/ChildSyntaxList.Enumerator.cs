@@ -52,6 +52,31 @@ namespace Microsoft.CodeAnalysis
             {
                 this.childIndex = -1;
             }
+
+            internal bool TryMoveNextAndGetCurrent(ref SyntaxNodeOrToken current)
+            {
+                if (!MoveNext())
+                {
+                    return false;
+                }
+
+                current = ItemInternal(node, this.childIndex);
+                return true;
+            }
+
+            internal SyntaxNode TryMoveNextAndGetCurrentAsNode()
+            {
+                while (MoveNext())
+                {
+                    var nodeValue = ItemInternalAsNode(node, this.childIndex);
+                    if (nodeValue != null)
+                    {
+                        return nodeValue;
+                    }
+                }
+
+                return null;
+            }
         }
 
         private class EnumeratorImpl : IEnumerator<SyntaxNodeOrToken>

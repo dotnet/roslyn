@@ -268,8 +268,6 @@
     <Compile Include="InternalUtilities\TextKeyedCache.cs" />
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
-    <Compile Include="InternalUtilities\UnionStack`2.cs" />
-    <Compile Include="InternalUtilities\UnionStack`3.cs" />
     <Compile Include="InternalUtilities\ValueTuple.cs" />
     <Compile Include="InternalUtilities\ValueTuple`2.cs" />
     <Compile Include="InternalUtilities\ValueTuple`3.cs" />
@@ -541,6 +539,7 @@
     <Compile Include="Syntax\SyntaxList`1.cs" />
     <Compile Include="Syntax\SyntaxList`1.Enumerator.cs" />
     <Compile Include="Syntax\SyntaxNode.cs" />
+    <Compile Include="Syntax\SyntaxNode.Iterators.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions_Tracking.cs" />
     <Compile Include="Syntax\SyntaxNodeLocationComparer.cs" />

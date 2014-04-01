@@ -158,6 +158,54 @@ namespace Microsoft.CodeAnalysis
             return new SyntaxNodeOrToken(node, greenChild, position, index);
         }
 
+        /// <summary>
+        /// internal indexer that does not verify index.
+        /// Used when caller has already ensured that index is within bounds.
+        /// </summary>
+        internal static SyntaxNode ItemInternalAsNode(SyntaxNode node, int index)
+        {
+            GreenNode greenChild;
+            var green = node.Green;
+            var idx = index;
+            var slotIndex = 0;
+
+            // find a slot that contains the node or its parent list (if node is in a list)
+            // we will be skipping whole slots here so we will not loop for long
+            // the max possible number of slots is 11 (TypeDeclarationSyntax)
+            // and typically much less than that
+            //
+            // at the end of this loop we will have
+            // 1) slot index - slotIdx
+            // 2) if the slot is a list, node index in the list - idx
+            while (true)
+            {
+                greenChild = green.GetSlot(slotIndex);
+                if (greenChild != null)
+                {
+                    int currentOccupancy = Occupancy(greenChild);
+                    if (idx < currentOccupancy)
+                    {
+                        break;
+                    }
+
+                    idx -= currentOccupancy;
+                }
+
+                slotIndex++;
+            }
+
+            // get node that represents this slot
+            var red = node.GetNodeSlot(slotIndex);
+            if (greenChild.IsList && red != null)
+            {
+                // it is a red list of nodes (separated or not), most common case
+                return red.GetNodeSlot(idx);
+            }
+
+            // this is a single node or token
+            return red;
+        }
+
         // for debugging
         private SyntaxNodeOrToken[] Nodes
         {
