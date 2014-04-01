@@ -75,10 +75,10 @@ End Class
 <expected>
 BC30643: Property 'A.P' is of an unsupported type.
         N(A.P)
-          ~~~
+            ~
 BC30643: Property 'A.Q' is of an unsupported type.
         N(x.Q)
-          ~~~
+            ~
 </expected>)
         End Sub
 
@@ -135,22 +135,22 @@ End Class
 <expected>
 BC30643: Property 'A.P' is of an unsupported type.
         y = x.P
-            ~~~
+              ~
 BC30643: Property 'A.Q(x As Integer)' is of an unsupported type.
         y = x.Q(0)
-            ~~~~~~
+              ~
 BC30643: Property 'A.R(val As Integer, Param As Integer)' is of an unsupported type.
         y = x.R(0, 1)
-            ~~~~~~~~~
+              ~
 BC30643: Property 'A.P' is of an unsupported type.
         x.P = y
-        ~~~
+          ~
 BC30643: Property 'A.Q(x As Integer)' is of an unsupported type.
         x.Q(0) = y
-        ~~~~~~
+          ~
 BC30643: Property 'A.R(val As Integer, Param As Integer)' is of an unsupported type.
         x.R(0, 1) = y
-        ~~~~~~~~~
+          ~
 </expected>)
         End Sub
 
@@ -196,16 +196,16 @@ End Class
 <expected>
 BC30643: Property 'A.P' is of an unsupported type.
         x.P = x.Q
-        ~~~
+          ~
 BC30643: Property 'A.Q' is of an unsupported type.
         x.P = x.Q
-              ~~~
+                ~
 BC30643: Property 'A.Q' is of an unsupported type.
         A.Q = A.P
-        ~~~
+          ~
 BC30643: Property 'A.P' is of an unsupported type.
         A.Q = A.P
-              ~~~
+                ~
 </expected>)
         End Sub
 
@@ -2234,13 +2234,13 @@ BC31429: 'F' is ambiguous because multiple kinds of members with this name exist
                 ~~~
 BC31429: 'F' is ambiguous because multiple kinds of members with this name exist in class 'DefaultFieldAndProperty'.
         value = a(value)
-                ~~~~~~~~
+                ~
 BC31429: 'F' is ambiguous because multiple kinds of members with this name exist in class 'DefaultMethodAndProperty'.
         value = b.F(value)
                 ~~~
 BC31429: 'F' is ambiguous because multiple kinds of members with this name exist in class 'DefaultMethodAndProperty'.
         value = b(value)
-                ~~~~~~~~
+                ~
 </expected>)
         End Sub
 
@@ -2347,7 +2347,7 @@ BC30367: Class 'DefaultAssemblyPropertyAndBaseProperty' cannot be indexed becaus
                 ~~
 BC30574: Option Strict On disallows late binding.
         value = x6(value)
-                ~~~~~~~~~
+                ~~
 </expected>)
         End Sub
 
@@ -2519,7 +2519,7 @@ BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o A
                       ~
 BC30455: Argument not specified for parameter 'y' of 'Public Overloads ReadOnly Default Property G(x As Object, y As Object) As Object'.
         value = b2(1)
-                ~~~~~
+                ~~
 BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o As Object) As Object'.
         value = b3(2, 3)
                       ~
@@ -3314,13 +3314,13 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'o' of 'Public ReadOnly Default Property P(o As Object) As Object'.
         value = _1()()
-                ~~~~~~
+                ~~~~
 BC30105: Number of indices is less than the number of dimensions of the indexed array.
         value = _2()()
                     ~~
 BC30455: Argument not specified for parameter 'o' of 'D'.
         value = _3()()
-                ~~~~~~
+                ~~~~
 </expected>)
         End Sub
 
@@ -3425,16 +3425,16 @@ End Module
 <expected>
 BC30574: Option Strict On disallows late binding.
         value = o()(1)
-                ~~~~~~
+                ~~~
 BC30574: Option Strict On disallows late binding.
         value = o(2)
-                ~~~~
+                ~
 BC30574: Option Strict On disallows late binding.
         o()(3) = value
-        ~~~~~~
+        ~~~
 BC30574: Option Strict On disallows late binding.
         o(4) = value
-        ~~~~
+        ~
 </expected>)
             ' Option Strict Off
             Dim source2 =
@@ -4056,7 +4056,7 @@ BC30057: Too many arguments to 'Public Overloads Function Foo(Of Integer)() As I
                              ~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Call Foo(1)
-             ~~~~~~
+             ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
@@ -4105,7 +4105,7 @@ BC30057: Too many arguments to 'Public Function Foo(Of Integer)() As Integer()'.
                              ~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Call Foo(1)
-             ~~~~~~
+             ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
@@ -4150,13 +4150,13 @@ End Class
 <expected>
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Dim b As Integer = Foo(1)
-                           ~~~~~~
+                           ~~~
 BC30057: Too many arguments to 'Public Function Foo(Of Integer)() As Integer()'.
         Call Foo(Of Integer)(1)
                              ~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Call Foo(1)
-             ~~~~~~
+             ~~~
 </expected>)
 
             '  WARNING!!! Dev10 generates:
@@ -4213,7 +4213,7 @@ BC30454: Expression is not a method.
              ~~~~~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Call Foo(1)
-             ~~~~~~
+             ~~~
 BC30545: Property access must assign to the property or use its value.
         Call Foo()
              ~~~~~
@@ -5127,7 +5127,7 @@ End Class
 <expected>
 BC30643: Property 'Foo' is of an unsupported type.
         Dim x As Integer = A.Foo
-                           ~~~~~
+                             ~~~
 </expected>)
         End Sub
 
@@ -5154,7 +5154,7 @@ End Class
 <expected>
 BC30643: Property 'Foo' is of an unsupported type.
         Dim x As Integer = A.Foo
-                           ~~~~~
+                             ~~~
 </expected>)
         End Sub
 
@@ -5180,7 +5180,7 @@ End Class
 <expected>
 BC30643: Property 'Foo' is of an unsupported type.
         Dim x As Object = A.Foo
-                          ~~~~~
+                            ~~~
 BC30456: 'get_Foo' is not a member of 'A'.
         x = A.get_Foo()
             ~~~~~~~~~
@@ -5509,8 +5509,8 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "i.Instance").WithArguments("Instance", "Mismatched"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "i.Instance").WithArguments("Instance", "Mismatched"),
-                Diagnostic(ERRID.ERR_UnsupportedProperty1, "i.StaticAndInstance").WithArguments("Signatures.StaticAndInstance"),
-                Diagnostic(ERRID.ERR_UnsupportedProperty1, "i.GetUsedAsSet").WithArguments("Signatures.GetUsedAsSet"),
+                Diagnostic(ERRID.ERR_UnsupportedProperty1, "StaticAndInstance").WithArguments("Signatures.StaticAndInstance"),
+                Diagnostic(ERRID.ERR_UnsupportedProperty1, "GetUsedAsSet").WithArguments("Signatures.GetUsedAsSet"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "Mismatched.[Static]").WithArguments("Static", "Mismatched"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "Mismatched.[Static]").WithArguments("Static", "Mismatched"))
         End Sub
@@ -6213,22 +6213,22 @@ End Module
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         y = o.P(x)
-            ~~~~~~
+              ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         o.P(x) = y
-        ~~~~~~
+          ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         z = o.P(y)
-            ~~~~~~
+              ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         o.P(y) = z
-        ~~~~~~
+          ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         x = o.P(z)
-            ~~~~~~
+              ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         o.P(z) = x
-        ~~~~~~
+          ~
 ]]></errors>)
             ' Property references.
             Dim source3 =
@@ -6258,16 +6258,16 @@ End Module
             compilation3.AssertTheseDiagnostics(<errors><![CDATA[
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         MBByVal(o.P(x))
-                ~~~~~~
+                  ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         MBByRef(o.P(x))
-                ~~~~~~
+                  ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         MCByVal(o.P(x))
-                ~~~~~~
+                  ~
 BC30643: Property 'D.P(i As C)' is of an unsupported type.
         MCByRef(o.P(x))
-                ~~~~~~
+                  ~
 ]]></errors>)
         End Sub
 
@@ -6462,22 +6462,22 @@ End Module
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
 BC30643: Property 'A.P(x As Object)' is of an unsupported type.
         o.P(x) = o.P(x)
-        ~~~~~~
+          ~
 BC30643: Property 'A.P(x As Object)' is of an unsupported type.
         o.P(x) = o.P(x)
-                 ~~~~~~
+                   ~
 BC30643: Property 'A.P(x As Object)' is of an unsupported type.
         o.P(x, y) = o.P(x, y)
-        ~~~~~~~~~
+          ~
 BC30643: Property 'A.P(x As Object)' is of an unsupported type.
         o.P(x, y) = o.P(x, y)
-                    ~~~~~~~~~
+                      ~
 BC30643: Property 'A.Q(o As Object, v As Object)' is of an unsupported type.
         o.Q(x) += 1
-        ~~~~~~
+          ~
 BC30643: Property 'A.Q(o As Object, v As Object)' is of an unsupported type.
         o.Q(x, y) += 1
-        ~~~~~~~~~
+          ~
 ]]></errors>)
         End Sub
 
@@ -6555,10 +6555,10 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(Param As Object, Param As Object) As Integer'.
         o.P(x:=3, y:=4) *= 1
-        ~~~~~~~~~~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(Param As Object, Param As Object) As Integer'.
         o.P(x:=3, y:=4) *= 1
-        ~~~~~~~~~~~~~~~
+          ~
 BC30272: 'x' is not a parameter of 'Public Property P(Param As Object, Param As Object) As Integer'.
         o.P(x:=3, y:=4) *= 1
             ~
@@ -6567,10 +6567,10 @@ BC30272: 'y' is not a parameter of 'Public Property P(Param As Object, Param As 
                   ~
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(Param As Object, Param As Object) As Integer'.
         M(o.P(x:=5, y:=6))
-          ~~~~~~~~~~~~~~~
+            ~
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(Param As Object, Param As Object) As Integer'.
         M(o.P(x:=5, y:=6))
-          ~~~~~~~~~~~~~~~
+            ~
 BC30272: 'x' is not a parameter of 'Public Property P(Param As Object, Param As Object) As Integer'.
         M(o.P(x:=5, y:=6))
               ~
@@ -6617,13 +6617,13 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(one As Object, Param As Object) As Integer'.
         o.P(one:=1, two:=2) += 1
-        ~~~~~~~~~~~~~~~~~~~
+          ~
 BC30272: 'two' is not a parameter of 'Public Property P(one As Object, Param As Object) As Integer'.
         o.P(one:=1, two:=2) += 1
                     ~~~
 BC30455: Argument not specified for parameter 'Param' of 'Public Property P(one As Object, Param As Object) As Integer'.
         o.P(ONE:=1, _two:=2) += 1
-        ~~~~~~~~~~~~~~~~~~~~
+          ~
 BC30272: '_two' is not a parameter of 'Public Property P(one As Object, Param As Object) As Integer'.
         o.P(ONE:=1, _two:=2) += 1
                     ~~~~
@@ -6756,40 +6756,40 @@ End Module
 <expected>
 BC30643: Property 'A2.P(ByRef i As Object)' is of an unsupported type.
         _2.P(y) = _2.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'A2.P(ByRef i As Object)' is of an unsupported type.
         _2.P(y) = _2.P(x)
-                  ~~~~~~~
+                     ~
 BC30643: Property 'P' is of an unsupported type.
         _4.P(y) = _4.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'P' is of an unsupported type.
         _4.P(y) = _4.P(x)
-                  ~~~~~~~
+                     ~
 BC30643: Property 'A5.P(ByRef i As Object)' is of an unsupported type.
         _5.P(y) = _5.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'A5.P(ByRef i As Object)' is of an unsupported type.
         _5.P(y) = _5.P(x)
-                  ~~~~~~~
+                     ~
 BC30643: Property 'P' is of an unsupported type.
         _6.P(y) = _6.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'P' is of an unsupported type.
         _6.P(y) = _6.P(x)
-                  ~~~~~~~
+                     ~
 BC30643: Property 'A7.P(ByRef i As Object)' is of an unsupported type.
         _7.P(y) = _7.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'A7.P(ByRef i As Object)' is of an unsupported type.
         _7.P(y) = _7.P(x)
-                  ~~~~~~~
+                     ~
 BC30643: Property 'A9.P(ByRef i As Object)' is of an unsupported type.
         _9.P(y) = _9.P(x)
-        ~~~~~~~
+           ~
 BC30643: Property 'A9.P(ByRef i As Object)' is of an unsupported type.
         _9.P(y) = _9.P(x)
-                  ~~~~~~~
+                     ~
 </expected>)
         End Sub
 
@@ -6997,16 +6997,16 @@ End Module
 <expected>
 BC30643: Property 'A.P2(i As Object)' is of an unsupported type.
         v = o.P2(v)
-            ~~~~~~~
+              ~~
 BC30643: Property 'A.P2(i As Object)' is of an unsupported type.
         o.P2(v) = v
-        ~~~~~~~
+          ~~
 BC30643: Property 'A.P3(i As Object)' is of an unsupported type.
         v = o.P3(v)
-            ~~~~~~~
+              ~~
 BC30643: Property 'A.P3(i As Object)' is of an unsupported type.
         o.P3(v) = v
-        ~~~~~~~
+          ~~
 </expected>)
             Dim type = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A")
             Assert.True(type.GetMember(Of PropertySymbol)("P1").Parameters(0).HasOptionCompare)
@@ -7141,16 +7141,16 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public Property P2(x As Object, y As Object) As Object'.
         v = o.P2(v)
-            ~~~~~~~
+              ~~
 BC30455: Argument not specified for parameter 'y' of 'Public Property P2(x As Object, y As Object) As Object'.
         o.P2(v) = v
-        ~~~~~~~
+          ~~
 BC30455: Argument not specified for parameter 'y' of 'Public Property P3(x As Object, y As Object) As Object'.
         v = o.P3(v)
-            ~~~~~~~
+              ~~
 BC30455: Argument not specified for parameter 'y' of 'Public Property P3(x As Object, y As Object) As Object'.
         o.P3(v) = v
-        ~~~~~~~
+          ~~
 </expected>)
             Dim defaultValue = ConstantValue.Create(1)
             Dim type = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A")
@@ -7219,16 +7219,16 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Default Property P(x As Integer, y As Integer) As Integer'.
         a(0) = a(0)
-        ~~~~
+        ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Default Property P(x As Integer, y As Integer) As Integer'.
         a(0) = a(0)
-               ~~~~
+               ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Default Property P(x As Integer, y As Integer) As Integer'.
         a(1) += 1
-        ~~~~
+        ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Default Property P(x As Integer, y As Integer) As Integer'.
         [ByRef](a.P(2))
-                ~~~~~~
+                  ~
 </expected>)
         End Sub
 
@@ -7291,22 +7291,22 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(1) = o.P(0)
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(1) = o.P(0)
-                 ~~~~~~
+                   ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(2) += 1
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(1) = o.Q(0)
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(1) = o.Q(0)
-                 ~~~~~~
+                   ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(2) += 1
-        ~~~~~~
+          ~
 </expected>)
         End Sub
 
@@ -7375,34 +7375,34 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(1) = o.P(0)
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(1) = o.P(0)
-                 ~~~~~~
+                   ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         o.P(2) += 1
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         [ByVal](o.P(4))
-                ~~~~~~
+                  ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property P(x As Integer, y As Integer) As Integer'.
         [ByRef](o.P(5))
-                ~~~~~~
+                  ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(1) = o.Q(0)
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(1) = o.Q(0)
-                 ~~~~~~
+                   ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         o.Q(2) += 1
-        ~~~~~~
+          ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         [ByVal](o.Q(4))
-                ~~~~~~
+                  ~
 BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overrides Property Q(x As Integer, y As Integer) As Integer'.
         [ByRef](o.Q(5))
-                ~~~~~~
+                  ~
 </expected>)
         End Sub
 
@@ -7744,10 +7744,10 @@ End Module
 <expected>
 BC30643: Property 'P' is of an unsupported type.
         v = o.P
-            ~~~
+              ~
 BC30643: Property 'P' is of an unsupported type.
         o.P = v
-        ~~~    
+          ~    
 </expected>)
         End Sub
 

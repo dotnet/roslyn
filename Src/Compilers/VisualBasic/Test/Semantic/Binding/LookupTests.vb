@@ -2355,8 +2355,8 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                     <expected>
 BC30516: Overload resolution failed because no accessible 'M1' accepts this number of arguments.
-        Dim x = NS6. 'BIND1:"NS6"
-                ~~~~~~~~~~~~~~~~~~
+                M1()  'BIND3:"M1"
+                ~~
                                                     </expected>)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()

@@ -2025,7 +2025,7 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
 10:     Test1(d1)
-        ~~~~~~~~~
+        ~~~~~
 </expected>)
         End Sub
 
@@ -2103,7 +2103,7 @@ BC30519: Overload resolution failed because no accessible 'Test2' can be called 
     'Public Sub Test2(x As System.Func(Of Object, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Object, Integer)'.
     'Public Sub Test2(x As System.Func(Of Integer, Integer))': Argument matching parameter 'x' narrows from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Integer, Integer)'.
         Test2(d1)
-        ~~~~~~~~~
+        ~~~~~
 ]]></expected>)
 
             compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
@@ -2113,7 +2113,7 @@ BC30518: Overload resolution failed because no accessible 'Test2' can be called 
     'Public Sub Test2(x As System.Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Object, Integer)'.
     'Public Sub Test2(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>(x As String) As Integer' to 'System.Func(Of Integer, Integer)'.
         Test2(d1)
-        ~~~~~~~~~
+        ~~~~~
 ]]></expected>)
         End Sub
 
@@ -2334,12 +2334,12 @@ BC30518: Overload resolution failed because no accessible 'Test14' can be called
     'Public Sub Test14(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'System.Func(Of Integer, Integer)'.
     'Public Sub Test14(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Function <generated method>() As Integer' to 'System.Func(Of Byte)'.
         Test14(d1)
-        ~~~~~~~~~~
+        ~~~~~~
 BC30518: Overload resolution failed because no accessible 'Test14' can be called with these arguments:
     'Public Sub Test14(x As System.Func(Of Integer, Integer))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function System.Func(Of Integer, Integer)(arg As Integer) As Integer'.
     'Public Sub Test14(x As System.Func(Of Byte))': Option Strict On does not allow narrowing in implicit type conversions between method 'Public Overridable Function Invoke() As Integer' and delegate 'Delegate Function System.Func(Of Byte)() As Byte'.
         Test14(AddressOf d1.Invoke)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~
 ]]></expected>)
         End Sub
 
@@ -2443,22 +2443,22 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
     'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
         Test1(Function() AddressOf d.Invoke)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
         Test1(Function()
-        ~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
         Test1(Function() Sub(x As Short)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Action(Of SByte)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Action(Of Integer)))': Not most specific.
         Test1(Function() '2
-        ~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
         End Sub
 

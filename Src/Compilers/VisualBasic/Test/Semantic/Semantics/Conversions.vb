@@ -4279,7 +4279,7 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
     'Public Sub Test(x As System.DayOfWeek?)': Argument matching parameter 'x' narrows from 'Integer' to 'System.DayOfWeek?'.
     'Public Sub Test(x As System.TypeCode?)': Argument matching parameter 'x' narrows from 'Integer' to 'System.TypeCode?'.
         Test(0)
-        ~~~~~~~
+        ~~~~
 </expected>)
 
         End Sub

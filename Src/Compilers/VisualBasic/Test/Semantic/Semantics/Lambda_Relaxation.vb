@@ -2450,27 +2450,27 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
 10:     Test1(Function() Function(a As Object) 1)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
 20:     Test1(Function()
-        ~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
 30:     Test1(Function()
-        ~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
 40:     Test1(Function()
-        ~~~~~~~~~~~~~~~~~
+        ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test1' is most specific for these arguments:
     'Public Sub Test1(x As System.Func(Of System.Func(Of Object, Integer)))': Not most specific.
     'Public Sub Test1(x As System.Func(Of System.Func(Of Integer, Integer)))': Not most specific.
         Test1(Function() AddressOf Test2)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
         End Sub
 
@@ -2545,7 +2545,7 @@ BC30519: Overload resolution failed because no accessible 'Test2' can be called 
     'Public Sub Test2(x As System.Func(Of Object, Integer))': Argument matching parameter 'x' narrows to 'System.Func(Of Object, Integer)'.
     'Public Sub Test2(x As System.Func(Of Integer, Integer))': Argument matching parameter 'x' narrows to 'System.Func(Of Integer, Integer)'.
         Test2(Function(x As String) 1)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
 
             compilation = compilation.WithOptions(OptionsExe.WithOptionStrict(OptionStrict.On))
@@ -2555,7 +2555,7 @@ BC30518: Overload resolution failed because no accessible 'Test2' can be called 
     'Public Sub Test2(x As System.Func(Of Object, Integer))': Option Strict On disallows implicit conversions from 'Object' to 'String'.
     'Public Sub Test2(x As System.Func(Of Integer, Integer))': Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         Test2(Function(x As String) 1)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
         End Sub
 

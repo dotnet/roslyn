@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
-                                        syntax As VisualBasicSyntaxNode,
+                                        diagnosticLocation As Location,
                                         diagnostics As DiagnosticBag) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
@@ -482,8 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             For Each diagnostic In diagnosticsBuilder
-                Dim location = syntax.GetLocation()
-                diagnostics.Add(diagnostic.DiagnosticInfo, location)
+                diagnostics.Add(diagnostic.DiagnosticInfo, diagnosticLocation)
             Next
 
             diagnosticsBuilder.Free()

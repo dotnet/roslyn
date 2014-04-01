@@ -715,7 +715,7 @@ End Module
 <expected>
 BC36646: Data type(s) of the type parameter(s) in extension method 'Public Function Zip(Of TSecond, TResult)(second As System.Collections.Generic.IEnumerable(Of TSecond), resultSelector As System.Func(Of Program.Foo, TSecond, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Dim L2 = L.Zip(L, Function(x, y) 
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+                   ~~~
 BC30203: Identifier expected.
                               Return x. 'BIND:"x"
                                         ~

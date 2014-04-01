@@ -1945,7 +1945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(methodGroup Is Nothing OrElse methodGroup.ResultKind = LookupResultKind.Good OrElse methodGroup.ResultKind = LookupResultKind.Inaccessible)
 
                 If methodGroup Is Nothing Then
-                    ReportDiagnostic(diagnostics, Me.GetLocation(GetGroupByOperatorNameSpan(groupBy)), ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupByMethod)
+                    ReportDiagnostic(diagnostics, Location.Create(groupBy.SyntaxTree, GetGroupByOperatorNameSpan(groupBy)), ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupByMethod)
 
                 ElseIf Not (ShouldSuppressDiagnostics(keysLambda) OrElse
                          (itemsLambda IsNot Nothing AndAlso ShouldSuppressDiagnostics(itemsLambda))) Then
@@ -1984,7 +1984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         groupType = resultSelector.DelegateOrExpressionDelegate(Me).DelegateInvokeMethod.Parameters(1).Type
 
                     ElseIf Not source.HasErrors Then
-                        ReportDiagnostic(diagnostics, Me.GetLocation(GetGroupByOperatorNameSpan(groupBy)), ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupByMethod)
+                        ReportDiagnostic(diagnostics, Location.Create(groupBy.SyntaxTree, GetGroupByOperatorNameSpan(groupBy)), ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupByMethod)
                     End If
                 End If
             End If
@@ -2024,7 +2024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If methodGroup Is Nothing Then
                     ReportDiagnostic(diagnostics,
-                                     Me.GetLocation(GetQueryOperatorNameSpan(groupJoin.GroupKeyword, groupJoin.JoinKeyword)),
+                                     Location.Create(groupJoin.SyntaxTree, GetQueryOperatorNameSpan(groupJoin.GroupKeyword, groupJoin.JoinKeyword)),
                                      ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupJoinMethod)
 
                 ElseIf Not ShouldSuppressDiagnostics(innerKeyLambda) AndAlso Not ShouldSuppressDiagnostics(outerKeyLambda) AndAlso
@@ -2060,7 +2060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf Not outer.HasErrors Then
                         ReportDiagnostic(diagnostics,
-                                         Me.GetLocation(GetQueryOperatorNameSpan(groupJoin.GroupKeyword, groupJoin.JoinKeyword)),
+                                         Location.Create(groupJoin.SyntaxTree, GetQueryOperatorNameSpan(groupJoin.GroupKeyword, groupJoin.JoinKeyword)),
                                          ERRID.ERR_QueryOperatorNotFound, StringConstants.GroupJoinMethod)
                     End If
                 End If
@@ -4681,7 +4681,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If results.Candidates.Length > 0 Then
                         boundCall = ReportOverloadResolutionFailureAndProduceBoundNode(node, methodGroup, arguments, Nothing, results,
-                                                                                       diagnostics, callerInfoOpt:=Nothing, queryMode:=True)
+                                                                                       diagnostics, callerInfoOpt:=Nothing, queryMode:=True,
+                                                                                       diagnosticLocationOpt:=Location.Create(node.SyntaxTree, operatorNameLocation))
                     End If
                 Else
                     boundCall = CreateBoundCallOrPropertyAccess(node, node, TypeCharacter.None, methodGroup,
@@ -4733,7 +4734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If boundCall.HasErrors AndAlso Not source.HasErrors Then
-                ReportDiagnostic(diagnostics, Me.GetLocation(operatorNameLocation), ERRID.ERR_QueryOperatorNotFound, operatorName)
+                ReportDiagnostic(diagnostics, Location.Create(node.SyntaxTree, operatorNameLocation), ERRID.ERR_QueryOperatorNotFound, operatorName)
             End If
 
             boundCall.SetWasCompilerGenerated()

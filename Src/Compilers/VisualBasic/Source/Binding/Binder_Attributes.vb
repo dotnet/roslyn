@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' TODO - Split ReportOverloadResolutionFailureAndProduceBoundNode into two methods.  One that does error reporting and one that
                             ' builds the bound node.  We only need the error reporting here.
 
-                            ReportOverloadResolutionFailureAndProduceBoundNode(node.Name,
+                            ReportOverloadResolutionFailureAndProduceBoundNode(node,
                                                                                 constructorsGroup,
                                                                                 boundArguments, Nothing, results, diagnostics, callerInfoOpt:=node.Name)
                         End If

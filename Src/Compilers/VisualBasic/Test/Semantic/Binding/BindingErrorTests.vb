@@ -3747,7 +3747,7 @@ BC30239: Relational operator expected.
         End Module
     </file>
 </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)"),
-    Diagnostic(ERRID.ERR_OmittedArgument2, "tc1.Foo(t1:=1000)").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)"))
+    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)"))
 
         End Sub
 
@@ -4020,7 +4020,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
         ~~~~~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'ToString' accepts this number of arguments.
         Me.New(Of Integer)(1.ToString(123, 2, 3, 4))
-                           ~~~~~~~~~~~~~~~~~~~~~~~~
+                             ~~~~~~~~
 </expected>)
         End Sub
 
@@ -5827,7 +5827,7 @@ BC30518: Overload resolution failed because no accessible 'Where' can be called 
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
         x.Where(Function(y)
-        ~~~~~~~~~~~~~~~~~~~~
+          ~~~~~
 </expected>)
         End Sub
 
@@ -6788,7 +6788,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Pr
     <expected>
 BC30455: Argument not specified for parameter 'offset' of 'Public Overloads Sub New(offset As Integer)'.
                &lt;System.Runtime.InteropServices.FieldOffset()&gt;
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               ~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -7927,10 +7927,10 @@ BC30512: Option Strict On disallows implicit conversions from 'String' to 'Integ
     <expected>
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
                 clsNarg2get.Foo(1, y1:=2)
-                ~~~~~~~~~~~~~~~~~~~~~~~~~
+                            ~~~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
                 clsNarg2get.Foo(y1:=1, y1:=1)
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            ~~~
 </expected>)
         End Sub
 
@@ -7983,14 +7983,14 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
     'Public Sub sub1(Of String, Integer)(p1 As Integer(), p2 As String())': Value of type 'Decimal' cannot be converted to 'Integer()'.
     'Public Sub sub1(Of String, Integer)(p1 As Integer(), p2 As String())': Value of type 'Date' cannot be converted to 'String()'.
                 sub1(Of String, Integer) (17@, #3/3/2003#)
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                ~~~~~~~~~~~~~~~~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'sub1' can be called with these arguments:
     'Public Sub sub1(Of Integer, String)(p1 As Integer, p2 As String)': Value of type 'Integer()' cannot be converted to 'Integer'.
     'Public Sub sub1(Of Integer, String)(p1 As Integer, p2 As String)': Value of type 'String()' cannot be converted to 'String'.
     'Public Sub sub1(Of Integer, String)(p1 As String(), p2 As Integer())': Value of type 'Integer()' cannot be converted to 'String()' because 'Integer' is not derived from 'String'.
     'Public Sub sub1(Of Integer, String)(p1 As String(), p2 As Integer())': Value of type 'String()' cannot be converted to 'Integer()' because 'String' is not derived from 'Integer'.
                 sub1(Of Integer, String) (New Integer() {1, 2, 3}, New String() {"a", "b"})
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -8023,7 +8023,7 @@ BC30518: Overload resolution failed because no accessible 'ForEach' can be calle
     'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Concurrent.Partitioner(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
     'Public Shared Overloads Function ForEach(Of TSource)(source As System.Collections.Concurrent.OrderablePartitioner(Of TSource), body As System.Action(Of TSource, System.Threading.Tasks.ParallelLoopState, Long)) As System.Threading.Tasks.ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Parallel.ForEach(a, Sub(x As Object) Console.WriteLine(x))
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                 ~~~~~~~
 </expected>)
         End Sub
 
@@ -8064,7 +8064,7 @@ BC30518: Overload resolution failed because no accessible 'Where' can be called 
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
         x.Where(Function(y)
-        ~~~~~~~~~~~~~~~~~~~~
+          ~~~~~
 BC42353: Function '&lt;anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
                 End Function)
                 ~~~~~~~~~~~~
@@ -8143,25 +8143,25 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
 
             ' BC0000 - Test bug in DiagnosticDescription - need to call DiagnosticsInfo.GetMessage(...) to handle arguments for VB CompoundError
             compilation.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2.Foo(New Scenario11)").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Sub Foo(t1 As Module1.S1)': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2.Foo(sc11)").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Sub Foo(t1 As Module1.S1)': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3.Foo(dTmp)").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Overloads Sub Foo(y1 As Long)': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Sub Foo(t1 As Short)': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2(New Scenario11)").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[error BC0000: 
     'Public Overloads Default Property Prop1(y1 As Module1.C1(Of Integer, Integer)) As Integer': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Default Property Prop1(t1 As Module1.S1) As Integer': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2(New Scenario11)").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[error BC0000: 
     'Public Overloads Default Property Prop1(y1 As Module1.C1(Of Integer, Integer)) As Integer': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Default Property Prop1(t1 As Module1.S1) As Integer': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3(dTmp)").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[error BC0000: 
     'Public Overloads Default Property Prop1(y1 As Long) As Integer': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Default Property Prop1(t1 As Short) As Integer': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf)),
-            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3(dTmp)").WithArguments("Prop1", <![CDATA[error BC0000: 
+            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[error BC0000: 
     'Public Overloads Default Property Prop1(y1 As Long) As Integer': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Default Property Prop1(t1 As Short) As Integer': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf))
                 )
@@ -8210,14 +8210,14 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
 
             ' Roslyn BC30519 - Dev11 BC30520
             compilation.VerifyDiagnostics(
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc7.Foo (sample7C1(Of Long).E.e1)").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Long).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Long).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc7.Foo (sample7C1(Of Short).E.e2)").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Short).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Short).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf)),
              Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "sc7.E"),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc7.Foo (sc7.E.e3)").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Byte).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Byte).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf))
                     )
@@ -8270,7 +8270,7 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
     </file>
     </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "C.Foo(New C2)").WithArguments("Foo", <![CDATA[error BC0000: 
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
     'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Not most specific.
     'Public Sub Foo(t1 As Module1.S1)': Not most specific.]]>.Value.Replace(vbLf, vbCrLf))
                     )
@@ -9019,7 +9019,7 @@ BC30569: 'New' cannot be used on a class that is declared 'MustInherit'.
     <expected>
 BC30574: Option Strict On disallows late binding.
                     bol = Obj(1)
-                          ~~~~~~
+                          ~~~
 BC30574: Option Strict On disallows late binding.
                     bol = Obj!P
                           ~~~~~
@@ -9029,10 +9029,10 @@ BC30574: Option Strict On disallows late binding.
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Object' to 'Boolean'.
-                    bol = Obj(1)
-                          ~~~~~~
 BC42017: Late bound resolution; runtime errors could occur.
+                    bol = Obj(1)
+                          ~~~
+BC42016: Implicit conversion from 'Object' to 'Boolean'.
                     bol = Obj(1)
                           ~~~~~~
 BC42016: Implicit conversion from 'Object' to 'Boolean'.
@@ -10367,13 +10367,13 @@ BC40007: Default property 'Q' conflicts with the default property 'P' in the bas
                                         ~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As String) As Object' of interface 'IA(Of String)' and 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA(Of Object)'.
         value = c2("")
-                ~~~~~~
+                ~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As String) As Object' of interface 'IA(Of String)' and 'ReadOnly Default Property P(x As String, y As String) As Object' of interface 'IB2(Of String)'.
         value = c3("")
-                ~~~~~~
+                ~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As String) As Object' of interface 'IA(Of String)' and 'ReadOnly Default Property Q(x As Integer, y As Integer, z As Integer) As Object' of interface 'IB3(Of String)'.
         value = c4("")
-                ~~~~~~
+                ~~
 </expected>)
         End Sub
 
@@ -11188,10 +11188,10 @@ BC30920: First statement of this 'Sub New' must be an explicit call to 'MyBase.N
             Dim expectedErrors1 = <errors>
 BC30933: Late bound overload resolution cannot be applied to 's1' because the accessing instance is an interface type.
                     refer.s1(o1)
-                    ~~~~~~~~~~~~
+                          ~~
 BC30933: Late bound overload resolution cannot be applied to 's1' because the accessing instance is an interface type.
                     refer.s1(o1) = 1
-                    ~~~~~~~~~~~~
+                          ~~
                  </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -11901,7 +11901,7 @@ BC30251: Type 'M' has no constructors.
 <expected>
 BC31092: ParamArray parameters must have an array type.
                     Dim sResult As String = x.Foo(1, 2, 3, 4)
-                                            ~~~~~~~~~~~~~~~~~
+                                              ~~~
 </expected>)
         End Sub
 
@@ -11927,7 +11927,7 @@ BC31092: ParamArray parameters must have an array type.
 <expected>
 BC31092: ParamArray parameters must have an array type.
                     Dim sResult As String = x.Foo(1)
-                                            ~~~~~~~~
+                                              ~~~
 </expected>)
         End Sub
 
@@ -13522,13 +13522,13 @@ BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as 
                      ~~~~~~~~~~~~~~
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(Of ArgIterator)(Nothing)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~
 BC31396: 'System.RuntimeArgumentHandle' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(Of RuntimeArgumentHandle)(Nothing)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         F(t)
-        ~~~~
+        ~
 </expected>)
         End Sub
 
@@ -15175,7 +15175,7 @@ BC32046: 'New' cannot be used on a type parameter that does not have a 'New' con
             Dim expectedErrors1 = <errors>
 BC32050: Type parameter 'T' for 'Public Sub Foo(Of T)(a As System.Action(Of T))' cannot be inferred.
                     Foo(AddressOf Bar)
-                    ~~~~~~~~~~~~~~~~~~
+                    ~~~
                  </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -15421,10 +15421,10 @@ BC32085: Arguments cannot be passed to a 'New' used on a type parameter.
             Dim expectedErrors1 = <errors>
 BC32087: Overload resolution failed because no accessible 'Equals' accepts this number of type arguments.
                     x.Equals(Of Integer)()
-                    ~~~~~~~~~~~~~~~~~~~~~~
+                      ~~~~~~~~~~~~~~~~~~
 BC32087: Overload resolution failed because no accessible 'Equals' accepts this number of type arguments.
                     x.Equals(Of Integer) = 1
-                    ~~~~~~~~~~~~~~~~~~~~
+                      ~~~~~~~~~~~~~~~~~~
                  </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -17426,7 +17426,7 @@ End Class
     <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T As Structure, S As Structure)(x As T, f As System.Func(Of T?, S?))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Foo(1, AddressOf o.Bar)
-        ~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~
 BC30002: Type 'IQueryable' is not defined.
         Dim qo As IQueryable(Of Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~
@@ -17458,7 +17458,7 @@ BC42104: Variable 'qo' is used before it has been assigned a value. A null refer
     <expected>
 BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As System.Action(Of T()), y As System.Action(Of T()))' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
                 Foo(x, y)
-                ~~~~~~~~~
+                ~~~
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
                 Foo(x, y)
                     ~
@@ -21729,7 +21729,7 @@ End Module
 <expected>
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
-        ~~~~~~~~~~~
+        ~~
 BC30241: Named argument expected.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
@@ -23438,7 +23438,7 @@ End Module
 <expected>
 BC30574: Option Strict On disallows late binding.
         Dim x = h.P(0)
-                ~~~~~~
+                  ~
 </expected>)
         End Sub
 
@@ -23477,7 +23477,7 @@ End Module
 <expected>
 BC30574: Option Strict On disallows late binding.
         Dim x = h.P(0)
-                ~~~~~~
+                  ~
 </expected>)
         End Sub
 
@@ -23738,7 +23738,7 @@ End Class
 <expected>
 BC36908: Late-bound extension methods are not supported.
         x.M(y)
-        ~~~~~~
+          ~
 </expected>)
         End Sub
 
@@ -23776,7 +23776,7 @@ End Class
 <expected>
 BC36908: Late-bound extension methods are not supported.
         x.M(y)
-        ~~~~~~
+          ~
 </expected>)
         End Sub
 
@@ -23859,7 +23859,7 @@ End Class
 <expected>
 BC36908: Late-bound extension methods are not supported.
             c1.fun(x)
-            ~~~~~~~~~
+               ~~~
 </expected>)
         End Sub
 
@@ -23902,7 +23902,7 @@ End Class
 <expected>
 BC36908: Late-bound extension methods are not supported.
             c1.fun(x)
-            ~~~~~~~~~
+               ~~~
 </expected>)
         End Sub
 
@@ -23927,7 +23927,7 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'i' of 'D'.
         o()
-        ~~~
+        ~
 BC30057: Too many arguments to 'D'.
         o(1, 2)
              ~

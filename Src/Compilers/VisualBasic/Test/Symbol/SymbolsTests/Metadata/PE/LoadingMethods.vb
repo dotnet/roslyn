@@ -920,10 +920,10 @@ End Class
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.
         Dim s As String = C.RT()
-                          ~~~~~~
+                            ~~
 BC30657: 'VT' has a return type that is not supported or parameter types that are not supported.
         Dim d As Double = C.VT()
-                          ~~~~~~
+                            ~~
 ]]>)
         End Sub
     End Class

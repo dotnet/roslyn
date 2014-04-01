@@ -277,7 +277,7 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
         ~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
         CL3_C2.Test4()
-        ~~~~~~~~~~~~~~
+               ~~~~~
 BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'CL2_C1'. Add one to your project.
         CL3_C2.Test4(nothing)
         ~~~~~~~~~~~~~~~~~~~~~
@@ -327,12 +327,12 @@ BC30469: Reference to a non-shared member requires an object reference.
         ~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
         CL3_C2.Test4()
-        ~~~~~~~~~~~~~~
+               ~~~~~
 BC30521: Overload resolution failed because no accessible 'Test4' is most specific for these arguments:
     'Public Shared Sub Test4(x As CL3_C1)': Not most specific.
     'Public Shared Sub Test4(x As CL3_C3)': Not most specific.
         CL3_C2.Test4(nothing)
-        ~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         y.Test1()
         ~~~~~~~
@@ -521,7 +521,7 @@ BC30469: Reference to a non-shared member requires an object reference.
         ~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
         CL3_C2.Test4()
-        ~~~~~~~~~~~~~~
+               ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         y.Test1()
         ~~~~~~~
@@ -1352,7 +1352,7 @@ BC30652: Reference required to assembly 'missing, Version=0.0.0.0, Culture=neutr
 <expected>
 BC30657: 'M1' has a return type that is not supported or parameter types that are not supported.
             Dim y as Integer = x.M1(1)
-                               ~~~~~~~
+                                 ~~
 </expected>)
         End Sub
 

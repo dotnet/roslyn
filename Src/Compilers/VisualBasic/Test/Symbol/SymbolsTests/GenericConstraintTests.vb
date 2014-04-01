@@ -263,7 +263,7 @@ BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for 
                                                 ~~~~~~
 BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
     Shared Function F(Of T As Structure)(Optional arg As Integer = F(Of String)())
-                                                                   ~~~~~~~~~~~~~~
+                                                                   ~~~~~~~~~~~~
 ]]></errors>)
         End Sub
 
@@ -407,19 +407,19 @@ BC32082: Type argument 'A' is declared 'MustInherit' and does not satisfy the 'N
                      ~
 BC32082: Type argument 'A' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter 'U'.
         M(Of A)()
-        ~~~~~~~~~
+        ~~~~~~~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = New D(Of B)()
                      ~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'U'.
         M(Of B)()
-        ~~~~~~~~~
+        ~~~~~~~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = New D(Of C)()
                      ~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'U'.
         M(Of C)()
-        ~~~~~~~~~
+        ~~~~~~~
      </errors>)
         End Sub
 
@@ -973,13 +973,13 @@ BC30057: Too many arguments to 'Default Property P(o As Object) As Object'.
                       ~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
         _2(o) = _2(x, y)
-        ~~~~~
+        ~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
         _3(o) = _3(x, y)
-        ~~~~~
+        ~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
         _4(o) = _4(x, y)
-        ~~~~~
+        ~~
 </expected>)
         End Sub
 
@@ -1192,19 +1192,19 @@ End Module
             compilation.AssertTheseDiagnostics(<expected>
 BC30686: Default property access is ambiguous between the inherited interface members 'Default Property A(o As Object) As Object' of interface 'IA' and 'Default Property B(o As Object) As Object' of interface 'IB'.
         o = _2(o)
-            ~~~~~
+            ~~
 BC30686: Default property access is ambiguous between the inherited interface members 'Default Property B(o As Object) As Object' of interface 'IB' and 'Default Property C(x As Object, y As Object) As Object' of interface 'IC'.
         o = _3(o)
-            ~~~~~
+            ~~
 BC30686: Default property access is ambiguous between the inherited interface members 'Default Property B(o As Object) As Object' of interface 'IB' and 'Default Property C(x As Object, y As Object) As Object' of interface 'IC'.
         o = _3(o, o)
-            ~~~~~~~~
+            ~~
 BC30455: Argument not specified for parameter 'y' of 'Public Default Property C(x As Object, y As Object) As Object'.
         o = _5(o)
-            ~~~~~
+            ~~
 BC30686: Default property access is ambiguous between the inherited interface members 'Default Property A(o As Object) As Object' of interface 'IA' and 'Default Property B(o As Object) As Object' of interface 'IB'.
         o = _10(o)
-            ~~~~~~
+            ~~~
 </expected>)
         End Sub
 
@@ -1445,16 +1445,16 @@ BC30057: Too many arguments to 'Public Sub M()'.
              ~~~~~~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
         o = _6.P(Nothing)
-            ~~~~~~~~~~~~~
+               ~
 BC30057: Too many arguments to 'Public Overridable Overloads Function GetHashCode() As Integer'.
         _7.GetHashCode(Nothing)
                        ~~~~~~~
 BC30516: Overload resolution failed because no accessible 'M' accepts this number of arguments.
         _7.M(Nothing)
-        ~~~~~~~~~~~~~
+           ~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
         o = _7.P(Nothing)
-            ~~~~~~~~~~~~~
+               ~
 </expected>)
         End Sub
 
@@ -1738,19 +1738,19 @@ BC32042: Too few type arguments to 'Public Sub MD(Of T, U)(o As Object)'.
              ~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
         _2.MD(Of Object)(_2(o))
-                         ~~~~~
+                         ~~
 BC32042: Too few type arguments to 'Public Sub MD(Of T, U)(o As Object)'.
         _3.MD(Of Object)(_3(o))
              ~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
         _3.MD(Of Object)(_3(o))
-                         ~~~~~
+                         ~~
 BC32042: Too few type arguments to 'Public Sub MD(Of T, U)(o As Object)'.
         _4.MD(Of Object)(_4(o))
              ~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
         _4.MD(Of Object)(_4(o))
-                         ~~~~~
+                         ~~
 </expected>)
         End Sub
 
@@ -1894,25 +1894,25 @@ BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
         ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' Both
-             ~~~~~
+             ~~
 BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
         _1.M(_1(o)) ' One
         ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' One
-             ~~~~~
+             ~~
 BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
         _1.M(_1(o)) ' Neither
         ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _1.M(_1(o)) ' Neither
-             ~~~~~
+             ~~
 BC30685: 'M' is ambiguous across the inherited interfaces 'IA' and 'IB'.
         _2.M(_2(o)) ' Neither
         ~~~~
 BC30686: Default property access is ambiguous between the inherited interface members 'ReadOnly Default Property P(o As Object) As Object' of interface 'IA' and 'ReadOnly Default Property Q(o As Object) As Object' of interface 'IB'.
         _2.M(_2(o)) ' Neither
-             ~~~~~
+             ~~
 </expected>)
         End Sub
 
@@ -2450,7 +2450,7 @@ End Class
             compilation.AssertTheseDiagnostics(<expected>
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T'.
         M(1, Function(x) x)
-        ~~~~~~~~~~~~~~~~~~~
+        ~
 BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
         M(1, Function(x) x)
                       ~
@@ -3463,7 +3463,7 @@ BC32044: Type argument 'A' does not inherit from or implement the constraint typ
                         ~
 BC32044: Type argument 'B' does not inherit from or implement the constraint type 'A'.
         E.M(Of A, B)()
-        ~~~~~~~~~~~~~~
+          ~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -4128,37 +4128,37 @@ BC30002: Type 'Unknown' is not defined.
                     ~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.ValueType'.
         M1(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Array'.
         M2(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Enum'.
         M3(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'System.Delegate'.
         M4(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'A'.
         M5(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'D'.
         M6(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'S'.
         M7(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'E'.
         M8(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'Object()'.
         M9(Of Object)()
-        ~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
 BC30002: Type 'Unknown' is not defined.
         M10(Of Unknown)()
                ~~~~~~~
 BC32044: Type argument 'Object' does not inherit from or implement the constraint type 'Unknown'.
         M10(Of Object)()
-        ~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~
      </errors>)
         End Sub
 
@@ -5513,7 +5513,7 @@ Class C(Of T As System.Console)
                 ~~~~~~~~~~~~~~
 BC30517: Overload resolution failed because no 'New' is accessible.
         Dim x as New System.Console()
-                 ~~~~~~~~~~~~~~~~~~~~
+                            ~~~~~~~
 BC30299: 'C1' cannot inherit from class 'Console' because 'Console' is declared 'NotInheritable'.
     Inherits System.Console
              ~~~~~~~~~~~~~~

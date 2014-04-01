@@ -1039,7 +1039,7 @@ BC30521: Overload resolution failed because no accessible 'Test1' is most specif
     Extension method 'Public Sub Test1()' defined in 'Module2': Not most specific.
     Extension method 'Public Sub Test1()' defined in 'Module3': Not most specific.
         x.Test1()
-        ~~~~~~~~~
+          ~~~~~
 </expected>)
         End Sub
 
@@ -1374,7 +1374,7 @@ End Namespace
 <expected>
 BC36908: Late-bound extension methods are not supported.
         Test6(CObj(1))
-        ~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
 
         End Sub
@@ -2071,7 +2071,7 @@ BC36907: Extension method 'Public Sub Test1()' defined in 'Module1' is not gener
                ~~~~~~~~~~~~
 BC36589: Type parameter 'T' for extension method 'Public Function Test2(Of T)() As T' defined in 'Module1' cannot be inferred.
         x.Test2()
-        ~~~~~~~~~
+          ~~~~~
 BC36591: Too many type arguments to extension method 'Public Sub Test3(Of S)(y As S)' defined in 'Module1'.
         x.Test3(Of Integer, Byte)(2US)
                ~~~~~~~~~~~~~~~~~~
@@ -2138,7 +2138,7 @@ End Namespace
 <expected>
 BC30455: Argument not specified for parameter 'x' of 'Public Sub Test3(x As C2)'.
             Test3() 'C3
-            ~~~~~~~
+            ~~~~~
 </expected>)
         End Sub
 
@@ -2246,7 +2246,7 @@ BC30521: Overload resolution failed because no accessible 'F1' is most specific 
     Extension method 'Public Sub F1()' defined in 'M1': Not most specific.
     Extension method 'Public Function F1() As Integer' defined in 'M2': Not most specific.
         x.F1()
-        ~~~~~~
+          ~~
 </expected>)
         End Sub
 
@@ -2341,7 +2341,7 @@ End Namespace
 <expected>
 BC30516: Overload resolution failed because no accessible 'F1' accepts this number of arguments.
         System.Console.WriteLine(x.F1(0))
-                                 ~~~~~~~
+                                   ~~
 </expected>)
         End Sub
 
@@ -2389,7 +2389,7 @@ End Namespace
 <expected>
 BC30516: Overload resolution failed because no accessible 'F1' accepts this number of arguments.
         System.Console.WriteLine(x.F1(0))
-                                 ~~~~~~~
+                                   ~~
 </expected>)
         End Sub
 
@@ -2688,10 +2688,10 @@ End Namespace
 <expected>
 BC36586: Argument not specified for parameter 'x' of extension method 'Public Sub F1(x As Integer)' defined in 'Module1'.
         System.Console.WriteLine(1.F1())
-                                 ~~~~~~
+                                   ~~
 BC36586: Argument not specified for parameter 'y' of extension method 'Public Sub F2(x As Integer, y As Integer)' defined in 'Module1'.
         System.Console.WriteLine(2.F2(, x:=0))
-                                 ~~~~~~~~~~~~
+                                   ~~
 BC36583: Parameter 'x' in extension method 'Public Sub F2(x As Integer, y As Integer)' defined in 'Module1' already has a matching omitted argument.
         System.Console.WriteLine(2.F2(, x:=0))
                                         ~
@@ -2750,7 +2750,7 @@ End Namespace
     <expected>
 BC36646: Data type(s) of the type parameter(s) in extension method 'Public Sub GenericExtensionMethod(Of T)(x As String, y As InterfaceExample(Of T))' defined in 'Module1' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
                 classInstance.GenericExtensionMethod("Hello", "World")
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -2785,7 +2785,7 @@ End Namespace
     <expected>
 BC36652: Data type(s) of the type parameter(s) in extension method 'Public Sub targetExtension(Of T)(p1 As T, p2 As T)' defined in 'Module1' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
                 caller.targetExtension(1, "2")
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                       ~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -2819,7 +2819,7 @@ End Namespace
     <expected>
 BC36658: Data type(s) of the type parameter(s) in extension method 'Public Sub targetMethod(Of T)(p1 As T, p2 As T)' defined in 'Module1' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
                 c1.targetMethod(19, #3/4/2007#)
-                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                   ~~~~~~~~~~~~
 </expected>)
         End Sub
 
@@ -2937,7 +2937,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
     Extension method 'Public Sub Bar(y As Integer)' defined in 'M': Not most specific.
     Extension method 'Public Sub Bar(y As Integer)' defined in 'M': Not most specific.
         Bar(1)
-        ~~~~~~
+        ~~~
 </expected>)
         End Sub
 

@@ -2898,10 +2898,10 @@ End Class
 <expected>
 BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
         Dim z1 = New TC1()
-                 ~~~~~~~~~
+                     ~~~
 BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
         Dim z2 = New TC1(1, 2, 3)
-                 ~~~~~~~~~~~~~~~~
+                     ~~~
 </expected>)
         End Sub
 
@@ -4366,19 +4366,19 @@ End Namespace
 <expected>
 BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
         t3.Foo(y:=1)
-        ~~~~~~~~~~~~
+           ~~~
 BC30272: 'y' is not a parameter of 'Public Overrides Sub Foo(z As Integer)'.
         t3.Foo(y:=1)
                ~
 BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
         t3.Foo(x:=1)
-        ~~~~~~~~~~~~
+           ~~~
 BC30272: 'x' is not a parameter of 'Public Overrides Sub Foo(z As Integer)'.
         t3.Foo(x:=1)
                ~
 BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
             c3.fun1(t1:=3US)
-            ~~~~~~~~~~~~~~~~
+               ~~~~
 BC30272: 't1' is not a parameter of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
             c3.fun1(t1:=3US)
                     ~~
@@ -4629,7 +4629,7 @@ BC30390: 'TestC.Protected Sub Test3(Of T)(x As Integer)' is not accessible in th
         ~~~~~~~
 BC32050: Type parameter 'T' for 'Protected Sub Test3(Of T)(x As Integer)' cannot be inferred.
         x.Test3(1)
-        ~~~~~~~~~~
+          ~~~~~
 BC30517: Overload resolution failed because no 'Test4' is accessible.
         x.Test4(1)
         ~~~~~~~
@@ -5040,7 +5040,7 @@ foo(ByVal x As Integer)
 <expected>
 BC42017: Late bound resolution; runtime errors could occur.
         o.foo(x1)
-        ~~~~~~~~~
+          ~~~
 </expected>)
         End Sub
 

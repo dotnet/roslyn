@@ -3134,7 +3134,7 @@ BC30519: Overload resolution failed because no accessible 'Test1' can be called 
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
         Test1(x, y)
-        ~~~~~~~~~~~
+        ~~~~~
 BC42016: Implicit conversion from 'Integer' to 'Byte'.
         Test1(&H7FFFFFFFL, y)
                            ~
@@ -3248,14 +3248,14 @@ BC30519: Overload resolution failed because no accessible 'Test1' can be called 
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
         Test1(x, y)
-        ~~~~~~~~~~~
+        ~~~~~
 BC30519: Overload resolution failed because no accessible 'Test1' can be called without a narrowing conversion:
     'Public Sub Test1(x As Module1.C1, y As Short)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C1'.
     'Public Sub Test1(x As Module1.C1, y As Short)': Argument matching parameter 'y' narrows from 'Integer' to 'Short'.
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
     'Public Sub Test1(x As Module1.C2, y As Byte)': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
         Test1(&H7FFFFFFFL, y)
-        ~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~
 ]]></expected>)
         End Sub
 
@@ -3312,12 +3312,12 @@ BC30519: Overload resolution failed because no accessible 'Test1' can be called 
     'Public Sub Test1(x As Module1.C1)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C1'.
     'Public Sub Test1(x As Module1.C2)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
         Test1(x)
-        ~~~~~~~~
+        ~~~~~
 BC30519: Overload resolution failed because no accessible 'Test1' can be called without a narrowing conversion:
     'Public Sub Test1(x As Module1.C1)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C1'.
     'Public Sub Test1(x As Module1.C2)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
         Test1(&H7FFFFFFFL)
-        ~~~~~~~~~~~~~~~~~~
+        ~~~~~
 ]]></expected>)
         End Sub
 
@@ -3379,7 +3379,7 @@ BC30519: Overload resolution failed because no accessible 'Test1' can be called 
     'Public Sub Test1(x As Module1.C1)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C1'.
     'Public Sub Test1(x As Module1.C2)': Argument matching parameter 'x' narrows from 'Long' to 'Module1.C2'.
         Test1(x)
-        ~~~~~~~~
+        ~~~~~
 ]]></expected>)
         End Sub
 

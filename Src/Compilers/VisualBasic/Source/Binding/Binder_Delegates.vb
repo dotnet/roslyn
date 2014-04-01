@@ -597,10 +597,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     couldTryZeroArgumentRelaxation = False
                 End If
 
-                Dim node As VisualBasicSyntaxNode = addressOfExpression.MethodGroup.Syntax
 
                 Dim unused = resolutionBinder.ReportOverloadResolutionFailureAndProduceBoundNode(
-                    node,
+                    addressOfExpression.MethodGroup.Syntax,
                     addressOfMethodGroup,
                     bestCandidates,
                     bestSymbols,

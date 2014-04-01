@@ -695,10 +695,10 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef})
 
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "C.M2()").WithArguments("x", "Public Shared Sub M2(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "C.M4()").WithArguments("x", "Public Shared Sub M4(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "C.M6()").WithArguments("x", "Public Shared Sub M6(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "C.M8()").WithArguments("x", "Public Shared Sub M8(x As Object)"))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M6").WithArguments("x", "Public Shared Sub M6(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M8").WithArguments("x", "Public Shared Sub M8(x As Object)"))
 
             Dim metadataRef = New MetadataImageReference(libComp.EmitToArray())
 
@@ -909,9 +909,9 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=New MetadataReference() {libRef})
 
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1()").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2()").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3()").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
+                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
 
             libRef = New MetadataImageReference(libComp.EmitToArray())
 
@@ -1489,7 +1489,7 @@ BC30521: Overload resolution failed because no accessible 'Overloaded' is most s
     'Public Sub Overloaded([number As Integer = -1])': Not most specific.
     'Public Sub Overloaded([number As String = "0"])': Not most specific.
         t1.Overloaded()
-        ~~~~~~~~~~~~~~~
+           ~~~~~~~~~~
 </expected>)
         End Sub
 

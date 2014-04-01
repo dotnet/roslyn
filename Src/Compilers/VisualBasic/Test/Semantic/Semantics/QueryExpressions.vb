@@ -167,12 +167,12 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
+BC32050: Type parameter 'T' for 'Public Function Where(Of T)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+        Dim q1 As Object = From s In q Where s > 0 
+                                       ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
-BC32050: Type parameter 'T' for 'Public Function Where(Of T)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
-        Dim q1 As Object = From s In q Where s > 0 
-                                       ~~~~~~~~~~~
 </expected>)
 
         End Sub
@@ -212,15 +212,15 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
+BC32050: Type parameter 'T' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+        Dim q1 As Object = From s In q Where s > 0 
+                                       ~~~~~
+BC32050: Type parameter 'U' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
+        Dim q1 As Object = From s In q Where s > 0 
+                                       ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0 
                                        ~~~~~
-BC32050: Type parameter 'T' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
-        Dim q1 As Object = From s In q Where s > 0 
-                                       ~~~~~~~~~~~
-BC32050: Type parameter 'U' for 'Public Function Where(Of T, U)(x As System.Func(Of Integer, Boolean)) As QueryAble' cannot be inferred.
-        Dim q1 As Object = From s In q Where s > 0 
-                                       ~~~~~~~~~~~
 </expected>)
 
         End Sub
@@ -265,7 +265,7 @@ BC36594: Definition of method 'Where' is not accessible in this context.
                                        ~~~~~
 BC36648: Data type(s) of the type parameter(s) in method 'Public Function Where(Of T, U)(x As System.Func(Of T, System.Action(Of U))) As QueryAble' cannot be inferred from these arguments.
         Dim q1 As Object = From s In q Where s > 0 
-                                       ~~~~~~~~~~~
+                                       ~~~~~
 </expected>)
 
         End Sub
@@ -1017,9 +1017,6 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36594: Definition of method 'Where' is not accessible in this context.
-        Dim q1 As Object = From s In q Where s > 0
-                                       ~~~~~
 BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
     'Public Function Where(x As System.Delegate) As QueryAble': Lambda expression cannot be converted to 'System.Delegate' because type 'System.Delegate' is declared 'MustInherit' and cannot be created.
     'Public Function Where(x As System.MulticastDelegate) As QueryAble': Lambda expression cannot be converted to 'System.MulticastDelegate' because type 'System.MulticastDelegate' is declared 'MustInherit' and cannot be created.
@@ -1029,7 +1026,10 @@ BC30518: Overload resolution failed because no accessible 'Where' can be called 
     'Public Function Where(x As QueryAble.WithByRef) As QueryAble': Nested function does not have the same signature as delegate 'QueryAble.WithByRef'.
     'Public Function Where(x As System.Func(Of Byte, Boolean)) As QueryAble': Nested function does not have the same signature as delegate 'System.Func(Of Byte, Boolean)'.
         Dim q1 As Object = From s In q Where s > 0
-                                       ~~~~~~~~~~~
+                                       ~~~~~
+BC36594: Definition of method 'Where' is not accessible in this context.
+        Dim q1 As Object = From s In q Where s > 0
+                                       ~~~~~
 </expected>)
 
         End Sub
@@ -1154,12 +1154,12 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
+BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
+        Dim q1 As Object = From s In q Where s > 0
+                                       ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0
                                        ~~~~~
-BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
-        Dim q1 As Object = From s In q Where s > 0
-                                       ~~~~~~~~~~~    
 </expected>)
 
         End Sub
@@ -1204,12 +1204,12 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
+BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
+        Dim q1 As Object = From s In q Where s > 0
+                                       ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0
                                        ~~~~~
-BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
-        Dim q1 As Object = From s In q Where s > 0
-                                       ~~~~~~~~~~~
 </expected>)
 
         End Sub
@@ -1249,12 +1249,12 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
+BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
+        Dim q1 As Object = From s In q Where s > 0
+                                       ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         Dim q1 As Object = From s In q Where s > 0
                                        ~~~~~
-BC30516: Overload resolution failed because no accessible 'Where' accepts this number of arguments.
-        Dim q1 As Object = From s In q Where s > 0
-                                       ~~~~~~~~~~~
 </expected>)
 
         End Sub
@@ -2886,7 +2886,7 @@ BC30521: Overload resolution failed because no accessible 'Where' is most specif
     'Public Function Where(x As System.Func(Of Integer, Byte)) As QueryAble': Not most specific.
     'Public Function Where(x As System.Func(Of Integer, System.DateTimeKind)) As QueryAble': Not most specific.
         q.Where(Function(s) 0)
-        ~~~~~~~~~~~~~~~~~~~~~~
+          ~~~~~
 </expected>)
 
         End Sub
@@ -2928,14 +2928,14 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36594: Definition of method 'Where' is not accessible in this context.
-        Dim q1 As Object = From s In q Where CObj(s)
-                                       ~~~~~
 BC30519: Overload resolution failed because no accessible 'Where' can be called without a narrowing conversion:
     'Public Function Where(x As System.Func(Of Integer, Byte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
     'Public Function Where(x As System.Func(Of Integer, SByte)) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
         Dim q1 As Object = From s In q Where CObj(s)
-                                       ~~~~~~~~~~~~~
+                                       ~~~~~
+BC36594: Definition of method 'Where' is not accessible in this context.
+        Dim q1 As Object = From s In q Where CObj(s)
+                                       ~~~~~
 </expected>)
 
         End Sub
@@ -2978,14 +2978,14 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36594: Definition of method 'Where' is not accessible in this context.
-        Dim q1 As Object = From s In q Where CObj(s)
-                                       ~~~~~
 BC30519: Overload resolution failed because no accessible 'Where' can be called without a narrowing conversion:
     'Public Function Where(x As System.Linq.Expressions.Expression(Of System.Func(Of Integer, Byte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'Byte'.
     'Public Function Where(x As System.Linq.Expressions.Expression(Of System.Func(Of Integer, SByte))) As QueryAble': Return type of nested function matching parameter 'x' narrows from 'Boolean' to 'SByte'.
         Dim q1 As Object = From s In q Where CObj(s)
-                                       ~~~~~~~~~~~~~
+                                       ~~~~~
+BC36594: Definition of method 'Where' is not accessible in this context.
+        Dim q1 As Object = From s In q Where CObj(s)
+                                       ~~~~~
 </expected>)
 
         End Sub
@@ -9993,10 +9993,10 @@ BC36582: Too many arguments to extension method 'Public Function ElementAtOrDefa
                                                      ~
 BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
         o = From a In x Select y = 1, x.<Elem2>()
-                                      ~~~~~~~~~~~
+                                        ~~~~~~~
 BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As System.Xml.Linq.XElement' defined in 'System.Linq.Enumerable'.
         o = From a In x Select y = 1, x...<Elem2>()
-                                      ~~~~~~~~~~~~~
+                                          ~~~~~~~
 ]]></expected>)
         End Sub
 
@@ -10053,34 +10053,34 @@ End Module
 <expected>
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2()
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                  ~~~~~~~~~~~~~~~~~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2()
                   ~~~~~~~~~~~~~~~~~~~~~~
+BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        xx = From ii In New Queryable2() Select ii
+                                         ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select ii
                                          ~~~~~~
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
-        xx = From ii In New Queryable2() Select ii
-                                         ~~~~~~~~~
+        xx = From ii In New Queryable2() Select (ii)
+                                         ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select (ii)
                                          ~~~~~~
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
-        xx = From ii In New Queryable2() Select (ii)
-                                         ~~~~~~~~~~~
+        xx = From ii In New Queryable2() Select jj = ii
+                                         ~~~~~~
 BC36594: Definition of method 'Select' is not accessible in this context.
         xx = From ii In New Queryable2() Select jj = ii
                                          ~~~~~~
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
-        xx = From ii In New Queryable2() Select jj = ii
-                                         ~~~~~~~~~~~~~~
+        xx = From ii In New Queryable2() Where True
+                                         ~~~~~
 BC36594: Definition of method 'Where' is not accessible in this context.
         xx = From ii In New Queryable2() Where True
                                          ~~~~~
-BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
-        xx = From ii In New Queryable2() Where True
-                                         ~~~~~~~~~~
 BC31396: 'System.ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         xx = From ii In New Queryable2(), jj In New Queryable2()
                   ~~

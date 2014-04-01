@@ -802,12 +802,12 @@ BC30518: Overload resolution failed because no accessible 'M1' can be called wit
     'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Short'.
     'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Byte'.
         M1(Function() Value()) '2
-        ~~~~~~~~~~~~~~~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
     'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Short'.
     'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'System.ValueType' to 'Byte'.
         M1(Function() '4
-        ~~~~~~~~~~~~~~~~~
+        ~~
 </expected>)
 
             compilationDef =
@@ -964,12 +964,12 @@ BC30518: Overload resolution failed because no accessible 'M1' can be called wit
     'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
     'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         M1(Function() a)
-        ~~~~~~~~~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
     'Public Sub M1(x As System.Func(Of Short))': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
     'Public Sub M1(x As System.Func(Of Byte))': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
         M1(Function()
-        ~~~~~~~~~~~~~~
+        ~~
 </expected>)
 
         End Sub
@@ -1062,7 +1062,7 @@ BC30519: Overload resolution failed because no accessible 'M2' can be called wit
     'Public Sub M2(x As Short)': Argument matching parameter 'x' narrows from 'Double' to 'Short'.
     'Public Sub M2(x As Single)': Argument matching parameter 'x' narrows from 'Double' to 'Single'.
         M2(1.5)
-        ~~~~~~~
+        ~~
 </expected>)
 
             compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))

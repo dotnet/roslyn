@@ -601,7 +601,7 @@ End Module
 <expected>
 BC32050: Type parameter 'T2' for 'Public Function Fred1(Of T1, T2)(P As T1) As T2' cannot be inferred.
         Return Fred1(3)
-               ~~~~~~~~
+               ~~~~~
 </expected>)
         End Sub
 
@@ -630,7 +630,7 @@ BC30518: Overload resolution failed because no accessible 'Fred2' can be called 
     'Public Function Fred2(Of T2)(P As Object) As T2': Type parameter 'T2' cannot be inferred.
     'Public Function Fred2(Of T1, T2)(P As T1) As T2': Type parameter 'T2' cannot be inferred.
         Return Fred2(3)
-               ~~~~~~~~
+               ~~~~~
 </expected>)
         End Sub
 
@@ -653,7 +653,7 @@ End Module
 <expected>
 BC36651: Data type(s) of the type parameter(s) in method 'Public Function barney1(Of T)(p As T, p1 As T) As T' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
         Return barney1(3, "Zip")
-               ~~~~~~~~~~~~~~~~~
+               ~~~~~~~
 </expected>)
         End Sub
 
@@ -682,7 +682,7 @@ BC30518: Overload resolution failed because no accessible 'barney2' can be calle
     'Public Function barney2(Of T)(p As T, p1 As T, x As Integer) As T': Data type(s) of the type parameter(s) cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
     'Public Function barney2(Of T)(p As T, p1 As T, x As UInteger) As T': Data type(s) of the type parameter(s) cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
         Return barney2(3, "Zip", 1)
-               ~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~
 </expected>)
         End Sub
 
@@ -723,7 +723,7 @@ End Module
 <expected>
 BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As T, y As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
         Foo(New Case1.B, New Case1.C)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~
 </expected>)
         End Sub
 
@@ -768,7 +768,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
     'Public Sub Foo(Of T)(x As T, y As T, z As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
     'Public Sub Foo(Of T)(x As T, y As T, z As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
         Foo(New Case1.B, New Case1.C, 1)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~
 </expected>)
         End Sub
 
@@ -793,7 +793,7 @@ End Module    </file>
 <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Sub3(Of X, Y)(p1 As Y, p2 As X)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Sub3(10, Nothing)
-        ~~~~~~~~~~~~~~~~~
+        ~~~~
 </expected>)
         End Sub
 
@@ -821,7 +821,7 @@ BC30518: Overload resolution failed because no accessible 'Sub3' can be called w
     'Public Sub Sub3(Of X, Y)(p1 As Y, p2 As X, p3 As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
     'Public Sub Sub3(Of X, Y)(p1 As Y, p2 As X, p3 As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Sub3(10, Nothing, 1)
-        ~~~~~~~~~~~~~~~~~~~~
+        ~~~~
 </expected>)
         End Sub
 
@@ -939,10 +939,10 @@ End Module
 <expected>
 BC32050: Type parameter 'T' for 'Public Sub M1(Of T)(x As System.Action(Of Integer))' cannot be inferred.
         M1(AddressOf M2)
-        ~~~~~~~~~~~~~~~~
+        ~~
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M3(Of T)(x As System.Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         M3(AddressOf M4)
-        ~~~~~~~~~~~~~~~~
+        ~~
 </expected>)
         End Sub
 
@@ -1130,7 +1130,7 @@ BC36594: Definition of method 'Where' is not accessible in this context.
                          ~~~~~
 BC36648: Data type(s) of the type parameter(s) in method 'Public Function Where(Of S)(x As S) As QueryAble(Of Integer)' cannot be inferred from these arguments.
         q = From i In q1 Where i > 0
-                         ~~~~~~~~~~~
+                         ~~~~~
 </expected>)
         End Sub
 
@@ -1287,16 +1287,16 @@ End Module
 <expected>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test3(Of T, S)(x As System.Func(Of T, S))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test3(d1)
-        ~~~~~~~~~
+        ~~~~~
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test2(Of T)(x As Module1.Dt2(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test2(d2)
-        ~~~~~~~~~
+        ~~~~~
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test1(Of T)(x As System.Func(Of T))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test1(d3)
-        ~~~~~~~~~
+        ~~~~~
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Test4(Of T, S)(x As System.Func(Of T, S), y As T)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Test4(d2, 1UI)
-        ~~~~~~~~~~~~~~
+        ~~~~~
 </expected>)
         End Sub
 
@@ -1360,7 +1360,7 @@ End Module
 <expected>
 BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Test(Of T)(ByRef x As T, y As T, z As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
         Test(x.B2, y, x.B4)
-        ~~~~~~~~~~~~~~~~~~~
+        ~~~~
 BC33037: Cannot copy the value of 'ByRef' parameter 'x' back to the matching argument because type 'Module1.B3' cannot be converted to type 'Module1.B2'.
         Test(Of B3)(x.B2, y, x.B4)
                     ~~~~
@@ -1692,7 +1692,7 @@ BC30518: Overload resolution failed because no accessible '[Select]' can be call
     Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, Integer, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
     Extension method 'Public Function [Select](Of TResult)(selector As System.Func(Of SnapshotSpan, Integer, TResult)) As System.Collections.Generic.IEnumerable(Of TResult)' defined in 'System.Linq.Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Dim replacementSpans = sourceSpans.Select(Function(ss)
-                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                           ~~~~~~
 </expected>)
         End Sub
 

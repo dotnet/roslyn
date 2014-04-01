@@ -1310,7 +1310,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
     'Public Sub Foo(x As System.Func(Of Object, Boolean))': Method 'Public Function Boo(a As Object, b As Object) As Boolean' does not have a signature compatible with delegate 'Delegate Function System.Func(Of Object, Boolean)(arg As Object) As Boolean'.
     'Public Sub Foo(x As System.Func(Of Object, Object, Boolean))': Reference to a non-shared member requires an object reference.
         Foo(AddressOf C1.Boo)
-        ~~~~~~~~~~~~~~~~~~~~~
+        ~~~
                                            </expected>)
         End Sub
 

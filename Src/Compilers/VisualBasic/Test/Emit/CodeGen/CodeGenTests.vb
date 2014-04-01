@@ -7808,7 +7808,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
     'Public Shared Overloads Sub M(k As Integer, [l As Integer = 0])': Not most specific.
     'Public Shared Overloads Sub M(k As Integer, [l As Integer = 0], [m As Integer = 0])': Not most specific.
         OverloadsUsingOptional.M(1)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                               ~
 </errors>)
         End Sub
 
@@ -11390,10 +11390,10 @@ End Module
 <expected>
 BC30574: Option Strict On disallows late binding.
         value = o.F(1)
-                ~~~~~~
+                  ~
 BC30574: Option Strict On disallows late binding.
         o.F(2) = value
-        ~~~~~~
+          ~
 </expected>)
             ' Option Strict Off
             Dim source2 =

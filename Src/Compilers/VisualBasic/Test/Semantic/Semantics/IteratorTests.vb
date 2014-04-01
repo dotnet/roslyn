@@ -827,7 +827,7 @@ End Module
 <errors>
 BC36645: Data type(s) of the type parameter(s) in method 'Public Sub baz(Of T)(x As System.Func(Of System.Collections.Generic.IEnumerator(Of T)))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         baz(Iterator Function()
-        ~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~
 </errors>)
         End Sub
 

@@ -2734,7 +2734,7 @@ End Structure
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
         x.M()
-        ~~~~~
+          ~
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
@@ -2789,10 +2789,10 @@ End Structure
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M1(x As Decimal)'.
         x.M1()
-        ~~~~~~
+          ~~
 BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
         x.M2()
-        ~~~~~~
+          ~~
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
@@ -2846,7 +2846,7 @@ End Structure
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
         x.M()
-        ~~~~~
+          ~
                                                     </errors>)
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,

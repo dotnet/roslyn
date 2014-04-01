@@ -1661,19 +1661,19 @@ End Module
                                                <expected>
 BC30455: Argument not specified for parameter 'this' of 'Public Sub badext1(this As C1)'.
         badext1()
-        ~~~~~~~~~
+        ~~~~~~~
 BC30455: Argument not specified for parameter 'this' of 'Public Sub badext2(this As C1)'.
         badext2()
-        ~~~~~~~~~
+        ~~~~~~~
 BC30455: Argument not specified for parameter 'this' of 'Public Sub badext4(this As C1)'.
         badext4()
-        ~~~~~~~~~
+        ~~~~~~~
 BC30455: Argument not specified for parameter 'this' of 'Public Sub badext5(this As C1)'.
         badext5()
-        ~~~~~~~~~
+        ~~~~~~~
 BC30455: Argument not specified for parameter 'this' of 'Public Declare Ansi Sub badext6 Lib "foo" (this As C1)'.
         badext6()
-        ~~~~~~~~~
+        ~~~~~~~
 BC36552: Extension methods must declare at least one parameter. The first parameter specifies which type to extend.
     Public Sub badext3()
                ~~~~~~~

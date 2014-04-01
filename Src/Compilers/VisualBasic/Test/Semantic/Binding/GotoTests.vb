@@ -48,7 +48,7 @@ BC30518: Overload resolution failed because no accessible 'Where' can be called 
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
     Extension method 'Public Function Where(predicate As System.Func(Of Integer, Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)' defined in 'System.Linq.Enumerable': Branching out of a 'Finally' is not valid.
         lists.Where(Function(ByVal item)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              ~~~~~
             </expected>)
         End Sub
 
@@ -70,7 +70,7 @@ End Module
     </file>
 </compilation>, {MsvbRef, SystemCoreRef}).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "lists.Where(Function(ByVal item) GoTo lab1)").WithArguments("Where", "error BC0000: "))
+            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Where").WithArguments("Where", "error BC0000: "))
 
         End Sub
 

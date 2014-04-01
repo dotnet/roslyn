@@ -5716,7 +5716,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
     'Public Shared Sub M(a As A)': Not most specific.
     'Public Shared Sub M(b As B)': Not most specific.
         M(Nothing) ' Ambiguous.
-        ~~~~~~~~~~
+        ~
 ]]></errors>)
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -5807,7 +5807,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
     'Public Shared Sub M(a As System.Func(Of A))': Not most specific.
     'Public Shared Sub M(b As System.Func(Of B))': Not most specific.
         M(Function() Nothing) ' Ambiguous.
-        ~~~~~~~~~~~~~~~~~~~~~
+        ~
 ]]></errors>)
 
             Dim tree = comp.SyntaxTrees.Single()

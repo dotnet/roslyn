@@ -1836,13 +1836,13 @@ End Module
     <expected>
 BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
         value = c.P(3)
-                ~~~~~~
+                  ~
 BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
         value = c(3)
-                ~~~~
+                ~
 BC30455: Argument not specified for parameter 'y' of 'Property Q(x As Integer, y As Integer) As Object'.
         c.Q(3) = value
-        ~~~~~~
+          ~
 </expected>)
         End Sub
 
@@ -1899,10 +1899,10 @@ End Module
     <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public Sub M1(x As Integer, y As Integer)'.
         o.M1(1)
-        ~~~~~~~
+          ~~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P1(x As Integer, y As Integer) As Object'.
         value = o.P1(1)
-                ~~~~~~~
+                  ~~
 </expected>)
         End Sub
 
@@ -2156,10 +2156,10 @@ End Module
     <expected>
 BC30455: Argument not specified for parameter 'y' of 'Public Function G(x As Object, y As Object) As Object'.
         value = b.G(Nothing)
-                ~~~~~~~~~~~~
+                  ~
 BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property Q(x As Object, y As Object) As Object'.
         value = b.Q(Nothing)
-                ~~~~~~~~~~~~
+                  ~
 </expected>)
         End Sub
 

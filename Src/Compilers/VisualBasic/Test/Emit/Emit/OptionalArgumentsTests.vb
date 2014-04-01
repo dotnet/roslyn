@@ -481,7 +481,7 @@ End Module
 </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute()").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)"))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)"))
         End Sub
 
         <Fact()>
@@ -926,13 +926,13 @@ End Class
 <errors>
 BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F2(o As Integer) As Object'.
         Report(C.F2())
-               ~~~~~~
+                 ~~
 BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F5(o As Decimal) As Object'.
         Report(C.F5())
-               ~~~~~~
+                 ~~
 BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(o As Date) As Object'.
         Report(C.F8().Ticks)
-               ~~~~~~
+                 ~~
 </errors>)
             Dim comp2b = CreateCompilationWithMscorlibAndVBRuntime(
                 source2,

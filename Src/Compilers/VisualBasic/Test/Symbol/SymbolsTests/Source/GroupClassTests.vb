@@ -2467,10 +2467,10 @@ BC30469: Reference to a non-shared member requires an object reference.
                           ~~~~~~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
             Dim x108 = Form2()
-                       ~~~~~~~
+                       ~~~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
             Form2() = x107
-            ~~~~~~~
+            ~~~~~
 BC30109: 'Form2' is a class type and cannot be used as an expression.
             Call Form2(1)
                  ~~~~~

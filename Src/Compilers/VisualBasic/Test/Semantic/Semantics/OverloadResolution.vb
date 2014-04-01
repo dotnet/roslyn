@@ -3181,7 +3181,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     'Public Sub Foo(x As Integer, y As Long)': Not most specific.
     'Public Sub Foo(y As Long, x As Integer)': Not most specific.
         a.Foo(y:=1, x:=1)
-        ~~~~~~~~~~~~~~~~~    
+          ~~~
 </expected>)
         End Sub
 
@@ -3245,7 +3245,7 @@ BC30518: Overload resolution failed because no accessible 'Equal' can be called 
     'Public Shared Sub Equal(Of T)(exp As System.Collections.Generic.IEnumerable(Of T), act As T)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
     'Public Shared Sub Equal(Of T)(exp As T, act As System.Collections.Generic.IEnumerable(Of T))': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
         Bar.Equal(foo, foo)
-        ~~~~~~~~~~~~~~~~~~~
+            ~~~~~
 </expected>)
         End Sub
 
@@ -3286,7 +3286,7 @@ BC30521: Overload resolution failed because no accessible 'Equal' is most specif
     'Public Shared Sub Equal(Of Integer)(exp As I1(Of Integer))': Not most specific.
     'Public Shared Sub Equal(Of Integer)(exp As I2(Of Integer))': Not most specific.
         Bar.Equal(foo)
-        ~~~~~~~~~~~~~~
+            ~~~~~
 </expected>)
         End Sub
 
@@ -3471,16 +3471,16 @@ BC32045: 'Public Sub F3(x As Integer)' has no type parameters and so cannot have
           ~~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F1(Of Integer)(x As Integer)'.
         F1(Of Integer)()
-        ~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~
 BC30057: Too many arguments to 'Public Sub F1(Of Integer)(x As Integer)'.
         F1(Of Integer)(1, 2)
                           ~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
         F4()
-        ~~~~
+        ~~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
         F4(, , , )
-        ~~~~~~~~~~
+        ~~
 BC30588: Omitted argument cannot match a ParamArray parameter.
         F4(, , , )
              ~
@@ -3495,7 +3495,7 @@ BC30588: Omitted argument cannot match a ParamArray parameter.
                  ~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
         F3(y:=1)
-        ~~~~~~~~
+        ~~
 BC30272: 'y' is not a parameter of 'Public Sub F3(x As Integer)'.
         F3(y:=1)
            ~
@@ -3504,7 +3504,7 @@ BC30272: 'y' is not a parameter of 'Public Sub F3(x As Integer)'.
               ~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
         F3(y:=1, z:=2)
-        ~~~~~~~~~~~~~~
+        ~~
 BC30272: 'y' is not a parameter of 'Public Sub F3(x As Integer)'.
         F3(y:=1, z:=2)
            ~
@@ -3516,7 +3516,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
            ~
 BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
         F4(, y:=1)
-        ~~~~~~~~~~
+        ~~
 BC30587: Named argument cannot match a ParamArray parameter.
         F4(, y:=1)
              ~
@@ -3540,16 +3540,16 @@ BC30274: Parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer()
               ~
 BC30455: Argument not specified for parameter 'y' of 'Public Sub F5(x As Integer, y As Integer)'.
         F5(x:=1, x:=2)
-        ~~~~~~~~~~~~~~
+        ~~
 BC30274: Parameter 'x' of 'Public Sub F5(x As Integer, y As Integer)' already has a matching argument.
         F5(x:=1, x:=2)
                  ~
 BC32050: Type parameter 'S' for 'Public Sub F2(Of T, S)(x As Integer)' cannot be inferred.
         F2(1)
-        ~~~~~
+        ~~
 BC32050: Type parameter 'T' for 'Public Sub F2(Of T, S)(x As Integer)' cannot be inferred.
         F2(1)
-        ~~~~~
+        ~~
 BC30311: Value of type 'System.Guid' cannot be converted to 'Integer'.
         F6(g, g)
            ~
@@ -3651,57 +3651,57 @@ End Module
 <expected>
 BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
         Foo(Of Integer, Integer)()
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~
 BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
         Foo(Of Integer, Integer)(1, 2)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Foo(Of Integer)()
-        ~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
         Foo(Of Integer)(1, 2)
-        ~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
     'Public Sub F1(x As Integer)': Value of type 'System.Guid' cannot be converted to 'Integer'.
     'Public Sub F1(x As Long)': Value of type 'System.Guid' cannot be converted to 'Long'.
         F1(g)
-        ~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
     'Public Sub F1(x As Integer)': 'y' is not a method parameter.
     'Public Sub F1(x As Integer)': Argument not specified for parameter 'x'.
     'Public Sub F1(x As Long)': 'y' is not a method parameter.
     'Public Sub F1(x As Long)': Argument not specified for parameter 'x'.
         F1(y:=1)
-        ~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F2' can be called with these arguments:
     'Public Sub F2(x As Long, ParamArray y As Integer())': Named argument cannot match a ParamArray parameter.
     'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Named argument cannot match a ParamArray parameter.
     'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
         F2(1, y:=1)
-        ~~~~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F2' can be called with these arguments:
     'Public Sub F2(x As Long, ParamArray y As Integer())': Omitted argument cannot match a ParamArray parameter.
     'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
         F2(1, )
-        ~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F3' can be called with these arguments:
     'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'y'.
     'Public Sub F3(x As Long, z As Long, y As Integer)': Parameter 'z' already has a matching omitted argument.
     'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
         F3(1, , z:=1)
-        ~~~~~~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F3' can be called with these arguments:
     'Public Sub F3(x As Long, y As Integer, z As Long)': Parameter 'x' already has a matching argument.
     'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'z'.
     'Public Sub F3(x As Long, z As Long, y As Integer)': Parameter 'x' already has a matching argument.
     'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
         F3(1, 1, x:=1)
-        ~~~~~~~~~~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
     'Public Sub Foo(Of T)(x As Integer)': Type parameter 'T' cannot be inferred.
     'Public Sub Foo(Of S)(x As Long)': Type parameter 'S' cannot be inferred.
         Foo(1)
-        ~~~~~~
+        ~~~
 </expected>)
         End Sub
 
@@ -3752,17 +3752,17 @@ BC30519: Overload resolution failed because no accessible 'F1' can be called wit
     'Public Sub F1(x As SByte)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
     'Public Sub F1(ByRef x As Long)': Copying the value of 'ByRef' parameter 'x' back to the matching argument narrows from type 'Long' to type 'Integer'.
         F1(i)
-        ~~~~~
+        ~~
 BC30519: Overload resolution failed because no accessible 'F2' can be called without a narrowing conversion:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
         F2(i, i)
-        ~~~~~~~~
+        ~~
 BC30519: Overload resolution failed because no accessible 'F2' can be called without a narrowing conversion:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
         F2(1, 1)
-        ~~~~~~~~
+        ~~
 </expected>)
         End Sub
 
@@ -3814,17 +3814,17 @@ BC30518: Overload resolution failed because no accessible 'F1' can be called wit
     'Public Sub F1(x As SByte)': Option Strict On disallows implicit conversions from 'Integer' to 'SByte'.
     'Public Sub F1(ByRef x As Long)': Option Strict On disallows narrowing from type 'Long' to type 'Integer' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
         F1(i)
-        ~~~~~
+        ~~
 BC30518: Overload resolution failed because no accessible 'F2' can be called with these arguments:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Option Strict On disallows implicit conversions from 'Integer' to 'SByte'.
         F2(i, i)
-        ~~~~~~~~
+        ~~
 BC30519: Overload resolution failed because no accessible 'F2' can be called without a narrowing conversion:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
         F2(1, 1)
-        ~~~~~~~~
+        ~~
 </expected>)
         End Sub
 
@@ -3876,17 +3876,17 @@ BC30519: Overload resolution failed because no accessible 'F1' can be called wit
     'Public Sub F1(x As SByte)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
     'Public Sub F1(ByRef x As Long)': Copying the value of 'ByRef' parameter 'x' back to the matching argument narrows from type 'Long' to type 'Integer'.
         F1(i)
-        ~~~~~
+        ~~
 BC30519: Overload resolution failed because no accessible 'F2' can be called without a narrowing conversion:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
         F2(i, i)
-        ~~~~~~~~
+        ~~
 BC30519: Overload resolution failed because no accessible 'F2' can be called without a narrowing conversion:
     'Public Sub F2(x As Integer, ParamArray y As Byte())': Argument matching parameter 'y' narrows from 'Integer' to 'Byte'.
     'Public Sub F2(x As SByte, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'SByte'.
         F2(1, 1)
-        ~~~~~~~~
+        ~~
 </expected>)
         End Sub
 
@@ -4075,7 +4075,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
     'Public Sub Foo(x As String)': Option Strict On disallows implicit conversions from 'Object' to 'String'.
     'Public Function Foo(ParamArray x As String()) As String': Option Strict On disallows implicit conversions from 'Object' to 'String()'.
     Foo(CObj(Nothing))
-    ~~~~~~~~~~~~~~~~~~
+    ~~~
 </expected>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe.WithOptionStrict(OptionStrict.Custom))
@@ -4249,7 +4249,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
     'Public Sub Bar(a As System.Action(Of C))': Not most specific.
     'Public Function Bar(a As System.Action(Of D)) As String': Not most specific.
     Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
-                      ~~~~~~~~~~~~~~~~~~~~~~~]]>)
+                      ~~~]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.AssertTheseDiagnostics(<![CDATA[
@@ -4257,7 +4257,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
     'Public Sub Bar(a As System.Action(Of C))': Not most specific.
     'Public Function Bar(a As System.Action(Of D)) As String': Not most specific.
     Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
-                      ~~~~~~~~~~~~~~~~~~~~~~~]]>)
+                      ~~~]]>)
         End Sub
 
         <WorkItem(539994)>
@@ -5091,7 +5091,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
     'Public Sub New(x As Short, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'Short'.
     'Public Sub New(x As String, y As Integer)': Argument matching parameter 'x' narrows from 'Integer' to 'String'.
         Dim z As New ProvideMenuResourceAttribute(1000, 1)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
             Dim TNuggetPackage = compilation.GetTypeByMetadataName("TNuggetPackage")
@@ -5221,7 +5221,7 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
     'Public Sub Add(x As Integer)': Not most specific.
     'Friend Sub Add(x As Integer)': Not most specific.
         x.Add(5)
-        ~~~~~~~~
+          ~~~
                                                </expected>)
         End Sub
 
@@ -5371,7 +5371,7 @@ End Class
 BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
     'Public Shared Function Foo(x As String, ParamArray params As IGetExpression()) As String': Not most specific.
         cls2.Foo("qq", New cls2)
-        ~~~~~~~~~~~~~~~~~~~~~~~~
+             ~~~
 ]]></expected>)
         End Sub
 
@@ -5417,7 +5417,7 @@ End Module
 BC30521: Overload resolution failed because no accessible 'foo' is most specific for these arguments:
     'Public Shared Sub foo(ParamArray y As Module1.i1())': Not most specific.
         C2.foo(New C2)
-        ~~~~~~~~~~~~~~
+           ~~~
 ]]></expected>)
         End Sub
     End Class

@@ -3094,7 +3094,7 @@ BC30992: Property 'Value' cannot be initialized in an object initializer express
                                  ~~~~~
 BC30455: Argument not specified for parameter 'o' of 'Public Property Value(o As Object) As String'.
         Dim _d As New D() With {.Value = .P, .P = .Value}
-                                                  ~~~~~~
+                                                   ~~~~~
 BC30990: Member 'Value' cannot be initialized in an object initializer expression because it is not a field or property.
         Dim _e As New E() With {.Value = .P, .P = .Value}
                                  ~~~~~
@@ -3103,7 +3103,7 @@ BC30990: Member 'Value' cannot be initialized in an object initializer expressio
                                  ~~~~~
 BC30455: Argument not specified for parameter 'o' of 'Public Property Value(o As Object) As String'.
         _d.value = Nothing
-        ~~~~~~~~
+           ~~~~~
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
         _e.value = Nothing
         ~~~~~~~~
@@ -3216,7 +3216,7 @@ End Module
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC36586: Argument not specified for parameter 'y' of extension method 'Public Function Value(y As Object) As Object' defined in 'M'.
         Dim o = x.Value()
-                ~~~~~~~~~
+                  ~~~~~
 ]]></errors>)
             ' Inaccessible extension method.
             compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(

@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        suppressLateBindingResolutionDiagnostics:=True) ' BindLateBoundInvocation will take care of the diagnostics.
 
             If receiver IsNot Nothing AndAlso receiver.Type IsNot Nothing AndAlso receiver.Type.IsInterfaceType Then
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_LateBoundOverloadInterfaceCall1, memberName)
+                ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_LateBoundOverloadInterfaceCall1, memberName)
             End If
 
             Return BindLateBoundInvocation(node, group, lateMember, arguments, argumentNames, diagnostics)
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not suppressLateBindingResolutionDiagnostics)
 
                 ' "Option Strict On disallows late binding."
-                ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
+                ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.ERR_StrictDisallowsLateBinding)
 
                 Dim children = ArrayBuilder(Of BoundNode).GetInstance
                 If receiver IsNot Nothing Then
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BadExpression(node, children.ToImmutableAndFree, ErrorTypeSymbol.UnknownResultType)
 
             ElseIf OptionStrict = VisualBasic.OptionStrict.Custom AndAlso Not suppressLateBindingResolutionDiagnostics Then
-                ReportDiagnostic(diagnostics, node, ERRID.WRN_LateBindingResolution)
+                ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.WRN_LateBindingResolution)
             End If
 
             Dim isIndexing As Boolean = receiver IsNot Nothing AndAlso Not receiver.Kind = BoundKind.LateMemberAccess

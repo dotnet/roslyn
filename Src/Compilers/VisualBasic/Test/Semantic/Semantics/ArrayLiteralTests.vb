@@ -801,7 +801,7 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             comp.VerifyDiagnostics(
-                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2({1S, 2S, &H7FFFFFFFL, 1.0}, b)").WithArguments("Test2", "error BC0000: " & vbCrLf &
+                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
             "    'Public Sub Test2(x As Integer(), y As Integer)': Argument matching parameter 'x' narrows to 'Integer()'." & vbCrLf &
             "    'Public Sub Test2(x As Short(), y As Byte)': Argument matching parameter 'x' narrows to 'Short()'."))
 
@@ -809,7 +809,7 @@ End Module
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             comp.VerifyDiagnostics(
-                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2({1S, 2S, &H7FFFFFFFL, 1.0}, b)").WithArguments("Test2", "error BC0000: " & vbCrLf &
+                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
           "    'Public Sub Test2(x As Integer(), y As Integer)': Option Strict On disallows implicit conversions from 'Double' to 'Integer'." & vbCrLf &
           "    'Public Sub Test2(x As Short(), y As Byte)': Option Strict On disallows implicit conversions from 'Double' to 'Short'."))
         End Sub
@@ -976,13 +976,13 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOff)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2({i}, b)").WithArguments("Test2", "error BC0000: " & vbCrLf &
+            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
      "    'Public Sub Test2(x As m.B1, y As Integer)': Argument matching parameter 'x' narrows to 'm.B1'." & vbCrLf &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Argument matching parameter 'x' narrows to 'm.B2'."))
 
             comp = comp.WithOptions(strictOn)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2({i}, b)").WithArguments("Test2", "error BC0000: " & vbCrLf &
+            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
      "    'Public Sub Test2(x As m.B1, y As Integer)': Option Strict On disallows implicit conversions from 'Integer' to 'Short'." & vbCrLf &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'."))
         End Sub
@@ -1444,10 +1444,10 @@ End Module
     ]]></file>
 </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules({""1""}, {1})").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
 
             compilation = compilation.WithOptions(strictOn)
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules({""1""}, {1})").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
         End Sub
 
         <WorkItem(544352)>

@@ -566,13 +566,13 @@ End Module
             AssertTheseDiagnostics(compilation, <expected>
 BC30517: Overload resolution failed because no 'New' is accessible.
         Dim x As New C3() With {.X = "foo"}
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                     ~~
 BC30456: 'X' is not a member of 'C3'.
         Dim x As New C3() With {.X = "foo"}
                                  ~
 BC30517: Overload resolution failed because no 'New' is accessible.
         x = New C3() With {.X = Unknown()}
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                ~~
 BC30456: 'X' is not a member of 'C3'.
         x = New C3() With {.X = Unknown()}
                             ~

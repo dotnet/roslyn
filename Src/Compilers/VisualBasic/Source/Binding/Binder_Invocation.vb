@@ -283,12 +283,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If delegateInvoke IsNot Nothing Then
                         Dim methodGroup = New BoundMethodGroup(
-                            node,
+                            node.Expression,
                             Nothing,
                             ImmutableArray.Create(Of MethodSymbol)(delegateInvoke),
                             LookupResultKind.Good,
                             target,
-                            QualificationKind.QualifiedViaValue)
+                            QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
                         Return BindInvocationExpression(
                             node,
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not target.HasErrors Then
                     ' Bind to the default property group.
-                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node, target, diagnostics)
+                    Dim defaultPropertyGroup As BoundExpression = BindDefaultPropertyGroup(node.Expression, target, diagnostics)
 
                     If defaultPropertyGroup IsNot Nothing Then
                         Debug.Assert(defaultPropertyGroup.Kind = BoundKind.PropertyGroup OrElse
@@ -743,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If haveAnExtensionMethod Then
-                            ReportDiagnostic(diagnostics, node, ERRID.ERR_ExtensionMethodCannotBeLateBound)
+                            ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_ExtensionMethodCannotBeLateBound)
 
                             Dim builder = ArrayBuilder(Of BoundNode).GetInstance()
 
@@ -1156,7 +1156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional diagnosticLocationOpt As Location = Nothing
         ) As BoundExpression
             Return ReportOverloadResolutionFailureAndProduceBoundNode(
                         node,
@@ -1170,7 +1171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         overrideCommonReturnType,
                         queryMode,
                         boundTypeExpression,
-                        representCandidateInDiagnosticsOpt)
+                        representCandidateInDiagnosticsOpt,
+                        diagnosticLocationOpt)
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
@@ -1185,7 +1187,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional diagnosticLocationOpt As Location = Nothing
         ) As BoundExpression
 
             Dim bestCandidates = ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult).GetInstance()
@@ -1211,7 +1214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing,
                 queryMode,
                 boundTypeExpression,
-                representCandidateInDiagnosticsOpt)
+                representCandidateInDiagnosticsOpt,
+                diagnosticLocationOpt)
 
             bestCandidates.Free()
 
@@ -1250,6 +1254,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
+        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+            Dim result As VisualBasicSyntaxNode
+
+            If groupOpt IsNot Nothing Then
+                If node.SyntaxTree Is groupOpt.Syntax.SyntaxTree AndAlso node.Span.Contains(groupOpt.Syntax.Span) Then
+                    result = groupOpt.Syntax
+
+                    If result Is node AndAlso (groupOpt.ReceiverOpt Is Nothing OrElse groupOpt.ReceiverOpt.Syntax Is result) Then
+                        Return result.GetLocation()
+                    End If
+                Else
+                    Return node.GetLocation()
+                End If
+
+            ElseIf node.VisualBasicKind = SyntaxKind.InvocationExpression Then
+                result = DirectCast(node, InvocationExpressionSyntax).Expression
+            Else
+                Return node.GetLocation()
+            End If
+
+            Select Case result.VisualBasicKind
+                Case SyntaxKind.QualifiedName
+                    Return DirectCast(result, QualifiedNameSyntax).Right.GetLocation()
+
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    If result.Parent IsNot Nothing AndAlso result.Parent.VisualBasicKind = SyntaxKind.AddressOfExpression Then
+                        Return result.GetLocation()
+                    End If
+
+                    Return DirectCast(result, MemberAccessExpressionSyntax).Name.GetLocation()
+
+                Case SyntaxKind.XmlElementAccessExpression,
+                     SyntaxKind.XmlDescendantAccessExpression,
+                     SyntaxKind.XmlAttributeAccessExpression
+                    Return DirectCast(result, XmlMemberAccessExpressionSyntax).Name.GetLocation()
+
+                Case SyntaxKind.HandlesClauseItem
+                    Return DirectCast(result, HandlesClauseItemSyntax).EventMember.GetLocation()
+            End Select
+
+            Return result.GetLocation()
+        End Function
+
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
             node As VisualBasicSyntaxNode,
             lookupResult As LookupResultKind,
@@ -1264,7 +1311,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional diagnosticLocationOpt As Location = Nothing
         ) As BoundExpression
 
             Debug.Assert(commonReturnType IsNot Nothing AndAlso bestSymbols.Length > 0 AndAlso bestCandidates.Count >= bestSymbols.Length)
@@ -1316,13 +1364,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(lookupResult = LookupResultKind.Good)
             End If
 
+            If diagnosticLocationOpt Is Nothing Then
+                diagnosticLocationOpt = GetLocationForOverloadResolutionDiagnostic(node, groupOpt)
+            End If
+
             ' Report diagnostic according to the state of candidates
             Select Case state
 
                 Case VisualBasic.OverloadResolution.CandidateAnalysisResultState.HasUseSiteError, OverloadResolution.CandidateAnalysisResultState.HasUnsupportedMetadata
 
                     If singleCandidate IsNot Nothing Then
-                        ReportOverloadResolutionFailureForASingleCandidate(node, lookupResult, singleCandidateAnalysisResult,
+                        ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocationOpt, lookupResult, singleCandidateAnalysisResult,
                                                                  boundArguments, argumentNames,
                                                                  allowUnexpandedParamArrayForm,
                                                                  allowExpandedParamArrayForm,
@@ -1335,7 +1387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  representCandidateInDiagnosticsOpt:=representCandidateInDiagnosticsOpt)
 
                     Else
-                        ReportOverloadResolutionFailureForASetOfCandidates(node, lookupResult,
+                        ReportOverloadResolutionFailureForASetOfCandidates(node, diagnosticLocationOpt, lookupResult,
                                                         ERRID.ERR_BadOverloadCandidates2,
                                                         bestCandidates,
                                                         boundArguments,
@@ -1349,7 +1401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case VisualBasic.OverloadResolution.CandidateAnalysisResultState.Ambiguous
                     Dim candidate As Symbol = bestSymbols(0).OriginalDefinition
                     Dim container As Symbol = candidate.ContainingSymbol
-                    ReportDiagnostic(diagnostics, If(groupOpt IsNot Nothing, groupOpt.Syntax, node), ERRID.ERR_MetadataMembersAmbiguous3, candidate.Name, container.GetKindText(), container)
+                    ReportDiagnostic(diagnostics, diagnosticLocationOpt, ERRID.ERR_MetadataMembersAmbiguous3, candidate.Name, container.GetKindText(), container)
 
                 Case OverloadResolution.CandidateAnalysisResultState.BadGenericArity
                     Debug.Assert(groupOpt IsNot Nothing AndAlso groupOpt.Kind = BoundKind.MethodGroup)
@@ -1388,7 +1440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         End If
                     Else
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_NoTypeArgumentCountOverloadCand1, CustomSymbolDisplayFormatter.ShortErrorName(bestSymbols(0)))
+                        ReportDiagnostic(diagnostics, diagnosticLocationOpt, ERRID.ERR_NoTypeArgumentCountOverloadCand1, CustomSymbolDisplayFormatter.ShortErrorName(bestSymbols(0)))
                     End If
 
                 Case OverloadResolution.CandidateAnalysisResultState.ArgumentCountMismatch
@@ -1402,7 +1454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' report special diagnostics for a failed overload resolution because all available properties
                         ' require arguments in case this method was called while binding a object member initializer.
                         ReportDiagnostic(diagnostics,
-                                         node,
+                                         diagnosticLocationOpt,
                                          If(singleCandidate IsNot Nothing,
                                             ERRID.ERR_ParameterizedPropertyInAggrInit1,
                                             ERRID.ERR_NoZeroCountArgumentInitCandidates1),
@@ -1410,7 +1462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         If singleCandidate IsNot Nothing AndAlso
                            (Not queryMode OrElse singleCandidate.ParameterCount <= boundArguments.Length) Then
-                            ReportOverloadResolutionFailureForASingleCandidate(node, lookupResult, singleCandidateAnalysisResult,
+                            ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocationOpt, lookupResult, singleCandidateAnalysisResult,
                                                                          boundArguments, argumentNames,
                                                                          allowUnexpandedParamArrayForm,
                                                                          allowExpandedParamArrayForm,
@@ -1423,7 +1475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          representCandidateInDiagnosticsOpt:=representCandidateInDiagnosticsOpt)
 
                         Else
-                            ReportDiagnostic(diagnostics, node, ERRID.ERR_NoArgumentCountOverloadCandidates1, CustomSymbolDisplayFormatter.ShortErrorName(bestSymbols(0)))
+                            ReportDiagnostic(diagnostics, diagnosticLocationOpt, ERRID.ERR_NoArgumentCountOverloadCandidates1, CustomSymbolDisplayFormatter.ShortErrorName(bestSymbols(0)))
                         End If
                     End If
 
@@ -1443,7 +1495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not haveBadArgument Then
                         If singleCandidate IsNot Nothing Then
-                            ReportOverloadResolutionFailureForASingleCandidate(node, lookupResult, singleCandidateAnalysisResult,
+                            ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocationOpt, lookupResult, singleCandidateAnalysisResult,
                                                                      boundArguments, argumentNames,
                                                                      allowUnexpandedParamArrayForm,
                                                                      allowExpandedParamArrayForm,
@@ -1456,7 +1508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      representCandidateInDiagnosticsOpt:=representCandidateInDiagnosticsOpt)
 
                         Else
-                            ReportOverloadResolutionFailureForASetOfCandidates(node, lookupResult,
+                            ReportOverloadResolutionFailureForASetOfCandidates(node, diagnosticLocationOpt, lookupResult,
                                                             If(delegateSymbol Is Nothing,
                                                                ERRID.ERR_NoCallableOverloadCandidates2,
                                                                ERRID.ERR_DelegateBindingFailure3),
@@ -1473,7 +1525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case OverloadResolution.CandidateAnalysisResultState.TypeInferenceFailed
 
                     If singleCandidate IsNot Nothing Then
-                        ReportOverloadResolutionFailureForASingleCandidate(node, lookupResult, singleCandidateAnalysisResult,
+                        ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocationOpt, lookupResult, singleCandidateAnalysisResult,
                                                                  boundArguments, argumentNames,
                                                                  allowUnexpandedParamArrayForm,
                                                                  allowExpandedParamArrayForm,
@@ -1486,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  representCandidateInDiagnosticsOpt:=representCandidateInDiagnosticsOpt)
 
                     Else
-                        ReportOverloadResolutionFailureForASetOfCandidates(node, lookupResult,
+                        ReportOverloadResolutionFailureForASetOfCandidates(node, diagnosticLocationOpt, lookupResult,
                                                         ERRID.ERR_NoCallableOverloadCandidates2,
                                                         bestCandidates,
                                                         boundArguments,
@@ -1506,7 +1558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  singleCandidate.Parameters(singleCandidate.ParameterCount - 1).IsParamArray)
 
                     If bestCandidates(0).RequiresNarrowingConversion Then
-                        ReportOverloadResolutionFailureForASetOfCandidates(node, lookupResult,
+                        ReportOverloadResolutionFailureForASetOfCandidates(node, diagnosticLocationOpt, lookupResult,
                                                         If(delegateSymbol Is Nothing,
                                                             ERRID.ERR_NoNonNarrowingOverloadCandidates2,
                                                             ERRID.ERR_DelegateBindingFailure3),
@@ -1518,7 +1570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         queryMode:=queryMode,
                                                         callerInfoOpt:=callerInfoOpt)
                     Else
-                        ReportUnspecificProcedures(node, bestSymbols, diagnostics, (delegateSymbol IsNot Nothing))
+                        ReportUnspecificProcedures(diagnosticLocationOpt, bestSymbols, diagnostics, (delegateSymbol IsNot Nothing))
                     End If
 
                 Case Else
@@ -1671,7 +1723,7 @@ ProduceBoundNode:
 
 
         Private Sub ReportUnspecificProcedures(
-            node As VisualBasicSyntaxNode,
+            diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
             diagnostics As DiagnosticBag,
             isDelegateContext As Boolean
@@ -1708,7 +1760,7 @@ ProduceBoundNode:
                 End If
             Next
 
-            ReportDiagnostic(diagnostics, node,
+            ReportDiagnostic(diagnostics, diagnosticLocation,
                              ErrorFactory.ErrorInfo(If(isDelegateContext, ERRID.ERR_AmbiguousDelegateBinding2, ERRID.ERR_NoMostSpecificOverload2),
                                                     CustomSymbolDisplayFormatter.ShortErrorName(bestSymbols(0)),
                                                     New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())
@@ -1719,6 +1771,7 @@ ProduceBoundNode:
 
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
             node As VisualBasicSyntaxNode,
+            diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             errorNo As ERRID,
             candidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
@@ -1756,7 +1809,7 @@ ProduceBoundNode:
                 Dim candidateDiagnostics = DiagnosticBag.GetInstance()
 
                 ' Collect diagnostic for this candidate
-                ReportOverloadResolutionFailureForASingleCandidate(node, lookupResult, candidates(i), arguments, argumentNames,
+                ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocation, lookupResult, candidates(i), arguments, argumentNames,
                                                          allowUnexpandedParamArrayForm, allowExpandedParamArrayForm,
                                                          False,
                                                          errorNo = If(delegateSymbol Is Nothing, ERRID.ERR_NoNonNarrowingOverloadCandidates2, ERRID.ERR_DelegateBindingFailure3),
@@ -1805,11 +1858,11 @@ ProduceBoundNode:
 
             Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
             If delegateSymbol Is Nothing Then
-                ReportDiagnostic(diagnostics, node,
+                ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
             Else
-                ReportDiagnostic(diagnostics, node,
+                ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         CustomSymbolDisplayFormatter.DelegateSignature(delegateSymbol),
                                                         New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
@@ -1824,6 +1877,7 @@ ProduceBoundNode:
         ''' </summary>
         Private Sub ReportOverloadResolutionFailureForASingleCandidate(
             node As VisualBasicSyntaxNode,
+            diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             ByRef candidateAnalysisResult As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
@@ -1851,7 +1905,7 @@ ProduceBoundNode:
                candidateAnalysisResult.State = VisualBasic.OverloadResolution.CandidateAnalysisResultState.HasUnsupportedMetadata Then
                 If lookupResult <> LookupResultKind.Inaccessible Then
                     Debug.Assert(lookupResult = LookupResultKind.Good)
-                    ReportDiagnostic(diagnostics, node, candidate.UnderlyingSymbol.GetUseSiteErrorInfo())
+                    ReportDiagnostic(diagnostics, diagnosticLocation, candidate.UnderlyingSymbol.GetUseSiteErrorInfo())
                 End If
 
                 Return
@@ -2033,7 +2087,7 @@ ProduceBoundNode:
                     ' Bug 122092: AddressOf doesn't want detailed info on which parameters could not be
                     ' inferred, just report the general type inference failed message in this case.
                     If delegateSymbol IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_DelegateBindingTypeInferenceFails)
+                        ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_DelegateBindingTypeInferenceFails)
                         Return
                     End If
 
@@ -2044,13 +2098,13 @@ ProduceBoundNode:
                         For i As Integer = 0 To candidate.Arity - 1 Step 1
                             If candidateAnalysisResult.NotInferredTypeArguments(i) Then
                                 If Not includeMethodNameInErrorMessages Then
-                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_UnboundTypeParam1, candidate.TypeParameters(i))
+                                    ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_UnboundTypeParam1, candidate.TypeParameters(i))
                                 ElseIf candidateIsExtension Then
-                                    ReportDiagnostic(diagnostics, node,
+                                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                                      ERRID.ERR_UnboundTypeParam3, candidate.TypeParameters(i),
                                                      candidateSymbol, candidateSymbol.ContainingType)
                                 Else
-                                    ReportDiagnostic(diagnostics, node,
+                                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                                      ERRID.ERR_UnboundTypeParam2, candidate.TypeParameters(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                                 End If
 
@@ -2067,27 +2121,27 @@ ProduceBoundNode:
 
                     If (inferenceErrorReasons And InferenceErrorReasons.Ambiguous) <> 0 Then
                         If Not includeMethodNameInErrorMessages Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous1, ERRID.ERR_TypeInferenceFailureAmbiguous1))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous1, ERRID.ERR_TypeInferenceFailureAmbiguous1))
                         ElseIf candidateIsExtension Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous3, ERRID.ERR_TypeInferenceFailureAmbiguous3), candidateSymbol, candidateSymbol.ContainingType)
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous3, ERRID.ERR_TypeInferenceFailureAmbiguous3), candidateSymbol, candidateSymbol.ContainingType)
                         Else
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous2, ERRID.ERR_TypeInferenceFailureAmbiguous2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitAmbiguous2, ERRID.ERR_TypeInferenceFailureAmbiguous2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     ElseIf (inferenceErrorReasons And InferenceErrorReasons.NoBest) <> 0 Then
                         If Not includeMethodNameInErrorMessages Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest1, ERRID.ERR_TypeInferenceFailureNoBest1))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest1, ERRID.ERR_TypeInferenceFailureNoBest1))
                         ElseIf candidateIsExtension Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest3, ERRID.ERR_TypeInferenceFailureNoBest3), candidateSymbol, candidateSymbol.ContainingType)
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest3, ERRID.ERR_TypeInferenceFailureNoBest3), candidateSymbol, candidateSymbol.ContainingType)
                         Else
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
                         If Not includeMethodNameInErrorMessages Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit1, ERRID.ERR_TypeInferenceFailure1))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit1, ERRID.ERR_TypeInferenceFailure1))
                         ElseIf candidateIsExtension Then
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit3, ERRID.ERR_TypeInferenceFailure3), candidateSymbol, candidateSymbol.ContainingType)
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit3, ERRID.ERR_TypeInferenceFailure3), candidateSymbol, candidateSymbol.ContainingType)
                         Else
-                            ReportDiagnostic(diagnostics, node, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit2, ERRID.ERR_TypeInferenceFailure2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                            ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit2, ERRID.ERR_TypeInferenceFailure2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     End If
 
@@ -2102,7 +2156,7 @@ ProduceBoundNode:
                     Dim method = DirectCast(candidate.UnderlyingSymbol, MethodSymbol)
                     ' TODO: Dev10 uses the location of the type parameter or argument that
                     ' violated the constraint, rather than  the entire invocation expression.
-                    Dim succeeded = method.CheckConstraints(node, diagnostics)
+                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics)
                     Debug.Assert(Not succeeded)
                     Return
                 End If
@@ -2132,7 +2186,7 @@ ProduceBoundNode:
 
                             If targetType.Kind <> SymbolKind.ErrorType Then
                                 ' ERRID_ParamArrayWrongType
-                                ReportDiagnostic(diagnostics, node, ERRID.ERR_ParamArrayWrongType)
+                                ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                             End If
 
                             someArgumentsBad = True
@@ -2169,24 +2223,24 @@ ProduceBoundNode:
 
                                 If paramArrayItems.Count = 0 Then
                                     If Not includeMethodNameInErrorMessages Then
-                                        ReportDiagnostic(diagnostics, node, ERRID.ERR_OmittedArgument1, CustomSymbolDisplayFormatter.ShortErrorName(param))
+                                        ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_OmittedArgument1, CustomSymbolDisplayFormatter.ShortErrorName(param))
                                     ElseIf candidateIsExtension Then
-                                        ReportDiagnostic(diagnostics, node,
+                                        ReportDiagnostic(diagnostics, diagnosticLocation,
                                                          ERRID.ERR_OmittedArgument3, CustomSymbolDisplayFormatter.ShortErrorName(param),
                                                          candidateSymbol, candidateSymbol.ContainingType)
                                     Else
-                                        ReportDiagnostic(diagnostics, node,
+                                        ReportDiagnostic(diagnostics, diagnosticLocation,
                                                          ERRID.ERR_OmittedArgument2, CustomSymbolDisplayFormatter.ShortErrorName(param),
                                                          If(representCandidateInDiagnosticsOpt, candidateSymbol))
                                     End If
                                 Else
                                     If Not includeMethodNameInErrorMessages Then
-                                        ReportDiagnostic(diagnostics, node, ERRID.ERR_TooManyArgs)
+                                        ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_TooManyArgs)
                                     ElseIf candidateIsExtension Then
-                                        ReportDiagnostic(diagnostics, node,
+                                        ReportDiagnostic(diagnostics, diagnosticLocation,
                                                            ERRID.ERR_TooManyArgs2, candidateSymbol, candidateSymbol.ContainingType)
                                     Else
-                                        ReportDiagnostic(diagnostics, node,
+                                        ReportDiagnostic(diagnostics, diagnosticLocation,
                                                  ERRID.ERR_TooManyArgs1, If(representCandidateInDiagnosticsOpt, candidateSymbol))
                                     End If
                                 End If
@@ -2207,7 +2261,7 @@ ProduceBoundNode:
 
                             If arrayType.Rank <> 1 Then
                                 ' ERRID_ParamArrayWrongType
-                                ReportDiagnostic(diagnostics, node, ERRID.ERR_ParamArrayWrongType)
+                                ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                                 someArgumentsBad = True
                                 Continue For
                             End If
@@ -2248,13 +2302,13 @@ ProduceBoundNode:
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
-                                ReportDiagnostic(diagnostics, node, ERRID.ERR_OmittedArgument1, CustomSymbolDisplayFormatter.ShortErrorName(param))
+                                ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_OmittedArgument1, CustomSymbolDisplayFormatter.ShortErrorName(param))
                             ElseIf candidateIsExtension Then
-                                ReportDiagnostic(diagnostics, node,
+                                ReportDiagnostic(diagnostics, diagnosticLocation,
                                                  ERRID.ERR_OmittedArgument3, CustomSymbolDisplayFormatter.ShortErrorName(param),
                                                  candidateSymbol, candidateSymbol.ContainingType)
                             Else
-                                ReportDiagnostic(diagnostics, node,
+                                ReportDiagnostic(diagnostics, diagnosticLocation,
                                                  ERRID.ERR_OmittedArgument2, CustomSymbolDisplayFormatter.ShortErrorName(param), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                             End If
 

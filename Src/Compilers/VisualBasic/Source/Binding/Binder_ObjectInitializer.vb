@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If constructorsGroup Is Nothing OrElse constructorsGroup.ResultKind = LookupResultKind.Inaccessible Then
                 If Not errorReported Then
-                    ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
+                    ReportDiagnostic(diagnostics, If(typeNode.VisualBasicKind = SyntaxKind.QualifiedName, DirectCast(typeNode, QualifiedNameSyntax).Right, typeNode), ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
                 End If
 
                 ' Suppress any additional diagnostics

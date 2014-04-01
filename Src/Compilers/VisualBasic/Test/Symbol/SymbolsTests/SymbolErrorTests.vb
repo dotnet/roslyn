@@ -6719,7 +6719,7 @@ BC30645: Attribute 'WebMethod' cannot be applied to a method with optional param
                     ~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
     <System.Web.Services.WebMethod(True, System.EnterpriseServices.TransactionOption.Disabled, 1, True, 123)>
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~~
 ]]></errors>)
         End Sub
 
@@ -12317,7 +12317,7 @@ BC30521: Overload resolution failed because no accessible 'New' is most specific
     'Public Sub New(a As Integer)': Not most specific.
     'Public Sub New(a As Integer)': Not most specific.
                     Dim b As Base = New Derived(a)
-                                    ~~~~~~~~~~~~~~
+                                        ~~~~~~~
 BC31429: 'a' is ambiguous because multiple kinds of members with this name exist in class 'Base.Derived'.
                         Me.a = a
                         ~~~~
@@ -12328,7 +12328,7 @@ BC30521: Overload resolution failed because no accessible 'New' is most specific
     'Public Sub New(a As Integer)': Not most specific.
     'Public Sub New(a As Integer)': Not most specific.
                     Dim b As Base = New Derived(a)
-                                    ~~~~~~~~~~~~~~
+                                        ~~~~~~~
 BC30179: class 'Derived' and class 'Derived' conflict in class 'Base'.
                 Private Class Derived
                               ~~~~~~~
@@ -13451,10 +13451,10 @@ End Class
             Dim expectedErrors1 = <errors><![CDATA[
 BC32044: Type argument 'T1' does not inherit from or implement the constraint type 'T2'.
         M(Of T1)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32044: Type argument 'T2' does not inherit from or implement the constraint type 'T1'.
         M(Of T2)()
-        ~~~~~~~~~~
+        ~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -13477,7 +13477,7 @@ BC32044: Type argument 'T2' does not inherit from or implement the constraint ty
             Dim expectedErrors1 = <errors><![CDATA[
 BC32044: Type argument 'Function <generated method>(x As Object) As Object' does not inherit from or implement the constraint type 'Function <generated method>(x As String) As String'.
                     Foo(Function(x As String) x, Function(x As Object) x)
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14558,19 +14558,19 @@ End Class
             Dim expectedErrors1 = <errors><![CDATA[
 BC32083: Type argument '[Friend]' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = F(Of [Friend])()
-            ~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~
 BC32083: Type argument 'ProtectedFriend' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = F(Of [ProtectedFriend])()
-            ~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~
 BC32083: Type argument '[Protected]' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = F(Of [Protected])()
-            ~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~
 BC32083: Type argument '[Private]' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = F(Of [Private])()
-            ~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~
 BC32083: Type argument '[Interface]' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = F(Of [Interface])()
-            ~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14609,13 +14609,13 @@ BC32083: Type argument 'A' must have a public parameterless instance constructor
                      ~
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'U'.
         M(Of A)()
-        ~~~~~~~~~
+        ~~~~~~~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         o = New C(Of B)()
                      ~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'U'.
         M(Of B)()
-        ~~~~~~~~~
+        ~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14669,25 +14669,25 @@ End Class
             Dim expectedErrors1 = <errors><![CDATA[
 BC32084: Type parameter 'T1' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of T1)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'T2' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of T2)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'T5' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of T5)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'T6' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of T6)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'T7' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of T7)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'UI' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of UI)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
 BC32084: Type parameter 'UA' must have either a 'New' constraint or a 'Structure' constraint to satisfy the 'New' constraint for type parameter 'T'.
         A.M(Of UA)()
-        ~~~~~~~~~~~~
+          ~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14921,37 +14921,37 @@ BC32105: Type argument 'T1' does not satisfy the 'Structure' constraint for type
                          ~~
 BC32105: Type argument 'T1' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T1)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32105: Type argument 'T2' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim o = New B(Of T2)()
                          ~~
 BC32105: Type argument 'T2' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T2)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32105: Type argument 'T4' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim o = New B(Of T4)()
                          ~~
 BC32105: Type argument 'T4' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T4)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32105: Type argument 'T5' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim o = New B(Of T5)()
                          ~~
 BC32105: Type argument 'T5' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T5)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32105: Type argument 'T6' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim o = New B(Of T6)()
                          ~~
 BC32105: Type argument 'T6' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T6)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32105: Type argument 'T7' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim o = New B(Of T7)()
                          ~~
 BC32105: Type argument 'T7' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of T7)()
-        ~~~~~~~~~~
+        ~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14977,13 +14977,13 @@ End Class
             Dim expectedErrors1 = <errors><![CDATA[
 BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'T'.
         F(b, a)
-        ~~~~~~~
+        ~
 BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(a, b)
-        ~~~~~~~
+        ~
 BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'U'.
         F(Of Integer, Object)(a, b)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -15138,37 +15138,37 @@ BC32106: Type argument 'T1' does not satisfy the 'Class' constraint for type par
                          ~~
 BC32106: Type argument 'T1' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of T1)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32106: Type argument 'T3' does not satisfy the 'Class' constraint for type parameter 'T'.
         Dim o = New B(Of T3)()
                          ~~
 BC32106: Type argument 'T3' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of T3)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32106: Type argument 'T4' does not satisfy the 'Class' constraint for type parameter 'T'.
         Dim o = New B(Of T4)()
                          ~~
 BC32106: Type argument 'T4' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of T4)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32106: Type argument 'T5' does not satisfy the 'Class' constraint for type parameter 'T'.
         Dim o = New B(Of T5)()
                          ~~
 BC32106: Type argument 'T5' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of T5)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32106: Type argument 'T7' does not satisfy the 'Class' constraint for type parameter 'T'.
         Dim o = New B(Of T7)()
                          ~~
 BC32106: Type argument 'T7' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of T7)()
-        ~~~~~~~~~~
+        ~~~~~~~~
 BC32106: Type argument 'Integer?' does not satisfy the 'Class' constraint for type parameter 'T'.
         Dim o = New B(Of Integer?)()
                          ~~~~~~~~
 BC32106: Type argument 'Integer?' does not satisfy the 'Class' constraint for type parameter 'T'.
         F(Of Integer?)()
-        ~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -15581,7 +15581,7 @@ BC32115: 'System.Nullable' does not satisfy the 'Structure' constraint for type 
                          ~~~~~~~~
 BC32115: 'System.Nullable' does not satisfy the 'Structure' constraint for type parameter 'U'. Only non-nullable 'Structure' types are allowed.
         F(Of T?)()
-        ~~~~~~~~~~
+        ~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub

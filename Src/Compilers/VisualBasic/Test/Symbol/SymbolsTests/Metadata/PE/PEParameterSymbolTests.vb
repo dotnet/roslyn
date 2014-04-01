@@ -44,7 +44,7 @@ End Module
 <expected>
 BC30455: Argument not specified for parameter 'Param' of 'Sub M(Param As Object, Param As Object)'.
         o.M(1, Param:=2)
-        ~~~~~~~~~~~~~~~~
+          ~
 BC30274: Parameter 'Param' of 'Sub M(Param As Object, Param As Object)' already has a matching argument.
         o.M(1, Param:=2)
                ~~~~~

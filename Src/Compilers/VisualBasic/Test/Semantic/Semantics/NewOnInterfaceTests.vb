@@ -159,7 +159,7 @@ End Module
 <errors>
 BC30455: Argument not specified for parameter 'i' of 'Public Sub New(i As Integer)'.
         Dim i = New IInterface()
-                ~~~~~~~~~~~~~~~~
+                    ~~~~~~~~~~
 </errors>)
         End Sub
 
@@ -259,7 +259,7 @@ End Module
 <errors>
 BC30517: Overload resolution failed because no 'New' is accessible.
         Dim i = New IInterface()
-                ~~~~~~~~~~~~~~~~
+                    ~~~~~~~~~~
 </errors>)
         End Sub
 
@@ -344,7 +344,7 @@ BC30311: Value of type 'CoClassImplementation' cannot be converted to 'IInterfac
                  ~~~~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
         Dim i3 = New IInterface(1, 2)
-                 ~~~~~~~~~~~~~~~~~~~~
+                     ~~~~~~~~~~
 </errors>)
         End Sub
 

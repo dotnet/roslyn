@@ -106,7 +106,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
     Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
         x.Foo
-        ~~~~~
+          ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'extensions.C, Extensions.C, Extensions.D'.
         Foo(x)
         ~~~
@@ -210,7 +210,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
     Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
         x.Foo
-        ~~~~~
+          ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
         Foo(x)
         ~~~
@@ -403,7 +403,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
     Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
         x.Foo
-        ~~~~~
+          ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.c, Extensions.C, Extensions.D'.
         Foo(x)
         ~~~
@@ -507,7 +507,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
     Extension method 'Public Sub Foo()' defined in 'Extensions.C': Not most specific.
     Extension method 'Public Sub Foo()' defined in 'Extensions.D': Not most specific.
         x.Foo
-        ~~~~~
+          ~~~
 BC30562: 'Foo' is ambiguous between declarations in Modules 'Extensions.C, Extensions.D'.
         Foo(x)
         ~~~
@@ -4800,22 +4800,22 @@ BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function 
                                      ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA1(x As Integer) As String'.
         System.Console.WriteLine(c.Aa1)
-                                 ~~~~~
+                                   ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA2(x As Integer) As String'.
         System.Console.WriteLine(c.aA2)
-                                 ~~~~~
+                                   ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA3(x As Integer) As String'.
         System.Console.WriteLine(c.Aa3)
-                                 ~~~~~
+                                   ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA4(x As Integer) As String'.
         System.Console.WriteLine(c.Aa4)
-                                 ~~~~~
+                                   ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA5(x As Integer) As String'.
         System.Console.WriteLine(c.aA5)
-                                 ~~~~~
+                                   ~~~
 BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA6(x As Integer) As String'.
         System.Console.WriteLine(c.aA6)
-                                 ~~~~~
+                                   ~~~
 </expected>)
         End Sub
 
@@ -7209,7 +7209,7 @@ End Module
 <expected>
 BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'Extensions.c'.
         x.Foo()
-        ~~~~~
+          ~~~
 BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'Extensions.c'.
         Foo(x)
         ~~~
@@ -8309,61 +8309,61 @@ End Module
 <expected>
 BC31429: 'aAxxx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxxx(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'Aaxyx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxyx(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxyy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxyy(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxyz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxyz(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzx(1, 2)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'AAxzx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.Aaxzx(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzy(1, 2)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'AAxzy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.AAxzy(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzz(1, 2)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'AAxzz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.AAxzz(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'AAyyy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAyyy(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'Aayyz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAyyz(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'Aayzx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAyzx(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAyzy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAyzy(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAyzz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAyzz(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAzxx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAzxx(1)
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzx' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzx()
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzy' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzy()
-        ~~~~~~~~
+           ~~~~~
 BC31429: 'aAxzz' is ambiguous because multiple kinds of members with this name exist in class 'Container31'.
         cc.aAxzz()
-        ~~~~~~~~
+           ~~~~~
 </expected>)
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
