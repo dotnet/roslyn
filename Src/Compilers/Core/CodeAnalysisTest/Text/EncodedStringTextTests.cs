@@ -76,6 +76,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws(typeof(DecoderFallbackException), () => EncodedStringText.Decode(stream, utf8));
                 Assert.True(stream.CanRead);
             }
+
+            // Detect encoding should correctly pick 1252
+            using (var stream = new MemoryStream(bytes))
+            {
+                Assert.Equal(text, EncodedStringText.DetectEncodingAndDecode(stream));
+                Assert.True(stream.CanRead);
+            }
         }
 
         [Fact]

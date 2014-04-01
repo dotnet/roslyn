@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return Create(source, null);
         }
 
-        protected virtual SourceText Create(string source, Encoding encoding = null)
+        protected virtual SourceText Create(string source, Encoding encoding)
         {
             byte[] buffer = GetBytes(encoding ?? Encoding.Default, source);
             using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
