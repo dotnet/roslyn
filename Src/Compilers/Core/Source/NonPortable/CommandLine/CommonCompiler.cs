@@ -182,10 +182,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var bufferSize = 4096;
-                var useAsync = true;
-
-                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, useAsync))
+                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize:4096, useAsync: true))
                 {
                     MemoryStream stream = memoryStreamPool.Allocate();
                     stream.SetLength(0);

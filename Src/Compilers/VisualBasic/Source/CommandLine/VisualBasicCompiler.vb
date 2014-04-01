@@ -64,7 +64,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Return VisualBasicSyntaxTree.ParseText(content, file.Path, If(file.IsScript, scriptParseOptions, parseOptions))
+            Return ParseFile(parseOptions, scriptParseOptions, content, file)
+        End Function
+
+        Private Shared Function ParseFile(
+                         parseOptions As VisualBasicParseOptions,
+                         scriptParseOptions As VisualBasicParseOptions,
+                         content As Text.SourceText,
+                         file As CommandLineSourceFile) As SyntaxTree
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(content, file.Path, If(file.IsScript, scriptParseOptions, parseOptions))
+
+            ' prepopulate line tables.
+            ' we will need line tables anyways and it is better to Not wait until we are in emit
+            ' where things run sequentially.
+            Dim isHiddenDummy As Boolean
+            tree.GetMappedLineSpanAndVisibility(Nothing, isHiddenDummy)
+
+            Return tree
         End Function
 
         Protected Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger) As Compilation
@@ -77,11 +94,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
-                Parallel.For(0, sourceFiles.Length,
-                             Sub(i As Integer)
-                                 ' NOTE: order of trees is important!!
-                                 trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i))
-                             End Sub)
+                Dim tasks = New Task(sourceFiles.Length - 1) {}
+                For i As Integer = 0 To sourceFiles.Length - 1
+                    'NOTE: order of trees Is important!!
+                    Dim treeIndex = i
+
+                    tasks(treeIndex) = Task.Run(
+                        Async Function() As Task
+                            Dim file = sourceFiles(treeIndex)
+
+                            Dim fileReadDiagnostics = New List(Of DiagnosticInfo)()
+                            Dim r = Await ReadFileContentAsync(file, fileReadDiagnostics, Arguments.Encoding).ConfigureAwait(False)
+
+                            Dim content = r.Item1
+
+                            If (content Is Nothing) Then
+                                PrintErrors(fileReadDiagnostics, consoleOutput)
+                                fileReadDiagnostics.Clear()
+                                hadErrors = True
+                                trees(treeIndex) = Nothing
+                            Else
+                                trees(treeIndex) = ParseFile(parseOptions, scriptParseOptions, content, file)
+                            End If
+                        End Function)
+                Next
+
+                Task.WaitAll(tasks)
 
             Else
                 For i = 0 To sourceFiles.Length - 1
