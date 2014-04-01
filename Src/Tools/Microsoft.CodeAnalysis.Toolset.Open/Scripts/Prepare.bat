@@ -49,8 +49,7 @@ if not "%unconfigure%" == "true" (
 if not "%unconfigure%" == "true" (
     "%VSSDK120Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
 
-
-	msbuild %~dp0\prepare.msbuild
+    msbuild %~dp0\prepare.msbuild
     )
 
 call :DisableVerificationFor Microsoft.CodeAnalysis.dll
@@ -67,7 +66,9 @@ call :DisableVerificationFor VBCSCompiler.exe
 
 rem List skip verification entries
 echo.
-sn -q -Vl
+if exist "%WindowsSDK_ExecutablePath_x86%"sn.exe echo. && echo x86 verification Entries && "%WindowsSDK_ExecutablePath_x86%sn.exe" -q  -Vl
+if exist "%WindowsSDK_ExecutablePath_x64%"sn.exe echo. && echo x64 verification Entries && "%WindowsSDK_ExecutablePath_x64%sn.exe" -q  -Vl
+echo.
 
 if "%unconfigure%" == "true" (
     rem Reset the RoslynDev hive from the main hive, 
@@ -80,5 +81,10 @@ goto :eof
 
 :DisableVerificationFor %1
 @echo %label% verification for %1
-for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do sn -q %verification% "%%f" && goto :eof
+for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do call :CallSn %verification% "%%f" && goto :eof
+goto :eof
+
+:CallSn %1 %2
+if exist "%WindowsSDK_ExecutablePath_x86%"sn.exe "%WindowsSDK_ExecutablePath_x86%sn.exe" -q  %1 %2
+if exist "%WindowsSDK_ExecutablePath_x64%"sn.exe "%WindowsSDK_ExecutablePath_x64%sn.exe" -q  %1 %2
 goto :eof
