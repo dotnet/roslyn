@@ -150,6 +150,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, IDiagnosticAnalyzer analyzer)
         {
+            var documentsAndUseSpan = VerifyAndGetDocumentsAndSpan(sources, language);
+            var documents = documentsAndUseSpan.Item1;
+            var useSpans = documentsAndUseSpan.Item2;
+            var spans = documentsAndUseSpan.Item3;
+            return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null);
+        }
+
+        protected static Tuple<Document[], bool, TextSpan?[]> VerifyAndGetDocumentsAndSpan(string[] sources, string language)
+        {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
             var spans = new TextSpan?[sources.Length];
@@ -176,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = CreateProject(sources, language);
             var documents = project.Documents.ToArray();
             Assert.Equal(sources.Length, documents.Length);
-            return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null);
+            return Tuple.Create(documents, useSpans, spans);
         }
 
         protected static Document CreateDocument(string source, string language = LanguageNames.CSharp)
@@ -266,7 +275,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzeDocumentCore(analyzer, document, addDiagnostic, span);
         }
 
-        private static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null)
+        protected static void AnalyzeDocumentCore(IDiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null)
         {
             TextSpan spanToTest = span.HasValue ? span.Value : document.GetSyntaxRootAsync().Result.FullSpan;
             var semanticModel = document.GetSemanticModelAsync().Result;
