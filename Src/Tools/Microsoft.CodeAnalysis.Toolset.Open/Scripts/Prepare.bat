@@ -49,29 +49,30 @@ if not "%unconfigure%" == "true" (
 if not "%unconfigure%" == "true" (
     "%VSSDK120Install%\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=%targetVS% /RootSuffix=%TargetHive%  2> nul
 
-
-	msbuild %~dp0\prepare.msbuild
+    msbuild %~dp0\prepare.msbuild
     )
 
-call :DisableVerificationFor Microsoft.CodeAnalysis.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.CSharp.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.Workspaces.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.CSharp.Workspaces.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll
-call :DisableVerificationFor Microsoft.CodeAnalysis.FxCopAnalyzers.dll 
-call :DisableVerificationFor Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.dll 
-call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.dll 
-call :DisableVerificationFor CompilerPackage.dll
-call :DisableVerificationFor FxCopRulesSetup.dll
-call :DisableVerificationFor Roslyn.Compilers.BuildTasks.dll
-call :DisableVerificationFor rcsc.exe
-call :DisableVerificationFor rvbc.exe
-call :DisableVerificationFor VBCSCompiler.exe
+call :DisableVerificationFor "Microsoft.CodeAnalysis,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.CSharp,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.Workspaces,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.CSharp.Workspaces,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic.Workspaces,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.FxCopAnalyzers,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers,31BF3856AD364E35"
+call :DisableVerificationFor "Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers,31BF3856AD364E35"
+call :DisableVerificationFor "CompilerPackage,31BF3856AD364E35"
+call :DisableVerificationFor "FxCopRulesSetup,31BF3856AD364E35"
+call :DisableVerificationFor "Roslyn.Compilers.BuildTasks,31BF3856AD364E35"
+call :DisableVerificationFor "rcsc,31BF3856AD364E35"
+call :DisableVerificationFor "rvbc,31BF3856AD364E35"
+call :DisableVerificationFor "VBCSCompiler,31BF3856AD364E35"
 
 rem List skip verification entries
 echo.
-sn -q -Vl
+if exist "%WindowsSDK_ExecutablePath_x86%"sn.exe echo. && echo x86 verification Entries && "%WindowsSDK_ExecutablePath_x86%sn.exe" -q  -Vl
+if exist "%WindowsSDK_ExecutablePath_x64%"sn.exe echo. && echo x64 verification Entries && "%WindowsSDK_ExecutablePath_x64%sn.exe" -q  -Vl
+echo.
 
 if "%unconfigure%" == "true" (
     rem Reset the RoslynDev hive from the main hive, 
@@ -84,5 +85,5 @@ goto :eof
 
 :DisableVerificationFor %1
 @echo %label% verification for %1
-for /F %%f in ('dir /s /b "%LOCALAPPDATA%\Microsoft\VisualStudio\%targetVS%%TargetHive%\%1"') do sn -q %verification% "%%f" && goto :eof
-goto :eof
+if exist "%WindowsSDK_ExecutablePath_x86%"sn.exe "%WindowsSDK_ExecutablePath_x86%sn.exe" -q  %verification% %1
+if exist "%WindowsSDK_ExecutablePath_x64%"sn.exe "%WindowsSDK_ExecutablePath_x64%sn.exe" -q  %verification% %1
