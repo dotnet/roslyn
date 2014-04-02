@@ -58,7 +58,11 @@ call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.dll
 call :DisableVerificationFor Microsoft.CodeAnalysis.Workspaces.dll
 call :DisableVerificationFor Microsoft.CodeAnalysis.CSharp.Workspaces.dll
 call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll
+call :DisableVerificationFor Microsoft.CodeAnalysis.FxCopAnalyzers.dll 
+call :DisableVerificationFor Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.dll 
+call :DisableVerificationFor Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.dll 
 call :DisableVerificationFor CompilerPackage.dll
+call :DisableVerificationFor FxCopRulesSetup.dll
 call :DisableVerificationFor Roslyn.Compilers.BuildTasks.dll
 call :DisableVerificationFor rcsc.exe
 call :DisableVerificationFor rvbc.exe
