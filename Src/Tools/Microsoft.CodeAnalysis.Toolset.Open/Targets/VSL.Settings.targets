@@ -29,88 +29,8 @@
   </PropertyGroup>
 
   <!-- Build settings for Open Source preview package -->
-  <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
-    <DeployVSVersion>12.0</DeployVSVersion>
-    <DeployVSHive>Roslyn</DeployVSHive>
-    <DeployToPackageFolders>true</DeployToPackageFolders>
-    <DelaySignBuild Condition="'$(DelaySignBuild)' == ''">true</DelaySignBuild>
-    <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
-    <BuildVersion>0.6.0.0</BuildVersion>
-  </PropertyGroup>
-
-  <Choose>
-    <When Condition="'$(BuildVersion)' != ''">
-      <!-- The user specified a build version number. In that case, we'll use their version number
-           for the file version, and force the assembly version to $(MajorRoslynVersion).0.0.  That way
-           day-to-day upgrades don't break assembly references to other installed apps. -->
       <PropertyGroup>
-        <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
-      </PropertyGroup>
-    </When>
-
-    <When Condition="'$(BuildNumber)' != ''">
-      <!-- The user specified a build number, so we should use that. -->
-      <PropertyGroup>
-        <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
-        <BuildVersion>$(MajorRoslynVersion).$(BuildNumber)</BuildVersion>
-      </PropertyGroup>
-    </When>
-
-    <!-- If this is real-signed build being ran through TeamBuild, then use a real version number -->
-    <When Condition="'$(LineupModuleVersion)' != '' AND '$(BuildingWithTeamBuild)' == 'true' AND ('$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true')">
-      <PropertyGroup>
-        <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
-        <!-- The LineupModuleVersion looks like yyyy.mm.dd.rev -->
-        <BuildVersion>$(MajorRoslynVersion).$(LineupModuleVersion.Substring(3, 1))$(LineupModuleVersion.Substring(5, 2))$(LineupModuleVersion.Substring(8))</BuildVersion>
-      </PropertyGroup>
-    </When>
-
-    <When Condition="'$(RealSignBuild)' == 'true' OR '$(DelaySignBuild)' == 'true'">
-      <!-- We're real-signing the build, but don't have a build number. Just use the MajorRoslynVersion.
-           This happens if the build template does not pass BuildNumber down to MSBuild. -->
-      <PropertyGroup>
-        <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
-        <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
-      </PropertyGroup>
-    </When>
-    
-    <Otherwise>
-      <!-- No build version was supplied.  We'll use a special version, higher than anything
-           installed, so that the assembly identity is different.  This will allows us to 
-           have a build with an actual number installed, but then build and F5 a build with 
-           this number.  -->
-      <PropertyGroup>
-        <BuildVersion>42.42.42.42</BuildVersion>
-        <AssemblyVersion>42.42.42.42</AssemblyVersion>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
-  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
-
-  <!-- NuGet version -->
-  <PropertyGroup>
-    <!--
-
-http://docs.nuget.org/docs/Reference/Versioning
-
-"-beta" suffix indicates a pre-release package. Since we're not RTM, we need to specify pre-release for all 
-packages we release unless they're stable/production quality. Also since we depend on a pre-release package, 
-we MUST ourselves be a pre-release package.
-
-See how Microsoft.Bcl.Immutable indicates that it is pre-release:
-https://www.nuget.org/packages/Microsoft.Bcl.Immutable/1.1.15-beta
-
-NuGet doesn't support pre-release packages with four digit groups, so we artificially compress our two last
-digit groups into a single (third) digit group, which is the build date and the revision number (1-99).
-It's unlikely we'll ever have more than 99 signed builds a day.
-
- -->
-    <BuildVersionPart3 Condition="($(BuildVersion) != '') AND ($(BuildVersion.Split('.').Length) == 4)">$(BuildVersion.Split('.')[2])</BuildVersionPart3>
-    <BuildVersionPart4 Condition="($(BuildVersion) != '') AND ($(BuildVersion.Split('.').Length) == 4)">$(BuildVersion.Split('.')[3])</BuildVersionPart4>
-    <NuGetVersion Condition="($(BuildVersionPart3) != '') AND ($(BuildVersionPart4) != '')">$(MajorRoslynVersion).$(BuildVersionPart3)$(BuildVersionPart4.PadLeft(2, '0'))-beta</NuGetVersion>
-    <NuGetVersion Condition="$(NuGetVersion) == ''">$(MajorRoslynVersion).0-beta</NuGetVersion>
+    <OpenSourceDebug>true</OpenSourceDebug>
   </PropertyGroup>
   
   <!-- Project language -->
