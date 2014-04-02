@@ -3479,12 +3479,12 @@ End Module
         <WorkItem(545508)>
         <Fact()>
         Public Sub NormalizeNewlines()
-            For Each str In {vbCr, vbLf, vbCrLf}
+            For Each eol In {vbCr, vbLf, vbCrLf}
                 Dim sourceBuilder = New StringBuilder()
                 sourceBuilder.AppendLine("Module M")
                 sourceBuilder.AppendLine("    Sub Main()")
-                sourceBuilder.AppendLine("        Report(<x>[" & str & "|" & str & str & "]</>.Value)")
-                sourceBuilder.AppendLine("        Report(<x><![CDATA[[" & str & "|" & str & str & "]]]></>.Value)")
+                sourceBuilder.AppendLine("        Report(<x>[" & eol & "|" & eol & eol & "]</>.Value)")
+                sourceBuilder.AppendLine("        Report(<x><![CDATA[[" & eol & "|" & eol & eol & "]]]></>.Value)")
                 sourceBuilder.AppendLine("    End Sub")
                 sourceBuilder.AppendLine("    Sub Report(s As String)")
                 sourceBuilder.AppendLine("        For Each c As Char in s")
@@ -3521,9 +3521,9 @@ End Module
             NormalizeAttributeValue("")
 
             ' Single characters.
-            For Each str In strs
-                NormalizeAttributeValue(str)
-                NormalizeAttributeValue("[" & str & "]")
+            For Each str0 In strs
+                NormalizeAttributeValue(str0)
+                NormalizeAttributeValue("[" & str0 & "]")
             Next
 
             ' Pairs of characters.

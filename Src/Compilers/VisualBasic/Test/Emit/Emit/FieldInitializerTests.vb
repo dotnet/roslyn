@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -680,8 +681,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+            Dim expectedOutput = <![CDATA[
 Asc:
 65
 65
@@ -714,13 +714,14 @@ ChrW:
 32768
 65535
 Asc:
-255
+{0}
 Chr:
-128
-255
-]]>).
-                    VerifyIL("C1..cctor",
-            <![CDATA[
+{1}
+{2}
+]]>
+            Dim localeDependentValues = Encoding.Default.GetBytes({ChrW(255), Chr(128), Chr(255)})
+            expectedOutput.Value = String.Format(expectedOutput.Value, localeDependentValues(0), localeDependentValues(1), localeDependentValues(2))
+            CompileAndVerify(source, expectedOutput).VerifyIL("C1..cctor", <![CDATA[
 {
     // Code size       46 (0x2e)
     .maxstack  1

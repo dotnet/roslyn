@@ -4945,8 +4945,8 @@ End Module
         Private Function ArrayToSortedString(Of T)(arr() As T) As String
             Array.Sort(arr)
             Dim builder As New System.Text.StringBuilder()
-            For Each val In arr
-                builder.AppendLine(val.ToString)
+            For Each value In arr
+                builder.AppendLine(value.ToString)
             Next
             Return builder.ToString()
         End Function
