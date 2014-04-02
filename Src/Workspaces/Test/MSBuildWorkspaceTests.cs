@@ -1545,6 +1545,29 @@ class C1
             }
         }
 
+        [WorkItem(918072)]
+        [Fact(Skip = "918072"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAnalyzerReferenceLoadStandalone()
+        {
+            var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                foreach (var projectPath in projPaths)
+                {
+                    var projectFullPath = Path.Combine(this.solutionDirectory.Path, projectPath);
+                    var proj = ws.OpenProjectAsync(projectFullPath).Result;
+                    Assert.Equal(1, proj.AnalyzerReferences.Count);
+                }
+
+                // prove that project gets opened instead.
+                Assert.Equal(2, ws.CurrentSolution.Projects.Count());
+            }
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171)]
         public void TestCSharpExternAlias()
         {

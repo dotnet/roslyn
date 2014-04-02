@@ -214,9 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.EndInitialization(out errorMessage, out errorCode);
             }
 
-            // Uncomment the below base list clause once MSBuild support for analyzers/ruleset has been added
             private class CSharpCompilerInputs : MSB.Tasks.Hosting.ICscHostObject4
-                ////, MSB.Tasks.Hosting.IAnalyzerHostObject
             {
                 private readonly CSharpProjectFile projectFile;
 

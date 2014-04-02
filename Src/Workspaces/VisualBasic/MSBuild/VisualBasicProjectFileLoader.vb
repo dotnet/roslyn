@@ -250,9 +250,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
 
-            ' TODO: Uncomment the below Implements clause once MSBuild support for analyzers/ruleset has been added
             Private Class VisualBasicCompilerInputs
-                Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded ', MSB.Tasks.Hosting.IAnalyzerHostObject
+                Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 
                 Private _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
@@ -565,8 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-                ' TODO: Uncomment the below Implements clause once MSBuild support for analyzers has been added
-                Public Function SetAnalyzers(analyzerReferences() As Microsoft.Build.Framework.ITaskItem) As Boolean ' Implements Microsoft.Build.Tasks.Hosting.IAnalyzerHostObject.SetAnalyzers
+                Public Function SetAnalyzers(analyzerReferences() As Microsoft.Build.Framework.ITaskItem) As Boolean
                     Me._analyzerReferences = If(analyzerReferences, SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)())
                     Return True
                 End Function
@@ -622,8 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Function
 
-                ' TODO: Uncomment the below Implements clause once MSBuild support for ruleset has been added
-                Public Function SetRuleSet(ruleSetFile As String) As Boolean ' Implements Microsoft.Build.Tasks.Hosting.IAnalyzerHostObject.SetRuleSet
+                Public Function SetRuleSet(ruleSetFile As String) As Boolean
                     If Not String.IsNullOrEmpty(ruleSetFile) Then
                         Dim fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(Me._projectFile.FilePath))
 

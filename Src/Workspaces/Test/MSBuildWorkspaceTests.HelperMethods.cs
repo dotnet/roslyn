@@ -192,6 +192,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
+        private FileSet GetAnalyzerReferenceSolutionFiles()
+        {
+            return new FileSet(new Dictionary<string, object>
+            {
+                { @"AnalyzerReference.sln", GetResourceText("TestSolution_AnalyzerReference.sln") },
+                { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", GetResourceText("CSharpProject_CSharpProject_AnalyzerReference.csproj") },
+                { @"AnalyzerSolution\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
+                { @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj") },
+                { @"AnalyzerSolution\VisualBasicClass.vb", GetResourceText("VisualBasicProject_VisualBasicClass.vb") },
+                { @"AnalyzerSolution\My Project\Application.Designer.vb", GetResourceText("VisualBasicProject_Application.Designer.vb") },
+                { @"AnalyzerSolution\My Project\Application.myapp", GetResourceText("VisualBasicProject_Application.myapp") },
+                { @"AnalyzerSolution\My Project\AssemblyInfo.vb", GetResourceText("VisualBasicProject_AssemblyInfo.vb") },
+                { @"AnalyzerSolution\My Project\Resources.Designer.vb", GetResourceText("VisualBasicProject_Resources.Designer.vb") },
+                { @"AnalyzerSolution\My Project\Resources.resx", GetResourceText("VisualBasicProject_Resources.resx_") },
+                { @"AnalyzerSolution\My Project\Settings.Designer.vb", GetResourceText("VisualBasicProject_Settings.Designer.vb") },
+                { @"AnalyzerSolution\My Project\Settings.settings", GetResourceText("VisualBasicProject_Settings.settings") },
+            });
+        }
+
         private FileSet GetSolutionWithDuplicatedGuidFiles()
         {
             return new FileSet(new Dictionary<string, object>
