@@ -44,11 +44,19 @@ namespace Microsoft.CodeAnalysis
             private ChildSyntaxList.Enumerator[] stack;
             private int stackPtr;
 
-            public ChildSyntaxListEnumeratorStack(SyntaxNode startingNode)
+            public ChildSyntaxListEnumeratorStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
             {
-                this.stack = StackPool.Allocate();
-                this.stackPtr = 0;
-                this.stack[0].InitializeFrom(startingNode);
+                if (descendIntoChildren == null || descendIntoChildren(startingNode))
+                {
+                    this.stack = StackPool.Allocate();
+                    this.stackPtr = 0;
+                    this.stack[0].InitializeFrom(startingNode);
+                }
+                else
+                {
+                    this.stack = null;
+                    this.stackPtr = -1;
+                }
             }
 
             public bool IsNotEmpty { get { return stackPtr >= 0; } }
@@ -106,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack.Length < 256)
+                if (stack != null && stack.Length < 256)
                 {
                     StackPool.Free(stack);
                 }
@@ -119,11 +127,6 @@ namespace Microsoft.CodeAnalysis
 
             private SyntaxTriviaList.Enumerator[] stack;
             private int stackPtr;
-
-            public static TriviaListEnumeratorStack Create()
-            {
-                return new TriviaListEnumeratorStack() { stack = StackPool.Allocate(), stackPtr = -1 };
-            }
 
             public bool TryGetNext(out SyntaxTrivia value)
             {
@@ -140,30 +143,35 @@ namespace Microsoft.CodeAnalysis
 
             public void PushLeadingTrivia(ref SyntaxToken token)
             {
-                if (++stackPtr >= stack.Length)
-                {
-                    // Geometric growth
-                    Array.Resize(ref stack, checked(stackPtr * 2));
-                }
-
+                Grow();
                 stack[stackPtr].InitializeFromLeadingTrivia(ref token);
             }
 
             public void PushTrailingTrivia(ref SyntaxToken token)
             {
+                Grow();
+                stack[stackPtr].InitializeFromTrailingTrivia(ref token);
+            }
+
+            private void Grow()
+            {
+                if (stack == null)
+                {
+                    stack = StackPool.Allocate();
+                    stackPtr = -1;
+                }
+
                 if (++stackPtr >= stack.Length)
                 {
                     // Geometric growth
                     Array.Resize(ref stack, checked(stackPtr * 2));
                 }
-
-                stack[stackPtr].InitializeFromTrailingTrivia(ref token);
             }
 
             public void Dispose()
             {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack.Length < 256)
+                if (stack != null && stack.Length < 256)
                 {
                     StackPool.Free(stack);
                 }
@@ -182,15 +190,21 @@ namespace Microsoft.CodeAnalysis
             private TriviaListEnumeratorStack triviaStack;
             private readonly ArrayBuilder<Which> discriminatorStack;
 
-            public TwoEnumeratorListStack(SyntaxNode startingNode)
+            public TwoEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
             {
-                this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode);
-                this.triviaStack = TriviaListEnumeratorStack.Create();
-                this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
-                this.discriminatorStack.Push(Which.Node);
+                this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
+                if (this.nodeStack.IsNotEmpty)
+                {
+                    this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
+                    this.discriminatorStack.Push(Which.Node);
+                }
+                else
+                {
+                    this.discriminatorStack = null;
+                }
             }
 
-            public bool IsNotEmpty { get { return discriminatorStack.Count != 0; } }
+            public bool IsNotEmpty { get { return discriminatorStack != null && discriminatorStack.Count != 0; } }
 
             public Which PeekNext()
             {
@@ -210,7 +224,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryGetNext(out SyntaxTrivia value)
             {
-                if(triviaStack.TryGetNext(out value))
+                if (triviaStack.TryGetNext(out value))
                 {
                     return true;
                 }
@@ -219,10 +233,13 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public void PushChildren(SyntaxNode node)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
             {
-                nodeStack.PushChildren(node);
-                discriminatorStack.Push(Which.Node);
+                if (descendIntoChildren == null || descendIntoChildren(node))
+                {
+                    nodeStack.PushChildren(node);
+                    discriminatorStack.Push(Which.Node);
+                }
             }
 
             public void PushLeadingTrivia(ref SyntaxToken token)
@@ -241,7 +258,10 @@ namespace Microsoft.CodeAnalysis
             {
                 this.nodeStack.Dispose();
                 this.triviaStack.Dispose();
-                this.discriminatorStack.Free();
+                if (this.discriminatorStack != null)
+                {
+                    this.discriminatorStack.Free();
+                }
             }
         }
 
@@ -259,16 +279,23 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<SyntaxNodeOrToken> tokenStack;
             private readonly ArrayBuilder<Which> discriminatorStack;
 
-            public ThreeEnumeratorListStack(SyntaxNode startingNode)
+            public ThreeEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
             {
-                this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode);
-                this.triviaStack = TriviaListEnumeratorStack.Create();
-                this.tokenStack = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-                this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
-                this.discriminatorStack.Push(Which.Node);
+                this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
+                if (this.nodeStack.IsNotEmpty)
+                {
+                    this.tokenStack = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+                    this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
+                    this.discriminatorStack.Push(Which.Node);
+                }
+                else
+                {
+                    this.tokenStack = null;
+                    this.discriminatorStack = null;
+                }
             }
 
-            public bool IsNotEmpty { get { return discriminatorStack.Count > 0; } }
+            public bool IsNotEmpty { get { return discriminatorStack != null && discriminatorStack.Count > 0; } }
 
             public Which PeekNext()
             {
@@ -303,10 +330,13 @@ namespace Microsoft.CodeAnalysis
                 return tokenStack.Pop();
             }
 
-            public void PushChildren(SyntaxNode node)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
             {
-                nodeStack.PushChildren(node);
-                discriminatorStack.Push(Which.Node);
+                if (descendIntoChildren == null || descendIntoChildren(node))
+                {
+                    nodeStack.PushChildren(node);
+                    discriminatorStack.Push(Which.Node);
+                }
             }
 
             public void PushLeadingTrivia(ref SyntaxToken token)
@@ -331,10 +361,17 @@ namespace Microsoft.CodeAnalysis
             {
                 this.nodeStack.Dispose();
                 this.triviaStack.Dispose();
-                this.tokenStack.Free();
-                this.discriminatorStack.Free();
+                if (this.tokenStack != null)
+                {
+                    this.tokenStack.Free();
+                }
+
+                if (this.discriminatorStack != null)
+                {
+                    this.discriminatorStack.Free();
+                }
             }
-        
+
         }
 
         private IEnumerable<SyntaxNode> DescendantNodesOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool includeSelf)
@@ -344,12 +381,7 @@ namespace Microsoft.CodeAnalysis
                 yield return this;
             }
 
-            if (descendIntoChildren != null && !descendIntoChildren(this))
-            {
-                yield break;
-            }
-
-            using (var stack = new ChildSyntaxListEnumeratorStack(this))
+            using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
                 while (stack.IsNotEmpty)
                 {
@@ -371,12 +403,7 @@ namespace Microsoft.CodeAnalysis
                 yield return this;
             }
 
-            if (descendIntoChildren != null && !descendIntoChildren(this))
-            {
-                yield break;
-            }
-
-            using (var stack = new ChildSyntaxListEnumeratorStack(this))
+            using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
                 SyntaxNodeOrToken value;
                 while (stack.IsNotEmpty)
@@ -402,12 +429,7 @@ namespace Microsoft.CodeAnalysis
                 yield return this;
             }
 
-            if (descendIntoChildren != null && !descendIntoChildren(this))
-            {
-                yield break;
-            }
-
-            using (var stack = new ThreeEnumeratorListStack(this))
+            using (var stack = new ThreeEnumeratorListStack(this, descendIntoChildren))
             {
                 while (stack.IsNotEmpty)
                 {
@@ -422,12 +444,7 @@ namespace Microsoft.CodeAnalysis
                                     // parent nodes come before children (prefix document order)
                                     yield return value;
 
-                                    var nodeValue = value.AsNode();
-
-                                    if (descendIntoChildren == null || descendIntoChildren(nodeValue))
-                                    {
-                                        stack.PushChildren(nodeValue);
-                                    }
+                                    stack.PushChildren(value.AsNode(), descendIntoChildren);
                                 }
                                 else if (value.IsToken)
                                 {
@@ -473,10 +490,7 @@ namespace Microsoft.CodeAnalysis
                                     // parent nodes come before children (prefix document order)
                                     yield return structureNode;
 
-                                    if (descendIntoChildren == null || descendIntoChildren(structureNode))
-                                    {
-                                        stack.PushChildren(structureNode);
-                                    }
+                                    stack.PushChildren(structureNode, descendIntoChildren);
                                 }
                             }
                             break;
@@ -491,12 +505,7 @@ namespace Microsoft.CodeAnalysis
 
         private IEnumerable<SyntaxTrivia> DescendantTriviaOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren)
         {
-            if (descendIntoChildren != null && !descendIntoChildren(this))
-            {
-                yield break;
-            }
-
-            using (var stack = new ChildSyntaxListEnumeratorStack(this))
+            using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
                 SyntaxNodeOrToken value;
                 while (stack.IsNotEmpty)
@@ -536,12 +545,7 @@ namespace Microsoft.CodeAnalysis
 
         private IEnumerable<SyntaxTrivia> DescendantTriviaIntoTrivia(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren)
         {
-            if (descendIntoChildren != null && !descendIntoChildren(this))
-            {
-                yield break;
-            }
-
-            using (var stack = new TwoEnumeratorListStack(this))
+            using (var stack = new TwoEnumeratorListStack(this, descendIntoChildren))
             {
                 while (stack.IsNotEmpty)
                 {
@@ -554,10 +558,7 @@ namespace Microsoft.CodeAnalysis
                                 if (value.IsNode)
                                 {
                                     var nodeValue = value.AsNode();
-                                    if (descendIntoChildren == null || descendIntoChildren(nodeValue))
-                                    {
-                                        stack.PushChildren(nodeValue);
-                                    }
+                                    stack.PushChildren(nodeValue, descendIntoChildren);
                                 }
                                 else if (value.IsToken)
                                 {
@@ -590,11 +591,7 @@ namespace Microsoft.CodeAnalysis
                                 if (trivia.HasStructure)
                                 {
                                     var structureNode = trivia.GetStructure();
-
-                                    if (descendIntoChildren == null || descendIntoChildren(structureNode))
-                                    {
-                                        stack.PushChildren(structureNode);
-                                    }
+                                    stack.PushChildren(structureNode, descendIntoChildren);
                                 }
                             }
 
