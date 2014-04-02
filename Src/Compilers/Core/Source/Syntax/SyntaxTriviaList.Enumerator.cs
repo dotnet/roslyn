@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis
     {
         public struct Enumerator
         {
-            private readonly SyntaxToken token;
-            private readonly GreenNode singleNodeOrList;
-            private readonly int baseIndex;
-            private readonly int count;
+            private SyntaxToken token;
+            private GreenNode singleNodeOrList;
+            private int baseIndex;
+            private int count;
 
             private int index;
             private GreenNode current;
@@ -29,6 +29,49 @@ namespace Microsoft.CodeAnalysis
                 this.index = -1;
                 this.current = null;
                 this.position = list.position;
+            }
+
+            // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
+            private void InitializeFrom(ref SyntaxToken token, GreenNode greenNode, int index, int position)
+            {
+                this.token = token;
+                this.singleNodeOrList = greenNode;
+                this.baseIndex = index;
+                this.count = greenNode.IsList ? greenNode.SlotCount : 1;
+
+                this.index = -1;
+                this.current = null;
+                this.position = position;
+            }
+
+            // PERF: Used to initialize an enumerator for leading trivia directly from a token.
+            // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
+            // by ref since it's a non-trivial struct
+            internal void InitializeFromLeadingTrivia(ref SyntaxToken token)
+            {
+                InitializeFrom(ref token, token.Node.GetLeadingTriviaCore(), 0, token.Position);
+            }
+
+            // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
+            // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
+            // by ref since it's a non-trivial struct
+            internal void InitializeFromTrailingTrivia(ref SyntaxToken token)
+            {
+                var leading = token.Node.GetLeadingTriviaCore();
+                int index = 0;
+                if (leading != null)
+                {
+                    index = leading.IsList ? leading.SlotCount : 1;
+                }
+
+                var trailingGreen = token.Node.GetTrailingTriviaCore();
+                int trailingPosition = token.Position + token.FullWidth;
+                if (trailingGreen != null)
+                {
+                    trailingPosition -= trailingGreen.FullWidth;
+                }
+
+                InitializeFrom(ref token, trailingGreen, index, trailingPosition);
             }
 
             public bool MoveNext()
@@ -63,6 +106,17 @@ namespace Microsoft.CodeAnalysis
 
                     return new SyntaxTrivia(this.token, this.current, this.position, this.baseIndex + this.index);
                 }
+            }
+
+            internal bool TryMoveNextAndGetCurrent(ref SyntaxTrivia current)
+            {
+                if (!MoveNext())
+                {
+                    return false;
+                }
+
+                current = new SyntaxTrivia(this.token, this.current, this.position, this.baseIndex + this.index);
+                return true;
             }
         }
 

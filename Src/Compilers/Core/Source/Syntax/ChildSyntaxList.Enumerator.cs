@@ -12,14 +12,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Enumerates the elements of a <see cref="ChildSyntaxList" />.</summary>
         public struct Enumerator
         {
-            private readonly SyntaxNode node;
-            private readonly int count;
+            private SyntaxNode node;
+            private int count;
             private int childIndex;
 
             internal Enumerator(SyntaxNode node, int count)
             {
                 this.node = node;
                 this.count = count;
+                this.childIndex = -1;
+            }
+
+            // PERF: Initialize an Enumerator directly from a SyntaxNode without going
+            // via ChildNodesAndTokens. This saves constructing an intermediate ChildSyntaxList
+            internal void InitializeFrom(SyntaxNode node)
+            {
+                this.node = node;
+                this.count = CountNodes(node.Green);
                 this.childIndex = -1;
             }
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.stack = StackPool.Allocate();
                 this.stackPtr = 0;
-                this.stack[0] = startingNode.ChildNodesAndTokens().GetEnumerator();
+                this.stack[0].InitializeFrom(startingNode);
             }
 
             public bool IsNotEmpty { get { return stackPtr >= 0; } }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Resize(ref stack, checked(stackPtr * 2));
                 }
 
-                stack[stackPtr] = node.ChildNodesAndTokens().GetEnumerator();
+                stack[stackPtr].InitializeFrom(node);
             }
 
             public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
@@ -129,9 +129,8 @@ namespace Microsoft.CodeAnalysis
             {
                 value = default(SyntaxTrivia);
 
-                if (stack[stackPtr].MoveNext())
+                if (stack[stackPtr].TryMoveNextAndGetCurrent(ref value))
                 {
-                    value = stack[stackPtr].Current;
                     return true;
                 }
 
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Resize(ref stack, checked(stackPtr * 2));
                 }
 
-                stack[stackPtr] = token.LeadingTrivia.GetEnumerator();
+                stack[stackPtr].InitializeFromLeadingTrivia(ref token);
             }
 
             public void PushTrailingTrivia(ref SyntaxToken token)
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Resize(ref stack, checked(stackPtr * 2));
                 }
 
-                stack[stackPtr] = token.TrailingTrivia.GetEnumerator();
+                stack[stackPtr].InitializeFromTrailingTrivia(ref token);
             }
 
             public void Dispose()
