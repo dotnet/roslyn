@@ -772,8 +772,16 @@ End Module
             }
         }
 
+        private static string FixLineEndings(string text)
+        {
+            return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        }
+
         private static void Verify(string codeWithMarker, string expectedResult)
         {
+            codeWithMarker = FixLineEndings(codeWithMarker);
+            expectedResult = FixLineEndings(expectedResult);
+
             var codeWithoutMarker = default(string);
             var textSpans = (IList<TextSpan>)new List<TextSpan>();
             MarkupTestFile.GetSpans(codeWithMarker, out codeWithoutMarker, out textSpans);
