@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // Returns 'true' if the receiver was actually emitted this way
         private bool EmitFieldLoadReceiverAddress(BoundExpression receiver)
         {
-            if (receiver == null)
+            if (receiver == null || !receiver.Type.IsValueType)
             {
                 return false;
             }
@@ -634,13 +634,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var fieldAccess = (BoundFieldAccess)receiver;
                 var field = fieldAccess.FieldSymbol;
 
-                //  do not support 
                 if (!field.IsStatic && EmitFieldLoadReceiverAddress(fieldAccess.ReceiverOpt))
                 {
-                    if (field.IsVolatile)
-                    {
-                        builder.EmitOpCode(ILOpCode.Volatile);
-                    }
+                    Debug.Assert(!field.IsVolatile, "volatile valuetype fields are unexpected");
 
                     builder.EmitOpCode(ILOpCode.Ldflda);
                     EmitSymbolToken(field, fieldAccess.Syntax);

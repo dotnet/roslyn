@@ -123,6 +123,70 @@ End Class
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub Bug776642a_ref()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        M(New Object() {})
+    End Sub
+
+    Sub M(args As Object())
+        args = New Object() {new OuterStruct(1)}
+        Console.WriteLine((((DirectCast(args(0), OuterStruct)).z).y).x)
+    End Sub
+End Module
+
+Structure TwoInteger
+    Public x As Integer
+    Public y As Integer
+End Structure
+
+Class DoubleAndStruct
+    Public x As Double
+    Public y As TwoInteger
+End Class
+
+Structure OuterStruct
+    public sub new(i as integer)
+        z = new DoubleAndStruct()
+    end sub
+
+    Public z As DoubleAndStruct
+End Structure
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "Object"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     "Sub OuterStruct..ctor(Integer)"
+  IL_000e:  box        "OuterStruct"
+  IL_0013:  stelem.ref
+  IL_0014:  starg.s    V_0
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldelem.ref
+  IL_0019:  unbox      "OuterStruct"
+  IL_001e:  ldfld      "OuterStruct.z As DoubleAndStruct"
+  IL_0023:  ldflda     "DoubleAndStruct.y As TwoInteger"
+  IL_0028:  ldfld      "TwoInteger.x As Integer"
+  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0032:  ret
+}
+]]>)
+        End Sub
+
         <WorkItem(776642)>
         <Fact()>
         Public Sub Bug776642_shared()

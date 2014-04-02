@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         '
         ' Returns 'true' if the receiver was actually emitted this way
         Private Function EmitFieldLoadReceiverAddress(receiver As BoundExpression) As Boolean
-            If receiver Is Nothing Then
+            If receiver Is Nothing OrElse receiver.Type.IsReferenceType Then
                 Return False
 
             ElseIf receiver.Kind = BoundKind.DirectCast AndAlso IsUnboxingDirectCast(DirectCast(receiver, BoundDirectCast)) Then
@@ -451,7 +451,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim fieldAccess = DirectCast(receiver, BoundFieldAccess)
                 Dim field As FieldSymbol = fieldAccess.FieldSymbol
 
-                '  do not support 
                 If Not field.IsShared AndAlso EmitFieldLoadReceiverAddress(fieldAccess.ReceiverOpt) Then
                     Me._builder.EmitOpCode(ILOpCode.Ldflda)
                     EmitSymbolToken(field, fieldAccess.Syntax)

@@ -1658,6 +1658,65 @@ public class Test
 ");
         }
 
+
+        [Fact]
+        public void FieldLoad001()
+        {
+            string source = @"
+    using System;
+
+    struct Point
+    {
+        public int x;
+        public int y;
+    }
+
+    class Rectangle
+    {
+        public Point topLeft;
+        public Point bottomRight;
+    }
+
+    struct C1
+    {
+        public C1(int i)
+        {
+            r = new Rectangle();
+        }
+
+        public Rectangle r;
+    }
+
+    class Program
+    {
+        static object p = new C1(1);
+
+        static void Main(string[] args)
+        {
+            System.Console.WriteLine(((C1)p).r.topLeft.x);
+        }
+    }
+
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "0");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  IL_0000:  ldsfld     ""object Program.p""
+  IL_0005:  unbox      ""C1""
+  IL_000a:  ldfld      ""Rectangle C1.r""
+  IL_000f:  ldflda     ""Point Rectangle.topLeft""
+  IL_0014:  ldfld      ""int Point.x""
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ret
+}
+");
+        }
+
         #endregion
     }
 }
