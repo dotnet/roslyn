@@ -5144,7 +5144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: node,
                 receiver: boundLeft,
                 typeArgumentsOpt: typeArguments,
-                name: right.Identifier.Text,
+                name: right.Identifier.ValueText,
                 invoked: invoked,
                 indexed: indexed,
                 type: Compilation.DynamicType,
