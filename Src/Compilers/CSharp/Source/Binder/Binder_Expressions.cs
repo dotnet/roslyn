@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!analyzedArguments.HasErrors)
                 {
                     string name = (object)delegateTypeOpt == null ? methodName : null;
-                    result.ReportDiagnostics(this, expression.Location, diagnostics, name,
+                    result.ReportDiagnostics(this, GetLocationForOverloadResolutionDiagnostic(node, expression), diagnostics, name,
                         methodGroup.Receiver, analyzedArguments, methodGroup.Methods.ToImmutable(),
                         typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
                         queryClause: queryClause);
@@ -2299,6 +2299,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                             argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
             }
+        }
+
+        /// <param name="node">Invocation syntax node.</param>
+        /// <param name="expression">The syntax for the invoked method, including receiver.</param>
+        private Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
+        {
+            if (node != expression)
+            {
+                switch (expression.CSharpKind())
+                {
+                    case SyntaxKind.QualifiedName:
+                        return ((QualifiedNameSyntax)expression).Right.GetLocation();
+
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                    case SyntaxKind.PointerMemberAccessExpression:
+                        return ((MemberAccessExpressionSyntax)expression).Name.GetLocation();
+                }
+            }
+
+            return expression.GetLocation();
         }
 
         /// <summary>

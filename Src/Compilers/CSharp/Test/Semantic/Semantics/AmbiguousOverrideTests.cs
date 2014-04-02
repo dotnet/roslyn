@@ -97,7 +97,7 @@ class EntryPoint
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(TLong, int)' and 'Base<TLong, TInt>.Method(long, TInt)'
                 //         new Derived2().Method(1L, 2); //CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new Derived2().Method").WithArguments("Base<TLong, TInt>.Method(TLong, int)", "Base<TLong, TInt>.Method(long, TInt)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(TLong, int)", "Base<TLong, TInt>.Method(long, TInt)"));
         }
 
         [Fact]
@@ -200,7 +200,7 @@ abstract class Derived2 : Base<int, long>
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)"),
                 // (21,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
                 //         base.Method(1, 1);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base.Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)"));
         }
 
         [Fact]
@@ -299,7 +299,7 @@ public class Test
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AmbigCall, "obj.M").WithArguments("Metadata.LeastModoptsWinAmbiguous.M(byte, byte)", "Metadata.LeastModoptsWinAmbiguous.M(byte, byte)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Metadata.LeastModoptsWinAmbiguous.M(byte, byte)", "Metadata.LeastModoptsWinAmbiguous.M(byte, byte)")
             );
         }
 
@@ -391,7 +391,7 @@ class Test
             CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
     // (11,9): error CS0570: 'Metadata.Modreq.M(?)' is not supported by the language
     //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
-    Diagnostic(ErrorCode.ERR_BindToBogus, "new D().M").WithArguments("Metadata.Modreq.M(?)")
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(?)")
                 );
         }
 
@@ -1134,16 +1134,16 @@ class M
 
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
                 //         base.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base.F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
                 //         base.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "base.F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
                 // (34,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
                 //             e.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "e.F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
                 // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
                 //             e.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "e.F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
         }
 
         [Fact]

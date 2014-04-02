@@ -322,13 +322,13 @@ interface I1<T>
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test3").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (166,9): error CS1501: No overload for method 'Test4' takes 0 arguments
                 //         CL3_C2.Test4();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "CL3_C2.Test4").WithArguments("Test4", "0"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0"),
                 // (171,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C2.Test4(null);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test4").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (171,9): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
                 //         CL3_C2.Test4(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "CL3_C2.Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
                 // (177,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.Test1();
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "y.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -485,10 +485,10 @@ public interface CL3_I1 : CL2_I1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)"),
                 // (166,9): error CS1501: No overload for method 'Test4' takes 0 arguments
                 //         CL3_C2.Test4();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "CL3_C2.Test4").WithArguments("Test4", "0"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0"),
                 // (171,9): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
                 //         CL3_C2.Test4(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "CL3_C2.Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
                 // (177,9): error CS0176: Member 'CL3_C2.Test1()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         y.Test1();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "y.Test1").WithArguments("CL3_C2.Test1()"),

@@ -439,9 +439,9 @@ class D
                 // (7,20): error CS0570: 'C.F2' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("C.F2"),
                 // (8,18): error CS0570: 'C.M1()' is not supported by the language
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.M1").WithArguments("C.M1()"),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("C.M1()"),
                 // (9,18): error CS0570: 'C.M2()' is not supported by the language
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.M2").WithArguments("C.M2()"),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2").WithArguments("C.M2()"),
                 // (10,20): error CS0570: 'C.P1' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P1").WithArguments("C.P1"),
                 // (11,20): error CS0570: 'C.P2' is not supported by the language

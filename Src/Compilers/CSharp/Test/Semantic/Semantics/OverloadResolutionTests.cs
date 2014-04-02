@@ -1011,8 +1011,8 @@ class Test2
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadArgCount, "b.Method2").WithArguments("Method2", "5"),
-                Diagnostic(ErrorCode.ERR_BadArgCount, "d.Method2").WithArguments("Method2", "5"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
         [Fact]
@@ -1045,8 +1045,8 @@ class Test2
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadArgCount, "d.Method1").WithArguments("Method1", "5"),
-                Diagnostic(ErrorCode.ERR_BadArgCount, "b.Method2").WithArguments("Method2", "5"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method1").WithArguments("Method1", "5"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
         [Fact]
@@ -1080,7 +1080,7 @@ class Test2
                 // (10,15): error CS0466: 'Derived.Base.Method2(Derived, Derived, params Derived[])' should not have a params parameter since 'Base.Method2(Derived, Derived, Derived[])' does not
                 Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Method2").WithArguments("Derived.Base.Method2(Derived, Derived, params Derived[])", "Base.Method2(Derived, Derived, Derived[])"),
                 // (19,9): error CS1501: No overload for method 'Method2' takes 5 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "b.Method2").WithArguments("Method2", "5"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
         [WorkItem(540153)]
@@ -1174,8 +1174,8 @@ class Test2
             // Same errors as in source case
             var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
             comp.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadArgCount, "b.Method2").WithArguments("Method2", "5"),
-                Diagnostic(ErrorCode.ERR_BadArgCount, "d.Method2").WithArguments("Method2", "5"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
@@ -2986,25 +2986,25 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgRef, "c").WithArguments("1", "out"),
                 // (117,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M5(ref int)' and 'IRef1.M5(ref long)'
                 //        ref1.M5(10);       // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
                 // (118,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M5(ref int)' and 'IRef1.M5(ref long)'
                 //        ref1.M5('c');      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
                 // (119,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M5(ref int)' and 'IRef1.M5(ref long)'
                 //        ref1.M5(i);        // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
                 // (120,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M5(ref int)' and 'IRef1.M5(ref long)'
                 //        ref1.M5(c);        // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M5").WithArguments("IRef1.M5(ref int)", "IRef1.M5(ref long)"),
                 // (121,20): error CS1503: Argument 1: cannot convert from 'ref char' to 'ref int'
                 //        ref1.M5(ref c);    // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "ref char", "ref int"),
                 // (128,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref char)' and 'IRef1.M6(ref long)'
                 //        ref1.M6('c');      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref char)", "IRef1.M6(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref char)", "IRef1.M6(ref long)"),
                 // (129,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref char)' and 'IRef1.M6(ref long)'
                 //        ref1.M6(c);        // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref char)", "IRef1.M6(ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref char)", "IRef1.M6(ref long)"),
                 // (130,20): error CS1503: Argument 1: cannot convert from 'ref int' to 'ref char'
                 //        ref1.M6(ref i);    // CS1503   
                 Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref int", "ref char"),
@@ -5264,10 +5264,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "ref char", "ref int"),
                 // (129,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M4(ref int, long)' and 'IRef1.M4(ref int, ref int)'
                 //        ref1.M4(i, i);      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
                 // (130,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M4(ref int, long)' and 'IRef1.M4(ref int, ref int)'
                 //        ref1.M4(i, c);      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
                 // (131,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //        ref1.M4(l, i);      // CS1620
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("1", "ref"),
@@ -5279,10 +5279,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("1", "ref"),
                 // (134,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M4(ref int, long)' and 'IRef1.M4(ref int, ref int)'
                 //        ref1.M4(c, i);      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
                 // (135,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M4(ref int, long)' and 'IRef1.M4(ref int, ref int)'
                 //        ref1.M4(c, c);      // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("IRef1.M4(ref int, long)", "IRef1.M4(ref int, ref int)"),
                 // (136,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //        ref1.M4(l, ref i);  // CS1620, CS1615
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("1", "ref"),
@@ -5327,13 +5327,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "char"),
                 // (158,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref int, int)' and 'IRef1.M6(ref long, int)'
                 //        ref1.M6(i, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
                 // (159,19): error CS1503: Argument 2: cannot convert from 'long' to 'int'
                 //        ref1.M6(i, l);    // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "int"),
                 // (160,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref int, int)' and 'IRef1.M6(ref long, int)'
                 //        ref1.M6(i, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
                 // (161,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //        ref1.M6(l, l);    // CS1620, CS1503
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("1", "ref"),
@@ -5342,13 +5342,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "int"),
                 // (162,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref int, int)' and 'IRef1.M6(ref long, int)'
                 //        ref1.M6(c, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
                 // (163,19): error CS1503: Argument 2: cannot convert from 'long' to 'int'
                 //        ref1.M6(c, l);    // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "int"),
                 // (164,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M6(ref int, int)' and 'IRef1.M6(ref long, int)'
                 //        ref1.M6(c, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("IRef1.M6(ref int, int)", "IRef1.M6(ref long, int)"),
                 // (165,23): error CS1503: Argument 2: cannot convert from 'long' to 'int'
                 //        ref1.M6(ref i, l);  // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "int"),
@@ -5360,19 +5360,19 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "long", "int"),
                 // (173,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M7(ref int, long)' and 'IRef1.M7(ref long, ref int)'
                 //        ref1.M7(i, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
                 // (174,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M7(ref int, long)' and 'IRef1.M7(ref long, ref int)'
                 //        ref1.M7(i, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
                 // (175,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //        ref1.M7(l, l);    // CS1620
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("1", "ref"),
                 // (176,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M7(ref int, long)' and 'IRef1.M7(ref long, ref int)'
                 //        ref1.M7(c, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
                 // (177,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M7(ref int, long)' and 'IRef1.M7(ref long, ref int)'
                 //        ref1.M7(c, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M7").WithArguments("IRef1.M7(ref int, long)", "IRef1.M7(ref long, ref int)"),
                 // (178,23): error CS1615: Argument 2 should not be passed with the 'ref' keyword
                 //        ref1.M7(i, ref l);  // CS1615
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "l").WithArguments("2", "ref"),
@@ -5393,10 +5393,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("2", "ref"),
                 // (189,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M8(long, ref int)' and 'IRef1.M8(ref long, int)'
                 //        ref1.M8(i, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
                 // (190,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M8(long, ref int)' and 'IRef1.M8(ref long, int)'
                 //        ref1.M8(l, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
                 // (191,19): error CS1620: Argument 2 must be passed with the 'ref' keyword
                 //        ref1.M8(l, l);    // CS1620
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("2", "ref"),
@@ -5405,7 +5405,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("2", "ref"),
                 // (193,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M8(long, ref int)' and 'IRef1.M8(ref long, int)'
                 //        ref1.M8(c, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M8").WithArguments("IRef1.M8(long, ref int)", "IRef1.M8(ref long, int)"),
                 // (194,23): error CS1503: Argument 2: cannot convert from 'ref long' to 'ref int'
                 //        ref1.M8(i, ref l);   // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "ref long", "ref int"),
@@ -5453,19 +5453,19 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "ref long", "ref int"),
                 // (211,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M9(ref long, ref int)' and 'IRef1.M9(ref int, ref long)'
                 //        ref1.M9(i, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
                 // (212,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M9(ref long, ref int)' and 'IRef1.M9(ref int, ref long)'
                 //        ref1.M9(i, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
                 // (213,19): error CS1620: Argument 2 must be passed with the 'ref' keyword
                 //        ref1.M9(l, l);    // CS1620
                 Diagnostic(ErrorCode.ERR_BadArgRef, "l").WithArguments("2", "ref"),
                 // (214,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M9(ref long, ref int)' and 'IRef1.M9(ref int, ref long)'
                 //        ref1.M9(c, i);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
                 // (215,8): error CS0121: The call is ambiguous between the following methods or properties: 'IRef1.M9(ref long, ref int)' and 'IRef1.M9(ref int, ref long)'
                 //        ref1.M9(c, c);    // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "ref1.M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M9").WithArguments("IRef1.M9(ref long, ref int)", "IRef1.M9(ref int, ref long)"),
                 // (216,23): error CS1503: Argument 2: cannot convert from 'ref long' to 'ref int'
                 //        ref1.M9(l, ref l);   // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("2", "ref long", "ref int"),

@@ -340,7 +340,7 @@ class B
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'A.F(object, string)' and 'A.F(string, object)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "a.F").WithArguments("A.F(object, string)", "A.F(string, object)").WithLocation(18, 9),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("A.F(object, string)", "A.F(string, object)").WithLocation(18, 11),
                 // (20,13): error CS1503: Argument 1: cannot convert from 'object' to 'string'
                 Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "string").WithLocation(20, 13));
         }
@@ -594,7 +594,7 @@ class C
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'S.M(double, A)' and 'S.M(double, B)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "S.M").WithArguments("S.M(double, A)", "S.M(double, B)").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("S.M(double, A)", "S.M(double, B)").WithLocation(12, 11),
                 // (13,18): error CS1503: Argument 2: cannot convert from 'double' to 'A'
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "A").WithLocation(13, 18));
         }

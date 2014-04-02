@@ -258,7 +258,7 @@ class Program
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         new B().M(1, 2); // This would work if B.M was not hide-by-name (since A.M is params)
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new B().M").WithArguments("M", "2"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2"));
         }
 
         [Fact]

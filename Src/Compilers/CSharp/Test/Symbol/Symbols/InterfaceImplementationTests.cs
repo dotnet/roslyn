@@ -2057,7 +2057,7 @@ public class D : B, I
             CreateCompilationWithCustomILSource(source2, il).VerifyDiagnostics(
                 // (7,17): error CS7085: By-reference return type 'ref int' is not supported.
                 //         var x = i.M();
-                Diagnostic(ErrorCode.ERR_ByRefReturnUnsupported, "i.M").WithArguments("int"));
+                Diagnostic(ErrorCode.ERR_ByRefReturnUnsupported, "M").WithArguments("int"));
         }
 
         [WorkItem(547149)]

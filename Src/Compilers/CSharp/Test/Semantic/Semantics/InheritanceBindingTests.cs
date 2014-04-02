@@ -6942,13 +6942,13 @@ class Test
 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)"),
 // (29,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "i.Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
 // (32,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "i.Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"),
 // (35,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)' and 'I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)'
 //         i.Method<string>(1, x, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "i.Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"));
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method<string>").WithArguments("I1<T, U>.Method<V>(T, System.Func<U, T, V>, U)", "I1<T, U>.Method<Z>(U, System.Func<T, U, Z>, T)"));
         }
 
         [Fact]
@@ -7039,10 +7039,10 @@ class Test
 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])"),
 // (34,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method(T, U[])' and 'I1<T, U>.Method(U, params T[])'
 //         i.Method(x, new int[] { x, x, x }); i.Method(x, x, x, x);
-Diagnostic(ErrorCode.ERR_AmbigCall, "i.Method").WithArguments("I1<T, U>.Method(T, U[])", "I1<T, U>.Method(U, params T[])"),
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, U[])", "I1<T, U>.Method(U, params T[])"),
 // (35,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1<T, U>.Method(T, System.Func<T, U>, U[])' and 'I1<T, U>.Method(U, System.Func<T, U>, params U[])'
 //         i.Method(x, y, new int[] { x, x, x }); i.Method(x, y, x, x, x);
-Diagnostic(ErrorCode.ERR_AmbigCall, "i.Method").WithArguments("I1<T, U>.Method(T, System.Func<T, U>, U[])", "I1<T, U>.Method(U, System.Func<T, U>, params U[])"));
+Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("I1<T, U>.Method(T, System.Func<T, U>, U[])", "I1<T, U>.Method(U, System.Func<T, U>, params U[])"));
         }
 
 

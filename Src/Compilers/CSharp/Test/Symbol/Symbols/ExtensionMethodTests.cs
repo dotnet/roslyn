@@ -660,40 +660,40 @@ namespace N4
             compilation.VerifyDiagnostics(
                 // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
-                Diagnostic(ErrorCode.ERR_BadArgCount, "this.M1").WithArguments("M1", "3").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(10, 22),
                 // (11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this.M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(11, 22),
                 // (12,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //                 this.M3(1, 2.0); // MethodResolutionKind.BadArguments
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "int").WithLocation(12, 28),
                 // (13,17): error CS0411: The type arguments for method 'N1.N2.C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 this.M4(null, 2); // MethodResolutionKind.TypeInferenceFailed
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "this.M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(13, 22),
                 // (14,22): error CS0305: Using the generic method 'N1.N2.C.M5<T>(T, int)' requires 1 type arguments
                 //                 this.M5<string, string>(null, 2); // Bad arity
                 Diagnostic(ErrorCode.ERR_BadArity, "M5<string, string>").WithArguments("N1.N2.C.M5<T>(T, int)", "method", "1").WithLocation(14, 22),
                 // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.C.M6(object, string)' and 'N1.N2.C.M6(string, object)'
                 //                 this.M6(null, null); // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "this.M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(15, 22),
                 // (41,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
-                Diagnostic(ErrorCode.ERR_BadArgCount, "this.M1").WithArguments("M1", "3").WithLocation(41, 17),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "3").WithLocation(41, 22),
                 // (42,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'N1.N2.C.M2(int, int)'
                 //                 this.M2(1); // MethodResolutionKind.RequiredParameterMissing
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this.M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 17),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("y", "N1.N2.C.M2(int, int)").WithLocation(42, 22),
                 // (43,28): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //                 this.M3(1, 2.0); // MethodResolutionKind.BadArguments
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("2", "double", "int").WithLocation(43, 28),
                 // (44,17): error CS0411: The type arguments for method 'N1.N2.C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 this.M4(null, 2); // MethodResolutionKind.TypeInferenceFailed
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "this.M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(44, 17),
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(44, 22),
                 // (45,47): error CS1503: Argument 3: cannot convert from 'int' to 'string'
                 //                 this.M5<string, string>(null, 2); // Bad arity
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("3", "int", "string").WithLocation(45, 47),
                 // (46,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.C.M6(object, string)' and 'N1.N2.C.M6(string, object)'
                 //                 this.M6(null, null); // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "this.M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(46, 17));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(46, 22));
         }
 
         /// <summary>
@@ -736,7 +736,7 @@ namespace N4
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (22,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.S.E(object, double, N1.A)' and 'N1.N2.S.E(object, double, N1.B)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.E").WithArguments("N1.N2.S.E(object, double, N1.A)", "N1.N2.S.E(object, double, N1.B)").WithLocation(22, 17),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.N2.S.E(object, double, N1.A)", "N1.N2.S.E(object, double, N1.B)").WithLocation(22, 19),
                 // (23,26): error CS1503: Argument 3: cannot convert from 'double' to 'N1.A'
                 Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("3", "double", "N1.A").WithLocation(23, 26));
         }
@@ -825,7 +825,7 @@ static class S
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (9, 9): error CS1593: Delegate 'System.Action<int>' does not take 2 arguments
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "this.F").WithArguments("System.Action<int>", "2").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "F").WithArguments("System.Action<int>", "2").WithLocation(9, 14),
                 // (10,16): error CS1503: Argument 1: cannot convert from 'double' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, "1.0").WithArguments("1", "double", "int").WithLocation(10, 16));
         }
@@ -1614,10 +1614,10 @@ namespace N.S
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AmbigCall, "s.E").WithArgumentsAnyOrder("A.E(string, int)", "B.E(string, int)").WithLocation(10, 9),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "s.E").WithArgumentsAnyOrder("B.E(string, int)", "A.E(string, int)").WithLocation(17, 9),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "s.E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(34, 13),
-                Diagnostic(ErrorCode.ERR_AmbigCall, "s.E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(41, 13));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("A.E(string, int)", "B.E(string, int)").WithLocation(10, 11),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("B.E(string, int)", "A.E(string, int)").WithLocation(17, 11),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(34, 15),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N.S.A.E(string, int)", "N.S.B.E(string, int)").WithLocation(41, 15));
         }
 
         /// <summary>
@@ -1969,9 +1969,9 @@ static class S
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1928: 'int' does not contain a definition for 'E2' and the best extension method overload 'S.E2(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "2.E2").WithArguments("int", "E2", "S.E2(double)").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E2").WithArguments("int", "E2", "S.E2(double)").WithLocation(6, 11),
                 // (7,9): error CS1928: 'int' does not contain a definition for 'E3' and the best extension method overload 'S.E3(long, params object[])' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "3.E3").WithArguments("int", "E3", "S.E3(long, params object[])").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "E3").WithArguments("int", "E3", "S.E3(long, params object[])").WithLocation(7, 11));
         }
 
         [Fact]
@@ -2110,7 +2110,7 @@ namespace N4
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (37,13): error CS0121: The call is ambiguous between the following methods or properties: 'N1.S.E(object)' and 'N2.S.E(object)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.E").WithArguments("N1.S.E(object)", "N2.S.E(object)").WithLocation(37, 13));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.S.E(object)", "N2.S.E(object)").WithLocation(37, 15));
         }
 
         [Fact]
@@ -2710,10 +2710,10 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (5,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         x.M(x, y);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "x.M").WithArguments("M", "2").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(5, 11),
                 // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
                 //         x.M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x.M").WithArguments("y", "S.M(object, object)").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(6, 11),
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'S.M(object, object)'
                 //         M(x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
@@ -3265,7 +3265,7 @@ namespace NB
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (16,13): error CS0121: The call is ambiguous between the following methods or properties: 'NA.A.F(object)' and 'NA.B.F(object)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new object().F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 13),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 26),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using NB;
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NB;"));

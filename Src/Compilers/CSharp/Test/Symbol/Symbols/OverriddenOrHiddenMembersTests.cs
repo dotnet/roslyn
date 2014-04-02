@@ -2393,7 +2393,7 @@ class Test
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (16,9): error CS0570: 'C.GAB(ref ?)' is not supported by the language
                 //         c.GAB(ref c);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.GAB").WithArguments("C.GAB(ref ?)"));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "GAB").WithArguments("C.GAB(ref ?)"));
         }
 
         [WorkItem(545653)]

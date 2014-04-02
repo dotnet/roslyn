@@ -1263,7 +1263,7 @@ class C
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'Foo' takes 1 arguments
                 //         c.Foo(d);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c.Foo").WithArguments("Foo", "1"));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "1"));
         }
 
         [Fact]

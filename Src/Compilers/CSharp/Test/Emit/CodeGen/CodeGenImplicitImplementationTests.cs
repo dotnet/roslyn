@@ -822,7 +822,7 @@ class C1 : IInterface
                 .VerifyDiagnostics(
                     // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseFoo()' and 'IBase2.BaseFoo()'
                     //         ((IInterface)c).BaseFoo();
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "((IInterface)c).BaseFoo").WithArguments("IBase1.BaseFoo()", "IBase2.BaseFoo()"));
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "BaseFoo").WithArguments("IBase1.BaseFoo()", "IBase2.BaseFoo()"));
 
         }
 

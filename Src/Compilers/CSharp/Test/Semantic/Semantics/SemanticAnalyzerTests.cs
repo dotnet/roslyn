@@ -407,13 +407,13 @@ class C
 
     }
 }",
-"'p.Ambiguous' error CS0121: The call is ambiguous between the following methods or properties: 'P.Ambiguous(string, object)' and 'P.Ambiguous(object, string)'",
+"'Ambiguous' error CS0121: The call is ambiguous between the following methods or properties: 'P.Ambiguous(string, object)' and 'P.Ambiguous(object, string)'",
 "'Blah' error CS1061: 'P' does not contain a definition for 'Blah' and no extension method 'Blah' accepting a first argument of type 'P' could be found (are you missing a using directive or an assembly reference?)",
-"'p.Generic' error CS0411: The type arguments for method 'P.Generic<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.",
+"'Generic' error CS0411: The type arguments for method 'P.Generic<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.",
 "'NotGeneric<int, int>' error CS0308: The non-generic method 'P.NotGeneric()' cannot be used with type arguments",
 "'Generic<int, int>' error CS0305: Using the generic method 'P.Generic<T>()' requires 1 type arguments",
 "'frob' error CS1739: The best overload for 'NoParameter' does not have a parameter named 'frob'",
-"'p.NoParameter' error CS1501: No overload for method 'NoParameter' takes 2 arguments",
+"'NoParameter' error CS1501: No overload for method 'NoParameter' takes 2 arguments",
 "'p.StaticMethod' error CS0176: Member 'P.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead",
 "'P.NoParameter' error CS0120: An object reference is required for the non-static field, method, or property 'P.NoParameter()'",
 

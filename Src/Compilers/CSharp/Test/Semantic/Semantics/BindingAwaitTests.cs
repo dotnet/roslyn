@@ -389,10 +389,10 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
                 //         new A().GetAwaiter();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new A().GetAwaiter").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),
                 // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(B)' and 'E.GetAwaiter(B)'
                 //         new B().GetAwaiter();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new B().GetAwaiter").WithArguments("Test.GetAwaiter(B)", "E.GetAwaiter(B)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("Test.GetAwaiter(B)", "E.GetAwaiter(B)"),
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),

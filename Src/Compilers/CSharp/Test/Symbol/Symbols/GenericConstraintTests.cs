@@ -6433,7 +6433,7 @@ class D2 : C<B<object>, A<object>>
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (18,9): error CS1061: 'X' does not contain a definition for 'E1' and no extension method 'E1' accepting a first argument of type 'X' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "o.E1").WithArguments("X", "E1").WithLocation(18, 9));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("X", "E1").WithLocation(18, 11));
         }
 
         [Fact]

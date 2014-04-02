@@ -1337,7 +1337,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'D.M(ref object)'
                 //         d.M(); //CS1501
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d.M").WithArguments("o", "D.M(ref object)").WithLocation(25, 9));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
 
         [WorkItem(545337)]
@@ -1661,7 +1661,7 @@ class P
             comp.VerifyDiagnostics(
 // (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
-Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.M").WithArguments("o", "I.M(out object)")
+Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "I.M(out object)")
                 );
         }
 

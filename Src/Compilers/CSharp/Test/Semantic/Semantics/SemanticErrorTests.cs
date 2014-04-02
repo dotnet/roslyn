@@ -2919,7 +2919,7 @@ public class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.f(int, double)' and 'C.f(double, int)'
                 //         new C().f(1, 1);   // CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().f").WithArguments("C.f(int, double)", "C.f(double, int)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("C.f(int, double)", "C.f(double, int)")
                 );
         }
 
@@ -8961,7 +8961,7 @@ struct S
                 // (34,11): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "I").WithArguments("C<T>", "T", "I").WithLocation(34, 11),
                 // (36,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.F<T>(D<T>)'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "E.F").WithArguments("E.F<T>(D<T>)", "T", "B").WithLocation(36, 9),
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "F").WithArguments("E.F<T>(D<T>)", "T", "B").WithLocation(36, 11),
                 // (38,19): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("C<T>", "T", "B").WithLocation(38, 19),
 
@@ -8998,7 +8998,7 @@ struct S
 
                 // (38,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         E.F(S.F<C<B>>);
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "E.F").WithArguments("C<T>", "T", "B"),
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "F").WithArguments("C<T>", "T", "B"),
 
                 // (41,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.M<T>(object)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "o.M<B>").WithArguments("E.M<T>(object)", "T", "B").WithLocation(41, 9),
@@ -9564,7 +9564,7 @@ class C
 }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_CantInferMethTypeArgs, Line = 11, Column = 9 } });
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_CantInferMethTypeArgs, Line = 11, Column = 11 } });
         }
 
         [WorkItem(529560)]
@@ -12249,7 +12249,7 @@ class Test
                 .VerifyDiagnostics(
                 // (7,17): error CS1061: 'int' does not contain a definition for 'Select' and no extension method 'Select' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         var q = 1.Select(z => z);
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1.Select").WithArguments("int", "Select").WithLocation(7, 17));
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Select").WithArguments("int", "Select").WithLocation(7, 19));
         }
 
         [Fact]
@@ -12269,9 +12269,9 @@ static class C
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'M1' takes 2 arguments
-                Diagnostic(ErrorCode.ERR_BadArgCount, "o.M1").WithArguments("M1", "2").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(6, 11),
                 // (7,9): error CS1061: 'object' does not contain a definition for 'M2' and no extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "o.M2").WithArguments("object", "M2").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(7, 11));
         }
 
         [Fact]
@@ -12470,7 +12470,7 @@ namespace ConsoleApplication1
 }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgCount, Line = 11, Column = 13 } });
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgCount, Line = 11, Column = 16 } });
         }
 
         [Fact]
@@ -15198,7 +15198,7 @@ static class S
             var compilation = CreateCompilationWithMscorlib(text, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1928: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "f.F").WithArguments("float", "F", "S.F(double)").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "F").WithArguments("float", "F", "S.F(double)").WithLocation(5, 11));
         }
 
         [Fact]

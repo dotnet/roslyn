@@ -2165,7 +2165,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(?)"),
                 // (10,9): error CS0570: 'Methods.M(?)' is not supported by the language
                 //         Methods.M(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(?)"),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(?)"),
                 // (12,29): error CS0570: 'Methods.M(?)' is not supported by the language
                 //         Action<string> a2 = Methods.M;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(?)"),

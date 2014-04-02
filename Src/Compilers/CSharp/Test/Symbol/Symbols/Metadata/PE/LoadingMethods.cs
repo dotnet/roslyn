@@ -1261,9 +1261,9 @@ public class D
 
             c.VerifyDiagnostics(
                 // (6,20): error CS0570: 'C.RT()' is not supported by the language
-                Diagnostic(ErrorCode.ERR_BindToBogus, "C.RT").WithArguments("C.RT()"),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "RT").WithArguments("C.RT()"),
                 // (7,20): error CS0570: 'C.VT()' is not supported by the language
-                Diagnostic(ErrorCode.ERR_BindToBogus, "C.VT").WithArguments("C.VT()"));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
         [WorkItem(666162)]
         [Fact]
