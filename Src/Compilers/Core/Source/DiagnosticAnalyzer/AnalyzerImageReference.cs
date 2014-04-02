@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalyzerImageReference(ImmutableArray<IDiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
         {
-            if (analyzers.IsDefaultOrEmpty || analyzers.Any(a => a == null))
+            if (analyzers.Any(a => a == null))
             {
-                throw new ArgumentException("Analyzers cannot be null or empty or have null valued analyzer");
+                throw new ArgumentException("Cannot have null-valued analyzer", "analyzers");
             }
 
             this.analyzers = analyzers;
