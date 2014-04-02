@@ -1,5 +1,17 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- This file is imported by all projects at the end of the project files -->
+  <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
+    <DeployVSVersion>12.0</DeployVSVersion>
+    <DeployVSHive>Roslyn</DeployVSHive>
+    <DeployToPackageFolders>true</DeployToPackageFolders>
+    <DelaySignBuild Condition="'$(DelaySignBuild)' == ''">true</DelaySignBuild>
+    <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
+    <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
+    <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
+  </PropertyGroup>
+
+  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
+  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
 
   <!-- Update common properties -->
   <PropertyGroup>
