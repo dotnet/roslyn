@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     parent.CSharpKind() == SyntaxKind.WhileStatement || parent.CSharpKind() == SyntaxKind.DoStatement ||
                     parent.CSharpKind() == SyntaxKind.ForEachStatement || parent.CSharpKind() == SyntaxKind.UsingStatement ||
                     parent.CSharpKind() == SyntaxKind.ForStatement || parent.CSharpKind() == SyntaxKind.TryStatement ||
-                    parent.CSharpKind() == SyntaxKind.CatchClause || parent.CSharpKind() == SyntaxKind.FinallyClause));
+                    parent.CSharpKind() == SyntaxKind.CatchClause || parent.CSharpKind() == SyntaxKind.FinallyClause ||
+                    parent.CSharpKind() == SyntaxKind.LockStatement));
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
