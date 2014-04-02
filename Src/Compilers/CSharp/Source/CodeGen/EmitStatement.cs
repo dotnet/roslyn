@@ -1085,29 +1085,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             LocalDefinition key,
             CSharpSyntaxNode syntaxNode)
         {
-            bool genHashTableSwitch = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(this.module, switchCaseLabels.Length);
             LocalDefinition keyHash = null;
 
-            if (genHashTableSwitch)
+            // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
+            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(this.module, switchCaseLabels.Length))
             {
                 Debug.Assert(this.module.SupportsPrivateImplClass);
+
                 var privateImplClass = this.module.GetPrivateImplClass(syntaxNode, diagnostics);
                 Microsoft.Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
-                Debug.Assert(stringHashMethodRef != null);
 
-                // static uint ComputeStringHash(string s)
-                // pop 1 (s)
-                // push 1 (uint return value)
-                // stackAdjustment = (pushCount - popCount) = 0
+                // Heuristics and well-known member availability determine the existence
+                // of this helper.  Rather than reproduce that (language-specific) logic here,
+                // we simply check for the information we really want - whether the helper is
+                // available.
+                if (stringHashMethodRef != null)
+                {
+                    // static uint ComputeStringHash(string s)
+                    // pop 1 (s)
+                    // push 1 (uint return value)
+                    // stackAdjustment = (pushCount - popCount) = 0
 
-                builder.EmitLocalLoad(key);
-                builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                builder.EmitToken(stringHashMethodRef, syntaxNode, diagnostics);
+                    builder.EmitLocalLoad(key);
+                    builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    builder.EmitToken(stringHashMethodRef, syntaxNode, diagnostics);
 
-                var UInt32Type = module.Compilation.GetSpecialType(SpecialType.System_UInt32);
-                keyHash = AllocateTemp(UInt32Type, syntaxNode);
+                    var UInt32Type = module.Compilation.GetSpecialType(SpecialType.System_UInt32);
+                    keyHash = AllocateTemp(UInt32Type, syntaxNode);
 
-                builder.EmitLocalStore(keyHash);
+                    builder.EmitLocalStore(keyHash);
+                }
             }
 
             Microsoft.Cci.IReference stringEqualityMethodRef = module.Translate(switchStatement.StringEquality, syntaxNode, diagnostics);

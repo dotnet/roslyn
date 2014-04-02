@@ -4589,6 +4589,8 @@ End Module
 ]]>)
         End Sub
 
+        <WorkItem(634404)>
+        <WorkItem(913556)>
         <Fact()>
         Public Sub MissingCharsProperty()
             CompilationUtils.CreateCompilationWithReferences(
@@ -4618,7 +4620,7 @@ Class M1
 End Class
 ]]></file>
 </compilation>, references:={AacorlibRef}).
-            VerifyDiagnostics(
+            VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("System.String.get_Chars"),
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub

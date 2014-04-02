@@ -3438,6 +3438,15 @@ class Program
             case ""hello"":
                 d = "" hello "";
                 break;
+            case ""qrs"":
+                d = "" qrs "";
+                break;
+            case ""tuv"":
+                d = "" tuv "";
+                break;
+            case ""wxy"":
+                d = "" wxy "";
+                break;
         }
     }
 }
@@ -3450,7 +3459,7 @@ class Program
             var verifier = CompileAndVerify(comp, verify: false, emitOptions: EmitOptions.RefEmitUnsupported);
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size      151 (0x97)
+  // Code size      223 (0xdf)
   .maxstack  2
   .locals init (string V_0) //s
   IL_0000:  ldstr      ""hello""
@@ -3458,46 +3467,67 @@ class Program
   IL_0006:  ldloc.0
   IL_0007:  ldstr      ""Hi""
   IL_000c:  call       ""bool string.op_Equality(string, string)""
-  IL_0011:  brtrue.s   IL_0055
+  IL_0011:  brtrue.s   IL_007c
   IL_0013:  ldloc.0
   IL_0014:  ldstr      ""Bye""
   IL_0019:  call       ""bool string.op_Equality(string, string)""
-  IL_001e:  brtrue.s   IL_0060
+  IL_001e:  brtrue.s   IL_0087
   IL_0020:  ldloc.0
   IL_0021:  ldstr      ""qwe""
   IL_0026:  call       ""bool string.op_Equality(string, string)""
-  IL_002b:  brtrue.s   IL_006b
+  IL_002b:  brtrue.s   IL_0092
   IL_002d:  ldloc.0
   IL_002e:  ldstr      ""ert""
   IL_0033:  call       ""bool string.op_Equality(string, string)""
-  IL_0038:  brtrue.s   IL_0076
+  IL_0038:  brtrue.s   IL_009d
   IL_003a:  ldloc.0
   IL_003b:  ldstr      ""asd""
   IL_0040:  call       ""bool string.op_Equality(string, string)""
-  IL_0045:  brtrue.s   IL_0081
+  IL_0045:  brtrue.s   IL_00a8
   IL_0047:  ldloc.0
   IL_0048:  ldstr      ""hello""
   IL_004d:  call       ""bool string.op_Equality(string, string)""
-  IL_0052:  brtrue.s   IL_008c
-  IL_0054:  ret
-  IL_0055:  ldstr      "" Hi ""
-  IL_005a:  stsfld     ""string Program.d""
-  IL_005f:  ret
-  IL_0060:  ldstr      "" Bye ""
-  IL_0065:  stsfld     ""string Program.d""
-  IL_006a:  ret
-  IL_006b:  ldstr      "" qwe ""
-  IL_0070:  stsfld     ""string Program.d""
-  IL_0075:  ret
-  IL_0076:  ldstr      "" ert ""
-  IL_007b:  stsfld     ""string Program.d""
-  IL_0080:  ret
-  IL_0081:  ldstr      "" asd ""
-  IL_0086:  stsfld     ""string Program.d""
-  IL_008b:  ret
-  IL_008c:  ldstr      "" hello ""
-  IL_0091:  stsfld     ""string Program.d""
-  IL_0096:  ret
+  IL_0052:  brtrue.s   IL_00b3
+  IL_0054:  ldloc.0
+  IL_0055:  ldstr      ""qrs""
+  IL_005a:  call       ""bool string.op_Equality(string, string)""
+  IL_005f:  brtrue.s   IL_00be
+  IL_0061:  ldloc.0
+  IL_0062:  ldstr      ""tuv""
+  IL_0067:  call       ""bool string.op_Equality(string, string)""
+  IL_006c:  brtrue.s   IL_00c9
+  IL_006e:  ldloc.0
+  IL_006f:  ldstr      ""wxy""
+  IL_0074:  call       ""bool string.op_Equality(string, string)""
+  IL_0079:  brtrue.s   IL_00d4
+  IL_007b:  ret
+  IL_007c:  ldstr      "" Hi ""
+  IL_0081:  stsfld     ""string Program.d""
+  IL_0086:  ret
+  IL_0087:  ldstr      "" Bye ""
+  IL_008c:  stsfld     ""string Program.d""
+  IL_0091:  ret
+  IL_0092:  ldstr      "" qwe ""
+  IL_0097:  stsfld     ""string Program.d""
+  IL_009c:  ret
+  IL_009d:  ldstr      "" ert ""
+  IL_00a2:  stsfld     ""string Program.d""
+  IL_00a7:  ret
+  IL_00a8:  ldstr      "" asd ""
+  IL_00ad:  stsfld     ""string Program.d""
+  IL_00b2:  ret
+  IL_00b3:  ldstr      "" hello ""
+  IL_00b8:  stsfld     ""string Program.d""
+  IL_00bd:  ret
+  IL_00be:  ldstr      "" qrs ""
+  IL_00c3:  stsfld     ""string Program.d""
+  IL_00c8:  ret
+  IL_00c9:  ldstr      "" tuv ""
+  IL_00ce:  stsfld     ""string Program.d""
+  IL_00d3:  ret
+  IL_00d4:  ldstr      "" wxy ""
+  IL_00d9:  stsfld     ""string Program.d""
+  IL_00de:  ret
 }
 ");
         }
@@ -6104,6 +6134,416 @@ public class Test
                     IL_0009:  ret
                 }"
             );
+        }
+
+        [WorkItem(913556)]
+        [Fact]
+        public void DifferentStrategiesForDifferentSwitches()
+        {
+            var text = @"
+using System;
+
+public class Test
+{
+    public static void Main(string [] args)
+    {
+        switch(args[0])
+        {
+            case ""A"": Console.Write(1); break;
+        }
+
+        switch(args[1])
+        {
+            case ""B"": Console.Write(2); break;
+            case ""C"": Console.Write(3); break;
+            case ""D"": Console.Write(4); break;
+            case ""E"": Console.Write(5); break;
+            case ""F"": Console.Write(6); break;
+            case ""G"": Console.Write(7); break;
+            case ""H"": Console.Write(8); break;
+            case ""I"": Console.Write(9); break;
+            case ""J"": Console.Write(10); break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            CompileAndVerify(comp).VerifyIL("Test.Main", @"
+{
+  // Code size      328 (0x148)
+  .maxstack  2
+  .locals init (string V_0,
+  uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldstr      ""A""
+  IL_000a:  call       ""bool string.op_Equality(string, string)""
+  IL_000f:  brfalse.s  IL_0017
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       ""void System.Console.Write(int)""
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.0
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0xc30bf539
+  IL_0028:  bgt.un.s   IL_0057
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4     0xc10bf213
+  IL_0030:  bgt.un.s   IL_0043
+  IL_0032:  ldloc.1
+  IL_0033:  ldc.i4     0xc00bf080
+  IL_0038:  beq.s      IL_00b3
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4     0xc10bf213
+  IL_0040:  beq.s      IL_00a5
+  IL_0042:  ret
+  IL_0043:  ldloc.1
+  IL_0044:  ldc.i4     0xc20bf3a6
+  IL_0049:  beq        IL_00cf
+  IL_004e:  ldloc.1
+  IL_004f:  ldc.i4     0xc30bf539
+  IL_0054:  beq.s      IL_00c1
+  IL_0056:  ret
+  IL_0057:  ldloc.1
+  IL_0058:  ldc.i4     0xc70bfb85
+  IL_005d:  bgt.un.s   IL_0070
+  IL_005f:  ldloc.1
+  IL_0060:  ldc.i4     0xc60bf9f2
+  IL_0065:  beq.s      IL_0097
+  IL_0067:  ldloc.1
+  IL_0068:  ldc.i4     0xc70bfb85
+  IL_006d:  beq.s      IL_0089
+  IL_006f:  ret
+  IL_0070:  ldloc.1
+  IL_0071:  ldc.i4     0xcc0c0364
+  IL_0076:  beq.s      IL_00eb
+  IL_0078:  ldloc.1
+  IL_0079:  ldc.i4     0xcd0c04f7
+  IL_007e:  beq.s      IL_00dd
+  IL_0080:  ldloc.1
+  IL_0081:  ldc.i4     0xcf0c081d
+  IL_0086:  beq.s      IL_00f9
+  IL_0088:  ret
+  IL_0089:  ldloc.0
+  IL_008a:  ldstr      ""B""
+  IL_008f:  call       ""bool string.op_Equality(string, string)""
+  IL_0094:  brtrue.s   IL_0107
+  IL_0096:  ret
+  IL_0097:  ldloc.0
+  IL_0098:  ldstr      ""C""
+  IL_009d:  call       ""bool string.op_Equality(string, string)""
+  IL_00a2:  brtrue.s   IL_010e
+  IL_00a4:  ret
+  IL_00a5:  ldloc.0
+  IL_00a6:  ldstr      ""D""
+  IL_00ab:  call       ""bool string.op_Equality(string, string)""
+  IL_00b0:  brtrue.s   IL_0115
+  IL_00b2:  ret
+  IL_00b3:  ldloc.0
+  IL_00b4:  ldstr      ""E""
+  IL_00b9:  call       ""bool string.op_Equality(string, string)""
+  IL_00be:  brtrue.s   IL_011c
+  IL_00c0:  ret
+  IL_00c1:  ldloc.0
+  IL_00c2:  ldstr      ""F""
+  IL_00c7:  call       ""bool string.op_Equality(string, string)""
+  IL_00cc:  brtrue.s   IL_0123
+  IL_00ce:  ret
+  IL_00cf:  ldloc.0
+  IL_00d0:  ldstr      ""G""
+  IL_00d5:  call       ""bool string.op_Equality(string, string)""
+  IL_00da:  brtrue.s   IL_012a
+  IL_00dc:  ret
+  IL_00dd:  ldloc.0
+  IL_00de:  ldstr      ""H""
+  IL_00e3:  call       ""bool string.op_Equality(string, string)""
+  IL_00e8:  brtrue.s   IL_0131
+  IL_00ea:  ret
+  IL_00eb:  ldloc.0
+  IL_00ec:  ldstr      ""I""
+  IL_00f1:  call       ""bool string.op_Equality(string, string)""
+  IL_00f6:  brtrue.s   IL_0138
+  IL_00f8:  ret
+  IL_00f9:  ldloc.0
+  IL_00fa:  ldstr      ""J""
+  IL_00ff:  call       ""bool string.op_Equality(string, string)""
+  IL_0104:  brtrue.s   IL_0140
+  IL_0106:  ret
+  IL_0107:  ldc.i4.2
+  IL_0108:  call       ""void System.Console.Write(int)""
+  IL_010d:  ret
+  IL_010e:  ldc.i4.3
+  IL_010f:  call       ""void System.Console.Write(int)""
+  IL_0114:  ret
+  IL_0115:  ldc.i4.4
+  IL_0116:  call       ""void System.Console.Write(int)""
+  IL_011b:  ret
+  IL_011c:  ldc.i4.5
+  IL_011d:  call       ""void System.Console.Write(int)""
+  IL_0122:  ret
+  IL_0123:  ldc.i4.6
+  IL_0124:  call       ""void System.Console.Write(int)""
+  IL_0129:  ret
+  IL_012a:  ldc.i4.7
+  IL_012b:  call       ""void System.Console.Write(int)""
+  IL_0130:  ret
+  IL_0131:  ldc.i4.8
+  IL_0132:  call       ""void System.Console.Write(int)""
+  IL_0137:  ret
+  IL_0138:  ldc.i4.s   9
+  IL_013a:  call       ""void System.Console.Write(int)""
+  IL_013f:  ret
+  IL_0140:  ldc.i4.s   10
+  IL_0142:  call       ""void System.Console.Write(int)""
+  IL_0147:  ret
+}
+");
+        }
+
+        [WorkItem(634404)]
+        [WorkItem(913556)]
+        [Fact]
+        public void LargeStringSwitchWithoutStringChars()
+        {
+            var text = @"
+using System;
+
+public class Test
+{
+    public static void Main(string [] args)
+    {
+        switch(args[0])
+        {
+            case ""A"": Console.Write(1); break;
+            case ""B"": Console.Write(2); break;
+            case ""C"": Console.Write(3); break;
+            case ""D"": Console.Write(4); break;
+            case ""E"": Console.Write(5); break;
+            case ""F"": Console.Write(6); break;
+            case ""G"": Console.Write(7); break;
+            case ""H"": Console.Write(8); break;
+            case ""I"": Console.Write(9); break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+
+            // With special members available, we use a hashtable approach.
+            CompileAndVerify(comp).VerifyIL("Test.Main", @"
+{
+  // Code size      307 (0x133)
+  .maxstack  2
+  .locals init (string V_0,
+  uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  ldc.i4     0xc30bf539
+  IL_0011:  bgt.un.s   IL_0043
+  IL_0013:  ldloc.1
+  IL_0014:  ldc.i4     0xc10bf213
+  IL_0019:  bgt.un.s   IL_002f
+  IL_001b:  ldloc.1
+  IL_001c:  ldc.i4     0xc00bf080
+  IL_0021:  beq        IL_00ad
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4     0xc10bf213
+  IL_002c:  beq.s      IL_009f
+  IL_002e:  ret
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0xc20bf3a6
+  IL_0035:  beq        IL_00c9
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4     0xc30bf539
+  IL_0040:  beq.s      IL_00bb
+  IL_0042:  ret
+  IL_0043:  ldloc.1
+  IL_0044:  ldc.i4     0xc60bf9f2
+  IL_0049:  bgt.un.s   IL_005c
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4     0xc40bf6cc
+  IL_0051:  beq.s      IL_0075
+  IL_0053:  ldloc.1
+  IL_0054:  ldc.i4     0xc60bf9f2
+  IL_0059:  beq.s      IL_0091
+  IL_005b:  ret
+  IL_005c:  ldloc.1
+  IL_005d:  ldc.i4     0xc70bfb85
+  IL_0062:  beq.s      IL_0083
+  IL_0064:  ldloc.1
+  IL_0065:  ldc.i4     0xcc0c0364
+  IL_006a:  beq.s      IL_00e5
+  IL_006c:  ldloc.1
+  IL_006d:  ldc.i4     0xcd0c04f7
+  IL_0072:  beq.s      IL_00d7
+  IL_0074:  ret
+  IL_0075:  ldloc.0
+  IL_0076:  ldstr      ""A""
+  IL_007b:  call       ""bool string.op_Equality(string, string)""
+  IL_0080:  brtrue.s   IL_00f3
+  IL_0082:  ret
+  IL_0083:  ldloc.0
+  IL_0084:  ldstr      ""B""
+  IL_0089:  call       ""bool string.op_Equality(string, string)""
+  IL_008e:  brtrue.s   IL_00fa
+  IL_0090:  ret
+  IL_0091:  ldloc.0
+  IL_0092:  ldstr      ""C""
+  IL_0097:  call       ""bool string.op_Equality(string, string)""
+  IL_009c:  brtrue.s   IL_0101
+  IL_009e:  ret
+  IL_009f:  ldloc.0
+  IL_00a0:  ldstr      ""D""
+  IL_00a5:  call       ""bool string.op_Equality(string, string)""
+  IL_00aa:  brtrue.s   IL_0108
+  IL_00ac:  ret
+  IL_00ad:  ldloc.0
+  IL_00ae:  ldstr      ""E""
+  IL_00b3:  call       ""bool string.op_Equality(string, string)""
+  IL_00b8:  brtrue.s   IL_010f
+  IL_00ba:  ret
+  IL_00bb:  ldloc.0
+  IL_00bc:  ldstr      ""F""
+  IL_00c1:  call       ""bool string.op_Equality(string, string)""
+  IL_00c6:  brtrue.s   IL_0116
+  IL_00c8:  ret
+  IL_00c9:  ldloc.0
+  IL_00ca:  ldstr      ""G""
+  IL_00cf:  call       ""bool string.op_Equality(string, string)""
+  IL_00d4:  brtrue.s   IL_011d
+  IL_00d6:  ret
+  IL_00d7:  ldloc.0
+  IL_00d8:  ldstr      ""H""
+  IL_00dd:  call       ""bool string.op_Equality(string, string)""
+  IL_00e2:  brtrue.s   IL_0124
+  IL_00e4:  ret
+  IL_00e5:  ldloc.0
+  IL_00e6:  ldstr      ""I""
+  IL_00eb:  call       ""bool string.op_Equality(string, string)""
+  IL_00f0:  brtrue.s   IL_012b
+  IL_00f2:  ret
+  IL_00f3:  ldc.i4.1
+  IL_00f4:  call       ""void System.Console.Write(int)""
+  IL_00f9:  ret
+  IL_00fa:  ldc.i4.2
+  IL_00fb:  call       ""void System.Console.Write(int)""
+  IL_0100:  ret
+  IL_0101:  ldc.i4.3
+  IL_0102:  call       ""void System.Console.Write(int)""
+  IL_0107:  ret
+  IL_0108:  ldc.i4.4
+  IL_0109:  call       ""void System.Console.Write(int)""
+  IL_010e:  ret
+  IL_010f:  ldc.i4.5
+  IL_0110:  call       ""void System.Console.Write(int)""
+  IL_0115:  ret
+  IL_0116:  ldc.i4.6
+  IL_0117:  call       ""void System.Console.Write(int)""
+  IL_011c:  ret
+  IL_011d:  ldc.i4.7
+  IL_011e:  call       ""void System.Console.Write(int)""
+  IL_0123:  ret
+  IL_0124:  ldc.i4.8
+  IL_0125:  call       ""void System.Console.Write(int)""
+  IL_012a:  ret
+  IL_012b:  ldc.i4.s   9
+  IL_012d:  call       ""void System.Console.Write(int)""
+  IL_0132:  ret
+}
+");
+
+            comp = CreateCompilationWithMscorlib(text);
+            comp.MakeMemberMissing(SpecialMember.System_String__Chars);
+
+            // Can't use the hash version when String.Chars is unavailable.
+            CompileAndVerify(comp).VerifyIL("Test.Main", @"
+{
+  // Code size      186 (0xba)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldstr      ""A""
+  IL_000a:  call       ""bool string.op_Equality(string, string)""
+  IL_000f:  brtrue.s   IL_007a
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""B""
+  IL_0017:  call       ""bool string.op_Equality(string, string)""
+  IL_001c:  brtrue.s   IL_0081
+  IL_001e:  ldloc.0
+  IL_001f:  ldstr      ""C""
+  IL_0024:  call       ""bool string.op_Equality(string, string)""
+  IL_0029:  brtrue.s   IL_0088
+  IL_002b:  ldloc.0
+  IL_002c:  ldstr      ""D""
+  IL_0031:  call       ""bool string.op_Equality(string, string)""
+  IL_0036:  brtrue.s   IL_008f
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""E""
+  IL_003e:  call       ""bool string.op_Equality(string, string)""
+  IL_0043:  brtrue.s   IL_0096
+  IL_0045:  ldloc.0
+  IL_0046:  ldstr      ""F""
+  IL_004b:  call       ""bool string.op_Equality(string, string)""
+  IL_0050:  brtrue.s   IL_009d
+  IL_0052:  ldloc.0
+  IL_0053:  ldstr      ""G""
+  IL_0058:  call       ""bool string.op_Equality(string, string)""
+  IL_005d:  brtrue.s   IL_00a4
+  IL_005f:  ldloc.0
+  IL_0060:  ldstr      ""H""
+  IL_0065:  call       ""bool string.op_Equality(string, string)""
+  IL_006a:  brtrue.s   IL_00ab
+  IL_006c:  ldloc.0
+  IL_006d:  ldstr      ""I""
+  IL_0072:  call       ""bool string.op_Equality(string, string)""
+  IL_0077:  brtrue.s   IL_00b2
+  IL_0079:  ret
+  IL_007a:  ldc.i4.1
+  IL_007b:  call       ""void System.Console.Write(int)""
+  IL_0080:  ret
+  IL_0081:  ldc.i4.2
+  IL_0082:  call       ""void System.Console.Write(int)""
+  IL_0087:  ret
+  IL_0088:  ldc.i4.3
+  IL_0089:  call       ""void System.Console.Write(int)""
+  IL_008e:  ret
+  IL_008f:  ldc.i4.4
+  IL_0090:  call       ""void System.Console.Write(int)""
+  IL_0095:  ret
+  IL_0096:  ldc.i4.5
+  IL_0097:  call       ""void System.Console.Write(int)""
+  IL_009c:  ret
+  IL_009d:  ldc.i4.6
+  IL_009e:  call       ""void System.Console.Write(int)""
+  IL_00a3:  ret
+  IL_00a4:  ldc.i4.7
+  IL_00a5:  call       ""void System.Console.Write(int)""
+  IL_00aa:  ret
+  IL_00ab:  ldc.i4.8
+  IL_00ac:  call       ""void System.Console.Write(int)""
+  IL_00b1:  ret
+  IL_00b2:  ldc.i4.s   9
+  IL_00b4:  call       ""void System.Console.Write(int)""
+  IL_00b9:  ret
+}
+");
         }
 
         #endregion
