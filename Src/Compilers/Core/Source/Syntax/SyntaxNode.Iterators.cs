@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -48,10 +47,10 @@ namespace Microsoft.CodeAnalysis
             {
                 if (descendIntoChildren == null || descendIntoChildren(startingNode))
                 {
-                    this.stack = StackPool.Allocate();
-                    this.stackPtr = 0;
-                    this.stack[0].InitializeFrom(startingNode);
-                }
+                this.stack = StackPool.Allocate();
+                this.stackPtr = 0;
+                this.stack[0].InitializeFrom(startingNode);
+            }
                 else
                 {
                     this.stack = null;
@@ -195,9 +194,9 @@ namespace Microsoft.CodeAnalysis
                 this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
                 if (this.nodeStack.IsNotEmpty)
                 {
-                    this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
-                    this.discriminatorStack.Push(Which.Node);
-                }
+                this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
+                this.discriminatorStack.Push(Which.Node);
+            }
                 else
                 {
                     this.discriminatorStack = null;
@@ -237,9 +236,9 @@ namespace Microsoft.CodeAnalysis
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
-                    nodeStack.PushChildren(node);
-                    discriminatorStack.Push(Which.Node);
-                }
+                nodeStack.PushChildren(node);
+                discriminatorStack.Push(Which.Node);
+            }
             }
 
             public void PushLeadingTrivia(ref SyntaxToken token)
@@ -260,9 +259,9 @@ namespace Microsoft.CodeAnalysis
                 this.triviaStack.Dispose();
                 if (this.discriminatorStack != null)
                 {
-                    this.discriminatorStack.Free();
-                }
+                this.discriminatorStack.Free();
             }
+        }
         }
 
         private struct ThreeEnumeratorListStack : IDisposable
@@ -284,10 +283,10 @@ namespace Microsoft.CodeAnalysis
                 this.nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
                 if (this.nodeStack.IsNotEmpty)
                 {
-                    this.tokenStack = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-                    this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
-                    this.discriminatorStack.Push(Which.Node);
-                }
+                this.tokenStack = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+                this.discriminatorStack = ArrayBuilder<Which>.GetInstance();
+                this.discriminatorStack.Push(Which.Node);
+            }
                 else
                 {
                     this.tokenStack = null;
@@ -334,9 +333,9 @@ namespace Microsoft.CodeAnalysis
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
-                    nodeStack.PushChildren(node);
-                    discriminatorStack.Push(Which.Node);
-                }
+                nodeStack.PushChildren(node);
+                discriminatorStack.Push(Which.Node);
+            }
             }
 
             public void PushLeadingTrivia(ref SyntaxToken token)
@@ -363,15 +362,15 @@ namespace Microsoft.CodeAnalysis
                 this.triviaStack.Dispose();
                 if (this.tokenStack != null)
                 {
-                    this.tokenStack.Free();
+                this.tokenStack.Free();
                 }
 
                 if (this.discriminatorStack != null)
                 {
-                    this.discriminatorStack.Free();
-                }
+                this.discriminatorStack.Free();
             }
-
+            }
+        
         }
 
         private IEnumerable<SyntaxNode> DescendantNodesOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool includeSelf)
@@ -388,9 +387,12 @@ namespace Microsoft.CodeAnalysis
                     SyntaxNode nodeValue = stack.TryGetNextAsNodeInSpan(ref span);
                     if (nodeValue != null)
                     {
-                        yield return nodeValue;
-
+                        // PERF: Push before yield return so that "nodeValue" is 'dead' after the yield
+                        // and therefore doesn't need to be stored in the iterator state machine. This
+                        // saves a field.
                         stack.PushChildren(nodeValue, descendIntoChildren);
+
+                        yield return nodeValue;
                     }
                 }
             }
@@ -405,18 +407,21 @@ namespace Microsoft.CodeAnalysis
 
             using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
-                SyntaxNodeOrToken value;
                 while (stack.IsNotEmpty)
                 {
+                    SyntaxNodeOrToken value;
                     if (stack.TryGetNextInSpan(ref span, out value))
                     {
-                        yield return value;
-
+                        // PERF: Push before yield return so that "value" is 'dead' after the yield
+                        // and therefore doesn't need to be stored in the iterator state machine. This
+                        // saves a field.
                         var nodeValue = value.AsNode();
                         if (nodeValue != null)
                         {
                             stack.PushChildren(nodeValue, descendIntoChildren);
                         }
+
+                        yield return value;
                     }
                 }
             }
@@ -439,11 +444,12 @@ namespace Microsoft.CodeAnalysis
                             SyntaxNodeOrToken value;
                             if (stack.TryGetNextInSpan(ref span, out value))
                             {
+                                // PERF: The following code has an unusual structure (note the 'break' out of
+                                // the case statement from inside an if body) in order to convince the compiler
+                                // that it can save a field in the iterator machinery.
                                 if (value.IsNode)
                                 {
                                     // parent nodes come before children (prefix document order)
-                                    yield return value;
-
                                     stack.PushChildren(value.AsNode(), descendIntoChildren);
                                 }
                                 else if (value.IsToken)
@@ -467,13 +473,18 @@ namespace Microsoft.CodeAnalysis
                                         {
                                             stack.PushLeadingTrivia(ref token);
                                         }
+
+                                        // Exit the case block without yielding (see PERF note above)
+                                        break;
                                     }
-                                    else
-                                    {
-                                        // no structure trivia, so just yield this token now
-                                        yield return value;
-                                    }
+
+                                    // no structure trivia, so just yield this token now
                                 }
+
+                                // PERF: Yield here (rather than inside the if bodies above) so that it's
+                                // obvious to the compiler that 'value' is not used beyond this point and,
+                                // therefore, doesn't need to be kept in a field.
+                                yield return value;
                             }
 
                             break;
@@ -488,9 +499,13 @@ namespace Microsoft.CodeAnalysis
                                     var structureNode = trivia.GetStructure();
 
                                     // parent nodes come before children (prefix document order)
-                                    yield return structureNode;
 
+                                    // PERF: Push before yield return so that "structureNode" is 'dead' after the yield
+                                    // and therefore doesn't need to be stored in the iterator state machine. This
+                                    // saves a field.
                                     stack.PushChildren(structureNode, descendIntoChildren);
+
+                                    yield return structureNode;
                                 }
                             }
                             break;
@@ -583,15 +598,18 @@ namespace Microsoft.CodeAnalysis
                             SyntaxTrivia trivia;
                             if (stack.TryGetNext(out trivia))
                             {
-                                if (IsInSpan(ref span, trivia.FullSpan))
-                                {
-                                    yield return trivia;
-                                }
-
+                                // PERF: Push before yield return so that "trivia" is 'dead' after the yield
+                                // and therefore doesn't need to be stored in the iterator state machine. This
+                                // saves a field.
                                 if (trivia.HasStructure)
                                 {
                                     var structureNode = trivia.GetStructure();
                                     stack.PushChildren(structureNode, descendIntoChildren);
+                                }
+
+                                if (IsInSpan(ref span, trivia.FullSpan))
+                                {
+                                    yield return trivia;
                                 }
                             }
 
