@@ -5011,6 +5011,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier.
+        /// </summary>
+        internal static string ERR_InvalidSpecifier {
+            get {
+                return ResourceManager.GetString("ERR_InvalidSpecifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]].
         /// </summary>
         internal static string ERR_InvalidVersionFormat {

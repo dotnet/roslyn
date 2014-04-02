@@ -1784,6 +1784,9 @@
   <data name="ERR_BadEmptyThrowInFinally" xml:space="preserve">
     <value>A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause</value>
   </data>
+  <data name="ERR_InvalidSpecifier" xml:space="preserve">
+    <value>'{0}' is not a valid format specifier</value>
+  </data>
   <data name="WRN_AssignmentToLockOrDispose" xml:space="preserve">
     <value>Possibly incorrect assignment to local '{0}' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.</value>
   </data>

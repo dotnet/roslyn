@@ -2930,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundReturnStatement(syntax, arg);
         }
 
-        private BoundExpression CreateReturnConversion(
+        internal BoundExpression CreateReturnConversion(
             CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics,
             BoundExpression argument,

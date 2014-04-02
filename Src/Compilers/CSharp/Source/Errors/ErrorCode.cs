@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarDeclIsStaticClass = 723,
         ERR_BadEmptyThrowInFinally = 724,
         //ERR_InvalidDecl = 725,
-        //ERR_InvalidSpecifier = 726,
+        ERR_InvalidSpecifier = 726,
         //ERR_InvalidSpecifierUnk = 727,
         WRN_AssignmentToLockOrDispose = 728,
         ERR_ForwardedTypeInThisAssembly = 729,
