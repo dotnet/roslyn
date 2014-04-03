@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // This is the core driver of the blender.  It just sits in a loop trying to keep our
                 // positions in the old and new text in sync.  When they're out of sync it will try
-                // to match them back up, and it will apropriately determine which nodes or tokens
+                // to match them back up, and it will appropriately determine which nodes or tokens
                 // from the old tree can be reused as long as they don't overlap and changes or
                 // contain any errors.
 

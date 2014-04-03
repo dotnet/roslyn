@@ -861,7 +861,7 @@ new T[] this[int a] { get; }
         [Fact]
         public void NewModifier_PartialIndexer()
         {
-            // partial indexers are not allowed, but we should still parse it and report a sementic error
+            // partial indexers are not allowed, but we should still parse it and report a semantic error
             // "Only methods, classes, structs, or interfaces may be partial"
 
             var tree = UsingTree(@"

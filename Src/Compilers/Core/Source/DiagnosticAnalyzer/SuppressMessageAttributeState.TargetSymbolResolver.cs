@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         if (containingSymbol == null)
                         {
-                            // If we cannot resolve the name on the left of the delimeter, we have no 
+                            // If we cannot resolve the name on the left of the delimiter, we have no 
                             // hope of finding the symbol.
                             return;
                         }
@@ -226,14 +226,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string segment;
 
                 // Find the end of the next name segment, special case constructors which start with '.'
-                int delimeterOffset = PeekNextChar() == '.' ?
+                int delimiterOffset = PeekNextChar() == '.' ?
                     this.name.IndexOfAny(nameDelimiters, this.index + 1) :
                     this.name.IndexOfAny(nameDelimiters, this.index);
 
-                if (delimeterOffset >= 0)
+                if (delimiterOffset >= 0)
                 {
-                    segment = this.name.Substring(this.index, delimeterOffset - this.index);
-                    this.index = delimeterOffset;
+                    segment = this.name.Substring(this.index, delimiterOffset - this.index);
+                    this.index = delimiterOffset;
                 }
                 else
                 {
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         if (containingSymbol == null)
                         {
-                            // If we cannot resolve the name on the left of the delimeter, we have no 
+                            // If we cannot resolve the name on the left of the delimiter, we have no 
                             // hope of finding the symbol.
                             return null;
                         }

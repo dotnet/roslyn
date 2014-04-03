@@ -571,7 +571,7 @@ namespace Microsoft.Cci
         {
             if (typeMemberReference.AsDefinition(Context) == null)
             {
-                this.Visit(typeMemberReference.GetAttributes(Context)); // In principle, refererences can have attributes that are distinct from the definitions they refer to.
+                this.Visit(typeMemberReference.GetAttributes(Context)); // In principle, references can have attributes that are distinct from the definitions they refer to.
             }
         }
 

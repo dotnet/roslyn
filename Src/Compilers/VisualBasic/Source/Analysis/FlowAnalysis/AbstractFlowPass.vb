@@ -1934,17 +1934,17 @@ lUnsplitAndFinish:
                 InitializeBlockStatement(level, i)
                 VisitFinallyBlock(node.FinallyBlockOpt, unsetInFinally)
                 For Each pend In tryAndCatchPending.PendingBranches
-                    ' Do not usnion if branch is a Yeild statement
-                    Dim unionBranchWithFinallState As Boolean = pend.Branch.Kind <> BoundKind.YieldStatement
+                    ' Do not union if branch is a Yield statement
+                    Dim unionBranchWithFinallyState As Boolean = pend.Branch.Kind <> BoundKind.YieldStatement
 
                     ' or if the branch goes from Catch to Try block
-                    If unionBranchWithFinallState Then
+                    If unionBranchWithFinallyState Then
                         If BothBranchAndLabelArePrefixedByNesting(pend, ignoreLast:=True) Then
-                            unionBranchWithFinallState = False
+                            unionBranchWithFinallyState = False
                         End If
                     End If
 
-                    If unionBranchWithFinallState Then
+                    If unionBranchWithFinallyState Then
                         Me.UnionWith(pend.State, Me.State)
                         If Me.TrackUnassignments Then
                             Me.IntersectWith(pend.State, unsetInFinally)

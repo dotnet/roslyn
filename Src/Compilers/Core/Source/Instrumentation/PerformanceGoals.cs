@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Instrumentation
             // Captive          >500            10,000                  Long, show Progress Dialog w/Cancel
             // Extended         >500            >10,000                 Long enough for the user to switch to something else
 
-            // Used for throughput scenaios like parser bytes per second.
+            // Used for throughput scenarios like parser bytes per second.
             const string Throughput_100 = "Throughput_100";
 
             Goals = new string[(int)FunctionId.Count];

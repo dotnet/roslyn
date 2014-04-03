@@ -1406,7 +1406,7 @@ Module Program
 End Module
     ]]></file>
 </compilation>)
-            ' No sementic information is reported. It should be Int32.
+            ' No semantic information is reported. It should be Int32.
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
             Assert.Equal("?", semanticSummary.Type.ToTestDisplayString())

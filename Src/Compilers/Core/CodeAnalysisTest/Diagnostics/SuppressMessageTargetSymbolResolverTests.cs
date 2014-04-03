@@ -1186,8 +1186,8 @@ public class C<T0>
                 "C`1+D`1.#M`2(!0,!1,!!0", // Missing close paren
                 "C`1+D`1.M`2(T0,T4,T2):", // Missing return type
                 "C`1+D`1.M`2(T0,T4,T2", // Missing close paren
-                "C`1+D`1+M`2(T0,T4,T2)", // '+' instead of '.' delimeter
-                "C`1.D`1.M`2(T0,T4,T2)", // '.' instead of '+' delimeter
+                "C`1+D`1+M`2(T0,T4,T2)", // '+' instead of '.' delimiter
+                "C`1.D`1.M`2(T0,T4,T2)", // '.' instead of '+' delimiter
                 "C`1+D`1.@namespace", // Escaped name
                 "C`1+D`1.#[blah]M`2(!0,!1,!!0)"); // Invalid calling convention
         }
@@ -1210,8 +1210,8 @@ End Class
                 "C`1+D`1.#M`2(!0,!1,!!0", // Missing close paren 
                 "C`1+D`1.M`2(T0,T1,T2):", // Missing return type
                 "C`1+D`1.M`2(T0,T1,T2", // Missing close paren
-                "C`1+D`1+M`2(T0,T1,T2)", // '+' instead of '.' delimeter
-                "C`1.D`1.M`2(T0,T1,T2)", // '.' instead of '+' delimeter
+                "C`1+D`1+M`2(T0,T1,T2)", // '+' instead of '.' delimiter
+                "C`1.D`1.M`2(T0,T1,T2)", // '.' instead of '+' delimiter
                 "C`1+D`1.[Namespace]", // Escaped name
                 "C`1+D`1.#[blah]M`2(!0,!1,!!0)"); // Invalid calling convention
         }

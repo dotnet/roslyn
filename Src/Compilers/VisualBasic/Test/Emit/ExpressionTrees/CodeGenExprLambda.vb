@@ -808,7 +808,7 @@ Lambda(
         End Sub
 
         <Fact()>
-        Public Sub ExpresionTrees_UDC_NullableAndConversion()
+        Public Sub ExpressionTrees_UDC_NullableAndConversion()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -5957,7 +5957,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub CheckedExpresionInCoalesceWitSideEffects()
+        Public Sub CheckedExpressionInCoalesceWitSideEffects()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -6778,7 +6778,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub ExpresionTrees_MyBaseMyClass()
+        Public Sub ExpressionTrees_MyBaseMyClass()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System

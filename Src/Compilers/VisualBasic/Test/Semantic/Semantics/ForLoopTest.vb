@@ -24,7 +24,7 @@ End Class
     </file>
 </compilation>)
 
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="i", ReadInsideSymbol:="i, myarray", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="i", WrittenOutsideSymbol:="myarray",
@@ -57,7 +57,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "String", "Integer", "Double", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "String", "Integer", "Double", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="i", ReadInsideSymbol:="i, myarray, s", ReadOutsideSymbol:="myarray",
                                              WrittenInsideSymbol:="i", WrittenOutsideSymbol:="myarray, s",
@@ -85,7 +85,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Double", "Integer", "Double", "Double", "Double")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Double", "Integer", "Double", "Double", "Double")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="i", ReadInsideSymbol:="i, s", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="i", WrittenOutsideSymbol:="s",
@@ -117,7 +117,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Object", "Object", "Object", "Object", "Object", "Object")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Object", "Object", "Object", "Object", "Object", "Object")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="ctrlVar, initValue, limit, stp", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="ctrlVar", WrittenOutsideSymbol:="initValue, limit, stp",
@@ -149,7 +149,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="AVarName, B, C, D", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="AVarName, B, C, D", WrittenOutsideSymbol:="",
@@ -158,7 +158,7 @@ End Class
                                                 EndPointIsReachable:=True)
             ClassfiConversionTestForLoops(compilation1)
 
-            SementicInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing, 2)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="B, C, D", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="B, C, D", WrittenOutsideSymbol:="AVarName",
@@ -167,7 +167,7 @@ End Class
                                                 EndPointIsReachable:=True, index:=2)
             ClassfiConversionTestForLoops(compilation1, 2)
 
-            SementicInfoTypeTestForLoops(compilation1, 3, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 3, "Integer", "Integer", "Integer", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing, 3)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="C, D", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="C, D", WrittenOutsideSymbol:="AVarName, B",
@@ -176,7 +176,7 @@ End Class
                                                 EndPointIsReachable:=True, index:=3)
             ClassfiConversionTestForLoops(compilation1, 3)
 
-            SementicInfoTypeTestForLoops(compilation1, 4, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 4, "Integer", "Integer", "Integer", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing, 4)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="D", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="D", WrittenOutsideSymbol:="AVarName, B, C",
@@ -206,7 +206,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="I, J", ReadInsideSymbol:="I", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="I, J", WrittenOutsideSymbol:="",
@@ -215,7 +215,7 @@ End Class
                                                 EndPointIsReachable:=True)
             ClassfiConversionTestForLoops(compilation1)
 
-            SementicInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="J", ReadInsideSymbol:="I", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="I, J", WrittenOutsideSymbol:="I",
@@ -244,7 +244,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="I, J", ReadInsideSymbol:="I, J", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="I, J", WrittenOutsideSymbol:="",
@@ -253,7 +253,7 @@ End Class
                                                 EndPointIsReachable:=True)
             ClassfiConversionTestForLoops(compilation1)
 
-            SementicInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="J", ReadInsideSymbol:="I, J", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="J", WrittenOutsideSymbol:="I",
@@ -283,7 +283,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="I, J", ReadInsideSymbol:="I", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="I, J", WrittenOutsideSymbol:="",
@@ -292,7 +292,7 @@ End Class
                                                 EndPointIsReachable:=True)
             ClassfiConversionTestForLoops(compilation1)
 
-            SementicInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 2, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="J", ReadInsideSymbol:="", ReadOutsideSymbol:="I",
                                              WrittenInsideSymbol:="J", WrittenOutsideSymbol:="I",
@@ -321,7 +321,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Object", "Object", "Integer", "Object", "Integer", "Object")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Object", "Object", "Integer", "Object", "Integer", "Object")
             GetDeclareSymbolTestForLoops(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="J", ReadInsideSymbol:="J, x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="J, x", WrittenOutsideSymbol:="x",
@@ -351,7 +351,7 @@ Enum e1
 End Enum
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "e1", "e1", "e1", "e1")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "e1", "e1", "e1", "e1")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -385,7 +385,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Byte", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Byte", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="i", ReadInsideSymbol:="i, Me", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="i", WrittenOutsideSymbol:="Me",
@@ -412,7 +412,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Long", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Long", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="global_x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="global_x", WrittenOutsideSymbol:="",
@@ -435,7 +435,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -467,7 +467,7 @@ To _
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
             GetDeclareSymbolTestForLoops(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -493,7 +493,7 @@ Public Class MyClass1
 End Class
     </file>
 </compilation>)
-            SementicInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
+            SemanticInfoTypeTestForLoops(compilation1, 1, "Integer", "Integer", "Integer", "Integer")
 
             AnalyzeRegionDataFlowTestForLoops(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="Y", WrittenOutsideSymbol:="",
@@ -546,7 +546,7 @@ End Module]]>,
         End Sub
 
 
-        Private Function SementicInfoTypeTestForLoops(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As List(Of SemanticInfoSummary)
+        Private Function SemanticInfoTypeTestForLoops(compilation As VisualBasicCompilation, index As Integer, ParamArray names As String()) As List(Of SemanticInfoSummary)
             Dim node = GetForStatement(compilation, index)
             Dim model = GetModel(compilation)
             Dim expressionFrom = node.FromValue

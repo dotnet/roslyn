@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis
                             SyntaxTrivia trivia;
                             if (stack.TryGetNext(out trivia))
                             {
-                                // PERF: Push before yield return so that "trivia" is 'dead' after the yield
+                                // PERF: Push before yield returnsca so that "trivia" is 'dead' after the yield
                                 // and therefore doesn't need to be stored in the iterator state machine. This
                                 // saves a field.
                                 if (trivia.HasStructure)
