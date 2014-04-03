@@ -1073,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' See if we can simplify a member access expression of the form E.M or E.M() to M or M()
-            Dim speculationAnalyzer = New speculationAnalyzer(memberAccess, reducedNode, DirectCast(semanticModel, semanticModel), cancellationToken)
+            Dim speculationAnalyzer = New SpeculationAnalyzer(memberAccess, reducedNode, DirectCast(semanticModel, SemanticModel), cancellationToken)
             If Not speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() OrElse
                 speculationAnalyzer.ReplacementChangesSemantics() Then
                 Return False
@@ -1197,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' check if the alias name ends with an Attribute suffic that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
                             Dim issueSpanWithoutAttributeSuffix As TextSpan = Nothing
-                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
+                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
                                 If name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken) Then
                                     replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix)
                                     issueSpan = issueSpanWithoutAttributeSuffix
@@ -1220,7 +1220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
 
                     If TypeOf name Is QualifiedNameSyntax Then
-                        Dim qualifiedNameSyntax = DirectCast(name, qualifiedNameSyntax)
+                        Dim qualifiedNameSyntax = DirectCast(name, QualifiedNameSyntax)
                         If Not qualifiedNameSyntax.Right.Identifier.HasAnnotations(AliasAnnotation.Kind) Then
                             nameHasNoAlias = True
                         End If
@@ -1298,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     Case SyntaxKind.IdentifierName
                         Dim identifier = DirectCast(name, IdentifierNameSyntax).Identifier
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, replacementNode, issueSpan, cancellationToken)
+                        TryReduceAttributeSuffix(name, identifier, semanticModel, False, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), replacementNode, issueSpan, cancellationToken)
                 End Select
             End If
 
@@ -1313,11 +1313,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             name As NameSyntax,
             identifierToken As SyntaxToken,
             semanticModel As SemanticModel,
+            isIdentifierNameFromAlias As Boolean,
+            preferAliasToQualification As Boolean,
             <Out()> ByRef replacementNode As ExpressionSyntax,
             <Out()> ByRef issueSpan As TextSpan,
             cancellationToken As CancellationToken
         ) As Boolean
-            If SyntaxFacts.IsAttributeName(name) Then
+            If SyntaxFacts.IsAttributeName(name) AndAlso Not isIdentifierNameFromAlias Then
+
+                ' When the replacement is an Alias we dont want the "Attribute" Suffix to be removed because this will result in symbol change
+                Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
+                If (aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
+                    String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0) Then
+                    Return False
+                End If
 
                 If name.Parent.VisualBasicKind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
@@ -1333,10 +1342,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     ' escape it (VB allows escaping even for abbreviated identifiers, C# does not!)
                     Dim newIdentifierToken = identifierToken.CopyAnnotationsTo(
-                                                 SyntaxFactory.Identifier(
-                                                     identifierToken.LeadingTrivia,
-                                                     newIdentifierText,
-                                                     identifierToken.TrailingTrivia))
+                                             SyntaxFactory.Identifier(
+                                                 identifierToken.LeadingTrivia,
+                                                 newIdentifierText,
+                                                 identifierToken.TrailingTrivia))
                     newIdentifierToken = VisualBasicSimplificationService.TryEscapeIdentifierToken(newIdentifierToken, semanticModel)
                     replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken).WithLeadingTrivia(name.GetLeadingTrivia())
                     Return True
@@ -1458,7 +1467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            Dim speculationAnalyzer = New speculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
+            Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
             Return speculationAnalyzer.ReplacementChangesSemantics()
         End Function
 
@@ -1613,7 +1622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return Nothing
             End If
 
-            Dim originalSemanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), semanticModel)
+            Dim originalSemanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), SemanticModel)
             If Not originalSemanticModel.SyntaxTree.HasCompilationUnitRoot Then
                 Return Nothing
             End If
@@ -1637,7 +1646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken
         ) As Boolean
-            Dim speculationAnalyzer = New speculationAnalyzer(name, replacementNode, semanticModel, cancellationToken)
+            Dim speculationAnalyzer = New SpeculationAnalyzer(name, replacementNode, semanticModel, cancellationToken)
             If speculationAnalyzer.ReplacementChangesSemantics() Then
                 Return False
             End If
