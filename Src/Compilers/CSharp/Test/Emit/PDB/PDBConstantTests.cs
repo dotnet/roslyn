@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -8,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
+        private CultureInfo testCulture = new CultureInfo("en-US");
+
         [Fact]
         public void TestSimpleLocalConstants()
         {
@@ -213,7 +217,12 @@ class C
     }
 }
 ";
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            
+            Thread.CurrentThread.CurrentCulture = testCulture;
             string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+            Thread.CurrentThread.CurrentCulture = currentCulture;
+            
             string expected = @"
 <symbols>
   <methods>
@@ -326,7 +335,11 @@ class C
     }
 }
 ";
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = testCulture;
             string actual = GetPdbXml(text, TestOptions.Dll, "C.M");
+            Thread.CurrentThread.CurrentCulture = currentCulture;
+            
             string expected = @"
 <symbols>
   <methods>

@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBTests : CSharpTestBase
     {
+        private CultureInfo testCulture = new CultureInfo("en-US");
+
         [Fact]
         public void TestBasic()
         {
@@ -2272,7 +2276,11 @@ class C
     }
 }
 ";
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = testCulture;
             string actual = GetPdbXml(text, TestOptions.Exe);
+            Thread.CurrentThread.CurrentCulture = currentCulture;
+            
             string expected = @"
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" parameterNames="""" />
