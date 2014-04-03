@@ -18499,7 +18499,7 @@ class Program
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text); // no errors
         }
 
-        [Fact(Skip = "528147")]
+        [Fact]
         public void CS0122ERR_BadAccess03()
         {
             var text = @"
@@ -18521,11 +18521,11 @@ class Program
 
     static void M<T>(I<T> c)
     {
-        Console.WriteLine(""I"");
+        System.Console.WriteLine(""I"");
     }
 //    static void M<T>(J<T> c)
 //    {
-//        Console.WriteLine(""J"");
+//        System.Console.WriteLine(""J"");
 //    }
 
     static void Main()
