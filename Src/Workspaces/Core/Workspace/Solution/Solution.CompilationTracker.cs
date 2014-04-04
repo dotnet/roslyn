@@ -667,7 +667,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private ValueSource<Compilation> Retain(Solution solution, Compilation compilation)
             {
-                if (solution.CompilationCaches != null)
+                var caches = solution.Services.CompilationCacheService;
+                if (caches != null)
                 {
                     // if solution supports compilation caches, get appropreate compilation cache.
                     // this will make the primary compilation cache not to be polluted by ones from branched solution.
@@ -685,8 +686,7 @@ namespace Microsoft.CodeAnalysis
                     // the editor currently don't use (no opened file from the compilation). 
                     //
                     // so until we have data that says differently, let's live logic simple.
-                    var cache = solution.BranchId == solution.Workspace.PrimaryBranchId ?
-                        solution.CompilationCaches.Primary : solution.CompilationCaches.Secondary;
+                    var cache = (solution.BranchId == solution.Workspace.PrimaryBranchId) ? caches.Primary : caches.Secondary;
 
                     return new CachedObjectSource<Compilation>(compilation, cache);
                 }

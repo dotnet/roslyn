@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
             var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-            var referenceProvider = workspace.CurrentSolution.MetadataReferenceProvider;
+            var referenceProvider = MetadataFileReferenceProvider.Default;
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 

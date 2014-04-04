@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis
             get { return this.workspaceVersion; }
         }
 
+        internal SolutionServices Services
+        {
+            get { return this.solutionServices; }
+        }
+
         /// <summary>
         /// branch id of this solution
         /// 
@@ -183,19 +188,6 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<Project> Projects
         {
             get { return this.projectIds.Select(id => GetProject(id)); }
-        }
-
-        /// <summary>
-        /// Provides files for metadata references of projects contained by the solution.
-        /// </summary>
-        public MetadataReferenceProvider MetadataReferenceProvider
-        {
-            get { return this.solutionServices.MetadataReferenceProvider; }
-        }
-
-        internal ICompilationCacheService CompilationCaches
-        {
-            get { return this.solutionServices.CompilationCacheService; }
         }
 
         // [Conditional("DEBUG")]

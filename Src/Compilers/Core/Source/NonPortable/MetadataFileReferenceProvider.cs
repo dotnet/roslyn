@@ -24,17 +24,5 @@ namespace Microsoft.CodeAnalysis
         {
             return new MetadataFileReference(resolvedPath, properties);
         }
-
-        /// <summary>
-        /// Removes any cached data or files created by the provider.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="GetReference"/> might be optimized to cache results and ignore changes to the files made after the file has been provided. 
-        /// This behavior is useful when the compiler and services that use the provider work on a snapshot of the metadata files.
-        /// Call this method to clear the cache and start over.
-        /// </remarks>
-        public virtual void ClearCache()
-        {
-        }
     }
 }
