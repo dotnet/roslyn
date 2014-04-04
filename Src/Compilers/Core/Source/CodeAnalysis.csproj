@@ -624,8 +624,10 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
-    <InternalsVisibleToTest Include="Roslyn.DiagnosticAnalyzers.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.DiagnosticFixers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.FxCop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.FxCop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
