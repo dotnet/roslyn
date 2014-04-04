@@ -102,6 +102,7 @@
     <Compile Include="CompilationExtensions.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ConsoleOutput.cs" />
+    <Compile Include="CultureContext.cs" />
     <Compile Include="DiagnosticDescription.cs" />
     <Compile Include="DiagnosticExtensions.cs" />
     <Compile Include="DiffUtil.cs" />

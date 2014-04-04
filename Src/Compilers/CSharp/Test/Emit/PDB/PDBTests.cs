@@ -4,7 +4,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2276,10 +2275,6 @@ class C
     }
 }
 ";
-            var currentCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = testCulture;
-            string actual = GetPdbXml(text, TestOptions.Exe);
-            Thread.CurrentThread.CurrentCulture = currentCulture;
             
             string expected = @"
 <symbols>
@@ -2359,7 +2354,12 @@ class C
     </method>
   </methods>
 </symbols>";
-            AssertXmlEqual(expected, actual);
+
+            using (new CultureContext("en-US"))
+            {
+                string actual = GetPdbXml(text, TestOptions.Exe);
+                AssertXmlEqual(expected, actual);
+            }
         }
 
         [WorkItem(543490)]
