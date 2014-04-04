@@ -353,7 +353,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool ParametersAreEquivalent(ImmutableArray<IParameterSymbol> xParameters, ImmutableArray<IParameterSymbol> yParameters, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool ParametersAreEquivalent(
+                ImmutableArray<IParameterSymbol> xParameters,
+                ImmutableArray<IParameterSymbol> yParameters,
+                Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
+                bool compareParameterName = false,
+                bool isParameterNameCaseSensitive = false)
             {
                 // Note the special parameter comparer we pass in.  We do this so we don't end up
                 // infinitely looping between parameters -> type parameters -> methods -> parameters
@@ -365,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies))
+                    if (!symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
                     {
                         return false;
                     }

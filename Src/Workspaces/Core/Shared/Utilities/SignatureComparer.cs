@@ -94,7 +94,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);
         }
 
-        private bool HaveSameSignature(IMethodSymbol method1, IMethodSymbol method2, bool caseSensitive)
+        public bool HaveSameSignature(IMethodSymbol method1,
+            IMethodSymbol method2,
+            bool caseSensitive,
+            bool compareParameterName = false,
+            bool isParameterCaseSensitive = false)
         {
             if ((method1.MethodKind == MethodKind.AnonymousFunction) !=
                 (method2.MethodKind == MethodKind.AnonymousFunction))
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            return HaveSameSignature(method1.Parameters, method2.Parameters);
+            return HaveSameSignature(method1.Parameters, method2.Parameters, compareParameterName, isParameterCaseSensitive);
         }
 
         private bool IdentifiersMatch(string identifier1, string identifier2, bool caseSensitive)
@@ -124,13 +128,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return caseSensitive
                 ? identifier1 == identifier2
                 : string.Equals(identifier1, identifier2, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private bool HaveSameSignature(
-            ImmutableArray<IParameterSymbol> parameters1,
-            ImmutableArray<IParameterSymbol> parameters2)
-        {
-            return parameters1.SequenceEqual(parameters2, this.ParameterEquivalenceComparer);
         }
 
         public bool HaveSameSignature(
@@ -143,6 +140,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return parameters1.SequenceEqual(parameters2, this.ParameterEquivalenceComparer);
+        }
+
+        public bool HaveSameSignature(
+            IList<IParameterSymbol> parameters1,
+            IList<IParameterSymbol> parameters2,
+            bool compareParameterName,
+            bool isCaseSensitive)
+        {
+            if (parameters1.Count != parameters2.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < parameters1.Count; ++i)
+            {
+                if (!this.symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(ISymbol symbol1, ISymbol symbol2, bool caseSensitive)
