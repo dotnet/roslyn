@@ -464,6 +464,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' case:
+            ' (GetType(String)) => GetType(String)
+            If expression.IsKind(SyntaxKind.GetTypeExpression) Then
+                Return True
+            End If
+
+            ' case:
             ' 1. (!b) => !b
             If expression.VisualBasicKind = SyntaxKind.DictionaryAccessExpression AndAlso
                 node.CloseParenToken.IsLastTokenOfStatement() Then
