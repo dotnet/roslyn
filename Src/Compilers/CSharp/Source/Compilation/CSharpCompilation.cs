@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        internal CSharpCompilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        public override Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
         {
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -2009,6 +2009,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ErrorCode.WRN_RefCultureMismatch, 
                                                ErrorCode.WRN_InvalidVersionFormat };
 
+        internal override Diagnostic FilterDiagnostic(Diagnostic d)
+        {
+            return FilterDiagnostic(d, options);
+        }
+
+        private static Diagnostic FilterDiagnostic(Diagnostic d, CSharpCompilationOptions options)
+        {
+
+            if (d == null) return d;
+            switch (d.Severity)
+            {
+                case DiagnosticSeverity.Error:
+                    return d;
+                case InternalDiagnosticSeverity.Void:
+                    return null;
+                default:
+                    break;
+            }
+
+            //In the native compiler, all warnings originating from alink.dll were issued
+            //under the id WRN_ALinkWarn - 1607. If a customer used nowarn:1607 they would get
+            //none of those warnings. In Roslyn, we've given each of these warnings their
+            //own number, so that they may be configured independently. To preserve compatibility
+            //if a user has specifically configured 1607 and we are reporting one of the alink warnings, use
+            //the configuration specified for 1607. As implemented, this could result in customers 
+            //specifying warnaserror:1607 and getting a message saying "warning as error CS8012..."
+            //We don't permit configuring 1607 and independently configuring the new warnings.
+            ReportDiagnostic reportAction;
+            if (AlinkWarnings.Contains((ErrorCode)d.Code) &&
+                options.SpecificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
+            {
+                reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
+                                                    CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
+                                                    ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
+                                                    d.Location as Location,
+                                                    options,
+                                                    d.Category);
+            }
+            else
+            {
+                reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
+            }
+
+            switch (reportAction)
+            {
+                case ReportDiagnostic.Suppress:
+                    return null;
+                case ReportDiagnostic.Error:
+                    Debug.Assert(d.Severity == DiagnosticSeverity.Warning);
+                    if (d.IsWarningAsError)
+                    {
+                        // If the flag has already been set, return it without creating new one. 
+                        return d;
+                    }
+                    else
+                    {
+                        // For a warning treated as an error, we replace the existing one 
+                        // with a new dianostic setting a WarningAsError flag to be true 
+                        return d.WithWarningAsError(true);
+                    }
+                case ReportDiagnostic.Default:
+                case ReportDiagnostic.Warn:
+                    return d;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportAction);
+            }
+        }
+
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
@@ -2019,73 +2087,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (Diagnostic d in incoming)
             {
-                // Filter void diagnostics so that our callers don't have to perform resolution
-                // (which might copy the list of diagnostics).
-                if (d.Severity == InternalDiagnosticSeverity.Void)
+                var filtered = FilterDiagnostic(d, options);
+                if (filtered == null)
                 {
                     continue;
                 }
-
-                // If it is an error, return it as it is.
-                if (d.Severity == DiagnosticSeverity.Error)
+                else if (filtered.Severity == DiagnosticSeverity.Error || filtered.IsWarningAsError)
                 {
                     hasErrorOrWarningAsError = true;
-                    accumulator.Add(d);
-                    continue;
                 }
-
-                //In the native compiler, all warnings originating from alink.dll were issued
-                //under the id WRN_ALinkWarn - 1607. If a customer used nowarn:1607 they would get
-                //none of those warnings. In Roslyn, we've given each of these warnings their
-                //own number, so that they may be configured independently. To preserve compatibility
-                //if a user has specifically configured 1607 and we are reporting one of the alink warnings, use
-                //the configuration specified for 1607. As implemented, this could result in customers 
-                //specifying warnaserror:1607 and getting a message saying "warning as error CS8012..."
-                //We don't permit configuring 1607 and independently configuring the new warnings.
-
-                ReportDiagnostic reportAction;
-
-                if (AlinkWarnings.Contains((ErrorCode)d.Code) && 
-                    options.SpecificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
-                {
-                    reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn), 
-                                                        CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), 
-                                                        ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn), 
-                                                        d.Location as Location, 
-                                                        options,
-                                                        d.Category);
-                }
-                else
-                {
-                    reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
-                }
-
-                switch (reportAction)
-                {
-                    case ReportDiagnostic.Suppress:
-                        continue;
-                    case ReportDiagnostic.Error:
-                        Debug.Assert(d.Severity == DiagnosticSeverity.Warning);
-                        hasErrorOrWarningAsError = true;
-                        if (d.IsWarningAsError)
-                        {
-                            // If the flag has already been set, return it without creating new one. 
-                            accumulator.Add(d);
-                        }
-                        else
-                        {
-                            // For a warning treated as an error, we replace the existing one 
-                            // with a new dianostic setting a WarningAsError flag to be true 
-                            accumulator.Add(d.WithWarningAsError(true));
-                        }
-                        continue;
-                    case ReportDiagnostic.Default:
-                    case ReportDiagnostic.Warn:
-                        accumulator.Add(d);
-                        continue;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(reportAction);
-                }
+                accumulator.Add(filtered);
             }
 
             return !hasErrorOrWarningAsError;

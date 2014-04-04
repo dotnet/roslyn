@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis
         protected abstract Compilation CommonClone();
 
         /// <summary>
+        /// Returns a new compilation with a given event queue.
+        /// </summary>
+        public abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
+
+        /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
@@ -857,6 +862,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
+
+        /// <summary>
+        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null).
+        /// </summary>
+        /// <param name="diagnostic"></param>
+        /// <returns>The modified diagnostic, or null</returns>
+        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
 
         #endregion
 

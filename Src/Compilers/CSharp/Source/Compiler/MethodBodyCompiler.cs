@@ -342,7 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (method.IsPartial())
                             {
-                                method = method.PartialImplementation();
+                                if (method.IsPartialDefinition())
+                                {
+                                    method = method.PartialImplementation();
+                                }
                                 if ((object)method == null)
                                 {
                                     continue;

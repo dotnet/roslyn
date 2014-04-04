@@ -119,6 +119,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             });
         }
 
+        public bool TryDequeue(out TElement d)
+        {
+            d = default(TElement);
+            lock(syncObject)
+            {
+                if (data.Count == 0) return false;
+                d = data.Dequeue();
+                return true;
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether the queue has completed.
         /// </summary>

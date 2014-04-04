@@ -612,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns a new compilation with a given event queue. 
         ''' </summary>
-        Friend Shadows Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As VisualBasicCompilation
+        Public Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
                 Me.Options,
@@ -1926,62 +1926,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+        Private Overloads Shared Function FilterDiagnostic(diagnostic As Diagnostic, options As CompilationOptions) As Diagnostic
+            ' Filter void diagnostics so that our callers don't have to perform resolution
+            ' (which might copy the list of diagnostics).
+            If (diagnostic.Severity = InternalDiagnosticSeverity.Void) Then
+                Return Nothing
+            End If
+
+            ' If it is an error, keep it as it is.
+            If (diagnostic.Severity = DiagnosticSeverity.Error) Then
+                Return diagnostic
+            End If
+
+            '//In the native compiler, all warnings originating from alink.dll were issued
+            '//under the id WRN_ALinkWarn - 1607. If nowarn:1607 is used they would get
+            '//none of those warnings. In Roslyn, we've given each of these warnings their
+            '//own number, so that they may be configured independently. To preserve compatibility
+            '//if a user has specifically configured 1607 And we are reporting one of the alink warnings, use
+            '//the configuration specified for 1607. As implemented, this could result in 
+            '//specifying warnaserror:1607 And getting a message saying "warning as error CS8012..."
+            '//We don't permit configuring 1607 and independently configuring the new warnings.
+
+            Dim report As ReportDiagnostic
+
+            If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
+                    options.SpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
+                report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
+                                                        VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
+                                                        options)
+            Else
+                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.Id, options)
+            End If
+
+            Select Case report
+                Case ReportDiagnostic.Suppress
+                    ' Skip it
+                    Return Nothing
+                Case ReportDiagnostic.Error
+                    Debug.Assert(diagnostic.Severity = DiagnosticSeverity.Warning)
+                    Return diagnostic.WithWarningAsError(True)
+                Case ReportDiagnostic.Default, ReportDiagnostic.Warn
+                    Return diagnostic
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(report)
+            End Select
+        End Function
+
+        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
+            Return FilterDiagnostic(diagnostic, Options)
+        End Function
+
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Shared Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic), options As CompilationOptions) As Boolean
-
             Dim hasError As Boolean = False
             Dim hasWarnAsError As Boolean = False
 
             For Each diagnostic As Diagnostic In incoming
-                ' Filter void diagnostics so that our callers don't have to perform resolution
-                ' (which might copy the list of diagnostics).
-                If (diagnostic.Severity = InternalDiagnosticSeverity.Void) Then
+                Dim filtered = FilterDiagnostic(diagnostic, options)
+                If (filtered Is Nothing) Then
                     Continue For
                 End If
 
-                ' If it is an error, keep it as it is.
-                If (diagnostic.Severity = DiagnosticSeverity.Error) Then
+                If (filtered.Severity = DiagnosticSeverity.Error) Then
                     hasError = True
-                    accumulator.Add(diagnostic)
-                    Continue For
                 End If
 
-                '//In the native compiler, all warnings originating from alink.dll were issued
-                '//under the id WRN_ALinkWarn - 1607. If nowarn:1607 is used they would get
-                '//none of those warnings. In Roslyn, we've given each of these warnings their
-                '//own number, so that they may be configured independently. To preserve compatibility
-                '//if a user has specifically configured 1607 And we are reporting one of the alink warnings, use
-                '//the configuration specified for 1607. As implemented, this could result in 
-                '//specifying warnaserror:1607 And getting a message saying "warning as error CS8012..."
-                '//We don't permit configuring 1607 and independently configuring the new warnings.
-
-                Dim report As ReportDiagnostic
-
-                If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
-                    options.SpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
-                    report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
-                                                        VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
-                                                        options)
-                Else
-                    report = GetDiagnosticReport(diagnostic.Severity, diagnostic.Id, options)
+                accumulator.Add(filtered)
+                If (filtered.IsWarningAsError AndAlso Not hasWarnAsError) Then
+                    hasWarnAsError = True
+                    accumulator.Add(New VBDiagnostic(New DiagnosticInfo(VisualBasic.MessageProvider.Instance, CInt(ERRID.ERR_WarningTreatedAsError), diagnostic.GetMessage()), CType(diagnostic.Location, Location)))
                 End If
-
-                Select Case report
-                    Case ReportDiagnostic.Suppress
-                        ' Skip it
-                    Case ReportDiagnostic.Error
-                        Debug.Assert(diagnostic.Severity = DiagnosticSeverity.Warning)
-                        accumulator.Add(diagnostic.WithWarningAsError(True))
-                        ' For a warning treated as an error, report ERR_WarningTreatedAsError for the first one
-                        If hasWarnAsError = False Then
-                            accumulator.Add(New VBDiagnostic(New DiagnosticInfo(VisualBasic.MessageProvider.Instance, CInt(ERRID.ERR_WarningTreatedAsError), diagnostic.GetMessage()), CType(diagnostic.Location, Location)))
-                            hasWarnAsError = True
-                        End If
-                    Case ReportDiagnostic.Default, ReportDiagnostic.Warn
-                        accumulator.Add(diagnostic)
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(report)
-                End Select
             Next
 
             Return Not (hasError OrElse hasWarnAsError)
@@ -1989,7 +2003,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, id As String, options As CompilationOptions) As ReportDiagnostic
-
             Select Case (severity)
                 Case InternalDiagnosticSeverity.Void
                     Return ReportDiagnostic.Suppress

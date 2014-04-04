@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "SymbolDeclared(F N.C<T1>.F @ : (6,8)-(6,14))",
                 "SymbolDeclared(M N.C<T1>.M(int) @ : (4,4)-(4,27))",
                 "SymbolDeclared(C N.C<T1> @ : (2,2)-(8,3))",
+                "SymbolDeclared(N N @ : (0,0)-(13,1))",
+                "SymbolDeclared( <global namespace> @ : (0,0)-(13,1))",
                 "SymbolDeclared(M N.C<T1>.M(int) @ : (11,4)-(11,29))",
                 "SymbolDeclared(get_P N.C<T1>.P.get @ : (5,21)-(5,25))",
                 "SymbolDeclared(set_P N.C<T1>.P.set @ : (5,26)-(5,38))",

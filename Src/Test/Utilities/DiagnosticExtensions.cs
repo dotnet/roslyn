@@ -130,6 +130,24 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
+        public static CSharp.CSharpCompilation VerifyAnalyzerDiagnostics3(
+                this CSharp.CSharpCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+        {
+            return VerifyAnalyzerDiagnostics3<CSharp.CSharpCompilation, CSharp.SyntaxKind>(c, n => n.CSharpKind(), analyzers, expected);
+        }
+
+        public static TCompilation VerifyAnalyzerDiagnostics3<TCompilation, TSyntaxKind>(
+                this TCompilation c, Func<SyntaxNode, TSyntaxKind> getKind, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+            where TSyntaxKind : struct
+        {
+            var driver = new AnalyzerDriver3<TSyntaxKind>(analyzers, getKind, default(CancellationToken));
+            c = (TCompilation)c.WithEventQueue(driver.CompilationEventQueue);
+            var discarded = c.GetDiagnostics();
+            driver.DiagnosticsAsync().Result.Verify(expected);
+            return c; // note this is a new compilation
+        }
+
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(this TCompilation c, IDiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {

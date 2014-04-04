@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
+
+            analyzer = new CSharpTrackingDiagnosticAnalyzer();
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics3(new[] { analyzer });
+            analyzer.VerifyAllInterfaceMembersWereCalled();
+            analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
+            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
         }
 
         [WorkItem(896075)]
