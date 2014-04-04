@@ -1111,10 +1111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Despite what the spec says, this rule is applied after shadowing based on delegate relaxation
             ' level, however it needs other tie breaking rules applied to equally applicable candidates prior
             ' to figuring out the minimal inference level to use as the filter.
-            Dim appliedTieBreakingRules As Boolean = False
-            ShadowBasedOnInferenceLevel(candidates, arguments, delegateReturnType, binder,
-                                        applicableCandidates, applicableNarrowingCandidates, appliedTieBreakingRules,
-                                        useSiteDiagnostics)
+            ShadowBasedOnInferenceLevel(candidates, arguments, Not argumentNames.IsDefault, delegateReturnType, binder,
+                                        applicableCandidates, applicableNarrowingCandidates, useSiteDiagnostics)
             If applicableCandidates < 2 Then
                 narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
                 GoTo ResolutionComplete
@@ -1133,7 +1131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' All remaining candidates are narrowing, deal with them.
                 narrowingCandidatesRemainInTheSet = True
-                applicableCandidates = AnalyzeNarrowingCandidates(candidates, arguments, delegateReturnType, appliedTieBreakingRules,
+                applicableCandidates = AnalyzeNarrowingCandidates(candidates, arguments, delegateReturnType,
                                                                   lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, binder,
                                                                   resolutionIsLateBound,
                                                                   useSiteDiagnostics)
@@ -1162,7 +1160,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '   in the set and the remaining members are not equally applicable to the argument 
                 '   list, a compile-time error results.
                 '7.	Otherwise, given any two members of the set, M and N, apply the following tie-breaking rules, in order.
-                applicableCandidates = EliminateLessApplicableToTheArguments(candidates, arguments, delegateReturnType, appliedTieBreakingRules, binder, useSiteDiagnostics)
+                applicableCandidates = EliminateLessApplicableToTheArguments(candidates, arguments, delegateReturnType,
+                                                                             False, ' appliedTieBreakingRules
+                                                                             binder, useSiteDiagnostics)
             End If
 
 ResolutionComplete:
@@ -1695,13 +1695,14 @@ ResolutionComplete:
         Private Shared Sub ShadowBasedOnInferenceLevel(
             candidates As ArrayBuilder(Of CandidateAnalysisResult),
             arguments As ImmutableArray(Of BoundExpression),
+            haveNamedArguments As Boolean,
             delegateReturnType As TypeSymbol,
             binder As Binder,
             ByRef applicableCandidates As Integer,
             ByRef applicableNarrowingCandidates As Integer,
-            ByRef appliedTieBreakingRules As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
+            Debug.Assert(Not haveNamedArguments OrElse Not candidates(0).Candidate.IsOperator)
 
             ' See if there are candidates with different InferenceLevel
             Dim haveDifferentInferenceLevel As Boolean = False
@@ -1729,30 +1730,113 @@ ResolutionComplete:
                 Return
             End If
 
-            ' Ok, we need to make sure that tie breaking rules are applied to equally applicable candidates
-            If Not appliedTieBreakingRules Then
-                applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteDiagnostics)
-                appliedTieBreakingRules = True
+            ' Native compiler used to have a bug where CombineCandidates was applying shadowing in presence of named arguments 
+            ' before figuring out whether candidates are applicable. We fixed that. However, in cases when candidates were applicable
+            ' after all, that shadowing had impact on the shadowing based on the inference level by affecting minimal inference level. 
+            ' To compensate, we will perform the CombineCandidates-style shadowing here. Note that we cannot simply call
+            ' ApplyTieBreakingRulesToEquallyApplicableCandidates to do this because shadowing performed by CombineCandidates is more
+            ' constrained.
+            If haveNamedArguments Then
+                Debug.Assert(Not candidates(0).Candidate.IsOperator)
 
-                If applicableCandidates < 2 Then
+                Dim indexesOfApplicableCandidates = ArrayBuilder(Of Integer).GetInstance(applicableCandidates)
 
-                    applicableNarrowingCandidates = 0
-                    For i As Integer = 0 To candidates.Count - 1 Step 1
+                For i As Integer = 0 To candidates.Count - 1 Step 1
+                    If candidates(i).State = CandidateAnalysisResultState.Applicable Then
+                        indexesOfApplicableCandidates.Add(i)
+                    End If
+                Next
 
-                        Dim current As CandidateAnalysisResult = candidates(i)
+                Debug.Assert(indexesOfApplicableCandidates.Count = applicableCandidates)
 
-                        If current.State = CandidateAnalysisResultState.Applicable Then
+                ' Sort indexes by inference level
+                indexesOfApplicableCandidates.Sort(New InferenceLevelComparer(candidates))
 
-                            If current.RequiresNarrowingConversion Then
-                                applicableNarrowingCandidates += 1
+#If DEBUG Then
+                Dim level As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
+                For Each index As Integer In indexesOfApplicableCandidates
+                    Debug.Assert(level <= candidates(index).InferenceLevel)
+                    level = candidates(index).InferenceLevel
+                Next
+#End If
+
+                ' In order of sorted indexes, apply constrained shadowing rules looking for the first one survived.
+                ' This will be sufficient to calculate "correct" minimal inference level. We don't have to apply 
+                ' shadowing to each pair of candidates.
+                For i As Integer = 0 To indexesOfApplicableCandidates.Count - 2
+                    Dim left As CandidateAnalysisResult = candidates(indexesOfApplicableCandidates(i))
+
+                    If left.State <> CandidateAnalysisResultState.Applicable Then
+                        Continue For
+                    End If
+
+                    For j As Integer = i + 1 To indexesOfApplicableCandidates.Count - 1
+                        Dim right As CandidateAnalysisResult = candidates(indexesOfApplicableCandidates(j))
+
+                        If right.State <> CandidateAnalysisResultState.Applicable Then
+                            Continue For
+                        End If
+
+                        ' Shadowingis applied only to candidates that have the same types for corresponding parameters
+                        ' in virtual signatures
+                        Dim equallyApplicable As Boolean = True
+                        For k = 0 To arguments.Length - 1 Step 1
+
+                            Dim leftParamType As TypeSymbol = GetParameterTypeFromVirtualSignature(left, left.ArgsToParamsOpt(k))
+                            Dim rightParamType As TypeSymbol = GetParameterTypeFromVirtualSignature(right, right.ArgsToParamsOpt(k))
+
+                            If Not leftParamType.IsSameTypeIgnoringCustomModifiers(rightParamType) Then
+                                ' Signatures are different, shadowing rules do not apply
+                                equallyApplicable = False
+                                Exit For
                             End If
+                        Next
 
-                            Exit For
+                        If Not equallyApplicable Then
+                            Continue For
+                        End If
+
+                        Dim signatureMatch As Boolean = True
+
+                        ' Compare complete signature, with no regard to arguments
+                        If left.Candidate.ParameterCount <> right.Candidate.ParameterCount Then
+                            signatureMatch = False
+                        Else
+                            For k As Integer = 0 To left.Candidate.ParameterCount - 1 Step 1
+
+                                Dim leftType As TypeSymbol = left.Candidate.Parameters(k).Type
+                                Dim rightType As TypeSymbol = right.Candidate.Parameters(k).Type
+
+                                If Not leftType.IsSameTypeIgnoringCustomModifiers(rightType) Then
+                                    signatureMatch = False
+                                    Exit For
+                                End If
+                            Next
+                        End If
+
+                        Dim leftWins As Boolean = False
+                        Dim rightWins As Boolean = False
+
+                        If (Not signatureMatch AndAlso ShadowBasedOnParamArrayUsage(left, right, leftWins, rightWins)) OrElse
+                           ShadowBasedOnReceiverType(left, right, leftWins, rightWins, useSiteDiagnostics) OrElse
+                           ShadowBasedOnExtensionMethodTargetTypeGenericity(left, right, leftWins, rightWins) Then
+                            Debug.Assert(leftWins Xor rightWins)
+                            If leftWins Then
+                                right.State = CandidateAnalysisResultState.Shadowed
+                                candidates(indexesOfApplicableCandidates(j)) = right
+                            ElseIf rightWins Then
+                                left.State = CandidateAnalysisResultState.Shadowed
+                                candidates(indexesOfApplicableCandidates(i)) = left
+                                Exit For ' advance to the next left
+                            End If
                         End If
                     Next
 
-                    Return 'We are left with only one candidate. There is nothing left to do.
-                End If
+                    If left.State = CandidateAnalysisResultState.Applicable Then
+                        ' left has survived
+                        Exit For
+                    End If
+                Next
             End If
 
             ' Find the minimal InferenceLevel
@@ -1799,22 +1883,20 @@ ResolutionComplete:
             ' Done.
         End Sub
 
-        <Obsolete()> <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
-        Private Shared Sub MarkSurvivedAs(
-            candidates As ArrayBuilder(Of CandidateAnalysisResult),
-            bucket As ArrayBuilder(Of Integer),
-            newState As CandidateAnalysisResultState
-        )
+        Private Class InferenceLevelComparer
+            Implements IComparer(Of Integer)
 
-            For i = 0 To bucket.Count - 1 Step 1
-                Dim candidate = candidates(bucket(i))
+            Private ReadOnly m_Candidates As ArrayBuilder(Of CandidateAnalysisResult)
 
-                If candidate.State = CandidateAnalysisResultState.Applicable Then
-                    candidate.State = newState
-                    candidates(bucket(i)) = candidate
-                End If
-            Next
-        End Sub
+            Sub New(candidates As ArrayBuilder(Of CandidateAnalysisResult))
+                m_Candidates = candidates
+            End Sub
+
+            Public Function Compare(indexX As Integer, indexY As Integer) As Integer Implements IComparer(Of Integer).Compare
+                Return CInt(m_Candidates(indexX).InferenceLevel).CompareTo(m_Candidates(indexY).InferenceLevel)
+            End Function
+        End Class
+
 
         ''' <summary>
         ''' §11.8.1.1 Applicability
@@ -1842,6 +1924,8 @@ ResolutionComplete:
             For i = 0 To arguments.Length - 1 Step 1
 
                 Dim leftParamType As TypeSymbol
+
+                Debug.Assert(left.ArgsToParamsOpt.IsDefault = right.ArgsToParamsOpt.IsDefault)
 
                 If left.ArgsToParamsOpt.IsDefault Then
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex)
@@ -2144,6 +2228,8 @@ BreakTheTie:
             For k = 0 To arguments.Length - 1 Step 1
                 Dim leftParamType As TypeSymbol
 
+                Debug.Assert(left.ArgsToParamsOpt.IsDefault = right.ArgsToParamsOpt.IsDefault)
+
                 If left.ArgsToParamsOpt.IsDefault Then
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex)
                     AdvanceParameterInVirtualSignature(left, leftParamIndex)
@@ -2215,50 +2301,6 @@ BreakTheTie:
 
         ''' <summary>
         ''' §11.8.1 Overloaded Method Resolution
-        '''      5.	Next, if any instance methods remain in the set, 
-        '''         eliminate all extension methods from the set.
-        ''' 
-        ''' Returns amount of applicable candidates left.
-        ''' </summary>
-        <Obsolete()> <System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage()>
-        Private Function EliminateExtensionMethodsInPresenceOfInstanceMethods(
-            candidates As ArrayBuilder(Of CandidateAnalysisResult)
-        ) As Integer
-            Dim applicableCandidates As Integer = 0
-            Dim haveNonExtensions As Boolean = False
-
-            For i As Integer = 0 To candidates.Count - 1 Step 1
-
-                Dim current As CandidateAnalysisResult = candidates(i)
-
-                If current.State <> CandidateAnalysisResultState.Applicable AndAlso
-                   Not current.Candidate.IsExtensionMethod Then
-                    haveNonExtensions = True
-                    Exit For
-                End If
-            Next
-
-            For i As Integer = 0 To candidates.Count - 1 Step 1
-
-                Dim current As CandidateAnalysisResult = candidates(i)
-
-                If current.State <> CandidateAnalysisResultState.Applicable Then
-                    Continue For
-                End If
-
-                If haveNonExtensions AndAlso current.Candidate.IsExtensionMethod Then
-                    current.State = CandidateAnalysisResultState.ExtensionMethodVsInstanceMethod
-                    candidates(i) = current
-                Else
-                    applicableCandidates += 1
-                End If
-            Next
-
-            Return applicableCandidates
-        End Function
-
-        ''' <summary>
-        ''' §11.8.1 Overloaded Method Resolution
         '''      3.	Next, eliminate all members from the set that require narrowing conversions 
         '''         to be applicable to the argument list, except for the case where the argument 
         '''         expression type is Object.
@@ -2276,14 +2318,13 @@ BreakTheTie:
             candidates As ArrayBuilder(Of CandidateAnalysisResult),
             arguments As ImmutableArray(Of BoundExpression),
             delegateReturnType As TypeSymbol,
-            appliedTieBreakingRules As Boolean,
             lateBindingIsAllowed As Boolean,
             binder As Binder,
             ByRef resolutionIsLateBound As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Integer
             Dim applicableCandidates As Integer = 0
-
+            Dim appliedTieBreakingRules As Boolean = False
 
             ' Look through the candidate set for lifted operators that require narrowing conversions whose
             ' source operators also require narrowing conversions. In that case, we only want to keep one method in
@@ -4185,6 +4226,8 @@ ContinueCandidatesLoop:
                 Dim leftParamType As TypeSymbol
                 Dim leftParamTypeForGenericityCheck As TypeSymbol = Nothing
 
+                Debug.Assert(left.ArgsToParamsOpt.IsDefault = right.ArgsToParamsOpt.IsDefault)
+
                 If left.ArgsToParamsOpt.IsDefault Then
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex, leftParamTypeForGenericityCheck)
                     AdvanceParameterInVirtualSignature(left, leftParamIndex)
@@ -4363,6 +4406,8 @@ ContinueCandidatesLoop:
 
                 Dim leftParamType As TypeSymbol
                 Dim leftParamTypeForGenericityCheck As TypeSymbol = Nothing
+
+                Debug.Assert(left.ArgsToParamsOpt.IsDefault = right.ArgsToParamsOpt.IsDefault)
 
                 If left.ArgsToParamsOpt.IsDefault Then
                     leftParamType = GetParameterTypeFromVirtualSignature(left, leftParamIndex, leftParamTypeForGenericityCheck)

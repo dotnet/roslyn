@@ -5420,5 +5420,40 @@ BC30521: Overload resolution failed because no accessible 'foo' is most specific
            ~~~
 ]]></expected>)
         End Sub
+
+        <Fact(), WorkItem(32)>
+        Sub BugCodePlex_32()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim b As New B()
+        b.Test(Function() 1)
+    End Sub
+
+End Module
+
+Class A
+    Sub Test(x As System.Func(Of Integer))
+        System.Console.WriteLine("A.Test")
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Overloads Sub Test(Of T)(x As System.Linq.Expressions.Expression(Of System.Func(Of T)))
+        System.Console.WriteLine("B.Test")
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, OptionsExe)
+
+            CompileAndVerify(compilation, expectedOutput:="A.Test")
+        End Sub
     End Class
 End Namespace

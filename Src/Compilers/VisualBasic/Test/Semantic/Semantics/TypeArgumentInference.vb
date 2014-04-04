@@ -560,6 +560,9 @@ Module Module1
         M1(1, Function(x As Integer) As Integer
                   Return 2
               End Function, 1, v:=val)
+        M1(1, Function(x As Integer) As Integer
+                  Return 2
+              End Function, 1, val)
     End Sub
 
     Sub M1(Of T, U)(x As T, y As System.Func(Of Integer, Integer), z As U, v As Long, ParamArray vv() As Long)
@@ -579,7 +582,9 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, OptionsExe)
 
-            CompileAndVerify(compilation, expectedOutput:="2")
+            CompileAndVerify(compilation, expectedOutput:=
+"2
+2")
         End Sub
 
         <Fact>
