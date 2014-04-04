@@ -444,9 +444,14 @@ namespace Microsoft.CodeAnalysis
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's primary branch and there is actual background compilation going on,
-            // since w/o background compilation the semantics won't be moving toward completeness.
-            if (solution.BranchId == workspace.PrimaryBranchId && workspace.PartialSemanticsEnabled)
+            // only produce doc with frozen semantics if this document is part of the workspace's 
+            // primary branch and there is actual background compilation going on, since w/o 
+            // background compilation the semantics won't be moving toward completeness.  Also,
+            // ensure that the project that this document is part of actually supports compilations,
+            // as partial semantics don't make sense otherwise.
+            if (solution.BranchId == workspace.PrimaryBranchId &&
+                workspace.PartialSemanticsEnabled &&
+                this.Project.SupportsCompilation)
             {
                 var newSolution = await this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(this.Id, cancellationToken).ConfigureAwait(false);
                 return newSolution.GetDocument(this.Id);
