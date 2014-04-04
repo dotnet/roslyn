@@ -341,6 +341,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return False
+            ElseIf currentOriginalNode.VisualBasicKind = SyntaxKind.CollectionInitializer Then
+                Return previousOriginalNode IsNot Nothing AndAlso
+                    ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -380,6 +383,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             End If
 
             Return False
+        End Function
+
+        Private Function ReplacementBreaksCollectionInitializerAddMethod(originalInitializer As ExpressionSyntax, newInitializer As ExpressionSyntax) As Boolean
+            Dim originalSymbol = Me.OriginalSemanticModel.GetCollectionInitializerSymbolInfo(originalInitializer, CancellationToken).Symbol
+            Dim newSymbol = Me.SpeculativeSemanticModel.GetCollectionInitializerSymbolInfo(newInitializer, CancellationToken).Symbol
+            Return Not SymbolsAreCompatible(originalSymbol, newSymbol)
         End Function
 
         Protected Overrides Function IsForEachTypeInferred(forEachStatement As ForEachStatementSyntax, semanticModel As SemanticModel) As Boolean

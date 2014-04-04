@@ -390,15 +390,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var newCtorInitializer = (ConstructorInitializerSyntax)currentReplacedNode;
                 return ReplacementBreaksConstructorInitializer(originalCtorInitializer, newCtorInitializer);
             }
+            else if (currentOriginalNode.CSharpKind() == SyntaxKind.CollectionInitializerExpression)
+            {
+                return previousOriginalNode != null &&
+                    ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
+            }
 
             return false;
         }
 
         private bool ReplacementBreaksConstructorInitializer(ConstructorInitializerSyntax ctorInitializer, ConstructorInitializerSyntax newCtorInitializer)
         {
-            var attributeSym = this.OriginalSemanticModel.GetSymbolInfo(ctorInitializer).Symbol;
-            var newAttributeSym = this.SpeculativeSemanticModel.GetSymbolInfo(newCtorInitializer).Symbol;
-            return !SymbolsAreCompatible(attributeSym, newAttributeSym);
+            var originalSymbol = this.OriginalSemanticModel.GetSymbolInfo(ctorInitializer, CancellationToken).Symbol;
+            var newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newCtorInitializer, CancellationToken).Symbol;
+            return !SymbolsAreCompatible(originalSymbol, newSymbol);
+        }
+
+        private bool ReplacementBreaksCollectionInitializerAddMethod(ExpressionSyntax originalInitializer, ExpressionSyntax newInitializer)
+        {
+            var originalSymbol = this.OriginalSemanticModel.GetCollectionInitializerSymbolInfo(originalInitializer, CancellationToken).Symbol;
+            var newSymbol = this.SpeculativeSemanticModel.GetCollectionInitializerSymbolInfo(newInitializer, CancellationToken).Symbol;
+            return !SymbolsAreCompatible(originalSymbol, newSymbol);
         }
 
         protected override bool IsInvocableExpression(SyntaxNode node)
