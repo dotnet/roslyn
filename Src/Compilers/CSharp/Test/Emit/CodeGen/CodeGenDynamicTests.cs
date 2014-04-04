@@ -298,7 +298,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact(Skip = "530436"), WorkItem(530436)]
+        [Fact, WorkItem(530436)]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -319,8 +319,9 @@ class C
     }
 }
 ";
-            // the delegate is generated, no error is reported
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef });
+            // Desired: the delegate is generated, no error is reported.
+            // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
+            Assert.Throws<PeVerifyException>(() => CompileAndVerify(source, new[] { systemCoreRef, csrtRef }));
         }
 
         [Fact]
