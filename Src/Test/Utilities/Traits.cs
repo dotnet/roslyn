@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string RemoveUnnecessaryLineContinuation = "RemoveUnnecessaryLineContinuation";
             public const string Workspace = "Workspace";
             public const string Diagnostics = "Diagnostics";
+            public const string Formatting = "Formatting";
         }
 
         public const string Environment = "Environment";

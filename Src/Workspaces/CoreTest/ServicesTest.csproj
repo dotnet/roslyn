@@ -106,6 +106,7 @@
     <Compile Include="FindAllDeclarationsTests.TestSolutionsAndProject.cs" />
     <Compile Include="FindReferencesTests.cs" />
     <Compile Include="FormattingTests.cs" />
+    <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
     <Compile Include="Host\Utilities\Features.cs" />
     <Compile Include="Host\Utilities\Features.CSharp.cs" />
