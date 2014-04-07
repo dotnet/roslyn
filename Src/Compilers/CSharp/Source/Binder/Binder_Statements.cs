@@ -1019,10 +1019,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)local != null);
             Debug.Assert(kind != BindValueKind.RValue);
 
-            if (local.IsConst)
+            if (local.IsWritable)
             {
-                Error(diagnostics, GetStandardLvalueError(kind), tree);
-                return false;
+                return true;
             }
 
             MessageID cause = 0;
@@ -1040,7 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return true;
+                Error(diagnostics, GetStandardLvalueError(kind), tree);
+                return false;
             }
 
             if (kind == BindValueKind.AddressOf)

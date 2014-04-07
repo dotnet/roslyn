@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Lexer lexer,
             CSharp.CSharpSyntaxNode oldTree,
             IEnumerable<TextChangeRange> changes,
+            LexerMode lexerMode = LexerMode.Syntax,
             CancellationToken cancellationToken = default(CancellationToken))
-            : base(lexer, LexerMode.Syntax, oldTree, changes, allowModeReset: false,
+            : base(lexer, lexerMode, oldTree, changes, allowModeReset: false,
                 preLexIfNotIncremental: true, cancellationToken: cancellationToken)
         {
             this.syntaxFactoryContext = new SyntaxFactoryContext();

@@ -235,6 +235,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal virtual bool IsWritable
+        {
+            get
+            {
+                switch (this.DeclarationKind)
+                {
+                    case LocalDeclarationKind.Constant:
+                    case LocalDeclarationKind.Fixed:
+                    case LocalDeclarationKind.ForEach:
+                    case LocalDeclarationKind.Using:
+                        return false;
+                    default:
+                        return true;
+                }
+            }
+        }
+
         /// <summary>
         /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
