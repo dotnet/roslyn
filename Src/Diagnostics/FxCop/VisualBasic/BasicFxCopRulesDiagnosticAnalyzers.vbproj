@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B0072DEA-A506-45E4-8D52-94D5EDC0EB9E}</ProjectGuid>
+    <ProjectGuid>{5D20ADE3-86C7-4AF2-B858-43CB7F41CF69}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers</AssemblyName>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.FxCopRules.DiagnosticAnalyzers.xml</DocumentationFile>

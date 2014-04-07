@@ -9,13 +9,11 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7C09625A-AE46-4BB4-9F16-B9F7A6384B87}</ProjectGuid>
+    <ProjectGuid>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
+    <FileUpgradeFlags></FileUpgradeFlags>
+    <UpgradeBackupLocation></UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <StyleCopEnabled>true</StyleCopEnabled>
     <RootNamespace>Microsoft.CodeAnalysis.FxCopAnalyzers</RootNamespace>
