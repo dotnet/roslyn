@@ -14,5 +14,6 @@ namespace Microsoft.CodeAnalysis
         public const string Interactive = "Interactive";
         public const string MetadataAsSource = "MetadataAsSource";
         public const string MiscellaneousFiles = "MiscellaneousFiles";
+        public const string Preview = "Preview";
     }
 }
