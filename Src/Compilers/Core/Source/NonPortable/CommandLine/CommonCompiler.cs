@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    //consoleOutput.WriteLine(.ToString(Culture));
                     if (diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.IsWarningAsError)
                     {
                         hasErrors = true;
