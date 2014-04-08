@@ -4321,5 +4321,87 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
 
         End Sub
 
+        <WorkItem(31)>
+        <Fact()>
+        Public Sub BugCodePlex_31()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Option Strict On
+
+Module Module1
+    Property Value As BooleanEx?
+    Sub Main()
+        If Value Then
+        End If
+        System.Console.WriteLine("---")
+        Value = true
+        System.Console.WriteLine("---")
+        Dim x as Boolean? = Value
+        System.Console.WriteLine("---")
+        If Value Then
+        End If
+    End Sub
+End Module
+
+Structure BooleanEx
+    Private b As Boolean
+
+    Public Sub New(value As Boolean)
+        b = value
+    End Sub
+
+    Public Shared Widening Operator CType(value As Boolean) As BooleanEx
+        System.Console.WriteLine("CType(value As Boolean) As BooleanEx")
+        Return New BooleanEx(value)
+    End Operator
+
+    Public Shared Widening Operator CType(value As BooleanEx) As Boolean
+        System.Console.WriteLine("CType(value As BooleanEx) As Boolean")
+        Return value.b
+    End Operator
+
+    Public Shared Widening Operator CType(value As Integer) As BooleanEx
+        System.Console.WriteLine("CType(value As Integer) As BooleanEx")
+        Return New BooleanEx(CBool(value))
+    End Operator
+
+    Public Shared Widening Operator CType(value As BooleanEx) As Integer
+        System.Console.WriteLine("CType(value As BooleanEx) As Integer")
+        Return CInt(value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As String) As BooleanEx
+        System.Console.WriteLine("CType(value As String) As BooleanEx")
+        Return New BooleanEx(CBool(value))
+    End Operator
+
+    Public Shared Widening Operator CType(value As BooleanEx) As String
+        System.Console.WriteLine("CType(value As BooleanEx) As String")
+        Return CStr(value.b)
+    End Operator
+
+    Public Shared Operator =(value1 As BooleanEx, value2 As Boolean) As Boolean
+        System.Console.WriteLine("=(value1 As BooleanEx, value2 As Boolean) As Boolean")
+        Return False
+    End Operator
+
+    Public Shared Operator <>(value1 As BooleanEx, value2 As Boolean) As Boolean
+        System.Console.WriteLine("<>(value1 As BooleanEx, value2 As Boolean) As Boolean")
+        Return False
+    End Operator
+End Structure
+    ]]></file>
+    </compilation>, OptionsExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+"---
+CType(value As Boolean) As BooleanEx
+---
+CType(value As BooleanEx) As Boolean
+---
+CType(value As BooleanEx) As Boolean")
+        End Sub
+
     End Class
 End Namespace

@@ -2502,7 +2502,7 @@ Done:
                             ' it is always widening (if exists) for user-defined types. For reasons described above, we might need to ignore 
                             ' an operator like this.
                             If source.IsNullableType() AndAlso destination.IsNullableType() AndAlso
-                               method.ReturnType.IsIntrinsicValueType() Then
+                               method.ReturnType.IsIntrinsicType() Then
                                 Continue For
                             End If
                         End If
