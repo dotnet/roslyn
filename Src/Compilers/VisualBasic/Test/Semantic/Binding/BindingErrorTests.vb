@@ -18329,6 +18329,126 @@ BC40052: Range specified for 'Case' statement is not valid. Make sure that the l
         End Sub
 
         <Fact>
+        <WorkItem(759127)>
+        Public Sub BC41000WRN_AttributeSpecifiedMultipleTimes()
+            ' No warnings Expected - Previously would generate a BC41000
+            ' Signature of Attribute determined from original bug attribute.
+
+            ' No values provided for attribute
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="Class1">
+        <file name="a.vb">
+Imports System
+&lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")&gt;
+&lt;AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class, AllowMultiple:=True)&gt;
+Public Class ESAttribute
+    Inherits System.Attribute
+
+    Public Sub New(assemblyGUID As String)
+        If (assemblyGUID Is Nothing) Then
+            Throw New System.ArgumentNullException("assemblyGuid")
+        End If
+    End Sub
+    Public Sub New()
+    End Sub
+End Class
+        </file>
+        <file name="b.vb">
+&lt;Assembly:ESAttribute()&gt;
+Class Class1
+    Sub Blah()
+    End Sub
+End Class
+        </file>
+        <file name="c.vb">
+&lt;Assembly:ESAttribute()&gt;
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+        </file>
+    </compilation>)
+            Dim expectedErrors1 = <errors>
+                                  </errors>
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+
+
+            ' One value provided for attribute, the other does not have argument
+            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Class1">
+    <file name="a.vb">
+Imports System
+&lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")&gt;
+&lt;AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class, AllowMultiple:=True)&gt;
+Public Class ESAttribute
+    Inherits System.Attribute
+
+    Public Sub New(assemblyGUID As String)
+        If (assemblyGUID Is Nothing) Then
+            Throw New System.ArgumentNullException("assemblyGuid")
+        End If
+    End Sub
+    Public Sub New()
+    End Sub
+End Class
+        </file>
+    <file name="b.vb">
+&lt;Assembly:ESAttribute()&gt;
+Class Class1
+    Sub Blah()
+    End Sub
+End Class
+        </file>
+    <file name="c.vb">
+&lt;Assembly:ESAttribute("Test")&gt;
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+        </file>
+</compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+
+            ' Different values for argument provided for attribute usage
+            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Class1">
+    <file name="a.vb">
+Imports System
+&lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")&gt;
+&lt;AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class, AllowMultiple:=True)&gt;
+Public Class ESAttribute
+    Inherits System.Attribute
+
+    Public Sub New(assemblyGUID As String)
+        If (assemblyGUID Is Nothing) Then
+            Throw New System.ArgumentNullException("assemblyGuid")
+        End If
+    End Sub
+    Public Sub New()
+    End Sub
+End Class
+        </file>
+    <file name="b.vb">
+&lt;Assembly:ESAttribute("test2")&gt;
+Class Class1
+    Sub Blah()
+    End Sub
+End Class
+        </file>
+    <file name="c.vb">
+&lt;Assembly:ESAttribute("Test")&gt;
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+        </file>
+</compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact>
         Public Sub BC41001WRN_NoNonObsoleteConstructorOnBase3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NoNonObsoleteConstructorOnBase4">
