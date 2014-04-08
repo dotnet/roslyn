@@ -6859,5 +6859,79 @@ class C
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44)
                 );
         }
+
+        [Fact, WorkItem(30)]
+        public void BugCodePlex_30_01()
+        {
+
+            string source1 = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Foo(() => { return () => 0; ; });
+        Foo(() => { return () => 0; });
+    }
+    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput: @"2
+2");
+        }
+
+        [Fact, WorkItem(30)]
+        public void BugCodePlex_30_02()
+        {
+
+            string source1 = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(false);
+    }
+
+    static void Test(bool val)
+    {
+        Foo(() => { if (val) return () => 0; else return () => (short)0; });
+        Foo(() => { if (val) return () => (short)0; else return () => 0; });
+    }
+    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput: @"1
+1");
+        }
+
+        [Fact, WorkItem(30)]
+        public void BugCodePlex_30_03()
+        {
+
+            string source1 = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(false);
+    }
+
+    static void Test(bool val)
+    {
+        Foo(() => { if (val) return () => 0; else return () => 0; });
+    }
+    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput: @"2");
+        }
     }
 }

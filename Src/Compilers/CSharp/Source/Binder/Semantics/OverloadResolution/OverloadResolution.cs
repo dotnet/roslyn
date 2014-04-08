@@ -1635,18 +1635,85 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // - The body of E is an expression that exactly matches Y
-                if (lambda.Body.Statements.Length == 1 && lambda.Body.Statements[0].Kind == BoundKind.ReturnStatement)
+                // - The body of E is an expression that exactly matches Y, or
+                //   has a return statement with expression and all return statements have expression that 
+                //   exactly matches Y.
+
+                // Handle trivial cases first
+                switch (lambda.Body.Statements.Length)
                 {
-                    var returnStmt = (BoundReturnStatement)lambda.Body.Statements[0];
-                    if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
+                    case 0:
+                        break;
+
+                    case 1:
+                        if (lambda.Body.Statements[0].Kind == BoundKind.ReturnStatement)
+                        {
+                            var returnStmt = (BoundReturnStatement)lambda.Body.Statements[0];
+                            if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteDiagnostics))
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            goto default;
+                        }
+
+                        break;
+
+                    default:
+                        var returnStatements = ArrayBuilder<BoundReturnStatement>.GetInstance();
+                        var walker = new ReturnStatements(returnStatements);
+
+                        walker.Visit(lambda.Body);
+
+                        bool result = false;
+                        foreach (BoundReturnStatement r in returnStatements)
+                        {
+                            if (r.ExpressionOpt == null || !ExpressionMatchExactly(r.ExpressionOpt, y, ref useSiteDiagnostics))
+                            {
+                                result = false;
+                                break;
+                            }
+                            else
+                            {
+                                result = true;
+                            }
+                        }
+
+                        returnStatements.Free();
+
+                        if (result)
+                        {
+                            return true;
+                        }
+                        break;
                 }
             }
 
             return false;
+        }
+
+        private class ReturnStatements : BoundTreeWalker
+        {
+            private readonly ArrayBuilder<BoundReturnStatement> returns;
+
+            public ReturnStatements(ArrayBuilder<BoundReturnStatement> returns)
+            {
+                this.returns = returns;
+            }
+
+            public override BoundNode VisitLambda(BoundLambda node)
+            {
+                // Do not recurse into nested lambdas; we don't want their returns.
+                return null;
+            }
+
+            public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+            {
+                returns.Add(node);
+                return null;
+            }
         }
 
         private BetterResult BetterConversionTarget(UnboundLambda lambdaOpt, TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool okToDowngradeToNeither)
