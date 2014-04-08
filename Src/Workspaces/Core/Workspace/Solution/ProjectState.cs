@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             this.documentStates = docStates;
 
-            this.lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(this.ComputeLatestDocumentVersionAsync, cacheResult: true);
+            this.lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, c), cacheResult: true);
             this.lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, c), cacheResult: true);
         }
 
@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis
             return projectInfo;
         }
 
-        private async Task<VersionStamp> ComputeLatestDocumentVersionAsync(CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(ImmutableDictionary<DocumentId, DocumentState> documentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var doc in this.DocumentStates.Values)
+            foreach (var doc in documentStates.Values)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             dependentDocumentVersion = recalculateDocumentVersion ?
-                new AsyncLazy<VersionStamp>(this.ComputeLatestDocumentVersionAsync, cacheResult: true) :
+                new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, c), cacheResult: true) :
                 textChanged ?
                     new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true) :
                     this.lazyLatestDocumentVersion;
