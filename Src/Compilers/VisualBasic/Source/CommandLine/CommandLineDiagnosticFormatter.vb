@@ -26,6 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dev12 vbc prints raw paths -- relative and not normalized, so we don't need to customize the base implementation.
             Dim baseMessage = MyBase.Format(diagnostic, formatter)
             If Not diagnostic.Location.IsInSource Then
+
+                ' Add "vbc : " command line prefix to the start of the command line diagnostics which do not have a location to match the 
+                ' behaviour of native compiler.    This allows MSBuild output to be consistent whether Roslyn is installed or not.      
+                If diagnostic.Location.Kind = LocationKind.None Then
+                    baseMessage = VisualBasicCompiler.VbcCommandLinePrefix & baseMessage
+                End If
+
                 Return baseMessage
             End If
 

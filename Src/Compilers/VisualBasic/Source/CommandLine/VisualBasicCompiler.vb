@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class VisualBasicCompiler
         Inherits CommonCompiler
 
+        Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
         Private Shared p_responseFileName As String
         Private ReadOnly m_diagnosticFormatter As CommandLineDiagnosticFormatter
 
@@ -147,6 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
             Dim resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, referenceDirectiveResolver)
+
             If PrintErrors(diagnostics, consoleOutput) Then
                 Return Nothing
             End If
@@ -196,6 +198,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             consoleOutput.WriteLine()
+        End Sub
+
+        Friend Overrides Sub PrintError(Diagnostic As DiagnosticInfo, consoleOutput As TextWriter)
+            consoleOutput.Write(VisualBasicCompiler.VbcCommandLinePrefix)
+            consoleOutput.WriteLine(Diagnostic.ToString(Culture))
         End Sub
 
         Friend Overrides Function SuppressDefaultResponseFile(args As IEnumerable(Of String)) As Boolean

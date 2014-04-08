@@ -274,7 +274,8 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    consoleOutput.WriteLine(diagnostic.ToString(Culture));
+                    PrintError(diagnostic, consoleOutput);
+                    //consoleOutput.WriteLine(.ToString(Culture));
                     if (diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.IsWarningAsError)
                     {
                         hasErrors = true;
@@ -283,6 +284,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return hasErrors;
+        }
+
+        internal virtual void PrintError(DiagnosticInfo diagnostic, TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
         /// <summary>

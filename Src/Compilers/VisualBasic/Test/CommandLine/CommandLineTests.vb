@@ -165,12 +165,12 @@ End Class
         result = cmd.Run(writer, Nothing)
 
         Assert.Equal(<result>
-warning BC2026: warning number '2002' for the option 'nowarn' is either not configurable or not valid
-warning BC2026: warning number '2007' for the option 'nowarn' is either not configurable or not valid
-warning BC2026: warning number '2024' for the option 'nowarn' is either not configurable or not valid
-warning BC2026: warning number '2025' for the option 'nowarn' is either not configurable or not valid
-warning BC2026: warning number '2028' for the option 'nowarn' is either not configurable or not valid
-warning BC2026: warning number '2034' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2002' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2007' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2024' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2025' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2028' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '2034' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
 
         ' if this tests fails, the warning number is most probably used
@@ -179,7 +179,7 @@ warning BC2026: warning number '2034' for the option 'nowarn' is either not conf
         result = cmd.Run(writer, Nothing)
 
         Assert.Equal(<result>
-warning BC2026: warning number '42325' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '42325' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
 
 
@@ -199,7 +199,7 @@ End Class
         Dim result = cmd.Run(writer, Nothing)
 
         Assert.Equal(<result>
-warning BC2026: warning number '-1' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '-1' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
 
         cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/t:library", "/nowarn:-12345678901234567890", src})
@@ -207,7 +207,7 @@ warning BC2026: warning number '-1' for the option 'nowarn' is either not config
         result = cmd.Run(writer, Nothing)
 
         Assert.Equal(<result>
-error BC2014: the value '-12345678901234567890' is invalid for option 'nowarn'
+vbc : error BC2014: the value '-12345678901234567890' is invalid for option 'nowarn'
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
 
         cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/t:library", "/nowarn:-1234567890123456789", src})
@@ -215,7 +215,7 @@ error BC2014: the value '-12345678901234567890' is invalid for option 'nowarn'
         result = cmd.Run(writer, Nothing)
 
         Assert.Equal(<result>
-warning BC2026: warning number '-1234567890123456789' for the option 'nowarn' is either not configurable or not valid
+vbc : warning BC2026: warning number '-1234567890123456789' for the option 'nowarn' is either not configurable or not valid
 </result>.Value.Trim.Replace(vbLf, vbCrLf), writer.ToString.Trim)
 
 
@@ -1675,22 +1675,22 @@ a.vb
         Dim outWriter As New StringWriter()
         Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/t:library", "/recurse:.", "b.vb", "/out:abc.dll"}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2014: the value '.' is invalid for option 'recurse'", outWriter.ToString().Trim())
+        Assert.Equal("vbc : error BC2014: the value '.' is invalid for option 'recurse'", outWriter.ToString().Trim())
 
         outWriter = New StringWriter()
         exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/t:library", "/recurse:. ", "b.vb", "/out:abc.dll"}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2014: the value '.' is invalid for option 'recurse'", outWriter.ToString().Trim())
+        Assert.Equal("vbc : error BC2014: the value '.' is invalid for option 'recurse'", outWriter.ToString().Trim())
 
         outWriter = New StringWriter()
         exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/t:library", "/recurse:   . ", "/out:abc.dll"}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2014: the value '   .' is invalid for option 'recurse'|error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+        Assert.Equal("vbc : error BC2014: the value '   .' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
         outWriter = New StringWriter()
         exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/t:library", "/recurse:./.", "/out:abc.dll"}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2014: the value './.' is invalid for option 'recurse'|error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+        Assert.Equal("vbc : error BC2014: the value './.' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
         Dim args As VisualBasicCommandLineArguments
         Dim resolvedSourceFiles As String()
@@ -1789,7 +1789,7 @@ a.vb
         Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/a:missing.dll", "a.vb"})
         Dim exitCode = vbc.Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2017: could not find library 'missing.dll'", outWriter.ToString().Trim())
+        Assert.Equal("vbc : error BC2017: could not find library 'missing.dll'", outWriter.ToString().Trim())
 
         CleanupAllGeneratedFiles(file.Path)
     End Sub
@@ -1806,7 +1806,7 @@ a.vb
         Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/t:library", "/a:" + GetType(Object).Assembly.Location, "a.vb"})
         Dim exitCode = vbc.Run(outWriter, Nothing)
         Assert.Equal(0, exitCode)
-        Assert.Equal("warning BC42377: The assembly " + GetType(Object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim())
+        Assert.Equal("vbc : warning BC42377: The assembly " + GetType(Object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim())
 
 
         CleanupAllGeneratedFiles(file.Path)
@@ -3103,7 +3103,7 @@ End Class
         Dim outWriter As New StringWriter()
         Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", binaryPath}).Run(outWriter, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2015: the file '" + binaryPath + "' is not a text file", outWriter.ToString.Trim())
+        Assert.Equal("vbc : error BC2015: the file '" + binaryPath + "' is not a text file", outWriter.ToString.Trim())
 
         CleanupAllGeneratedFiles(binaryPath)
     End Sub
@@ -3287,7 +3287,7 @@ Dim b = Loc
         output = RunAndGetOutput(BasicCompilerCommand, "/nologo /vbruntime+ /vbruntime:abc /t:library " & src.ToString(), expectedRetCode:=1)
         AssertOutput(
 <text>
-error BC2017: could not find library 'abc'
+vbc : error BC2017: could not find library 'abc'
 </text>, output)
 
         Dim newVbCore = dir.CreateFile("Microsoft.VisualBasic.dll")
@@ -3334,19 +3334,19 @@ End Class
         Dim output = RunAndGetOutput(BasicCompilerCommand, "/nologo /nostdlib /sdkpath:l:\x /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
         AssertOutput(
 <text>
-error BC2017: could not find library 'Microsoft.VisualBasic.dll'
-</text>, output)
+        vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+        </text>, output)
 
         output = RunAndGetOutput(BasicCompilerCommand, "/nologo /nostdlib /r:mscorlib.dll /vbruntime- /sdkpath:c:folder /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
         AssertOutput(
-<text>
-error BC2017: could not find library 'mscorlib.dll'
+<text> 
+vbc : error BC2017: could not find library 'mscorlib.dll'
 </text>, output)
 
         output = RunAndGetOutput(BasicCompilerCommand, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
         AssertOutput(
 <text>
-error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 </text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         ' Create 'System.Runtime.dll'
@@ -3356,7 +3356,7 @@ error BC2017: could not find library 'Microsoft.VisualBasic.dll'
         output = RunAndGetOutput(BasicCompilerCommand, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
         AssertOutput(
 <text>
-error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 </text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         ' trash in 'System.Runtime.dll'
@@ -3365,7 +3365,7 @@ error BC2017: could not find library 'Microsoft.VisualBasic.dll'
         output = RunAndGetOutput(BasicCompilerCommand, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
         AssertOutput(
 <text>
-error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 </text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         ' Create 'mscorlib.dll'
@@ -3412,7 +3412,7 @@ End Class
 
         ' NOTE: no 'mscorlib.dll' exists
         output = RunAndGetOutput(BasicCompilerCommand, cmdNoStdLibNoRuntime, startFolder:=dir.Path, expectedRetCode:=1)
-        AssertOutput(<text>error BC2017: could not find library 'mscorlib.dll'</text>, output.Replace(dir.Path, "{SDKPATH}"))
+        AssertOutput(<text>vbc : error BC2017: could not find library 'mscorlib.dll'</text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         ' Create '<dir>\fldr2\mscorlib.dll'
         Dim msCorLib = subFolder2.CreateFile("mscorlib.dll")
@@ -3425,8 +3425,8 @@ End Class
         output = RunAndGetOutput(BasicCompilerCommand, cmd, startFolder:=dir.Path, expectedRetCode:=1)
         AssertOutput(
 <text>
-warning BC40049: Could not find standard library 'System.dll'.
-error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+vbc : warning BC40049: Could not find standard library 'System.dll'.
+vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
 </text>, output.Replace(dir.Path, "{SDKPATH}"))
 
         File.Delete(msCorLib.Path)
@@ -5001,7 +5001,7 @@ End Module
             Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
 
             output = RunAndGetOutput("cmd", "/C """ & BasicCompilerCommand & " /nologo /r:" & ref & " /t:library " & source, expectedRetCode:=1)
-            Assert.True(output.StartsWith("error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied."))
+            Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied."))
 
         Finally
             Dim output = RunAndGetOutput("cmd", "/C icacls " & ref & " /reset /Q")
@@ -5179,7 +5179,7 @@ Imports System
         Dim output As New StringWriter()
         Dim exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2017: could not find library 'a='", output.ToString().Trim())
+        Assert.Equal("vbc : error BC2017: could not find library 'a='", output.ToString().Trim())
 
         CleanupAllGeneratedFiles(source)
         CleanupAllGeneratedFiles(rsp)
@@ -5198,25 +5198,25 @@ Imports System
         Dim output As New StringWriter()
         Dim exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
+        Assert.Equal("vbc : error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
+        Assert.Equal("vbc : error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define: ", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
+        Assert.Equal("vbc : error BC2006: option 'define' requires ':<symbol_list>'", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:_,", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:_a,", source})
         output = New StringWriter()
@@ -5228,31 +5228,31 @@ Imports System
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_  ^^ ^^ a' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_  ^^ ^^ a' is not valid: Identifier expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:a,_,b", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:_", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:_ ", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/t:libraRY", "/define:a,_", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
         CleanupAllGeneratedFiles(source)
     End Sub
@@ -5405,13 +5405,13 @@ End Module
         Dim output As New StringWriter()
         Dim exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
 
         vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/define:I*", source})
         output = New StringWriter()
         exitCode = vbc.Run(output, Nothing)
         Assert.Equal(1, exitCode)
-        Assert.Equal("error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
+        Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
     End Sub
 
     <Fact()>
