@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
             // we will copy the content into an array and serialize the copy
             // we could serialize elementwise, but that would require serializing
             // name and type for every serialized element which seems worse than creating a copy.
-            info.AddValue(name, value.ToArray(), typeof(T[]));
+            info.AddValue(name, value.IsDefault ? null : value.ToArray(), typeof(T[]));
         }
 
         public static ImmutableArray<T> GetArray<T>(this SerializationInfo info, string name) where T : class

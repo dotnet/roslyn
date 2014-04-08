@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// Information about a metadata reference.
     /// </summary>
     [Serializable]
-    public struct MetadataReferenceProperties : IEquatable<MetadataReferenceProperties>
+    public struct MetadataReferenceProperties : IEquatable<MetadataReferenceProperties>, ISerializable
     {
         private readonly MetadataImageKind kind;
         private readonly ImmutableArray<string> aliases;
@@ -69,6 +70,20 @@ namespace Microsoft.CodeAnalysis
             this.kind = kind;
             this.aliases = aliases;
             this.embedInteropTypes = embedInteropTypes;
+        }
+
+        private MetadataReferenceProperties(SerializationInfo info, StreamingContext context)
+        {
+            this.kind = (MetadataImageKind)info.GetValue("kind", typeof(MetadataImageKind));
+            this.aliases = info.GetArray<string>("aliases");
+            this.embedInteropTypes = info.GetBoolean("embedInteropTypes");
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("kind", kind, typeof(MetadataImageKind));
+            info.AddArray("aliases", aliases);
+            info.AddValue("embedInteropTypes", embedInteropTypes);
         }
 
         /// <summary>
