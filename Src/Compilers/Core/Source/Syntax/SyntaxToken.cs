@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines whether any of this token's trivia is structured.
         /// </summary>
-        internal bool HasStructuredTrivia
+        public bool HasStructuredTrivia
         {
             get { return token != null && token.ContainsStructuredTrivia; }
         }
