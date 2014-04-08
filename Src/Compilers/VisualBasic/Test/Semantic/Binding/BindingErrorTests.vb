@@ -18331,11 +18331,12 @@ BC40052: Range specified for 'Case' statement is not valid. Make sure that the l
         <Fact>
         <WorkItem(759127)>
         Public Sub BC41000WRN_AttributeSpecifiedMultipleTimes()
-            ' No warnings Expected - Previously would generate a BC41000
-            ' Signature of Attribute determined from original bug attribute.
+            ' No warnings Expected - Previously would generate a BC41000.  The signature of Attribute 
+            ' determined From attribute used in original bug.
+            ' We want to verify that the diagnostics do not appear and that the attributes are both added.
 
             ' No values provided for attribute
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Class1">
         <file name="a.vb">
 Imports System
@@ -18370,11 +18371,10 @@ End Module
     </compilation>)
             Dim expectedErrors1 = <errors>
                                   </errors>
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
-
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
 
             ' One value provided for attribute, the other does not have argument
-            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Class1">
     <file name="a.vb">
 Imports System
@@ -18408,10 +18408,10 @@ End Module
         </file>
 </compilation>)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
 
             ' Different values for argument provided for attribute usage
-            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Class1">
     <file name="a.vb">
 Imports System
@@ -18445,7 +18445,52 @@ End Module
         </file>
 </compilation>)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
+            Assert.Equal(2, compilation.Assembly.GetAttributes.Count)
+            Assert.Equal("ESAttribute(""test2"")", compilation.Assembly.GetAttributes.Item(0).ToString)
+            Assert.Equal("ESAttribute(""Test"")", compilation.Assembly.GetAttributes.Item(1).ToString)
+
+            ' Different values for argument provided for attribute usage - Different Order To check the order is 
+            ' not sorted but merely the order it was located in compilation 
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Class1">
+    <file name="a.vb">
+Imports System
+&lt;System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments")&gt;
+&lt;AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.Class, AllowMultiple:=True)&gt;
+Public Class ESAttribute
+    Inherits System.Attribute
+
+    Public Sub New(assemblyGUID As String)
+        If (assemblyGUID Is Nothing) Then
+            Throw New System.ArgumentNullException("assemblyGuid")
+        End If
+    End Sub
+    Public Sub New()
+    End Sub
+End Class
+        </file>
+    <file name="b.vb">
+&lt;Assembly:ESAttribute("Test")&gt;
+Class Class1
+    Sub Blah()
+    End Sub
+End Class
+        </file>
+    <file name="c.vb">
+&lt;Assembly:ESAttribute("Test2")&gt;
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+        </file>
+</compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
+            Assert.Equal(2, compilation.Assembly.GetAttributes.Count)
+            Assert.Equal("ESAttribute(""Test"")", compilation.Assembly.GetAttributes.Item(0).ToString)
+            Assert.Equal("ESAttribute(""Test2"")", compilation.Assembly.GetAttributes.Item(1).ToString)
         End Sub
 
         <Fact>
