@@ -669,7 +669,7 @@
     <value>A using namespace directive can only be applied to namespaces; '{0}' is a type not a namespace</value>
   </data>
   <data name="ERR_BadUsingType" xml:space="preserve">
-    <value>A using directive can only be applied to static classes or namespaces; '{0}' is a non-static class</value>
+    <value>A using directive can only be applied to static classes or namespaces; the type '{0}' is not a static class</value>
   </data>
   <data name="ERR_NoBreakOrCont" xml:space="preserve">
     <value>No enclosing loop out of which to break or continue</value>
