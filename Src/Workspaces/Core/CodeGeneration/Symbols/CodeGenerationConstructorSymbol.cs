@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 return MethodKind.Constructor;
             }
+        }
+
+        protected override CodeGenerationMethodSymbol CloneMethodSymbolCore()
+        {
+            return new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
         }
     }
 }

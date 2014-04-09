@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Generic
@@ -56,8 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                       statements:=GenerateStatements(constructor),
                       end:=SyntaxFactory.EndSubStatement()))
 
-            Return AddCleanupAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, constructor, options))
+            Return AddAnnotationsTo(constructor, AddCleanupAnnotationsTo(
+                ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))
         End Function
 
         Private Shared Function GenerateArgumentList(arguments As IList(Of SyntaxNode)) As ArgumentListSyntax

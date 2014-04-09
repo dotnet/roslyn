@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -74,10 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected override CodeGenerationSymbol Clone()
         {
-            var result = new CodeGenerationMethodSymbol(this.ContainingType,
-                this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
+            var result = CloneMethodSymbolCore();
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
@@ -88,6 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 
             return result;
+        }
+
+        protected virtual CodeGenerationMethodSymbol CloneMethodSymbolCore()
+        {
+            return new CodeGenerationMethodSymbol(this.ContainingType,
+                this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
+                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
         }
 
         public override int Arity
