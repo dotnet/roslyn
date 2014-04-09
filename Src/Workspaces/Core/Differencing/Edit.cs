@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             return hash;
         }
 
-        // has to be 'internal' for now as it's used by EnC test tool
+        // Has to be 'internal' for now as it's used by EnC test tool
         internal string GetDebuggerDisplay()
         {
             string result = Kind.ToString();

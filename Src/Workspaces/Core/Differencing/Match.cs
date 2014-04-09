@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             int labelCount = nodeComparer.LabelCount;
 
-            // calculate chains (not including root node):
+            // Calculate chains (not including root node):
             int count1, count2;
             List<TNode>[] nodes1, nodes2;
             CategorizeNodesByLabels(root1, labelCount, out nodes1, out count1);
             CategorizeNodesByLabels(root2, labelCount, out nodes2, out count2);
 
-            // calculate match:
+            // Calculate match:
             this.oneToTwo = new Dictionary<TNode, TNode>(count1);
             this.twoToOne = new Dictionary<TNode, TNode>(count2);
 
