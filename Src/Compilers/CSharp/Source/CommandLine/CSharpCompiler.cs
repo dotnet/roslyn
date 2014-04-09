@@ -78,36 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
-                var tasks = new Task[sourceFiles.Length];
-                for(int i = 0; i < sourceFiles.Length; i++)
+                Parallel.For(0, sourceFiles.Length, i =>
                 {
+                    var file = sourceFiles[i];
+
                     //NOTE: order of trees is important!!
-                    var treeIndex = i;
-                    tasks[treeIndex] = Task.Run(async () =>
-                    {
-                        var file = sourceFiles[treeIndex];
-
-                        var fileReadDiagnostics = new List<DiagnosticInfo>();
-                        var result = await ReadFileContentAsync(file, fileReadDiagnostics, Arguments.Encoding).ConfigureAwait(false);
-
-                        var content = result.Item1;
-                        normalizedFilePaths[treeIndex] = result.Item2;
-
-                        if (content == null)
-                        {
-                            PrintErrors(fileReadDiagnostics, consoleOutput);
-                            fileReadDiagnostics.Clear();
-                            hadErrors = true;
-                            trees[treeIndex] = null;
-                        }
-                        else
-                        {
-                            trees[treeIndex] = ParseFile(parseOptions, scriptParseOptions, content, file);
-                        }
-                    });
-                }
-
-                Task.WaitAll(tasks);
+                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, file, out normalizedFilePaths[i]);
+                });
             }
             else
             {

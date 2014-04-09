@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -175,32 +174,6 @@ namespace Microsoft.CodeAnalysis
                 diagnostics.Add(ToFileReadDiagostics(e, file));
                 normalizedFilePath = null;
                 return null;
-            }
-        }
-
-        internal async Task<ValueTuple<SourceText, string>> ReadFileContentAsync(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding)
-        {
-            try
-            {
-                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize:4096, useAsync: true))
-                {
-                    MemoryStream stream = memoryStreamPool.Allocate();
-                    stream.SetLength(0);
-
-                    await data.CopyToAsync(stream).ConfigureAwait(false);
-                    var normalizedFilePath = data.Name;
-                    var text = new EncodedStringText(stream, encoding);
-
-                    memoryStreamPool.Free(stream);
-
-                    return ValueTuple.Create<SourceText, string>(text, normalizedFilePath);
-                }
-
-            }
-            catch (Exception e)
-            {
-                diagnostics.Add(ToFileReadDiagostics(e, file));
-                return default(ValueTuple<SourceText, string>);
             }
         }
 
