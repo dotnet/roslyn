@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
-            // Code copied from System.Enum
+            // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);
             if (isFlagsEnum)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var syntaxFactory = GetSyntaxFactory();
 
-            // We were able to represent this number as a bitwise or of valid flags.
+            // We were able to represent this number as a bitwise OR of valid flags.
             if (result == 0 && usedFieldsAndValues.Count > 0)
             {
                 // We want to emit the fields in lower to higher value.  So we walk backward.

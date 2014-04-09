@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 #endif
                 // If we're at the specified context location, but we're trying to find the most
                 // relevant part for C, then we want to pick the part in C.cs not the one in
-                // C.NestedType.cs that contains the context location.  This is because this simply
-                // container really isn't really used by the user to place code, but is instead just
+                // C.NestedType.cs that contains the context location.  This is because this
+                // container isn't really used by the user to place code, but is instead just
                 // used to separate out the nested type.  It would be nice to detect this and do the
                 // right thing.
                 declaration = await SelectFirstOrDefaultAsync(declarations, token.Parent.AncestorsAndSelf().Contains, cancellationToken).ConfigureAwait(false);

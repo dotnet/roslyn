@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// Options for controlling the code produced by the ICodeGenerationService.
+    /// Options for controlling the code produced by the <see cref="ICodeGenerationService"/>.
     /// </summary>
     public class CodeGenerationOptions
     {
