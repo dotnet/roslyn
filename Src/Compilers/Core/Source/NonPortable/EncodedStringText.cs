@@ -186,98 +186,41 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (encoding == null)
                 {
-                    encoding = Encoding.GetEncoding(1252);
+                    encoding = Encoding.Default;
                 }
 
-                if (encoding.CodePage == 1252)
-                {
-                    text = DecodeIfNotBinary(data, encoding);
-                }
-                else
-                {
-                    text = Decode(data, encoding);
-                }
+                text = DecodeIfNotBinary(data, encoding);
             }
 
             return text;
         }
 
         /// <summary>
-        /// Decodes the file using the Western European codepage (1252) if and only 
-        /// if the file fails the heuristic for detecting a binary file. The heuristic
-        /// is only reliable for codepage 1252 and thus should only be used for 1252.
-        /// Note that *everything* is valid 1252 (Decoder.Convert will not fail on 
-        /// codes 0x81, 0x8D, 0x8F, 0x90, or 0x9D), so this decoding cannot fail.
+        /// Decodes the file using the supplied <paramref name="encoding"/> if and only 
+        /// if the file fails the heuristic for detecting a binary file. The heuristic checks
+        /// for occurrence of two consecutive NUL (U+0000) characters in the stream, which are 
+        /// highly unlikely to appear in a text file. Since the heuristic is applied after 
+        /// the text has been decoded, it can be used with any encoding.
         /// Does not close the stream when finished.
         /// </summary>
-        /// <param name="data">The data stream</param>
-        /// <param name="encoding">The 1252 codepage. No other codepage is acceptable</param>
-        /// <exception cref="InvalidDataException">If the stream is binary 
-        /// encoded</exception>
-        /// <returns></returns>
+        /// <param name="data">Data stream</param>
+        /// <param name="encoding">Encoding to use for decode</param>
+        /// <exception cref="InvalidDataException">If the stream is binary encoded</exception>
+        /// <returns>Decoded stream as a text string</returns>
         internal static string DecodeIfNotBinary(Stream data, Encoding encoding)
         {
-            Debug.Assert(encoding.CodePage == 1252);
+            var text = Decode(data, encoding);
 
-            data.Seek(0, SeekOrigin.Begin);
-
-            var decoder = encoding.GetDecoder();
-
-            var readBuffer = new byte[Math.Min(data.Length, 4096)];
-            var charBuffer = new char[readBuffer.Length];
-
-            var text = new StringBuilder();
-
-            int bytesRead;
-            do
+            bool wasLastCharNul = text.Length > 0 ? text[0] == '\0' : false;
+            for (int i = 1; i < text.Length; i++)
             {
-                bytesRead = data.Read(readBuffer, 0, readBuffer.Length);
-
-                // Check for consecutive null bytes
-                // Usually indicates a binary file when the encoding is Western European
-                // This won't catch byte pairs over the read boundary, but a false negative
-                // isn't that important and the likelihood of that being the only byte pair
-                // in a binary file is very low
-                for (int i = 0; i < bytesRead - 1; i++)
+                if (wasLastCharNul & (wasLastCharNul = text[i] == '\0'))
                 {
-                    if (readBuffer[i + 1] == 0)
-                    {
-                        if (readBuffer[i] == 0)
-                        {
-                            throw new InvalidDataException();
-                        }
-                    }
-                    else
-                    {
-                        // We can skip two byte checks
-                        i++;
-                    }
-                }
-
-                bool completed = false;
-                int byteIndex = 0;
-
-                while (!completed)
-                {
-                    // flush only if we're done reading
-                    bool flush = bytesRead == 0;
-                    int bytesUsed;
-                    int charsUsed;
-                    decoder.Convert(
-                        readBuffer, byteIndex, bytesRead - byteIndex,
-                        charBuffer, 0, charBuffer.Length, flush,
-                        out bytesUsed, out charsUsed, out completed);
-
-                    // Append all decoded characters to the output string
-                    text.Append(charBuffer, 0, charsUsed);
-
-                    // Skip to next byte block to be decoded
-                    byteIndex += bytesUsed;
+                    throw new InvalidDataException();
                 }
             }
-            while (bytesRead != 0);
 
-            return text.ToString();
+            return text;
         }
 
         /// <summary>
