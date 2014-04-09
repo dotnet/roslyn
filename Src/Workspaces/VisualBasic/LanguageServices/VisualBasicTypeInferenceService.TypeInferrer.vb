@@ -351,6 +351,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             Optional expressionOpt As ExpressionSyntax = Nothing,
                                                             Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
 
+                If assignmentStatement.IsKind(SyntaxKind.LeftShiftAssignmentStatement) OrElse
+                    assignmentStatement.IsKind(SyntaxKind.RightShiftAssignmentStatement) Then
+                    Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
+                End If
+
                 If expressionOpt Is assignmentStatement.Right OrElse previousToken = assignmentStatement.OperatorToken Then
                     Return GetTypes(assignmentStatement.Left)
                 End If
