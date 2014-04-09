@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string NormalizePath(string path, string baseFilePath)
         {
-            return FileUtilities.NormalizeRelativePath(path, baseFilePath, baseDirectory) ?? path;
+            return FileUtilities.NormalizeRelativePath(path, baseFilePath, baseDirectory);
         }
 
         public override string ResolveReference(string path, string baseFilePath)

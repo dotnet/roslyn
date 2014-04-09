@@ -43,7 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(hasMappedPath, mappedSpan.HasMappedPath);
             Assert.Equal(expectedPath, mappedSpan.Path);
-            Assert.Equal(string.Format("[{0};{1}]", expectedPath, hasMappedPath ? syntaxTree.FilePath : null), actualDisplayPath);
+            if (expectedPath == "")
+            {
+                Assert.Equal("", actualDisplayPath);
+            }
+            else
+            {
+                Assert.Equal(string.Format("[{0};{1}]", expectedPath, hasMappedPath ? syntaxTree.FilePath : null), actualDisplayPath);
+            }
+
             Assert.Equal(expectedStartLine, mappedSpan.StartLinePosition.Line);
             Assert.Equal(expectedStartOffset, mappedSpan.StartLinePosition.Character);
             Assert.Equal(expectedEndLine, mappedSpan.EndLinePosition.Line);
@@ -161,6 +169,19 @@ int v;
             AssertMappedSpanEqual(syntaxTree, "int z;", "baz", 29, 0, 29, 6, hasMappedPath: true);
             AssertMappedSpanEqual(syntaxTree, "int w;", "baz", 31, 0, 31, 6, hasMappedPath: true);
             AssertMappedSpanEqual(syntaxTree, "int v;", "baz", 39, 0, 39, 6, hasMappedPath: true);
+        }
+
+        [Fact]
+        public void TestLineMapping_NoSyntaxTreePath()
+        {
+            string sampleProgram = @"using System;
+#line 20
+class X {}
+";
+            var resolver = new TestSourceResolver();
+
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, ""), "class X {}", "", 19, 0, 19, 10, hasMappedPath: false);
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, "   "), "class X {}", "   ", 19, 0, 19, 10, hasMappedPath: false);
         }
 
         [Fact]

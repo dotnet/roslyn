@@ -538,15 +538,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Normalized path must be non-empty..
-        /// </summary>
-        internal static string NormalizedPathMustBeNonEmpty {
-            get {
-                return ResourceManager.GetString("NormalizedPathMustBeNonEmpty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Output kind not supported..
         /// </summary>
         internal static string OutputKindNotSupported {

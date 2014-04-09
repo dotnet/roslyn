@@ -246,9 +246,6 @@
   <data name="ReferenceResolverShouldReturnReadableNonNullStream" xml:space="preserve">
     <value>Reference resolver should return readable non-null stream.</value>
   </data>
-  <data name="NormalizedPathMustBeNonEmpty" xml:space="preserve">
-    <value>Normalized path must be non-empty.</value>
-  </data>
   <data name="EmptyOrInvalidResourceName" xml:space="preserve">
     <value>Empty or invalid resource name</value>
   </data>

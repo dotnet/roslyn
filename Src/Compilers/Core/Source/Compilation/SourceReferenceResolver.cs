@@ -19,20 +19,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="path">The source path to normalize. May be absolute or relative.</param>
         /// <param name="baseFilePath">Path of the source file that contains the <paramref name="path"/> (may also be relative), or null if not available.</param>
-        /// <returns>Normalized path, or null if the file can't be normalized. The resulting path doesn't need to exist.</returns>
+        /// <returns>Normalized path, or null if <paramref name="path"/> can't be normalized. The resulting path doesn't need to exist.</returns>
         public abstract string NormalizePath(string path, string baseFilePath);
-
-        internal string NormalizePathChecked(string path, string baseFilePath)
-        {
-            string normalizedPath = NormalizePath(path, baseFilePath);
-            if (string.IsNullOrEmpty(normalizedPath))
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.NormalizedPathMustBeNonEmpty);
-            }
-
-            return normalizedPath;
-        }
-
+        
         /// <summary>
         /// Resolves specified path with respect to base file path.
         /// </summary>

@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string normalizedPath;
             if (!normalizedPathsCache.TryGetValue(key, out normalizedPath))
             {
-                normalizedPath = resolver.NormalizePath(path, basePath);
+                normalizedPath = resolver.NormalizePath(path, basePath) ?? path;
                 normalizedPathsCache.TryAdd(key, normalizedPath);
             }
 

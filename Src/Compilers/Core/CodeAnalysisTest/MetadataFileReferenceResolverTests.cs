@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class FileResolverTests : TestBase
+    public class MetadataFileReferenceResolverTests : TestBase
     {
         [Fact]
         public void ResolveMetadataFile1()

@@ -37,7 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim actualDisplayPath = syntaxTree.GetDisplayPath(span, _resolver)
 
             Assert.Equal(expectedPath, mappedSpan.Path)
-            Assert.Equal(String.Format("[{0};{1}]", expectedPath, If(hasMappedPath, syntaxTree.FilePath, Nothing)), actualDisplayPath)
+            If expectedPath.IsEmpty Then
+                Assert.Equal("", actualDisplayPath)
+            Else
+                Assert.Equal(String.Format("[{0};{1}]", expectedPath, If(hasMappedPath, syntaxTree.FilePath, Nothing)), actualDisplayPath)
+            End If
+
             Assert.Equal(expectedStartLine, mappedSpan.StartLinePosition.Line)
             Assert.Equal(expectedStartOffset, mappedSpan.StartLinePosition.Character)
             Assert.Equal(expectedEndLine, mappedSpan.EndLinePosition.Line)
@@ -126,6 +131,18 @@ End Class
             AssertMappedSpanEqual(tree, "x as", "c:\foo.vb", 2, 7, 2, 11, hasMappedPath:=False)
 
         End Sub
+
+        <Fact>
+        Public Sub TestLineMapping_NoSyntaxTreePath()
+            Dim sampleProgram As String = "
+Class X
+End Class
+"
+            Dim resolver = New TestSourceResolver()
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, ""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, "    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
+        End Sub
+
 
         <Fact()>
         Public Sub TestEqualSourceLocations()

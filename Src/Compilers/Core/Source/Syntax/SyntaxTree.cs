@@ -230,12 +230,12 @@ namespace Microsoft.CodeAnalysis
         internal string GetDisplayPath(TextSpan span, SourceReferenceResolver resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
-            if (resolver == null)
+            if (resolver == null || mappedSpan.Path.IsEmpty())
             {
                 return mappedSpan.Path;
             }
 
-            return resolver.NormalizePathChecked(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null);
+            return resolver.NormalizePath(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null) ?? mappedSpan.Path;
         }
 
         /// <summary>
