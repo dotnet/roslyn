@@ -2,10 +2,12 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnitTests.TemporaryStorage
 {
+    [ExportWorkspaceService(typeof(ITemporaryStorageService), "Test")]
     internal class TestTemporaryStorageService : ITemporaryStorageService
     {
         public ITemporaryStorage CreateTemporaryStorage(CancellationToken cancellationToken)

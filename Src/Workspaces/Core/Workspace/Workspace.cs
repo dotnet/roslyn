@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -26,7 +25,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
-        private readonly IWorkspaceServiceProvider workspaceServicesProvider;
+        private readonly string workspaceKind;
+        private readonly HostWorkspaceServices services;
         private readonly BranchId primaryBranchId;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
@@ -42,19 +42,33 @@ namespace Microsoft.CodeAnalysis
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
-        
-        internal Workspace(IWorkspaceServiceProvider workspaceServicesProvider)
+
+        /// <summary>
+        /// Constructs a new workspace instance.
+        /// </summary>
+        /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
+        /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
+        protected Workspace(HostServices host, string workspaceKind)
         {
             this.primaryBranchId = BranchId.GetNextId();
+            this.workspaceKind = workspaceKind;
 
-            this.workspaceServicesProvider = workspaceServicesProvider;
+            this.services = host.CreateWorkspaceServices(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = workspaceServicesProvider.GetService<IWorkspaceTaskSchedulerFactory>();
+            var workspaceTaskSchedulerFactory = this.services.GetService<IWorkspaceTaskSchedulerFactory>();
             this.taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
 
             // initialize with empty solution
             this.latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        /// <summary>
+        /// Services provider by the host for implementing workspace features.
+        /// </summary>
+        public HostWorkspaceServices Services
+        {
+            get { return this.services; }
         }
 
         /// <summary>
@@ -74,12 +88,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The kind of the workspace. This is generally WorkspaceKind.Host if originating from the host environment, but may be 
-        /// any other name use for a specific kind or workspace.
+        /// The kind of the workspace. 
+        /// This is generally <see cref="WorkspaceKind.Host"/> if originating from the host environment, but may be 
+        /// any other name used for a specific kind of workspace.
         /// </summary>
         public string Kind
         {
-            get { return workspaceServicesProvider.Kind; }
+            get { return this.workspaceKind; }
         }
 
         /// <summary>
@@ -87,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            return new Solution(this, this.workspaceServicesProvider, solutionInfo);
+            return new Solution(this, solutionInfo);
         }
 
         /// <summary>
@@ -96,11 +111,6 @@ namespace Microsoft.CodeAnalysis
         protected internal Solution CreateSolution(SolutionId id)
         {
             return CreateSolution(SolutionInfo.Create(id, VersionStamp.Create()));
-        }
-
-        internal IWorkspaceServiceProvider GetWorkspaceServicesInternal()
-        {
-            return this.workspaceServicesProvider;
         }
 
         /// <summary>
@@ -146,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public OptionSet GetOptions()
         {
-            return this.workspaceServicesProvider.GetService<IOptionService>().GetOptions();
+            return this.services.GetService<IOptionService>().GetOptions();
         }
 
         /// <summary>
@@ -319,8 +329,8 @@ namespace Microsoft.CodeAnalysis
                 // replaced with new texts and those texts belong to old solution will be removed without being written to MMF
                 this.ScheduleTask(() =>
                 {
-                    this.workspaceServicesProvider.GetService<ICompilationCacheService>().Clear();
-                    this.workspaceServicesProvider.GetService<ISyntaxTreeCacheService>().Clear();
+                    this.services.GetService<ICompilationCacheService>().Clear();
+                    this.services.GetService<ISyntaxTreeCacheService>().Clear();
                 }, "Workspace.ClearCache");
             }
         }

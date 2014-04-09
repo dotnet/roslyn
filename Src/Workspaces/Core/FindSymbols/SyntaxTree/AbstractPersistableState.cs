@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, string persistenceName, string formatVersion,
             Func<ObjectReader, VersionStamp, T> readFrom, CancellationToken cancellationToken) where T : AbstractPersistableState
         {
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // attempt to load from persisted state
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.Requires(!await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false));
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             // attempt to load from persisted state
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.Requires(document.IsFromPrimaryBranch());
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether we already have info for this document

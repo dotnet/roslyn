@@ -1,14 +1,12 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageService(GetType(ICompilationFactoryService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicCompilationFactoryService
-#Else
-    Friend Class VisualBasicCompilationFactoryService
-#End If
         Implements ICompilationFactoryService
 
         Private Shared ReadOnly defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<ISymbol> FindImplementationsForInterfaceMember(
             this ITypeSymbol typeSymbol,
             ISymbol interfaceMember,
-            ILanguageServiceProviderFactory languageServiceProviderFactory,
+            Workspace workspace,
             CancellationToken cancellationToken)
         {
             // This method can return multiple results.  Consider the case of:
@@ -143,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (seenTypeDeclaringInterface)
                     {
                         var result = constructedInterfaceMember.TypeSwitch(
-                            (IEventSymbol eventSymbol) => FindImplementations(currentType, eventSymbol, languageServiceProviderFactory, e => e.ExplicitInterfaceImplementations),
-                            (IMethodSymbol methodSymbol) => FindImplementations(currentType, methodSymbol, languageServiceProviderFactory, m => m.ExplicitInterfaceImplementations),
-                            (IPropertySymbol propertySymbol) => FindImplementations(currentType, propertySymbol, languageServiceProviderFactory, p => p.ExplicitInterfaceImplementations));
+                            (IEventSymbol eventSymbol) => FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations),
+                            (IMethodSymbol methodSymbol) => FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations),
+                            (IPropertySymbol propertySymbol) => FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations));
 
                         if (result != null)
                         {
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ISymbol FindImplementations<TSymbol>(
             ITypeSymbol typeSymbol,
             TSymbol interfaceSymbol,
-            ILanguageServiceProviderFactory languageServiceProviderFactory,
+            Workspace workspace,
             Func<TSymbol, ImmutableArray<TSymbol>> getExplicitInterfaceImplementations) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, interfaceSymbol)
                 select member;
 
-            var provider = languageServiceProviderFactory.GetLanguageServiceProvider(typeSymbol.Language);
+            var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
             var semanticFacts = provider.GetService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we

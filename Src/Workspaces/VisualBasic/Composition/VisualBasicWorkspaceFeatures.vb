@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.Composition
             list.Add(
                 New Lazy(Of ILanguageServiceFactory, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.CaseCorrection.VisualBasicCaseCorrectionServiceFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CaseCorrection.ICaseCorrectionService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CaseCorrection.ICaseCorrectionService), ServiceLayer.Default)))
 
             ' Code Cleanup
             list.Add(
                 New Lazy(Of ILanguageServiceFactory, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.CodeCleanup.VisualBasicCodeCleanerServiceFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeCleanup.ICodeCleanerService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeCleanup.ICodeCleanerService), ServiceLayer.Default)))
 
             list.Add(
                 New Lazy(Of Microsoft.CodeAnalysis.CodeCleanup.Providers.ICodeCleanupProvider, OrderableLanguageMetadata)(
@@ -86,18 +86,18 @@ Namespace Microsoft.CodeAnalysis.Composition
             list.Add(
                 New Lazy(Of ILanguageServiceFactory, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeGeneration.ICodeGenerationService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeGeneration.ICodeGenerationService), ServiceLayer.Default)))
 
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeGeneration.ISyntaxFactoryService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.CodeGeneration.ISyntaxFactoryService), ServiceLayer.Default)))
 
             ' Formatting
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.Formatting.VisualBasicFormattingService(root),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Formatting.IFormattingService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Formatting.IFormattingService), ServiceLayer.Default)))
 
             list.Add(
                 New Lazy(Of Microsoft.CodeAnalysis.Formatting.Rules.IFormattingRule, OrderableLanguageMetadata)(
@@ -132,73 +132,73 @@ Namespace Microsoft.CodeAnalysis.Composition
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicRecommendationService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(IRecommendationService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(IRecommendationService), ServiceLayer.Default)))
 
             ' Command Line Arguments
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicCommandLineArgumentsFactoryService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ICommandLineArgumentsFactoryService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ICommandLineArgumentsFactoryService), ServiceLayer.Default)))
 
             ' Compilation Factory
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicCompilationFactoryService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ICompilationFactoryService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ICompilationFactoryService), ServiceLayer.Default)))
 
             ' Project File Loader
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicProjectFileLoaderService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Host.ProjectFileLoader.IProjectFileLoaderLanguageService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Host.ProjectFileLoader.IProjectFileLoaderLanguageService), ServiceLayer.Default)))
 
             ' Semantic Facts
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicSemanticFactsService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISemanticFactsService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISemanticFactsService), ServiceLayer.Default)))
 
             ' Symbol Declaration
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicSymbolDeclarationService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISymbolDeclarationService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISymbolDeclarationService), ServiceLayer.Default)))
 
             ' Syntax Facts
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicSyntaxFactsService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxFactsService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxFactsService), ServiceLayer.Default)))
 
             ' SyntaxTree Factory
             list.Add(
                 New Lazy(Of ILanguageServiceFactory, LanguageServiceMetadata)(
                     Function() New VisualBasicSyntaxTreeFactoryServiceFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxTreeFactoryService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxTreeFactoryService), ServiceLayer.Default)))
 
             ' Syntax Version
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicSyntaxVersionLanguageService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxVersionLanguageService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ISyntaxVersionLanguageService), ServiceLayer.Default)))
 
             ' Type Inference
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New VisualBasicTypeInferenceService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ITypeInferenceService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(ITypeInferenceService), ServiceLayer.Default)))
 
             ' Rename Rewriter
             list.Add(
                 New Lazy(Of ILanguageServiceFactory, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.Rename.VisualBasicRenameRewriterLanguageServiceFactory(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Rename.IRenameRewriterLanguageService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Rename.IRenameRewriterLanguageService), ServiceLayer.Default)))
 
             ' Simplification
             list.Add(
                 New Lazy(Of ILanguageService, LanguageServiceMetadata)(
                     Function() New Microsoft.CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService(),
-                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Simplification.ISimplificationService), WorkspaceKind.Any)))
+                    New LanguageServiceMetadata(LanguageNames.VisualBasic, GetType(Microsoft.CodeAnalysis.Simplification.ISimplificationService), ServiceLayer.Default)))
 
             Return list
         End Function

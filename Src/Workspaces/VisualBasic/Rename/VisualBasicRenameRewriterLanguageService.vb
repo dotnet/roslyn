@@ -4,6 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -20,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
     Friend Class VisualBasicRenameRewriterLanguageService
         Implements IRenameRewriterLanguageService
 
-        Private ReadOnly languageServiceProvider As ILanguageServiceProvider
+        Private ReadOnly languageServiceProvider As HostLanguageServices
 
-        Public Sub New(provider As ILanguageServiceProvider)
+        Public Sub New(provider As HostLanguageServices)
             languageServiceProvider = provider
         End Sub
 
@@ -103,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Me.stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
                 Me.aliasSymbol = TryCast(Me.renamedSymbol, IAliasSymbol)
                 Me.renamableDeclarationLocation = Me.renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is semanticModel.SyntaxTree).FirstOrDefault()
-                Me.simplificationService = LanguageService.GetService(Of ISimplificationService)(parameters.Document)
-                Me.syntaxFactsService = LanguageService.GetService(Of ISyntaxFactsService)(parameters.Document)
+                Me.simplificationService = parameters.Document.Project.LanguageServices.GetService(Of ISimplificationService)()
+                Me.syntaxFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
                 Me.isVerbatim = Me.syntaxFactsService.IsVerbatimIdentifier(replacementText)
                 Me.renameAnnotations = parameters.RenameAnnotations
             End Sub

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution LoadSolution(string solutionFilePath, IDictionary<string, string> properties = null)
         {
-            var ws = MSBuildWorkspace.Create(properties);
+            var ws = MSBuildWorkspace.Create(properties ?? ImmutableDictionary<string, string>.Empty);
             return ws.OpenSolutionAsync(solutionFilePath).Result;
         }
 

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             // first, prepare image
             // * NOTE * image is cancellable, do not create it inside of canditional weak table.
-            var service = WorkspaceService.GetService<ITemporaryStorageService>(solution.Workspace);
+            var service = solution.Workspace.Services.GetService<ITemporaryStorageService>();
             var image = MetadataOnlyImage.Create(service, finalCompilation, cancellationToken);
             if (image.IsEmpty)
             {

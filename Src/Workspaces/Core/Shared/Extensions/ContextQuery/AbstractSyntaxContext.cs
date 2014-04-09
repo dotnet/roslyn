@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public TService GetLanguageService<TService>() where TService : class, ILanguageService
         {
-            return LanguageService.GetService<TService>(this.Workspace, this.SemanticModel.Language);
+            return this.Workspace.Services.GetLanguageServices(this.SemanticModel.Language).GetService<TService>();
         }
 
         public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
         {
-            return WorkspaceService.GetService<TService>(this.Workspace);
+            return this.Workspace.Services.GetService<TService>();
         }
     }
 }

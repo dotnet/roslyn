@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = LanguageService.GetService<ISyntaxFactsService>(workspace, syntaxTree.GetRoot(cancellationToken).Language);
+            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
             var token = syntaxTree.GetTouchingToken(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
 
             if (token != default(SyntaxToken))

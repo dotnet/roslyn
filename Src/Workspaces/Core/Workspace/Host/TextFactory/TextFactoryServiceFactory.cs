@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(ITextFactoryService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(ITextFactoryService), ServiceLayer.Default)]
     internal partial class TextFactoryServiceFactory : IWorkspaceServiceFactory
     {
         private readonly TextFactoryService singleton = new TextFactoryService();
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return singleton;
         }

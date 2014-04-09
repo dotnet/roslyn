@@ -3,25 +3,25 @@
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
     [ExportLanguageServiceFactory(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp)]
-#endif
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(ILanguageServiceProvider provider)
+        public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpSyntaxTreeFactoryService(provider);
         }
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(ILanguageServiceProvider languageServices) : base(languageServices)
+            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices) : base(languageServices)
             {
             }
 

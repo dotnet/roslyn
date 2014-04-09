@@ -4,12 +4,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    ///  Known workspace kinds
+    /// </summary>
     public static class WorkspaceKind
     {
         public const string Host = "Host";
-        public const string Editor = "Editor";
-        public const string Any = "*";
-
         public const string Debugger = "Debugger";
         public const string Interactive = "Interactive";
         public const string MetadataAsSource = "MetadataAsSource";

@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             OptionSet options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            options = options ?? WorkspaceService.GetService<IOptionService>(workspace).GetOptions();
-            var languageRecommender = LanguageService.GetService<IRecommendationService>(workspace, semanticModel.Language);
+            options = options ?? workspace.GetOptions();
+            var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IRecommendationService>();
 
             return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
         }

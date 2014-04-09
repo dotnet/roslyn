@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 throw new ArgumentNullException("document");
             }
 
-            var service = LanguageService.GetService<ICodeCleanerService>(document);
+            var service = document.Project.LanguageServices.GetService<ICodeCleanerService>();
             if (service != null)
             {
                 return service.GetDefaultProviders();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var cleanupService = LanguageService.GetService<ICodeCleanerService>(workspace, root.Language);
+            var cleanupService = workspace.Services.GetLanguageServices(root.Language).GetService<ICodeCleanerService>();
             return cleanupService.Cleanup(root, spans, workspace, providers, cancellationToken);
         }
     }

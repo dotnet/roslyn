@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             Dictionary<OptionKey, object> changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            using (var workspace = new CustomWorkspace(SolutionId.CreateNewId("Solution")))
+            using (var workspace = new CustomWorkspace())
             {
                 var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", language);
                 var document = project.AddDocument("Document", SourceText.From(code));

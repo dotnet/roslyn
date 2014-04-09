@@ -78,13 +78,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = LanguageService.GetService<ISyntaxFactsService>(workspace, token.Language);
+            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
                 return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
-            var semanticFacts = LanguageService.GetService<ISemanticFactsService>(workspace, token.Language);
+            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 
             return GetSymbolsEnumerable(
                             semanticModel, semanticFacts, syntaxFacts,

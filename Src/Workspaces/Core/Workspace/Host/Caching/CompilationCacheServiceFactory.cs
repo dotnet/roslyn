@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(ICompilationCacheService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(ICompilationCacheService), ServiceLayer.Default)]
     internal partial class CompilationCacheServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new CompilationCacheService();
         }

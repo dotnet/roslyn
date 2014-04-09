@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
-        public CSharpCodeGenerationService(ILanguageServiceProvider languageServices)
+        public CSharpCodeGenerationService(HostLanguageServices languageServices)
             : base(languageServices.GetService<ISymbolDeclarationService>())
         {
         }

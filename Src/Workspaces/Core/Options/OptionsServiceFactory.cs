@@ -2,26 +2,19 @@
 
 using System;
 using System.Collections.Generic;
-#if MEF
 using System.ComponentModel.Composition;
-#endif
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-#if !MEF
-using Microsoft.CodeAnalysis.Composition;
-#endif
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Default)]
     internal class OptionsServiceFactory : IWorkspaceServiceFactory
     {
-#if MEF
         private IOptionService optionService;
 
         [ImportingConstructor]
@@ -30,23 +23,9 @@ namespace Microsoft.CodeAnalysis.Options
             this.optionService = optionService;
         }
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return optionService;
         }
-
-#else
-        private readonly ExportSource exports;
-
-        public OptionsServiceFactory(ExportSource exports)
-        {
-            this.exports = exports;
-        }
-
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
-        {
-            return new OptionService(this.exports);
-        }
-#endif
     }
 }

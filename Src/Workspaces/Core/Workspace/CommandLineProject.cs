@@ -7,8 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
 
-            var languageServices = LanguageService.GetProvider(workspace, language);
+            var languageServices = workspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(WorkspacesResources.UnrecognizedLanguageName);

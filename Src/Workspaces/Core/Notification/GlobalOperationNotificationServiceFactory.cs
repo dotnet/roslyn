@@ -1,18 +1,20 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
 #if MEF
-    [ExportWorkspaceServiceFactory(typeof(IGlobalOperationNotificationService), WorkspaceKind.Any)]
+    using Microsoft.CodeAnalysis.Host.Mef;
+
+    [ExportWorkspaceServiceFactory(typeof(IGlobalOperationNotificationService), ServiceLayer.Default)]
 #endif
     internal class GlobalOperationNotificationServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly NoOpService singleton = new NoOpService();
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // all different workspace kinds will share same service
             return singleton;

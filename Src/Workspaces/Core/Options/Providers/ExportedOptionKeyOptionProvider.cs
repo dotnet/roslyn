@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 #if !MEF
 using Microsoft.CodeAnalysis.Composition;
 #endif
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Options.Providers
 {

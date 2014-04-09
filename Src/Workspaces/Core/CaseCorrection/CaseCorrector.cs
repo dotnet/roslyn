@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// </summary>
         public static async Task<Document> CaseCorrectAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await LanguageServices.LanguageService.GetService<ICaseCorrectionService>(document).CaseCorrectAsync(document, spans, cancellationToken).ConfigureAwait(false);
+            return await document.Project.LanguageServices.GetService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// </summary>
         internal static SyntaxNode CaseCorrect(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return LanguageServices.LanguageService.GetService<ICaseCorrectionService>(workspace, root.Language).CaseCorrect(root, spans, workspace, cancellationToken);
+            return workspace.Services.GetLanguageServices(root.Language).GetService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
         }
     }
 }

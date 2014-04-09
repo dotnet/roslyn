@@ -1,21 +1,18 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(ISyntaxTreeCacheService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(ISyntaxTreeCacheService), ServiceLayer.Default)]
     internal partial class SyntaxTreeCacheServiceFactory : IWorkspaceServiceFactory
     {
         // 4M chars * 2bytes/char = 8MB of raw text, with some syntax nodes deduplicated.
         private const long DefaultSize = 4 * 1024 * 1024;
         private const int DefaultTextCount = 8;
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new SyntaxTreeCacheService(DefaultTextCount, DefaultSize, tv => tv.FullSpan.Length);
         }

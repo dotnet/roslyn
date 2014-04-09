@@ -4,21 +4,15 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
-#If MEF Then
-Imports Microsoft.CodeAnalysis.LanguageServices
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
-#If MEF Then
     <ExportLanguageService(GetType(ISimplificationService), LanguageNames.VisualBasic)>
     Partial Friend Class VisualBasicSimplificationService
-#Else
-    Partial Friend Class VisualBasicSimplificationService
-#End If
         Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
 
         Protected Overrides Function GetReducers() As IEnumerable(Of AbstractReducer)

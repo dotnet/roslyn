@@ -199,10 +199,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
-            var solutionId = SolutionId.CreateNewId("TestSolution");
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = new CustomWorkspace(solutionId)
+            var solution = new CustomWorkspace()
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)

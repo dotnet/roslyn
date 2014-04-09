@@ -2,16 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
-    using Microsoft.CodeAnalysis.LanguageServices;
-
     [ExportLanguageService(typeof(IProjectFileLoader), LanguageNames.CSharp)]
-#endif
     internal partial class CSharpProjectFileLoader : ProjectFileLoader
     {
         public override string Language

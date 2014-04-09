@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial class DocumentState
     {
-        private readonly ILanguageServiceProvider languageServices;
+        private readonly HostLanguageServices languageServices;
         private readonly SolutionServices solutionServices;
         private readonly DocumentInfo info;
         private readonly ParseOptions options;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<TreeAndVersion> treeSource;
 
         private DocumentState(
-            ILanguageServiceProvider languageServices,
+            HostLanguageServices languageServices,
             SolutionServices solutionServices,
             DocumentInfo info,
             ParseOptions options,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         public static DocumentState Create(
             DocumentInfo info,
             ParseOptions options,
-            ILanguageServiceProvider language,
+            HostLanguageServices language,
             SolutionServices services)
         {
             var textSource = info.TextLoader != null
@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis
                 textSource,
                 GetSyntaxTreeFilePath(info),
                 options,
-                workspaceServices: services.WorkspaceServices,
                 languageServices: language);
 
             // remove any initial loader so we don't keep source alive
@@ -130,12 +129,11 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> newTextSource,
             string filePath,
             ParseOptions options,
-            IWorkspaceServiceProvider workspaceServices,
-            ILanguageServiceProvider languageServices,
+            HostLanguageServices languageServices,
             PreservationMode mode = PreservationMode.PreserveValue)
         {
             return new AsyncLazy<TreeAndVersion>(
-                c => FullyParseTreeAsync(newTextSource, filePath, options, workspaceServices, languageServices, mode, c),
+                c => FullyParseTreeAsync(newTextSource, filePath, options, languageServices, mode, c),
                 cacheResult: true);
         }
 
@@ -143,8 +141,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> newTextSource,
             string filePath,
             ParseOptions options,
-            IWorkspaceServiceProvider workspaceServices,
-            ILanguageServiceProvider languageServices,
+            HostLanguageServices languageServices,
             PreservationMode mode,
             CancellationToken cancellationToken)
         {
@@ -269,7 +266,6 @@ namespace Microsoft.CodeAnalysis
                 this.textSource,
                 GetSyntaxTreeFilePath(this.info),
                 options,
-                workspaceServices: this.solutionServices.WorkspaceServices,
                 languageServices: this.languageServices);
 
             return new DocumentState(
@@ -387,7 +383,6 @@ namespace Microsoft.CodeAnalysis
                 newTextSource,
                 GetSyntaxTreeFilePath(this.info),
                 this.options,
-                this.solutionServices.WorkspaceServices,
                 this.languageServices,
                 mode);
 

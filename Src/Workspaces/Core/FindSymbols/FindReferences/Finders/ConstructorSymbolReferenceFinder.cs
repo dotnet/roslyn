@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var documentsWithType = await FindDocumentsAsync(project, documents, symbol.ContainingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
             string simpleName;
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, LanguageService.GetService<ISyntaxFactsService>(project), out simpleName)
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetService<ISyntaxFactsService>(), out simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 

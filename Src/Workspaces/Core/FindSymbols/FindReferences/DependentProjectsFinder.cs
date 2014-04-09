@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -378,8 +378,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // WORKAROUND:
             // perf  check metadata reference using newly created empty compilation with only metadata references.
-            var factory = LanguageService.GetService<ICompilationFactoryService>(project);
-            var compilation = factory.CreateCompilation(
+            var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
                 project.AssemblyName,
                 project.CompilationOptions);
 

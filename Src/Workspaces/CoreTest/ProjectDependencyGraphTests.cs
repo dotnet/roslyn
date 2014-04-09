@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             return projectId;
         }
 
-        private Solution CreateSolution(string name = "TestSolution")
+        private Solution CreateSolution()
         {
-            return new CustomWorkspace(SolutionId.CreateNewId(name)).CurrentSolution;
+            return new CustomWorkspace().CurrentSolution;
         }
 
         #endregion

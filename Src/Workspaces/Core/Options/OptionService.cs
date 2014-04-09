@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 #if MEF
 using System.ComponentModel.Composition;
 #endif
-using Microsoft.CodeAnalysis.Composition;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Roslyn.Utilities;
 
@@ -62,13 +61,6 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             this.currentValues = ImmutableDictionary.Create<OptionKey, object>();
-        }
-
-        public OptionService(ExportSource exports)
-            : this(
-                exports.GetExports<IOptionProvider>(),
-                exports.GetExports<IOptionSerializer, OptionSerializerMetadata>())
-        {
         }
 
         private object LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)

@@ -5,15 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CaseCorrection;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
 {
-#if MEF
-    using Microsoft.CodeAnalysis.LanguageServices;
-
     [ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp)]
-#endif
     internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
     {
         [ExcludeFromCodeCoverage]

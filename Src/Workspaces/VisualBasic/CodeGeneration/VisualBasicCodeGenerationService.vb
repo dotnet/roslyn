@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService
 
-        Public Sub New(provider As ILanguageServiceProvider)
+        Public Sub New(provider As HostLanguageServices)
             MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
         End Sub
 

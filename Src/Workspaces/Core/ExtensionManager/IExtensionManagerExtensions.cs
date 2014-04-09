@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Extensions
 
         public static IExtensionManager GetExtensionManager(this Workspace workspace)
         {
-            return WorkspaceService.GetService<IExtensionManager>(workspace);
+            return workspace.Services.GetService<IExtensionManager>();
         }
 
         public static void PerformAction(this IExtensionManager extensionManager, object extension, Action action)

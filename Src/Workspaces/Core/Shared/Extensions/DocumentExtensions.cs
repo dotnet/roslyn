@@ -5,10 +5,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
         {
-            return LanguageService.GetService<TLanguageService>(document.Project);
+            return document.Project.LanguageServices.GetService<TLanguageService>();
         }
 
         public static bool IsOpen(this Document document)
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var syntaxFactService = LanguageService.GetService<ISyntaxFactsService>(document);
-            var semanticModelService = WorkspaceService.GetService<ISemanticModelService>(document.Project.Solution.Workspace);
+            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null)
             {
                 return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var syntaxFactService = LanguageService.GetService<ISyntaxFactsService>(document);
-            var semanticModelService = WorkspaceService.GetService<ISemanticModelService>(document.Project.Solution.Workspace);
+            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null || node == null)
             {
                 return document.GetSemanticModelAsync(cancellationToken);

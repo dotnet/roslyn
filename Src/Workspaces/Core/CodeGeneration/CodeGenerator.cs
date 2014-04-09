@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         private static ICodeGenerationService GetCodeGenerationService(Workspace workspace, string language)
         {
-            return LanguageService.GetService<ICodeGenerationService>(workspace, language);
+            return workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
         }
 
         /// <summary>

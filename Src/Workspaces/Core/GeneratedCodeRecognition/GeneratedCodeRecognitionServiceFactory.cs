@@ -2,18 +2,20 @@
 
 using System;
 using System.IO;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 {
 #if MEF
-    [ExportWorkspaceServiceFactory(typeof(IGeneratedCodeRecognitionService), WorkspaceKind.Any)]
+    using Microsoft.CodeAnalysis.Host.Mef;
+
+    [ExportWorkspaceServiceFactory(typeof(IGeneratedCodeRecognitionService), ServiceLayer.Default)]
 #endif
     internal class GeneratedCodeRecognitionServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly IGeneratedCodeRecognitionService Singleton = new GeneratedCodeRecognitionService();
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return Singleton;
         }

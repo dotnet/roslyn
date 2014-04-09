@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(IMetadataReferenceProviderService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(IMetadataReferenceProviderService), ServiceLayer.Default)]
     internal sealed class MetadataReferenceProviderServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new MetadataReferenceProviderService();
         }
@@ -18,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Host
         {
             public MetadataReferenceProvider GetProvider()
             {
-                // by default we don't shadow copy, host can override this behavior
                 return MetadataFileReferenceProvider.Default;
             }
         }

@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.UnitTests;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -16,8 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // Forces serialization of mutation calls. Must take this lock before taking stateLock.
         private readonly NonReentrantLock serializationLock = new NonReentrantLock();
 
-        public TestWorkspace(IWorkspaceServiceProvider workspaceServiceProvider = null)
-            : base(workspaceServiceProvider ?? WorkspaceService.GetProvider(new CustomWorkspace()))
+        public TestWorkspace(HostServices hostServices = null)
+            : base(hostServices ?? new CustomWorkspace().Services.HostServices, "Test")
         {
         }
 
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public T GetService<T>()
             where T : class, IWorkspaceService
         {
-            return WorkspaceService.GetService<T>(this);
+            return this.Services.GetService<T>();
         }
     }
 }

@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{4BA8E3A5-85B2-4FC5-8D4D-89DB15BD919E}</ProjectGuid>
+    <ProjectGuid>{B0F9E8F5-0411-47E3-8019-23CD3F1E5A17}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.FxCop.UnitTests</AssemblyName>
@@ -62,15 +62,15 @@
       <Name>Workspaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</Project>
+      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
       <Name>FxCopRulesDiagnosticAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpFxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{C711AC0D-D6A7-4843-8C1D-0D5684490F51}</Project>
+      <Project>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</Project>
       <Name>CSharpFxCopRulesDiagnosticAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicFxCopRulesDiagnosticAnalyzers.vbproj">
-      <Project>{5D20ADE3-86C7-4AF2-B858-43CB7F41CF69}</Project>
+      <Project>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</Project>
       <Name>BasicFxCopRulesDiagnosticAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.vbproj">

@@ -3,13 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Composition;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -18,21 +19,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-#if MEF
-    using System.ComponentModel.Composition;
-
     [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp)]
-#endif
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
         private readonly Lazy<IEnumerable<IFormattingRule>> lazyExportedRules;
 
-#if MEF
         [ImportingConstructor]
         public CSharpSyntaxFormattingService([ImportMany] IEnumerable<Lazy<IFormattingRule, OrderableLanguageMetadata>> rules)
-#else
-        public CSharpSyntaxFormattingService(IEnumerable<Lazy<IFormattingRule, OrderableLanguageMetadata>> rules)
-#endif
         {
             this.lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() =>
                 ExtensionOrderer.Order(rules)
@@ -40,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                 .Select(x => x.Value)
                                 .Concat(new DefaultOperationProvider())
                                 .ToImmutableList());
-        }
-
-        public CSharpSyntaxFormattingService(ExportSource exports)
-            : this(exports.GetExports<IFormattingRule, OrderableLanguageMetadata>())
-        {
         }
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()

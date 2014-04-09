@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -24,9 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
-#if MEF
     [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp)]
-#endif
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
         #region "Annotation"
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 this.renamableDeclarationLocation = this.renamedSymbol.Locations.Where(loc => loc.IsInSource && loc.SourceTree == semanticModel.SyntaxTree).FirstOrDefault();
                 this.isVerbatim = this.replacementText.StartsWith("@");
 
-                this.simplificationService = LanguageService.GetService<ISimplificationService>(parameters.Document);
+                this.simplificationService = parameters.Document.Project.LanguageServices.GetService<ISimplificationService>();
             }
 
             public override SyntaxNode Visit(SyntaxNode node)

@@ -9,16 +9,17 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
 #if MEF
-    [ExportWorkspaceServiceFactory(typeof(IExtensionManager), WorkspaceKind.Any)]
+    using Microsoft.CodeAnalysis.Host.Mef;
+
+    [ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Default)]
 #endif
     internal class ServicesLayerExtensionManager : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new ExtensionManager();
         }

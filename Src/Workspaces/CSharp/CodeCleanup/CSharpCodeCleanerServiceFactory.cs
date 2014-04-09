@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
-#if MEF
-    using Microsoft.CodeAnalysis.CodeCleanup;
-
     [ExportLanguageServiceFactory(typeof(ICodeCleanerService), LanguageNames.CSharp)]
-#endif
     internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(ILanguageServiceProvider provider)
+        public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpCodeCleanerService();
         }

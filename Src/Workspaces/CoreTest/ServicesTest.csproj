@@ -108,10 +108,6 @@
     <Compile Include="FormattingTests.cs" />
     <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
-    <Compile Include="Host\Utilities\Features.cs" />
-    <Compile Include="Host\Utilities\Features.CSharp.cs" />
-    <Compile Include="Host\Utilities\Features.VisualBasic.cs" />
-    <Compile Include="Host\Utilities\Features.Workspace.cs" />
     <Compile Include="Host\WorkspaceServices\Caching\TestSyntaxTreeCacheService.cs" />
     <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorage.cs" />
     <Compile Include="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorageService.cs" />
@@ -142,7 +138,7 @@
     <Compile Include="WorkspaceExtensions.cs" />
     <Compile Include="WorkspaceServices\OptionServiceTests.cs" />
     <Compile Include="WorkspaceServices\TestPersistenceService.cs" />
-    <Compile Include="WorkspaceServices\TestWorkspaceServiceProvider.cs" />
+    <Compile Include="WorkspaceServices\TestHost.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml">
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -233,6 +229,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Host\Utilities\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

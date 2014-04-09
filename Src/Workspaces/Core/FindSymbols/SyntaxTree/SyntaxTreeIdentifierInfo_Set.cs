@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         public static bool TryGetIdentifierLocations(Document document, VersionStamp version, string identifier, List<int> positions, CancellationToken cancellationToken)
         {
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
             {
                 var esentStorage = storage as ISyntaxTreeInfoPersistentStorage;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
             {
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.Requires(document.IsFromPrimaryBranch());
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(document.Project.Solution.Workspace);
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
             {

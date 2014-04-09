@@ -1065,7 +1065,7 @@ End Module";
 
         private static Document CreateDocument(string code, string language)
         {
-            var solution = new CustomWorkspace(SolutionId.CreateNewId("Solution")).CurrentSolution;
+            var solution = new CustomWorkspace().CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 

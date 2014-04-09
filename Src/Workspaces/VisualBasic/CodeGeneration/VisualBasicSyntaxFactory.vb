@@ -4,18 +4,12 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If MEF Then
-Imports Microsoft.CodeAnalysis.LanguageServices
-#End If
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-#If MEF Then
     <ExportLanguageService(GetType(ISyntaxFactoryService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicSyntaxFactory
-#Else
-    Friend Class VisualBasicSyntaxFactory
-#End If
         Inherits AbstractSyntaxFactory
 
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax

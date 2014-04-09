@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,25 +15,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class CustomWorkspace : Workspace
     {
-        public CustomWorkspace(FeaturePack features, string workspaceKind = WorkspaceKind.Host)
-            : base(features, workspaceKind)
-        {
-        }
-
-        public CustomWorkspace(string workspaceKind)
-            : this(WellKnownFeatures.Features, workspaceKind)
+        public CustomWorkspace(HostServices host, string workspaceKind = "Custom")
+            : base(host, workspaceKind)
         {
         }
 
         public CustomWorkspace()
-            : this(WorkspaceKind.Host)
+            : this(Host.Mef.MefHostServices.DefaultHost)
         {
-        }
-
-        public CustomWorkspace(SolutionId solutionId)
-            : this(WorkspaceKind.Host)
-        {
-            this.SetCurrentSolution(this.CreateSolution(solutionId));
         }
 
         /// <summary>

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestTemporaryStorageService()
         {
             var workspace = MSBuildWorkspace.Create();
-            var tempStorageService = WorkspaceService.GetService<ITemporaryStorageService>(workspace);
+            var tempStorageService = workspace.Services.TemporaryStorage;
 
             var tempStorage = tempStorageService.CreateTemporaryStorage(CancellationToken.None);
             var bigText = SourceText.From(new string('x', 1024 * 1024)); // force text storage to write in multiple chunks

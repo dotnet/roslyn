@@ -6,10 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var containingType = symbol.ContainingType.OriginalDefinition;
                     var derivedClasses = await containingType.FindDerivedClassesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
-                    var languageServicesFactory = WorkspaceService.GetService<ILanguageServiceProviderFactory>(solution.Workspace);
 
                     List<ISymbol> results = null;
 
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 {
                                     var interfaceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false) ?? m;
 
-                                    foreach (var implementation in type.FindImplementationsForInterfaceMember(interfaceMethod, languageServicesFactory, cancellationToken))
+                                    foreach (var implementation in type.FindImplementationsForInterfaceMember(interfaceMethod, solution.Workspace, cancellationToken))
                                     {
                                         if (implementation != null && SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
                                         {
@@ -149,12 +148,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
                 var allTypes = await containingType.FindImplementingTypesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
-                var languageServicesFactory = WorkspaceService.GetService<ILanguageServiceProviderFactory>(solution.Workspace);
 
                 List<ISymbol> results = null;
                 foreach (var t in allTypes)
                 {
-                    foreach (var m in t.FindImplementationsForInterfaceMember(symbol, languageServicesFactory, cancellationToken))
+                    foreach (var m in t.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
                     {
                         var s = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false) ?? m;
                         if (IsAccessible(s))

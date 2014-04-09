@@ -23,26 +23,26 @@ namespace Microsoft.CodeAnalysis.Composition
                 // case correction
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.CaseCorrection.CSharpCaseCorrectionService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CaseCorrection.ICaseCorrectionService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CaseCorrection.ICaseCorrectionService), ServiceLayer.Default)),
 
                 // code clean up
                 new Lazy<ILanguageServiceFactory, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.CodeCleanup.CSharpCodeCleanerServiceFactory(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeCleanup.ICodeCleanerService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeCleanup.ICodeCleanerService), ServiceLayer.Default)),
 
                 // code generation
                 new Lazy<ILanguageServiceFactory, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationServiceFactory(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeGeneration.ICodeGenerationService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeGeneration.ICodeGenerationService), ServiceLayer.Default)),
 
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpSyntaxFactory(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeGeneration.ISyntaxFactoryService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.CodeGeneration.ISyntaxFactoryService), ServiceLayer.Default)),
 
                 // formatting service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingService(root),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Formatting.IFormattingService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Formatting.IFormattingService), ServiceLayer.Default)),
 
                 // formatting rules
                 new Lazy<Microsoft.CodeAnalysis.Formatting.Rules.IFormattingRule, OrderableLanguageMetadata>(
@@ -179,62 +179,62 @@ namespace Microsoft.CodeAnalysis.Composition
                 // Recommendation service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpRecommendationService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Recommendations.IRecommendationService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Recommendations.IRecommendationService), ServiceLayer.Default)),
 
                 // Command line arguments service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpCommandLineArgumentsFactoryService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ICommandLineArgumentsFactoryService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ICommandLineArgumentsFactoryService), ServiceLayer.Default)),
 
                 // Compilation factory service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpCompilationFactoryService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ICompilationFactoryService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ICompilationFactoryService), ServiceLayer.Default)),
 
                 // Project File Loader service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpProjectFileLoaderService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Host.ProjectFileLoader.IProjectFileLoaderLanguageService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Host.ProjectFileLoader.IProjectFileLoaderLanguageService), ServiceLayer.Default)),
 
                 // Semantic Facts service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpSemanticFactsService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISemanticFactsService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISemanticFactsService), ServiceLayer.Default)),
 
                 // Symbol Declaration service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpSymbolDeclarationService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISymbolDeclarationService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISymbolDeclarationService), ServiceLayer.Default)),
 
                 // Syntax Facts service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpSyntaxFactsService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxFactsService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxFactsService), ServiceLayer.Default)),
 
                 // SyntaxTree Factory service
                 new Lazy<ILanguageServiceFactory, LanguageServiceMetadata>(
                     () => new CSharpSyntaxTreeFactoryServiceFactory(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxTreeFactoryService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxTreeFactoryService), ServiceLayer.Default)),
 
                 // SyntaxVersion service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpSyntaxVersionService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxVersionLanguageService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ISyntaxVersionLanguageService), ServiceLayer.Default)),
 
                 // Type Inference service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new CSharpTypeInferenceService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ITypeInferenceService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.LanguageServices.ITypeInferenceService), ServiceLayer.Default)),
 
                 // Rename conflicts service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Rename.IRenameRewriterLanguageService), WorkspaceKind.Any)),
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Rename.IRenameRewriterLanguageService), ServiceLayer.Default)),
 
                 // Simplification service
                 new Lazy<ILanguageService, LanguageServiceMetadata>(
                     () => new Microsoft.CodeAnalysis.CSharp.Simplification.CSharpSimplificationService(),
-                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Simplification.ISimplificationService), WorkspaceKind.Any))
+                    new LanguageServiceMetadata(LanguageNames.CSharp, typeof(Microsoft.CodeAnalysis.Simplification.ISimplificationService), ServiceLayer.Default))
             };
         }
     }

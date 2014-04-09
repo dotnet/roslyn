@@ -6,13 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     return await IterateAllCodeCleanupProvidersAsync(document, document, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = LanguageService.GetService<ISyntaxFactsService>(document);
+                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 Contract.Requires(syntaxFactsService != null);
 
                 // we need to track spans between cleaners. annotate tree with provided spans
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     return IterateAllCodeCleanupProviders(root, root, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), workspace, codeCleaners, cancellationToken);
                 }
 
-                var syntaxFactsService = LanguageService.GetService<ISyntaxFactsService>(workspace, root.Language);
+                var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
                 Contract.Requires(syntaxFactsService != null);
 
                 // we need to track spans between cleaners. annotate tree with provided spans

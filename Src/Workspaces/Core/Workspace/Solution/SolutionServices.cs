@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,24 +11,20 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionServices
     {
         internal readonly Workspace Workspace;
-        internal readonly IWorkspaceServiceProvider WorkspaceServices;
-        internal readonly ILanguageServiceProviderFactory LanguageServicesFactory;
         internal readonly ITemporaryStorageService TemporaryStorage;
         internal readonly ITextFactoryService TextFactory;
         internal readonly ITextCacheService TextCache;
         internal readonly ICompilationCacheService CompilationCacheService;
         internal readonly IMetadataReferenceProviderService MetadataReferenceProviderService;
 
-        public SolutionServices(Workspace workspace, IWorkspaceServiceProvider workspaceServices)
+        public SolutionServices(Workspace workspace)
         {
             this.Workspace = workspace;
-            this.WorkspaceServices = workspaceServices;
-            this.LanguageServicesFactory = WorkspaceServices.GetService<ILanguageServiceProviderFactory>();
-            this.TemporaryStorage = WorkspaceServices.GetService<ITemporaryStorageService>();
-            this.TextFactory = WorkspaceServices.GetService<ITextFactoryService>();
-            this.TextCache = WorkspaceServices.GetService<ITextCacheService>();
-            this.CompilationCacheService = WorkspaceServices.GetService<ICompilationCacheService>();
-            this.MetadataReferenceProviderService = WorkspaceServices.GetService<IMetadataReferenceProviderService>();
+            this.TemporaryStorage = workspace.Services.GetService<ITemporaryStorageService>();
+            this.TextFactory = workspace.Services.GetService<ITextFactoryService>();
+            this.TextCache = workspace.Services.GetService<ITextCacheService>();
+            this.CompilationCacheService = workspace.Services.GetService<ICompilationCacheService>();
+            this.MetadataReferenceProviderService = workspace.Services.GetService<IMetadataReferenceProviderService>();
         }
     }
 }

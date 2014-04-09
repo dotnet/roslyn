@@ -5,19 +5,17 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default)]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();
             return new TemporaryStorageService(textFactory);

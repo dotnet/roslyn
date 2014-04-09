@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
             CancellationToken cancellationToken)
         {
-            var semanticFacts = LanguageService.GetService<ISemanticFactsService>(document);
+            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var token = root.FindToken(location.Location.SourceSpan.Start);
                 var node = token.Parent;
 
-                var syntaxFacts = LanguageService.GetService<ISyntaxFactsService>(document);
+                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 if (syntaxFacts.IsRightSideOfQualifiedName(node))
                 {
                     node = node.Parent;
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxTreeInfo = await SyntaxTreeInfo.GetContextInfoAsync(document, cancellationToken).ConfigureAwait(false);
             if (syntaxTreeInfo.ContainsForEachStatement)
             {
-                var semanticFacts = LanguageService.GetService<ISemanticFactsService>(document);
+                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

@@ -158,7 +158,7 @@ class A { }";
         {
             Assert.DoesNotThrow(() =>
             {
-                using (var workspace = new CustomWorkspace(SolutionId.CreateNewId("Solution")))
+                using (var workspace = new CustomWorkspace())
                 {
                     var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
                     var document = project.AddDocument("Document", SourceText.From(""));

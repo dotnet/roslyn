@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class ProjectState
     {
         private readonly ProjectInfo projectInfo;
-        private readonly ILanguageServiceProvider languageServices;
+        private readonly HostLanguageServices languageServices;
         private readonly SolutionServices solutionServices;
         private readonly ImmutableDictionary<DocumentId, DocumentState> documentStates;
         private readonly ImmutableList<DocumentId> documentIds;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState(
             ProjectInfo projectInfo,
-            ILanguageServiceProvider languageServices,
+            HostLanguageServices languageServices,
             SolutionServices solutionServices,
             ImmutableList<DocumentId> documentIds,
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
@@ -43,13 +44,13 @@ namespace Microsoft.CodeAnalysis
             this.lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         }
 
-        internal ProjectState(ProjectInfo projectInfo, ILanguageServiceProvider languageServiceProvider, SolutionServices solutionServices)
+        internal ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
-            Contract.ThrowIfNull(languageServiceProvider);
+            Contract.ThrowIfNull(languageServices);
             Contract.ThrowIfNull(solutionServices);
 
-            this.languageServices = languageServiceProvider;
+            this.languageServices = languageServices;
             this.solutionServices = solutionServices;
 
             this.projectInfo = FixProjectInfo(projectInfo);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
                 this.projectInfo.Documents.Select(d =>
                     new KeyValuePair<DocumentId, DocumentState>(d.Id,
-                        CreateDocument(this.ProjectInfo, d, languageServiceProvider, solutionServices))));
+                        CreateDocument(this.ProjectInfo, d, languageServices, solutionServices))));
 
             this.documentStates = docStates;
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
-        private static DocumentState CreateDocument(ProjectInfo projectInfo, DocumentInfo documentInfo, ILanguageServiceProvider languageServices, SolutionServices solutionServices)
+        private static DocumentState CreateDocument(ProjectInfo projectInfo, DocumentInfo documentInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
         {
             var doc = DocumentState.Create(documentInfo, projectInfo.ParseOptions, languageServices, solutionServices);
 
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.ProjectInfo.OutputFilePath; }
         }
 
-        public ILanguageServiceProvider LanguageServices
+        public HostLanguageServices LanguageServices
         {
             get { return this.languageServices; }
         }

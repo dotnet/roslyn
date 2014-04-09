@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.LanguageServices
         [Fact]
         public void CSharpSyntaxTreeFactoryServiceTest()
         {
-            var workspaceServices = new TestWorkspaceServiceProvider();
-            var service = workspaceServices.GetService<ILanguageServiceProviderFactory>().GetLanguageServiceProvider(LanguageNames.CSharp).GetService<ISyntaxTreeFactoryService>();
+            var workspace = new CustomWorkspace(TestHost.Services, "Test");
+            var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxTreeFactoryService>();
 
             var text = @"/// <summary>XML</summary>
 class C { }";
@@ -36,8 +36,8 @@ class C { }";
         [Fact]
         public void VisualBasicSyntaxTreeFactoryServiceTest()
         {
-            var workspaceServices = new TestWorkspaceServiceProvider();
-            var service = workspaceServices.GetService<ILanguageServiceProviderFactory>().GetLanguageServiceProvider(LanguageNames.VisualBasic).GetService<ISyntaxTreeFactoryService>();
+            var workspace = new CustomWorkspace(TestHost.Services, "Test");
+            var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxTreeFactoryService>();
 
             var text = @"''' <summary>XML</summary>
 Class C
@@ -50,7 +50,7 @@ End Class";
         private static void TestSyntaxTreeFactoryService(ISyntaxTreeFactoryService service, string text, string fileName)
         {
             var parseOptions = service.GetDefaultParseOptions();
-            var workspaceServices = new TestWorkspaceServiceProvider();
+            var workspace = new CustomWorkspace(TestHost.Services, "Test");
 
             var tree = service.ParseSyntaxTree(
                 fileName,
@@ -71,7 +71,7 @@ End Class";
                 valueSource,
                 tree.GetRoot());
 
-            workspaceServices.GetService<ISyntaxTreeCacheService>().Clear();
+            workspace.Services.GetService<ISyntaxTreeCacheService>().Clear();
 
             var trivia = tree.GetRoot().GetLeadingTrivia().First();
             var actualTrivia = recoverableTree.GetRoot().GetLeadingTrivia().First();

@@ -1,22 +1,18 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceServiceFactory(typeof(ITextCacheService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceServiceFactory(typeof(ITextCacheService), ServiceLayer.Default)]
     internal partial class TextCacheServiceFactory : IWorkspaceServiceFactory
     {
         // 4M chars * 2bytes/char = 8 MB
         private const long DefaultSize = 1 << 20;
         private const int DefaultTextCount = 8;
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new TextCacheService(DefaultTextCount, DefaultSize, itemCost: tv => tv.Text.Length);
         }

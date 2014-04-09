@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException("document");
             }
 
-            var service = LanguageService.GetService<ISyntaxFormattingService>(document);
+            var service = document.Project.LanguageServices.GetService<ISyntaxFormattingService>();
             if (service != null)
             {
                 return service.GetDefaultFormattingRules();
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException("language");
             }
 
-            var service = LanguageService.GetService<ISyntaxFormattingService>(workspace, language);
+            var service = workspace.Services.GetLanguageServices(language).GetService<ISyntaxFormattingService>();
             if (service != null)
             {
                 return service.GetDefaultFormattingRules();
@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException("spans");
             }
 
-            var languageFormatter = LanguageService.GetService<ISyntaxFormattingService>(workspace, node.Language);
+            var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
-                options = options ?? WorkspaceService.GetService<IOptionService>(workspace).GetOptions();
+                options = options ?? workspace.GetOptions();
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
                 return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
             }
@@ -318,10 +318,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException("node");
             }
 
-            var languageFormatter = LanguageService.GetService<ISyntaxFormattingService>(workspace, node.Language);
+            var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
-                options = options ?? WorkspaceService.GetService<IOptionService>(workspace).GetOptions();
+                options = options ?? workspace.GetOptions();
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
                 return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
             }

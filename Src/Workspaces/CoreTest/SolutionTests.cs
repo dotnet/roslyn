@@ -7,17 +7,18 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host.UnitTests;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -668,10 +669,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateNotKeptAliveSolution()
         {
-            var workspace = new CustomWorkspace(GetTestWorkspaceFeatures(), "NotKeptAlive");
+            var workspace = new CustomWorkspace(TestHost.Services, "NotKeptAlive");
 
             // prove we have the correct composition & type of workspace service provider
-            var service = WorkspaceService.GetService<Microsoft.CodeAnalysis.Host.ICompilationCacheService>(workspace);
+            var service = workspace.Services.GetService<ICompilationCacheService>();
             Assert.Equal(true, service is NotKeptAliveCompilationCacheServiceFactory.CacheService);
 
             return workspace.CurrentSolution;
@@ -679,21 +680,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static Solution GetDelayedEvictionSolution()
         {
-            return new CustomWorkspace(GetTestWorkspaceFeatures(), "DelayedEviction").CurrentSolution;
-        }
-
-        private static FeaturePack testWorkspaceFeatures;
-
-        private static FeaturePack GetTestWorkspaceFeatures()
-        {
-            if (testWorkspaceFeatures == null)
-            {
-                AssemblyCatalog assemblyCatalog = new AssemblyCatalog(typeof(SolutionTests).Assembly);
-                MefExportPack mefExportPack = new MefExportPack(assemblyCatalog);
-                testWorkspaceFeatures = WellKnownFeatures.Features.Combine(mefExportPack);
-            }
-
-            return testWorkspaceFeatures;
+            return new CustomWorkspace(TestHost.Services, "DelayedEviction").CurrentSolution;
         }
 
         private void StopObservingAndWaitForReferenceToGo(ObjectReference observed, int delay = 0)
@@ -1172,12 +1159,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var ws = new CustomWorkspace(GetTestWorkspaceFeatures(), WorkspaceKind.Host);
-            var service = WorkspaceService.GetService<ILanguageServiceProviderFactory>(ws).GetLanguageServiceProvider(LanguageNames.CSharp).GetService<ITestLanguageService>();
+            var ws = new CustomWorkspace(TestHost.Services, ServiceLayer.Host);
+            var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service as TestLanguageServiceA);
 
-            var ws2 = new CustomWorkspace(GetTestWorkspaceFeatures(), "Quasimodo");
-            var service2 = WorkspaceService.GetService<ILanguageServiceProviderFactory>(ws2).GetLanguageServiceProvider(LanguageNames.CSharp).GetService<ITestLanguageService>();
+            var ws2 = new CustomWorkspace(TestHost.Services, "Quasimodo");
+            var service2 = ws2.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service2 as TestLanguageServiceB);
         }
 
@@ -1212,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
         }
 
-        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, WorkspaceKind.Any)]
+        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default)]
         private class TestLanguageServiceA : ITestLanguageService
         {
         }

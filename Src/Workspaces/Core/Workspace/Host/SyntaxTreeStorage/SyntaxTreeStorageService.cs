@@ -3,15 +3,13 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-#if MEF
-    [ExportWorkspaceService(typeof(ISyntaxTreeStorageService), WorkspaceKind.Any)]
-#endif
+    [ExportWorkspaceService(typeof(ISyntaxTreeStorageService), ServiceLayer.Default)]
     internal class SyntaxTreeStorageService : ISyntaxTreeStorageService
     {
         private static readonly ConditionalWeakTable<SyntaxTree, ITemporaryStorage> map =

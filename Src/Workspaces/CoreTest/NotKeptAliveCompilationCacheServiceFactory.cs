@@ -2,15 +2,15 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [ExportWorkspaceServiceFactory(typeof(ICompilationCacheService), "NotKeptAlive")]
     internal class NotKeptAliveCompilationCacheServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new CacheService();
         }

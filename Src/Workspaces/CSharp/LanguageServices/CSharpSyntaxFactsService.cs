@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -14,9 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
     [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp)]
-#endif
     internal class CSharpSyntaxFactsService : ISyntaxFactsService
     {
         public bool IsIdentifier(SyntaxToken token)

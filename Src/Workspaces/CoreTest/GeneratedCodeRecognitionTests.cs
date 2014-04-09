@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
-using Microsoft.CodeAnalysis.WorkspaceServices;
+using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static bool IsGeneratedCode(Document document)
         {
-            return WorkspaceService.GetService<IGeneratedCodeRecognitionService>(document.Project.Solution.Workspace).IsGeneratedCode(document);
+            return document.Project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(document);
         }
     }
 }

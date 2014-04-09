@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.info.FilePath; }
         }
 
-        public ILanguageServiceProvider LanguageServices
+        public HostLanguageServices LanguageServices
         {
             get { return this.languageServices; }
         }

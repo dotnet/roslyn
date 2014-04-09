@@ -2,13 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
 #if MEF
-    [ExportWorkspaceServiceFactory(typeof(IBaseIndentationFormattingRuleFactoryService), WorkspaceKind.Any)]
+    using Microsoft.CodeAnalysis.Host.Mef;
+
+    [ExportWorkspaceServiceFactory(typeof(IBaseIndentationFormattingRuleFactoryService), ServiceLayer.Default)]
 #endif
     internal sealed class DefaultBaseIndentationFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         {
         }
 
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Factory();
         }

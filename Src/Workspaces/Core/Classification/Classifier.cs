@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var service = LanguageService.GetService<IClassificationService>(workspace, semanticModel.Language);
+            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IClassificationService>();
 
             var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
 

@@ -3,13 +3,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
     [ExportLanguageService(typeof(ITypeInferenceService), LanguageNames.CSharp)]
-#endif
     internal partial class CSharpTypeInferenceService : ITypeInferenceService
     {
         public IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)

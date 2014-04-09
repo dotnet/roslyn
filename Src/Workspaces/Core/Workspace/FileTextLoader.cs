@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
-            var factory = WorkspaceService.GetService<ITextFactoryService>(workspace);
+            var factory = workspace.Services.GetService<ITextFactoryService>();
             return factory.CreateText(stream);
         }
 

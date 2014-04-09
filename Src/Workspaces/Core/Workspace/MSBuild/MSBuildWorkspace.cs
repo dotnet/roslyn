@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private ImmutableDictionary<string, string> properties;
 
         private MSBuildWorkspace(
-            FeaturePack features,
+            HostServices hostServices,
             ImmutableDictionary<string, string> properties)
-            : base(features, "MSBuildWorkspace")
+            : base(hostServices, "MSBuildWorkspace")
         {
             // always make a copy of these build properties (no mutation please!)
             this.properties = properties ?? ImmutableDictionary<string, string>.Empty;
@@ -49,22 +49,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Create a new instance of a workspace that can be populated by opening solution and project files.
         /// </summary>
-        /// <param name="properties">The MSBuild properties used when interpretting project files.
-        /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
-        /// <param name="features">The feature pack used to configure this workspace.</param>
-        public static MSBuildWorkspace Create(ImmutableDictionary<string, string> properties, FeaturePack features)
+        public static MSBuildWorkspace Create()
         {
-            if (properties == null)
-            {
-                throw new ArgumentNullException("properties");
-            }
-
-            if (features == null)
-            {
-                throw new ArgumentNullException("features");
-            }
-
-            return new MSBuildWorkspace(features, properties);
+            return Create(ImmutableDictionary<string, string>.Empty);
         }
 
         /// <summary>
@@ -72,10 +59,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         /// <param name="properties">An optional set of MSBuild properties used when interpretting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
-        public static MSBuildWorkspace Create(IEnumerable<KeyValuePair<string, string>> properties = null)
+        public static MSBuildWorkspace Create(IDictionary<string, string> properties)
         {
-            var props = properties != null ? ImmutableDictionary<string, string>.Empty.AddRange(properties) : ImmutableDictionary<string, string>.Empty;
-            return Create(props, WellKnownFeatures.Features);
+            return Create(properties, Host.Mef.MefHostServices.DefaultHost);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
+        /// <param name="properties">The MSBuild properties used when interpretting project files.
+        /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
+        /// <param name="hostServices">The feature pack used to configure this workspace.</param>
+        public static MSBuildWorkspace Create(IDictionary<string, string> properties, HostServices hostServices)
+        {
+            if (properties == null)
+            {
+                throw new ArgumentNullException("properties");
+            }
+
+            if (hostServices == null)
+            {
+                throw new ArgumentNullException("hostServices");
+            }
+
+            return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
         }
 
         /// <summary>
@@ -218,14 +225,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     string language;
                     if (this.extensionToLanguageMap.TryGetValue(extension, out language))
                     {
-                        if (LanguageService.GetSupportedLanguages(this).Contains(language))
+                        if (this.Services.SupportedLanguages.Contains(language))
                         {
-                            loader = LanguageService.GetService<IProjectFileLoader>(this, language);
+                            loader = this.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
                         }
                     }
                     else 
                     {
-                        loader = LanguageService.GetServices<IProjectFileLoader>(this).FirstOrDefault(x => x.IsProjectFileExtension(extension));
+                        // note: this forces all language dlls to load
+                        loader = this.Services.SupportedLanguages.Select(lang => this.Services.GetLanguageServices(lang).GetService<IProjectFileLoader>())
+                                    .FirstOrDefault(ld => ld.IsProjectFileExtension(extension));
                     }
 
                     this.projectPathToLoaderMap[projectFilePath] = loader;
@@ -237,7 +246,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private IProjectFileLoader GetLoaderFromProjectType(Guid projectTypeGuid)
         {
-            return LanguageService.GetServices<IProjectFileLoader>(this).FirstOrDefault(x => x.IsProjectTypeGuid(projectTypeGuid));
+            return this.Services.SupportedLanguages.Select(lang => this.Services.GetLanguageServices(lang).GetService<IProjectFileLoader>()).FirstOrDefault(p => p.IsProjectTypeGuid(projectTypeGuid));
         }
 
         private static string GetAbsolutePath(string path, string baseDirectoryPath)

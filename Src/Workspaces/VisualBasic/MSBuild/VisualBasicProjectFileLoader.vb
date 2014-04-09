@@ -4,21 +4,15 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MSBuild
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports MSB = Microsoft.Build
 
-#If MEF Then
-Imports Microsoft.CodeAnalysis.LanguageServices
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageService(GetType(IProjectFileLoader), LanguageNames.VisualBasic)>
     Friend Class VisualBasicProjectFileLoader
-#Else
-    Friend Class VisualBasicProjectFileLoader
-#End If
         Inherits ProjectFileLoader
 
         Friend Sub New()

@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
     [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp)]
-#endif
     internal class CSharpCompilationFactoryService : ICompilationFactoryService
     {
         private static readonly CSharpCompilationOptions defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);

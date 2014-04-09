@@ -2,17 +2,15 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageService(GetType(ISymbolDeclarationService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicSymbolDeclarationService
-#Else
-    Friend Class VisualBasicSymbolDeclarationService
-#End If
         Implements ISymbolDeclarationService
 
         ''' <summary>

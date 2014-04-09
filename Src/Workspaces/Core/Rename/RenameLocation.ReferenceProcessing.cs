@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     foreach (var document in project.Documents)
                     {
-                        var syntaxFactsLanguageService = LanguageService.GetService<ISyntaxFactsService>(document.Project);
+                        var syntaxFactsLanguageService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
                         if (renameInStrings)
                         {

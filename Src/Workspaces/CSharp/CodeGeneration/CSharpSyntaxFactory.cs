@@ -7,15 +7,14 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-#if MEF
-    using Microsoft.CodeAnalysis.LanguageServices;
-
     [ExportLanguageService(typeof(ISyntaxFactoryService), LanguageNames.CSharp)]
-#endif
     internal class CSharpSyntaxFactory : AbstractSyntaxFactory
     {
         public override SyntaxNode CreateReturnStatement(SyntaxNode expressionOpt = null)

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             foreach (var reference in result)
             {
-                var isCaseSensitive = LanguageService.GetService<ISyntaxFactsService>(solution.Workspace, reference.Definition.Language).IsCaseSensitive;
+                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 if (reference.Definition.IsOrdinaryMethod() &&
                     !comparer.Equals(reference.Definition.Name, symbol.Name))

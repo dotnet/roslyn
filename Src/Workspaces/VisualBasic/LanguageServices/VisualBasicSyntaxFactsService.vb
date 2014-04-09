@@ -2,18 +2,16 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageService(GetType(ISyntaxFactsService), LanguageNames.VisualBasic)>
     Class VisualBasicSyntaxFactsService
-#Else
-    Class VisualBasicSyntaxFactsService
-#End If
         Implements ISyntaxFactsService
 
         Public Function IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier

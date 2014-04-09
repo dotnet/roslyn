@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var identifierName = GetNamespaceIdentifierName(symbol, document.Project);
-            var syntaxFactsService = LanguageService.GetService<ISyntaxFactsService>(document);
+            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
             var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,

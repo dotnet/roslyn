@@ -3,17 +3,15 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageService(GetType(ISemanticFactsService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicSemanticFactsService
-#Else
-    Friend Class VisualBasicSemanticFactsService
-#End If
         Implements ISemanticFactsService
 
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFactsService.SupportsImplicitInterfaceImplementation

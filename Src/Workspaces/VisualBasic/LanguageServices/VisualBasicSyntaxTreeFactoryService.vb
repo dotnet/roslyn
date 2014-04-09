@@ -2,27 +2,25 @@
 
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#If MEF Then
     <ExportLanguageServiceFactory(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic)>
     Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
-#Else
-    Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
-#End If
         Implements ILanguageServiceFactory
 
-        Public Function CreateLanguageService(provider As ILanguageServiceProvider) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+        Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
 
         Partial Private Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(languageServices As ILanguageServiceProvider)
+            Public Sub New(languageServices As HostLanguageServices)
                 MyBase.New(languageServices)
             End Sub
 

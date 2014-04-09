@@ -7,6 +7,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
         Private ReadOnly syntaxFactsService As ISyntaxFactsService
 
-        Public Sub New(provider As ILanguageServiceProvider)
+        Public Sub New(provider As HostLanguageServices)
             syntaxFactsService = provider.GetService(Of ISyntaxFactsService)()
         End Sub
 

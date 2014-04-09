@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -93,13 +94,16 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return LanguageService.GetService<ICompilationFactoryService>(this) != null;
+                return this.LanguageServices.GetService<ICompilationFactoryService>() != null;
             }
         }
 
-        internal ILanguageServiceProvider GetLanguageServiceProviderInternal()
+        /// <summary>
+        /// The language services from the host environment associated with this project's language.
+        /// </summary>
+        public HostLanguageServices LanguageServices
         {
-            return projectState.LanguageServices;
+            get { return this.projectState.LanguageServices; }
         }
 
         /// <summary>

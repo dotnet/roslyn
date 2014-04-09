@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ValueTuple.Create(false, await CreateAsync(project, cancellationToken).ConfigureAwait(false));
             }
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(project.Solution.Workspace);
+            var persistentStorageService = project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
             var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // attempt to load from persisted state
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var relativePath = FilePathUtilities.GetRelativePath(solution.FilePath, filePath);
             var version = VersionStamp.Create(File.GetLastWriteTimeUtc(filePath));
 
-            var persistentStorageService = WorkspaceService.GetService<IPersistentStorageService>(solution.Workspace);
+            var persistentStorageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             // attempt to load from persisted state. metadata reference is solution wise information
             SymbolTreeInfo info;

@@ -4,7 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class ILanguageServiceProviderExtensions
     {
         public static IEnumerable<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
-            this ILanguageServiceProvider serviceProvider,
+            this HostLanguageServices serviceProvider,
             IEnumerable<Lazy<T, TMetadata>> items)
             where TMetadata : ILanguageMetadata
         {

@@ -2,25 +2,18 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Composition
+Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
-#If MEF Then
-Imports System.ComponentModel.Composition
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-#If MEF Then
     <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicSyntaxFormattingService
-#Else
-    Friend Class VisualBasicSyntaxFormattingService
-#End If
         Inherits AbstractSyntaxFormattingService
 
         Private ReadOnly lazyExportedRules As Lazy(Of IEnumerable(Of IFormattingRule))
@@ -28,20 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Friend Sub New()
         End Sub
 
-#If MEF Then
         <ImportingConstructor>
         Sub New(<ImportMany> rules As IEnumerable(Of Lazy(Of IFormattingRule, OrderableLanguageMetadata)))
-#Else
-        Sub New(rules As IEnumerable(Of Lazy(Of IFormattingRule, OrderableLanguageMetadata)))
-#End If
             Me.lazyExportedRules = New Lazy(Of IEnumerable(Of IFormattingRule))(
                 Function()
                     Return ExtensionOrderer.Order(rules).Where(Function(x) x.Metadata.Language = LanguageNames.VisualBasic).Select(Function(x) x.Value).Concat(New DefaultOperationProvider()).ToImmutableList()
                 End Function)
-        End Sub
-
-        Sub New(exports As ExportSource)
-            Me.New(exports.GetExports(Of IFormattingRule, OrderableLanguageMetadata))
         End Sub
 
         Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of IFormattingRule)

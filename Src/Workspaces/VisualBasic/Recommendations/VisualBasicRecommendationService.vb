@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -8,17 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If MEF Then
-Imports Microsoft.CodeAnalysis.LanguageServices
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
-#If MEF Then
     <ExportLanguageService(GetType(IRecommendationService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicRecommendationService
-#Else
-    Friend Class VisualBasicRecommendationService
-#End If
         Inherits AbstractRecommendationService
 
         Protected Overrides Function GetRecommendedSymbolsAtPositionWorker(

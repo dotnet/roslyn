@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
         {
-            var result = LanguageService
-                .GetService<ISimplificationService>(workspace, node.Language)
+            var result = workspace.Services.GetLanguageServices(node.Language).GetService<ISimplificationService>()
                 .Expand(node, semanticModel, annotationForReplacedAliasIdentifier: null, expandInsideNode: expandInsideNode, expandParameter: expandParameter, cancellationToken: cancellationToken);
 
             return (TNode)result;
@@ -78,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return LanguageService
-                .GetService<ISimplificationService>(workspace, token.Language)
+            return workspace.Services.GetLanguageServices(token.Language).GetService<ISimplificationService>()
                 .Expand(token, semanticModel, expandInsideNode, cancellationToken);
         }
 
@@ -114,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return LanguageService.GetService<ISimplificationService>(document).ReduceAsync(document, spans, optionSet, cancellationToken: cancellationToken);
+            return document.Project.LanguageServices.GetService<ISimplificationService>().ReduceAsync(document, spans, optionSet, cancellationToken: cancellationToken);
         }
 
         internal static async Task<Document> ReduceAsync(Document document, IEnumerable<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return await LanguageService.GetService<ISimplificationService>(document)
+            return await document.Project.LanguageServices.GetService<ISimplificationService>()
                 .ReduceAsync(document, SpecializedCollections.SingletonEnumerable(root.FullSpan), optionSet, reducers, cancellationToken).ConfigureAwait(false);
         }
     }

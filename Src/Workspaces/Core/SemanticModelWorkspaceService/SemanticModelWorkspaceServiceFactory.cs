@@ -10,17 +10,17 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 {
-    [ExportWorkspaceServiceFactory(typeof(ISemanticModelService), WorkspaceKind.Any)]
+    [ExportWorkspaceServiceFactory(typeof(ISemanticModelService), ServiceLayer.Default)]
     internal class SemanticModelWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(IWorkspaceServiceProvider workspaceServices)
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new SemanticModelService();
         }
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             public async Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
             {
-                var syntaxFactsService = LanguageService.GetService<ISyntaxFactsService>(document);
-                var semanticFactsService = LanguageService.GetService<ISemanticFactsService>(document);
+                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var semanticFactsService = document.Project.LanguageServices.GetService<ISemanticFactsService>();
 
                 if (syntaxFactsService == null || semanticFactsService == null || node == null)
                 {
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static ValueSource<Compilation> GetCompilation(Project project, Compilation compilation)
                 {
                     var workspace = project.Solution.Workspace;
-                    var compilationCache = WorkspaceService.GetService<ICompilationCacheService>(workspace);
+                    var compilationCache = workspace.Services.GetService<ICompilationCacheService>();
                     if (compilationCache == null)
                     {
                         return new ConstantValueSource<Compilation>(compilation);

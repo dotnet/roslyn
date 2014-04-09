@@ -2693,7 +2693,7 @@ End Class</Code>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlTest5442()
-            Using workspace = New CustomWorkspace(SolutionId.CreateNewId("Solution"))
+            Using workspace = New CustomWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(My.Resources.XmlLiterals.XmlTest4_Input_Output))

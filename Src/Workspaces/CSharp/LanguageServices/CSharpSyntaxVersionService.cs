@@ -5,14 +5,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if MEF
     [ExportLanguageService(typeof(ISyntaxVersionLanguageService), LanguageNames.CSharp)]
-#endif
     internal partial class CSharpSyntaxVersionService : ISyntaxVersionLanguageService
     {
         public int ComputePublicHash(SyntaxNode root, CancellationToken cancellationToken)

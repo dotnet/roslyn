@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -246,8 +246,7 @@ End Class
             var root = document.GetSyntaxRootAsync().Result;
             var accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
             var factory = new SemanticModelWorkspaceServiceFactory();
-            var provider = WorkspaceService.GetProvider(document.Project.Solution.Workspace);
-            var service = (ISemanticModelService)factory.CreateService(provider);
+            var service = (ISemanticModelService)factory.CreateService(document.Project.Solution.Workspace.Services);
             var newSemanticModel = service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None).Result;
             Assert.NotNull(newSemanticModel);
             var newDocument = CreateDocument(code, LanguageNames.VisualBasic);
@@ -357,7 +356,7 @@ End Module";
 
         private static Document CreateDocument(string code, string language)
         {
-            var solution = new CustomWorkspace(SolutionId.CreateNewId("Solution")).CurrentSolution;
+            var solution = new CustomWorkspace().CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 

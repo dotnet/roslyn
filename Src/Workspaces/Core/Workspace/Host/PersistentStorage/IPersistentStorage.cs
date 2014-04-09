@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IPersistentStorage : IDisposable
+    public interface IPersistentStorage : IDisposable
     {
         Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
         Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken));

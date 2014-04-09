@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
-            var renameRewriterService = LanguageService.GetService<IRenameRewriterLanguageService>(document);
+            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
             var complexifiedTarget = renameRewriterService.GetExpansionTargetForLocation(tokenOrNode);
             return complexifiedTarget;
         }
 
         private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
-            var renameRewriterService = LanguageService.GetService<IRenameRewriterLanguageService>(document);
+            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
             var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode);
             return isConflict;
         }
@@ -97,8 +97,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             foreach (var language in projectIds.Select(p => solution.GetProject(p).Language).Distinct())
             {
-                var renameRewriterLanguageService = LanguageService.GetService<IRenameRewriterLanguageService>(solution.Workspace, language);
-                var syntaxFactsLanguageService = LanguageService.GetService<ISyntaxFactsService>(solution.Workspace, language);
+                var languageServices = solution.Workspace.Services.GetLanguageServices(language);
+                var renameRewriterLanguageService = languageServices.GetService<IRenameRewriterLanguageService>();
+                var syntaxFactsLanguageService = languageServices.GetService<ISyntaxFactsService>();
                 if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
                 {
                     return false;
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             CancellationToken cancellationToken)
         {
             {
-                var renameRewriterService = LanguageService.GetService<IRenameRewriterLanguageService>(conflictResolution.NewSolution.Workspace, renamedSymbol.Language);
+                var renameRewriterService = conflictResolution.NewSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language).GetService<IRenameRewriterLanguageService>();
                 var implicitUsageConflicts = renameRewriterService.ComputePossibleImplicitUsageConflicts(renamedSymbol, semanticModel, originalDeclarationLocation, newDeclarationLocationStartingPosition, cancellationToken);
                 foreach (var implicitUsageConflict in implicitUsageConflicts)
                 {
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 // the location of the implicit reference defines the language rules to check.
                 // E.g. foreach in C# using a MoveNext in VB that is renamed to MOVENEXT (within VB)
-                var renameRewriterService = LanguageService.GetService<IRenameRewriterLanguageService>(implicitReferenceLocationsPerLanguage.First().Document);
+                var renameRewriterService = implicitReferenceLocationsPerLanguage.First().Document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                 var implicitConflicts = renameRewriterService.ComputeImplicitReferenceConflicts(
                     originalSymbol,
                     renamedSymbol,
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
 
                 // There also might be language specific rules we need to include
-                var languageRenameService = LanguageService.GetService<IRenameRewriterLanguageService>(project);
+                var languageRenameService = project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                 var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(
                     conflictResolution.ReplacementText,
                     renamedSymbol,

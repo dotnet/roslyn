@@ -6,8 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return LanguageService.GetService<ISyntaxTreeFactoryService>(this) != null;
+                return this.Project.LanguageServices.SyntaxTreeFactory != null;
             }
         }
 

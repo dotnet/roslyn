@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.WorkspaceServices;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -74,12 +73,11 @@ namespace Microsoft.CodeAnalysis
 
         internal Solution(
             Workspace workspace,
-            IWorkspaceServiceProvider workspaceServices,
             SolutionInfo info)
             : this(
                 workspace.PrimaryBranchId,
                 workspaceVersion: 0,
-                solutionServices: new SolutionServices(workspace, workspaceServices),
+                solutionServices: new SolutionServices(workspace),
                 id: info.Id,
                 filePath: info.FilePath,
                 version: info.Version,
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
         {
             var services = workspace != this.solutionServices.Workspace
-                ? new SolutionServices(workspace, this.solutionServices.WorkspaceServices)
+                ? new SolutionServices(workspace)
                 : this.solutionServices;
 
             // Note: this will potentially have problems if the workspace services are different, as some services
@@ -553,13 +551,13 @@ namespace Microsoft.CodeAnalysis
 
             CheckNotContainsProject(projectId);
 
-            var languageServiceProvider = this.solutionServices.LanguageServicesFactory.GetLanguageServiceProvider(language);
-            if (languageServiceProvider == null)
+            var languageServices = this.Workspace.Services.GetLanguageServices(language);
+            if (languageServices == null)
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.UnsupportedLanguage, language));
             }
 
-            var newProject = new ProjectState(projectInfo, languageServiceProvider, this.solutionServices);
+            var newProject = new ProjectState(projectInfo, languageServices, this.solutionServices);
 
             return this.AddProject(newProject.Id, newProject);
         }
