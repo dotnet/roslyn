@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         }
 
         /// <summary>
-        /// case correct only things that doesn't require semantic information
+        /// Case correct only things that don't require semantic information
         /// </summary>
         internal static SyntaxNode CaseCorrect(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
         {
