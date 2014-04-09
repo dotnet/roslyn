@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
     /// <summary>
-    /// Specifies the exact type of the code cleanup exported
+    /// Specifies the exact type of the code cleanup exported.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]

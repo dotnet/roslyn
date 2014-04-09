@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
     /// <summary>
-    /// simple helper class that returns ICodeCleanup implementation
+    /// Helper class that implements <see cref="ICodeCleanupProvider"/> using delegates passed to its constructor.
     /// </summary>
     internal class SimpleCodeCleanupProvider : ICodeCleanupProvider
     {
