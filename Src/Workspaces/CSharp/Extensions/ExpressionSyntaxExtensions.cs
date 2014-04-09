@@ -656,10 +656,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             replacementNode = null;
             issueSpan = default(TextSpan);
 
-            if (memberAccess.Name == null ||
-                memberAccess.Expression == null ||
-                (!optionSet.GetOption(SimplificationOptions.AllowSimplifyingAwayThisOrMe, LanguageNames.CSharp) &&
-                 memberAccess.Expression.CSharpKind() == SyntaxKind.ThisExpression))
+            if (memberAccess.Name == null || memberAccess.Expression == null)
+            {
+                return false;
+            }
+
+            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) && 
+                memberAccess.Expression.CSharpKind() == SyntaxKind.ThisExpression)
             {
                 return false;
             }

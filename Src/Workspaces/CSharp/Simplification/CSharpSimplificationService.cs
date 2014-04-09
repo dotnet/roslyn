@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             using (Logger.LogBlock(FeatureId.Simplifier, FunctionId.Simplifier_ExpandToken, cancellationToken))
             {
-                var hungarianSemanticModel = (SemanticModel)semanticModel;
-                var rewriter = new Expander(hungarianSemanticModel, expandInsideNode, false, cancellationToken);
+                var csharpSemanticModel = (SemanticModel)semanticModel;
+                var rewriter = new Expander(csharpSemanticModel, expandInsideNode, false, cancellationToken);
 
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, hungarianSemanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, csharpSemanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
                 SyntaxToken rewrittenTokenWithElasticTrivia;
                 if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
                 {

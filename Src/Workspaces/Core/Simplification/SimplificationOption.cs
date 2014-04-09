@@ -67,6 +67,6 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly PerLanguageOption<bool> AllowSimplifyingAwayThisOrMe = new PerLanguageOption<bool>(FeatureName, "AllowSimplifyingAwayThisOrMe", defaultValue: true);
+        public static readonly PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe = new PerLanguageOption<bool>(FeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
     }
 }

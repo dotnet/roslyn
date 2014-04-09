@@ -949,10 +949,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             optionSet As OptionSet,
             cancellationToken As CancellationToken
         ) As Boolean
-            If memberAccess.Expression Is Nothing OrElse
-                memberAccess.Name Is Nothing OrElse
-                (Not optionSet.GetOption(SimplificationOptions.AllowSimplifyingAwayThisOrMe, LanguageNames.VisualBasic) AndAlso
-                 memberAccess.Expression.VisualBasicKind() = SyntaxKind.MeExpression) Then
+            If memberAccess.Expression Is Nothing OrElse memberAccess.Name Is Nothing Then
+                Return False
+            End If
+
+            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
+                 memberAccess.Expression.VisualBasicKind() = SyntaxKind.MeExpression Then
                 Return False
             End If
 

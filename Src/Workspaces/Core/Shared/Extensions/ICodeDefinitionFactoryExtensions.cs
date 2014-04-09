@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -71,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
-            var statements = factory.CreateAssignmentStatements(parameters, parameterToExistingFieldMap, parameterToNewFieldMap);
+            var statements = factory.CreateAssignmentStatements(parameters, parameterToExistingFieldMap, parameterToNewFieldMap)
+                                    .Select(s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             foreach (var field in fields)
             {
