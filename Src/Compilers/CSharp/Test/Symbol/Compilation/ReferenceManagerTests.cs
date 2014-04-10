@@ -2175,5 +2175,19 @@ public class Source
                 // error CS0009: Metadata file 'NativeApp.exe' could not be opened -- PE image doesn't contain managed metadata.
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", "PE image doesn't contain managed metadata."));
         }
+
+        [Fact, WorkItem(43)]
+        public void ReusingCorLibManager()
+        {
+            var corlib1 = CreateCompilation("");
+            var assembly1 = corlib1.Assembly;
+
+            var corlib2 = corlib1.Clone();
+            var assembly2 = corlib2.Assembly;
+
+            Assert.Same(assembly1.CorLibrary, assembly1);
+            Assert.Same(assembly2.CorLibrary, assembly2);
+            Assert.True(corlib1.ReferenceManagerEquals(corlib2));
+        }
     }
 }

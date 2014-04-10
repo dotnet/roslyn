@@ -141,9 +141,14 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<Diagnostic> lazyDiagnostics;
 
         /// <summary>
-        /// COR library symbol. 
+        /// COR library symbol, or null if the compilation itself is the COR library.
         /// </summary>
-        private TAssemblySymbol lazyCorLibrary;
+        /// <remarks>
+        /// If the compilation being built is the COR library we don't want to store its source assembly symbol 
+        /// here since we wouldn't be able to share the state among subsequent compilations that are derived from it
+        /// (each of them has its own source assembly symbol).
+        /// </remarks>
+        private TAssemblySymbol lazyCorLibraryOpt;
 
         /// <summary>
         /// Standalone modules referenced by the compilation (doesn't include the manifest module of the compilation).
@@ -237,12 +242,12 @@ namespace Microsoft.CodeAnalysis
 
         #region Symbols necessary to set up source assembly and module
 
-        internal TAssemblySymbol CorLibrary
+        internal TAssemblySymbol CorLibraryOpt
         {
             get
             {
                 AssertBound();
-                return lazyCorLibrary;
+                return lazyCorLibraryOpt;
             }
         }
 
@@ -296,11 +301,11 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(lazyReferencedModuleIndexMap == null);
             Debug.Assert(lazyReferenceDirectiveMap == null);
             Debug.Assert(lazyDirectiveReferences.IsDefault);
-            Debug.Assert(lazyCorLibrary == null);
             Debug.Assert(lazyReferencedModules.IsDefault);
             Debug.Assert(lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(lazyReferencedAssemblies.IsDefault);
             Debug.Assert(lazyUnifiedAssemblies.IsDefault);
+            Debug.Assert(lazyCorLibraryOpt == null);
         }
 
         [Conditional("DEBUG")]
@@ -312,11 +317,13 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(lazyReferencedModuleIndexMap != null);
             Debug.Assert(lazyReferenceDirectiveMap != null);
             Debug.Assert(!lazyDirectiveReferences.IsDefault);
-            Debug.Assert(lazyCorLibrary != null);
             Debug.Assert(!lazyReferencedModules.IsDefault);
             Debug.Assert(!lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(!lazyReferencedAssemblies.IsDefault);
             Debug.Assert(!lazyUnifiedAssemblies.IsDefault);
+
+            // lazyCorLibrary is null if the compilation is corlib
+            Debug.Assert(lazyReferencedAssemblies.Length == 0 || lazyCorLibraryOpt != null);
         }
 
         [Conditional("DEBUG")]
@@ -343,7 +350,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> boundReferenceDirectives,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
-            TAssemblySymbol corLibrary,
+            TAssemblySymbol corLibraryOpt,
             ImmutableArray<PEModule> referencedModules,
             ImmutableArray<ModuleReferences<TAssemblySymbol>> referencedModulesReferences,
             ImmutableArray<TAssemblySymbol> referencedAssemblies,
@@ -360,7 +367,7 @@ namespace Microsoft.CodeAnalysis
             this.lazyReferenceDirectiveMap = boundReferenceDirectiveMap;
             this.lazyDirectiveReferences = boundReferenceDirectives;
 
-            this.lazyCorLibrary = corLibrary;
+            this.lazyCorLibraryOpt = corLibraryOpt;
             this.lazyReferencedModules = referencedModules;
             this.lazyReferencedModulesReferences = referencedModulesReferences;
             this.lazyReferencedAssemblies = referencedAssemblies;

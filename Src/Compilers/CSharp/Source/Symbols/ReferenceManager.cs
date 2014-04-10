@@ -4,15 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Instrumentation;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -232,6 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssertBound();
 
+                // If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
+                Debug.Assert(!HasCircularReference);
+
                 var referencedAssembliesByIdentity = new Dictionary<AssemblyIdentity, AssemblySymbol>();
                 foreach (var symbol in this.ReferencedAssemblies)
                 {
@@ -267,14 +266,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssertBound();
 
-                // If the compilation has a reference from metadata to source assembly 
-                // we can't share the referenced PE symbols.
+                // If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
                 Debug.Assert(!HasCircularReference);
 
                 string moduleName = compilation.MakeSourceModuleName();
                 var assemblySymbol = new SourceAssemblySymbol(compilation, this.SimpleAssemblyName, moduleName, this.ReferencedModules);
 
-                InitializeAssemblyReuseData(assemblySymbol);
+                InitializeAssemblyReuseData(assemblySymbol, this.ReferencedAssemblies, this.UnifiedAssemblies);
 
                 if ((object)compilation.lazyAssemblySymbol == null)
                 {
@@ -289,16 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private void InitializeAssemblyReuseData(AssemblySymbol assemblySymbol)
-            {
-                InitializeAssemblyReuseData(assemblySymbol, this.ReferencedAssemblies, this.UnifiedAssemblies);
-            }
-
             private void InitializeAssemblyReuseData(AssemblySymbol assemblySymbol, ImmutableArray<AssemblySymbol> referencedAssemblies, ImmutableArray<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies)
             {
                 AssertBound();
 
-                assemblySymbol.SetCorLibrary(this.CorLibrary);
+                assemblySymbol.SetCorLibrary(this.CorLibraryOpt ?? assemblySymbol);
 
                 var sourceModuleReferences = new ModuleReferences<AssemblySymbol>(referencedAssemblies.SelectAsArray(a => a.Identity), referencedAssemblies, unifiedAssemblies);
                 assemblySymbol.Modules[0].SetReferences(sourceModuleReferences);
@@ -329,9 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
                 ImmutableArray<MetadataReference> references;
 
-                DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-                bool exception = true;
+                var resolutionDiagnostics = default(ImmutableArray<Diagnostic>);
                 var referenceMap = default(ImmutableArray<ResolvedReference>);
+                var diagnostics = DiagnosticBag.GetInstance();
+
                 try
                 {
                     referenceMap = ResolveMetadataReferences(
@@ -342,18 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out referencedAssemblies,
                         out modules,
                         diagnostics);
-                    exception = false;
+
+                    resolutionDiagnostics = diagnostics.ToReadOnly();
                 }
                 finally
                 {
-                    if (exception)
-                    {
-                        // Prevent a leak report in the unit test output.
-                        diagnostics.Free();
-                    }
+                    diagnostics.Free();
                 }
-
-                ImmutableArray<Diagnostic> resolutionDiagnostics = diagnostics.ToReadOnlyAndFree();
 
                 var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName), referencedAssemblies, modules);
 
@@ -490,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 boundReferenceDirectives,
                                 hasCircularReference,
                                 resolutionDiagnostics,
-                                corLibrary,
+                                ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
                                 modules,
                                 moduleReferences,
                                 referencedAssemblySymbols,

@@ -1641,5 +1641,18 @@ End Class
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", "PE image doesn't contain managed metadata."))
         End Sub
+
+        <Fact, WorkItem(43)>
+        Public Sub ReusingCorLibManager()
+            Dim corlib1 = VisualBasicCompilation.Create("Comp")
+            Dim assembly1 = corlib1.Assembly
+
+            Dim corlib2 = corlib1.Clone()
+            Dim assembly2 = corlib2.Assembly
+
+            Assert.Same(assembly1.CorLibrary, assembly1)
+            Assert.Same(assembly2.CorLibrary, assembly2)
+            Assert.True(corlib1.ReferenceManagerEquals(corlib2))
+        End Sub
     End Class
 End Namespace
