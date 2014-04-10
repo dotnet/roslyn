@@ -384,6 +384,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
+            else if (currentOriginalNode.CSharpKind() == SyntaxKind.IfStatement)
+            {
+                var originalIfStatement = (IfStatementSyntax)currentOriginalNode;
+                var newIfStatement = (IfStatementSyntax)currentReplacedNode;
+
+                if (originalIfStatement.Condition == previousOriginalNode)
+                {
+                    // If condition changed, verify that original and replaced expression types are compatible.
+                    if (!TypesAreCompatible(originalIfStatement.Condition, newIfStatement.Condition))
+                    {
+                        return true;
+                    }
+                }
+            }
             else if (currentOriginalNode is ConstructorInitializerSyntax)
             {
                 var originalCtorInitializer = (ConstructorInitializerSyntax)currentOriginalNode;
