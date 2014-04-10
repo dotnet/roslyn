@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -474,7 +472,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(!this.DocumentStates.ContainsKey(document.Id));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(this.ProjectInfo.Documents.Concat(document.Info)),
                 documentIds: this.DocumentIds.Add(document.Id),
                 documentStates: this.DocumentStates.Add(document.Id, document));
         }
@@ -484,7 +482,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(this.DocumentStates.ContainsKey(documentId));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(this.ProjectInfo.Documents.Where(info => info.Id != documentId)),
                 documentIds: this.DocumentIds.Remove(documentId),
                 documentStates: this.DocumentStates.Remove(documentId));
         }
@@ -492,9 +490,9 @@ namespace Microsoft.CodeAnalysis
         public ProjectState RemoveAllDocuments()
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: ImmutableList.Create<DocumentId>(),
-                documentStates: ImmutableDictionary.Create<DocumentId, DocumentState>());
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(SpecializedCollections.EmptyEnumerable<DocumentInfo>()),
+                documentIds: ImmutableList<DocumentId>.Empty,
+                documentStates: ImmutableDictionary<DocumentId, DocumentState>.Empty);
         }
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
