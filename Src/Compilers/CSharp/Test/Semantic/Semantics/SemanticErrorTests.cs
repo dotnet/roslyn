@@ -18296,7 +18296,7 @@ public class cs0429
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(528275)]
+        [Fact, WorkItem(528275), WorkItem(530071)]
         public void CS0429WRN_UnreachableExpr_02()
         {
             var text = @"
