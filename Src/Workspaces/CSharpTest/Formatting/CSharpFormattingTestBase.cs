@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             Dictionary<OptionKey, object> changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            AssertFormat(expected, code, LanguageNames.CSharp, debugMode, changedOptionSet, testWithTransformation);
+            AssertFormat(expected, code, spans, LanguageNames.CSharp, debugMode, changedOptionSet, testWithTransformation);
         }
     }
 }

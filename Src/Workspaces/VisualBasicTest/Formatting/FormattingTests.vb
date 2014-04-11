@@ -1894,7 +1894,7 @@ End Class</Code>
                 "    End Sub" + vbCrLf +
                 "End Class"
 
-            AssertFormat(expected, code)
+            AssertFormat(code, expected)
         End Sub
 
         <WorkItem(538533)>
@@ -3734,7 +3734,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(679864)>
         Sub InsertSpaceBetweenXMLMemberAttributeAccessAndEqualsToken()
-            Dim code =
+            Dim expected =
 <Code><![CDATA[
 Imports System
 Imports System.Collections
@@ -3747,7 +3747,7 @@ Module Program
 End Module
 ]]></Code>
 
-            Dim expected =
+            Dim code =
 <Code><![CDATA[
 Imports System
 Imports System.Collections

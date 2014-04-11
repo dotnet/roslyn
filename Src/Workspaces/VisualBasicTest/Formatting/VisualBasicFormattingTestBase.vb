@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return StringFromLines(adjustedLines.ToArray())
         End Function
 
-        Protected Sub AssertFormatLf2CrLf(expected As String, code As String, Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing)
+        Protected Sub AssertFormatLf2CrLf(code As String, expected As String, Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing)
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
 
-            AssertFormat(expected, code, changedOptionSet:=optionSet)
+            AssertFormat(code, expected, changedOptionSet:=optionSet)
         End Sub
 
         Protected Sub AssertFormatUsingAllEntryPoints(code As String, expected As String)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 AssertResult(expected, document.GetTextAsync().Result, changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace, expected, syntaxTree.GetRoot(), spans, Nothing)
+                AssertFormatWithTransformation(workspace, expected, syntaxTree.GetRoot(), spans, Nothing, False)
             End Using
         End Sub
 
@@ -71,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         End Sub
 
         Protected Overloads Sub AssertFormat(
-            expected As String,
             code As String,
+            expected As String,
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional testWithTransformation As Boolean = False)
