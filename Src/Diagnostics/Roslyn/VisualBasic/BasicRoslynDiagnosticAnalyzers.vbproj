@@ -57,7 +57,7 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>Roslyn.Diagnostics.Analyzers.VisualBasic</RootNamespace>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -80,6 +80,12 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Compile Include="BasicSpecializedEnumerableCreationAnalyzer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

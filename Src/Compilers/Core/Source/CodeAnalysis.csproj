@@ -627,7 +627,9 @@
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.FxCop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.FxCop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />

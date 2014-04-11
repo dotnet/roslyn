@@ -273,7 +273,8 @@ class E : ControlBase
             var document = CreateDocument(source, LanguageNames.CSharp);
             var project = document.Project.AddMetadataReference(new MetadataFileReference(typeof(System.Web.UI.Control).Assembly.Location));
             project = project.AddMetadataReference(new MetadataFileReference(typeof(System.Windows.Forms.Control).Assembly.Location));
-            GetSortedDiagnostics(GetCSharpDiagnosticAnalyzer(), project.Documents.Single()).Verify();
+            var analyzer = GetCSharpDiagnosticAnalyzer();
+            GetSortedDiagnostics(analyzer, project.Documents.Single()).Verify(analyzer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -314,7 +315,8 @@ End Class
             var document = CreateDocument(source, LanguageNames.VisualBasic);
             var project = document.Project.AddMetadataReference(new MetadataFileReference(typeof(System.Web.UI.Control).Assembly.Location));
             project = project.AddMetadataReference(new MetadataFileReference(typeof(System.Windows.Forms.Control).Assembly.Location));
-            GetSortedDiagnostics(GetBasicDiagnosticAnalyzer(), project.Documents.Single()).Verify();
+            var analyzer = GetBasicDiagnosticAnalyzer();
+            GetSortedDiagnostics(analyzer, project.Documents.Single()).Verify(analyzer);
         }
 
         internal static string CA2214Name = "CA2214";

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public abstract class DiagnosticAnalyzerTestBase
     {
         private static readonly MetadataReference CorlibReference = new MetadataFileReference(typeof(object).Assembly.Location, MetadataImageKind.Assembly);
+        private static readonly MetadataReference SystemCoreReference = new MetadataFileReference(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
         private static readonly MetadataReference CSharpSymbolsReference = new MetadataFileReference(typeof(CSharpCompilation).Assembly.Location, MetadataImageKind.Assembly);
 
         private static readonly MetadataReference[] DefaultMetadataReferences = new[]
@@ -37,61 +38,90 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected abstract IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
         protected abstract IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
 
-        protected static DiagnosticResult GetGlobalResult(string name, string message)
+        protected static DiagnosticResult GetGlobalResult(string id, string message)
         {
             return new DiagnosticResult
             {
-                Id = name,
+                Id = id,
                 Severity = DiagnosticSeverity.Warning,
                 Message = message
             };
         }
 
-        protected static DiagnosticResult GetBasicResultAt(int line, int column, string name, string message)
+        protected static DiagnosticResult GetGlobalResult(DiagnosticDescriptor rule, params string[] messageArguments)
         {
-            var location = new DiagnosticResultLocation(VisualBasicDefaultFilePath, line, column);
+            return new DiagnosticResult
+            {
+                Id = rule.Id,
+                Severity = rule.DefaultSeverity,
+                Message = rule.MessageFormat
+            };
+        }
+
+        protected static DiagnosticResult GetBasicResultAt(int line, int column, string id, string message)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, line, column, id, message);
+        }
+
+        protected static DiagnosticResult GetBasicResultAt(string id, string message, params string[] locationStrings)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, id, message, locationStrings);
+        }
+
+        protected static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
+        }
+
+        protected static DiagnosticResult GetCSharpResultAt(int line, int column, string id, string message)
+        {
+            return GetResultAt(CSharpDefaultFilePath, line, column, id, message);
+        }
+
+        protected static DiagnosticResult GetCSharpResultAt(string id, string message, params string[] locationStrings)
+        {
+            return GetResultAt(CSharpDefaultFilePath, id, message, locationStrings);
+        }
+
+        protected static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
+        }
+
+        protected static DiagnosticResult GetResultAt(string path, int line, int column, string id, string message)
+        {
+            var location = new DiagnosticResultLocation(path, line, column);
 
             return new DiagnosticResult
             {
                 Locations = new[] { location },
-                Id = name,
+                Id = id,
                 Severity = DiagnosticSeverity.Warning,
                 Message = message
             };
         }
 
-        protected static DiagnosticResult GetBasicResultAt(string name, string message, params string[] locationStrings)
+        protected static DiagnosticResult GetResultAt(string defaultPath, string id, string message, params string[] locationStrings)
         {
             return new DiagnosticResult
             {
-                Locations = ParseResultLocations(VisualBasicDefaultFilePath, locationStrings),
-                Id = name,
+                Locations = ParseResultLocations(defaultPath, locationStrings),
+                Id = id,
                 Severity = DiagnosticSeverity.Warning,
                 Message = message
             };
         }
 
-        protected static DiagnosticResult GetCSharpResultAt(int line, int column, string name, string message)
+        protected static DiagnosticResult GetResultAt(string path, int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
-            var location = new DiagnosticResultLocation(CSharpDefaultFilePath, line, column);
+            var location = new DiagnosticResultLocation(path, line, column);
 
             return new DiagnosticResult
             {
                 Locations = new[] { location },
-                Id = name,
-                Severity = DiagnosticSeverity.Warning,
-                Message = message
-            };
-        }
-
-        protected static DiagnosticResult GetCSharpResultAt(string name, string message, params string[] locationStrings)
-        {
-            return new DiagnosticResult
-            {
-                Locations = ParseResultLocations(CSharpDefaultFilePath, locationStrings),
-                Id = name,
-                Severity = DiagnosticSeverity.Warning,
-                Message = message
+                Id = rule.Id,
+                Severity = rule.DefaultSeverity,
+                Message = string.Format(rule.MessageFormat, messageArguments)
             };
         }
 
@@ -145,19 +175,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected void Verify(string[] sources, string language, IDiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
-            GetSortedDiagnostics(sources, language, analyzer).Verify(expected);
+            GetSortedDiagnostics(sources, language, analyzer).Verify(analyzer, expected);
         }
 
         protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, IDiagnosticAnalyzer analyzer)
         {
-            var documentsAndUseSpan = VerifyAndGetDocumentsAndSpan(sources, language);
+            var documentsAndUseSpan = GetDocumentsAndSpans(sources, language);
             var documents = documentsAndUseSpan.Item1;
             var useSpans = documentsAndUseSpan.Item2;
             var spans = documentsAndUseSpan.Item3;
             return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null);
         }
 
-        protected static Tuple<Document[], bool, TextSpan?[]> VerifyAndGetDocumentsAndSpan(string[] sources, string language)
+        protected static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(string[] sources, string language)
         {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
@@ -205,6 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)
+                .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef);
 
@@ -262,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            var results = GetSortedNonCompilerDiagnostics(diagnostics.AsEnumerable());
+            var results = GetSortedDiagnostics(diagnostics.AsEnumerable());
             diagnostics.Free();
             return results;
         }
@@ -282,9 +313,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerDriver.RunAnalyzers(semanticModel, spanToTest, ImmutableArray.Create(analyzer), addDiagnostic, continueOnError: continueOnError);
         }
 
-        private static Diagnostic[] GetSortedNonCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        protected static Diagnostic[] GetSortedDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            return diagnostics.Where(d => d.Category != "Compiler").OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            return diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
         }
     }
 }

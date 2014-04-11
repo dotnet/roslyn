@@ -14,7 +14,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.UnitTests</AssemblyName>
     <StyleCopEnabled>true</StyleCopEnabled>
-    <Nonshipping>true</Nonshipping>
+    <NonShipping>true</NonShipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
@@ -74,6 +74,10 @@
       <Project>{640B92E8-ED8A-44AC-85C6-50B53837DB91}</Project>
       <Name>BasicRoslynDiagnosticAnalyzers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\DiagnosticsTestUtilities.csproj">
+      <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
+      <Name>DiagnosticsTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.vbproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
@@ -99,6 +103,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Performance\SpecializedEnumerableCreationAnalyzerTests.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

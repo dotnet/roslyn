@@ -32,12 +32,8 @@
       <Name>Workspaces</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -50,14 +46,28 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CodeFixes.VisualBasic" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Diagnostics.CodeFixes.UnitTests" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
+    <Compile Include="RoslynDiagnosticsResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RoslynDiagnosticsResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="RoslynDiagnosticsResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>RoslynDiagnosticsResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

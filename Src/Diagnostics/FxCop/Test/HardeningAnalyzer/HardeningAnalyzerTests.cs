@@ -40,7 +40,7 @@ public class Class6<TTypeParameter>
 }
 ";
             var diagnosticsBag = DiagnosticBag.GetInstance();
-            var documentsAndSpan = VerifyAndGetDocumentsAndSpan(new[] { source }, LanguageNames.CSharp);
+            var documentsAndSpan = GetDocumentsAndSpans(new[] { source }, LanguageNames.CSharp);
             AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnError: true);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
