@@ -887,6 +887,18 @@
     <Compile Include="Workspace\Host\IWorkspaceService.cs" />
     <Compile Include="Workspace\Host\Mef\IWorkspaceServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\WorkspaceServiceMetadata.cs" />
+    <Compile Include="CodeActions\CodeAction.cs" />
+    <Compile Include="CodeActions\CodeActionWithOptions.cs" />
+    <Compile Include="CodeActions\Annotations\ConflictAnnotation.cs" />
+    <Compile Include="CodeActions\Annotations\RenameAnnotation.cs" />
+    <Compile Include="CodeActions\Annotations\WarningAnnotation.cs" />
+    <Compile Include="CodeActions\Operations\CodeActionOperation.cs" />
+    <Compile Include="CodeActions\Operations\ApplyChangesOperation.cs" />
+    <Compile Include="CodeActions\Operations\OpenDocumentOperation.cs" />
+    <Compile Include="CodeFixes\ICodeFixProvider.cs" />
+    <Compile Include="CodeFixes\ExportCodeFixProviderAttribute.cs" />
+    <Compile Include="CodeRefactorings\ICodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ExportCodeRefactoringProviderAttribute.cs" />
     <Compile Include="WorkspacesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

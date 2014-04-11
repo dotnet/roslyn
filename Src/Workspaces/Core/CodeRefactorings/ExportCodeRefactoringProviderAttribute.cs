@@ -1,0 +1,40 @@
+using System;
+using System.ComponentModel.Composition;
+
+namespace Microsoft.CodeAnalysis.CodeRefactorings
+{
+    /// <summary>
+    /// Use this attribute to declare a <see cref="ICodeRefactoringProvider"/> implementation so that it can be discovered by the host.
+    /// </summary>
+    [MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ExportCodeRefactoringProviderAttribute : ExportAttribute
+    {
+        /// <summary>
+        /// The name of the <see cref="ICodeRefactoringProvider"/>.  
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// The source language this provider can provide refactorings for.  See <see cref="LanguageNames"/>.
+        /// </summary>
+        public string Language { get; private set; }
+
+        public ExportCodeRefactoringProviderAttribute(string name, string language)
+            : base(typeof(ICodeRefactoringProvider))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException("name");
+            }
+
+            if (language == null)
+            {
+                throw new ArgumentNullException("languageServices");
+            }
+
+            this.Name = name;
+            this.Language = language;
+        }
+    }
+}
