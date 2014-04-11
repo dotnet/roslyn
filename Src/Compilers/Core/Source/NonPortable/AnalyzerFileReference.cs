@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class AnalyzerFileReference : AnalyzerReference
     {
         private readonly string fullPath;
+        private string displayName;
         private ImmutableArray<IDiagnosticAnalyzer>? lazyAnalyzers;
 
         public AnalyzerFileReference(string fullPath)
@@ -66,6 +68,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public override string Display
+        {
+            get
+            {
+                if (displayName == null)
+                {
+                    try
+                    {
+                        var assemblyName = AssemblyName.GetAssemblyName(this.FullPath);
+                        displayName = assemblyName.Name;
+                        return displayName;
+                    }
+                    catch (ArgumentException)
+                    { }
+                    catch (BadImageFormatException)
+                    { }
+                    catch (SecurityException)
+                    { }
+                    catch (FileLoadException)
+                    { }
+
+                    displayName = base.Display;
+                }
+
+                return displayName;
+            }
+        }
+
         /// <summary>
         /// Returns the <see cref="ImmutableArray{IDiagnosticAnalyzer}"/> defined in the given <paramref name="analyzerAssemblies"/>.
         /// </summary>
@@ -90,17 +120,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // 1 . The analyzer and it's dependencies don't have to be in the probing path of this process
             // 2 . When multiple assemblies with the same identity are loaded (even from different paths), we return
             // the same assembly and avoid bloat. This does mean that strong identity for analyzers is important.
-            Type[] types;
+            Type[] types = null;
+            Exception ex = null;
+
             try
             {
                 Assembly analyzerAssembly = Assembly.LoadFrom(fullPath);
                 types = analyzerAssembly.GetTypes();
             }
-            catch (Exception e)
+            catch (FileLoadException e)
+            { ex = e; }
+            catch (BadImageFormatException e)
+            { ex = e; }
+            catch (SecurityException e)
+            { ex = e; }
+            catch (ArgumentException e)
+            { ex = e; }
+            catch (PathTooLongException e)
+            { ex = e; }
+
+            if (ex != null)
             {
                 if (diagnosticsOpt != null && messageProviderOpt != null)
                 {
-                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_UnableToLoadAnalyzer, fullPath, e.Message));
+                    diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_UnableToLoadAnalyzer, fullPath, ex.Message));
                 }
 
                 return;
