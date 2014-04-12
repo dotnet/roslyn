@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Metadata Spec (II.14.6):
             //   Delegates shall be declared sealed.
             //   The Invoke method shall be virtual.
-            if (method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && receiver.Kind != BoundKind.BaseReference)
+            if (method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
             {
                 // NOTE: method.IsMetadataVirtual -> receiver != null
                 builder.EmitOpCode(ILOpCode.Dup);

@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var mg = expression.Argument as BoundMethodGroup;
             var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
-            var meth = expression.MethodOpt ?? ((receiver != null && receiver.Type.TypeKind == TypeKind.Delegate) ? receiver.Type.DelegateInvokeMethod() : null);
+            var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
         }
@@ -1031,13 +1031,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     tempOpt = EmitReceiverRef(receiver, isAccessConstrained: false);
 
-                    // Call/Callvirt is decided in the following order:
-                    // 1) base calls must use "call"
-                    // 2) virtual methods must use "callvirt"
-                    // 3) nonvirtual methods use "callvirt" too for the null check semantics.
-                    //    3.a In some cases CanUseCallOnRefTypeReceiver returns true which means that 
-                    //        null check is unnecessary and we can use "call"
-                    if (receiver.Kind == BoundKind.BaseReference ||
+                    // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
+                    // null check is unnecessary and we can use "call"
+                    if (receiver.SuppressVirtualCalls ||
                         (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
                     {
                         callKind = CallKind.Call;

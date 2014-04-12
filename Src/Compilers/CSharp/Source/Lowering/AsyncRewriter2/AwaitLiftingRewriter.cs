@@ -557,7 +557,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequence2 ss = null;
             var operand = VisitExpression(ref ss, node.Operand);
-            return UpdateExpression(ss, node.Update(operand, node.ConversionKind, node.SymbolOpt, node.Checked, node.ExplicitCastInCode, node.IsExtensionMethod, node.IsArrayIndex, node.ConstantValueOpt, node.ResultKind, node.Type));
+            return UpdateExpression(
+                ss,
+                node.Update(
+                    operand,
+                    node.ConversionKind,
+                    node.ResultKind,
+                    isBaseConversion: node.IsBaseConversion,
+                    symbolOpt: node.SymbolOpt,
+                    @checked: node.Checked,
+                    explicitCastInCode: node.ExplicitCastInCode,
+                    isExtensionMethod: node.IsExtensionMethod,
+                    isArrayIndex: node.IsArrayIndex,
+                    constantValueOpt: node.ConstantValueOpt,
+                    type: node.Type));
         }
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {

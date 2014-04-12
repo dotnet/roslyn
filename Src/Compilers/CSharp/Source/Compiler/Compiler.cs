@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool sawDynamicOperations;
             bool sawAwaitInExceptionHandler;
             var loweredBody = LocalRewriter.Rewrite(
+                method.DeclaringCompilation,
                 generateDebugInfo,
                 method,
                 method.ContainingType,

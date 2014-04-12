@@ -32,6 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LookupResultKind.Viable;
             }
         }
+
+        /// <summary>
+        /// Returns true if calls and delegate invocations with this
+        /// expression as the receiver should be non-virtual calls.
+        /// </summary>
+        public virtual bool SuppressVirtualCalls
+        {
+            get
+            {
+                return false;
+            }
+        }
     }
 
     partial class BoundCall
@@ -279,6 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
         public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; private set; }
+
+        public override bool SuppressVirtualCalls
+        {
+            get { return this.IsBaseConversion; }
+        }
     }
 
     partial class BoundObjectCreationExpression
@@ -446,6 +463,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.AddMethod;
             }
+        }
+    }
+
+    partial class BoundBaseReference
+    {
+        public override bool SuppressVirtualCalls
+        {
+            get { return true; }
         }
     }
 }

@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Lower a block of code by performing local rewritings.
         /// </summary>
         public static BoundStatement Rewrite(
+            CSharpCompilation compilation,
             bool generateDebugInfo,
             MethodSymbol containingSymbol,
             NamedTypeSymbol containingType,
@@ -55,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                var compilation = containingType.DeclaringCompilation;
                 var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
                 var localRewriter = new LocalRewriter(generateDebugInfo, containingSymbol, containingType, factory, previousSubmissionFields, compilation, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);

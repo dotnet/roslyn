@@ -459,7 +459,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = e as BoundConversion;
             if (conversion != null && !conversion.ExplicitCastInCode)
             {
-                e = conversion.Update(conversion.Operand, conversion.ConversionKind, conversion.SymbolOpt, conversion.Checked, true, conversion.IsExtensionMethod, conversion.IsArrayIndex, conversion.ConstantValueOpt, conversion.ResultKind, conversion.Type);
+                e = conversion.Update(
+                    conversion.Operand,
+                    conversion.ConversionKind,
+                    conversion.ResultKind,
+                    isBaseConversion: conversion.IsBaseConversion,
+                    symbolOpt: conversion.SymbolOpt,
+                    @checked: conversion.Checked,
+                    explicitCastInCode: true,
+                    isExtensionMethod: conversion.IsExtensionMethod,
+                    isArrayIndex: conversion.IsArrayIndex,
+                    constantValueOpt: conversion.ConstantValueOpt,
+                    type: conversion.Type);
             }
 
             return Visit(e);

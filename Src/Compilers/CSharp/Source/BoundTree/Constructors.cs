@@ -131,13 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 operand,
                 kind,
+                resultKind: LookupResultKind.Viable, //not used
+                isBaseConversion: false,
                 symbolOpt: null,
                 @checked: false,
                 explicitCastInCode: false,
                 isExtensionMethod: false,
                 isArrayIndex: false,
                 constantValueOpt: constantValueOpt,
-                resultKind: LookupResultKind.Viable, //not used
                 type: type)
             { WasCompilerGenerated = true };
         }
@@ -184,15 +185,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 operand,
                 conversion.Kind,
-                conversion.Method,
-                @checked,
-                explicitCastInCode,
-                conversion.IsExtensionMethod,
-                conversion.IsArrayIndex,
-                constantValueOpt,
-                conversion.ResultKind,
-                type,
-                hasErrors || !conversion.IsValid)
+                resultKind: conversion.ResultKind,
+                isBaseConversion: false,
+                symbolOpt: conversion.Method,
+                @checked: @checked,
+                explicitCastInCode: explicitCastInCode,
+                isExtensionMethod: conversion.IsExtensionMethod,
+                isArrayIndex: conversion.IsArrayIndex,
+                constantValueOpt: constantValueOpt,
+                type: type,
+                hasErrors: hasErrors || !conversion.IsValid)
         {
             OriginalUserDefinedConversionsOpt = conversion.OriginalUserDefinedConversions;
         }

@@ -982,7 +982,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Convert(TypeSymbol type, BoundExpression arg, ConversionKind conversionKind, bool isChecked = false)
         {
-            return new BoundConversion(Syntax, arg, conversionKind, null, isChecked, true, false, false, null, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
+            return new BoundConversion(
+                Syntax,
+                arg,
+                conversionKind,
+                LookupResultKind.Viable,
+                isBaseConversion: false,
+                symbolOpt: null,
+                @checked: isChecked,
+                explicitCastInCode: true,
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                constantValueOpt: null,
+                type: type)
+                { WasCompilerGenerated = true };
         }
 
         public BoundExpression Array(TypeSymbol elementType, BoundExpression[] elements)

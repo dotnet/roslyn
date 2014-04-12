@@ -287,8 +287,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Instead of loosening this constraint, we return BoundConversion from underlying numeric type to Enum type,
                         // which will be eliminated during emitting (see EmitEnumConversion): e.g., E e = (E)(int) d;
 
-                        return new BoundConversion(syntax, rewrittenNode, conversionKind, symbolOpt, false, explicitCastInCode,
-                            isExtensionMethod, false, constantValueOpt, LookupResultKind.Viable, rewrittenType);
+                        return new BoundConversion(
+                            syntax,
+                            rewrittenNode,
+                            conversionKind,
+                            LookupResultKind.Viable,
+                            isBaseConversion: false,
+                            symbolOpt: symbolOpt,
+                            @checked: false,
+                            explicitCastInCode: explicitCastInCode,
+                            isExtensionMethod: isExtensionMethod,
+                            isArrayIndex: false,
+                            constantValueOpt: constantValueOpt,
+                            type: rewrittenType);
                     }
 
                     break;
@@ -305,10 +316,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return oldNode != null ?
-                oldNode.Update(rewrittenOperand, conversionKind, symbolOpt, @checked, explicitCastInCode,
-                    isExtensionMethod, isArrayIndex, constantValueOpt, oldNode.ResultKind, rewrittenType) :
-                new BoundConversion(syntax, rewrittenOperand, conversionKind, symbolOpt, @checked, explicitCastInCode,
-                    isExtensionMethod, isArrayIndex, constantValueOpt, LookupResultKind.Viable, rewrittenType);
+                oldNode.Update(
+                    rewrittenOperand,
+                    conversionKind,
+                    oldNode.ResultKind,
+                    isBaseConversion: oldNode.IsBaseConversion,
+                    symbolOpt: symbolOpt,
+                    @checked: @checked,
+                    explicitCastInCode: explicitCastInCode,
+                    isExtensionMethod: isExtensionMethod,
+                    isArrayIndex: isArrayIndex,
+                    constantValueOpt: constantValueOpt,
+                    type: rewrittenType) :
+                new BoundConversion(
+                    syntax,
+                    rewrittenOperand,
+                    conversionKind,
+                    LookupResultKind.Viable,
+                    isBaseConversion: false,
+                    symbolOpt: symbolOpt,
+                    @checked: @checked,
+                    explicitCastInCode: explicitCastInCode,
+                    isExtensionMethod: isExtensionMethod,
+                    isArrayIndex: isArrayIndex,
+                    constantValueOpt: constantValueOpt,
+                    type: rewrittenType);
         }
 
         private static bool DistinctSpecialTypes(TypeSymbol source, TypeSymbol target)
@@ -982,10 +1014,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UNDONE: RewriteLiftedIntPtrConversion
 
                 return oldNode != null ?
-                    oldNode.Update(rewrittenOperand, conversionKind, symbolOpt, @checked, explicitCastInCode,
-                        isExtensionMethod, isArrayIndex, constantValueOpt, oldNode.ResultKind, rewrittenType) :
-                    new BoundConversion(syntax, rewrittenOperand, conversionKind, symbolOpt, @checked, explicitCastInCode,
-                        isExtensionMethod, isArrayIndex, constantValueOpt, LookupResultKind.Viable, rewrittenType);
+                    oldNode.Update(
+                        rewrittenOperand,
+                        conversionKind,
+                        oldNode.ResultKind,
+                        isBaseConversion: oldNode.IsBaseConversion,
+                        symbolOpt: symbolOpt,
+                        @checked: @checked,
+                        explicitCastInCode: explicitCastInCode,
+                        isExtensionMethod: isExtensionMethod,
+                        isArrayIndex: isArrayIndex,
+                        constantValueOpt: constantValueOpt,
+                        type: rewrittenType) :
+                    new BoundConversion(
+                        syntax,
+                        rewrittenOperand,
+                        conversionKind,
+                        LookupResultKind.Viable,
+                        isBaseConversion: false,
+                        symbolOpt: symbolOpt,
+                        @checked: @checked,
+                        explicitCastInCode: explicitCastInCode,
+                        isExtensionMethod: isExtensionMethod,
+                        isArrayIndex: isArrayIndex,
+                        constantValueOpt: constantValueOpt,
+                        type: rewrittenType);
             }
 
             SpecialMember member = GetIntPtrConversionMethod(source: rewrittenOperand.Type, target: rewrittenType);
@@ -1187,13 +1240,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inExpressionLambda && oldNode != null)
             {
                 ConversionKind conversionKind = oldNode.ConversionKind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                return oldNode.Update(operand, conversionKind, method, oldNode.Checked, oldNode.ExplicitCastInCode,
-                        oldNode.IsExtensionMethod, oldNode.IsArrayIndex, oldNode.ConstantValueOpt, oldNode.ResultKind, toType);
+                return oldNode.Update(
+                    operand,
+                    conversionKind,
+                    oldNode.ResultKind,
+                    isBaseConversion: oldNode.IsBaseConversion,
+                    symbolOpt: method,
+                    @checked: oldNode.Checked,
+                    explicitCastInCode: oldNode.ExplicitCastInCode,
+                    isExtensionMethod: oldNode.IsExtensionMethod,
+                    isArrayIndex: oldNode.IsArrayIndex,
+                    constantValueOpt: oldNode.ConstantValueOpt,
+                    type: toType);
             }
             else
             {
-                var result = BoundCall.Synthesized(syntax, null, method, operand);
-                return (result.Type == toType) ? result : MakeConversion(operand, toType, false);
+                Debug.Assert(method.ReturnType == toType);
+                return BoundCall.Synthesized(syntax, null, method, operand);
             }
         }
 

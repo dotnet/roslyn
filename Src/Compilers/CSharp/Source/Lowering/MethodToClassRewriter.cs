@@ -604,13 +604,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return conversion.Update(
                 operand,
                 conversion.ConversionKind,
-                method,
+                resultKind: conversion.ResultKind,
+                isBaseConversion: conversion.IsBaseConversion,
+                symbolOpt: method,
                 @checked: conversion.Checked,
                 explicitCastInCode: conversion.ExplicitCastInCode,
                 isExtensionMethod: conversion.IsExtensionMethod,
                 isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: conversion.ConstantValueOpt,
-                resultKind: conversion.ResultKind,
                 type: type);
         }
 

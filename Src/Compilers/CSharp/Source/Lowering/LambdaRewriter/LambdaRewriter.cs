@@ -731,7 +731,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = (BoundExpression)RewriteLambdaConversion((BoundLambda)conversion.Operand);
                 return inExpressionLambda && conversion.ExplicitCastInCode
-                    ? new BoundConversion(syntax: conversion.Syntax, operand: result, conversionKind: conversion.ConversionKind, symbolOpt: null, @checked: false, explicitCastInCode: true, isExtensionMethod: false, isArrayIndex: false, constantValueOpt: conversion.ConstantValueOpt, resultKind: conversion.ResultKind, type: conversion.Type)
+                    ? new BoundConversion(
+                        syntax: conversion.Syntax,
+                        operand: result,
+                        conversionKind: conversion.ConversionKind,
+                        resultKind: conversion.ResultKind,
+                        isBaseConversion: false,
+                        symbolOpt: null,
+                        @checked: false,
+                        explicitCastInCode: true,
+                        isExtensionMethod: false,
+                        isArrayIndex: false,
+                        constantValueOpt: conversion.ConstantValueOpt,
+                        type: conversion.Type)
                     : result;
             }
             else
