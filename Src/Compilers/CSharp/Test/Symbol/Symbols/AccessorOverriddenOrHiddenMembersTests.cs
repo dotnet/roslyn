@@ -246,7 +246,7 @@ class Derived : Base
             Assert.Equal(0, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
         }
 
-        [WorkItem(540145)]
+        [WorkItem(540145, "DevDiv")]
         [Fact]
         public void Regress6304_01()
         {
@@ -266,7 +266,7 @@ abstract public class TestClass2 : TestClass1
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"));
         }
 
-        [WorkItem(540145)]
+        [WorkItem(540145, "DevDiv")]
         [Fact]
         public void Regress6304_02()
         {
@@ -810,7 +810,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             );
         }
 
-        [WorkItem(546143)]
+        [WorkItem(546143, "DevDiv")]
         [Fact]
         public void AccessorWithImportedGenericType()
         {
@@ -850,7 +850,7 @@ public class G<T>
             }
         }
 
-        [WorkItem(546143)]
+        [WorkItem(546143, "DevDiv")]
         [Fact]
         public void OverridingExplicitInterfaceImplementationFromSource()
         {

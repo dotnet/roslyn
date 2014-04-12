@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(546080)]
+        [WorkItem(546080, "DevDiv")]
         public void VersionUnification_SymbolNotUsed()
         {
             var v1 = new MetadataImageReference(TestResources.SymbolsTests.General.C1);
@@ -187,7 +187,7 @@ public class M
         }
 
         [Fact]
-        [WorkItem(529808), WorkItem(530246)]
+        [WorkItem(529808, "DevDiv"), WorkItem(530246, "DevDiv")]
         public void VersionUnification_UseSiteWarnings()
         {
             string sourceLibV1 = @"
@@ -371,7 +371,7 @@ public class OKImpl : I
         }
 
         [Fact]
-        [WorkItem(546080)]
+        [WorkItem(546080, "DevDiv")]
         public void VersionUnification_UseSiteDiagnostics_Multiple()
         {
             string sourceA1 = @"
@@ -625,7 +625,7 @@ public class M
         }
 
         [Fact]
-        [WorkItem(546752)]
+        [WorkItem(546752, "DevDiv")]
         public void VersionUnification_NoPiaMissingCanonicalTypeSymbol()
         {
             string sourceLibV1 = @"
@@ -700,7 +700,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoCanonicalView, "b.M").WithArguments("IB"));
         }
 
-        [WorkItem(546525)]
+        [WorkItem(546525, "DevDiv")]
         [Fact]
         public void AssemblyReferencesWithAliases()
         {
@@ -727,7 +727,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
-        [WorkItem(545062)]
+        [WorkItem(545062, "DevDiv")]
         [Fact]
         public void DuplicateReferences()
         {
@@ -980,7 +980,7 @@ public interface I {}";
         /// Two Framework identities with unified versions.
         /// </summary>
         [Fact]
-        [WorkItem(546026), WorkItem(546169)]
+        [WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")]
         public void CS1703ERR_DuplicateImport()
         {
             using (MetadataCache.LockAndClean())
@@ -1480,7 +1480,7 @@ public class B : A
             Assert.NotSame(refA2_symbol1, refA2_symbol2);
         }
 
-        [WorkItem(546828)]
+        [WorkItem(546828, "DevDiv")]
         [Fact]
         public void MetadataDependsOnSource()
         {
@@ -1588,7 +1588,7 @@ class Test
             }
         }
 
-        [WorkItem(546828)]
+        [WorkItem(546828, "DevDiv")]
         [Fact]
         public void MetadataDependsOnMetadataOrSource()
         {
@@ -1679,7 +1679,7 @@ namespace System.Printing
         }
 
         [Fact]
-        [WorkItem(546900)]
+        [WorkItem(546900, "DevDiv")]
         public void MetadataRefersToSourceAssemblyModule()
         {
             var srcA = @"
@@ -1724,7 +1724,7 @@ public class B
         }
 
         [Fact()]
-        [WorkItem(530839)]
+        [WorkItem(530839, "DevDiv")]
         public void EmbedInteropTypesReferences()
         {
             var libSource = @"
@@ -1760,7 +1760,7 @@ public class C : I { }
             verify: false);
         }
 
-        [WorkItem(531537)]
+        [WorkItem(531537, "DevDiv")]
         [Fact]
         public void ModuleSymbolReuse()
         {
@@ -1816,7 +1816,7 @@ class D
             AssertEx.Equal(moduleReferences1, moduleReferences2);
         }
 
-        [WorkItem(531537)]
+        [WorkItem(531537, "DevDiv")]
         [Fact]
         public void ModuleSymbolReuse_ImplicitType()
         {
@@ -1901,7 +1901,7 @@ internal class C
         }
 
         [Fact]
-        [WorkItem(531342)]
+        [WorkItem(531342, "DevDiv")]
         public void PortableLibrary()
         {
             var mscorlibPP7 = new MetadataImageReference(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib, display: "mscorlib, PP7");
@@ -1959,7 +1959,7 @@ internal class C
         }
 
         [Fact]
-        [WorkItem(762729)]
+        [WorkItem(762729, "DevDiv")]
         public void OverloadResolutionUseSiteWarning()
         {
             var libBTemplate = @"
@@ -2004,7 +2004,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729)]
+        [WorkItem(762729, "DevDiv")]
         public void MethodGroupConversionUseSiteWarning()
         {
             var libBTemplate = @"
@@ -2049,7 +2049,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729)]
+        [WorkItem(762729, "DevDiv")]
         public void IndexerUseSiteWarning()
         {
             var libBTemplate = @"
@@ -2090,7 +2090,7 @@ public class Source
         }
 
         [Fact]
-        [WorkItem(762729)]
+        [WorkItem(762729, "DevDiv")]
         public void Repro762729()
         {
             var libBTemplate = @"
@@ -2167,7 +2167,7 @@ public class Source
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.Extension").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
 
-        [Fact, WorkItem(905495)]
+        [Fact, WorkItem(905495, "DevDiv")]
         public void ReferenceWithNoMetadataSection()
         {
             var c = CreateCompilationWithMscorlib("", new[] { new TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe") });

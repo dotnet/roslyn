@@ -184,7 +184,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606)]
+        [WorkItem(543606, "DevDiv")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal01()
         {
@@ -199,7 +199,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606)]
+        [WorkItem(543606, "DevDiv")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal02()
         {
@@ -216,7 +216,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606)]
+        [WorkItem(543606, "DevDiv")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal03()
         {
@@ -231,7 +231,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606)]
+        [WorkItem(543606, "DevDiv")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal04()
         {
@@ -248,7 +248,7 @@ class C
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606)]
+        [WorkItem(543606, "DevDiv")]
         [Fact]
         public void SourceStaticConstructorConstantInitializersDecimal05()
         {

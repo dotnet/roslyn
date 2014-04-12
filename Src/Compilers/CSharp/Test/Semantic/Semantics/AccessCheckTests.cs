@@ -381,7 +381,7 @@ public class E : B.N
 
         }
 
-        [WorkItem(539561)]
+        [WorkItem(539561, "DevDiv")]
         [Fact]
         public void AccessCheckProtected02()
         {
@@ -402,7 +402,7 @@ class C : I<C.D.E>
             TestDiagnostics(c.GetDiagnostics());
         }
 
-        [WorkItem(539561)]
+        [WorkItem(539561, "DevDiv")]
         [Fact]
         public void AccessCheckProtected03()
         {
@@ -569,7 +569,7 @@ namespace CS1540
 
         }
 
-        [WorkItem(539561)]
+        [WorkItem(539561, "DevDiv")]
         [Fact]
         public void AccessCheckPrivate()
         {
@@ -590,7 +590,7 @@ class C : I<C.D.E>
             TestDiagnostics(c.GetDiagnostics());
         }
 
-        [WorkItem(539561)]
+        [WorkItem(539561, "DevDiv")]
         [Fact]
         public void AccessCheckPrivate02()
         {
@@ -827,7 +827,7 @@ public class A
             Assert.Empty(c.GetDiagnostics());
         }
 
-        [WorkItem(543745)]
+        [WorkItem(543745, "DevDiv")]
         [Fact]
         public void InternalInaccessibleProperty()
         {
@@ -859,7 +859,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
         }
 
-        [WorkItem(546209)]
+        [WorkItem(546209, "DevDiv")]
         [Fact]
         public void OverriddenMemberFromInternalType()
         {
@@ -932,7 +932,7 @@ internal abstract class B3 : A
                 Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b3.P").WithArguments("B3.P").WithLocation(14, 13));
         }
 
-        [WorkItem(546209)]
+        [WorkItem(546209, "DevDiv")]
         [Fact]
         public void InternalOverriddenMember()
         {
@@ -971,7 +971,7 @@ public abstract class B : A
             compilation3.VerifyDiagnostics();
         }
 
-        [WorkItem(530360)]
+        [WorkItem(530360, "DevDiv")]
         [Fact]
         public void InaccessibleReturnType()
         {
@@ -1013,7 +1013,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()"));
         }
 
-        [WorkItem(530360)]
+        [WorkItem(530360, "DevDiv")]
         [Fact]
         public void InaccessibleReturnType_Dynamic()
         {
@@ -1054,7 +1054,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M(d)").WithArguments("B.M(int)"));
         }
 
-        [WorkItem(563573)]
+        [WorkItem(563573, "DevDiv")]
         [Fact]
         public void MissingIdentifier01()
         {
@@ -1081,7 +1081,7 @@ class C
             Assert.DoesNotThrow(() => CreateCompilationWithMscorlib(source).GetDiagnostics());
         }
 
-        [WorkItem(563563), WorkItem(563573)]
+        [WorkItem(563563, "DevDiv"), WorkItem(563573, "DevDiv")]
         [Fact]
         public void MissingIdentifier02()
         {
@@ -1109,7 +1109,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(552452)]
+        [WorkItem(552452, "DevDiv")]
         public void AccessTestInBadCode01()
         {
             var source =

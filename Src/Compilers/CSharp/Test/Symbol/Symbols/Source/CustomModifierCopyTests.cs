@@ -693,7 +693,7 @@ public class Derived2 : Derived
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void Repro819774()
         {
             var il = @"
@@ -743,7 +743,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void ObjectToDynamic_ImplementationParameter()
         {
             var il = @"
@@ -776,7 +776,7 @@ class C : I
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_ImplementationParameter()
         {
             var il = @"
@@ -820,7 +820,7 @@ class C : I
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_ImplementationReturn()
         {
             var il = @"
@@ -864,7 +864,7 @@ class C : I
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void ObjectToDynamic_ImplementationReturn()
         {
             var il = @"
@@ -904,7 +904,7 @@ class C : I
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicVsObjectComplexParameter()
         {
             var il = @"
@@ -948,7 +948,7 @@ public class C : I<byte, char>
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicVsObjectComplexReturn()
         {
             var il = @"
@@ -992,7 +992,7 @@ public class C : I<byte, char>
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicToObjectAndViceVersa_OverrideParameter()
         {
             var il = @"
@@ -1046,7 +1046,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_OverrideReturn()
         {
             var il = @"
@@ -1100,7 +1100,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem(819774)]
+        [WorkItem(819774, "DevDiv")]
         public void ObjectToDynamic_OverrideReturn()
         {
             var il = @"
@@ -1150,7 +1150,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem(830632)]
+        [WorkItem(830632, "DevDiv")]
         public void AccessorsAddCustomModifiers_Override()
         {
             var il = @"
@@ -1267,7 +1267,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem(830632)]
+        [WorkItem(830632, "DevDiv")]
         public void AccessorsRemoveCustomModifiers_Override()
         {
             var il = @"
@@ -1377,7 +1377,7 @@ class Derived : Base
         }
 
         [Fact]
-        [WorkItem(830632)]
+        [WorkItem(830632, "DevDiv")]
         public void AccessorsAddCustomModifiers_ExplicitImplementation()
         {
             var il = @"
@@ -1479,7 +1479,7 @@ class Implementation : I
         }
 
         [Fact]
-        [WorkItem(830632)]
+        [WorkItem(830632, "DevDiv")]
         public void AccessorsRemoveCustomModifiers_ExplicitImplementation()
         {
             var il = @"

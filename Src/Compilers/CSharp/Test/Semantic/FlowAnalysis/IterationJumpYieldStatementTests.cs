@@ -576,7 +576,7 @@ class C {
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(540183)]
+        [WorkItem(540183, "DevDiv")]
         [Fact]
         public void ControlledStatement01()
         {
@@ -593,7 +593,7 @@ class C
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
         }
 
-        [WorkItem(540183)]
+        [WorkItem(540183, "DevDiv")]
         [Fact]
         public void ControlledStatement02()
         {
@@ -633,7 +633,7 @@ class C {
             Assert.Equal("i", GetSymbolNamesSortedAndJoined(analysis.ReadInside));
         }
 
-        [WorkItem(539603)]
+        [WorkItem(539603, "DevDiv")]
         [Fact]
         public void TestForIncrement()
         {
@@ -694,7 +694,7 @@ class C
             Assert.Equal("i, j", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(539701)]
+        [WorkItem(539701, "DevDiv")]
         [Fact]
         public void ContinueInForStatement()
         {
@@ -721,7 +721,7 @@ class Program
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
         }
 
-        [WorkItem(528498)]
+        [WorkItem(528498, "DevDiv")]
         [Fact]
         public void TestVariablesDeclaredInForeachLoop01()
         {
@@ -741,7 +741,7 @@ class C {
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.ReadInside));
         }
 
-        [WorkItem(528498)]
+        [WorkItem(528498, "DevDiv")]
         [Fact]
         public void TestVariablesDeclaredInForeachLoop02()
         {
@@ -761,8 +761,8 @@ class C {
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.ReadInside));
         }
 
-        [WorkItem(528498)]
-        [WorkItem(541438)]
+        [WorkItem(528498, "DevDiv")]
+        [WorkItem(541438, "DevDiv")]
         [Fact]
         public void TestLocalsInForeachLoop()
         {
@@ -859,7 +859,7 @@ class Test
             Assert.Equal("a, ary, this, v", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside));
         }
 
-        [WorkItem(541711)]
+        [WorkItem(541711, "DevDiv")]
         [Fact]
         public void ForEachVariableShouldNotInVariableDeclaredTest()
         {
@@ -1064,7 +1064,7 @@ class C {
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(528583)]
+        [WorkItem(528583, "DevDiv")]
         [Fact]
         public void InaccessibleVariables()
         {
@@ -1112,7 +1112,7 @@ class C {
 
         #region "Yield Return, Break"
 
-        [WorkItem(543070)]
+        [WorkItem(543070, "DevDiv")]
         [Fact]
         public void TestYieldStatements01()
         {
@@ -1167,7 +1167,7 @@ class Test
             }
         }
 
-        [WorkItem(543070)]
+        [WorkItem(543070, "DevDiv")]
         [Fact]
         public void TestYieldStatements02()
         {
@@ -1237,7 +1237,7 @@ class Test
             Assert.Equal(1, ctrlFlow.ExitPoints.Count());
         }
 
-        [WorkItem(543070)]
+        [WorkItem(543070, "DevDiv")]
         [Fact]
         public void TestYieldStatements03()
         {
@@ -1331,7 +1331,7 @@ class Test
             Assert.Equal(1, ctrlFlow.ExitPoints.Count());
         }
 
-        [WorkItem(543564)]
+        [WorkItem(543564, "DevDiv")]
         [Fact]
         public void YieldReturnStatement()
         {

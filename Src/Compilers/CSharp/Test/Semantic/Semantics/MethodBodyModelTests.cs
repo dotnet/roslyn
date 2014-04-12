@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MethodBodyModelTests : CSharpTestBase
     {
-        [WorkItem(537881)]
+        [WorkItem(537881, "DevDiv")]
         [Fact]
         public void BindAliasWithSameNameClass()
         {
@@ -54,7 +54,7 @@ namespace B
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [Fact, WorkItem(537919)]
+        [Fact, WorkItem(537919, "DevDiv")]
         public void NullRefForNameAndOptionalMethod()
         {
             var text = @"
@@ -76,7 +76,7 @@ public class MyClass
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [WorkItem(538099)]
+        [WorkItem(538099, "DevDiv")]
         [Fact]
         public void ConversionsForLiterals()
         {
@@ -97,7 +97,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538100)]
+        [WorkItem(538100, "DevDiv")]
         [Fact]
         public void ConversionsFromVoid()
         {
@@ -135,7 +135,7 @@ class Program
             Assert.Equal(1, errors[1503]);
         }
 
-        [WorkItem(538110)]
+        [WorkItem(538110, "DevDiv")]
         [Fact]
         public void NullComparisons()
         {
@@ -160,7 +160,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538114)]
+        [WorkItem(538114, "DevDiv")]
         [Fact]
         public void OvldRslnWithExplicitIfaceImpl()
         {
@@ -240,7 +240,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538194)]
+        [WorkItem(538194, "DevDiv")]
         [Fact]
         public void ComparisonOperatorForRefTypes()
         {
@@ -263,7 +263,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538211)]
+        [WorkItem(538211, "DevDiv")]
         [Fact]
         public void BindCastConversionOnArithmeticOp()
         {
@@ -291,7 +291,7 @@ public class MyClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538212)]
+        [WorkItem(538212, "DevDiv")]
         [Fact]
         public void NegBindLHSCStyleArray()
         {
@@ -530,7 +530,7 @@ public class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538650)]
+        [WorkItem(538650, "DevDiv")]
         [Fact]
         public void PropertyAmbiguity()
         {
@@ -568,7 +568,7 @@ class C
             );
         }
 
-        [WorkItem(538770)]
+        [WorkItem(538770, "DevDiv")]
         [Fact]
         public void DelegateMethodAmbiguity()
         {
@@ -615,7 +615,7 @@ public class Program : I3
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
         }
 
-        [WorkItem(538835)]
+        [WorkItem(538835, "DevDiv")]
         [Fact]
         public void LocalReferenceTypeConsts()
         {
@@ -641,7 +641,7 @@ public class Program
                 );
         }
 
-        [WorkItem(538617)]
+        [WorkItem(538617, "DevDiv")]
         [Fact]
         public void TypeParameterNotInvocable()
         {
@@ -664,7 +664,7 @@ class A<T> : B
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(539591)]
+        [WorkItem(539591, "DevDiv")]
         [Fact]
         public void ParenthesizedSetOnlyProperty()
         {
@@ -723,7 +723,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(539929)]
+        [WorkItem(539929, "DevDiv")]
         [Fact]
         public void TypeWithSameNameAsProp()
         {
@@ -748,7 +748,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(541504)]
+        [WorkItem(541504, "DevDiv")]
         [Fact]
         public void TypeWithSameNameAsProp2()
         {
@@ -772,7 +772,7 @@ class F
             );
         }
 
-        [WorkItem(541505)]
+        [WorkItem(541505, "DevDiv")]
         [Fact]
         public void TypeWithSameNameAsProp3()
         {
@@ -794,7 +794,7 @@ class F
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
 
-        [WorkItem(539622)]
+        [WorkItem(539622, "DevDiv")]
         [Fact]
         public void AccessTypeThroughAliasNamespace()
         {
@@ -831,7 +831,7 @@ namespace LevelOne.LevelTwo.LevelThree
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540105)]
+        [WorkItem(540105, "DevDiv")]
         [Fact]
         public void WarningPassLocalAsRefParameter()
         {
@@ -858,7 +858,7 @@ public static int Main()
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540105)]
+        [WorkItem(540105, "DevDiv")]
         [Fact]
         public void WarningPassLocalAsOutParameter()
         {
@@ -883,7 +883,7 @@ public class TestClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540270)]
+        [WorkItem(540270, "DevDiv")]
         [Fact]
         public void SimpleNameThroughUsingAlias()
         {
@@ -910,7 +910,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(544434)]
+        [WorkItem(544434, "DevDiv")]
         [Fact]
         public void MethodInvocationWithMultipleArgsToParams()
         {

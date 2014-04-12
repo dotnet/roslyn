@@ -522,7 +522,7 @@ class MyList<T> : ICollection<T>
         #region "Error Tests"
 
         [Fact]
-        [WorkItem(629368)]
+        [WorkItem(629368, "DevDiv")]
         public void AddFieldUsedLikeMethod()
         {
             string source = @"
@@ -549,7 +549,7 @@ public class A : IEnumerable<int>
         }
 
         [Fact]
-        [WorkItem(629368)]
+        [WorkItem(629368, "DevDiv")]
         public void AddPropertyUsedLikeMethod()
         {
             string source = @"
@@ -797,7 +797,7 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 21));
         }
 
-        [WorkItem(543936)]
+        [WorkItem(543936, "DevDiv")]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound_02()
         {
@@ -1484,7 +1484,7 @@ public class E : IEnumerable
                 Diagnostic(ErrorCode.ERR_BadAccess, "1").WithArguments("E.Add(int)").WithLocation(12, 27));
         }
 
-        [WorkItem(543933)]
+        [WorkItem(543933, "DevDiv")]
         [Fact]
         public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
         {
@@ -1513,7 +1513,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ x = 1 }").WithLocation(10, 44));
         }
 
-        [WorkItem(543933)]
+        [WorkItem(543933, "DevDiv")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
         {
@@ -1550,7 +1550,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var"));
         }
 
-        [WorkItem(543961)]
+        [WorkItem(543961, "DevDiv")]
         [Fact]
         public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
         {
@@ -1586,7 +1586,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ "));
         }
 
-        [WorkItem(544484)]
+        [WorkItem(544484, "DevDiv")]
         [Fact]
         public void EmptyCollectionInitPredefinedType()
         {
@@ -1601,7 +1601,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "new int { }").WithArguments("Program.value"));
         }
 
-        [WorkItem(544349)]
+        [WorkItem(544349, "DevDiv")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635()
         {
@@ -1621,7 +1621,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Count").WithArguments("System.Collections.Generic.List<int>.Count", "int"));
         }
 
-        [WorkItem(544349)]
+        [WorkItem(544349, "DevDiv")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635_02()
         {
@@ -1660,7 +1660,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "StructProp").WithArguments("N.C.StructProp", "N.Struct"));
         }
 
-        [WorkItem(544570)]
+        [WorkItem(544570, "DevDiv")]
         [Fact]
         public void CollectionInitializerTest_Bug_12977()
         {
@@ -1720,7 +1720,7 @@ public class A : IEnumerable
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
-        [WorkItem(545123)]
+        [WorkItem(545123, "DevDiv")]
         [Fact]
         public void VoidElementType_Bug_13402()
         {
@@ -1874,7 +1874,7 @@ class Test
 
         #endregion
 
-        [WorkItem(529787)]
+        [WorkItem(529787, "DevDiv")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_01()
         {
@@ -1919,7 +1919,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(529787)]
+        [WorkItem(529787, "DevDiv")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_02()
         {
@@ -1962,7 +1962,7 @@ class X : Base
                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }
 
-        [WorkItem(529787)]
+        [WorkItem(529787, "DevDiv")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_03()
         {
@@ -2004,7 +2004,7 @@ class Y
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(529787)]
+        [WorkItem(529787, "DevDiv")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_04()
         {
@@ -2041,7 +2041,7 @@ class X : List<int>
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(529787)]
+        [WorkItem(529787, "DevDiv")]
         [Fact]
         public void GetCollectionInitializerSymbolInfo_05()
         {

@@ -2027,7 +2027,7 @@ abstract class C
                 "void M()");
         }
 
-        [WorkItem(537447)]
+        [WorkItem(537447, "DevDiv")]
         [Fact]
         public void TestBug2239()
         {
@@ -3567,7 +3567,7 @@ enum E { A = 1, B = 2, C = 4, D = A | B | C }";
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-        [Fact, WorkItem(545462)]
+        [Fact, WorkItem(545462, "DevDiv")]
         public void DateTimeDefaultParameterValue()
         {
             var text = @"
@@ -3603,7 +3603,7 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem(545681)]
+        [Fact, WorkItem(545681, "DevDiv")]
         public void TypeParameterFromMetadata()
         {
             var src1 = @"
@@ -3641,7 +3641,7 @@ public class Gen<V>
             Assert.Equal(msym1.ToDisplayString(), msym2.ToDisplayString());
         }
 
-        [Fact, WorkItem(545625)]
+        [Fact, WorkItem(545625, "DevDiv")]
         public void ReverseArrayRankSpecifiers()
         {
             var text = @"
@@ -3682,7 +3682,7 @@ public class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem(546638)]
+        [Fact, WorkItem(546638, "DevDiv")]
         public void InvariantCultureNegatives()
         {
             var text = @"
@@ -3809,7 +3809,7 @@ class C
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [WorkItem(791756)]
+        [WorkItem(791756, "DevDiv")]
         [Fact]
         public void KindOptions()
         {
@@ -3905,7 +3905,7 @@ namespace N
         }
 
 
-        [WorkItem(765287)]
+        [WorkItem(765287, "DevDiv")]
         [Fact]
         public void TestVbSymbols()
         {
@@ -3983,7 +3983,7 @@ End Class
             Assert.Equal(null, SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
         }
 
-        [WorkItem(879984)]
+        [WorkItem(879984, "DevDiv")]
         [Fact]
         public void EnumAmbiguityResolution()
         {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AwaitExpressionTests : CompilingTestBase
     {
         [Fact]
-        [WorkItem(711413)]
+        [WorkItem(711413, "DevDiv")]
         public void TestAwaitInfo()
         {
             var text =
@@ -46,7 +46,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(711413)]
+        [WorkItem(711413, "DevDiv")]
         public void TestAwaitInfoWrongSyntaxKind()
         {
             var text =
@@ -69,7 +69,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(748533)]
+        [WorkItem(748533, "DevDiv")]
         public void Bug748533()
         {
             var text =

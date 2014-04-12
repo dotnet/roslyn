@@ -644,7 +644,7 @@ class A
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547164)]
+        [WorkItem(547164, "DevDiv")]
         [Fact]
         public void MultiLine_PatternShorterOnSubsequentLine()
         {
@@ -1912,7 +1912,7 @@ partial class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(547139)]
+        [WorkItem(547139, "DevDiv")]
         [Fact]
         public void UnprocessedXMLComment_Accessor()
         {
@@ -2069,7 +2069,7 @@ partial class C
         }
 
         [Fact]
-        [WorkItem(637435)]
+        [WorkItem(637435, "DevDiv")]
         public void NonXmlWhitespace()
         {
             var ch = '\u1680';
@@ -2108,7 +2108,7 @@ class C {{ }}
         }
 
         [Fact]
-        [WorkItem(637435)]
+        [WorkItem(637435, "DevDiv")]
         public void Repro637435()
         {
             var sourceTemplate = @"
@@ -2958,7 +2958,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [WorkItem(554196)]
+        [WorkItem(554196, "DevDiv")]
         [Fact]
         public void XPathDocumentRoot()
         {
@@ -3229,7 +3229,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552495)]
+        [WorkItem(552495, "DevDiv")]
         [Fact]
         public void IncludeMismatchedQuotationMarks()
         {
@@ -3246,7 +3246,7 @@ class C { }
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(598371)]
+        [WorkItem(598371, "DevDiv")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup1()
         {
@@ -3291,7 +3291,7 @@ class X
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(586815)]
+        [WorkItem(586815, "DevDiv")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup2()
         {
@@ -3951,7 +3951,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144)]
+        [WorkItem(531144, "DevDiv")]
         [Fact]
         public void NamespaceCref()
         {
@@ -3980,7 +3980,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531144)]
+        [WorkItem(531144, "DevDiv")]
         [Fact]
         public void SymbolKinds()
         {
@@ -4099,7 +4099,7 @@ class Generic<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695)]
+        [WorkItem(530695, "DevDiv")]
         [Fact]
         public void FieldDocComment()
         {
@@ -4150,7 +4150,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(530695)]
+        [WorkItem(530695, "DevDiv")]
         [Fact]
         public void FieldDocCommentDiagnostics()
         {
@@ -4220,7 +4220,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531187)]
+        [WorkItem(531187, "DevDiv")]
         [Fact]
         public void DelegateDocComments()
         {
@@ -4306,7 +4306,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233)]
+        [WorkItem(531233, "DevDiv")]
         [Fact]
         public void CrefAttributeInOtherElement()
         {
@@ -4339,7 +4339,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531233)]
+        [WorkItem(531233, "DevDiv")]
         [Fact]
         public void NameAttributeInOtherElement()
         {
@@ -4391,7 +4391,7 @@ class Program
             Assert.NotEmpty(comp.GetDiagnostics());
         }
 
-        [WorkItem(531349)]
+        [WorkItem(531349, "DevDiv")]
         [Fact]
         public void GetDeclarationDiagnostics()
         {
@@ -4413,7 +4413,7 @@ class Program
             Assert.Equal(2, comp.GetDiagnostics().Count());
         }
 
-        [WorkItem(531409)]
+        [WorkItem(531409, "DevDiv")]
         [Fact]
         public void ExplicitInterfaceImplementation()
         {
@@ -4563,7 +4563,7 @@ class C<T>
             Assert.Equal(expectedText, actualText);
         }
 
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void GenericMethodWithoutTypeParameters1()
         {
@@ -4626,7 +4626,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void GenericMethodWithoutTypeParameters2()
         {
@@ -4695,7 +4695,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void GenericMethodWithoutTypeParameters3()
         {
@@ -4743,7 +4743,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547163)]
+        [WorkItem(547163, "DevDiv")]
         [Fact]
         public void NestedGenericTypes()
         {
@@ -4870,7 +4870,7 @@ class A<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(527260)]
+        [WorkItem(527260, "DevDiv")]
         [Fact]
         public void IllegalXmlCharacter()
         {
@@ -4896,7 +4896,7 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(547311)]
+        [WorkItem(547311, "DevDiv")]
         [Fact]
         public void UndeclaredXmlNamespace()
         {
@@ -4947,7 +4947,7 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(551323)]
+        [WorkItem(551323, "DevDiv")]
         [Fact]
         public void MultiLine_OneLinePlusEnding()
         {
@@ -4976,7 +4976,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(577385)]
+        [WorkItem(577385, "DevDiv")]
         [Fact]
         public void FormatBeforeFinalParse()
         {
@@ -5043,7 +5043,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126)]
+        [WorkItem(587126, "DevDiv")]
         [Fact]
         public void DeclaringGenericTypeInReturnType()
         {
@@ -5071,7 +5071,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126)]
+        [WorkItem(587126, "DevDiv")]
         [Fact]
         public void DeclaringGenericTypeInParameterType1()
         {
@@ -5104,7 +5104,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(587126)]
+        [WorkItem(587126, "DevDiv")]
         [Fact]
         public void DeclaringGenericTypeInParameterType2()
         {
@@ -5147,7 +5147,7 @@ class B<U>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379)]
+        [WorkItem(552379, "DevDiv")]
         [Fact]
         public void MultipleDocComments()
         {
@@ -5203,7 +5203,7 @@ public partial class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379)]
+        [WorkItem(552379, "DevDiv")]
         [Fact]
         public void MultipleDocComments_Separated()
         {
@@ -5280,7 +5280,7 @@ public class E { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(552379)]
+        [WorkItem(552379, "DevDiv")]
         [Fact]
         public void MultipleDocComments_SplitXml()
         {
@@ -5309,7 +5309,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(689497)]
+        [WorkItem(689497, "DevDiv")]
         [Fact]
         public void TriviaBetweenDocCommentAndDeclaration()
         {
@@ -5345,7 +5345,7 @@ public class A { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703368)]
+        [WorkItem(703368, "DevDiv")]
         [Fact]
         public void NonGenericBeatsGeneric()
         {
@@ -5377,7 +5377,7 @@ public class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(703587)]
+        [WorkItem(703587, "DevDiv")]
         [Fact]
         public void ObjectMemberViaInterface()
         {
@@ -5420,7 +5420,7 @@ public class C : IEquatable<C>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(531505)]
+        [WorkItem(531505, "DevDiv")]
         [Fact]
         public void Pia()
         {
@@ -5476,7 +5476,7 @@ public class C { }
             }
         }
 
-        [WorkItem(757110)]
+        [WorkItem(757110, "DevDiv")]
         [Fact]
         public void NoAssemblyElementForNetModule()
         {
@@ -5499,7 +5499,7 @@ public class C { }
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425)]
+        [WorkItem(743425, "DevDiv")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref()
         {
@@ -5546,7 +5546,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425)]
+        [WorkItem(743425, "DevDiv")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Buried()
         {
@@ -5587,7 +5587,7 @@ class C<T>
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(743425)]
+        [WorkItem(743425, "DevDiv")]
         [Fact]
         public void WRN_UnqualifiedNestedTypeInCref_Generic()
         {

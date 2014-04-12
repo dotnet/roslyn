@@ -1977,7 +1977,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "set_p").WithArguments("C.set_p()"));
         }
 
-        [WorkItem(717146)]
+        [WorkItem(717146, "DevDiv")]
         [Fact]
         public void WRN_CLS_BadIdentifierCase_Accessors2()
         {
@@ -2561,7 +2561,7 @@ public class Derived2 : Derived1
                 Diagnostic(ErrorCode.WRN_CLS_OverloadUnnamed, "this").WithArguments("Derived2.this[char[][]]"));
         }
 
-        [WorkItem(717146)]
+        [WorkItem(717146, "DevDiv")]
         [Fact]
         public void Overloading_TypeParameterArray()
         {
@@ -2583,7 +2583,7 @@ public class C<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(717146)]
+        [WorkItem(717146, "DevDiv")]
         [Fact]
         public void Overloading_DynamicArray()
         {
@@ -2602,7 +2602,7 @@ public class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [WorkItem(717146)]
+        [WorkItem(717146, "DevDiv")]
         [Fact]
         public void Overloading_PointerArray()
         {
@@ -2625,7 +2625,7 @@ public unsafe class C
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "t").WithArguments("int*[]"));
         }
 
-        [WorkItem(717146)]
+        [WorkItem(717146, "DevDiv")]
         [Fact]
         public void Overloading_ConsiderAllInheritedMembers()
         {
@@ -2868,7 +2868,7 @@ public class C
             }
         }
 
-        [WorkItem(697178)]
+        [WorkItem(697178, "DevDiv")]
         [Fact]
         public void ConstructedSpecialTypes()
         {
@@ -3102,7 +3102,7 @@ internal class C
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "CLSCompliant(false)").WithArguments("CLSCompliantAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"));
         }
 
-        [WorkItem(709317)]
+        [WorkItem(709317, "DevDiv")]
         [Fact]
         public void Repro709317()
         {
@@ -3132,7 +3132,7 @@ public class D
             Assert.DoesNotThrow(() => comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false));
         }
 
-        [WorkItem(709317)]
+        [WorkItem(709317, "DevDiv")]
         [Fact]
         public void FilterTree()
         {
@@ -3252,7 +3252,7 @@ namespace N{0}
         }
 
         [Fact]
-        [WorkItem(701013)]
+        [WorkItem(701013, "DevDiv")]
         public void AssemblyLevelAttribute()
         {
             var source = @"
@@ -3383,7 +3383,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(718503)]
+        [WorkItem(718503, "DevDiv")]
         public void ErrorTypeAccessibility()
         {
             var source = @"
@@ -3429,7 +3429,7 @@ namespace A
         }
 
         [Fact]
-        [WorkItem(741721)]
+        [WorkItem(741721, "DevDiv")]
         public void WRN_CLS_MeaninglessOnReturn_Inaccessible()
         {
             var source = @"
@@ -3450,7 +3450,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(741720)]
+        [WorkItem(741720, "DevDiv")]
         public void WRN_CLS_MeaninglessOnParam_Inaccessible()
         {
             var source = @"
@@ -3474,7 +3474,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(741718)]
+        [WorkItem(741718, "DevDiv")]
         public void WRN_CLS_ArrayArgumentToAttribute_Inaccessible()
         {
             var source = @"
@@ -3503,7 +3503,7 @@ class MyAttribute : Attribute
         }
 
         [Fact]
-        [WorkItem(749432)]
+        [WorkItem(749432, "DevDiv")]
         public void InvalidAttributeArgument()
         {
             var source = @"

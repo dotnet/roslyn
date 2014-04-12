@@ -35,7 +35,7 @@ struct S
             Assert.Equal(0, synthesizedConstructor.Parameters.Length);
         }
 
-        [Fact, WorkItem(543133)]
+        [Fact, WorkItem(543133, "DevDiv")]
         public void FieldAssignedAndReferenced()
         {
             var text =
@@ -85,7 +85,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545509)]
+        [WorkItem(545509, "DevDiv")]
         public void StructIndexerReceiver()
         {
             string program = @"
@@ -131,7 +131,7 @@ class SectionInformation2
         }
 
         [Fact]
-        [WorkItem(545710)]
+        [WorkItem(545710, "DevDiv")]
         public void StructFieldWithAssignedPropertyMembers()
         {
             string program = @"

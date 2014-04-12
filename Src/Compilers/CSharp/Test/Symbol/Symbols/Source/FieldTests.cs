@@ -90,7 +90,7 @@ class A {
             }
         }
 
-        [WorkItem(537237)]
+        [WorkItem(537237, "DevDiv")]
         [Fact]
         public void FieldModifiers()
         {
@@ -185,7 +185,7 @@ class A {
             Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -206,7 +206,7 @@ class C1
             Assert.Equal("@out", dout.ToString());
         }
 
-        [WorkItem(539653)]
+        [WorkItem(539653, "DevDiv")]
         [Fact]
         public void ConstFieldWithoutValueErr()
         {
@@ -225,7 +225,7 @@ class C
             Assert.Equal(null, mem.ConstantValue);
         }
 
-        [WorkItem(543538)]
+        [WorkItem(543538, "DevDiv")]
         [Fact]
         public void Error_InvalidConst()
         {
@@ -295,7 +295,7 @@ class A
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", ""));
         }
 
-        [WorkItem(543791)]
+        [WorkItem(543791, "DevDiv")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -318,7 +318,7 @@ class A
         /// <summary>
         /// Fields named "value__" should be marked rtspecialname.
         /// </summary>
-        [WorkItem(546185)]
+        [WorkItem(546185, "DevDiv")]
         [Fact]
         public void RTSpecialName()
         {

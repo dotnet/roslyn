@@ -89,7 +89,7 @@ class Test
                 );
         }
 
-        [WorkItem(546081)]
+        [WorkItem(546081, "DevDiv")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()
         {
@@ -130,7 +130,7 @@ class Test
             Assert.True(emitResult.Success);
         }
 
-        [WorkItem(546364)]
+        [WorkItem(546364, "DevDiv")]
         [Fact]
         public void IteratorWithEnumeratorMoveNext()
         {
@@ -162,7 +162,7 @@ public class Program
             CompileAndVerify(text).VerifyDiagnostics();
         }
 
-        [WorkItem(813557)]
+        [WorkItem(813557, "DevDiv")]
         [Fact]
         public void IteratorWithDelegateCreationExpression()
         {

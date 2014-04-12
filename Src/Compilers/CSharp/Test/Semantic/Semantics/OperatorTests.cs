@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
-        [Fact, WorkItem(543895)]
+        [Fact, WorkItem(543895, "DevDiv")]
         public void TestBug11947()
         {
             // Due to a long-standing bug, the native compiler allows underlying-enum with the same
@@ -535,7 +535,7 @@ class C
             CompileAndVerify(source : source, expectedOutput : output);
         }
 
-        [Fact, WorkItem(657084)]
+        [Fact, WorkItem(657084, "DevDiv")]
         public void DuplicateOperatorInSubclass()
         {
             string source = @"
@@ -562,7 +562,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B"));
         }
 
-        [Fact, WorkItem(624274)]
+        [Fact, WorkItem(624274, "DevDiv")]
         public void TestBinaryOperatorOverloading_Enums_Dynamic_Unambiguous()
         {
             string source = @"
@@ -621,7 +621,7 @@ class C<T>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624274)]
+        [Fact, WorkItem(624274, "DevDiv")]
         public void TestBinaryOperatorOverloading_Enums_Dynamic_Ambiguous()
         {
             string source = @"
@@ -649,7 +649,7 @@ class C<T>
         }
 
         [Fact]
-        [WorkItem(624270), WorkItem(624274)]
+        [WorkItem(624270, "DevDiv"), WorkItem(624274, "DevDiv")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Unambiguous()
         {
             string source = @"
@@ -736,7 +736,7 @@ class X
         }
 
         [Fact]
-        [WorkItem(624270), WorkItem(624274)]
+        [WorkItem(624270, "DevDiv"), WorkItem(624274, "DevDiv")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Ambiguous()
         {
             string source = @"
@@ -786,7 +786,7 @@ class C<T>
         }
 
         [Fact]
-        [WorkItem(624270), WorkItem(624274)]
+        [WorkItem(624270, "DevDiv"), WorkItem(624274, "DevDiv")]
         public void TestBinaryOperatorOverloading_Delegates_Dynamic_Ambiguous_Inference()
         {
             string source = @"
@@ -2843,7 +2843,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 
         #endregion
 
-        [Fact, WorkItem(527598)]
+        [Fact, WorkItem(527598, "DevDiv")]
         public void UserDefinedOperatorOnPointerType()
         {
             CreateCompilationWithMscorlib(@"
@@ -2922,7 +2922,7 @@ public class C
             var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541147)]
+        [WorkItem(541147, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithMethodGroup()
         {
@@ -2941,7 +2941,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main").WithArguments("??", "method group", "method group"));
         }
 
-        [WorkItem(541149)]
+        [WorkItem(541149, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithLambda()
         {
@@ -2961,7 +2961,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (() => { })").WithArguments("??", "System.Action<int>", "lambda expression"));
         }
 
-        [WorkItem(541148)]
+        [WorkItem(541148, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithConstNonNullExpression()
         {
@@ -2982,7 +2982,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "A");
         }
 
-        [WorkItem(545631)]
+        [WorkItem(545631, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_01()
         {
@@ -3019,7 +3019,7 @@ class A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem(545631)]
+        [WorkItem(545631, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_02()
         {
@@ -3056,7 +3056,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem(545631)]
+        [WorkItem(545631, "DevDiv")]
         [Fact]
         public void TestNullCoalesceWithInvalidUserDefinedConversions_03()
         {
@@ -3090,7 +3090,7 @@ struct A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem(541343)]
+        [WorkItem(541343, "DevDiv")]
         [Fact]
         public void TestAsOperator_Bug8014()
         {
@@ -3108,7 +3108,7 @@ class Program
             CompileAndVerify(source, expectedOutput: string.Empty);
         }
 
-        [WorkItem(542090)]
+        [WorkItem(542090, "DevDiv")]
         [Fact]
         public void TestAsOperatorWithImplicitConversion()
         {
@@ -3207,7 +3207,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "param").WithArguments("dynamic", "object")); 
         }
 
-        [WorkItem(537876)]
+        [WorkItem(537876, "DevDiv")]
         [Fact]
         public void TestEnumOrAssign()
         {
@@ -3231,7 +3231,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(542072)]
+        [WorkItem(542072, "DevDiv")]
         [Fact]
         public void TestEnumLogicalWithLiteralZero_9042()
         {
@@ -3255,7 +3255,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(542073)]
+        [WorkItem(542073, "DevDiv")]
         [Fact]
         public void TestEnumCompoundAddition_9043()
         {
@@ -3274,7 +3274,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(542086)]
+        [WorkItem(542086, "DevDiv")]
         [Fact]
         public void TestStringCompoundAddition_9146()
         {
@@ -3380,7 +3380,7 @@ class Program
                 );
         }
 
-        [WorkItem(543294)]
+        [WorkItem(543294, "DevDiv")]
         [Fact()]
         public void TestAsOperatorWithTypeParameter()
         {
@@ -3418,7 +3418,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "Main() as T").WithArguments("void", "T"));
         }
 
-        [WorkItem(543294)]
+        [WorkItem(543294, "DevDiv")]
         [Fact()]
         public void TestIsOperatorWithTypeParameter()
         {
@@ -3452,7 +3452,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "Main() is T").WithArguments("T"));
         }
 
-        [WorkItem(844635)]
+        [WorkItem(844635, "DevDiv")]
         [Fact()]
         public void TestIsOperatorWithGenericContainingType()
         {
@@ -3522,7 +3522,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e2 is Outer<long>.E").WithArguments("Outer<long>.E").WithLocation(32, 13));
         }
 
-        [WorkItem(844635)]
+        [WorkItem(844635, "DevDiv")]
         [Fact()]
         public void TestIsOperatorWithTypesThatCannotUnify()
         {
@@ -3552,7 +3552,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s2 is Outer<T[]>.S").WithArguments("Outer<T[]>.S").WithLocation(11, 13));
         }
 
-        [WorkItem(844635)]
+        [WorkItem(844635, "DevDiv")]
         [Fact()]
         public void TestIsOperatorWithSpecialTypes()
         {
@@ -3644,7 +3644,7 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "ts is Object").WithArguments("object").WithLocation(33, 13));
         }
 
-        [WorkItem(543294), WorkItem(546655)]
+        [WorkItem(543294, "DevDiv"), WorkItem(546655, "DevDiv")]
         [Fact()]
         public void TestAsOperator_SpecErrorCase()
         {
@@ -3684,7 +3684,7 @@ class Program
             CompileAndVerify(source, emitOptions:EmitOptions.CCI, expectedOutput: "").VerifyDiagnostics();
         }
 
-        [WorkItem(546655)]
+        [WorkItem(546655, "DevDiv")]
         [Fact()]
         public void TestIsOperatorWithTypeParameter_Bug16461()
         {
@@ -3789,7 +3789,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Foo2").WithArguments("Foo2"));
         }
 
-        [WorkItem(543455)]
+        [WorkItem(543455, "DevDiv")]
         [Fact()]
         public void CS0184WRN_IsAlwaysFalse_Generic()
         {
@@ -3819,7 +3819,7 @@ public class C
                                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is C").WithArguments("C"));
         }
 
-        [WorkItem(547011)]
+        [WorkItem(547011, "DevDiv")]
         [Fact()]
         public void CS0184WRN_IsAlwaysFalse_IntPtr()
         {
@@ -3849,7 +3849,7 @@ public class Base
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "e as IntPtr").WithArguments("System.IntPtr"));
         }
 
-        [WorkItem(543443)]
+        [WorkItem(543443, "DevDiv")]
         [Fact]
         public void ParamsOperators()
         {
@@ -3875,7 +3875,7 @@ public class Base
                 );
         }
 
-        [WorkItem(543438)]
+        [WorkItem(543438, "DevDiv")]
         [Fact()]
         public void TestNullCoalesce_UserDefinedConversions()
         {
@@ -3900,7 +3900,7 @@ class A
             CompileAndVerify(text);
         }
 
-        [WorkItem(543503)]
+        [WorkItem(543503, "DevDiv")]
         [Fact()]
         public void TestAsOperator_UserDefinedConversions()
         {
@@ -3919,7 +3919,7 @@ class C<T>
             CompileAndVerify(text);
         }
 
-        [WorkItem(543503)]
+        [WorkItem(543503, "DevDiv")]
         [Fact()]
         public void TestIsOperator_UserDefinedConversions()
         {
@@ -3938,7 +3938,7 @@ class C<T>
             CompileAndVerify(text);
         }
 
-        [WorkItem(543483)]
+        [WorkItem(543483, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_NullableStructs()
         {
@@ -4004,7 +4004,7 @@ struct S
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
         }
 
-        [WorkItem(543432)]
+        [WorkItem(543432, "DevDiv")]
         [Fact]
         public void NoNewForOperators()
         {
@@ -4027,7 +4027,7 @@ class D {}";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact(),WorkItem(543433)]
+        [Fact(),WorkItem(543433, "DevDiv")]
         public void ERR_NoImplicitConvCast_UserDefinedConversions()
         {
             var text =
@@ -4051,7 +4051,7 @@ class B : A
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
-        [WorkItem(543431)]
+        [WorkItem(543431, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
         {
@@ -4086,7 +4086,7 @@ False";
             CompileAndVerify(source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(543431)]
+        [WorkItem(543431, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_02()
         {
@@ -4126,7 +4126,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(Func<int>)(C)null == (Action)(D)null").WithArguments("==", "System.Func<int>", "System.Action"));
         }
 
-        [WorkItem(543431)]
+        [WorkItem(543431, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_03_Ambiguous()
         {
@@ -4171,7 +4171,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null != (D)null").WithArguments("!=", "C", "D"));
         }
  
-        [WorkItem(543431)]
+        [WorkItem(543431, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_04_BaseTypes()
         {
@@ -4210,7 +4210,7 @@ False";
             CompileAndVerify(source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(543754)]
+        [WorkItem(543754, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_NullableDecimal()
         {
@@ -4231,7 +4231,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(543910)]
+        [WorkItem(543910, "DevDiv")]
         [Fact]
         public void TypeParameterConstraintToGenericType()
         {
@@ -4264,7 +4264,7 @@ public class ConstrainedTestContext<T,U> where T : Gen<U>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(544490)]
+        [WorkItem(544490, "DevDiv")]
         [Fact]
         public void LiftedUserDefinedUnaryOperator()
         {
@@ -4285,7 +4285,7 @@ struct S
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(544490)]
+        [WorkItem(544490, "DevDiv")]
         [Fact]
         public void TestDefaultOperatorEnumConstantValue()
         {
@@ -4589,7 +4589,7 @@ class op_Implicit
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "op_Implicit").WithArguments("op_Implicit"));
         }
 
-        [Fact, WorkItem(546771)]
+        [Fact, WorkItem(546771, "DevDiv")]
         public void TestIsNullable_Bug16777()
         {
             string source = @"
@@ -4651,7 +4651,7 @@ public struct Value
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [WorkItem(631414)]
+        [WorkItem(631414, "DevDiv")]
         [Fact]
         public void LiftedUserDefinedEquality1()
         {
@@ -4696,7 +4696,7 @@ class Program
             Assert.Equal(expectedOperator, info.Symbol);
         }
 
-        [WorkItem(631414)]
+        [WorkItem(631414, "DevDiv")]
         [Fact]
         public void LiftedUserDefinedEquality2()
         {
@@ -4737,7 +4737,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "s1 == null").WithArguments("S1.operator ==(S1, S1)", "A"));
         }
 
-        [WorkItem(631414)]
+        [WorkItem(631414, "DevDiv")]
         [Fact]
         public void LiftedUserDefinedEquality3()
         {
@@ -4772,7 +4772,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == s2").WithArguments("==", "S1?", "S2?"));
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void AmbiguousLogicalOrConversion()
         {
@@ -4815,7 +4815,7 @@ class Program
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void AmbiguousOrConversion()
         {
@@ -4849,7 +4849,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 | i2").WithArguments("|", "InputParameter", "InputParameter"));
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void DynamicAmbiguousLogicalOrConversion()
         {
@@ -4886,7 +4886,7 @@ class Program
 A");
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void DynamicAmbiguousOrConversion()
         {
@@ -4923,7 +4923,7 @@ class Program
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void UnambiguousLogicalOrConversion1()
         {
@@ -4960,7 +4960,7 @@ class Program
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
         }
 
-        [WorkItem(656739)]
+        [WorkItem(656739, "DevDiv")]
         [Fact]
         public void UnambiguousLogicalOrConversion2()
         {
@@ -4989,7 +4989,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 || i2").WithArguments("||", "InputParameter", "InputParameter"));
         }
 
-        [WorkItem(665002)]
+        [WorkItem(665002, "DevDiv")]
         [Fact]
         public void DedupingLiftedUserDefinedOperators()
         {
@@ -6287,7 +6287,7 @@ class Module1
         }
 
 
-        [Fact(), WorkItem(721565)]
+        [Fact(), WorkItem(721565, "DevDiv")]
         public void Bug721565()
         {
             var source =

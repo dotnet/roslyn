@@ -3052,7 +3052,7 @@ Console.WriteLine(2);
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3);
         }
 
-        [WorkItem(578706)]
+        [WorkItem(578706, "DevDiv")]
         [Fact]
         public void DeclaringCompilationOfAddedModule()
         {

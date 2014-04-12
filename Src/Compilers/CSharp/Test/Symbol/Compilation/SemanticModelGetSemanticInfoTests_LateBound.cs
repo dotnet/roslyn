@@ -299,7 +299,7 @@ class C
             Assert.Equal("System.Int32 C.bar(ref dynamic a)", semanticInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(531141)]
+        [Fact, WorkItem(531141, "DevDiv")]
         public void MethodInvocation_StaticReceiver_IdentifierNameSyntax()
         {
             string sourceCode = @"

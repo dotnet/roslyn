@@ -647,7 +647,7 @@ class C
             }
         }
 
-        [WorkItem(531161)]
+        [WorkItem(531161, "DevDiv")]
         [Fact]
         public void AttributeNameHasPrefix()
         {
@@ -664,7 +664,7 @@ class Program
             Assert.Equal(0, GetNameAttributeValues(compilation).Count());
         }
 
-        [WorkItem(531160)]
+        [WorkItem(531160, "DevDiv")]
         [Fact]
         public void DuplicateAttribute()
         {
@@ -691,7 +691,7 @@ class Program
             Assert.Equal(method.Parameters[1], model.GetSymbolInfo(nameSyntaxes[1]).Symbol);
         }
 
-        [WorkItem(531233)]
+        [WorkItem(531233, "DevDiv")]
         [Fact]
         public void NameInOtherElement()
         {
@@ -709,7 +709,7 @@ class C
             Assert.Equal(0, GetNameAttributeValues(compilation).Count());
         }
 
-        [WorkItem(531337)]
+        [WorkItem(531337, "DevDiv")]
         [Fact]
         public void NamesInMethodBody()
         {
@@ -750,7 +750,7 @@ class C
 
         // Accessor declarations aren't MemberDeclarationSyntaxes, so we don't have to worry about finding
         // the parameters of an accessor (i.e. all the lookups will start from the property/indexer).
-        [WorkItem(531337)]
+        [WorkItem(531337, "DevDiv")]
         [Fact]
         public void NamesOnAccessor()
         {

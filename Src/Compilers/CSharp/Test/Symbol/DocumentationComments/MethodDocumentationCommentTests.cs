@@ -130,14 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.MyList`1.Test(`0)", acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem(766313)]
+        [WorkItem(766313, "DevDiv")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsParameter()
         {
             Assert.Equal("M:Acme.MyList`1.Zip(Acme.MyList{`0})", acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Zip").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem(766313)]
+        [WorkItem(766313, "DevDiv")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsTypeParameter()
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem(530924)]
+        [Fact, WorkItem(530924, "DevDiv")]
         public void TestConversionOperator()
         {
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());

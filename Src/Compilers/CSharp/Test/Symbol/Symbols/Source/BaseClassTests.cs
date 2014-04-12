@@ -80,7 +80,7 @@ class C4 : C1 {}
                 er.ToString());
         }
 
-        [WorkItem(538506)]
+        [WorkItem(538506, "DevDiv")]
         [Fact]
         public void CyclicBasesRegress4140()
         {
@@ -107,7 +107,7 @@ class A<T>
                 er.ToString());
         }
 
-        [WorkItem(538526)]
+        [WorkItem(538526, "DevDiv")]
         [Fact]
         public void CyclicBasesRegress4166()
         {
@@ -158,7 +158,7 @@ class A : object, A.IC
             Assert.Equal(0, diagnostics.Count());
         }
 
-        [WorkItem(527551)]
+        [WorkItem(527551, "DevDiv")]
         [Fact]
         public void CyclicBasesRegress4168()
         {
@@ -1320,7 +1320,7 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void NamespaceClassInterfaceEscapedIdentifier()
         {
@@ -1346,8 +1346,8 @@ namespace @if
             Assert.Equal("@if.@break", ibreak.ToString());
         }
 
-        [WorkItem(539328)]
-        [WorkItem(539789)]
+        [WorkItem(539328, "DevDiv")]
+        [WorkItem(539789, "DevDiv")]
         [Fact]
         public void AccessInBaseClauseCheckedWithRespectToContainer()
         {
@@ -1372,7 +1372,7 @@ class Y : X
         /// whether or not the base type of the containing type has been
         /// evaluated.
         /// </summary>
-        [WorkItem(539744)]
+        [WorkItem(539744, "DevDiv")]
         [Fact]
         public void BaseTypeEvaluationOrder()
         {
@@ -1449,7 +1449,7 @@ class C : I2 { }
             context.Diagnostics.Verify();
         }
 
-        [Fact(), WorkItem(544454)]
+        [Fact(), WorkItem(544454, "DevDiv")]
         public void InterfaceImplementedWithPrivateType()
         {
             var textA = @"
@@ -1492,7 +1492,7 @@ class Z
             Assert.Equal(0, c2.GetDiagnostics().Count());
         }
 
-        [WorkItem(545365)]
+        [WorkItem(545365, "DevDiv")]
         [Fact()]
         public void ProtectedInternalNestedBaseClass()
         {
@@ -1524,7 +1524,7 @@ class C : PublicClass.ProtectedInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass"));
         }
 
-        [WorkItem(545365)]
+        [WorkItem(545365, "DevDiv")]
         [Fact()]
         public void ProtectedAndInternalNestedBaseClass()
         {
@@ -1577,7 +1577,7 @@ class C : PublicClass.ProtectedAndInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
         }
 
-        [WorkItem(530144)]
+        [WorkItem(530144, "DevDiv")]
         [Fact()]
         public void UnifyingBaseInterfaces01()
         {
@@ -1634,7 +1634,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(530144)]
+        [WorkItem(530144, "DevDiv")]
         [Fact()]
         public void UnifyingBaseInterfaces02()
         {
@@ -1682,7 +1682,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(545365)]
+        [WorkItem(545365, "DevDiv")]
         [Fact()]
         public void ProtectedNestedBaseClass()
         {
@@ -1714,7 +1714,7 @@ class C : PublicClass.ProtectedClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedClass").WithArguments("PublicClass.ProtectedClass"));
         }
 
-        [WorkItem(545589)]
+        [WorkItem(545589, "DevDiv")]
         [Fact]
         public void MissingTypeArgumentInBase()
         {
@@ -1744,7 +1744,7 @@ class B : I<object>
                 );
         }
 
-        [WorkItem(792711)]
+        [WorkItem(792711, "DevDiv")]
         [Fact]
         public void Repro792711()
         {
@@ -1765,7 +1765,7 @@ public class Derived<T> : Base<Derived<T>>
             Assert.Equal(TypeKind.Class, derived.TypeKind);
         }
 
-        [WorkItem(872825)]
+        [WorkItem(872825, "DevDiv")]
         [Fact]
         public void InaccessibleStructInterface()
         {
@@ -1786,7 +1786,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_BadAccess, "I").WithArguments("C.I").WithLocation(7, 14));
         }
 
-        [WorkItem(872948)]
+        [WorkItem(872948, "DevDiv")]
         [Fact]
         public void MissingNestedMemberInStructImplementsClause()
         {
@@ -1803,7 +1803,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_CircularBase, "I").WithArguments("S", "S").WithLocation(1, 14));
         }
 
-        [WorkItem(896959)]
+        [WorkItem(896959, "DevDiv")]
         [Fact(Skip = "896959")]
         public void MissingNestedMemberInClassImplementsClause()
         {

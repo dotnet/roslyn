@@ -281,7 +281,7 @@ Diagnostic(ErrorCode.ERR_BadArgType, "default(M?)").WithArguments("1", "M?", "G"
 Diagnostic(ErrorCode.ERR_BadArgType, "default(R?)").WithArguments("1", "R?", "G"));
         }
 
-        [Fact, WorkItem(543716)]
+        [Fact, WorkItem(543716, "DevDiv")]
         public void TestUserDefinedConversionOverloadResolution_SpecViolations()
         {
             // These are all cases where the specification says the conversion should either not exist
@@ -485,7 +485,7 @@ class X<T> where T : Mammal
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(X<T>)t").WithArguments("T", "X<T>"));
         }
 
-        [Fact, WorkItem(605100)]
+        [Fact, WorkItem(605100, "DevDiv")]
         public void TestUserDefinedConversions_DynamicIdentityBetweenBaseTypes()
         {
             string source = @"
@@ -517,7 +517,7 @@ public class X
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(605326)]
+        [Fact, WorkItem(605326, "DevDiv")]
         public void TestUserDefinedConversions_DynamicIdentityBetweenBaseTypeAndTargetType()
         {
             string source = @"
@@ -1157,7 +1157,7 @@ unsafe class P
 
         }
 
-        [Fact, WorkItem(543427)]
+        [Fact, WorkItem(543427, "DevDiv")]
         public void Bug11203()
         {
 
@@ -1189,7 +1189,7 @@ class A
 
         }
 
-        [Fact, WorkItem(543430)]
+        [Fact, WorkItem(543430, "DevDiv")]
         public void Bug11205()
         {
 
@@ -1255,7 +1255,7 @@ Diagnostic(ErrorCode.ERR_NoImplicitConv, "a++").WithArguments("int", "A")
                 );
         }
 
-        [Fact, WorkItem(543435)]
+        [Fact, WorkItem(543435, "DevDiv")]
         public void TestBug11210()
         {
             // If we have both a user-defined implicit conversion and a built-in explicit conversion
@@ -1288,7 +1288,7 @@ class D<T> : C<T>
             var verifier = CompileAndVerify(source, expectedOutput: "23");
         }
 
-        [Fact, WorkItem(543436)]
+        [Fact, WorkItem(543436, "DevDiv")]
         public void TestBug11211()
         {
             string source = @"
@@ -1314,7 +1314,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
-        [Fact, WorkItem(543439)]
+        [Fact, WorkItem(543439, "DevDiv")]
         public void TestBug11214()
         {
             // The specification describes analysis of user-defined conversions only in
@@ -1347,7 +1347,7 @@ struct C
             var verifier = CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "b");
         }
 
-        [Fact, WorkItem(543440)]
+        [Fact, WorkItem(543440, "DevDiv")]
         public void TestBug11215()
         {
             string source = @"
@@ -1373,7 +1373,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact, WorkItem(543441)]
+        [Fact, WorkItem(543441, "DevDiv")]
         public void TestBug11216()
         {
             // An ambiguous user-defined conversion should be considered a valid conversion
@@ -1416,7 +1416,7 @@ class C
                                    Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(B)", "Program.Foo(C)"));
         }
 
-        [Fact, WorkItem(543446)]
+        [Fact, WorkItem(543446, "DevDiv")]
         public void TestBug11223()
         {
             string source = @"
@@ -1443,7 +1443,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
-        [Fact, WorkItem(543595)]
+        [Fact, WorkItem(543595, "DevDiv")]
         public void CompoundAssignment()
         {
             string source1 = @"
@@ -1475,7 +1475,7 @@ class Program
             var verifier = CompileAndVerify(source: source1, expectedOutput: "");
         }
 
-        [Fact, WorkItem(543598)]
+        [Fact, WorkItem(543598, "DevDiv")]
         public void ConvertByteLiteralToUserDefinedType()
         {
             var source = @"
@@ -1495,7 +1495,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(543789)]
+        [Fact, WorkItem(543789, "DevDiv")]
         public void UseImplicitConversionInBase()
         {
             string source = @"
@@ -1530,7 +1530,7 @@ class A : B
             CompileAndVerify(source, expectedOutput: "Hello");
         }
 
-        [Fact, WorkItem(682456)]
+        [Fact, WorkItem(682456, "DevDiv")]
         public void GenericUDConversionVersusPredefinedConversion()
         {
             string source = @"

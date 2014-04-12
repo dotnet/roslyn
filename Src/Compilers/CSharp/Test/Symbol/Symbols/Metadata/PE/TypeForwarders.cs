@@ -907,7 +907,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidFwdType, "System.Runtime.CompilerServices.TypeForwardedTo(null)"));
         }
 
-        [WorkItem(529761)]
+        [WorkItem(529761, "DevDiv")]
         [Fact]
         public void LookupMissingForwardedTypeImplicitNamespace()
         {
@@ -1366,7 +1366,7 @@ namespace NS
             }
         }
 
-        [WorkItem(545911)]
+        [WorkItem(545911, "DevDiv")]
         [Fact]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
@@ -1408,7 +1408,7 @@ namespace NS
             Assert.Equal("Substituted", result.Trim());
         }
 
-        [WorkItem(545911)]
+        [WorkItem(545911, "DevDiv")]
         [Fact]
         public void EmitForwarder_WithModule()
         {

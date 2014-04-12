@@ -1423,7 +1423,7 @@ class B
             Assert.Equal("set_A", indexer.SetMethod.MetadataName);
         }
 
-        [WorkItem(528830)]
+        [WorkItem(528830, "DevDiv")]
         [Fact(Skip = "528830")]
         public void EscapedIdentifierInIndexerNameAttribute()
         {
@@ -2120,7 +2120,7 @@ class Program
             Assert.Equal(0, ((Microsoft.Cci.IReference)indexer).GetAttributes(new Microsoft.CodeAnalysis.Emit.Context()).Count());
         }
 
-        [WorkItem(545884)]
+        [WorkItem(545884, "DevDiv")]
         [Fact]
         public void IndexerNameDeadlock1()
         {
@@ -2151,7 +2151,7 @@ class B
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(545884)]
+        [WorkItem(545884, "DevDiv")]
         [Fact]
         public void IndexerNameDeadlock2()
         {
@@ -2369,7 +2369,7 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "d[d, d, d, d, d]").WithArguments("this", "5"));
         }
 
-        [WorkItem(542747)]
+        [WorkItem(542747, "DevDiv")]
         [Fact()]
         public void IndexerAceessorParameterIsSynthesized()
         {
@@ -2391,7 +2391,7 @@ struct Test
             }
         }
 
-        [WorkItem(542831)]
+        [WorkItem(542831, "DevDiv")]
         [Fact]
         public void ProtectedBaseIndexer()
         {
@@ -2478,7 +2478,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AmbigCall, "s[0, 1]").WithArguments("SameSignaturesDifferentNames.this[int, long]", "SameSignaturesDifferentNames.this[int, long]"));
         }
 
-        [WorkItem(543261)]
+        [WorkItem(543261, "DevDiv")]
         [Fact]
         public void OverrideOneAccessorOnly()
         {
@@ -2543,7 +2543,7 @@ partial class C
             Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
         }
 
-        [WorkItem(543957)]
+        [WorkItem(543957, "DevDiv")]
         [Fact]
         public void SemanticModelIndexerGroupHiding()
         {
@@ -2637,7 +2637,7 @@ public class Wrapper
             }
         }
 
-        [WorkItem(543957)]
+        [WorkItem(543957, "DevDiv")]
         [Fact]
         public void SemanticModelIndexerGroupAccessibility()
         {
@@ -2715,7 +2715,7 @@ class Derived2 : Base
                 EqualityComparer<IPropertySymbol>.Default));
         }
 
-        [WorkItem(545851)]
+        [WorkItem(545851, "DevDiv")]
         [Fact]
         public void DistinctOptionalParameterValues()
         {
@@ -2782,7 +2782,7 @@ get_P: 1
 set_P: 1");
         }
 
-        [Fact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "DevDiv")]
         public void RetargetingIndexerMetadataName()
         {
             #region "Source"
@@ -2828,7 +2828,7 @@ class Test
             Assert.Equal("Item", idxSymbol2.Symbol.MetadataName);
         }
 
-        [Fact, WorkItem(546255)]
+        [Fact, WorkItem(546255, "DevDiv")]
         public void SubstitutedIndexerMetadataName()
         {
             var source = @"
@@ -2853,7 +2853,7 @@ class C<T>
             Assert.Equal("Item", substitutedIndexer.MetadataName);
         }
 
-        [Fact, WorkItem(806258)]
+        [Fact, WorkItem(806258, "DevDiv")]
         public void ConflictWithTypeParameter()
         {
             var source = @"
@@ -2871,7 +2871,7 @@ class C<Item, get_Item>
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("C<Item, get_Item>", "get_Item"));
         }
 
-        [Fact, WorkItem(806258)]
+        [Fact, WorkItem(806258, "DevDiv")]
         public void ConflictWithTypeParameter_IndexerNameAttribute()
         {
             var source = @"

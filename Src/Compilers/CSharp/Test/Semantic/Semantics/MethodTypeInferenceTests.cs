@@ -484,7 +484,7 @@ class C
                );
         }
 
-        [Fact, WorkItem(578362)]
+        [Fact, WorkItem(578362, "DevDiv")]
         public void TypeInferenceDynamicByRef()
         {
             string source = @"
@@ -507,7 +507,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(ref T[])"));
         }
 
-        [WorkItem(541810)]
+        [WorkItem(541810, "DevDiv")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType()
         {
@@ -533,7 +533,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541811)]
+        [WorkItem(541811, "DevDiv")]
         [Fact]
         public void TestMethodTypeInferenceWhenFixedParameterIsOpenGenericType2()
         {
@@ -599,7 +599,7 @@ class Test
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(541887)]
+        [WorkItem(541887, "DevDiv")]
         [Fact()]
         public void Bug8785_1()
         {
@@ -627,7 +627,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method", "2"));
         }
 
-        [WorkItem(541887)]
+        [WorkItem(541887, "DevDiv")]
         [Fact]
         public void Bug8785_2()
         {
@@ -659,7 +659,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgType, "345").WithArguments("2", "int", "?"));
         }
 
-        [WorkItem(542591)]
+        [WorkItem(542591, "DevDiv")]
         [Fact]
         public void Bug9877()
         {
@@ -736,7 +736,7 @@ class Program
         }
 
 
-        [WorkItem(543691)]
+        [WorkItem(543691, "DevDiv")]
         [Fact]
         public void Bug()
         {
@@ -757,7 +757,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(649800)]
+        [WorkItem(649800, "DevDiv")]
         [Fact]
         public void InferringVoid()
         {
@@ -785,7 +785,7 @@ public class Test
             );
         }
 
-        [WorkItem(717264)]
+        [WorkItem(717264, "DevDiv")]
         [Fact]
         public void SubstitutedMethod()
         {
@@ -815,7 +815,7 @@ public class C<T>
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
 
-        [WorkItem(717264)]
+        [WorkItem(717264, "DevDiv")]
         [Fact]
         public void SubstitutedMethod_Params()
         {

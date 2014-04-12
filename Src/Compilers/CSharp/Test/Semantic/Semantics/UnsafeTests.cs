@@ -148,7 +148,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"));
         }
 
-        [WorkItem(546657)]
+        [WorkItem(546657, "DevDiv")]
         [Fact]
         public void IteratorUnsafe5()
         {
@@ -841,7 +841,7 @@ unsafe enum E
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe"));
         }
 
-        [WorkItem(543834)]
+        [WorkItem(543834, "DevDiv")]
         [Fact]
         public void UnsafeOnDelegates()
         {
@@ -856,7 +856,7 @@ public unsafe delegate void TestDelegate();
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
         }
 
-        [WorkItem(543835)]
+        [WorkItem(543835, "DevDiv")]
         [Fact]
         public void UnsafeOnConstField()
         {
@@ -898,7 +898,7 @@ class C : I
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
         }
 
-        [WorkItem(544417)]
+        [WorkItem(544417, "DevDiv")]
         [Fact]
         public void UnsafeCallParamArrays()
         {
@@ -951,7 +951,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeCallOptionalParameters()
         {
@@ -994,7 +994,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeDelegateCallParamArrays()
         {
@@ -1048,7 +1048,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeDelegateCallOptionalParameters()
         {
@@ -1092,7 +1092,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeObjectCreationParamArrays()
         {
@@ -1146,7 +1146,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeObjectCreationOptionalParameters()
         {
@@ -1190,7 +1190,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeIndexerParamArrays()
         {
@@ -1229,7 +1229,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeIndexerOptionalParameters()
         {
@@ -1261,7 +1261,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeAttributeParamArrays()
         {
@@ -1294,7 +1294,7 @@ class C : I
                 });
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeAttributeOptionalParameters()
         {
@@ -1327,7 +1327,7 @@ class C : I
                 });
         }
 
-        [WorkItem(544938)]
+        [WorkItem(544938, "DevDiv")]
         [Fact]
         public void UnsafeDelegateAssignment()
         {
@@ -1382,7 +1382,7 @@ class C : I
             CreateCompilationWithMscorlib(withUnsafeOnTypeAndMembers, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(expectedWithUnsafe);
         }
 
-        [WorkItem(544097)]
+        [WorkItem(544097, "DevDiv")]
         [Fact]
         public void MethodCallWithNullAsPointerArg()
         {
@@ -1410,7 +1410,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544097)]
+        [WorkItem(544097, "DevDiv")]
         [Fact]
         public void MethodCallWithUnsafeArgument()
         {
@@ -1466,7 +1466,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544097)]
+        [WorkItem(544097, "DevDiv")]
         [Fact]
         public void IndexerAccessWithUnsafeArgument()
         {
@@ -1500,7 +1500,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
         }
 
-        [WorkItem(544097)]
+        [WorkItem(544097, "DevDiv")]
         [Fact]
         public void ConstructorInitializerWithUnsafeArgument()
         {
@@ -1529,7 +1529,7 @@ class C : I
                 );
         }
 
-        [WorkItem(544286)]
+        [WorkItem(544286, "DevDiv")]
         [Fact]
         public void UnsafeLambdaParameterType()
         {
@@ -3015,7 +3015,7 @@ struct S3
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
         }
 
-        [WorkItem(529267)]
+        [WorkItem(529267, "DevDiv")]
         [Fact]
         public void AddressOfExpressionKinds_RangeVariable()
         {
@@ -3671,7 +3671,7 @@ unsafe struct S
                 );
         }
 
-        [WorkItem(657083)]
+        [WorkItem(657083, "DevDiv")]
         [Fact]
         public void CaptureStructWithFixedArray()
         {
@@ -3734,7 +3734,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x"));
         }
 
-        [WorkItem(543989)]
+        [WorkItem(543989, "DevDiv")]
         [Fact]
         public void AddressOfInsideAnonymousTypes()
         {
@@ -3757,7 +3757,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "p1 = &x").WithArguments("int*"));
         }
 
-        [WorkItem(544537)]
+        [WorkItem(544537, "DevDiv")]
         [Fact]
         public void AddressOfStaticReadonlyFieldInsideFixed()
         {
@@ -3849,7 +3849,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "o").WithArguments("S.o", "null")); 
         }
 
-        [WorkItem(544346)]
+        [WorkItem(544346, "DevDiv")]
         [Fact]
         public void AddressOfLambdaExpr1()
         {
@@ -3887,7 +3887,7 @@ unsafe class C
             Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
-        [WorkItem(544346)]
+        [WorkItem(544346, "DevDiv")]
         [Fact]
         public void AddressOfLambdaExpr2()
         {
@@ -3925,7 +3925,7 @@ unsafe class C
             Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
-        [WorkItem(544346)]
+        [WorkItem(544346, "DevDiv")]
         [Fact]
         public void AddressOfMethodGroup()
         {
@@ -5610,7 +5610,7 @@ unsafe class C
 
         #region Pointer comparison tests
 
-        [WorkItem(546712)]
+        [WorkItem(546712, "DevDiv")]
         [Fact]
         public void PointerComparison_Null()
         {
@@ -6795,7 +6795,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"));
         }
 
-        [Fact, WorkItem(529318)]
+        [Fact, WorkItem(529318, "DevDiv")]
         public void SizeOfNull()
         {
             string text = @"
@@ -7602,7 +7602,7 @@ class C
 
         #region PointerTypes tests
 
-        [WorkItem(543990)]
+        [WorkItem(543990, "DevDiv")]
         [Fact]
         public void PointerTypeInVolatileField()
         {
@@ -7618,7 +7618,7 @@ unsafe class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "px").WithArguments("Test.px"));
         }
 
-        [WorkItem(544003)]
+        [WorkItem(544003, "DevDiv")]
         [Fact]
         public void PointerTypesAsTypeArgs()
         {
@@ -7648,8 +7648,8 @@ class C<T> : A
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003)]
-        [WorkItem(544232)]
+        [WorkItem(544003, "DevDiv")]
+        [WorkItem(544232, "DevDiv")]
         [Fact]
         public void PointerTypesAsTypeArgs2()
         {
@@ -7699,8 +7699,8 @@ class C<T> : A
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(expected);
         }
 
-        [WorkItem(544003)]
-        [WorkItem(544232)]
+        [WorkItem(544003, "DevDiv")]
+        [WorkItem(544232, "DevDiv")]
         [Fact]
         public void PointerTypesAsTypeArgs3()
         {
@@ -7744,7 +7744,7 @@ class C<T> : A
 
         #region misc unsafe tests
 
-        [Fact, WorkItem(543988)]
+        [Fact, WorkItem(543988, "DevDiv")]
         public void UnsafeFieldInitializerInStruct()
         {
             string sourceCode = @"
@@ -7760,7 +7760,7 @@ public struct Test
             model.GetDiagnostics().Verify();
         }
 
-        [Fact, WorkItem(544143)]
+        [Fact, WorkItem(544143, "DevDiv")]
         public void ConvertFromPointerToSelf()
         {
             string text = @"
@@ -7835,7 +7835,7 @@ unsafe class C
             Assert.Equal(default(ForEachStatementInfo), info);
         }
 
-        [Fact, WorkItem(544336)]
+        [Fact, WorkItem(544336, "DevDiv")]
         public void PointerTypeAsDelegateParamInAnonMethod()
         {
             // It is legal to use a delegate with pointer types in a "safe" context
@@ -7857,7 +7857,7 @@ class C
             model.GetDiagnostics().Verify();
         }
 
-        [Fact(Skip = "529402"), WorkItem(529402)]
+        [Fact(Skip = "529402"), WorkItem(529402, "DevDiv")]
         public void DotOperatorOnPointerTypes()
         {
             string text = @"
@@ -7877,7 +7877,7 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "i1.ToString").WithArguments(".", "int*"));
         }
 
-        [Fact, WorkItem(545028)]
+        [Fact, WorkItem(545028, "DevDiv")]
         public void PointerToEnumInGeneric()
         {
             string text = @"
@@ -7949,7 +7949,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "base"));
         }
 
-        [WorkItem(545985)]
+        [WorkItem(545985, "DevDiv")]
         [Fact]
         public void UnboxPointer()
         {
@@ -8006,7 +8006,7 @@ class C
         }
 
         [Fact()]
-        [WorkItem(547030)]
+        [WorkItem(547030, "DevDiv")]
         public void FixedBuffersUsageScenarioInRange()
         {
             var text = @"
@@ -8119,7 +8119,7 @@ class Program
         }
 
         [Fact()]
-        [WorkItem(547030)]
+        [WorkItem(547030, "DevDiv")]
         public void FixedBuffersUsagescenarioOutOfRange()
         {
             // This should work as no range checking for unsafe code.
@@ -8258,7 +8258,7 @@ unsafe struct s
         }
 
         [Fact]
-        [WorkItem(547074)]
+        [WorkItem(547074, "DevDiv")]
         public void FixedBufferWithNoSize()
         {
             var text = @"
@@ -8279,7 +8279,7 @@ unsafe struct S
         }
 
         [Fact()]
-        [WorkItem(547030)]
+        [WorkItem(547030, "DevDiv")]
         public void FixedBufferUsageDifferentAssemblies()
         {
             // Ensure fixed buffers work as expected when fixed buffer is created in different assembly to where it is consumed.

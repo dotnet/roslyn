@@ -236,7 +236,7 @@ abstract class AbstractFoo : IFoo
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractFoo.IFoo.this[long, int, long, int].set"));
         }
 
-        [Fact, WorkItem(542158)]
+        [Fact, WorkItem(542158, "DevDiv")]
         public void TestModifiersOnExplicitEventImpl()
         {
             var text = @"
@@ -4517,7 +4517,7 @@ public class Derived1 : Base
             });
         }
 
-        [WorkItem(540185)]
+        [WorkItem(540185, "DevDiv")]
         [Fact]
         public void TestChangeVirtualPropertyAccessorAccessibilityWithinAssembly()
         {
@@ -4939,7 +4939,7 @@ class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Class").WithArguments("Class", "Interface.this[int, string, string, string].set"));
         }
 
-        [WorkItem(539162)]
+        [WorkItem(539162, "DevDiv")]
         [Fact]
         public void TestAbstractTypeMember()
         {
@@ -4995,7 +4995,7 @@ public class Derived1 : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.this[int].set"));
         }
 
-        [WorkItem(540221)]
+        [WorkItem(540221, "DevDiv")]
         [Fact]
         public void AbstractOverrideOnePropertyAccessor()
         {
@@ -5441,7 +5441,7 @@ class NS4
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS3.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS3.Base2.Method<T>"));
         }
 
-        [WorkItem(540348)]
+        [WorkItem(540348, "DevDiv")]
         [Fact]
         public void TestOverridingBrokenTypes()
         {
@@ -5762,7 +5762,7 @@ class C2 : C1, I1, I2
             Assert.True(c2Type.Interfaces.All(iface => iface.Name == "I1" || iface.Name == "I2"));
 
         }
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         [Fact]
         public void TestImplicitImplSignatureMismatches()
         {
@@ -5993,7 +5993,7 @@ class Class7 : Base7, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Class7").WithArguments("Class7", "Interface.Method<T>(long, int)"));
         }
 
-        [WorkItem(540470)]
+        [WorkItem(540470, "DevDiv")]
         [Fact]
         public void TestExplicitImplSignatureMismatches2()
         {
@@ -7198,7 +7198,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Finalze").WithArguments("I", "Finalze"));
         }
 
-        [WorkItem(542361)]
+        [WorkItem(542361, "DevDiv")]
         [Fact]
         public void TestTypeParameterExplicitMethodImplementation()
         {
@@ -7219,7 +7219,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A<T>", "T.T<S>()"));
         }
 
-        [WorkItem(542361)]
+        [WorkItem(542361, "DevDiv")]
         [Fact]
         public void TestTypeParameterExplicitPropertyImplementation()
         {
@@ -7240,7 +7240,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A<T>", "T.T"));
         }
 
-        [WorkItem(542361)]
+        [WorkItem(542361, "DevDiv")]
         [Fact]
         public void TestTypeParameterExplicitEventImplementation()
         {

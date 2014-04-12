@@ -186,7 +186,7 @@ class Program
             Assert.Equal(0, count[(int)DiagnosticSeverity.Info]);
         }
 
-        [WorkItem(537918)]
+        [WorkItem(537918, "DevDiv")]
         [Fact]
         public void AssertForInvalidBreak()
         {
@@ -211,7 +211,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;"));
         }
 
-        [WorkItem(538064)]
+        [WorkItem(538064, "DevDiv")]
         [Fact]
         public void IfFalse()
         {
@@ -230,7 +230,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(538067)]
+        [WorkItem(538067, "DevDiv")]
         [Fact]
         public void WhileConstEqualsConst()
         {
@@ -254,7 +254,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(538175)]
+        [WorkItem(538175, "DevDiv")]
         [Fact]
         public void BreakWithoutTarget()
         {
@@ -303,7 +303,7 @@ class Program
             Assert.Equal(2, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(539374)]
+        [WorkItem(539374, "DevDiv")]
         [Fact]
         public void OutAssignedAfterCall01()
         {
@@ -323,7 +323,7 @@ class Program
             Assert.Equal(1, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(538067)]
+        [WorkItem(538067, "DevDiv")]
         [Fact]
         public void WhileConstEqualsConst2()
         {
@@ -355,7 +355,7 @@ class Program
             Assert.Equal(0, count[(int)DiagnosticSeverity.Info]);
         }
 
-        [WorkItem(538072)]
+        [WorkItem(538072, "DevDiv")]
         [Fact]
         public void UnusedLocal()
         {
@@ -404,7 +404,7 @@ class Program
             // Assert.Equal(1, warnings[649]);
         }
 
-        [WorkItem(538384)]
+        [WorkItem(538384, "DevDiv")]
         [Fact]
         public void UnusedLocalConstants()
         {
@@ -430,7 +430,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(538385)]
+        [WorkItem(538385, "DevDiv")]
         [Fact]
         public void UnusedLocalReferenceTypedVariables()
         {
@@ -453,7 +453,7 @@ class Program
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
-        [WorkItem(538386)]
+        [WorkItem(538386, "DevDiv")]
         [Fact]
         public void UnusedLocalValueTypedVariables()
         {
@@ -590,7 +590,7 @@ class Program
         }
 
         
-        [Fact, WorkItem(528052)]
+        [Fact, WorkItem(528052, "DevDiv")]
         public void InnerVariablesAreNotDefinitelyAssignedInBeginningOfLambdaBody()
         {
             string program = @"
@@ -615,7 +615,7 @@ class Program
                 );
         }
 
-        [WorkItem(540139)]
+        [WorkItem(540139, "DevDiv")]
         [Fact]
         public void DelegateCreationReceiverIsRead()
         {
@@ -635,7 +635,7 @@ class Program
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
-        [WorkItem(540405)]
+        [WorkItem(540405, "DevDiv")]
         [Fact]
         public void ErrorInFieldInitializerLambda()
         {
@@ -659,7 +659,7 @@ class Program
                 );
         }
 
-        [WorkItem(541389)]
+        [WorkItem(541389, "DevDiv")]
         [Fact]
         public void IterationWithEmptyBody()
         {
@@ -678,7 +678,7 @@ public class A
             CreateCompilationWithMscorlib(program).VerifyDiagnostics();
         }
 
-        [WorkItem(541389)]
+        [WorkItem(541389, "DevDiv")]
         [Fact]
         public void SelectionWithEmptyBody()
         {
@@ -696,7 +696,7 @@ public class A
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
 
-        [WorkItem(542146)]
+        [WorkItem(542146, "DevDiv")]
         [Fact]
         public void FieldlikeEvent()
         {
@@ -716,7 +716,7 @@ public struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Ev").WithArguments("S.Ev"));
         }
 
-        [WorkItem(542187)]
+        [WorkItem(542187, "DevDiv")]
         [Fact]
         public void GotoFromTry()
         {
@@ -742,7 +742,7 @@ public struct S
             CreateCompilationWithMscorlib(program).VerifyDiagnostics();
         }
 
-        [WorkItem(542154)]
+        [WorkItem(542154, "DevDiv")]
         [Fact]
         public void UnreachableThrow()
         {
@@ -764,7 +764,7 @@ public struct S
             CreateCompilationWithMscorlib(program).VerifyDiagnostics();
         }
 
-        [WorkItem(542585)]
+        [WorkItem(542585, "DevDiv")]
         [Fact]
         public void Bug9870()
         {
@@ -787,7 +787,7 @@ struct S<T>
                 );
         }
 
-        [WorkItem(542597)]
+        [WorkItem(542597, "DevDiv")]
         [Fact]
         public void LambdaEntryPointIsReachable()
         {
@@ -816,7 +816,7 @@ struct S<T>
                 );
         }
 
-        [WorkItem(542597)]
+        [WorkItem(542597, "DevDiv")]
         [Fact]
         public void LambdaInUnimplementedPartial()
         {
@@ -840,7 +840,7 @@ partial class C
                 );
         }
 
-        [WorkItem(541887)]
+        [WorkItem(541887, "DevDiv")]
         [Fact]
         public void CascadedDiagnostics01()
         {
@@ -879,7 +879,7 @@ class Program
                 );
         }
 
-        [WorkItem(543343)]
+        [WorkItem(543343, "DevDiv")]
         [Fact]
         public void ConstInSwitch()
         {
@@ -939,7 +939,7 @@ public struct A
                 );
         }
 
-        [WorkItem(542356)]
+        [WorkItem(542356, "DevDiv")]
         [Fact]
         public void StaticMemberExplosion()
         {
@@ -1013,7 +1013,7 @@ partial struct S
                 );
         }
 
-        [WorkItem(542567)]
+        [WorkItem(542567, "DevDiv")]
         [Fact]
         public void ImplicitFieldSequential()
         {
@@ -1215,7 +1215,7 @@ struct S
                 );
         }
 
-        [WorkItem(543429)]
+        [WorkItem(543429, "DevDiv")]
         [Fact]
         public void ConstructorCannotComplete()
         {
@@ -1309,7 +1309,7 @@ struct T
                 );
         }
 
-        [WorkItem(543466)]
+        [WorkItem(543466, "DevDiv")]
         [Fact]
         public void UnreferencedFieldWarningsMissingInEmit()
         {
@@ -1356,8 +1356,8 @@ class Test
                 );
         }
 
-        [WorkItem(540896)]
-        [WorkItem(541268)]
+        [WorkItem(540896, "DevDiv")]
+        [WorkItem(541268, "DevDiv")]
         [Fact]
         public void ChainToStructDefaultConstructor()
         {
@@ -1389,8 +1389,8 @@ namespace Roslyn.Compilers.CSharp
                 );
         }
 
-        [WorkItem(541298)]
-        [WorkItem(541298)]
+        [WorkItem(541298, "DevDiv")]
+        [WorkItem(541298, "DevDiv")]
         [Fact]
         public void SetStaticPropertyOnStruct()
         {
@@ -1476,7 +1476,7 @@ struct S<T>
         }
 
         [Fact]
-        [WorkItem(542901)]
+        [WorkItem(542901, "DevDiv")]
         public void DataFlowForStructFieldAssignment()
         {
             string program = @"struct S
@@ -1525,14 +1525,14 @@ struct S<T>
 
         #endregion
 
-        [Fact, WorkItem(545347)]
+        [Fact, WorkItem(545347, "DevDiv")]
         public void FieldInAbstractClass()
         {
             CreateCompilationWithMscorlib(@"abstract class AbstractType { public int Kind; }").VerifyDiagnostics();
         }
 
         [Fact]
-        [WorkItem(545642)]
+        [WorkItem(545642, "DevDiv")]
         public void InitializerAndConstructorWithOutParameter()
         {
             string program =
@@ -1549,7 +1549,7 @@ struct S<T>
         }
 
         [Fact]
-        [WorkItem(545875)]
+        [WorkItem(545875, "DevDiv")]
         public void TestSuppressUnreferencedVarAssgOnIntPtr()
         {
             var source = @"
@@ -1576,7 +1576,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(546183)]
+        [WorkItem(546183, "DevDiv")]
         public void TestUnassignedStructFieldsInPInvokePassByRefCase()
         {
             var source = @"
@@ -1640,7 +1640,7 @@ namespace ManagedDebuggingAssistants
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(546673)]
+        [WorkItem(546673, "DevDiv")]
         [Fact]
         public void TestBreakInsideNonLocalScopeBinder()
         {
@@ -1709,7 +1709,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "");
         }
 
-        [WorkItem(611904)]
+        [WorkItem(611904, "DevDiv")]
         [Fact]
         public void LabelAtTopLevelInsideLambda()
         {
@@ -1754,7 +1754,7 @@ class Program
                 );
         }
 
-        [WorkItem(633927)]
+        [WorkItem(633927, "DevDiv")]
         [Fact]
         public void Xyzzy()
         {
@@ -1787,7 +1787,7 @@ class Program
                 );
         }
 
-        [WorkItem(667368)]
+        [WorkItem(667368, "DevDiv")]
         [Fact]
         public void RegressionTest667368()
         {
@@ -1821,7 +1821,7 @@ namespace ConsoleApplication1
                 );
         }
 
-        [WorkItem(690921)]
+        [WorkItem(690921, "DevDiv")]
         [Fact]
         public void RegressionTest690921()
         {
@@ -1854,7 +1854,7 @@ namespace ConsoleApplication1
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(715338)]
+        [WorkItem(715338, "DevDiv")]
         [Fact]
         public void RegressionTest715338()
         {
@@ -1876,7 +1876,7 @@ static class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(808567)]
+        [WorkItem(808567, "DevDiv")]
         [Fact]
         public void RegressionTest808567()
         {

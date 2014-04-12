@@ -537,7 +537,7 @@ public class DATest : DATestBase {
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602)]
+        [WorkItem(529602, "DevDiv")]
         [Fact]
         public void DoWhileStatement()
         {
@@ -633,7 +633,7 @@ public class DATest : DATestBase {
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [WorkItem(529602)]
+        [WorkItem(529602, "DevDiv")]
         [Fact]
         public void UnreachableDoWhileCondition()
         {
@@ -1405,7 +1405,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "("));
         }
 
-        [WorkItem(648107)]
+        [WorkItem(648107, "DevDiv")]
         [Fact]
         public void WhidbeyBug479106()
         {
@@ -1458,7 +1458,7 @@ class C
             CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics();
         }
 
-        [WorkItem(529603)]
+        [WorkItem(529603, "DevDiv")]
         [Fact]
         public void TernaryOperator()
         {
@@ -1844,7 +1844,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
         }
 
-        [Fact, WorkItem(529603)]
+        [Fact, WorkItem(529603, "DevDiv")]
         public void IfConditionalAnd()
         {
             var source = @"
@@ -1875,7 +1875,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
         }
 
-        [WorkItem(545352)]
+        [WorkItem(545352, "DevDiv")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()
         {

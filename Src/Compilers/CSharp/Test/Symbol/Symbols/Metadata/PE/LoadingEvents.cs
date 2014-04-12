@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         // NOTE: results differ from corresponding property test.
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedAccessorModifiers()
         {

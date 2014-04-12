@@ -35,7 +35,7 @@ Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.
                 );
         }
 
-        [Fact, WorkItem(546737)]
+        [Fact, WorkItem(546737, "DevDiv")]
         public void TestBug16693()
         {
             // We should treat I.Equals as hiding object.Equals, as noted in section 7.4.1 
@@ -59,7 +59,7 @@ class C
         }
 
 
-        [Fact, WorkItem(546716)]
+        [Fact, WorkItem(546716, "DevDiv")]
         public void TestBug16639()
         {
             // The bug here was that the warning was reported for the first case -- the conversion 
@@ -444,7 +444,7 @@ class C
 );
         }
 
-        [WorkItem(538651)]
+        [WorkItem(538651, "DevDiv")]
         [Fact]
         public void TestMemberResolutionWithHiding()
         {
@@ -726,7 +726,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "q = q"));
         }
 
-        [Fact, WorkItem(672714)]
+        [Fact, WorkItem(672714, "DevDiv")]
         public void TestAssignmentWarnings_Dynamic()
         {
             string source = @"

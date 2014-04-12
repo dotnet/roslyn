@@ -240,7 +240,7 @@ class Test
             }
         }
 
-        [WorkItem(539538)]
+        [WorkItem(539538, "DevDiv")]
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
         public void TestVarianceConversionCycle()
@@ -269,7 +269,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
         }
 
-        [WorkItem(539538)]
+        [WorkItem(539538, "DevDiv")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
         public void TestVarianceConversionInfiniteExpansion01()
@@ -294,7 +294,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
 
-        [WorkItem(539538)]
+        [WorkItem(539538, "DevDiv")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
         public void TestVarianceConversionInfiniteExpansion02()
@@ -331,7 +331,7 @@ class Test
                 );
         }
 
-        [WorkItem(539538)]
+        [WorkItem(539538, "DevDiv")]
         [Fact]
         public void TestVarianceConversionLongFailure()
         {
@@ -367,8 +367,8 @@ class M {
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(539538)]
-        [WorkItem(529488)]
+        [WorkItem(539538, "DevDiv")]
+        [WorkItem(529488, "DevDiv")]
         [Fact]
         public void TestVarianceConversionLongSuccess_Breaking()
         {
@@ -409,7 +409,7 @@ class M
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
 
-        [WorkItem(542482)]
+        [WorkItem(542482, "DevDiv")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_ConstraintTypes()
         {
@@ -518,7 +518,7 @@ interface I8<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "S<T>").WithArguments("I8<T, U>.M(S<T>)", "T", "contravariant", "invariantly").WithLocation(33, 12));
         }
 
-        [WorkItem(602022)]
+        [WorkItem(602022, "DevDiv")]
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Enums()
         {
@@ -558,7 +558,7 @@ interface I4<in T, U>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>.E").WithArguments("I4<T, U>.M(C<T>.E)", "T", "contravariant", "invariantly").WithLocation(19, 14));
         }
 
-        [WorkItem(542794)]
+        [WorkItem(542794, "DevDiv")]
         [Fact]
         public void ContravariantBaseInterface()
         {
@@ -577,7 +577,7 @@ interface IB<in T> : IA<IB<T>> { }
         /// Report errors on type parameter use
         /// rather than declaration.
         /// </summary>
-        [WorkItem(855750)]
+        [WorkItem(855750, "DevDiv")]
         [Fact]
         public void ErrorLocations()
         {

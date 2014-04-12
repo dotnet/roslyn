@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTest()
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void SimplestDiagnosticAnalyzerTestInInitializer()
         {
@@ -243,7 +243,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void DiagnosticAnalyzerSuppressDiagnostic()
         {
@@ -267,7 +267,7 @@ public class C : NotFound
 
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsError()
         {
@@ -312,7 +312,7 @@ public class C : NotFound
                 );
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void DiagnosticAnalyzerWarnAsErrorGlobal()
         {
@@ -410,7 +410,7 @@ public class C : NotFound
             }
         }
 
-        [WorkItem(914236)]
+        [WorkItem(914236, "DevDiv")]
         [Fact(Skip = "914236")]
         public void DiagnosticAnalyzerSyntaxNodeAndSymbolAnalysis()
         {

@@ -124,7 +124,7 @@ int field = constantField;
             Assert.IsType<SourceLocalSymbol>(symbol);
         }
 
-        [WorkItem(540513)]
+        [WorkItem(540513, "DevDiv")]
         [Fact]
         public void BindVariableInGlobalStatement()
         {
@@ -139,7 +139,7 @@ int i = 2;
             Assert.Equal(SymbolKind.Field, symbol.Kind);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void BindVarKeyword()
         {
@@ -164,7 +164,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void BindVarKeyword_MultipleDeclarators()
         {
@@ -189,7 +189,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void BindVarNamedType()
         {
@@ -215,7 +215,7 @@ public class var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void BindVarNamedType_Ambiguous()
         {
@@ -248,7 +248,7 @@ public struct var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543864)]
+        [WorkItem(543864, "DevDiv")]
         [Fact]
         public void BindQueryVariable()
         {

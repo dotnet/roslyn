@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public class EventTests : CSharpTestBase
     {
         #region Positive Cases
-        [WorkItem(537323)]
+        [WorkItem(537323, "DevDiv")]
         [Fact]
         public void EventInStructFollowedByClassDecl()
         {
@@ -38,7 +38,7 @@ class main1
             Assert.Equal("main1, Test1", actual);
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void EventEscapedIdentifier()
         { 
@@ -304,7 +304,7 @@ public class E
             Assert.NotNull(eventSymbol2);
         }
 
-        [WorkItem(542748)]
+        [WorkItem(542748, "DevDiv")]
         [Fact()]
         public void FieldLikeEventAceessorIsSynthesized()
         {
@@ -622,7 +622,7 @@ class E : Interface
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("D.e"));
         }
 
-        [WorkItem(541704)]
+        [WorkItem(541704, "DevDiv")]
         [Fact]
         public void OperationsInDeclaringType()
         {
@@ -829,7 +829,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This"));
         }
 
-        [WorkItem(546356)]
+        [WorkItem(546356, "DevDiv")]
         [Fact]
         public void StructEvent2()
         {
@@ -864,7 +864,7 @@ struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E"));
         }
 
-        [WorkItem(546356)]
+        [WorkItem(546356, "DevDiv")]
         [Fact]
         public void StructEvent3()
         {
@@ -925,7 +925,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
         }
 
-        [WorkItem(542570)]
+        [WorkItem(542570, "DevDiv")]
         [Fact]
         public void UseMissingAccessorInInterface()
         {
@@ -1345,7 +1345,7 @@ class C
             Assert.Equal(Accessibility.Public, event3.RemoveMethod.DeclaredAccessibility);
         }
 
-        [WorkItem(538956)]
+        [WorkItem(538956, "DevDiv")]
         [Fact]
         public void EventAccessorDoesNotHideMethod()
         {
@@ -1368,7 +1368,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538956)]
+        [WorkItem(538956, "DevDiv")]
         [Fact]
         public void EventAccessorDoesNotConflictWithMethod()
         {
@@ -1393,7 +1393,7 @@ class Program {
             CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538992)]
+        [WorkItem(538992, "DevDiv")]
         [Fact]
         public void CannotAccessEventThroughParenthesizedType()
         {
@@ -1444,7 +1444,7 @@ class Outer
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Foo.Q"));
         }
 
-        [WorkItem(542461)]
+        [WorkItem(542461, "DevDiv")]
         [Fact]
         public void EventMustDelegate()
         {
@@ -1517,7 +1517,7 @@ namespace TestEvents
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Changed"));
         }
 
-        [WorkItem(543791)]
+        [WorkItem(543791, "DevDiv")]
         [Fact]
         public void MultipleDeclaratorsOneError()
         {
@@ -1540,7 +1540,7 @@ class A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "b").WithArguments("A.b"));
         }
 
-        [WorkItem(545682)]
+        [WorkItem(545682, "DevDiv")]
         [Fact]
         public void EventHidingMethod()
         {
@@ -1585,7 +1585,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
         }
 
-        [WorkItem(547071)]
+        [WorkItem(547071, "DevDiv")]
         [Fact]
         public void InvalidEventDeclarations()
         {
@@ -1813,7 +1813,7 @@ class Derived2 : Base
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
 
-        [Fact, WorkItem(570905)]
+        [Fact, WorkItem(570905, "DevDiv")]
         public void OverriddenAccessorName_BaseMissingAccessor()
         {
             var source = @"
@@ -1859,7 +1859,7 @@ class Derived2 : Base
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
 
-        [WorkItem(850168)]
+        [WorkItem(850168, "DevDiv")]
         [Fact]
         public void AbstractFieldLikeEvent()
         {

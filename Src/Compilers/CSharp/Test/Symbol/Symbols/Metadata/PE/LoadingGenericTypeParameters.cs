@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(varI102, varT.ConstraintTypes.ElementAt(1));
         }
 
-        [Fact, WorkItem(619267)]
+        [Fact, WorkItem(619267, "DevDiv")]
         public void InvalidNestedArity()
         {
             // .class public C`2<T1,T2>
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 );
         }
 
-        [WorkItem(528859)]
+        [WorkItem(528859, "DevDiv")]
         [Fact]
         public void InvalidNestedArity_2()
         {

@@ -245,7 +245,7 @@ class C {}
             Assert.Equal("O=System.Object", symbols[0].ToDisplayString(format: SymbolDisplayFormat.TestFormat));
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -261,7 +261,7 @@ namespace @foreach { }
             Assert.Equal("@for", alias.ToString());
         }
 
-        [WorkItem(541937)]
+        [WorkItem(541937, "DevDiv")]
         [Fact]
         public void LocalDeclaration()
         {
@@ -281,7 +281,7 @@ class Program
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
         }
 
-        [WorkItem(576809)]
+        [WorkItem(576809, "DevDiv")]
         [Fact]
         public void AsClause()
         {
@@ -304,7 +304,7 @@ class Program
             Assert.Equal("System.Int32?", model.GetAliasInfo(exprSyntaxToBind).Target.ToTestDisplayString());
         }
 
-        [WorkItem(542552)]
+        [WorkItem(542552, "DevDiv")]
         [Fact]
         public void IncompleteDuplicateAlias()
         {

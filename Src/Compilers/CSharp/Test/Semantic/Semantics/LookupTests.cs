@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region tests
 
-        [WorkItem(538262)]
+        [WorkItem(538262, "DevDiv")]
         [Fact]
         public void LookupCompilationUnitSyntax()
         {
@@ -59,7 +59,7 @@ class Test
             Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
         }
 
-        [WorkItem(527476)]
+        [WorkItem(527476, "DevDiv")]
         [Fact]
         public void LookupConstrAndDestr()
         {
@@ -125,7 +125,7 @@ class Test
             Assert.Equal(expected_lookupSymbols.ListToSortedString(), actual_lookupSymbols.ListToSortedString());
         }
 
-        [WorkItem(527477)]
+        [WorkItem(527477, "DevDiv")]
         [Fact]
         public void LookupNotYetDeclLocalVar()
         {
@@ -165,7 +165,7 @@ class Test
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538301)]
+        [WorkItem(538301, "DevDiv")]
         [Fact]
         public void LookupByNameIncorrectArity()
         {
@@ -187,7 +187,7 @@ class Test
             Assert.Empty(actual_lookupSymbols);
         }
 
-        [WorkItem(538310)]
+        [WorkItem(538310, "DevDiv")]
         [Fact]
         public void LookupInProtectedNonNestedType()
         {
@@ -204,7 +204,7 @@ protected class MyClass {
             Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
         }
 
-        [WorkItem(538311)]
+        [WorkItem(538311, "DevDiv")]
         [Fact]
         public void LookupClassContainsVolatileEnumField()
         {
@@ -225,7 +225,7 @@ class Test {
             Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
         }
 
-        [WorkItem(538312)]
+        [WorkItem(538312, "DevDiv")]
         [Fact]
         public void LookupUsingAlias()
         {
@@ -269,7 +269,7 @@ namespace T1
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538313)]
+        [WorkItem(538313, "DevDiv")]
         [Fact]
         public void LookupUsingNameSpaceContSameTypeNames()
         {
@@ -325,7 +325,7 @@ namespace T2
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(527489)]
+        [WorkItem(527489, "DevDiv")]
         [Fact]
         public void LookupMustNotBeNonInvocableMember()
         {
@@ -411,7 +411,7 @@ class Test
             info.Free();
         }
 
-        [WorkItem(538365)]
+        [WorkItem(538365, "DevDiv")]
         [Fact]
         public void LookupWithNameZeroArity()
         {
@@ -473,7 +473,7 @@ class Test
             Assert.DoesNotContain(not_expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(538365)]
+        [WorkItem(538365, "DevDiv")]
         [Fact]
         public void LookupWithNameZeroArityAndLookupOptionsAllMethods()
         {
@@ -542,7 +542,7 @@ class Test
             Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(539160)]
+        [WorkItem(539160, "DevDiv")]
         [Fact]
         public void LookupExcludeInAppropriateNS()
         {
@@ -588,7 +588,7 @@ class Test
             Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_ignoreAcc_as_string);
         }
 
-        [WorkItem(539814)]
+        [WorkItem(539814, "DevDiv")]
         /// <summary>
         /// Verify that there's a way to look up only the members of the base type that are visible
         /// from the current type.
@@ -638,7 +638,7 @@ class B : A
             Assert.Equal("Foo", names.Single());
         }
 
-        [WorkItem(528263)]
+        [WorkItem(528263, "DevDiv")]
         [Fact]
         public void LookupStartOfScopeMethodBody()
         {
@@ -681,7 +681,7 @@ class B : A
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(528263)]
+        [WorkItem(528263, "DevDiv")]
         [Fact]
         public void LookupEndOfScopeMethodBody()
         {
@@ -732,7 +732,7 @@ class B : A
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540888)]
+        [WorkItem(540888, "DevDiv")]
         [Fact]
         public void LookupLambdaParamInConstructorInitializer()
         {
@@ -782,7 +782,7 @@ class MyClass
             Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540893)]
+        [WorkItem(540893, "DevDiv")]
         [Fact]
         public void TestForLocalVarDeclLookupAtForKeywordInForStmt()
         {
@@ -820,7 +820,7 @@ class MyClass
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540894)]
+        [WorkItem(540894, "DevDiv")]
         [Fact]
         public void TestForeachIterVarLookupAtForeachKeyword()
         {
@@ -860,7 +860,7 @@ class MyClass
             Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(540912)]
+        [WorkItem(540912, "DevDiv")]
         [Fact]
         public void TestLookupInConstrInitIncompleteConstrDecl()
         {
@@ -900,7 +900,7 @@ class MyClass
             Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541060)]
+        [WorkItem(541060, "DevDiv")]
         [Fact]
         public void TestLookupInsideIncompleteNestedLambdaBody()
         {
@@ -940,7 +940,7 @@ class C
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541611)]
+        [WorkItem(541611, "DevDiv")]
         [Fact]
         public void LookupLambdaInsideAttributeUsage()
         {
@@ -977,7 +977,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541909)]
+        [WorkItem(541909, "DevDiv")]
         [Fact]
         public void LookupFromRangeVariableAfterFromClause()
         {
@@ -1013,7 +1013,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541921)]
+        [WorkItem(541921, "DevDiv")]
         [Fact]
         public void LookupFromRangeVariableInsideNestedFromClause()
         {
@@ -1051,7 +1051,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541919)]
+        [WorkItem(541919, "DevDiv")]
         [Fact]
         public void LookupLambdaVariableInQueryExpr()
         {
@@ -1086,7 +1086,7 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(541910)]
+        [WorkItem(541910, "DevDiv")]
         [Fact]
         public void LookupInsideQueryExprOutsideTypeDecl()
         {
@@ -1103,7 +1103,7 @@ class Program
             Assert.NotEmpty(actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(542203)]
+        [WorkItem(542203, "DevDiv")]
         [Fact]
         public void LookupInsideQueryExprInMalformedFromClause()
         {
@@ -1132,7 +1132,7 @@ class Program
             Assert.NotEmpty(actual_lookupSymbols_as_string);
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void MultipleOverlappingInterfaceConstraints()
         {
@@ -1172,7 +1172,7 @@ public class NumberSpecification<TCandidate>
             CreateCompilationWithMscorlib(testSrc).VerifyDiagnostics();
         }
 
-        [WorkItem(529406)]
+        [WorkItem(529406, "DevDiv")]
         [Fact]
         public void FixedPointerInitializer()
         {
@@ -1226,7 +1226,7 @@ class Program
             CompilationUtils.CheckSymbols(symbols, "System", "Microsoft");
         }
 
-        [Fact, WorkItem(546523)]
+        [Fact, WorkItem(546523, "DevDiv")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_01()
         {
             var source =
@@ -1250,7 +1250,7 @@ class Program
             Assert.DoesNotContain(systemXmlNS, actual_lookupSymbols);
         }
 
-        [Fact, WorkItem(546523)]
+        [Fact, WorkItem(546523, "DevDiv")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
         {
             var usings = new [] { "using X;" };
@@ -1317,7 +1317,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(530826)]
+        [WorkItem(530826, "DevDiv")]
         public void TestAmbiguousInterfaceLookup()
         {
             var source =
@@ -1389,7 +1389,7 @@ class Q : P
         #region regressions
 
         [Fact]
-        [WorkItem(552472)]
+        [WorkItem(552472, "DevDiv")]
         public void BrokenCode01()
         {
             var source =
@@ -1408,7 +1408,7 @@ class Q : P
         }
 
         [Fact]
-        [WorkItem(552472)]
+        [WorkItem(552472, "DevDiv")]
         public void BrokenCode02()
         {
             var source =

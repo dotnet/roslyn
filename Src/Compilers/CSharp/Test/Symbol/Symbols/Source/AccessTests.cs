@@ -100,7 +100,7 @@ namespace X {
         // TODO: Enumeration members implicitly have public declared accessibility.
         // TODO: No access modifiers are allowed on enumeration member declarations.
 
-        [WorkItem(538257)]
+        [WorkItem(538257, "DevDiv")]
         [Fact]
         public void AccessInternalClassWithPublicConstructor()
         {
@@ -115,7 +115,7 @@ class C1
             Assert.False(comp.GetDeclarationDiagnostics().Any());
         }
 
-        [WorkItem(538257)]
+        [WorkItem(538257, "DevDiv")]
         [Fact]
         public void ProtectedAcrossClasses01()
         {
@@ -137,7 +137,7 @@ public class E
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(539147)]
+        [WorkItem(539147, "DevDiv")]
         [Fact]
         public void ProtectedAcrossClasses02()
         {

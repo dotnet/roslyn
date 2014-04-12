@@ -1583,7 +1583,7 @@ End Class";
         /// Should support implementing and overriding indexed properties
         /// from C# if the accessors are implemented/overridden directly.
         /// </summary>
-        [WorkItem(545516)]
+        [WorkItem(545516, "DevDiv")]
         [Fact]
         public void InterfaceImplementation()
         {
@@ -2443,7 +2443,7 @@ P1(4).set
 }");
         }
 
-        [WorkItem(546441)]
+        [WorkItem(546441, "DevDiv")]
         [Fact]
         public void UnimplementedIndexedProperty()
         {
@@ -2522,7 +2522,7 @@ class D : CodeModule
             Assert.NotNull(sourceType2.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
         }
 
-        [WorkItem(530571)]
+        [WorkItem(530571, "DevDiv")]
         [Fact(Skip="530571")]
         public void GetAccessorMethodBug16439()
         {
@@ -2583,7 +2583,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(846234)]
+        [WorkItem(846234, "DevDiv")]
         [Fact]
         public void IndexedPropertyColorColor()
         {
@@ -2646,7 +2646,7 @@ P[2] = 2
 }");
         }
 
-        [WorkItem(853401)]
+        [WorkItem(853401, "DevDiv")]
         [Fact]
         public void IndexedPropertyDynamicInvocation()
         {
@@ -2704,8 +2704,8 @@ End Class";
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
         }
 
-        [WorkItem(846234)]
-        [WorkItem(853401)]
+        [WorkItem(846234, "DevDiv")]
+        [WorkItem(853401, "DevDiv")]
         [Fact]
         public void IndexedPropertyDynamicColorColorInvocation()
         {

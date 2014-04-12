@@ -145,7 +145,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
-        [Fact(), WorkItem(546839)]
+        [Fact(), WorkItem(546839, "DevDiv")]
         public void IncompleteCref3()
         {
             var source = @"
@@ -170,7 +170,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
-        [Fact(), WorkItem(546919)]
+        [Fact(), WorkItem(546919, "DevDiv")]
         public void IncompleteCref4()
         {
             var source = @"
@@ -201,7 +201,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
-        [Fact(), WorkItem(547000)]
+        [Fact(), WorkItem(547000, "DevDiv")]
         public void IncompleteCref5()
         {
             var source = @"
@@ -224,7 +224,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
-        [WorkItem(547000)]
+        [WorkItem(547000, "DevDiv")]
         [Fact]
         public void Verbatim()
         {
@@ -255,7 +255,7 @@ class Program { }
             Assert.Null(actualSymbol);
         }
 
-        [WorkItem(547000)]
+        [WorkItem(547000, "DevDiv")]
         [Fact]
         public void NotQuiteVerbatim()
         {
@@ -955,7 +955,7 @@ class B<T>
         /// <summary>
         /// Comment on unrelated type.
         /// </summary>
-        [WorkItem(554077)]
+        [WorkItem(554077, "DevDiv")]
         [Fact]
         public void TypeVersusConstructor2()
         {
@@ -1051,7 +1051,7 @@ class Other
         /// <summary>
         /// Comment on nested type of constructor type (same behavior as unrelated type).
         /// </summary>
-        [WorkItem(554077)]
+        [WorkItem(554077, "DevDiv")]
         [Fact]
         public void TypeVersusConstructor3()
         {
@@ -1832,7 +1832,7 @@ class Outer
             Assert.Null(actualSymbol);
         }
 
-        [WorkItem(568006)]
+        [WorkItem(568006, "DevDiv")]
         [Fact]
         public void Inaccessible3()
         {
@@ -1857,7 +1857,7 @@ class Test { }
             Assert.Equal("B", actualSymbol.ContainingAssembly.Name);
         }
 
-        [WorkItem(568006)]
+        [WorkItem(568006, "DevDiv")]
         [Fact]
         public void Inaccessible4()
         {
@@ -1887,8 +1887,8 @@ class ClientUtils
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(568006)]
-        [WorkItem(709199)]
+        [WorkItem(568006, "DevDiv")]
+        [WorkItem(709199, "DevDiv")]
         [Fact]
         public void ProtectedInstanceBaseMember()
         {
@@ -1926,8 +1926,8 @@ class Other
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(568006)]
-        [WorkItem(709199)]
+        [WorkItem(568006, "DevDiv")]
+        [WorkItem(709199, "DevDiv")]
         [Fact]
         public void ProtectedStaticBaseMember()
         {
@@ -4485,7 +4485,7 @@ class C<T, op_Explicit, op_Division>
                 Diagnostic(ErrorCode.WRN_BadXMLRefTypeVar, "operator /").WithArguments("operator /"));
         }
 
-        [WorkItem(530970)]
+        [WorkItem(530970, "DevDiv")]
         [Fact]
         public void DanglingDocComment()
         {
@@ -4502,7 +4502,7 @@ class C<T, op_Explicit, op_Division>
             Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
         }
 
-        [WorkItem(530969)]
+        [WorkItem(530969, "DevDiv")]
         [Fact]
         public void MissingCrefTypeParameter()
         {
@@ -4520,7 +4520,7 @@ class C<T> { }
             Assert.DoesNotThrow(() => model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single()));
         }
 
-        [WorkItem(530969)]
+        [WorkItem(530969, "DevDiv")]
         [Fact]
         public void InvalidCrefTypeParameter()
         {
@@ -4571,7 +4571,7 @@ class C<T> { }
             AssertEx.None(GetCrefSyntaxes(compilation), x => true);
         }
 
-        [WorkItem(546965)]
+        [WorkItem(546965, "DevDiv")]
         [Fact]
         public void MultipleCrefs()
         {
@@ -4593,7 +4593,7 @@ class C<T> { }
             Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntaxes.ElementAt(1)));
         }
 
-        [WorkItem(546992)]
+        [WorkItem(546992, "DevDiv")]
         [Fact]
         public void NestedGenerics()
         {
@@ -4648,8 +4648,8 @@ class A<T>
             Assert.Equal("A<A<T>> A<T>.B<U>.op_Explicit(A<T>.B<U> b)", symbols[4].ToTestDisplayString());
         }
 
-        [WorkItem(546992)]
-        [WorkItem(546993)]
+        [WorkItem(546992, "DevDiv")]
+        [WorkItem(546993, "DevDiv")]
         [Fact]
         public void NestedPredefinedTypes()
         {
@@ -4704,7 +4704,7 @@ class A<T>
             Assert.Equal("A<System.Int32> A<T>.B<U>.op_Explicit(A<T>.B<U> b)", symbols[4].ToTestDisplayString());
         }
 
-        [WorkItem(546991)]
+        [WorkItem(546991, "DevDiv")]
         [Fact]
         public void NewMethods1()
         {
@@ -4731,7 +4731,7 @@ class Derived : Base
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(546991)]
+        [WorkItem(546991, "DevDiv")]
         [Fact]
         public void NewMethods2()
         {
@@ -4765,8 +4765,8 @@ class Derived : Middle
             Assert.Null(model.GetSymbolInfo(cref).Symbol); // As in dev11.
         }
 
-        [WorkItem(546991)]
-        [WorkItem(547037)]
+        [WorkItem(546991, "DevDiv")]
+        [WorkItem(547037, "DevDiv")]
         [Fact]
         public void NewMethods3()
         {
@@ -4793,7 +4793,7 @@ class Derived : Base
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(546991)]
+        [WorkItem(546991, "DevDiv")]
         [Fact]
         public void Overrides1()
         {
@@ -4820,7 +4820,7 @@ class Derived : Base
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(546991)]
+        [WorkItem(546991, "DevDiv")]
         [Fact]
         public void Overrides2()
         {
@@ -4853,8 +4853,8 @@ class Derived : Middle
             Assert.Null(model.GetSymbolInfo(cref).Symbol); // As in dev11.
         }
 
-        [WorkItem(546991)]
-        [WorkItem(547037)]
+        [WorkItem(546991, "DevDiv")]
+        [WorkItem(547037, "DevDiv")]
         [Fact]
         public void Overrides3()
         {
@@ -4881,7 +4881,7 @@ class Derived : Base
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(546991)]
+        [WorkItem(546991, "DevDiv")]
         [Fact]
         public void ExtensionMethod()
         {
@@ -4928,7 +4928,7 @@ class Derived : Base
             Assert.Null(model.GetSymbolInfo(crefs[2]).Symbol);
         }
 
-        [WorkItem(546990)]
+        [WorkItem(546990, "DevDiv")]
         [Fact]
         public void ConstructorOfGenericTypeWithinThatType()
         {
@@ -4960,7 +4960,7 @@ class Other { }
             Assert.Equal(constructor, model.GetSymbolInfo(crefs[3]).Symbol.OriginalDefinition);
         }
 
-        [WorkItem(546990)]
+        [WorkItem(546990, "DevDiv")]
         [Fact]
         public void ConstructorOfGenericTypeWithinNestedType()
         {
@@ -4989,8 +4989,8 @@ class Outer<T>
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(546990)]
-        [WorkItem(554077)]
+        [WorkItem(546990, "DevDiv")]
+        [WorkItem(554077, "DevDiv")]
         [Fact]
         public void QualifiedConstructorOfGenericTypeWithinNestedType()
         {
@@ -5033,7 +5033,7 @@ class Outer<T>
         }
 
         // VB had some problems with these cases between dev10 and dev11.
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void GenericTypeWithoutTypeParameters()
         {
@@ -5095,7 +5095,7 @@ class SomeOtherClass
             Assert.Equal(genericMethod, model.GetSymbolInfo(crefs[6]).Symbol.OriginalDefinition);
         }
 
-        [WorkItem(546990)]
+        [WorkItem(546990, "DevDiv")]
         [Fact]
         public void Dynamic()
         {
@@ -5194,7 +5194,7 @@ class C<T>
             Assert.Equal(m2b, model.GetSymbolInfo(crefs[7]).Symbol.OriginalDefinition);
         }
 
-        [WorkItem(531152)]
+        [WorkItem(531152, "DevDiv")]
         [Fact]
         public void MissingArgumentTypes()
         {
@@ -5228,7 +5228,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(531135)]
+        [WorkItem(531135, "DevDiv")]
         [Fact]
         public void NonOverloadableOperator()
         {
@@ -5254,7 +5254,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(531135)]
+        [WorkItem(531135, "DevDiv")]
         [Fact]
         public void InvalidOperator()
         {
@@ -5280,7 +5280,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(547041)]
+        [WorkItem(547041, "DevDiv")]
         [Fact]
         public void EmptyVerbatimIdentifier()
         {
@@ -5306,7 +5306,7 @@ class Program
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(531161)]
+        [WorkItem(531161, "DevDiv")]
         [Fact]
         public void AttributeNameHasPrefix()
         {
@@ -5322,7 +5322,7 @@ class Program
             Assert.Equal(0, GetCrefSyntaxes(compilation).Count());
         }
 
-        [WorkItem(531160)]
+        [WorkItem(531160, "DevDiv")]
         [Fact]
         public void DuplicateAttribute()
         {
@@ -5346,7 +5346,7 @@ class Program
             Assert.Equal(compilation.GetSpecialType(SpecialType.System_Int64), model.GetSymbolInfo(crefSyntaxes[1]).Symbol);
         }
 
-        [WorkItem(531157)]
+        [WorkItem(531157, "DevDiv")]
         [Fact]
         public void IntPtrConversion()
         {
@@ -5368,7 +5368,7 @@ class C
             Assert.Equal("System.IntPtr System.IntPtr.op_Explicit(System.Void* value)", model.GetSymbolInfo(cref).Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(531233)]
+        [WorkItem(531233, "DevDiv")]
         [Fact]
         public void CrefInOtherElement()
         {
@@ -5388,7 +5388,7 @@ class C
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(531162)]
+        [WorkItem(531162, "DevDiv")]
         [Fact]
         public void OuterVersusInheritedFromOuter()
         {
@@ -5415,7 +5415,7 @@ class C<T>
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(531344)]
+        [WorkItem(531344, "DevDiv")]
         [Fact]
         public void ConstraintsInCrefs()
         {
@@ -5512,7 +5512,7 @@ class C<T>
             Assert.NotEqual(sourceTypeParam, crefTypeParam);
         }
 
-        [WorkItem(531337)]
+        [WorkItem(531337, "DevDiv")]
         [Fact]
         public void CrefInMethodBody()
         {
@@ -5541,7 +5541,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(531337)]
+        [WorkItem(531337, "DevDiv")]
         [Fact]
         public void CrefOnAccessor()
         {
@@ -5571,7 +5571,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(531391)]
+        [WorkItem(531391, "DevDiv")]
         [Fact]
         public void IncompleteGenericCrefMissingName()
         {
@@ -5602,7 +5602,7 @@ class C { }
             Assert.Null(model.GetSymbolInfo(cref).Symbol);
         }
 
-        [WorkItem(548900)]
+        [WorkItem(548900, "DevDiv")]
         [Fact]
         public void InvalidOperatorCref()
         {
@@ -5620,7 +5620,7 @@ class C
             AssertEx.None(cref.DescendantTokens(descendIntoTrivia: true), token => token.ValueText == null);
         }
 
-        [WorkItem(549210)]
+        [WorkItem(549210, "DevDiv")]
         [Fact]
         public void InvalidGenericCref()
         {
@@ -5642,7 +5642,7 @@ class C
             }
         }
 
-        [WorkItem(549351)]
+        [WorkItem(549351, "DevDiv")]
         [Fact]
         public void CrefNotOnMember()
         {
@@ -5662,7 +5662,7 @@ class C
             Assert.Equal(SpecialType.System_Decimal, symbol.ContainingType.SpecialType);
         }
 
-        [WorkItem(551354)]
+        [WorkItem(551354, "DevDiv")]
         [Fact]
         public void DotIntoTypeParameter1()
         {
@@ -5698,8 +5698,8 @@ class C
 
         }
 
-        [WorkItem(551354)]
-        [WorkItem(552759)]
+        [WorkItem(551354, "DevDiv")]
+        [WorkItem(552759, "DevDiv")]
         [Fact]
         public void DotIntoTypeParameter2()
         {
@@ -5750,8 +5750,8 @@ class C
             }
         }
 
-        [WorkItem(549351)]
-        [WorkItem(675600)]
+        [WorkItem(549351, "DevDiv")]
+        [WorkItem(675600, "DevDiv")]
         [Fact]
         public void OperatorGreaterThanGreaterThanEquals()
         {
@@ -5770,7 +5770,7 @@ class C { }
                 Diagnostic(ErrorCode.WRN_ErrorOverride, " }}").WithArguments("error CS1037: Overloadable operator expected", "1037"));
         }
 
-        [WorkItem(554077)]
+        [WorkItem(554077, "DevDiv")]
         [Fact]
         public void GenericDelegateConstructor()
         {
@@ -5800,7 +5800,7 @@ class C { }
             Assert.Equal(delegateConstructor, symbol.OriginalDefinition);
         }
 
-        [WorkItem(553394)]
+        [WorkItem(553394, "DevDiv")]
         [Fact]
         public void InaccessibleViaImports()
         {
@@ -5822,7 +5822,7 @@ enum E { }
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(554086)]
+        [WorkItem(554086, "DevDiv")]
         [Fact]
         public void InheritedInterfaceMember()
         {
@@ -5850,7 +5850,7 @@ class GetEnumerator
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(553609)]
+        [WorkItem(553609, "DevDiv")]
         [Fact]
         public void StringConstructor()
         {
@@ -5874,7 +5874,7 @@ enum E { }
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(553609)]
+        [WorkItem(553609, "DevDiv")]
         [Fact]
         public void InvalidStringConstructor()
         {
@@ -5900,7 +5900,7 @@ enum E { }
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(553609)]
+        [WorkItem(553609, "DevDiv")]
         [Fact]
         public void AliasQualifiedTypeConstructor()
         {
@@ -5923,7 +5923,7 @@ class C { }
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
-        [WorkItem(553609)]
+        [WorkItem(553609, "DevDiv")]
         [Fact]
         public void InvalidAliasQualifiedTypeConstructor()
         {
@@ -5949,7 +5949,7 @@ class C { }
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(553609)]
+        [WorkItem(553609, "DevDiv")]
         [Fact]
         public void AliasQualifiedGenericTypeConstructor()
         {
@@ -5976,7 +5976,7 @@ class C<T>
             Assert.Equal(expectedSymbolOriginalDefinition, actualSymbol.OriginalDefinition);
         }
 
-        [WorkItem(553592)]
+        [WorkItem(553592, "DevDiv")]
         [Fact]
         public void CrefTypeParameterMemberLookup1()
         {
@@ -6000,7 +6000,7 @@ class C<U> { }
             Assert.Equal(0, members.Length);
         }
 
-        [WorkItem(553592)]
+        [WorkItem(553592, "DevDiv")]
         [Fact]
         public void CrefTypeParameterMemberLookup2()
         {
@@ -6024,7 +6024,7 @@ enum E { }
             Assert.Equal(0, members.Length);
         }
 
-        [WorkItem(598371)]
+        [WorkItem(598371, "DevDiv")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup1()
         {
@@ -6062,7 +6062,7 @@ class X
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
 
-        [WorkItem(586815)]
+        [WorkItem(586815, "DevDiv")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup2()
         {
@@ -6100,7 +6100,7 @@ class A<T>
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
 
-        [WorkItem(743425)]
+        [WorkItem(743425, "DevDiv")]
         [Fact]
         public void NestedTypeInParameterList()
         {
@@ -6139,7 +6139,7 @@ class Outer<T>
             Assert.Equal(inner, parameterTypeSymbol);
         }
 
-        [WorkItem(653402)]
+        [WorkItem(653402, "DevDiv")]
         [Fact]
         public void CrefAliasInfo_TopLevel()
         {
@@ -6166,7 +6166,7 @@ class C { }
             Assert.Equal("A", alias.Name);
         }
 
-        [WorkItem(653402)]
+        [WorkItem(653402, "DevDiv")]
         [Fact]
         public void CrefAliasInfo_Parameter()
         {
@@ -6200,7 +6200,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(760850)]
+        [WorkItem(760850, "DevDiv")]
         public void TestGetSpeculativeSymbolInfoInsideCref()
         {
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
@@ -6246,7 +6246,7 @@ class P
         }
 
         [Fact]
-        [WorkItem(760850)]
+        [WorkItem(760850, "DevDiv")]
         public void TestGetSpeculativeSymbolInfoInsideCrefParameterOrReturnType()
         {
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
@@ -6315,7 +6315,7 @@ class Outer
             Assert.Equal(CandidateReason.Inaccessible, nonCrefInfo.CandidateReason);
         }
 
-        [WorkItem(768624)]
+        [WorkItem(768624, "DevDiv")]
         [Fact]
         public void CrefsOnDelegate()
         {

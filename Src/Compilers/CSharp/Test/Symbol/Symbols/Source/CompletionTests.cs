@@ -101,7 +101,7 @@ class A {
         /// failed before the fix was applied.  Now it documents the former problem
         /// and gives us some level of confidence in the fix.
         /// </summary>
-        [Fact, WorkItem(546196), WorkItem(546604)]
+        [Fact, WorkItem(546196, "DevDiv"), WorkItem(546604, "DevDiv")]
         public void TestNextCompletionPart()
         {
             SymbolCompletionState state = new SymbolCompletionState();

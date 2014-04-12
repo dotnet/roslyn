@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class GetSemanticInfoTests : SemanticModelTestBase
     {
-        [WorkItem(544320)]
+        [WorkItem(544320, "DevDiv")]
         [Fact]
         public void TestBug12592()
         {
@@ -42,7 +42,7 @@ class D : B
             Assert.Equal("x", sym.Symbol.Name);
         }
 
-        [WorkItem(541948)]
+        [WorkItem(541948, "DevDiv")]
         [Fact]
         public void DelegateArgumentType()
         {
@@ -75,7 +75,7 @@ class Test
             Assert.NotNull(info.ConvertedType);
         }
 
-        [WorkItem(541949)]
+        [WorkItem(541949, "DevDiv")]
         [Fact]
         public void LambdaWithParenthesis_BindOutsideOfParenthesis()
         {
@@ -108,8 +108,8 @@ public class Test
             Assert.Equal("Test.D", info.ConvertedType.ToTestDisplayString());
         }
 
-        [WorkItem(529056)]
-        [WorkItem(529056)]
+        [WorkItem(529056, "DevDiv")]
+        [WorkItem(529056, "DevDiv")]
         [Fact]
         public void LambdaWithParenthesis_BindInsideOfParenthesis()
         {
@@ -142,7 +142,7 @@ public class Test
             Assert.Equal("Test.D", info.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(528656)]
+        [Fact, WorkItem(528656, "DevDiv")]
         public void SemanticInfoForInvalidExpression()
         {
             var text = @"
@@ -171,7 +171,7 @@ public class A
             Assert.Null(info.ConvertedType);
         }
 
-        [WorkItem(541973)]
+        [WorkItem(541973, "DevDiv")]
         [Fact]
         public void LambdaAsAttributeArgumentErr()
         {
@@ -279,7 +279,7 @@ public class Test
             ConversionTestHelper(model, v9right, ConversionKind.Identity, ConversionKind.Identity);
         }
 
-        [WorkItem(527486)]
+        [WorkItem(527486, "DevDiv")]
         [Fact]
         public void ClassifyConversionExplicit()
         {
@@ -409,7 +409,7 @@ public class Test
             Assert.Equal(0, errs.Count());
         }
 
-        [WorkItem(527767)]
+        [WorkItem(527767, "DevDiv")]
         [Fact]
         public void ClassifyConversionNullable()
         {
@@ -467,7 +467,7 @@ enum E { zero, one }
             ConversionTestHelper(model, v5[0].Initializer.Value, ConversionKind.ImplicitEnumeration, ConversionKind.ExplicitNullable);
         }
 
-        [Fact, WorkItem(543994)]
+        [Fact, WorkItem(543994, "DevDiv")]
         public void ClassifyConversionImplicitUserDef()
         {
             var text = @"using System;
@@ -525,7 +525,7 @@ class MyClass
             Assert.Equal(impconv, conv);
         }
 
-        [Fact, WorkItem(544151)]
+        [Fact, WorkItem(544151, "DevDiv")]
         public void PublicViewOfPointerConversions()
         {
             ValidateConversion(Conversion.PointerToVoid, ConversionKind.PointerToVoid);
@@ -879,7 +879,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(540279)]
+        [WorkItem(540279, "DevDiv")]
         [Fact]
         public void NoMembersForVoidReturnType()
         {
@@ -903,7 +903,7 @@ class C
             Assert.Equal(0, symbols.Length);
         }
 
-        [WorkItem(540767)]
+        [WorkItem(540767, "DevDiv")]
         [Fact]
         public void BindIncompleteVarDeclWithDoKeyword()
         {
@@ -968,7 +968,7 @@ class C
             Assert.Equal("C..ctor(System.Int32 x)", baseConstructor.ToTestDisplayString());
         }
 
-        [WorkItem(540862)]
+        [WorkItem(540862, "DevDiv")]
         [Fact]
         public void BindThisStaticConstructorInitializer()
         {
@@ -991,7 +991,7 @@ class MyClass
             Assert.Equal("MyClass..ctor()", invokedConstructor.ToTestDisplayString());
         }
 
-        [WorkItem(541053)]
+        [WorkItem(541053, "DevDiv")]
         [Fact]
         public void CheckAndAdjustPositionOutOfRange()
         {
@@ -1372,7 +1372,7 @@ class C
             Assert.Null(bindInfo.ConstantValue.Value);
         }
 
-        [WorkItem(542296)]
+        [WorkItem(542296, "DevDiv")]
         [Fact]
         public void TypeArgumentsOnFieldAccess1()
         {
@@ -1403,7 +1403,7 @@ public class Test
             Assert.Equal("Fld", candidate.Name);
         }
 
-        [WorkItem(542296)]
+        [WorkItem(542296, "DevDiv")]
         [Fact]
         public void TypeArgumentsOnFieldAccess2()
         {
@@ -1432,7 +1432,7 @@ public class Test
             Assert.Equal("Test", symbol.Name);
         }
 
-        [WorkItem(528785)]
+        [WorkItem(528785, "DevDiv")]
         [Fact]
         public void TopLevelIndexer()
         {
@@ -1454,7 +1454,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             Assert.Equal("E", symbol.Name);
         }
 
-        [WorkItem(542360)]
+        [WorkItem(542360, "DevDiv")]
         [Fact]
         public void TypeAndMethodHaveSameTypeParameterName()
         {
@@ -1485,7 +1485,7 @@ class A<T> : I<T>
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A"), symbol.ContainingSymbol); //from the type, not the method
         }
 
-        [WorkItem(542436)]
+        [WorkItem(542436, "DevDiv")]
         [Fact]
         public void RecoveryFromBadNamespaceDeclaration()
         {
@@ -1502,7 +1502,7 @@ namespace N { }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
-        [WorkItem(542634)]
+        [WorkItem(542634, "DevDiv")]
         /// Test that binding a local declared with var binds the same way when localSymbol.Type is called before BindVariableDeclaration.
         /// Assert occurs if the two do not compute the same type.
         [Fact]
@@ -1549,7 +1549,7 @@ class Program
             bindInfo = model.GetSemanticInfoSummary(varIdentifier);
         }
 
-        [WorkItem(542186)]
+        [WorkItem(542186, "DevDiv")]
         [Fact]
         public void IndexerParameter()
         {
@@ -1584,7 +1584,7 @@ class C
             Assert.Equal(symbol, lookupSymbols.Single());
         }
 
-        [WorkItem(542186)]
+        [WorkItem(542186, "DevDiv")]
         [Fact]
         public void IndexerValueParameter()
         {
@@ -1619,7 +1619,7 @@ class C
             Assert.Equal(symbol, lookupSymbols.Single());
         }
 
-        [WorkItem(542777)]
+        [WorkItem(542777, "DevDiv")]
         [Fact]
         public void IndexerThisParameter()
         {
@@ -1651,7 +1651,7 @@ class C
             Assert.Equal(SymbolKind.Method, symbol.ContainingSymbol.Kind);
         }
 
-        [WorkItem(542592)]
+        [WorkItem(542592, "DevDiv")]
         [Fact]
         public void TypeParameterParamsParameter()
         {
@@ -1690,7 +1690,7 @@ class Program
             Assert.Equal(TypeKind.TypeParameter, ((MethodSymbol)candidate.OriginalDefinition).Parameters.Last().Type.TypeKind);
         }
 
-        [WorkItem(542458)]
+        [WorkItem(542458, "DevDiv")]
         [Fact]
         public void ParameterDefaultValues()
         {
@@ -1735,7 +1735,7 @@ struct S
             Assert.Null(parameters[3].ExplicitDefaultValue);
         }
 
-        [WorkItem(542764)]
+        [WorkItem(542764, "DevDiv")]
         [Fact]
         public void UnboundGenericTypeArity()
         {
@@ -1791,7 +1791,7 @@ class C
             Assert.Equal("System.Void[]", arrayType.ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterDiamondInheritance1()
         {
@@ -1824,7 +1824,7 @@ public class C<T> where T : IA, IB // can find IA.P in two different ways
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterDiamondInheritance2() //add hiding member in derived interface
         {
@@ -1860,7 +1860,7 @@ public class C<T> where T : IA, IB
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterDiamondInheritance3() //reverse order of interface list (shouldn't matter)
         {
@@ -1896,7 +1896,7 @@ public class C<T> where T : IB, IA
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterDiamondInheritance4() //Two interfaces with a common base
         {
@@ -1931,7 +1931,7 @@ public class C<T> where T : IB, IC
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup1()
         {
@@ -1946,7 +1946,7 @@ public interface IA
             Assert.Equal("System.Object IA.P { get; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup2()
         {
@@ -1967,7 +1967,7 @@ public interface IB
             Assert.True(members.SetEquals(typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics.Select(i => i.GetMember<PropertySymbol>("P"))));
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup3()
         {
@@ -1988,7 +1988,7 @@ public interface IB : IA
             Assert.Equal("System.Object IB.P { get; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup4()
         {
@@ -2008,7 +2008,7 @@ public class D
             Assert.Equal("System.Object D.P { get; set; }", members.Single().ToTestDisplayString());
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup5()
         {
@@ -2031,7 +2031,7 @@ public class D
             Assert.True(members.Select(m => m.ToTestDisplayString()).SetEquals(new[] { "void IA.M()", "void D.M()" }));
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup6()
         {
@@ -2055,7 +2055,7 @@ public class D
             Assert.True(members.Select(m => m.ToTestDisplayString()).SetEquals(new[] { "void D.M()", "void IA.M()", "void IA.M(System.Int32 x)" }));
         }
 
-        [WorkItem(543295)]
+        [WorkItem(543295, "DevDiv")]
         [Fact]
         public void TypeParameterMemberLookup7()
         {
@@ -2106,7 +2106,7 @@ public class C<T> where T : {1}
             return model.LookupSymbols(exprSyntaxToBind.SpanStart, typeParameter, memberName);
         }
 
-        [WorkItem(542966)]
+        [WorkItem(542966, "DevDiv")]
         [Fact]
         public void IndexerMemberRace()
         {
@@ -2205,7 +2205,7 @@ class C
             Assert.Equal("System.IO.StreamReader", typeInfo.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(543169)]
+        [WorkItem(543169, "DevDiv")]
         [Fact]
         public void ParameterOfLambdaPassedToOutParameter()
         {
@@ -2236,7 +2236,7 @@ class D
             Assert.Equal(MethodKind.AnonymousFunction, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
 
-        [WorkItem(529096)]
+        [WorkItem(529096, "DevDiv")]
         [Fact]
         public void MemberAccessExpressionResults()
         {
@@ -2307,7 +2307,7 @@ class C
             }
         }
 
-        [WorkItem(543554)]
+        [WorkItem(543554, "DevDiv")]
         [Fact]
         public void SemanticInfoForUncheckedExpression()
         {
@@ -2335,7 +2335,7 @@ public class A
             Assert.Equal(SpecialType.System_Double, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543554)]
+        [WorkItem(543554, "DevDiv")]
         [Fact]
         public void SemanticInfoForCheckedExpression()
         {
@@ -2364,7 +2364,7 @@ class Program
             Assert.Equal(SpecialType.System_Int32, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543554)]
+        [WorkItem(543554, "DevDiv")]
         [Fact]
         public void CheckedUncheckedExpression()
         {
@@ -2388,7 +2388,7 @@ class Test
             Assert.Equal(SpecialType.System_Int32, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(543543)]
+        [WorkItem(543543, "DevDiv")]
         [Fact]
         public void SymbolInfoForImplicitOperatorParameter()
         {
@@ -2418,8 +2418,8 @@ class Program
             Assert.Equal(MethodKind.Conversion, ((MethodSymbol)symbol.ContainingSymbol).MethodKind);
         }
 
-        [WorkItem(543494)]
-        [WorkItem(543560)]
+        [WorkItem(543494, "DevDiv")]
+        [WorkItem(543560, "DevDiv")]
         [Fact]
         public void BrokenPropertyDeclaration()
         {
@@ -2443,7 +2443,7 @@ Class Program // this will get a Property declaration ... *sigh*
             var declaredSymbol = model.GetDeclaredSymbol(expr);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedBinaryOperator()
         {
@@ -2466,7 +2466,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.AdditionOperatorName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedLogicalOperator()
         {
@@ -2499,7 +2499,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.BitwiseAndOperatorName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedUnaryOperator()
         {
@@ -2521,7 +2521,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.UnaryPlusOperatorName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedExplicitConversion()
         {
@@ -2542,7 +2542,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.ExplicitConversionName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedImplicitConversion()
         {
@@ -2563,7 +2563,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.ImplicitConversionName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedTrueOperator()
         {
@@ -2613,7 +2613,7 @@ class C
             Assert.False(model.GetConstantValue(expr).HasValue);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedIncrement()
         {
@@ -2635,7 +2635,7 @@ class C
             CheckOperatorSemanticInfo(text, WellKnownMemberNames.IncrementOperatorName);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SemanticInfoForUserDefinedCompoundAssignment()
         {
@@ -2684,7 +2684,7 @@ class C
             Assert.False(model.GetConstantValue(expr).HasValue);
         }
 
-        [Fact, WorkItem(543550), WorkItem(543439)]
+        [Fact, WorkItem(543550, "DevDiv"), WorkItem(543439, "DevDiv")]
         public void SymbolInfoForUserDefinedConversionOverloadResolutionFailure()
         {
             var text = @"
@@ -2724,7 +2724,7 @@ struct S
             Assert.True(candidates.SetEquals(conversions, EqualityComparer<ISymbol>.Default));
         }
 
-        [Fact, WorkItem(543550), WorkItem(543439)]
+        [Fact, WorkItem(543550, "DevDiv"), WorkItem(543439, "DevDiv")]
         public void SymbolInfoForUserDefinedConversionOverloadResolutionFailureEmpty()
         {
             var text = @"
@@ -2754,7 +2754,7 @@ struct S
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedUnaryOperatorOverloadResolutionFailure()
         {
@@ -2815,7 +2815,7 @@ class Program
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedUnaryOperatorOverloadResolutionFailureEmpty()
         {
@@ -2847,7 +2847,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedIncrementOperatorOverloadResolutionFailure()
         {
@@ -2907,7 +2907,7 @@ class Program
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedIncrementOperatorOverloadResolutionFailureEmpty()
         {
@@ -2939,7 +2939,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedBinaryOperatorOverloadResolutionFailure()
         {
@@ -2981,7 +2981,7 @@ class C
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedBinaryOperatorOverloadResolutionFailureEmpty()
         {
@@ -3013,7 +3013,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedCompoundAssignmentOperatorOverloadResolutionFailure()
         {
@@ -3055,7 +3055,7 @@ class C
             Assert.True(candidates.SetEquals(operators, EqualityComparer<ISymbol>.Default));
         }
 
-        [WorkItem(543550)]
+        [WorkItem(543550, "DevDiv")]
         [Fact]
         public void SymbolInfoForUserDefinedCompoundAssignmentOperatorOverloadResolutionFailureEmpty()
         {
@@ -3087,7 +3087,7 @@ class C
             Assert.Equal(0, candidates.Length);
         }
 
-        [WorkItem(543550), WorkItem(529158)]
+        [WorkItem(543550, "DevDiv"), WorkItem(529158, "DevDiv")]
         [Fact]
         public void MethodGroupForUserDefinedBinaryOperator()
         {
@@ -3171,7 +3171,7 @@ class C
             Assert.False(sawWrongConversionKind);
         }
 
-        [WorkItem(543674)]
+        [WorkItem(543674, "DevDiv")]
         [Fact()]
         public void SemanticInfo_NormalVsLiftedUserDefinedImplicitConversion()
         {
@@ -3234,7 +3234,7 @@ class Z
             Assert.Equal("ImplicitUserDefined", conversion.ToString());
         }
 
-        [WorkItem(543715)]
+        [WorkItem(543715, "DevDiv")]
         [Fact]
         public void SemanticInfo_NormalVsLiftedUserDefinedConversion_ImplicitConversion()
         {
@@ -3601,8 +3601,8 @@ class C
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
         }
 
-        [WorkItem(545136)]
-        [WorkItem(538320)]
+        [WorkItem(545136, "DevDiv")]
+        [WorkItem(538320, "DevDiv")]
         [Fact()] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SpecialTypeInSourceAndMetadata()
         {
@@ -3633,7 +3633,7 @@ namespace System
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(544651)]
+        [WorkItem(544651, "DevDiv")]
         [Fact]
         public void SpeculativelyBindMethodGroup1()
         {
@@ -3661,7 +3661,7 @@ class C
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.Symbol);
         }
 
-        [WorkItem(544651)]
+        [WorkItem(544651, "DevDiv")]
         [Fact]
         public void SpeculativelyBindMethodGroup2()
         {
@@ -3695,7 +3695,7 @@ class C
             Assert.Equal(2, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(546046)]
+        [WorkItem(546046, "DevDiv")]
         [Fact]
         public void UnambiguousMethodGroupWithoutBoundParent1()
         {
@@ -3720,7 +3720,7 @@ class C
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.Symbol);
         }
 
-        [WorkItem(546046)]
+        [WorkItem(546046, "DevDiv")]
         [Fact]
         public void UnambiguousMethodGroupWithoutBoundParent2()
         {
@@ -3747,7 +3747,7 @@ class C
             Assert.Equal(1, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(544651)]
+        [WorkItem(544651, "DevDiv")]
         [Fact]
         public void SpeculativelyBindPropertyGroup1()
         {
@@ -3786,7 +3786,7 @@ class C
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P"), info.Symbol);
         }
 
-        [WorkItem(544651)]
+        [WorkItem(544651, "DevDiv")]
         [Fact]
         public void SpeculativelyBindPropertyGroup2()
         {
@@ -3835,7 +3835,7 @@ class C
         //[Fact]
         //public void UnambiguousPropertyGroupWithoutBoundParent1()
 
-        [WorkItem(546117)]
+        [WorkItem(546117, "DevDiv")]
         [Fact]
         public void UnambiguousPropertyGroupWithoutBoundParent2()
         {
@@ -3873,7 +3873,7 @@ class C
             Assert.Equal(1, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(544648)]
+        [WorkItem(544648, "DevDiv")]
         [Fact]
         public void SpeculativelyBindExtensionMethod()
         {
@@ -3952,7 +3952,7 @@ static class Program
         /// because it was set to IEnumerable&lt;int&gt; before binding the declaration of x but to an error
         /// type after binding the declaration of x.
         /// </summary>
-        [WorkItem(545097)]
+        [WorkItem(545097, "DevDiv")]
         [Fact]
         public void NameConflictDuringLambdaBinding1()
         {
@@ -4009,7 +4009,7 @@ class C
         /// This test reverses the order of statement binding from NameConflictDuringLambdaBinding2 to confirm that
         /// the results are the same.
         /// </summary>
-        [WorkItem(545097)]
+        [WorkItem(545097, "DevDiv")]
         [Fact]
         public void NameConflictDuringLambdaBinding2()
         {
@@ -4058,7 +4058,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
         }
 
-        [WorkItem(546263)]
+        [WorkItem(546263, "DevDiv")]
         [Fact]
         public void SpeculativeSymbolInfoForOmittedTypeArgumentSyntaxNode()
         {
@@ -4088,7 +4088,7 @@ class C
             Assert.Null(info.Symbol);
         }
 
-        [WorkItem(530313)]
+        [WorkItem(530313, "DevDiv")]
         [Fact]
         public void SpeculativeTypeInfoForOmittedTypeArgumentSyntaxNode()
         {
@@ -4118,7 +4118,7 @@ class C
             Assert.Equal(default(TypeInfo), info);
         }
 
-        [WorkItem(546266)]
+        [WorkItem(546266, "DevDiv")]
         [Fact]
         public void SpeculativeTypeInfoForGenericNameSyntaxWithinTypeOfInsideAnonMethod()
         {
@@ -4148,8 +4148,8 @@ class C
             Assert.NotNull(info.Type);
         }
 
-        [WorkItem(547160)]
-        [Fact, WorkItem(531496)]
+        [WorkItem(547160, "DevDiv")]
+        [Fact, WorkItem(531496, "DevDiv")]
         public void SemanticInfoForOmittedTypeArgumentInIncompleteMember()
         {
             var text = @"
@@ -4178,8 +4178,8 @@ class Test
             Assert.Null(info.Type);
         }
 
-        [WorkItem(547160)]
-        [Fact, WorkItem(531496)]
+        [WorkItem(547160, "DevDiv")]
+        [Fact, WorkItem(531496, "DevDiv")]
         public void CollectionInitializerSpeculativeInfo()
         {
             var text = @"
@@ -4202,7 +4202,7 @@ class Test
             Assert.Equal(TypeInfo.None, typeInfo);
         }
 
-        [WorkItem(531362)]
+        [WorkItem(531362, "DevDiv")]
         [Fact]
         public void DelegateElementAccess()
         {
@@ -4255,7 +4255,7 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.Kind);
         }
 
-        [WorkItem(531534)]
+        [WorkItem(531534, "DevDiv")]
         [Fact]
         public void LambdaOutsideMemberModel()
         {
@@ -4276,7 +4276,7 @@ int P
             Assert.Null(symbol);
         }
 
-        [WorkItem(633340)]
+        [WorkItem(633340, "DevDiv")]
         [Fact]
         public void MemberOfInaccessibleType()
         {
@@ -4329,7 +4329,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested"));
         }
 
-        [WorkItem(633340)]
+        [WorkItem(633340, "DevDiv")]
         [Fact]
         public void NotReferencableMemberOfInaccessibleType()
         {
@@ -4376,7 +4376,7 @@ class B : A
 );
         }
 
-        [WorkItem(633340)]
+        [WorkItem(633340, "DevDiv")]
         [Fact]
         public void AccessibleMemberOfInaccessibleType()
         {
@@ -4422,7 +4422,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested"));
         }
 
-        [WorkItem(530252)]
+        [WorkItem(530252, "DevDiv")]
         [Fact]
         public void MethodGroupHiddenSymbols1()
         {
@@ -4475,7 +4475,7 @@ class Test
             Assert.Equal(structType, structInfo.Symbol.ContainingType);
         }
 
-        [WorkItem(530252)]
+        [WorkItem(530252, "DevDiv")]
         [Fact]
         public void MethodGroupHiddenSymbols2()
         {
@@ -4521,7 +4521,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(645512)]
+        [WorkItem(645512, "DevDiv")]
         public void LookupProtectedMemberOnConstrainedTypeParameter()
         {
             var source = @"
@@ -4565,7 +4565,7 @@ class C : A
         }
 
         [Fact]
-        [WorkItem(645512)]
+        [WorkItem(645512, "DevDiv")]
         public void LookupProtectedMemberOnConstrainedTypeParameter2()
         {
             var source = @"
@@ -4610,7 +4610,7 @@ class C : A
         }
 
         [Fact]
-        [WorkItem(652583)]
+        [WorkItem(652583, "DevDiv")]
         public void ParameterDefaultValueWithoutParameter()
         {
             var source = @"
@@ -4635,7 +4635,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(530791)]
+        [WorkItem(530791, "DevDiv")]
         public void Repro530791()
         {
             var source = @"
@@ -4707,7 +4707,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(654753)]
+        [WorkItem(654753, "DevDiv")]
         public void Repro654753()
         {
             var source = @"
@@ -4761,7 +4761,7 @@ public class D : C
         }
 
         [Fact]
-        [WorkItem(750557)]
+        [WorkItem(750557, "DevDiv")]
         public void MethodGroupFromMetadata()
         {
             var source = @"
@@ -4788,7 +4788,7 @@ void M()
             Assert.NotNull(symbolInfo.Symbol);
         }
 
-        [Fact, WorkItem(531304)]
+        [Fact, WorkItem(531304, "DevDiv")]
         public void GetPreprocessingSymbolInfoForDefinedSymbol()
         {
             string sourceCode = @"
@@ -4834,7 +4834,7 @@ void M()
             Assert.Equal(symbolInfo.Symbol.GetHashCode(), symbolInfo2.Symbol.GetHashCode());
         }
 
-        [Fact, WorkItem(531304)]
+        [Fact, WorkItem(531304, "DevDiv")]
         public void GetPreprocessingSymbolInfoForUndefinedSymbol()
         {
             string sourceCode = @"
@@ -4885,7 +4885,7 @@ public class T
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [Fact, WorkItem(531304), WorkItem(720566)]
+        [Fact, WorkItem(531304, "DevDiv"), WorkItem(720566, "DevDiv")]
         public void GetPreprocessingSymbolInfoForSymbolDefinedLaterInSource()
         {
             string sourceCode = @"
@@ -4899,7 +4899,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_01()
         {
             string sourceCode = @"
@@ -4913,7 +4913,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_02()
         {
             string sourceCode = @"
@@ -4929,7 +4929,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_03()
         {
             string sourceCode = @"
@@ -4945,7 +4945,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_04()
         {
             string sourceCode = @"
@@ -4961,7 +4961,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_05()
         {
             string sourceCode = @"
@@ -4977,7 +4977,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_06()
         {
             string sourceCode = @"
@@ -4994,7 +4994,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_07()
         {
             string sourceCode = @"
@@ -5011,7 +5011,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_08()
         {
             string sourceCode = @"
@@ -5027,7 +5027,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_09()
         {
             string sourceCode = @"
@@ -5043,7 +5043,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_10()
         {
             string sourceCode = @"
@@ -5060,7 +5060,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_11()
         {
             string sourceCode = @"
@@ -5077,7 +5077,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_12()
         {
             string sourceCode = @"
@@ -5094,7 +5094,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_13()
         {
             string sourceCode = @"
@@ -5110,7 +5110,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_14()
         {
             string sourceCode = @"
@@ -5126,7 +5126,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_15()
         {
             string sourceCode = @"
@@ -5142,7 +5142,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_16()
         {
             string sourceCode = @"
@@ -5158,7 +5158,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_17()
         {
             string sourceCode = @"
@@ -5175,7 +5175,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_18()
         {
             string sourceCode = @"
@@ -5192,7 +5192,7 @@ public class T
             Assert.True(symbolInfo.IsDefined, "must be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_19()
         {
             string sourceCode = @"
@@ -5209,7 +5209,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_20()
         {
             string sourceCode = @"
@@ -5226,7 +5226,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_21()
         {
             string sourceCode = @"
@@ -5243,7 +5243,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [Fact, WorkItem(720566)]
+        [Fact, WorkItem(720566, "DevDiv")]
         public void Bug720566_22()
         {
             string sourceCode = @"
@@ -5260,7 +5260,7 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
-        [WorkItem(835391)]
+        [WorkItem(835391, "DevDiv")]
         [Fact]
         public void ConstructedErrorTypeValidation()
         {
@@ -5303,7 +5303,7 @@ class C2<T> : E2<T> { }";
         }
 
         [Fact]
-        [WorkItem(849371)]
+        [WorkItem(849371, "DevDiv")]
         public void NestedLambdaErrorRecovery()
         {
             var source = @"
@@ -5359,9 +5359,9 @@ class Program
             }
         }
 
-        [WorkItem(849371)]
-        [WorkItem(854543)]
-        [WorkItem(854548)]
+        [WorkItem(849371, "DevDiv")]
+        [WorkItem(854543, "DevDiv")]
+        [WorkItem(854548, "DevDiv")]
         [Fact]
         public void SemanticModelLambdaErrorRecovery()
         {
@@ -5416,7 +5416,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(854543)]
+        [WorkItem(854543, "DevDiv")]
         public void ClassifyConversionOnNull()
         {
             var source = @"
@@ -5458,7 +5458,7 @@ class C { }
             Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
-        [WorkItem(854543)]
+        [WorkItem(854543, "DevDiv")]
         [Fact]
         public void ClassifyConversionOnLambda()
         {
@@ -5496,7 +5496,7 @@ class B { }
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
-        [WorkItem(854543)]
+        [WorkItem(854543, "DevDiv")]
         [Fact]
         public void ClassifyConversionOnAmbiguousLambda()
         {
@@ -5542,7 +5542,7 @@ class C { }
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
-        [WorkItem(854543)]
+        [WorkItem(854543, "DevDiv")]
         [Fact]
         public void ClassifyConversionOnAmbiguousMethodGroup()
         {

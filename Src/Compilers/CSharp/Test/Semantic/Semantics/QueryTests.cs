@@ -566,7 +566,7 @@ class Query
             Assert.Equal("ThenBy", oinfo1.Symbol.Name);
         }
 
-        [WorkItem(541774)]
+        [WorkItem(541774, "DevDiv")]
         [Fact]
         public void MultipleFromClauseIdentifierInExprNotInContext()
         {
@@ -586,7 +586,7 @@ class Program
                 );
         }
 
-        [WorkItem(541906)]
+        [WorkItem(541906, "DevDiv")]
         [Fact]
         public void NullLiteralFollowingJoinInQuery()
         {
@@ -613,7 +613,7 @@ class Program
                 );
         }
 
-        [WorkItem(541779)]
+        [WorkItem(541779, "DevDiv")]
         [Fact]
         public void MultipleFromClauseQueryExpr()
         {
@@ -643,7 +643,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
-        [WorkItem(541782)]
+        [WorkItem(541782, "DevDiv")]
         [Fact]
         public void FromSelectQueryExprOnArraysWithTypeImplicit()
         {
@@ -671,7 +671,7 @@ class Program
         }
 
 
-        [WorkItem(541788)]
+        [WorkItem(541788, "DevDiv")]
         [Fact]
         public void JoinClauseTest()
         {
@@ -700,7 +700,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
-        [WorkItem(541789)]
+        [WorkItem(541789, "DevDiv")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void WhereClauseTest()
@@ -731,7 +731,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
-        [WorkItem(541942)]
+        [WorkItem(541942, "DevDiv")]
         [Fact]
         public void WhereDefinedInType()
         {
@@ -857,7 +857,7 @@ public class Test2
             Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", info2.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(541806)]
+        [WorkItem(541806, "DevDiv")]
         [Fact]
         public void GetDeclaredSymbolForQueryContinuation()
         {
@@ -885,7 +885,7 @@ public class Test2
             Assert.Equal(SymbolKind.RangeVariable, symbol.Kind);
         }
 
-        [WorkItem(541899)]
+        [WorkItem(541899, "DevDiv")]
         [Fact]
         public void ComputeQueryVariableType()
         {
@@ -909,7 +909,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
-        [WorkItem(541893)]
+        [WorkItem(541893, "DevDiv")]
         [Fact]
         public void GetDeclaredSymbolForJoinIntoClause()
         {
@@ -939,8 +939,8 @@ static class Test
             Assert.Equal("? x8", symbol.ToTestDisplayString());
         }
 
-        [WorkItem(541982)]
-        [WorkItem(543494)]
+        [WorkItem(541982, "DevDiv")]
+        [WorkItem(543494, "DevDiv")]
         [Fact()]
         public void GetDeclaredSymbolAddAccessorDeclIncompleteQuery()
         {
@@ -968,7 +968,7 @@ public class QueryExpressionTest
             Assert.True(symbols.All(s => ReferenceEquals(s, null)));
         }
 
-        [WorkItem(542235)]
+        [WorkItem(542235, "DevDiv")]
         [Fact]
         public void TwoFromClauseFollowedBySelectClause()
         {
@@ -1008,7 +1008,7 @@ class Test
             Assert.Equal(CandidateReason.None, symbolInfoForSelect.CandidateReason);
         }
 
-        [WorkItem(528747)]
+        [WorkItem(528747, "DevDiv")]
         [Fact]
         public void SemanticInfoForOrderingClauses()
         {
@@ -1042,7 +1042,7 @@ public class QueryExpressionTest
             Assert.Equal(3, count);
         }
 
-        [WorkItem(542266)]
+        [WorkItem(542266, "DevDiv")]
         [Fact]
         public void FromOrderBySelectQueryTranslation()
         {
@@ -1095,7 +1095,7 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem(528756)]
+        [WorkItem(528756, "DevDiv")]
         [Fact]
         public void FromWhereSelectTranslation()
         {
@@ -1133,7 +1133,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select"));
         }
 
-        [WorkItem(528760)]
+        [WorkItem(528760, "DevDiv")]
         [Fact]
         public void FromJoinSelectTranslation()
         {
@@ -1159,8 +1159,8 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem(528761)]
-        [WorkItem(544585)]
+        [WorkItem(528761, "DevDiv")]
+        [WorkItem(544585, "DevDiv")]
         [Fact]
         public void OrderingSyntaxWithOverloadResolutionFailure()
         {
@@ -1194,7 +1194,7 @@ class Program
             Assert.Null(symbolInfoForOrdering.Symbol);
         }
 
-        [WorkItem(542292)]
+        [WorkItem(542292, "DevDiv")]
         [Fact]
         public void EmitIncompleteQueryWithSyntaxErrors()
         {
@@ -1216,7 +1216,7 @@ class Program
             }
         }
 
-        [WorkItem(542294)]
+        [WorkItem(542294, "DevDiv")]
         [Fact]
         public void EmitQueryWithBindErrors()
         {
@@ -1238,7 +1238,7 @@ class Program
             }
         }
 
-        [WorkItem(542372)]
+        [WorkItem(542372, "DevDiv")]
         [Fact]
         public void BindToIncompleteSelectManyDecl()
         {
@@ -1273,7 +1273,7 @@ class C<T>
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem(542419)]
+        [WorkItem(542419, "DevDiv")]
         [Fact]
         public void BindIdentifierInWhereErrorTolerance()
         {
@@ -1299,7 +1299,7 @@ class Program
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem(542460)]
+        [WorkItem(542460, "DevDiv")]
         [Fact]
         public void QueryWithMultipleParseErrorsAndInteractiveParseOption()
         {
@@ -1327,7 +1327,7 @@ public class QueryExpressionTest
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(542496)]
+        [WorkItem(542496, "DevDiv")]
         [Fact]
         public void QueryExpressionInFieldInitReferencingAnotherFieldWithInteractiveParseOption()
         {
@@ -1353,7 +1353,7 @@ class P
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(542559)]
+        [WorkItem(542559, "DevDiv")]
         [Fact]
         public void StaticTypeInFromClause()
         {
@@ -1380,7 +1380,7 @@ class C
                 );
         }
 
-        [WorkItem(542560)]
+        [WorkItem(542560, "DevDiv")]
         [Fact]
         public void MethodGroupInFromClause()
         {
@@ -1404,7 +1404,7 @@ class Program
                 );
         }
 
-        [WorkItem(542558)]
+        [WorkItem(542558, "DevDiv")]
         [Fact]
         public void SelectFromType01()
         {
@@ -1437,7 +1437,7 @@ class C
             Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
-        [WorkItem(542558)]
+        [WorkItem(542558, "DevDiv")]
         [Fact]
         public void SelectFromType02()
         {
@@ -1470,7 +1470,7 @@ class C
             Assert.Equal("Invoke", infoSelect.Symbol.Name);
         }
 
-        [WorkItem(542624)]
+        [WorkItem(542624, "DevDiv")]
         [Fact]
         public void QueryColorColor()
         {
@@ -1509,7 +1509,7 @@ class Program
             );
         }
 
-        [WorkItem(542704)]
+        [WorkItem(542704, "DevDiv")]
         [Fact]
         public void QueryOnSourceWithGroupByMethod()
         {
@@ -1592,7 +1592,7 @@ public class QueryExpressionTest
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(543787)]
+        [WorkItem(543787, "DevDiv")]
         [Fact]
         public void GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
         {
@@ -1623,7 +1623,7 @@ class Test
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
         }
 
-        [WorkItem(543790)]
+        [WorkItem(543790, "DevDiv")]
         [Fact]
         public void GetQueryClauseInfoForQueryWithSyntaxErrors()
         {
@@ -1648,7 +1648,7 @@ class Test
             Assert.NotNull(queryInfo);
         }
 
-        [WorkItem(545797)]
+        [WorkItem(545797, "DevDiv")]
         [Fact]
         public void QueryOnNull()
         {
@@ -1674,7 +1674,7 @@ static class C
                 );
         }
 
-        [WorkItem(545797)]
+        [WorkItem(545797, "DevDiv")]
         [Fact]
         public void QueryOnLambda()
         {
@@ -1700,7 +1700,7 @@ static class C
                 );
         }
 
-        [WorkItem(545444)]
+        [WorkItem(545444, "DevDiv")]
         [Fact]
         public void RefOmittedOnComCall()
         {
@@ -1736,7 +1736,7 @@ class Test
                 );
         }
 
-        [WorkItem(529350)]
+        [WorkItem(529350, "DevDiv")]
         [Fact]
         public void BindLambdaBodyWhenError()
         {

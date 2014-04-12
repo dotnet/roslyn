@@ -65,7 +65,7 @@ class EntryPoint
 
         }
 
-        [WorkItem(544936)]
+        [WorkItem(544936, "DevDiv")]
         [Fact]
         public void TestAmbiguousInvocationError()
         {
@@ -348,7 +348,7 @@ class CBar : IFoo // CS0535 * 2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CBar").WithArguments("CBar", "Metadata.IFoo.M<T>(T)"));
         }
 
-        [WorkItem(540518)]
+        [WorkItem(540518, "DevDiv")]
         [Fact]
         public void TestExplicitImplementInterfaceMethodsWithCustomModifiers()
         {

@@ -118,7 +118,7 @@ ValueC = 257 // Out of underlying range
             VerifyEnumsValue(text, "c1.EnumTest", null, null);
         }
 
-        [WorkItem(539167)]
+        [WorkItem(539167, "DevDiv")]
         // No enum-body 
         [Fact]
         public void CS1514ERR_LbraceExpected_NoEnumBody()
@@ -211,7 +211,7 @@ ValueC = 257 // Out of underlying range
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewNotRequired });
         }
 
-        [WorkItem(527757)]
+        [WorkItem(527757, "DevDiv")]
         // Modifiers for enum member
         [Fact()]
         public void CS1041ERR_IdentifierExpectedKW_ModifiersForEnumMember()
@@ -655,7 +655,7 @@ public class c1
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "COLORS").WithArguments("c1.COLORS", "uint"));
         }
 
-        [WorkItem(539178)]
+        [WorkItem(539178, "DevDiv")]
         // No underlying type after ‘:’ 
         [Fact]
         public void CS3031ERR_TypeExpected_NoUnderlyingTypeForEnum()
@@ -743,7 +743,7 @@ class c1
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "o").WithArguments("o", "object"));
         }
 
-        [WorkItem(540765)]
+        [WorkItem(540765, "DevDiv")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst()
         {
@@ -764,7 +764,7 @@ class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem(540765)]
+        [WorkItem(540765, "DevDiv")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst2()
         {
@@ -782,7 +782,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_CircConstValue, "e").WithArguments("Test.e")); // No Errors
         }
 
-        [WorkItem(540765)]
+        [WorkItem(540765, "DevDiv")]
         [Fact]
         public void TestInitializeWithEnumMemberEnumConst3()
         {
@@ -818,7 +818,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(E3)e").WithArguments("Test.E3", "int"));
         }
 
-        [WorkItem(540771)]
+        [WorkItem(540771, "DevDiv")]
         [Fact]
         public void TestUseEnumMemberFromBaseGenericType()
         {
@@ -837,7 +837,7 @@ class Derived<T, U> : Base<U, T>
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(); // No Errors
         }
 
-        [WorkItem(750553)]
+        [WorkItem(750553, "DevDiv")]
         [Fact]
         public void InvalidEnumUnderlyingType()
         {

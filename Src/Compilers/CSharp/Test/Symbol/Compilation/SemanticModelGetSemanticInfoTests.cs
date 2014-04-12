@@ -346,7 +346,7 @@ class B
             Assert.Equal(SymbolKind.Field, symbol.Kind);
         }
 
-        [WorkItem(542481)]
+        [WorkItem(542481, "DevDiv")]
         [Fact]
         public void InaccessibleBaseClassConstructor01()
         {
@@ -376,7 +376,7 @@ namespace Test
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
 
-        [WorkItem(542481)]
+        [WorkItem(542481, "DevDiv")]
         [Fact]
         public void InaccessibleBaseClassConstructor02()
         {
@@ -771,7 +771,7 @@ partial class A {
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(539002)]
+        [WorkItem(539002, "DevDiv")]
         [Fact]
         public void IncompleteGenericMethodCall()
         {
@@ -877,7 +877,7 @@ static class S
                 "void I<A>.M<A, U>(I<A> y, U z)");
         }
 
-        [WorkItem(541141)]
+        [WorkItem(541141, "DevDiv")]
         [Fact]
         public void IncompleteGenericExtensionMethodCall()
         {
@@ -897,7 +897,7 @@ class C
                 "IEnumerable<double> IEnumerable<double>.Where<double>(Func<double, int, bool> predicate)");
         }
 
-        [WorkItem(541349)]
+        [WorkItem(541349, "DevDiv")]
         [Fact]
         public void GenericExtensionMethodCallExplicitTypeArgs()
         {
@@ -951,7 +951,7 @@ static class S
                 "void T.E<T, U>(U u)");
         }
 
-        [WorkItem(541297)]
+        [WorkItem(541297, "DevDiv")]
         [Fact]
         public void GenericExtensionMethodCall()
         {
@@ -1087,7 +1087,7 @@ static class S
         /// Overloads from different scopes should
         /// be included in method group.
         /// </summary>
-        [WorkItem(541890)]
+        [WorkItem(541890, "DevDiv")]
         [Fact]
         public void IncompleteExtensionOverloadedDifferentScopes()
         {
@@ -1622,7 +1622,7 @@ End Class";
             Utils.CheckSymbols(semanticInfo.CandidateSymbols);
         }
 
-        [WorkItem(538859)]
+        [WorkItem(538859, "DevDiv")]
         [Fact]
         public void ThisExpression()
         {
@@ -1652,7 +1652,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538143)]
+        [WorkItem(538143, "DevDiv")]
         [Fact]
         public void GetSemanticInfoOfNull()
         {
@@ -1670,7 +1670,7 @@ class C
             Assert.Throws<ArgumentNullException>(() => model.GetMemberGroup((ConstructorInitializerSyntax)null));
         }
 
-        [WorkItem(537860)]
+        [WorkItem(537860, "DevDiv")]
         [Fact]
         public void UsingNamespaceName()
         {
@@ -1728,7 +1728,7 @@ class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(527269)]
+        [WorkItem(527269, "DevDiv")]
         [Fact]
         public void NullLiteral()
         {
@@ -1877,7 +1877,7 @@ class Test
             Assert.Equal(0, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(537979)]
+        [WorkItem(537979, "DevDiv")]
         [Fact]
         public void StringConcatWithInt()
         {
@@ -1965,7 +1965,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537983)]
+        [WorkItem(537983, "DevDiv")]
         [Fact]
         public void AddWithUIntAndInt()
         {
@@ -1995,7 +1995,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(527314)]
+        [WorkItem(527314, "DevDiv")]
         [Fact()]
         public void AddExprWithNullableUInt64AndInt32()
         {
@@ -2089,7 +2089,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(3250, "DevDiv_Projects/Roslyn")]
+        [WorkItem(527324, "DevDiv")]
         [Fact]
         public void ExceptionCatchVariable()
         {
@@ -2160,7 +2160,7 @@ class Program {
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538039)]
+        [WorkItem(538039, "DevDiv")]
         [Fact]
         public void GlobalAliasQualifiedName()
         {
@@ -2200,7 +2200,7 @@ namespace N2
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(527363)]
+        [WorkItem(527363, "DevDiv")]
         [Fact]
         public void ArrayInitializer()
         {
@@ -2227,7 +2227,7 @@ class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538041)]
+        [WorkItem(538041, "DevDiv")]
         [Fact]
         public void AliasQualifiedName()
         {
@@ -2272,7 +2272,7 @@ namespace B
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538021)]
+        [WorkItem(538021, "DevDiv")]
         [Fact]
         public void EnumToStringInvocationExpr()
         {
@@ -2307,7 +2307,7 @@ public class MainClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538026)]
+        [WorkItem(538026, "DevDiv")]
         [Fact]
         public void ExplIfaceMethInvocationExpr()
         {
@@ -2357,7 +2357,7 @@ namespace N2
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538027)]
+        [WorkItem(538027, "DevDiv")]
         [Fact]
         public void InvocExprWithAliasIdentifierNameSameAsType()
         {
@@ -2446,7 +2446,7 @@ public class MyClass : BaseClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538104)]
+        [WorkItem(538104, "DevDiv")]
         [Fact]
         public void OverloadResolutionForVirtualMethods()
         {
@@ -2501,7 +2501,7 @@ public class D: B
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538104)]
+        [WorkItem(538104, "DevDiv")]
         [Fact]
         public void OverloadResolutionForVirtualMethods2()
         {
@@ -2749,7 +2749,7 @@ class A
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541745)]
+        [WorkItem(541745, "DevDiv")]
         [Fact]
         public void FailedOverloadResolution3()
         {
@@ -2799,7 +2799,7 @@ class Foo
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542833)]
+        [WorkItem(542833, "DevDiv")]
         [Fact]
         public void FailedOverloadResolution4()
         {
@@ -2919,7 +2919,7 @@ class A
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541878)]
+        [WorkItem(541878, "DevDiv")]
         [Fact]
         public void TestCandidateReasonForInaccessibleMethod()
         {
@@ -2955,7 +2955,7 @@ class Test
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
 
-        [WorkItem(541879)]
+        [WorkItem(541879, "DevDiv")]
         [Fact]
         public void InaccessibleTypeInObjectCreationExpression()
         {
@@ -2991,7 +2991,7 @@ class Test
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
 
-        [WorkItem(541883)]
+        [WorkItem(541883, "DevDiv")]
         [Fact]
         public void InheritedMemberHiding()
         {
@@ -3030,7 +3030,7 @@ public class B : A
         }
 
 
-        [WorkItem(538106)]
+        [WorkItem(538106, "DevDiv")]
         [Fact]
         public void UsingAliasNameSystemInvocExpr()
         {
@@ -3083,7 +3083,7 @@ namespace MySystem
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538109)]
+        [WorkItem(538109, "DevDiv")]
         [Fact]
         public void InterfaceMethodImplInvocExpr()
         {
@@ -3128,7 +3128,7 @@ class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538112)]
+        [WorkItem(538112, "DevDiv")]
         [Fact]
         public void MemberAccessMethodWithNew()
         {
@@ -3170,7 +3170,7 @@ public class MyClass : MyBase
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(527386)]
+        [WorkItem(527386, "DevDiv")]
         [Fact]
         public void MethodGroupWithStaticInstanceSameName()
         {
@@ -3213,7 +3213,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538123)]
+        [WorkItem(538123, "DevDiv")]
         [Fact]
         public void VirtualOverriddenMember()
         {
@@ -3258,7 +3258,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538125)]
+        [WorkItem(538125, "DevDiv")]
         [Fact]
         public void AbstractOverriddenMember()
         {
@@ -3370,7 +3370,7 @@ public class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538138)]
+        [WorkItem(538138, "DevDiv")]
         [Fact]
         public void ParenExprWithMethodInvocExpr()
         {
@@ -3405,7 +3405,7 @@ class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(527397)]
+        [WorkItem(527397, "DevDiv")]
         [Fact()]
         public void ExplicitIdentityCastExpr()
         {
@@ -3437,8 +3437,8 @@ class Test
         }
 
         [WorkItem(3652, "DevDiv_Projects/Roslyn")]
-        [WorkItem(529056)]
-        [WorkItem(543619)]
+        [WorkItem(529056, "DevDiv")]
+        [WorkItem(543619, "DevDiv")]
         [Fact()]
         public void OutOfBoundsConstCastToByte()
         {
@@ -3469,7 +3469,7 @@ class Test
             Assert.Equal((byte)133, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(538160)]
+        [WorkItem(538160, "DevDiv")]
         [Fact]
         public void InsideCollectionsNamespace()
         {
@@ -3503,7 +3503,7 @@ namespace Collections
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538161)]
+        [WorkItem(538161, "DevDiv")]
         [Fact]
         public void ErrorTypeNameSameAsVariable()
         {
@@ -3537,8 +3537,8 @@ public class A
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537117)]
-        [WorkItem(537127)]
+        [WorkItem(537117, "DevDiv")]
+        [WorkItem(537127, "DevDiv")]
         [Fact]
         public void SystemNamespace()
         {
@@ -3566,7 +3566,7 @@ namespace System
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537118)]
+        [WorkItem(537118, "DevDiv")]
         [Fact]
         public void SystemNamespace2()
         {
@@ -3600,7 +3600,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537119)]
+        [WorkItem(537119, "DevDiv")]
         [Fact]
         public void SystemNamespace3()
         {
@@ -3638,7 +3638,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537124)]
+        [WorkItem(537124, "DevDiv")]
         [Fact]
         public void SystemNamespace4()
         {
@@ -3682,7 +3682,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537160)]
+        [WorkItem(537160, "DevDiv")]
         [Fact]
         public void SystemNamespace5()
         {
@@ -3716,7 +3716,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537161)]
+        [WorkItem(537161, "DevDiv")]
         [Fact]
         public void SystemNamespace6()
         {
@@ -3750,7 +3750,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537340)]
+        [WorkItem(537340, "DevDiv")]
         [Fact]
         public void LeftOfDottedTypeName()
         {
@@ -3784,7 +3784,7 @@ class B {}
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537592)]
+        [WorkItem(537592, "DevDiv")]
         [Fact]
         public void Parameters()
         {
@@ -3815,7 +3815,7 @@ class C
         }
 
         // TODO: This should probably have a candidate symbol!
-        [WorkItem(527212)]
+        [WorkItem(527212, "DevDiv")]
         [Fact]
         public void FieldMemberOfConstructedType()
         {
@@ -3848,7 +3848,7 @@ class D {
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(537593)]
+        [WorkItem(537593, "DevDiv")]
         [Fact]
         public void Constructor()
         {
@@ -3876,7 +3876,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538046)]
+        [WorkItem(538046, "DevDiv")]
         [Fact]
         public void TypeNameInTypeThatMatchesNamespace()
         {
@@ -3910,7 +3910,7 @@ namespace T
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538267)]
+        [WorkItem(538267, "DevDiv")]
         [Fact]
         public void RHSExpressionInTryParent()
         {
@@ -3948,7 +3948,7 @@ public class Test
             Assert.Equal(null, semanticInfo.ConstantValue.Value);
         }
 
-        [WorkItem(538215)]
+        [WorkItem(538215, "DevDiv")]
         [Fact]
         public void GenericArgumentInBase1()
         {
@@ -3983,7 +3983,7 @@ class B : A<B.Y./*<bind>*/Z/*</bind>*/>
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538215)]
+        [WorkItem(538215, "DevDiv")]
         [Fact]
         public void GenericArgumentInBase2()
         {
@@ -4018,7 +4018,7 @@ class B : /*<bind>*/A<B.Y.Z>/*</bind>*/
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538097)]
+        [WorkItem(538097, "DevDiv")]
         [Fact]
         public void InvokedLocal1()
         {
@@ -4049,7 +4049,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538318)]
+        [WorkItem(538318, "DevDiv")]
         [Fact]
         public void TooManyConstructorArgs()
         {
@@ -4084,7 +4084,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(538185)]
+        [WorkItem(538185, "DevDiv")]
         [Fact]
         public void NamespaceAndFieldSameName1()
         {
@@ -4329,7 +4329,7 @@ class B
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540998)]
+        [WorkItem(540998, "DevDiv")]
         [Fact]
         public void DeclarationWithinSwitchStatement()
         {
@@ -4353,7 +4353,7 @@ class B
             Assert.NotNull(semanticInfo);
         }
 
-        [WorkItem(537573)]
+        [WorkItem(537573, "DevDiv")]
         [Fact]
         public void UndeclaredTypeAndCheckContainingSymbol()
         {
@@ -4386,7 +4386,7 @@ class C1
             Assert.True(((NamespaceSymbol)semanticInfo.Type.ContainingSymbol).IsGlobalNamespace);
         }
 
-        [WorkItem(538538)]
+        [WorkItem(538538, "DevDiv")]
         [Fact]
         public void AliasQualifier()
         {
@@ -4881,9 +4881,9 @@ class Class
             Assert.Equal(MethodKind.Constructor, ((MethodSymbol)semanticInfo.Symbol.ContainingSymbol).MethodKind);
         }
 
-        [WorkItem(541011)]
-        [WorkItem(527831)]
-        [WorkItem(538794)]
+        [WorkItem(541011, "DevDiv")]
+        [WorkItem(527831, "DevDiv")]
+        [WorkItem(538794, "DevDiv")]
         [Fact]
         public void InaccessibleMethodGroup()
         {
@@ -4924,7 +4924,7 @@ class D
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccessibleMethodGroup_Constructors_ObjectCreationExpressionSyntax()
         {
@@ -4977,7 +4977,7 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccessibleMethodGroup_Constructors_IdentifierNameSyntax()
         {
@@ -5014,7 +5014,7 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccessibleMethodGroup_AttributeSyntax()
         {
@@ -5061,7 +5061,7 @@ class Class1 : Attribute
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccessibleMethodGroup_Attribute_IdentifierNameSyntax()
         {
@@ -5107,7 +5107,7 @@ class Class1 : Attribute
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccesibleConstructorsFiltered_ObjectCreationExpressionSyntax()
         {
@@ -5149,7 +5149,7 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccesibleConstructorsFiltered_IdentifierNameSyntax()
         {
@@ -5186,7 +5186,7 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccesibleConstructorsFiltered_AttributeSyntax()
         {
@@ -5228,7 +5228,7 @@ class Class1 : Attribute
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542782)]
+        [WorkItem(542782, "DevDiv")]
         [Fact]
         public void InaccesibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
         {
@@ -5270,7 +5270,7 @@ class Class1 : Attribute
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528754)]
+        [WorkItem(528754, "DevDiv")]
         [Fact]
         public void SyntaxErrorInReceiver()
         {
@@ -5292,7 +5292,7 @@ class Main
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
-        [WorkItem(528754)]
+        [WorkItem(528754, "DevDiv")]
         [Fact]
         public void SyntaxErrorInReceiverWithExtension()
         {
@@ -5317,7 +5317,7 @@ class Main
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
-        [WorkItem(541011)]
+        [WorkItem(541011, "DevDiv")]
         [Fact]
         public void NonStaticInstanceMismatchMethodGroup()
         {
@@ -5355,7 +5355,7 @@ class D
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540360)]
+        [WorkItem(540360, "DevDiv")]
         [Fact]
         public void DuplicateTypeName()
         {
@@ -5456,7 +5456,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(539925)]
+        [WorkItem(539925, "DevDiv")]
         [Fact]
         public void LocalIsFromSource()
         {
@@ -5490,7 +5490,7 @@ class C
             Assert.True(((Symbol)semanticInfo.Symbol).IsFromCompilation(compilation));
         }
 
-        [WorkItem(540541)]
+        [WorkItem(540541, "DevDiv")]
         [Fact]
         public void InEnumElementInitializer()
         {
@@ -5522,7 +5522,7 @@ enum E
             Assert.Equal(1, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540541)]
+        [WorkItem(540541, "DevDiv")]
         [Fact]
         public void InEnumOfByteElementInitializer()
         {
@@ -5554,7 +5554,7 @@ enum E : byte
             Assert.Equal(1, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540672)]
+        [WorkItem(540672, "DevDiv")]
         [Fact]
         public void LambdaExprWithErrorTypeInObjectCreationExpression()
         {
@@ -5646,7 +5646,7 @@ public class TestClass
         }
 
 
-        [WorkItem(540650)]
+        [WorkItem(540650, "DevDiv")]
         [Fact]
         public void TypeOfExpression()
         {
@@ -5676,7 +5676,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_If()
         {
@@ -5710,7 +5710,7 @@ class Program
             Assert.Equal(43, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void LabeledEmbeddedStatement_For()
         {
@@ -5743,7 +5743,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_While()
         {
@@ -5777,7 +5777,7 @@ class Program
             Assert.Equal(43, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void LabeledEmbeddedStatement_ForEach()
         {
@@ -5810,7 +5810,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_Else()
         {
@@ -5845,7 +5845,7 @@ class Program
             Assert.Equal(43, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void LabeledEmbeddedStatement_Do()
         {
@@ -5879,7 +5879,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_Using()
         {
@@ -5913,7 +5913,7 @@ class Program
             Assert.Equal(43, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void LabeledEmbeddedStatement_Lock()
         {
@@ -5946,7 +5946,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540759)]
+        [WorkItem(540759, "DevDiv")]
         [Fact]
         public void DeclarationEmbeddedStatement_Fixed()
         {
@@ -5980,7 +5980,7 @@ unsafe class Program
             Assert.Equal(43, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(539255)]
+        [WorkItem(539255, "DevDiv")]
         [Fact]
         public void BindLiteralCastToDouble()
         {
@@ -6008,7 +6008,7 @@ class MyClass
             Assert.Equal(1, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540803)]
+        [WorkItem(540803, "DevDiv")]
         [Fact]
         public void BindDefaultOfVoidExpr()
         {
@@ -6092,7 +6092,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(540862)]
+        [WorkItem(540862, "DevDiv")]
         [Fact]
         public void ThisStaticConstructorInitializer()
         {
@@ -6125,7 +6125,7 @@ class MyClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541037)]
+        [WorkItem(541037, "DevDiv")]
         [Fact]
         public void IncompleteForEachWithArrayCreationExpr()
         {
@@ -6148,7 +6148,7 @@ class Program
             Assert.Equal(5, (int)semanticInfo.ConstantValue.Value);
         }
 
-        [WorkItem(541037)]
+        [WorkItem(541037, "DevDiv")]
         [Fact]
         public void EmptyStatementInForEach()
         {
@@ -6169,8 +6169,8 @@ class Program
             Assert.Equal("args", semanticInfo.Symbol.Name);
         }
 
-        [WorkItem(540922)]
-        [WorkItem(541030)]
+        [WorkItem(540922, "DevDiv")]
+        [WorkItem(541030, "DevDiv")]
         [Fact]
         public void ImplicitlyTypedForEachIterationVariable()
         {
@@ -6540,7 +6540,7 @@ namespace N1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541207)]
+        [WorkItem(541207, "DevDiv")]
         [Fact]
         public void UndeclaredVarInThrowExpr()
         {
@@ -6628,7 +6628,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541332)]
+        [WorkItem(541332, "DevDiv")]
         [Fact]
         public void ImplicitConversionCastExpression()
         {
@@ -6653,7 +6653,7 @@ class Program
             Assert.True(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541333)]
+        [WorkItem(541333, "DevDiv")]
         [Fact]
         public void ImplicitConversionAnonymousMethod()
         {
@@ -6698,7 +6698,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528476)]
+        [WorkItem(528476, "DevDiv")]
         [Fact]
         public void BindingInitializerToTargetType()
         {
@@ -6762,7 +6762,7 @@ class Program
 
 
 
-        [WorkItem(541400)]
+        [WorkItem(541400, "DevDiv")]
         [Fact]
         public void BindingAttributeParameter()
         {
@@ -6922,7 +6922,7 @@ class C1
             Assert.Equal(1, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(540775)]
+        [WorkItem(540775, "DevDiv")]
         [Fact]
         public void LambdaExprPrecededByAnIncompleteUsingStmt()
         {
@@ -6945,7 +6945,7 @@ class Program
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
         }
 
-        [WorkItem(540785)]
+        [WorkItem(540785, "DevDiv")]
         [Fact]
         public void NestedLambdaExprPrecededByAnIncompleteNamespaceStmt()
         {
@@ -7036,7 +7036,7 @@ struct Struct{
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541451)]
+        [WorkItem(541451, "DevDiv")]
         [Fact]
         public void BindAttributeInstanceWithoutAttributeSuffix()
         {
@@ -7064,7 +7064,7 @@ class MyAttribute : System.Attribute { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541451)]
+        [WorkItem(541451, "DevDiv")]
         [Fact]
         public void BindQualifiedAttributeInstanceWithoutAttributeSuffix()
         {
@@ -7096,7 +7096,7 @@ namespace N1
         }
 
 
-        [WorkItem(540770)]
+        [WorkItem(540770, "DevDiv")]
         [Fact]
         public void IncompleteDelegateCastExpression()
         {
@@ -7158,7 +7158,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541120)]
+        [WorkItem(541120, "DevDiv")]
         [Fact]
         public void DelegateCreationArguments()
         {
@@ -7273,7 +7273,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(539255)]
+        [WorkItem(539255, "DevDiv")]
         [Fact]
         public void TypeInParentOnFieldInitializer()
         {
@@ -7329,7 +7329,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541588)]
+        [WorkItem(541588, "DevDiv")]
         [Fact]
         public void ImplicitConversionElementsInArrayInit()
         {
@@ -7358,7 +7358,7 @@ class MyClass
             Assert.Equal(4L, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(541595)]
+        [WorkItem(541595, "DevDiv")]
         [Fact]
         public void ImplicitConversionExprReturnedByLambda()
         {
@@ -7393,8 +7393,8 @@ class MyClass
             Assert.Equal(4, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(541040)]
-        [WorkItem(528551)]
+        [WorkItem(541040, "DevDiv")]
+        [WorkItem(528551, "DevDiv")]
         [Fact]
         public void InaccessibleNestedType()
         {
@@ -7568,7 +7568,7 @@ namespace ClassLibrary44
 
 
 
-        [WorkItem(541623)]
+        [WorkItem(541623, "DevDiv")]
         [Fact]
         public void ImplicitReferenceConvExtensionMethodReceiver()
         {
@@ -7602,7 +7602,7 @@ class Program
             Assert.Equal(SymbolKind.Local, semanticInfo.Symbol.Kind);
         }
 
-        [WorkItem(541623)]
+        [WorkItem(541623, "DevDiv")]
         [Fact]
         public void ImplicitBoxingConvExtensionMethodReceiver()
         {
@@ -7656,7 +7656,7 @@ public class MyAttr: Attribute
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
         }
 
-        [WorkItem(541653)]
+        [WorkItem(541653, "DevDiv")]
         [Fact()]
         public void MemberAccessOnErrorType()
         {
@@ -7675,7 +7675,7 @@ public class Test2
             Assert.Equal(SymbolKind.ErrorType, semanticInfo.Type.Kind);
         }
 
-        [WorkItem(541653)]
+        [WorkItem(541653, "DevDiv")]
         [Fact()]
         public void MemberAccessOnErrorType2()
         {
@@ -7694,7 +7694,7 @@ public class Test2
             Assert.Equal(SymbolKind.ErrorType, semanticInfo.Type.Kind);
         }
 
-        [WorkItem(541764)]
+        [WorkItem(541764, "DevDiv")]
         [Fact]
         public void DelegateCreation1()
         {
@@ -7759,7 +7759,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541764)]
+        [WorkItem(541764, "DevDiv")]
         [Fact]
         public void DelegateCreation2()
         {
@@ -7791,7 +7791,7 @@ class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541764)]
+        [WorkItem(541764, "DevDiv")]
         [Fact]
         public void DelegateCreation2_2()
         {
@@ -7925,7 +7925,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541802)]
+        [WorkItem(541802, "DevDiv")]
         [Fact]
         public void IncompleteLetClause()
         {
@@ -7947,7 +7947,7 @@ public class Test2
             Assert.Equal(SymbolKind.ErrorType, semanticInfo.Type.Kind);
         }
 
-        [WorkItem(541895)]
+        [WorkItem(541895, "DevDiv")]
         [Fact]
         public void QueryErrorBaseKeywordAsSelectExpression()
         {
@@ -7971,7 +7971,7 @@ public class QueryExpressionTest
             Assert.Equal(SymbolKind.ErrorType, semanticInfo.Type.Kind);
         }
 
-        [WorkItem(541805)]
+        [WorkItem(541805, "DevDiv")]
         [Fact]
         public void InToIdentifierQueryContinuation()
         {
@@ -7996,7 +7996,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
-        [WorkItem(541833)]
+        [WorkItem(541833, "DevDiv")]
         [Fact]
         public void InOptimizedAwaySelectClause()
         {
@@ -8041,7 +8041,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
-        [WorkItem(541911)]
+        [WorkItem(541911, "DevDiv")]
         [Fact]
         public void QueryErrorGroupJoinFromClause()
         {
@@ -8064,7 +8064,7 @@ class Test
             Assert.Equal(SymbolKind.ErrorType, semanticInfo.Type.Kind);
         }
 
-        [WorkItem(541920)]
+        [WorkItem(541920, "DevDiv")]
         [Fact]
         public void SymbolInfoForMissingSelectClauseNode()
         {
@@ -8096,7 +8096,7 @@ class Program
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(541940)]
+        [WorkItem(541940, "DevDiv")]
         [Fact]
         public void IdentifierInSelectNotInContext()
         {
@@ -8156,7 +8156,7 @@ class P
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
-        [WorkItem(541830)]
+        [WorkItem(541830, "DevDiv")]
         [Fact]
         public void AttributeUsageError()
         {
@@ -8173,7 +8173,7 @@ class MyAtt : Attribute
             Assert.Equal("AttributeUsageAttribute", semanticInfo.Type.Name);
         }
 
-        [WorkItem(541832)]
+        [WorkItem(541832, "DevDiv")]
         [Fact]
         public void OpenGenericTypeInAttribute()
         {
@@ -8207,7 +8207,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541832)]
+        [WorkItem(541832, "DevDiv")]
         [Fact]
         public void OpenGenericTypeInAttribute02()
         {
@@ -8241,7 +8241,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541896)]
+        [WorkItem(541896, "DevDiv")]
         [Fact]
         public void IncompleteEmptyAttributeSyntax01()
         {
@@ -8265,7 +8265,7 @@ public class CSEvent {
         /// Same as above but with a token after the incomplete
         /// attribute so the attribute is not at the end of file.
         /// </summary>
-        [WorkItem(541896)]
+        [WorkItem(541896, "DevDiv")]
         [Fact]
         public void IncompleteEmptyAttributeSyntax02()
         {
@@ -8285,7 +8285,7 @@ public class CSEvent {
             Assert.Null(semanticInfo.Type);
         }
 
-        [WorkItem(541857)]
+        [WorkItem(541857, "DevDiv")]
         [Fact]
         public void EventWithInitializerInInterface()
         {
@@ -8891,7 +8891,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541932)]
+        [WorkItem(541932, "DevDiv")]
         [Fact]
         public void IndexingExpression()
         {
@@ -9054,7 +9054,7 @@ class B<T>
             Assert.False((type as NamedTypeSymbol).IsErrorType());
         }
 
-        [WorkItem(542430)]
+        [WorkItem(542430, "DevDiv")]
         [Fact]
         public void UnboundTypeInvariants()
         {
@@ -9106,7 +9106,7 @@ class Program
             Assert.Equal(1, a.GetMembers().Length);
         }
 
-        [WorkItem(528659)]
+        [WorkItem(528659, "DevDiv")]
         [Fact]
         public void AliasTypeName()
         {
@@ -9131,7 +9131,7 @@ class Test
             Assert.Equal("A=System.String", aliasInfo.ToTestDisplayString());
         }
 
-        [WorkItem(542000)]
+        [WorkItem(542000, "DevDiv")]
         [Fact]
         public void AmbigAttributeBindWithoutAttributeSuffix()
         {
@@ -9190,7 +9190,7 @@ namespace Green
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528669)]
+        [WorkItem(528669, "DevDiv")]
         [Fact]
         public void AmbigAttributeBind1()
         {
@@ -9249,7 +9249,7 @@ namespace Green
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542205)]
+        [WorkItem(542205, "DevDiv")]
         [Fact]
         public void IncompleteAttributeSymbolInfo()
         {
@@ -9293,7 +9293,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(541968)]
+        [WorkItem(541968, "DevDiv")]
         [Fact]
         public void ConstantFieldInitializerExpression()
         {
@@ -9308,7 +9308,7 @@ public class Aa
             Assert.Equal(5, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(541968)]
+        [WorkItem(541968, "DevDiv")]
         [Fact]
         public void CircularConstantFieldInitializerExpression()
         {
@@ -9322,7 +9322,7 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542017)]
+        [WorkItem(542017, "DevDiv")]
         [Fact]
         public void AmbigAttributeBind2()
         {
@@ -9358,7 +9358,7 @@ class Class1
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
         }
 
-        [WorkItem(542018)]
+        [WorkItem(542018, "DevDiv")]
         [Fact]
         public void AmbigAttributeBind3()
         {
@@ -9718,7 +9718,7 @@ namespace TestNamespace_07
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact()]
         public void AliasAttributeName()
         {
@@ -9751,7 +9751,7 @@ class A1 : System.Attribute { }
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact()]
         public void AliasAttributeName_02_AttributeSyntax()
         {
@@ -9787,7 +9787,7 @@ class C { }
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact]
         public void AliasAttributeName_02_IdentifierNameSyntax()
         {
@@ -9823,7 +9823,7 @@ class C { }
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact]
         public void AliasAttributeName_03_AttributeSyntax()
         {
@@ -9859,7 +9859,7 @@ class C { }
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact]
         public void AliasAttributeName_03_IdentifierNameSyntax()
         {
@@ -9895,7 +9895,7 @@ class C { }
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
-        [WorkItem(542979)]
+        [WorkItem(542979, "DevDiv")]
         [Fact()]
         public void AliasQualifiedAttributeName_01()
         {
@@ -10220,7 +10220,7 @@ class C { }
             Assert.Null(aliasInfo);
         }
 
-        [WorkItem(542018)]
+        [WorkItem(542018, "DevDiv")]
         [Fact]
         public void AmbigObjectCreationBind()
         {
@@ -10258,7 +10258,7 @@ class Class1
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
         }
 
-        [WorkItem(542027)]
+        [WorkItem(542027, "DevDiv")]
         [Fact()]
         public void NonStaticMemberOfOuterTypeAccessedViaNestedType()
         {
@@ -10295,7 +10295,7 @@ class MyClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(530093)]
+        [WorkItem(530093, "DevDiv")]
         [Fact()]
         public void ThisInFieldInitializer()
         {
@@ -10323,7 +10323,7 @@ class MyClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(530093)]
+        [WorkItem(530093, "DevDiv")]
         [Fact()]
         public void BaseInFieldInitializer()
         {
@@ -10387,7 +10387,7 @@ class MyClass2
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528682)]
+        [WorkItem(528682, "DevDiv")]
         [Fact]
         public void PropertyGetAccessWithPrivateGetter()
         {
@@ -10430,7 +10430,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542053)]
+        [WorkItem(542053, "DevDiv")]
         [Fact]
         public void GetAccessPrivateProperty()
         {
@@ -10467,7 +10467,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542053)]
+        [WorkItem(542053, "DevDiv")]
         [Fact]
         public void GetAccessPrivateField()
         {
@@ -10504,7 +10504,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542053)]
+        [WorkItem(542053, "DevDiv")]
         [Fact]
         public void GetAccessPrivateEvent()
         {
@@ -10543,7 +10543,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528684)]
+        [WorkItem(528684, "DevDiv")]
         [Fact]
         public void PropertySetAccessWithPrivateSetter()
         {
@@ -10628,7 +10628,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542065)]
+        [WorkItem(542065, "DevDiv")]
         [Fact]
         public void GenericTypeWithNoTypeArgsOnAttribute()
         {
@@ -10667,7 +10667,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542125)]
+        [WorkItem(542125, "DevDiv")]
         [Fact]
         public void MalformedSyntaxSemanticModel_Bug9223()
         {
@@ -10695,7 +10695,7 @@ public st C
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
         }
 
-        [WorkItem(528746)]
+        [WorkItem(528746, "DevDiv")]
         [Fact]
         public void ImplicitConversionArrayCreationExprInQuery()
         {
@@ -10731,7 +10731,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542256)]
+        [WorkItem(542256, "DevDiv")]
         [Fact]
         public void MalformedConditionalExprInWhereClause()
         {
@@ -10757,7 +10757,7 @@ class Program
             Assert.Equal("Program", semanticInfo.Type.Name);
         }
 
-        [WorkItem(542230)]
+        [WorkItem(542230, "DevDiv")]
         [Fact]
         public void MalformedExpressionInSelectClause()
         {
@@ -10775,7 +10775,7 @@ class P
             Assert.NotNull(semanticInfo.Symbol);
         }
 
-        [WorkItem(542344)]
+        [WorkItem(542344, "DevDiv")]
         [Fact]
         public void LiteralExprInGotoCaseInsideSwitch()
         {
@@ -10802,7 +10802,7 @@ public class Test
             Assert.Equal(2, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542405)]
+        [WorkItem(542405, "DevDiv")]
         [Fact]
         public void ImplicitConvCaseConstantExpr()
         {
@@ -10833,7 +10833,7 @@ class Program
             Assert.Equal(21, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542405)]
+        [WorkItem(542405, "DevDiv")]
         [Fact]
         public void ErrorConvCaseConstantExpr()
         {
@@ -10864,7 +10864,7 @@ class Program
             Assert.Equal(21, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542405)]
+        [WorkItem(542405, "DevDiv")]
         [Fact]
         public void ImplicitConvGotoCaseConstantExpr()
         {
@@ -10897,7 +10897,7 @@ class Program
             Assert.Equal(21, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542405)]
+        [WorkItem(542405, "DevDiv")]
         [Fact]
         public void ErrorConvGotoCaseConstantExpr()
         {
@@ -10930,7 +10930,7 @@ class Program
             Assert.Equal(21, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542351)]
+        [WorkItem(542351, "DevDiv")]
         [Fact]
         public void AttributeSemanticInfo_OverloadResolutionFailure_01()
         {
@@ -10942,7 +10942,7 @@ class Program
             Verify_AttributeSemanticInfo_OverloadResolutionFailure_Common(semanticInfo);
         }
 
-        [WorkItem(542351)]
+        [WorkItem(542351, "DevDiv")]
         [Fact]
         public void AttributeSemanticInfo_OverloadResolutionFailure_02()
         {
@@ -10982,7 +10982,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542351)]
+        [WorkItem(542351, "DevDiv")]
         [Fact]
         public void ObjectCreationSemanticInfo_OverloadResolutionFailure()
         {
@@ -11208,7 +11208,7 @@ public class Class1
             Assert.Equal(12, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(542589)]
+        [WorkItem(542589, "DevDiv")]
         [Fact]
         public void UnrecognizedGenericTypeReference()
         {
@@ -11225,7 +11225,7 @@ public class Class1
             Assert.Equal(string.Empty, typeParameter.Name);
         }
 
-        [WorkItem(542452)]
+        [WorkItem(542452, "DevDiv")]
         [Fact]
         public void LambdaInSelectExpressionWithObjectCreation()
         {
@@ -11332,7 +11332,7 @@ class Program
             Assert.Equal(null, semanticInfo.ConstantValue.Value);
         }
 
-        [WorkItem(542850)]
+        [WorkItem(542850, "DevDiv")]
         [Fact]
         public void InaccessibleExtensionMethod()
         {
@@ -11374,7 +11374,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542883)]
+        [WorkItem(542883, "DevDiv")]
         [Fact]
         public void InaccessibleNamedAttrArg()
         {
@@ -11409,7 +11409,7 @@ public class D { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(528914)]
+        [WorkItem(528914, "DevDiv")]
         [Fact]
         public void InvalidIdentifierAsAttrArg()
         {
@@ -11445,7 +11445,7 @@ public interface Interface1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542890)]
+        [WorkItem(542890, "DevDiv")]
         [Fact()]
         public void GlobalIdentifierName()
         {
@@ -11514,7 +11514,7 @@ class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(542536)]
+        [WorkItem(542536, "DevDiv")]
         [Fact]
         public void UndeclaredSymbolInDefaultParameterValue()
         {
@@ -11547,7 +11547,7 @@ class Program
             Assert.Equal(1, semanticInfo.ConstantValue);
         }
 
-        [WorkItem(543198)]
+        [WorkItem(543198, "DevDiv")]
         [Fact]
         public void NamespaceAliasInsideMethod()
         {
@@ -11915,7 +11915,7 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact, WorkItem(543201)]
+        [Fact, WorkItem(543201, "DevDiv")]
         public void BindVariableIncompleteForLoop()
         {
             string sourceCode = @"
@@ -11932,7 +11932,7 @@ class Program
         }
 
 
-        [Fact, WorkItem(542843)]
+        [Fact, WorkItem(542843, "DevDiv")]
         public void Bug10245()
         {
             string sourceCode = @"
@@ -12022,7 +12022,7 @@ static class Stat { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543534)]
+        [WorkItem(543534, "DevDiv")]
         [Fact]
         public void InterfaceWithNew()
         {
@@ -13678,7 +13678,7 @@ public class Test
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void SemanticInfo_VarKeyword_LocalDeclaration()
         {
@@ -13712,7 +13712,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void SemanticInfo_VarKeyword_FieldDeclaration()
         {
@@ -13739,7 +13739,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void SemanticInfo_VarKeyword_MethodReturnType()
         {
@@ -13766,7 +13766,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860)]
+        [WorkItem(543860, "DevDiv")]
         [Fact]
         public void SemanticInfo_InterfaceCreation_With_CoClass_IdentifierNameSyntax()
         {
@@ -13803,7 +13803,7 @@ public class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(546242)]
+        [WorkItem(546242, "DevDiv")]
         [Fact]
         public void SemanticInfo_InterfaceArrayCreation_With_CoClass_IdentifierNameSyntax()
         {
@@ -13881,7 +13881,7 @@ public class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(546242)]
+        [WorkItem(546242, "DevDiv")]
         [Fact]
         public void SemanticInfo_InterfaceArrayCreation_With_CoClass_ObjectCreationExpressionSyntax()
         {
@@ -14181,7 +14181,7 @@ public class MainClass
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543593)]
+        [WorkItem(543593, "DevDiv")]
         [Fact]
         public void IncompletePropertyAccessStatement()
         {
@@ -14198,7 +14198,7 @@ public class MainClass
             Assert.Null(semanticInfo.Symbol);
         }
 
-        [WorkItem(544449)]
+        [WorkItem(544449, "DevDiv")]
         [Fact]
         public void IndexerAccessorWithSyntaxErrors()
         {
@@ -14213,7 +14213,7 @@ public class MainClass
             Assert.Null(semanticInfo.Symbol);
         }
 
-        [WorkItem(545040)]
+        [WorkItem(545040, "DevDiv")]
         [Fact]
         public void OmittedArraySizeExpressionSyntax()
         {
@@ -14301,7 +14301,7 @@ public class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(545376)]
+        [WorkItem(545376, "DevDiv")]
         [Fact]
         public void AssignExprInExternEvent()
         {
@@ -14317,7 +14317,7 @@ struct Class1
             Assert.NotNull(semanticInfo.Type);
         }
 
-        [Fact, WorkItem(531416)]
+        [Fact, WorkItem(531416, "DevDiv")]
         public void VarEvent()
         {
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(@"
@@ -14326,7 +14326,7 @@ event /*<bind>*/var/*</bind>*/ foo;
             Assert.True(((TypeSymbol)semanticInfo.Type).IsErrorType());
         }
 
-        [WorkItem(546083)]
+        [WorkItem(546083, "DevDiv")]
         [Fact]
         public void GenericMethodAssignedToDelegateWithDeclErrors()
         {
@@ -14345,7 +14345,7 @@ class C {
             Utils.CheckSymbol(semanticInfo.ConvertedType, "D");
         }
 
-        [WorkItem(545992)]
+        [WorkItem(545992, "DevDiv")]
         [Fact]
         public void TestSemanticInfoForMembersOfCyclicBase()
         {
@@ -14384,7 +14384,7 @@ class C : B
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(610975)]
+        [WorkItem(610975, "DevDiv")]
         [Fact]
         public void AttributeOnTypeParameterWithSameName()
         {
@@ -14426,7 +14426,7 @@ class C<[T(a: 1)]T>
         }
 
         [Fact]
-        [WorkItem(576966)]
+        [WorkItem(576966, "DevDiv")]
         public void TestParenthesizedMethodGroup()
         {
             string sourceCode = @"
@@ -14452,7 +14452,7 @@ class C
             CommonTestParenthesizedMethodGroup(sourceCode);
         }
 
-        [WorkItem(531549)]
+        [WorkItem(531549, "DevDiv")]
         [Fact()]
         public void Bug531549()
         {
@@ -14491,7 +14491,7 @@ class C2
             }
         }
 
-        [Fact, WorkItem(665920)]
+        [Fact, WorkItem(665920, "DevDiv")]
         public void ObjectCreation1()
         {
             var compilation = CreateCompilationWithMscorlib(
@@ -14574,7 +14574,7 @@ namespace Test
             }
         }
 
-        [Fact, WorkItem(665920)]
+        [Fact, WorkItem(665920, "DevDiv")]
         public void ObjectCreation2()
         {
             var compilation = CreateCompilationWithMscorlib(
@@ -14670,7 +14670,7 @@ namespace Test
             }
         }
 
-        [Fact, WorkItem(665920)]
+        [Fact, WorkItem(665920, "DevDiv")]
         public void ObjectCreation3()
         {
             var pia = CreateCompilationWithMscorlib(
@@ -14782,7 +14782,7 @@ namespace Test
         /// <summary>
         /// SymbolInfo and TypeInfo should implement IEquatable&lt;T&gt;.
         /// </summary>
-        [WorkItem(792647)]
+        [WorkItem(792647, "DevDiv")]
         [Fact]
         public void ImplementsIEquatable()
         {

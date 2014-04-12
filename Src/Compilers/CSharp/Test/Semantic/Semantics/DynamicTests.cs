@@ -336,7 +336,7 @@ class B<T> : A<dynamic>, I<object>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053)]
+        [Fact, WorkItem(667053, "DevDiv")]
         public void OverrideChangesTypeAndParameterNames()
         {
             string source = @"
@@ -365,7 +365,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053)]
+        [Fact, WorkItem(667053, "DevDiv")]
         public void OverrideChangesTypeGeneric()
         {
             string source = @"
@@ -833,7 +833,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(624322)]
+        [WorkItem(624322, "DevDiv")]
         public void BinaryOps_VoidArgument()
         {
             string source = @"
@@ -1356,7 +1356,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(608628)]
+        [WorkItem(608628, "DevDiv")]
         public void MoreSpecificType()
         {
             string source = @"
@@ -1460,7 +1460,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(624410)]
+        [Fact, WorkItem(624410, "DevDiv")]
         public void CompileTimeChecking_Elision3()
         {
             string source = @"
@@ -1500,7 +1500,7 @@ public class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(627101)]
+        [Fact, WorkItem(627101, "DevDiv")]
         public void CompileTimeChecking_MethodConstraints_Elided1()
         {
             string source = @"
@@ -1522,7 +1522,7 @@ class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684)]
+        [Fact, WorkItem(624684, "DevDiv")]
         public void CompileTimeChecking_MethodConstraints_Elided2()
         {
             string source = @"
@@ -1546,7 +1546,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684)]
+        [Fact, WorkItem(624684, "DevDiv")]
         public void CompileTimeChecking_MethodConstraints_Explicit2()
         {
             string source = @"
@@ -1619,7 +1619,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(598621)]
+        [WorkItem(598621, "DevDiv")]
         public void DynamicOverloadApplicability_ExplicitTypeArguments_ApplicabilitySucceeds_FinalValidationFails()
         {
             string source = @"
@@ -1852,7 +1852,7 @@ public class Derived : Base<List<dynamic>, List<object>>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(633857)]
+        [Fact, WorkItem(633857, "DevDiv")]
         public void Erasure_InterfaceSet()
         {
             string source = @"
@@ -2464,7 +2464,7 @@ class C : List<int>
             TestTypes(source);
         }
 
-        [Fact, WorkItem(578404)]
+        [Fact, WorkItem(578404, "DevDiv")]
         public void ExpressionTrees()
         {
             string source = @"
@@ -2588,7 +2588,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)"));
         }
 
-        [Fact, WorkItem(578401)]
+        [Fact, WorkItem(578401, "DevDiv")]
         public void ExpressionTrees_ByRefDynamic()
         {
             string source = @"
@@ -3120,7 +3120,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(693741)]
+        [WorkItem(693741, "DevDiv")]
         public void DynamicAndNull()
         {
             var source = @"

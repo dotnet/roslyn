@@ -175,7 +175,7 @@ namespace System
             Assert.Throws<ArgumentOutOfRangeException>(() => c1.GetSpecialType(SpecialType.Count + 1));
         }
 
-        [WorkItem(697521)]
+        [WorkItem(697521, "DevDiv")]
         [Fact]
         public void SubclassSystemArray()
         {

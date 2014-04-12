@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Methods
 
-        [WorkItem(545796)]
+        [WorkItem(545796, "DevDiv")]
         [Fact]
         public void MethodOverloadResolutionHidesByNameStatic()
         {
@@ -747,7 +747,7 @@ public class C : B, I
 
         #endregion Indexers
 
-        [Fact, WorkItem(897971)]
+        [Fact, WorkItem(897971, "DevDiv")]
         public void LocalHideFieldByName()
         {
             CreateCompilationWithMscorlib(@"

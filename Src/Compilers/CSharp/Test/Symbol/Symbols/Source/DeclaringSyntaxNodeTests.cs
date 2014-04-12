@@ -280,7 +280,7 @@ class C1 {
 
         }
 
-        [WorkItem(543829)]
+        [WorkItem(543829, "DevDiv")]
         [Fact]
         public void AnonymousTypeSymbolWithExplicitNew()
         {

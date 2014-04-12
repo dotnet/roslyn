@@ -73,7 +73,7 @@ class C
         /// We used to give error CS0011: The base class or interface 'A' in assembly 'xxx' referenced by type 'B' could not be resolved
         /// In Roslyn we do not know the context in which the lookup was occuring, so we give a new, more generic message.
         /// </summary>
-        [WorkItem(546451)]
+        [WorkItem(546451, "DevDiv")]
         [Fact()]
         public void CS0011ERR_CantImportBase01()
         {
@@ -557,7 +557,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisDelegateReturn, Line = 5, Column = 25 });
         }
 
-        [WorkItem(542005)]
+        [WorkItem(542005, "DevDiv")]
         [Fact]
         public void CS0058ERR_BadVisDelegateReturn02()
         {
@@ -614,7 +614,7 @@ namespace NS
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 34 });
         }
 
-        [WorkItem(539511)]
+        [WorkItem(539511, "DevDiv")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass02()
         {
@@ -633,7 +633,7 @@ public class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 18 });
         }
 
-        [WorkItem(539512)]
+        [WorkItem(539512, "DevDiv")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass03()
         {
@@ -661,7 +661,7 @@ internal class F : A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 22 });
         }
 
-        [WorkItem(539546)]
+        [WorkItem(539546, "DevDiv")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass04()
         {
@@ -678,7 +678,7 @@ public class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 19 });
         }
 
-        [WorkItem(539562)]
+        [WorkItem(539562, "DevDiv")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass05()
         {
@@ -694,7 +694,7 @@ class A<T>
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
-        [WorkItem(539950)]
+        [WorkItem(539950, "DevDiv")]
         [Fact]
         public void CS0060ERR_BadVisBaseClass06()
         {
@@ -802,7 +802,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E3").WithArguments("MyClass.E3"));
         }
 
-        [WorkItem(542570)]
+        [WorkItem(542570, "DevDiv")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface01()
         {
@@ -818,7 +818,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
 
-        [WorkItem(542570)]
+        [WorkItem(542570, "DevDiv")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface02()
         {
@@ -845,7 +845,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
         }
 
-        [WorkItem(542570)]
+        [WorkItem(542570, "DevDiv")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface03()
         {
@@ -863,7 +863,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
         }
 
-        [WorkItem(542570)]
+        [WorkItem(542570, "DevDiv")]
         [Fact]
         public void CS0065ERR_EventNeedsBothAccessors_Interface04()
         {
@@ -1222,7 +1222,7 @@ class C : I
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(539770)]
+        [WorkItem(539770, "DevDiv")]
         [Fact]
         public void CS0082ERR_MemberReserved07()
         {
@@ -1615,7 +1615,7 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ExternMethodNoImplementation, Line = 16, Column = 31, IsWarning = true });
         }
 
-        [WorkItem(539584)]
+        [WorkItem(539584, "DevDiv")]
         [Fact]
         public void CS0106ERR_BadMemberFlag03()
         {
@@ -2023,7 +2023,7 @@ class B : A
             Assert.Equal(TypeKind.Error, param.Type.TypeKind);
         }
 
-        [WorkItem(538147)]
+        [WorkItem(538147, "DevDiv")]
         [Fact]
         public void CS0118ERR_BadSKknown02()
         {
@@ -2069,7 +2069,7 @@ class Test
 
         }
 
-        [Fact, WorkItem(538214)]
+        [Fact, WorkItem(538214, "DevDiv")]
         public void CS0119ERR_BadSKunknown02()
         {
             var text = @"namespace N1
@@ -2132,7 +2132,7 @@ class Test
             // TODO...
         }
 
-        [WorkItem(539627)]
+        [WorkItem(539627, "DevDiv")]
         [Fact]
         public void CS0136ERR_LocalIllegallyOverrides()
         {
@@ -2377,7 +2377,7 @@ Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("NS.C.operator +(NS.C
                     Diagnostic(ErrorCode.ERR_AbstractAndExtern, "Q").WithArguments("X.Q").WithLocation(8, 35));
         }
 
-        [WorkItem(527618)]
+        [WorkItem(527618, "DevDiv")]
         [Fact]
         public void CS0180ERR_AbstractAndExtern02()
         {
@@ -3018,7 +3018,7 @@ public class MyClass2 : MyClass
             Assert.Equal("NoType", mem3.ReturnType.Name);
         }
 
-        [WorkItem(537882)]
+        [WorkItem(537882, "DevDiv")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound02()
         {
@@ -3092,7 +3092,7 @@ class BAttribute : System.Attribute { }
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s").WithArguments("s"));
         }
 
-        [WorkItem(543791)]
+        [WorkItem(543791, "DevDiv")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound06()
         {
@@ -3769,7 +3769,7 @@ namespace N
                     Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "set").WithArguments("I.this[string].set"));
         }
 
-        [WorkItem(538620)]
+        [WorkItem(538620, "DevDiv")]
         [Fact]
         public void CS0276ERR_AccessModMissingAccessor()
         {
@@ -3839,7 +3839,7 @@ public class MyClass : MyInterface   // CS0277
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceAccessor, Line = 10, Column = 14 });
         }
 
-        [Fact(Skip = "530901"), WorkItem(530901)]
+        [Fact(Skip = "530901"), WorkItem(530901, "DevDiv")]
         public void CS0281ERR_FriendRefNotEqualToThis()
         {
             //sn -k CS0281.snk
@@ -4003,7 +4003,7 @@ class C<T>
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
         }
 
-        [WorkItem(538157)]
+        [WorkItem(538157, "DevDiv")]
         [Fact]
         public void CS0307ERR_TypeArgsNotAllowed()
         {
@@ -4051,7 +4051,7 @@ Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Tes
                 );
         }
 
-        [WorkItem(542296)]
+        [WorkItem(542296, "DevDiv")]
         [Fact]
         public void CS0307ERR_TypeArgsNotAllowed_02()
         {
@@ -4115,7 +4115,7 @@ public class Test
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HasNoTypeVars, Line = 10, Column = 43 });
         }
 
-        [WorkItem(540090)]
+        [WorkItem(540090, "DevDiv")]
         [Fact]
         public void CS0308ERR_HasNoTypeVars02()
         {
@@ -4418,8 +4418,8 @@ class B : A { }   // CS0424 error
                 Diagnostic(ErrorCode.ERR_ComImportWithBase, "B").WithArguments("B").WithLocation(5, 7));
         }
 
-        [WorkItem(856187)]
-        [WorkItem(866093)]
+        [WorkItem(856187, "DevDiv")]
+        [WorkItem(866093, "DevDiv")]
         [Fact]
         public void CS0424ERR_ComImportWithInitializers()
         {
@@ -4967,7 +4967,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs01()
         // I (Neal Gafter) was not able to reproduce this in Dev10 using the batch compiler, but the Dev10
         // background compiler will emit this diagnostic (along with one other) for this code:
@@ -5011,7 +5011,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs02()
         {
             var text = @"using System;
@@ -5047,7 +5047,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs03()
         {
             var libSource = @"
@@ -5108,7 +5108,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs04()
         {
             var libSource = @"
@@ -5168,7 +5168,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs05()
         {
             var libSource = @"
@@ -5229,7 +5229,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0438ERR_SameFullNameThisAggThisNs06()
         {
             var libSource = @"
@@ -5289,7 +5289,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0436WRN_SameFullNameThisAggAgg_01()
         {
             var libSource = @"
@@ -5348,7 +5348,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0436WRN_SameFullNameThisAggAgg_02()
         {
             var libSource = @"
@@ -5407,7 +5407,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0435WRN_SameFullNameThisNsAgg_01()
         {
             var libSource = @"
@@ -5466,7 +5466,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(568953)]
+        [WorkItem(568953, "DevDiv")]
         public void CS0437WRN_SameFullNameThisAggNs_01()
         {
             var libSource = @"
@@ -5525,7 +5525,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_01()
         {
             var text = @"using System;
@@ -5558,7 +5558,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_02()
         {
             var text = @"using System;
@@ -5594,7 +5594,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_03()
         {
             var text = @"using System;
@@ -5630,7 +5630,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_04()
         {
             var text = @"using System;
@@ -5662,7 +5662,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_05()
         {
             var libSource = @"
@@ -5722,7 +5722,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_06()
         {
             var libSource = @"
@@ -5784,7 +5784,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_07()
         {
             var libSource = @"
@@ -5844,7 +5844,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_08()
         {
             var libSource = @"
@@ -5906,7 +5906,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_09()
         {
             var libSource = @"
@@ -5969,7 +5969,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_10()
         {
             var libSource = @"
@@ -6032,7 +6032,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_11()
         {
             var libSource = @"
@@ -6103,7 +6103,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_12()
         {
             var libSource = @"
@@ -6166,7 +6166,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_13()
         {
             var libSource = @"
@@ -6235,7 +6235,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_14()
         {
             var libSource = @"
@@ -6306,7 +6306,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_15()
         {
             var mod3Source = @"
@@ -6395,7 +6395,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(530676)]
+        [WorkItem(530676, "DevDiv")]
         public void CS0101ERR_DuplicateNameInNS_16()
         {
             var mod3Source = @"
@@ -6472,7 +6472,7 @@ namespace NS
         }
 
         [Fact()]
-        [WorkItem(641639)]
+        [WorkItem(641639, "DevDiv")]
         public void Bug641639()
         {
             var ModuleA01 = @"
@@ -7736,7 +7736,7 @@ public class cly : clx
 }
 ";
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual_Imported()
         {
@@ -7770,7 +7770,7 @@ class Derived2 : Base_VirtGet_Set
 
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual_Imported_NO_ERROR()
         {
@@ -7796,7 +7796,7 @@ class Derived2 : Base_VirtGet_Set
 
         }
 
-        [WorkItem(539586)]
+        [WorkItem(539586, "DevDiv")]
         [Fact]
         public void CS0506ERR_CantOverrideNonVirtual02()
         {
@@ -7868,7 +7868,7 @@ public class Cly : Clx
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 9, Column = 28 });
         }
 
-        [WorkItem(540325)]
+        [WorkItem(540325, "DevDiv")]
         [Fact]
         public void CS0508ERR_CantChangeReturnTypeOnOverride2()
         {
@@ -8250,7 +8250,7 @@ struct N
                 );
         }
 
-        [WorkItem(540215)]
+        [WorkItem(540215, "DevDiv")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle03()
         {
@@ -8277,7 +8277,7 @@ struct B
                 );
         }
 
-        [WorkItem(541629)]
+        [WorkItem(541629, "DevDiv")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle04()
         {
@@ -8320,7 +8320,7 @@ struct Z {
                 );
         }
 
-        [WorkItem(541629)]
+        [WorkItem(541629, "DevDiv")]
         [Fact]
         public void CS0523ERR_StructLayoutCycle05()
         {
@@ -8599,7 +8599,7 @@ struct S
                 );
         }
 
-        [WorkItem(895401)]
+        [WorkItem(895401, "DevDiv")]
         [Fact]
         public void VolatileFixed()
         {
@@ -8615,7 +8615,7 @@ struct S
                 );
         }
 
-        [WorkItem(895401)]
+        [WorkItem(895401, "DevDiv")]
         [Fact]
         public void ReadonlyConst()
         {
@@ -8660,7 +8660,7 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 11, Column = 34 });
         }
 
-        [WorkItem(539629)]
+        [WorkItem(539629, "DevDiv")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod02()
         {
@@ -8711,7 +8711,7 @@ namespace NS
                 );
         }
 
-        [WorkItem(540464)]
+        [WorkItem(540464, "DevDiv")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod03()
         {
@@ -8742,7 +8742,7 @@ public new int h; // no CS0533 here in Dev10, but I'm not sure why not. (VB give
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "f").WithArguments("D.f", "A.f()"));
         }
 
-        [WorkItem(539629)]
+        [WorkItem(539629, "DevDiv")]
         [Fact]
         public void CS0533ERR_HidingAbstractMethod_Combinations()
         {
@@ -8845,7 +8845,7 @@ abstract class Derived8 : Base
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P").WithArguments("Derived8.P", "Base.P"));
         }
 
-        [WorkItem(539585)]
+        [WorkItem(539585, "DevDiv")]
         [Fact]
         public void CS0534ERR_UnimplementedAbstractMethod()
         {
@@ -8935,7 +8935,7 @@ public class B : A { }   // CS0535 A::F is not implemented
                 Diagnostic(ErrorCode.ERR_ObjectCantHaveBases, "Object"));
         }
 
-        [WorkItem(538320)]
+        [WorkItem(538320, "DevDiv")]
         [Fact]
         public void CS0537ERR_ObjectCantHaveBases_WithMsCorlib()
         {
@@ -9197,7 +9197,7 @@ class C : IM, IP
 ");
         }
 
-        [Fact(), WorkItem(529156)]
+        [Fact(), WorkItem(529156, "DevDiv")]
         public void CS0542ERR_MemberNameSameAsType03()
         {
             CreateCompilationWithMscorlib(
@@ -9214,7 +9214,7 @@ class C : IM, IP
 ").VerifyDiagnostics();
         }
 
-        [WorkItem(538633)]
+        [WorkItem(538633, "DevDiv")]
         [Fact]
         public void CS0542ERR_MemberNameSameAsType04()
         {
@@ -9348,7 +9348,7 @@ class set_P : A
         /// Derived class with same name as base class
         /// event accessor metadata name.
         /// </summary>
-        [WorkItem(530385)]
+        [WorkItem(530385, "DevDiv")]
         [Fact]
         public void CS0542ERR_MemberNameSameAsType07()
         {
@@ -9458,7 +9458,7 @@ public class b : a
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 13, Column = 9 });
         }
 
-        [WorkItem(539321)]
+        [WorkItem(539321, "DevDiv")]
         [Fact]
         public void CS0545ERR_NoGetToOverride_Regress()
         {
@@ -9512,7 +9512,7 @@ public class b : a
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 15, Column = 9 });
         }
 
-        [WorkItem(539321)]
+        [WorkItem(539321, "DevDiv")]
         [Fact]
         public void CS0546ERR_NoSetToOverride_Regress()
         {
@@ -10188,7 +10188,7 @@ namespace NS
             // TODO...
         }
 
-        [WorkItem(545463)]
+        [WorkItem(545463, "DevDiv")]
         [Fact]
         public void CS0576ERR_ConflictAliasAndMember02()
         {
@@ -10266,7 +10266,7 @@ class B : System.Attribute { }
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateAttribute, Line = 4, Column = 8 });
         }
 
-        [Fact, WorkItem(528872)]
+        [Fact, WorkItem(528872, "DevDiv")]
         public void CS0582ERR_ConditionalOnInterfaceMethod()
         {
             var text = @"using System.Diagnostics;
@@ -10754,7 +10754,7 @@ public class MainClass
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNamedAttributeArgument, Line = 13, Column = 21 });
         }
 
-        [WorkItem(540923)]
+        [WorkItem(540923, "DevDiv")]
         [Fact]
         public void CS0643ERR_DuplicateNamedAttributeArgument02()
         {
@@ -11581,7 +11581,7 @@ class C5<T> where T : I
             // TODO...
         }
 
-        [WorkItem(546447)]
+        [WorkItem(546447, "DevDiv")]
         [Fact]
         public void CS0682ERR_BogusExplicitImpl()
         {
@@ -11833,7 +11833,7 @@ class G6<T1, T2> : I<T1>, I2<T2> { } // CS0695
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 15, Column = 7 });
         }
 
-        [WorkItem(539517)]
+        [WorkItem(539517, "DevDiv")]
         [Fact]
         public void CS0695ERR_UnifyingInterfaceInstantiations2()
         {
@@ -11846,7 +11846,7 @@ class A<T, S> : I<I<T, T>, T>, I<I<T, S>, S> { } // CS0695
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 7 });
         }
 
-        [WorkItem(539518)]
+        [WorkItem(539518, "DevDiv")]
         [Fact]
         public void CS0695ERR_UnifyingInterfaceInstantiations3()
         {
@@ -12652,7 +12652,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(4, 11));
         }
 
-        [WorkItem(530434)]
+        [WorkItem(530434, "DevDiv")]
         [Fact(Skip = "530434")]
         public void CS0722ERR_ReturnTypeIsStaticClass03()
         {
@@ -12679,7 +12679,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("S").WithLocation(6, 27));
         }
 
-        [WorkItem(546540)]
+        [WorkItem(546540, "DevDiv")]
         [Fact]
         public void CS0722ERR_ReturnTypeIsStaticClass04()
         {
@@ -13139,7 +13139,7 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M1").WithArguments("C.M1()").WithLocation(3, 18));
         }
 
-        [WorkItem(542703)]
+        [WorkItem(542703, "DevDiv")]
         [Fact]
         public void CS0759ERR_PartialMethodMustHaveLatent_02()
         {
@@ -13757,7 +13757,7 @@ references: new[] { reference });
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "U").WithLocation(25, 8));
         }
 
-        [WorkItem(528256)]
+        [WorkItem(528256, "DevDiv")]
         [Fact(Skip = "528256")]
         public void CS1106ERR_BadExtensionAgg02()
         {
@@ -13966,7 +13966,7 @@ namespace NS
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
         }
 
-        [WorkItem(537684)]
+        [WorkItem(537684, "DevDiv")]
         [Fact]
         public void CS1537ERR_DuplicateAlias2()
         {
@@ -14025,7 +14025,7 @@ using X = ABC.X<int>;";
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = ABC.X<int>;"));
         }
 
-        [WorkItem(539125)]
+        [WorkItem(539125, "DevDiv")]
         [Fact]
         public void CS1542ERR_AddModuleAssembly()
         {
@@ -14045,7 +14045,7 @@ using X = ABC.X<int>;";
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IFoo").WithArguments("IFoo"));
         }
 
-        [Fact, WorkItem(544910)]
+        [Fact, WorkItem(544910, "DevDiv")]
         public void CS1599ERR_MethodReturnCantBeRefAny()
         {
             var text = @"
@@ -14086,7 +14086,7 @@ Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArgumen
                 );
         }
 
-        [Fact, WorkItem(544910)]
+        [Fact, WorkItem(544910, "DevDiv")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
             // We've changed the text of the error message from
@@ -14134,7 +14134,7 @@ Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("
                  );
         }
 
-        [WorkItem(542003)]
+        [WorkItem(542003, "DevDiv")]
         [Fact]
         public void CS1608ERR_CantUseRequiredAttribute()
         {
@@ -14208,7 +14208,7 @@ class AAttribute : Attribute { }
                 );
         }
 
-        [WorkItem(545353)]
+        [WorkItem(545353, "DevDiv")]
         [Fact]
         public void CS1664ERR_FixedOverflow()
         {
@@ -14224,7 +14224,7 @@ class AAttribute : Attribute { }
                 );
         }
 
-        [WorkItem(545353)]
+        [WorkItem(545353, "DevDiv")]
         [Fact]
         public void CS1665ERR_InvalidFixedArraySize()
         {
@@ -14240,7 +14240,7 @@ class AAttribute : Attribute { }
                 );
         }
 
-        [WorkItem(546922)]
+        [WorkItem(546922, "DevDiv")]
         [Fact]
         public void CS1665ERR_InvalidFixedArraySizeNegative()
         {
@@ -14533,7 +14533,7 @@ class MyClass {}
         // CS1703ERR_DuplicateImport:       See ReferenceManagerTests.CS1703ERR_DuplicateImport
         // CS1704ERR_DuplicateImportSimple: See ReferenceManagerTests.CS1704ERR_DuplicateImportSimple
 
-        [Fact(Skip = "530901"), WorkItem(530901)]
+        [Fact(Skip = "530901"), WorkItem(530901, "DevDiv")]
         public void CS1705ERR_AssemblyMatchBadVersion()
         {
             // compile with: /target:library /out:c:\\cs1705.dll /keyfile:mykey.snk
@@ -14703,7 +14703,7 @@ public class TestUnsafe
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BaseClassMustBeFirst, Line = 12, Column = 30 });
         }
 
-        [Fact(), WorkItem(530393)]
+        [Fact(), WorkItem(530393, "DevDiv")]
         public void CS1724ERR_InvalidDefaultCharSetValue()
         {
             var text = @"
@@ -14798,7 +14798,7 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new C()").WithArguments("y").WithLocation(3, 38));
         }
 
-        [Fact, WorkItem(542401)]
+        [Fact, WorkItem(542401, "DevDiv")]
         public void CS1736ERR_DefaultValueMustBeConstant_1()
         {
             var text = @"
@@ -14913,7 +14913,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NoPIAAssemblyMissingAttributes).WithArguments("MissingPIAAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Runtime.InteropServices.ImportedFromTypeLibAttribute", "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute").WithLocation(1, 1));
         }
 
-        [WorkItem(620366)]
+        [WorkItem(620366, "DevDiv")]
         [Fact]
         public void CS1748ERR_NoCanonicalView()
         {
@@ -15227,7 +15227,7 @@ public static class ErrorCode
                 new ErrorDescription { Code = 1763, Line = 7, Column = 35 });
         }
 
-        [WorkItem(619266)]
+        [WorkItem(619266, "DevDiv")]
         [Fact(Skip = "619266")]
         public void CS1768ERR_GenericsUsedInNoPIAType()
         {
@@ -15447,7 +15447,7 @@ public interface ISomeInterface
                 Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ErrorCode"));
         }
 
-        [Fact, WorkItem(552740)]
+        [Fact, WorkItem(552740, "DevDiv")]
         public void CS1966ERR_DeriveFromConstructedDynamic()
         {
             var text = @"
@@ -15744,7 +15744,7 @@ class B : A
                 "'W' warning CS0108: 'B.W()' hides inherited member 'A.W'. Use the new keyword if hiding was intended.");
         }
 
-        [WorkItem(539624)]
+        [WorkItem(539624, "DevDiv")]
         [Fact]
         public void CS0108WRN_NewRequired03()
         {
@@ -15781,7 +15781,7 @@ class DClass : SBase
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewRequired, Line = 26, Column = 20, IsWarning = true });
         }
 
-        [WorkItem(540459)]
+        [WorkItem(540459, "DevDiv")]
         [Fact]
         public void CS0108WRN_NewRequired04()
         {
@@ -15974,7 +15974,7 @@ class B : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "IM3").WithArguments("B.IM3"));
         }
 
-        [WorkItem(539624)]
+        [WorkItem(539624, "DevDiv")]
         [Fact]
         public void CS0108WRN_NewRequired_Arity()
         {
@@ -16131,7 +16131,7 @@ class HideWithDelegate : Class
                 Diagnostic(ErrorCode.WRN_NewRequired, "D").WithArguments("HideWithDelegate.D<A, B, C>", "Class.D<A, B, C>"));
         }
 
-        [Fact, WorkItem(546736)]
+        [Fact, WorkItem(546736, "DevDiv")]
         public void CS0108WRN_NewRequired_Partial()
         {
             var text = @"
@@ -16312,7 +16312,7 @@ namespace SA
         }
 
         [Fact]
-        [WorkItem(546077)]
+        [WorkItem(546077, "DevDiv")]
         public void MultipleSymbolDisambiguation()
         {
             var sourceRef1 = @"
@@ -16456,7 +16456,7 @@ internal class D : C.X { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"));
         }
 
-        [WorkItem(545725)]
+        [WorkItem(545725, "DevDiv")]
         [Fact]
         public void CS0436WRN_SameFullNameThisAggAgg02()
         {
@@ -16487,7 +16487,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
         }
 
-        [WorkItem(538320)]
+        [WorkItem(538320, "DevDiv")]
         [Fact]
         public void CS0436WRN_SameFullNameThisAggAgg03()
         {
@@ -16554,7 +16554,7 @@ namespace SA
             // TODO...
         }
 
-        [WorkItem(545649)]
+        [WorkItem(545649, "DevDiv")]
         [Fact]
         public void CS0437WRN_SameFullNameThisAggNs02()
         {
@@ -16678,8 +16678,8 @@ class C
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("C.P1.set").WithLocation(11, 33));
         }
 
-        [WorkItem(544660)]
-        [WorkItem(530324)]
+        [WorkItem(544660, "DevDiv")]
+        [WorkItem(530324, "DevDiv")]
         [Fact]
         public void CS0626WRN_ExternMethodNoImplementation02()
         {
@@ -16750,7 +16750,7 @@ sealed class C<T>
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 8, Column = 45, IsWarning = true });
         }
 
-        [WorkItem(539588)]
+        [WorkItem(539588, "DevDiv")]
         [Fact]
         public void CS0628WRN_ProtectedInSealed03()
         {
@@ -17010,7 +17010,7 @@ public class C : Base
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "S").WithArguments("NS.C<T>.S.S(string)").WithLocation(9, 20));
         }
 
-        [WorkItem(540859)]
+        [WorkItem(540859, "DevDiv")]
         [Fact]
         public void CS0824WRN_ExternCtorNoImplementation02()
         {
@@ -17120,7 +17120,7 @@ Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("
                 );
         }
 
-        [Fact(), WorkItem(544447)]
+        [Fact(), WorkItem(544447, "DevDiv")]
         public void CS1700WRN_InvalidAssemblyName()
         {
             var text = @"
@@ -17791,7 +17791,7 @@ namespace B
             Assert.Equal(2, nsa.GetMembers().Length);
         }
 
-        [WorkItem(538218)]
+        [WorkItem(538218, "DevDiv")]
         [Fact]
         public void RecursiveInterfaceLookup01()
         {
@@ -17803,7 +17803,7 @@ interface B : A<B.Garbage> { }";
             var b = comp.SourceModule.GlobalNamespace.GetMembers("B").Single() as NamespaceSymbol;
         }
 
-        [WorkItem(538150)]
+        [WorkItem(538150, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass04()
         {
@@ -17902,7 +17902,7 @@ namespace NS
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(8, 17));
         }
 
-        [WorkItem(538616)]
+        [WorkItem(538616, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass08()
         {
@@ -17918,7 +17918,7 @@ class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 10 });
         }
 
-        [WorkItem(538917)]
+        [WorkItem(538917, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass09()
         {
@@ -17932,7 +17932,7 @@ class A<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 11 });
         }
 
-        [WorkItem(538634)]
+        [WorkItem(538634, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass10()
         {
@@ -17984,7 +17984,7 @@ class A<T>
                     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "E").WithArguments("E", "N").WithLocation(4, 10));
         }
 
-        [WorkItem(528149)]
+        [WorkItem(528149, "DevDiv")]
         [Fact]
         public void CS0101ERR_DuplicateNameInNS06()
         {
@@ -18039,7 +18039,7 @@ class A<T>
                 );
         }
 
-        [WorkItem(539742)]
+        [WorkItem(539742, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass11()
         {
@@ -18053,7 +18053,7 @@ class A<T>
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 10));
         }
 
-        [WorkItem(528149)]
+        [WorkItem(528149, "DevDiv")]
         [Fact]
         public void CS0102ERR_DuplicateNameInClass12()
         {
@@ -18346,7 +18346,7 @@ class A
             CreateCompilationWithMscorlib(string.Format(template, "int set_Item() { return 0; }")).VerifyDiagnostics();
         }
 
-        [WorkItem(539625)]
+        [WorkItem(539625, "DevDiv")]
         [Fact]
         public void CS0104ERR_AmbigContext02()
         {
@@ -18443,7 +18443,7 @@ namespace Conformance.Expressions
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigContext, Line = 12, Column = 20 });
         }
 
-        [WorkItem(540255)]
+        [WorkItem(540255, "DevDiv")]
         [Fact]
         public void CS0122ERR_BadAccess01()
         {
@@ -18731,7 +18731,7 @@ internal class InternalClass : PublicClass
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("InternalClass.F"));
         }
 
-        [Fact, WorkItem(543386)]
+        [Fact, WorkItem(543386, "DevDiv")]
         public void VolatileFieldWithGenericTypeConstrainedToClass()
         {
             var text = @"
@@ -18747,7 +18747,7 @@ class G<T> where T : C
 
         #endregion
 
-        [WorkItem(783920)]
+        [WorkItem(783920, "DevDiv")]
         [Fact()]
         public void Bug783920()
         {

@@ -56,7 +56,7 @@ class C1
                 testModel.IsAccessible(testPosition, testSymbol));
         }
 
-        [WorkItem(527516)]
+        [WorkItem(527516, "DevDiv")]
         [Fact]
         public void IsAccessibleSymbolNotResolvable()
         {
@@ -68,7 +68,7 @@ class C1
                 testModel.IsAccessible(testPosition, symbol));
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Property1()
         {
@@ -82,7 +82,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Property2()
         {
@@ -99,7 +99,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Indexer1()
         {
@@ -113,7 +113,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Indexer2()
         {
@@ -130,7 +130,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Method1()
         {
@@ -144,7 +144,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Method2()
         {
@@ -161,7 +161,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Event1()
         {
@@ -178,7 +178,7 @@ public class G<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Event2()
         {
@@ -198,7 +198,7 @@ class C : G<int>
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
         }
 
-        [WorkItem(545450)]
+        [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypesLegacy()
         {          
@@ -264,7 +264,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F3").WithArguments("D<T>.F3"));
         }
 
-        [WorkItem(531368)]
+        [WorkItem(531368, "DevDiv")]
         [Fact]
         public void TestDeepTypeAccessibilityBug18018()
         {

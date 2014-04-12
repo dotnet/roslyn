@@ -149,7 +149,7 @@ public class TryCatchFinally
             Assert.Equal("by, para, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(528296)]
+        [WorkItem(528296, "DevDiv")]
         [Fact]
         public void TestReturnInTry01()
         {
@@ -303,7 +303,7 @@ public class TryCatchFinally
             Assert.Equal("para, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(541724)]
+        [WorkItem(541724, "DevDiv")]
         [Fact]
         public void TestThrowInTry02()
         {
@@ -493,8 +493,8 @@ public class TryCatchFinally
             Assert.Equal("para, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(528567)]
-        [WorkItem(541723)]
+        [WorkItem(528567, "DevDiv")]
+        [WorkItem(541723, "DevDiv")]
         [Fact]
         public void TestAlwaysAssignedInTry03()
         {
@@ -580,7 +580,7 @@ public class TryCatchFinally
             Assert.Equal("p, this, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(540797)]
+        [WorkItem(540797, "DevDiv")]
         [Fact]
         public void TestDataFlowsInOut02()
         {
@@ -620,7 +620,7 @@ public class TryCatchFinally
             Assert.Equal("p, this, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(540798)]
+        [WorkItem(540798, "DevDiv")]
         [Fact]
         public void TestDataFlowsInOut03()
         {
@@ -668,8 +668,8 @@ L1:
             Assert.Equal("p, this, x, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(541655)]
-        [WorkItem(541723)]
+        [WorkItem(541655, "DevDiv")]
+        [WorkItem(541723, "DevDiv")]
         [Fact]
         public void TestVariablesDeclaredInTry01()
         {
@@ -868,7 +868,7 @@ public class TryCatchFinally
             Assert.Equal("this, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem(528297)]
+        [Fact, WorkItem(528297, "DevDiv")]
         public void TestTryInWhile()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
@@ -906,7 +906,7 @@ public class TryCatchFinally
             Assert.Equal("this, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [Fact, WorkItem(528298)]
+        [Fact, WorkItem(528298, "DevDiv")]
         public void TestTryInDoWhile()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
@@ -999,7 +999,7 @@ public class TryCatchFinally
             Assert.Equal("p, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(540835)]
+        [WorkItem(540835, "DevDiv")]
         [Fact]
         public void TestBracketRegionsInTry()
         {
@@ -1099,7 +1099,7 @@ public class TryCatchFinally
             Assert.Equal("refp, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-        [WorkItem(541723)]
+        [WorkItem(541723, "DevDiv")]
         [Fact]
         public void TestTryWithLambda02()
         {
@@ -1391,7 +1391,7 @@ public class Program
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
-        [Fact, WorkItem(529180)]
+        [Fact, WorkItem(529180, "DevDiv")]
         public void AlwaysAssignedInTry()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009)]
+        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "DevDiv")]
         public void SourceModule()
         {
             var text = @"namespace NS.NS1.NS2
@@ -225,7 +225,7 @@ namespace NS.NS1 {
             }
         }
 
-        [WorkItem(537287)]
+        [WorkItem(537287, "DevDiv")]
         [Fact]
         public void MultiModulesNamespaceCorLibraries()
         {
@@ -303,7 +303,7 @@ namespace NS.NS1 {
             Assert.Equal(5, b.Length);
         }
 
-        [WorkItem(537958)]
+        [WorkItem(537958, "DevDiv")]
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
@@ -334,7 +334,7 @@ namespace NS
             Assert.DoesNotThrow(() => { var b = type1.BaseType; });
         }
 
-        [WorkItem(540785)]
+        [WorkItem(540785, "DevDiv")]
         [Fact]
         public void GenericNamespace()
         {
@@ -361,7 +361,7 @@ namespace Foo<T>
             Assert.NotNull(method);
         }
 
-        [WorkItem(690871)]
+        [WorkItem(690871, "DevDiv")]
         [Fact]
         public void SpecialTypesAndAliases()
         {
@@ -383,7 +383,7 @@ namespace Foo<T>
             Assert.Equal(objectType, comp.Assembly.CorLibrary.GetSpecialType(SpecialType.System_Object));
         }
 
-        [WorkItem(690871)]
+        [WorkItem(690871, "DevDiv")]
         [Fact]
         public void WellKnownTypesAndAliases()
         {

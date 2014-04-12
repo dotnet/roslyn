@@ -301,7 +301,7 @@ class C
                 "System.TypeCode System.Enum.GetTypeCode()",
             };
 
-        [Fact, WorkItem(545556)]
+        [Fact, WorkItem(545556, "DevDiv")]
         public void TestAssortedMembers()
         {
             var text = @"
@@ -776,7 +776,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540633)]
+        [WorkItem(540633, "DevDiv")]
         [Fact]
         public void TestConstructorInitializers()
         {
@@ -827,7 +827,7 @@ class D : C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540888)]
+        [WorkItem(540888, "DevDiv")]
         [Fact]
         public void TestLambdaInConstructorInitializer()
         {
@@ -869,7 +869,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestLambdaAtEof()
         {
@@ -904,7 +904,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestLambdaWithMissingBody()
         {
@@ -942,7 +942,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestIncompleteConstructorParameters1()
         {
@@ -971,7 +971,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestIncompleteConstructorParameters2()
         {
@@ -1001,7 +1001,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestIncompleteConstructorParameters3()
         {
@@ -1031,7 +1031,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890)]
+        [WorkItem(540890, "DevDiv")]
         [Fact]
         public void TestIncompleteConstructorParameters4()
         {
@@ -1061,7 +1061,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(542360)]
+        [WorkItem(542360, "DevDiv")]
         [Fact]
         public void TestMethodParameterAndTypeParameterScope()
         {
@@ -1098,7 +1098,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(529406)]
+        [WorkItem(529406, "DevDiv")]
         [Fact]
         public void TestLeftToRightDeclarators()
         {
@@ -1158,7 +1158,7 @@ unsafe class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871)]
+        [WorkItem(782871, "DevDiv")]
         [Fact]
         public void NestedForEachLoops()
         {
@@ -1203,7 +1203,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871)]
+        [WorkItem(782871, "DevDiv")]
         [Fact]
         public void NestedForEachLoops_Embedded()
         {
@@ -1243,7 +1243,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871)]
+        [WorkItem(782871, "DevDiv")]
         [Fact]
         public void NestedForLoops_Embedded()
         {
@@ -1284,7 +1284,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871)]
+        [WorkItem(782871, "DevDiv")]
         [Fact]
         public void NestedFixedStatements_Embedded()
         {
@@ -1325,7 +1325,7 @@ unsafe class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871)]
+        [WorkItem(782871, "DevDiv")]
         [Fact]
         public void NestedUsingStatements_Embedded()
         {
@@ -1394,8 +1394,8 @@ label1:
             Assert.True(symbols.IsEmpty);
         }
 
-        [WorkItem(586815)]
-        [WorkItem(598371)]
+        [WorkItem(586815, "DevDiv")]
+        [WorkItem(598371, "DevDiv")]
         [Fact]
         public void Cref()
         {

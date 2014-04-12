@@ -100,7 +100,7 @@ namespace System {
             TestBuiltinType("object", "Object");
         }
 
-        [WorkItem(546566)]
+        [WorkItem(546566, "DevDiv")]
         [Fact]
         public void Bug16199()
         {
@@ -171,7 +171,7 @@ namespace NS
 
         }
 
-        [WorkItem(527531)]
+        [WorkItem(527531, "DevDiv")]
         [Fact]
         public void InterfaceName()
         {
@@ -190,7 +190,7 @@ namespace NS
             Assert.Equal(srcSym.Interfaces[0], metaSym.Interfaces[0]);
         }
 
-        [WorkItem(527532)]
+        [WorkItem(527532, "DevDiv")]
         [Fact]
         public void BaseTypeName()
         {

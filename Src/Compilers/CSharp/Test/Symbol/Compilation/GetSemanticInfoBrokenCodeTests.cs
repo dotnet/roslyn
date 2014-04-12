@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class GetSemanticInfoTests : SemanticModelTestBase
     {
-        [WorkItem(545639)]
+        [WorkItem(545639, "DevDiv")]
         [Fact]
         public void Bug14200()
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(546285)]
+        [WorkItem(546285, "DevDiv")]
         [Fact]
         public void OmittedArraySize()
         {
@@ -93,7 +93,7 @@ class C
             VisitAllExpressions(model, expr);
         }
 
-        [WorkItem(546332)]
+        [WorkItem(546332, "DevDiv")]
         [Fact]
         public void ExpressionInStructuredTrivia()
         {
@@ -108,7 +108,7 @@ class C
             }
         }
 
-        [WorkItem(546637)]
+        [WorkItem(546637, "DevDiv")]
         [Fact()]
         public void Bug16411()
         {
@@ -130,7 +130,7 @@ class C
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(547065)]
+        [WorkItem(547065, "DevDiv")]
         [Fact]
         public void Bug17789()
         {
@@ -160,7 +160,7 @@ static class C
             }
         }
 
-        [WorkItem(578141)]
+        [WorkItem(578141, "DevDiv")]
         [Fact]
         public void IsImplicitlyDeclared()
         {
@@ -184,7 +184,7 @@ abstract void M();";
             Assert.False(member.IsImplicitlyDeclared);
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void Repro611177()
         {
@@ -199,7 +199,7 @@ abstract void M();";
             Assert.DoesNotThrow(() => model.GetSymbolInfo(charLiteralSyntax));
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void UsingStatementInDelegateInArrayRankInType()
         {
@@ -220,7 +220,7 @@ class C
             Assert.DoesNotThrow(() => model.GetSymbolInfo(usingSyntax.Expression));
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void TypeOfInUnexpectedDelegate()
         {
@@ -242,7 +242,7 @@ class C
             Assert.Equal(comp.GetWellKnownType(WellKnownType.System_Type), info.Type);
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void UnexpectedDelegateInTypeOf()
         {
@@ -265,7 +265,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
-        [WorkItem(754405)]
+        [WorkItem(754405, "DevDiv")]
         [Fact]
         public void MissingNullableType()
         {
@@ -280,7 +280,7 @@ class C
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(754405)]
+        [WorkItem(754405, "DevDiv")]
         [Fact]
         public void MissingPointerType()
         {
@@ -295,7 +295,7 @@ class C
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(754405)]
+        [WorkItem(754405, "DevDiv")]
         [Fact]
         public void MissingArrayType()
         {
@@ -310,7 +310,7 @@ class C
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
-        [WorkItem(757789)]
+        [WorkItem(757789, "DevDiv")]
         [Fact]
         public void OmittedTypeArgument()
         {

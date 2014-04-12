@@ -532,7 +532,7 @@ class Async
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<" + longName + 1 + ">d__1").WithLocation(1, 1));
         }
 
-        [WorkItem(531484)]
+        [WorkItem(531484, "DevDiv")]
         [Fact]
         public void TestFixedSizeBuffers()
         {

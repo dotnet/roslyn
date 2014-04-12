@@ -581,7 +581,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 
-        [WorkItem(543168)]
+        [WorkItem(543168, "DevDiv")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -600,7 +600,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529547)]
+        [WorkItem(529547, "DevDiv")]
         [Fact]
         public void UnusedLocal()
         {
@@ -633,7 +633,7 @@ public class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545331)]
+        [WorkItem(545331, "DevDiv")]
         [Fact]
         public void MissingIDisposable()
         {

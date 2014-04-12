@@ -425,7 +425,7 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
         }
 
-        [WorkItem(543168)]
+        [WorkItem(543168, "DevDiv")]
         [Fact()]
         public void MalfomedLock_1()
         {
@@ -710,7 +710,7 @@ class Test
 
         #endregion
 
-        [WorkItem(543168)]
+        [WorkItem(543168, "DevDiv")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -729,7 +729,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529001)]
+        [WorkItem(529001, "DevDiv")]
         [Fact]
         public void LockTypeGenericTypeParam()
         {

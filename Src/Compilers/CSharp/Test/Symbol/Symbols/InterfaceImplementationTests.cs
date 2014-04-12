@@ -1170,7 +1170,7 @@ partial class Base
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1222,7 +1222,7 @@ class Program
         // I source, B source, D metadata - skip: metadata implementing source
         // public void TestSourceMetadataImplicitImplementation2()
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1293,7 +1293,7 @@ class Program
         // I source, B metadata, D metadata - skip: metadata implementing source
         // public void TestSourceMetadataImplicitImplementation4()
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1349,7 +1349,7 @@ class Program
         // I metadata, B source, D metadata - skip: metadata extending source
         // public void TestSourceMetadataImplicitImplementation6()
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1421,7 +1421,7 @@ class Program
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
         }
 
-        [WorkItem(528858)]
+        [WorkItem(528858, "DevDiv")]
         [Fact(Skip = "528858")]
         public void InconsistentTypeParameters()
         {
@@ -1440,7 +1440,7 @@ class C : I<int>.I2 { }
                 Diagnostic(ErrorCode.ERR_BogusType));
         }
 
-        [WorkItem(528901)]
+        [WorkItem(528901, "DevDiv")]
         [Fact(Skip = "528901")]
         public void BaseInterfacesWithWeirdNamesCanBeImplementedThroughInterfaceInheritance()
         {
@@ -1455,7 +1455,7 @@ class C : B { }
             CompileWithCustomILSource(csharp, il);
         }
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         /// <summary>
         /// I -> M(ref int)
         /// B -> M(out int)
@@ -1543,7 +1543,7 @@ class Program
                     global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
         }
 
-        [WorkItem(540451)]
+        [WorkItem(540451, "DevDiv")]
         [Fact]
         public void TestImplementRefParamWithOutParam()
         {
@@ -1597,7 +1597,7 @@ static class Program
             Assert.Equal(fooMethod, typeSymbol.FindImplementationForInterfaceMember(secondInterfaceMethod));
         }
 
-        [WorkItem(540558)]
+        [WorkItem(540558, "DevDiv")]
         /// <summary>
         /// In this case, C# thinks B.M implements I.M for C, but the CLR thinks A.M does.  To make sure that we get the
         /// desired behavior, we have to insert an explicit bridge method.
@@ -1657,7 +1657,7 @@ class C : B, I { }
             Assert.Equal(classBMethod, synthesizedExplicitImpl.ImplementingMethod);
         }
 
-        [WorkItem(540558)]
+        [WorkItem(540558, "DevDiv")]
         /// <summary>
         /// In this case, C# thinks B.M implements I.M for C, but the CLR thinks A.M does.  However,
         /// B.M overrides A.M, so there's no problem (distinguish from TestCSharpClrDisagreement_NonOverride).
@@ -1779,7 +1779,7 @@ class D : I
             Assert.Equal("void D.set_Item(System.Int32 x, System.Int32 value)", classD.FindImplementationForInterfaceMember(interfaceSetter).ToTestDisplayString());
         }
 
-        [WorkItem(528898)]
+        [WorkItem(528898, "DevDiv")]
         [Fact]
         public void GenericTypeWithObsoleteBangAritySuffixIsNotAvailable()
         {
@@ -1804,7 +1804,7 @@ class C : object, B.I<string>
             CompileWithCustomILSource(csharpSource, ilSource, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [WorkItem(528913)]
+        [WorkItem(528913, "DevDiv")]
         [Fact(Skip = "528913")]
         public void StaticTypesCannotBeUsedAsTypeArgumentsInInterfacesImplementedThroughInterfaceInheritance()
         {
@@ -1822,7 +1822,7 @@ class D : C { }
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "B"));
         }
 
-        [WorkItem(530224)]
+        [WorkItem(530224, "DevDiv")]
         [Fact]
         public void IsMetadataVirtualBeforeForceComplete()
         {
@@ -1900,7 +1900,7 @@ class D : B, I
             Assert.Equal("NonVirtual", bridgeMethod.ImplementingMethod.Name);
         }
 
-        [WorkItem(530358)]
+        [WorkItem(530358, "DevDiv")]
         [Fact]
         public void ExplicitImplementationWithoutInterfaceInName()
         {
@@ -1974,7 +1974,7 @@ class Derived : Base, I2
         }
 
         [Fact]
-        [WorkItem(530164), WorkItem(531642), WorkItem(531643)]
+        [WorkItem(530164, "DevDiv"), WorkItem(531642, "DevDiv"), WorkItem(531643, "DevDiv")]
         public void ImplicitImplementationOfByRefReturn()
         {
             var il = @"
@@ -2060,7 +2060,7 @@ public class D : B, I
                 Diagnostic(ErrorCode.ERR_ByRefReturnUnsupported, "M").WithArguments("int"));
         }
 
-        [WorkItem(547149)]
+        [WorkItem(547149, "DevDiv")]
         [Fact]
         public void BaseTypeDoesNotActuallyImplementInterface()
         {
@@ -2114,7 +2114,7 @@ class Derived2 : Base2, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived2").WithArguments("Derived2", "Interface.M()"));
         }
 
-        [WorkItem(718115)]
+        [WorkItem(718115, "DevDiv")]
         [Fact]
         public void ExplicitlyImplementedAccessorsWithoutEvent()
         {
@@ -2238,7 +2238,7 @@ Explicit implementation
             Assert.Null(baseType.FindImplementationForInterfaceMember(interfaceEvent));
         }
 
-        [WorkItem(718115)]
+        [WorkItem(718115, "DevDiv")]
         [Fact]
         public void ExplicitlyImplementedParameterizedPropertyAccessor()
         {

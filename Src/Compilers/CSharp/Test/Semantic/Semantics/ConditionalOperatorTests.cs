@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>"));
         }
 
-        [WorkItem(545408)]
+        [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestDelegateCovarianceConversions()
         {
@@ -314,7 +314,7 @@ D";
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408)]
+        [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestDelegateContravarianceConversions()
         {
@@ -421,7 +421,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408)]
+        [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestInterfaceCovarianceConversions()
         {
@@ -523,7 +523,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408)]
+        [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestInterfaceContravarianceConversions()
         {
@@ -967,7 +967,7 @@ class Program
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(545408)]
+        [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestVarianceConversions()
         {          
@@ -1181,7 +1181,7 @@ System.Collections.Generic.List`1[System.Int32]
 ");
         }
 
-        [WorkItem(528424)]
+        [WorkItem(528424, "DevDiv")]
         [Fact()]
         public void TestErrorOperand()
         {

@@ -139,7 +139,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestNonInitializedLocalOnLeft()
         {
@@ -282,7 +282,7 @@ class F
             );
         }
 
-        [WorkItem(542407)]
+        [WorkItem(542407, "DevDiv")]
         [Fact]
         public void TestClassOnRight()
         {
@@ -595,7 +595,7 @@ class F
 
         #endregion Aliases
 
-        [WorkItem(864605)]
+        [WorkItem(864605, "DevDiv")]
         [Fact]
         public void TestTypeOrValueInMethodGroupIsExpression()
         {
@@ -719,7 +719,7 @@ class Program
             Assert.NotNull(info);
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias01()
         {
@@ -757,7 +757,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias02()
         {
@@ -795,7 +795,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition01()
         {
@@ -833,7 +833,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition02()
         {
@@ -919,7 +919,7 @@ class C
                 SymbolKind.Method, "void C.Static()");
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void LambdaConversion()
         {
@@ -970,7 +970,7 @@ class Program
                 );
         }
 
-        [WorkItem(543551)]
+        [WorkItem(543551, "DevDiv")]
         [Fact]
         public void FieldOfEnumType()
         {
@@ -993,7 +993,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(531386)]
+        [WorkItem(531386, "DevDiv")]
         [Fact]
         public void AlternateTypeAndVariable()
         {
@@ -1279,7 +1279,7 @@ enum Color
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(542586)]
+        [WorkItem(542586, "DevDiv")]
         [Fact]
         public void TestNestedNameCollisionType()
         {
@@ -1312,7 +1312,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"));
         }
 
-        [WorkItem(542586)]
+        [WorkItem(542586, "DevDiv")]
         [Fact]
         public void TestNestedNameCollisionType02()
         {
@@ -1341,7 +1341,7 @@ class F
                 Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("E", "E", "type"));
         }
 
-        [WorkItem(542586)]
+        [WorkItem(542586, "DevDiv")]
         [Fact]
         public void TestNestedNameCollisionValue()
         {
@@ -1374,7 +1374,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"));
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestNameCollisionType()
         {
@@ -1401,7 +1401,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E"));
         }
 
-        [WorkItem(542642)]
+        [WorkItem(542642, "DevDiv")]
         [Fact]
         public void TestNameCollisionValue()
         {
@@ -1427,7 +1427,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void FieldAndMethodSameName()
         {
@@ -1455,7 +1455,7 @@ class F
                 );
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void TypeAndMethodSameName()
         {
@@ -1487,7 +1487,7 @@ class F
 
         #region Regression cases
 
-        [WorkItem(546427)]
+        [WorkItem(546427, "DevDiv")]
         [Fact]
         public void ExtensionMethodWithColorColorReceiver()
         {

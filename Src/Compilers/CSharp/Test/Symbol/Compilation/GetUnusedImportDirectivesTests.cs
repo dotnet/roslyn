@@ -35,7 +35,7 @@ class C
         }
 
 
-        [WorkItem(865627)]
+        [WorkItem(865627, "DevDiv")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
         {
@@ -263,7 +263,7 @@ public class C
             libCompilation.VerifyDiagnostics();
         }
 
-        [WorkItem(747219)]
+        [WorkItem(747219, "DevDiv")]
         [Fact]
         public void SemanticModelCallDoesNotCountsAsUse()
         {
@@ -290,7 +290,7 @@ class C
                 );
         }
 
-        [WorkItem(747219)]
+        [WorkItem(747219, "DevDiv")]
         [Fact]
         public void INF_UnusedUsingDirective()
         {
@@ -308,7 +308,7 @@ using C = System.Console;
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using C = System.Console;"));
         }
 
-        [WorkItem(747219)]
+        [WorkItem(747219, "DevDiv")]
         [Fact]
         public void INF_UnusedExternAlias()
         {
@@ -324,7 +324,7 @@ extern alias A;
                 Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias A;"));
         }
 
-        [WorkItem(747219)]
+        [WorkItem(747219, "DevDiv")]
         [Fact]
         public void CrefCountsAsUse()
         {
@@ -345,7 +345,7 @@ public class C { }
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics();
         }
 
-        [WorkItem(770147)]
+        [WorkItem(770147, "DevDiv")]
         [Fact]
         public void InfoAndWarnAsError()
         {

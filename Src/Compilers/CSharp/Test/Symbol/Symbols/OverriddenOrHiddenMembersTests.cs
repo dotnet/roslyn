@@ -1234,7 +1234,7 @@ class CSHide : VBIMeth02Impl, IMeth02, IMeth03
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "n").WithArguments("CSHide.n"));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_EmptyAbstract()
         {
@@ -1248,7 +1248,7 @@ abstract class Derived : AccessorModifierMismatch
             CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics();
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_EmptyConcrete()
         {
@@ -1268,7 +1268,7 @@ class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractNone.get"));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_OverrideGetters()
         {
@@ -1367,7 +1367,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.set"));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_OverrideSetters()
         {
@@ -1466,7 +1466,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractNone.get"));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedPropertyAccessorModifiers_AbstractSealed()
         {
@@ -1530,7 +1530,7 @@ class Derived : AccessorModifierMismatch
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedEventAccessorModifiers_EmptyAbstract()
         {
@@ -1544,7 +1544,7 @@ abstract class Derived : AccessorModifierMismatch
             CreateCompilationWithMscorlib(text1, references: refs, compOptions: TestOptions.Dll).VerifyDiagnostics();
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedEventAccessorModifiers_EmptyConcrete()
         {
@@ -1565,7 +1565,7 @@ class Derived : AccessorModifierMismatch
         }
 
         // NOTE: The behavior is quite different from the analogous property tests.
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedEventAccessorModifiers_OverrideAccessors()
         {
@@ -1660,7 +1660,7 @@ class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "SealedSealed").WithArguments("Derived.SealedSealed", "AccessorModifierMismatch.SealedSealed"));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedEventAccessorModifiers_AbstractSealed()
         {
@@ -1763,7 +1763,7 @@ class Derived : AccessorModifierMismatch
 
         #region "Regressions"
 
-        [WorkItem(546834)]
+        [WorkItem(546834, "DevDiv")]
         [Fact]
         public void PropertyHidingAccessor()
         {
@@ -1813,7 +1813,7 @@ public class MainClass
         }
 
 
-        [WorkItem(539623)]
+        [WorkItem(539623, "DevDiv")]
         [Fact]
         public void GenericTypeWithDiffTypeParamNotHideBase()
         {
@@ -1885,7 +1885,7 @@ public class TestClass3 : TestClass2
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "TestClass3").WithArguments("TestClass3", "TestClass1.P2.get"));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideBaseImplementationWithPrivateProperty()
         {
@@ -1913,7 +1913,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideBaseImplementationWithStaticProperty()
         {
@@ -1941,7 +1941,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideBaseImplementationWithWrongTypeProperty()
         {
@@ -1969,7 +1969,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideInvalidBaseImplementationWithPrivateProperty()
         {
@@ -1997,7 +1997,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideInvalidBaseImplementationWithStaticProperty()
         {
@@ -2061,7 +2061,7 @@ class B3 : I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "B3").WithArguments("B3", "I.M<T>()", "B3.M<T>()").WithLocation(8, 7));
         }
 
-        [WorkItem(540383)]
+        [WorkItem(540383, "DevDiv")]
         [Fact]
         public void HideInvalidBaseImplementationWithWrongTypeProperty()
         {
@@ -2089,7 +2089,7 @@ class B2 : B1, I1
                     global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
         }
 
-        [WorkItem(540420)]
+        [WorkItem(540420, "DevDiv")]
         [Fact]
         public void HidingInEnum()
         {
@@ -2102,7 +2102,7 @@ enum E
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(543448)]
+        [Fact, WorkItem(543448, "DevDiv")]
         public void GenericMethodsHidingFieldsAndEvents()
         {
             CreateCompilationWithMscorlib(@"
@@ -2127,7 +2127,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("Base.C"));
         }
 
-        [WorkItem(543448)]
+        [WorkItem(543448, "DevDiv")]
         [Fact]
         public void GenericMethodHidesArityZero()
         {
@@ -2158,7 +2158,7 @@ class Sub : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("Base.C"));
         }
 
-        [WorkItem(543908)]
+        [WorkItem(543908, "DevDiv")]
         [Fact]
         public void OverrideMemberOfConstructedProtectedInnerClass()
         {
@@ -2187,7 +2187,7 @@ internal class Outer2 : Outer1<Outer2>
             c2.GetDiagnostics().Verify();
         }
 
-        [WorkItem(543908)]
+        [WorkItem(543908, "DevDiv")]
         [Fact]
         public void Repro11967()
         {
@@ -2396,7 +2396,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "GAB").WithArguments("C.GAB(ref ?)"));
         }
 
-        [WorkItem(545653)]
+        [WorkItem(545653, "DevDiv")]
         [Fact]
         public void Repro14242_Property()
         {
@@ -2458,7 +2458,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "A.X.get"));
         }
 
-        [WorkItem(545653)]
+        [WorkItem(545653, "DevDiv")]
         [Fact]
         public void Repro14242_Event()
         {
@@ -2517,7 +2517,7 @@ class D : C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E"));
         }
 
-        [WorkItem(545653)]
+        [WorkItem(545653, "DevDiv")]
         [Fact]
         public void Repro14242_Method()
         {
@@ -2573,7 +2573,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("D.M()", "C.M()", "string"));
         }
 
-        [WorkItem(545653)]
+        [WorkItem(545653, "DevDiv")]
         [Fact]
         public void Repro14242_Indexer()
         {
@@ -2635,7 +2635,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "A.this[int].get"));
         }
 
-        [WorkItem(545658)]
+        [WorkItem(545658, "DevDiv")]
         [Fact]
         public void MethodConstructedFromOverrideWithCustomModifiers()
         {
@@ -2838,7 +2838,7 @@ Base[G`1[System.Int32]].Meth(G`1[System.Int32],System.Int32)
 Base[C].Meth(C,System.Int32)");
         }
 
-        [Fact, WorkItem(546816)]
+        [Fact, WorkItem(546816, "DevDiv")]
         public void Bug16887()
         {
             var text = @"
@@ -2860,7 +2860,7 @@ class Test
             CompileAndVerify(compilation);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility1()
         {
             var source1 = @"
@@ -2908,7 +2908,7 @@ public class C : B
                 p.DeclaredAccessibility == (p.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility2()
         {
             var source1 = @"
@@ -2956,7 +2956,7 @@ public class C : B
                 p.DeclaredAccessibility == (p.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility3()
         {
             var source1 = @"
@@ -3003,7 +3003,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility4()
         {
             var source1 = @"
@@ -3050,7 +3050,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility5()
         {
             var source1 = @"
@@ -3097,7 +3097,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility6()
         {
             var source1 = @"
@@ -3144,7 +3144,7 @@ public class C : B
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.Public);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenPropertyAccessibility7()
         {
             var source1 = @"
@@ -3218,7 +3218,7 @@ public class B : A
             AssertEx.All(properties, p => p.DeclaredAccessibility == Accessibility.ProtectedOrInternal);
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void OverriddenEventAccessibility()
         {
             var source1 = @"
@@ -3272,7 +3272,7 @@ public class C : B
                 e.DeclaredAccessibility == (e.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void HideDestructorOperatorConversion1()
         {
             var source = @"
@@ -3388,7 +3388,7 @@ public class D8 : B
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [Fact, WorkItem(546836)]
+        [Fact, WorkItem(546836, "DevDiv")]
         public void HideDestructorOperatorConversion2()
         {
             var source = @"
@@ -3541,7 +3541,7 @@ public class D8 : B
         }
 
         [Fact]
-        [WorkItem(661370)]
+        [WorkItem(661370, "DevDiv")]
         public void HideAndOverride1()
         {
             var source = @"
@@ -3589,7 +3589,7 @@ public class Derived2 : Base
         }
 
         [Fact]
-        [WorkItem(743241)]
+        [WorkItem(743241, "DevDiv")]
         public void OverrideNonObjectEquals()
         {
             var source = @"

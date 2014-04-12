@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class ErrorTypeSymbolTests : CSharpTestBase
     {
-        [WorkItem(546143)]
+        [WorkItem(546143, "DevDiv")]
         [Fact]
         public void ConstructedErrorTypes()
         {

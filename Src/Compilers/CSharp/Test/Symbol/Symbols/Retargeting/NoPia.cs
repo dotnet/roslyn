@@ -2066,7 +2066,7 @@ public struct S2<T>
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact, WorkItem(685240)]
+        [Fact, WorkItem(685240, "DevDiv")]
         public void Bug685240()
         {
             string piaSource = @"

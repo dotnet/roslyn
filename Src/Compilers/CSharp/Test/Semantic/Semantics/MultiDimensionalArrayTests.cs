@@ -159,7 +159,7 @@ public class C
             var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
-        [WorkItem(544081)]
+        [WorkItem(544081, "DevDiv")]
         [Fact()]
         public void MultiDimArrayGenericTypeWiderThanArrayType()
         {
@@ -180,7 +180,7 @@ class Program {
             var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
-        [WorkItem(544364)]
+        [WorkItem(544364, "DevDiv")]
         [Fact]
         public void MissingNestedArrayInitializerWithNullConst()
         {

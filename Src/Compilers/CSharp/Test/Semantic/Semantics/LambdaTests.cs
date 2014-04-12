@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
-        [Fact, WorkItem(608181)]
+        [Fact, WorkItem(608181, "DevDiv")]
         public void BadInvocationInLambda()
         {
             var src = @"
@@ -220,7 +220,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(539538)]
+        [WorkItem(539538, "DevDiv")]
         [Fact]
         public void TestLambdaErrors03()
         {
@@ -242,7 +242,7 @@ class C
 "'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(System.Func<System.IComparable<I>>)' and 'C.Foo(System.Func<I>)'");
         }
 
-        [WorkItem(539976)]
+        [WorkItem(539976, "DevDiv")]
         [Fact]
         public void LambdaArgumentToOverloadedDelegate()
         {
@@ -263,7 +263,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(528044)]
+        [WorkItem(528044, "DevDiv")]
         [Fact]
         public void MissingReferenceInOverloadResolution()
         {
@@ -312,7 +312,7 @@ class Program
             Assert.Equal(0, comp2.GetDiagnostics().Count());
         }
 
-        [WorkItem(528047)]
+        [WorkItem(528047, "DevDiv")]
         [Fact()]
         public void OverloadResolutionWithEmbeddedInteropType()
         {
@@ -399,7 +399,7 @@ class C
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
         }
 
-        [WorkItem(540219)]
+        [WorkItem(540219, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithStaticType()
         {
@@ -501,7 +501,7 @@ class Program
             Assert.Equal("'x' error CS0721: 'System.GC': static types cannot be used as parameters", diagnostics.First());
         }
 
-        [WorkItem(540251)]
+        [WorkItem(540251, "DevDiv")]
         [Fact]
         public void AttributesCannotBeUsedInAnonymousMethods()
         {
@@ -526,7 +526,7 @@ class Program
             // TODO: check error code
         }
 
-        [WorkItem(540263)]
+        [WorkItem(540263, "DevDiv")]
         [Fact]
         public void ErrorsInUnboundLambdas()
         {
@@ -565,7 +565,7 @@ class Program
         );
         }
 
-        [WorkItem(540181)]
+        [WorkItem(540181, "DevDiv")]
         [Fact]
         public void ErrorInLambdaArgumentList()
         {
@@ -587,7 +587,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, @"nulF").WithArguments("nulF"));
         }
 
-        [WorkItem(541725)]
+        [WorkItem(541725, "DevDiv")]
         [Fact]
         public void DelegateCreationIsNotStatement()
         {
@@ -615,7 +615,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
 
-        [WorkItem(542336)]
+        [WorkItem(542336, "DevDiv")]
         [Fact]
         public void ThisInStaticContext()
         {
@@ -637,7 +637,7 @@ class Program
                 );
         }
 
-        [WorkItem(542431)]
+        [WorkItem(542431, "DevDiv")]
         [Fact]
         public void LambdaHasMoreParametersThanDelegate()
         {
@@ -654,7 +654,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
 
-        [Fact, WorkItem(529054)]
+        [Fact, WorkItem(529054, "DevDiv")]
         public void LambdaInDynamicCall()
         {
             var source = @"
@@ -673,7 +673,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(529389)]
+        [Fact, WorkItem(529389, "DevDiv")]
         public void ParenthesizedLambdaInCastExpression()
         {
             var source = @"
@@ -724,7 +724,7 @@ class Program
             Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
         }
 
-        [WorkItem(544594)]
+        [WorkItem(544594, "DevDiv")]
         [Fact]
         public void LambdaInEnumMemberDecl()
         {
@@ -745,7 +745,7 @@ public class TestClass
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "MyTest").WithArguments("TestClass.MyTest"));
         }
 
-        [WorkItem(544932)]
+        [WorkItem(544932, "DevDiv")]
         [Fact]
         public void AnonymousLambdaInEnumSubtraction()
         {
@@ -770,7 +770,7 @@ class Test
             CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545156)]
+        [WorkItem(545156, "DevDiv")]
         [Fact]
         public void SpeculativelyBindOverloadResolution()
         {
@@ -803,7 +803,7 @@ class Program
                 SpeculativeBindingOption.BindAsExpression));
         }
 
-        [WorkItem(545343)]
+        [WorkItem(545343, "DevDiv")]
         [Fact]
         public void LambdaUsingFieldInConstructor()
         {
@@ -833,7 +833,7 @@ public class Derived
             CompileAndVerify(source, expectedOutput: "Local = 2, Field = 1");
         }
 
-        [WorkItem(642222)]
+        [WorkItem(642222, "DevDiv")]
         [Fact]
         public void SpeculativelyBindOverloadResolutionAndInferenceWithError()
         {
@@ -896,7 +896,7 @@ namespace IntellisenseBug
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
-        [WorkItem(722288)]
+        [WorkItem(722288, "DevDiv")]
         [Fact]
         public void CompletionInLambdaInIncompleteInvocation()
         {
@@ -950,7 +950,7 @@ public class IntelliSenseError
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
-        [WorkItem(871896)]
+        [WorkItem(871896, "DevDiv")]
         [Fact]
         public void Bug871896()
         {

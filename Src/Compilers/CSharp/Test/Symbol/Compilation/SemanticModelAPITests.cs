@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol1, symbol2);
         }
 
-        [WorkItem(539740)]
+        [WorkItem(539740, "DevDiv")]
         [Fact]
         public void NamespaceWithoutName()
         {
@@ -571,7 +571,7 @@ namespace N {
             Assert.Equal(bOuter, cBaseType);
         }
 
-        [Fact, WorkItem(528655)]
+        [Fact, WorkItem(528655, "DevDiv")]
         public void ErrorSymbolForInvalidCode()
         {
             var text = @"
@@ -591,7 +591,7 @@ public class A
             Assert.Equal(1, invalid.Count());
         }
 
-        [Fact, WorkItem(543225), WorkItem(529057)]
+        [Fact, WorkItem(543225, "DevDiv"), WorkItem(529057, "DevDiv")]
         public void MergePartialMethodAndParameterSymbols()
         {
             var text = @"
@@ -651,7 +651,7 @@ partial class PC
             Assert.Equal(1, ppSym02.Locations.Length);
         }
 
-        [Fact, WorkItem(544221)]
+        [Fact, WorkItem(544221, "DevDiv")]
         public void GetTypeInfoForOptionalParameterDefaultValueInDelegate()
         {
             var text = @"
@@ -679,7 +679,7 @@ class Test
             Assert.Equal("System.Int32", type2.Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(544231)]
+        [Fact, WorkItem(544231, "DevDiv")]
         public void GetDeclSymbolForParameterOfPartialMethod()
         {
             var text1 = @"
@@ -720,7 +720,7 @@ partial class Partial001
             Assert.NotEqual(sym1.Locations[0], sym2.Locations[0]);
         }
 
-        [Fact, WorkItem(544473)]
+        [Fact, WorkItem(544473, "DevDiv")]
         public void GetDeclSymbolForTypeParameterOfPartialMethod()
         {
             var text1 = @"
@@ -910,7 +910,7 @@ class AnonTypeTest
             Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results);
         }
 
-        [Fact(), WorkItem(542861), WorkItem(529673)]
+        [Fact(), WorkItem(542861, "DevDiv"), WorkItem(529673, "DevDiv")]
         public void GetSymbolInfoForAccessorParameters()
         {
             var text = @"
@@ -960,7 +960,7 @@ public class Test
             Assert.NotEqual(parasym, argsym2);
         }
 
-        [WorkItem(545648)]
+        [WorkItem(545648, "DevDiv")]
         [Fact]
         public void AliasDeclaredSymbolWithConflict()
         {
@@ -985,7 +985,7 @@ class X { }
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using X = System;"));
         }
 
-        [WorkItem(529751)]
+        [WorkItem(529751, "DevDiv")]
         [Fact]
         public void ExternAlias()
         {
@@ -1029,7 +1029,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c"));
         }
 
-        [Fact, WorkItem(546687), WorkItem(529751)]
+        [Fact, WorkItem(546687, "DevDiv"), WorkItem(529751, "DevDiv")]
         public void ExternAliasWithoutTarget()
         {
             var source = @"
@@ -1065,7 +1065,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C").WithArguments("C", "X"));
         }
 
-        [WorkItem(545648)]
+        [WorkItem(545648, "DevDiv")]
         [Fact]
         public void UsingDirectiveAliasSemanticInfo()
         {
@@ -1087,7 +1087,7 @@ class Test
             Assert.Equal(SymbolKind.Alias, model.GetDeclaredSymbol(usingSyntax).Kind);
         }
 
-        [WorkItem(545882)]
+        [WorkItem(545882, "DevDiv")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInPlaceOfActual()
         {
@@ -1117,7 +1117,7 @@ class Test
             Assert.Equal(0, method.ParameterCount);
         }
 
-        [WorkItem(545882)]
+        [WorkItem(545882, "DevDiv")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInNewLocation()
         {
@@ -1222,7 +1222,7 @@ enum C
         }
 
         [Fact]
-        [WorkItem(648305)]
+        [WorkItem(648305, "DevDiv")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1266,7 +1266,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(746002)]
+        [WorkItem(746002, "DevDiv")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument2()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1310,7 +1310,7 @@ interface I
         }
 
         [Fact]
-        [WorkItem(657701)]
+        [WorkItem(657701, "DevDiv")]
         public void TestGetSpeculativeSemanticModelInConstructorDefaultValueArgument()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1353,7 +1353,7 @@ class C
             Assert.Equal((short)0, constantInfo.Value);
         }
 
-        [WorkItem(529893)]
+        [WorkItem(529893, "DevDiv")]
         [Fact]
         public void AliasCalledVar()
         {
@@ -1728,7 +1728,7 @@ foreach(short ele in a)
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
         }
 
-        [WorkItem(545882)]
+        [WorkItem(545882, "DevDiv")]
         [Fact]
         public void TestGetSpeculativeSemanticModelForConstructorInitializer_UnsupportedLocation()
         {
@@ -1892,7 +1892,7 @@ unsafe class C
             Assert.Equal("p", symbol.Name);
         }
 
-        [WorkItem(663704)]
+        [WorkItem(663704, "DevDiv")]
         [Fact]
         public void TestGetSpeculativeSemanticModelInsideUnknownAccessor()
         {
@@ -2674,7 +2674,7 @@ class A
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(731108)]
+        [WorkItem(731108, "DevDiv")]
         [Fact]
         public void Repro731108()
         {
@@ -2706,7 +2706,7 @@ public class C
             Assert.Equal(TypeKind.Error, ((ParameterSymbol)symbol).Type.TypeKind);
         }
 
-        [WorkItem(783566)]
+        [WorkItem(783566, "DevDiv")]
         [Fact]
         public void SpeculateAboutYieldStatement1()
         {
@@ -2739,7 +2739,7 @@ class C
             Assert.Equal(TypeKind.Error, info.ConvertedType.TypeKind);
         }
 
-        [WorkItem(783566)]
+        [WorkItem(783566, "DevDiv")]
         [Fact]
         public void SpeculateAboutYieldStatement2()
         {
@@ -2774,7 +2774,7 @@ class C
             Assert.Equal(SpecialType.System_Int64, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(791794)]
+        [WorkItem(791794, "DevDiv")]
         [Fact]
         public void SpeculateAboutOmittedArraySizeInCref()
         {
@@ -2806,7 +2806,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(784255)]
+        [WorkItem(784255, "DevDiv")]
         [Fact]
         public void Repro784255()
         {
@@ -2841,7 +2841,7 @@ struct S
             var info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
         }
 
-        [WorkItem(823791)]
+        [WorkItem(823791, "DevDiv")]
         [Fact]
         public void LambdaArgumentInBadCall_Constructor()
         {
@@ -2861,7 +2861,7 @@ class Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        [WorkItem(823791)]
+        [WorkItem(823791, "DevDiv")]
         [Fact]
         public void LambdaArgumentInBadCall_Method()
         {
@@ -2881,7 +2881,7 @@ class Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        [WorkItem(823791)]
+        [WorkItem(823791, "DevDiv")]
         [Fact]
         public void LambdaArgumentInBadCall_Indexer()
         {
@@ -2901,7 +2901,7 @@ class Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        [WorkItem(823791)]
+        [WorkItem(823791, "DevDiv")]
         [Fact]
         public void LambdaArgumentInBadCall_Delegate()
         {
@@ -2921,7 +2921,7 @@ class Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        [WorkItem(823791)]
+        [WorkItem(823791, "DevDiv")]
         [Fact]
         public void LambdaArgumentInBadCall_ConstructorInitializer()
         {
@@ -2972,7 +2972,7 @@ class Derived : Test
             Assert.Equal(stringType, identifierInfo.ConvertedType);
         }
 
-        [WorkItem(850907)]
+        [WorkItem(850907, "DevDiv")]
         [Fact]
         public void ExtensionMethodViability()
         {

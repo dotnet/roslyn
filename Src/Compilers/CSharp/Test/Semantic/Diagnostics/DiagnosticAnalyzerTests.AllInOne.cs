@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
         }
 
-        [WorkItem(896075)]
+        [WorkItem(896075, "DevDiv")]
         [Fact]
         public void DiagnosticAnalyzerIndexerDeclaration()
         {

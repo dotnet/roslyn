@@ -1265,7 +1265,7 @@ public class D
                 // (7,20): error CS0570: 'C.VT()' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
-        [WorkItem(666162)]
+        [WorkItem(666162, "DevDiv")]
         [Fact]
         public void Repro666162()
         {

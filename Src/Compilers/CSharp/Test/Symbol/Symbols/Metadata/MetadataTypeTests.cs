@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [Fact, WorkItem(531619), WorkItem(531619)]
+        [Fact, WorkItem(531619, "DevDiv"), WorkItem(531619, "DevDiv")]
         public void InheritFromNetModuleMetadata01()
         {
             var modRef = TestReferences.MetadataTests.NetModule01.ModuleCS00;

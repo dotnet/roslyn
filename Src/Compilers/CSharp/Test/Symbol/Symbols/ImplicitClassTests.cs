@@ -55,7 +55,7 @@ void Foo()
             Assert.True(scriptClass.IsScriptClass);
         }
 
-        [Fact, WorkItem(531535)]
+        [Fact, WorkItem(531535, "DevDiv")]
         public void Events()
         {
             var c = CreateCompilationWithMscorlib(@"
@@ -68,7 +68,7 @@ event System.Action e;
             Assert.NotNull(evnt.Type);
         }
 
-        [WorkItem(598860)]
+        [WorkItem(598860, "DevDiv")]
         [Fact]
         public void AliasQualifiedNamespaceName()
         {

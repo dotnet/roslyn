@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class StructsTests : CompilingTestBase
     {
         // Cannot have instance field initializers in structs
-        [WorkItem(540982)]
+        [WorkItem(540982, "DevDiv")]
         [Fact()]
         public void TestInitFieldStruct()
         {
@@ -38,7 +38,7 @@ public struct A
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896)]
+        [WorkItem(540896, "DevDiv")]
         [Fact]
         public void TestConstructorStruct()
         {
@@ -63,7 +63,7 @@ struct  Foo
         }
 
         // Calling struct default constructor in another constructor
-        [WorkItem(540896)]
+        [WorkItem(540896, "DevDiv")]
         [Fact]
         public void TestConstructorStruct02()
         {
@@ -84,7 +84,7 @@ public struct Struct
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896)]
+        [WorkItem(540896, "DevDiv")]
         [Fact]
         public void TestConstructorStruct03()
         {
@@ -135,7 +135,7 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
-        [WorkItem(540990)]
+        [WorkItem(540990, "DevDiv")]
         [Fact]
         public void TestOverridingBaseConstructorStruct()
         {
@@ -223,7 +223,7 @@ S::ToString";
         }
 
         // Test constructor for generic struct
-        [WorkItem(540993)]
+        [WorkItem(540993, "DevDiv")]
         [Fact]
         public void TestConstructorForGenericStruct()
         {
@@ -253,7 +253,7 @@ class Test
         }
 
         // Assign to decimal in struct constructor
-        [WorkItem(540994)]
+        [WorkItem(540994, "DevDiv")]
         [Fact]
         public void TestAssigntoDecimalInStructConstructor()
         {
@@ -411,7 +411,7 @@ public class C
 }");
         }
 
-        [WorkItem(541309)]
+        [WorkItem(541309, "DevDiv")]
         [Fact]
         public void PrivateParameterlessConstructorInMetadata()
         {
@@ -467,7 +467,7 @@ public class C
 }");
         }
 
-        [WorkItem(543934)]
+        [WorkItem(543934, "DevDiv")]
         [Fact]
         public void ObjectCreationExprStructTypeInstanceFieldAssign()
         {
@@ -491,7 +491,7 @@ public class TestClass
                 );
         }
 
-        [WorkItem(543896)]
+        [WorkItem(543896, "DevDiv")]
         [Fact]
         public void ObjectCreationExprStructTypePropertyAssign()
         {
@@ -519,7 +519,7 @@ public class mem033
         }
 
 
-        [WorkItem(545498)]
+        [WorkItem(545498, "DevDiv")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()
         {

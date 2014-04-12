@@ -1098,7 +1098,7 @@ class C : ILErrors.InterfaceEvents
                 );
         }
 
-        [Fact, WorkItem(531090)]
+        [Fact, WorkItem(531090, "DevDiv")]
         public void Constructor()
         {
             string srcLib1 = @"
@@ -1136,7 +1136,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void SynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1169,7 +1169,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void NoSynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1199,7 +1199,7 @@ class B : C, I { }
             main.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void SynthesizedInterfaceImplementation_Indexer()
         {
             var xSource = @"
@@ -1234,7 +1234,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("X", "X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void SynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1248,7 +1248,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
             CompileAndVerify(main, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void NoSynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1262,7 +1262,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
             CompileAndVerify(main, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [Fact, WorkItem(530974)]
+        [Fact, WorkItem(530974, "DevDiv")]
         public void SynthesizedInterfaceImplementation_ModReq()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1636,7 +1636,7 @@ namespace System.Security
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "SecurityAction").WithArguments("System.Int32"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors()
         {
@@ -1732,7 +1732,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new Indexer2()[2]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_LessDerived()
         {
@@ -1785,7 +1785,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NoCorrespondingParameter()
         {
@@ -1842,7 +1842,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NameUsedForPositional()
         {
@@ -1899,7 +1899,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A"", null]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_RequiredParameterMissing()
         {
@@ -1956,7 +1956,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[null, ""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
@@ -2079,7 +2079,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"));
         }
 
-        [WorkItem(708169)]
+        [WorkItem(708169, "DevDiv")]
         [Fact]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {

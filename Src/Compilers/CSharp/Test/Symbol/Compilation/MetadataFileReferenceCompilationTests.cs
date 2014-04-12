@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoMetadataFile).WithArguments(@"c:\file_that_does_not_exist.bbb"));
         }
 
-        [Fact, WorkItem(545062)]
+        [Fact, WorkItem(545062, "DevDiv")]
         public void ExternAliasToSameDll()
         {
             var systemDllPath = typeof(Uri).Assembly.Location;

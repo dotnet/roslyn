@@ -41,7 +41,7 @@ delegate void A();
                 );
         }
 
-        [WorkItem(530363)]
+        [WorkItem(530363, "DevDiv")]
         [Fact]
         public void MissingAsyncTypes()
         {
@@ -111,7 +111,7 @@ class A {
             Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type);
         }
 
-        [WorkItem(537188)]
+        [WorkItem(537188, "DevDiv")]
         [Fact]
         public void SimpleDelegate()
         {
@@ -133,8 +133,8 @@ class A {
             Assert.Equal("System.MulticastDelegate", v.BaseType.ToTestDisplayString());
         }
 
-        [WorkItem(537188)]
-        [WorkItem(538707)]
+        [WorkItem(537188, "DevDiv")]
+        [WorkItem(538707, "DevDiv")]
         [Fact]
         public void BeginInvokeEndInvoke()
         {
@@ -183,7 +183,7 @@ namespace System
             Assert.Equal(k, endInvoke.Parameters.Length);
         }
 
-        [WorkItem(537188)]
+        [WorkItem(537188, "DevDiv")]
         [Fact]
         public void GenericDelegate()
         {
@@ -212,7 +212,7 @@ namespace System
             Assert.Equal(1, d.TypeArguments.Length);
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void DelegateEscapedIdentifier()
         {
@@ -298,7 +298,7 @@ namespace CSSample
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "d3").WithArguments("CSSample.Program.d3"));
         }
 
-        [WorkItem(538722)]
+        [WorkItem(538722, "DevDiv")]
         [Fact]
         public void MulticastIsNotDelegate()
         {
@@ -317,7 +317,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate"));
         }
 
-        [WorkItem(538706)]
+        [WorkItem(538706, "DevDiv")]
         [Fact]
         public void DelegateMethodParameterNames()
         {
@@ -353,7 +353,7 @@ delegate int D(int x, ref int y, out int z);
             Assert.Equal("result", endInvokeParameters[2].Name);
         }
 
-        [WorkItem(541179)]
+        [WorkItem(541179, "DevDiv")]
         [Fact]
         public void DelegateWithTypeParameterNamedInvoke()
         {
@@ -570,7 +570,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(634014)]
+        [WorkItem(634014, "DevDiv")]
         [Fact]
         public void DelegateTest634014()
         {

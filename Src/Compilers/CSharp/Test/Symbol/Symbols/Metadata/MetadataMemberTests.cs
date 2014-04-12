@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 } // end of class Interface
 ";
 
-        [WorkItem(537346)]
+        [WorkItem(537346, "DevDiv")]
         [Fact]
         public void MetadataMethodSymbolCtor01()
         {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537345)]
+        [WorkItem(537345, "DevDiv")]
         [Fact]
         public void MetadataMethodSymbol01()
         {
@@ -223,8 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(527150)]
-        [WorkItem(527151)]
+        [WorkItem(527150, "DevDiv")]
+        [WorkItem(527151, "DevDiv")]
         [Fact]
         public void MetadataParameterSymbol01()
         {
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537424)]
+        [WorkItem(537424, "DevDiv")]
         [Fact]
         public void MetadataMethodStaticAndInstanceCtor()
         {
@@ -463,7 +463,7 @@ class B {
         }
 
         // TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        [WorkItem(546951)]
+        [WorkItem(546951, "DevDiv")]
         [Fact]
         public void VTableGapsNotInSymbolTable()
         {
@@ -494,7 +494,7 @@ class B {
             Assert.False(propWithoutSetter.MustCallMethodsDirectly);
         }
 
-        [WorkItem(546951)]
+        [WorkItem(546951, "DevDiv")]
         [Fact]
         public void CallVTableGap()
         {
@@ -539,7 +539,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.SetterIsGap").WithArguments("Class.SetterIsGap"));
         }
 
-        [WorkItem(546951)]
+        [WorkItem(546951, "DevDiv")]
         [Fact]
         public void ImplementVTableGap()
         {

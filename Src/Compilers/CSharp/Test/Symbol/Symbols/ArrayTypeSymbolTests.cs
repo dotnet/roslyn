@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class ArrayTypeSymbolTests : CSharpTestBase
     {
-        [Fact(), WorkItem(546670)]
+        [Fact(), WorkItem(546670, "DevDiv")]
         public void MissingIList()
         {
             var c = CreateCompilation(@"

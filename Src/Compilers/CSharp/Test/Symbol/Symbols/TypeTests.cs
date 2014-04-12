@@ -150,7 +150,7 @@ interface B {
             Assert.Equal(3, type33.AllInterfaces.Length);
         }
 
-        [WorkItem(537752)]
+        [WorkItem(537752, "DevDiv")]
         [Fact]
         public void InheritedTypesCrossComps()
         {
@@ -235,7 +235,7 @@ interface B {
             Assert.Equal(4, type33.AllInterfaces.Length);
         }
 
-        [WorkItem(537746)]
+        [WorkItem(537746, "DevDiv")]
         [Fact]
         public void NestedTypes()
         {
@@ -351,7 +351,7 @@ namespace NS {
             Assert.Equal(2, i1.Locations.Length);
         }
 
-        [WorkItem(537752)]
+        [WorkItem(537752, "DevDiv")]
         [Fact]
         public void TypeCrossComps()
         {
@@ -436,7 +436,7 @@ public partial class A { }
             #endregion
         }
 
-        [Fact, WorkItem(537233), WorkItem(537313)]
+        [Fact, WorkItem(537233, "DevDiv"), WorkItem(537313, "DevDiv")]
         public void ArrayTypes()
         {
             var text =
@@ -516,7 +516,7 @@ public partial class A { }
         // .Net 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
         // .Net 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
         // Array T[] impl IList[T] only
-        [Fact, WorkItem(537300), WorkItem(527247)]
+        [Fact, WorkItem(537300, "DevDiv"), WorkItem(527247, "DevDiv")]
         public void ArrayTypeInterfaces()
         {
             var text = @"
@@ -599,7 +599,7 @@ public class A {
             Assert.Equal(v1, v2);
         }
 
-        [Fact, WorkItem(527114)]
+        [Fact, WorkItem(527114, "DevDiv")]
         public void DynamicType()
         {
             var text =
@@ -645,7 +645,7 @@ public class A {
             Assert.NotEqual(SymbolKind.ErrorType, dynType.Kind);
         }
 
-        [WorkItem(537187)]
+        [WorkItem(537187, "DevDiv")]
         [Fact]
         public void EnumFields()
         {
@@ -677,8 +677,8 @@ public class A {
             Assert.Equal(isStatic, symbol.IsStatic);
         }
 
-        [WorkItem(542479)]
-        [WorkItem(538320)]
+        [WorkItem(542479, "DevDiv")]
+        [WorkItem(538320, "DevDiv")]
         [Fact] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SourceAndMetadata_SpecialType()
         {
@@ -706,8 +706,8 @@ namespace System
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(542479)]
-        [WorkItem(538320)]
+        [WorkItem(542479, "DevDiv")]
+        [WorkItem(538320, "DevDiv")]
         [Fact] // TODO: Dev10 does not report ERR_SameFullNameAggAgg here - source wins.
         public void SourceAndMetadata_NonSpecialType()
         {
@@ -743,7 +743,7 @@ namespace N
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using System;"));
         }
 
-        [WorkItem(542479)]
+        [WorkItem(542479, "DevDiv")]
         [Fact]
         public void DuplicateType()
         {
@@ -832,7 +832,7 @@ namespace M
             Assert.Equal(3, structS.TypeArguments.Length);
         }
 
-        [WorkItem(537199)]
+        [WorkItem(537199, "DevDiv")]
         [Fact]
         public void UseTypeInNetModule()
         {
@@ -856,7 +856,7 @@ namespace M
             Assert.Equal(SymbolKind.NamedType, varA.Type.Kind);
         }
 
-        [WorkItem(537344)]
+        [WorkItem(537344, "DevDiv")]
         [Fact]
         public void ClassNameWithPrecedingAtChar()
         {
@@ -894,7 +894,7 @@ static class @main
             Assert.Equal("void Test.Main()", methodSymbol.ToTestDisplayString());
         }
 
-        [WorkItem(537437)]
+        [WorkItem(537437, "DevDiv")]
         [Fact]
         public void ClassWithMultipleConstr()
         {
@@ -916,7 +916,7 @@ static class @main
             Assert.Equal("MyClass..ctor(), MyClass..ctor(System.Int32 DummyInt)", actual);
         }
 
-        [WorkItem(537446)]
+        [WorkItem(537446, "DevDiv")]
         [Fact]
         public void BaseTypeNotDefinedInSrc()
         {
@@ -929,7 +929,7 @@ public class MyClass : T1
             Assert.Equal("T1", testTypeSymbol.BaseType.ToTestDisplayString());
         }
 
-        [WorkItem(537447)]
+        [WorkItem(537447, "DevDiv")]
         [Fact]
         public void IllegalTypeArgumentInBaseType()
         {
@@ -942,7 +942,7 @@ public class X : GC1<BOGUS> {}
             Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType.ToTestDisplayString());
         }
 
-        [WorkItem(537449)]
+        [WorkItem(537449, "DevDiv")]
         [Fact]
         public void MethodInDerivedGenericClassWithParamOfIllegalGenericType()
         {
@@ -967,7 +967,7 @@ public class SubGenericClass<T> : BaseT<T>
             Assert.Equal("SubGenericClass<T>..ctor(), void SubGenericClass<T>.Meth3(GC1<T> t), void SubGenericClass<T>.Meth4(System.NonexistentType t)", actual);
         }
 
-        [WorkItem(537449)]
+        [WorkItem(537449, "DevDiv")]
         [Fact]
         public void TestAllInterfaces()
         {
@@ -1011,7 +1011,7 @@ namespace Convert
             Assert.DoesNotThrow(() => { var mems = type1.GetMembers(); });
         }
 
-        [WorkItem(537685)]
+        [WorkItem(537685, "DevDiv")]
         [Fact]
         public void NamespaceMemberArity()
         {
@@ -1051,7 +1051,7 @@ namespace Collections {
             Assert.DoesNotThrow(() => { var mems = type1.GetMembers(); });
         }
 
-        [WorkItem(537957)]
+        [WorkItem(537957, "DevDiv")]
         [Fact]
         public void EmptyNameErrorSymbolErr()
         {
@@ -1070,7 +1070,7 @@ namespace NS
             Assert.Equal("Object", bt.Name);
         }
 
-        [WorkItem(538210)]
+        [WorkItem(538210, "DevDiv")]
         [Fact]
         public void NestedTypeAccessibility01()
         {
@@ -1087,7 +1087,7 @@ class A
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(538242)]
+        [WorkItem(538242, "DevDiv")]
         [Fact]
         public void PartialClassWithBaseType()
         {
@@ -1101,7 +1101,7 @@ partial class C2 : C1 {}
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537873)]
+        [WorkItem(537873, "DevDiv")]
         [Fact]
         public void InaccessibleTypesSkipped()
         {
@@ -1130,7 +1130,7 @@ class D : C
             Assert.Equal("B.A.X", x.Type.ToTestDisplayString());
         }
 
-        [WorkItem(537970)]
+        [WorkItem(537970, "DevDiv")]
         [Fact]
         public void ImportedVersusSource()
         {
@@ -1152,7 +1152,7 @@ namespace System
                 .Count(m => !(m is MethodSymbol) || (m as MethodSymbol).MethodKind != MethodKind.Constructor));
         }
 
-        [Fact, WorkItem(538012), WorkItem(538580)]
+        [Fact, WorkItem(538012, "DevDiv"), WorkItem(538580, "DevDiv")]
         public void ErrorTypeSymbolWithArity()
         {
             var text = @"
@@ -1377,7 +1377,7 @@ class NonGen
             Assert.Equal("IEquatable`1", equatable.MetadataName);
         }
 
-        [WorkItem(545154)]
+        [WorkItem(545154, "DevDiv")]
         [Fact]
         public void MultiDimArray()
         {
@@ -1394,7 +1394,7 @@ class Program
             CompileAndVerify(source, new[] { r }, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [Fact, WorkItem(530171)]
+        [Fact, WorkItem(530171, "DevDiv")]
         public void ErrorTypeTest01()
         {
             var comp =CreateCompilationWithMscorlib(@"public void TopLevelMethod() {}");
@@ -1408,7 +1408,7 @@ class Program
 
         #region "Nullable"
 
-        [Fact, WorkItem(537195)]
+        [Fact, WorkItem(537195, "DevDiv")]
         public void SimpleNullable()
         {
             var text =

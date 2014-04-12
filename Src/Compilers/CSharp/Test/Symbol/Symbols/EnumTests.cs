@@ -259,7 +259,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037)]
+        [WorkItem(843037, "DevDiv")]
         [Fact]
         public void CircularDefinitionManyMembers_Explicit()
         {
@@ -272,7 +272,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037)]
+        [WorkItem(843037, "DevDiv")]
         [Fact]
         public void InvertedDefinitionManyMembers_Explicit()
         {

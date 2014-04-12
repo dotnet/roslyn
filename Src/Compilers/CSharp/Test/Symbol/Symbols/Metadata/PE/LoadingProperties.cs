@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Null(@class.FindImplementationForInterfaceMember(interfaceProperty3));
         }
 
-        [WorkItem(543263)]
+        [WorkItem(543263, "DevDiv")]
         [Fact]
         public void TestMixedAccessorModifiers()
         {

@@ -203,7 +203,7 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.P").WithArguments("1", "object", "System.Action").WithLocation(13, 11));
         }
 
-        [WorkItem(529063)]
+        [WorkItem(529063, "DevDiv")]
         [Fact]
         public void GetSymbolInfoTest()
         {
@@ -292,7 +292,7 @@ static class Program
 xyz");
         }
 
-        [WorkItem(541143)]
+        [WorkItem(541143, "DevDiv")]
         [Fact]
         public void NumericConversionsAreNotAllowed()
         {
@@ -321,7 +321,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "object");
         }
 
-        [WorkItem(541144)]
+        [WorkItem(541144, "DevDiv")]
         [Fact]
         public void EnumerationConversionsAreNotAllowed()
         {
@@ -350,7 +350,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "object");
         }
 
-        [WorkItem(541145)]
+        [WorkItem(541145, "DevDiv")]
         [Fact]
         public void CannotCreateDelegateToExtensionMethodOnValueType()
         {
@@ -374,7 +374,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [WorkItem(528426)]
+        [WorkItem(528426, "DevDiv")]
         [Fact]
         public void TypedReferenceCannotBeUsedAsTypeArgument()
         {
@@ -399,8 +399,8 @@ static class Program
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [WorkItem(541146)]
-        [WorkItem(868538)]
+        [WorkItem(541146, "DevDiv")]
+        [WorkItem(868538, "DevDiv")]
         [Fact]
         public void VariablesUsedInExtensionMethodGroupMustBeDefinitelyAssigned()
         {
@@ -429,7 +429,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18));
         }
 
-        [WorkItem(541187)]
+        [WorkItem(541187, "DevDiv")]
         [Fact]
         public void ExtensionMethodsCannotBeDeclaredInNamespaces()
         {
@@ -448,7 +448,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Foo"));
         }
 
-        [WorkItem(541189)]
+        [WorkItem(541189, "DevDiv")]
         [Fact]
         public void ExtensionMethodsDeclaredInEnclosingNamespaceArePreferredOverImported2()
         {
@@ -477,7 +477,7 @@ namespace N
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(541189)]
+        [WorkItem(541189, "DevDiv")]
         [Fact]
         public void ExtensionMethodsDeclaredInEnclosingNamespaceArePreferredOverImported()
         {
@@ -1357,8 +1357,8 @@ class B
                 Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("A.G()").WithLocation(15, 27));
         }
 
-        [WorkItem(541330)]
-        [WorkItem(541335)]
+        [WorkItem(541330, "DevDiv")]
+        [WorkItem(541335, "DevDiv")]
         [Fact]
         public void ReturnDelegateAsObject()
         {
@@ -1417,7 +1417,7 @@ static class S2
                 Diagnostic(ErrorCode.ERR_BadAccess, "G").WithArguments("N.S1.G(object)").WithLocation(12, 15));
         }
 
-        [WorkItem(868538)]
+        [WorkItem(868538, "DevDiv")]
         [Fact]
         public void IsAndAs()
         {
@@ -2538,7 +2538,7 @@ internal static class C
             CompileAndVerify(source, emitOptions: EmitOptions.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
         }
 
-        [WorkItem(541327)]
+        [WorkItem(541327, "DevDiv")]
         [Fact]
         public void RegressBug7992()
         {
@@ -2615,7 +2615,7 @@ S");
 }");
         }
 
-        [WorkItem(541652)]
+        [WorkItem(541652, "DevDiv")]
         [Fact]
         public void ReduceExtensionMethodWithNullReceiverType()
         {
@@ -2640,7 +2640,7 @@ S");
             });
         }
 
-        [WorkItem(528730)]
+        [WorkItem(528730, "DevDiv")]
         [Fact]
         public void ThisParameterCalledOnNonSourceMethodSymbol()
         {
@@ -2693,7 +2693,7 @@ class Program
                 options: options);
         }
 
-        [WorkItem(528853)]
+        [WorkItem(528853, "DevDiv")]
         [Fact]
         public void NoOverloadTakesNArguments()
         {
@@ -2719,7 +2719,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("y", "S.M(object, object)").WithLocation(7, 9));
         }
 
-        [WorkItem(543711)]
+        [WorkItem(543711, "DevDiv")]
         [Fact]
         public void ReduceReducedExtensionsMethod()
         {
@@ -2755,7 +2755,7 @@ class Program
         /// error for the instance method that was used for binding. The inaccessible
         /// error may be helpful for the user or for "quick fix" in particular.
         /// </summary>
-        [WorkItem(529866)]
+        [WorkItem(529866, "DevDiv")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Diagnostics()
         {            
@@ -2787,7 +2787,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_BadArgType, "1d").WithArguments("1", "double", "float").WithLocation(6, 16));
         }
 
-        [WorkItem(545322)] // Bug relates to defunct LookupOptions.IgnoreAccessibility.
+        [WorkItem(545322, "DevDiv")] // Bug relates to defunct LookupOptions.IgnoreAccessibility.
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_Symbols()
         {            
@@ -2845,7 +2845,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_BadArgType, "1d").WithArguments("1", "double", "float"));
         }
 
-        [WorkItem(541890)]
+        [WorkItem(541890, "DevDiv")]
         [Fact]
         public void InstanceMethodAndInaccessibleExtensionMethod_CandidateSymbols()
         {       
@@ -2888,7 +2888,7 @@ static class Extensions
                 "void C.Test(float f)");
         }
 
-        [WorkItem(529596)]
+        [WorkItem(529596, "DevDiv")]
         [Fact(Skip="529596")]
         public void DelegateFromValueTypeExtensionMethod()
         {          
@@ -2942,7 +2942,7 @@ static class DevDivBugs142219
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Foo").WithArguments("DevDivBugs142219.Foo<T>(T)", "T"));
         }
 
-        [Fact, WorkItem(545734)]
+        [Fact, WorkItem(545734, "DevDiv")]
         public void ExtensionMethodWithRefParameterFromMetadata()
         {
             var lib = @"
@@ -2972,7 +2972,7 @@ static class Program
             CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [Fact, WorkItem(545800)]
+        [Fact, WorkItem(545800, "DevDiv")]
         public void SameExtensionMethodSymbol()
         {
             var src1 = @"
@@ -3033,7 +3033,7 @@ class Test
         /// Dev11 allows referencing extension methods defined on
         /// non-static classes, generic classes, structs, and delegates.
         /// </summary>
-        [WorkItem(546093)]
+        [WorkItem(546093, "DevDiv")]
         [Fact]
         public void NonStaticClasses()
         {
@@ -3123,7 +3123,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "MI").WithArguments("object", "MI").WithLocation(9, 11));
         }
 
-        [WorkItem(546093)]
+        [WorkItem(546093, "DevDiv")]
         [Fact]
         public void VBExtensionMethod()
         {
@@ -3147,7 +3147,7 @@ End Module";
             compilation2.VerifyDiagnostics();
         }
 
-        [WorkItem(602893)]
+        [WorkItem(602893, "DevDiv")]
         [Fact]
         public void Bug602893()
         {
@@ -3195,7 +3195,7 @@ namespace NA.NC
         /// <summary>
         /// As test above but with all classes defined in the same compilation.
         /// </summary>
-        [WorkItem(602893)]
+        [WorkItem(602893, "DevDiv")]
         [Fact]
         public void Bug602893_2()
         {
@@ -3271,7 +3271,7 @@ namespace NB
                 Diagnostic(ErrorCode.INF_UnusedUsingDirective, "using NB;"));
         }
 
-        [Fact, WorkItem(822125)]
+        [Fact, WorkItem(822125, "DevDiv")]
         public void ConsumeFSharpExtensionMethods()
         {
             var source =

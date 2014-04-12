@@ -85,7 +85,7 @@ class Program
                 );
         }
 
-        [WorkItem(545612)]
+        [WorkItem(545612, "DevDiv")]
         [Fact]
         public void VarTypeConflictsWithAlias()
         {

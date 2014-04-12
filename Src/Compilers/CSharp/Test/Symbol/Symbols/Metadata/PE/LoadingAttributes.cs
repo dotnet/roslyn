@@ -1310,7 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
-        [WorkItem(530209)]
+        [WorkItem(530209, "DevDiv")]
         [Fact]
         public void Bug530209()
         {

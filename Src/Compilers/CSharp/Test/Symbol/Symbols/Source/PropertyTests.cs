@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public class PropertyTests : CSharpTestBase
     {
-        [WorkItem(542745)]
+        [WorkItem(542745, "DevDiv")]
         [Fact()]
         public void AutoImplementedAccessorNotImplicitlyDeclared()
         {
@@ -52,7 +52,7 @@ interface I
             Assert.False(q.SetMethod.IsImplicitlyDeclared);
         }
 
-        [WorkItem(542746)]
+        [WorkItem(542746, "DevDiv")]
         [Fact]
         public void AutoImplementedBackingFieldLocation()
         {
@@ -111,7 +111,7 @@ class C
             Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
         }
 
-        [WorkItem(537401)]
+        [WorkItem(537401, "DevDiv")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -170,7 +170,7 @@ class Program
 ");
         }
 
-        [WorkItem(528633)]
+        [WorkItem(528633, "DevDiv")]
         [Fact]
         public void MismatchedAccessorTypes()
         {
@@ -286,7 +286,7 @@ class C : B<string>
             Assert.Equal(accessor.AssociatedSymbol, property);
         }
 
-        [WorkItem(538789)]
+        [WorkItem(538789, "DevDiv")]
         [Fact]
         public void NoAccessors()
         {
@@ -644,7 +644,7 @@ class C
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(538956)]
+        [WorkItem(538956, "DevDiv")]
         [Fact]
         public void PropertyAccessorDoesNotHideMethod()
         {
@@ -667,7 +667,7 @@ class Program {
             CompileWithCustomILSource(cSharpSource, null);
         }
 
-        [WorkItem(538956)]
+        [WorkItem(538956, "DevDiv")]
         [Fact]
         public void PropertyAccessorDoesNotConflictWithMethod()
         {
@@ -692,7 +692,7 @@ class Program {
             CompileWithCustomILSource(cSharpSource, null);
         }
 
-        [WorkItem(538956)]
+        [WorkItem(538956, "DevDiv")]
         [Fact]
         public void PropertyAccessorCannotBeCalledAsMethod()
         {
@@ -714,7 +714,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Foo").WithArguments("I.Foo.get"));
         }
 
-        [WorkItem(538992)]
+        [WorkItem(538992, "DevDiv")]
         [Fact]
         public void CanNotAccessPropertyThroughParenthesizedType()
         {
@@ -777,7 +777,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "a.Foo").WithArguments("A.Foo"));
         }
 
-        [WorkItem(527658)]
+        [WorkItem(527658, "DevDiv")]
         [Fact]
         public void CS1546ERR_BindToBogusProp1_PropertyWithPinnedModifierIsBogus()
         {
@@ -800,7 +800,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
         }
 
-        [WorkItem(538850)]
+        [WorkItem(538850, "DevDiv")]
         [Fact]
         public void PropertyWithMismatchedReturnTypeOfGetterIsBogus()
         {
@@ -823,7 +823,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
         }
 
-        [WorkItem(527659)]
+        [WorkItem(527659, "DevDiv")]
         [Fact]
         public void PropertyWithCircularReturnTypeIsNotSupported()
         {
@@ -856,7 +856,7 @@ class B {
             // error CS0570: 'A.Foo' is not supported by the language
         }
 
-        [WorkItem(527664)]
+        [WorkItem(527664, "DevDiv")]
         [Fact(Skip = "527664")]
         public void PropertyWithOpenGenericTypeAsTypeArgumentOfReturnTypeIsNotSupported()
         {
@@ -879,7 +879,7 @@ class B {
             // TODO: check diagnostics when it is implemented
         }
 
-        [WorkItem(527657)]
+        [WorkItem(527657, "DevDiv")]
         [Fact(Skip = "527657")]
         public void Dev10IgnoresSentinelInPropertySignature()
         {
@@ -918,7 +918,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(527660)]
+        [WorkItem(527660, "DevDiv")]
         [Fact(Skip = "527660")]
         public void CanReadPropertyWithModOptInBaseClassOfReturnType()
         {
@@ -979,7 +979,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [WorkItem(527656)]
+        [WorkItem(527656, "DevDiv")]
         [Fact(Skip = "527656")]
         public void CanReadNonModOptPropertyWithOpenGenericModOptGetter()
         {
@@ -1037,7 +1037,7 @@ class B {
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538845)]
+        [WorkItem(538845, "DevDiv")]
         [Fact]
         public void CanReadPropertyWithMultipleAndNestedModOpts()
         {
@@ -1082,7 +1082,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
         }
 
-        [WorkItem(538846)]
+        [WorkItem(538846, "DevDiv")]
         [Fact]
         public void CanNotReadPropertyWithModReq()
         {
@@ -1105,7 +1105,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
         }
 
-        [WorkItem(527662)]
+        [WorkItem(527662, "DevDiv")]
         [Fact]
         public void CanReadPropertyWithModReqInBaseClassOfReturnType()
         {
@@ -1127,7 +1127,7 @@ class B {
             CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
-        [WorkItem(538787)]
+        [WorkItem(538787, "DevDiv")]
         [Fact]
         public void CanNotReadPropertyOfUnsupportedType()
         {
@@ -1164,7 +1164,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("B.Foo", "B.get_Foo()"));
         }
 
-        [WorkItem(538791)]
+        [WorkItem(538791, "DevDiv")]
         [Fact]
         public void CanNotReadAmbiguousProperty()
         {
@@ -1237,7 +1237,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Foo").WithArguments("void", "object"));
         }
 
-        [WorkItem(527663)]
+        [WorkItem(527663, "DevDiv")]
         [Fact]
         public void CanNotReadPropertyFromAmbiguousGenericClass()
         {
@@ -1267,7 +1267,7 @@ class B {
             // error CS0433: The type 'A<T>' exists in both 'X.dll' and 'X.dll'
         }
 
-        [WorkItem(538789)]
+        [WorkItem(538789, "DevDiv")]
         [Fact]
         public void PropertyWithoutAccessorsIsBogus()
         {
@@ -1295,7 +1295,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Foo").WithArguments("B", "Foo"));
         }
 
-        [WorkItem(538946)]
+        [WorkItem(538946, "DevDiv")]
         [Fact]
         public void FalseAmbiguity()
         {
@@ -1323,7 +1323,7 @@ class C
             Assert.Empty(diagnostics);
         }
 
-        [WorkItem(539320)]
+        [WorkItem(539320, "DevDiv")]
         [Fact]
         public void FalseWarningCS0109ForNewModifier()
         {
@@ -1360,7 +1360,7 @@ class MyClass : MyBase
             Assert.Empty(diagnostics);
         }
 
-        [WorkItem(539319)]
+        [WorkItem(539319, "DevDiv")]
         [Fact]
         public void FalseErrorCS0103ForValueKeywordInExpImpl()
         {
@@ -1475,7 +1475,7 @@ class C : N.I<int>
             //TODO: To be implemented once indexer properties implemented
         }
 
-        [WorkItem(539998)]
+        [WorkItem(539998, "DevDiv")]
         [Fact]
         public void ImportDefaultPropertiesWithParameters()
         {
@@ -1526,7 +1526,7 @@ class Program
             CompileAndVerify(compilation, sourceSymbolValidator: validator, /*symbolValidator: validator,*/ expectedOutput: "1221");
         }
 
-        [WorkItem(540342)]
+        [WorkItem(540342, "DevDiv")]
         [Fact]
         public void NoSequencePointsForAutoPropertyAccessors()
         {
@@ -1538,7 +1538,7 @@ class C
             CompileAndVerify(text, emitPdb: true).VerifyDiagnostics();
         }
 
-        [WorkItem(541688)]
+        [WorkItem(541688, "DevDiv")]
         [Fact]
         public void Simple2()
         {
@@ -1567,7 +1567,7 @@ public class A : Attribute
             Assert.Equal(ErrorCode.ERR_DuplicateNameInClass, (ErrorCode)one.Code);
         }
 
-        [WorkItem(528769)]
+        [WorkItem(528769, "DevDiv")]
         [Fact]
         public void IndexerGetSetParameterLocation()
         {
@@ -1604,7 +1604,7 @@ class Test
             Assert.True(locs[0].IsInSource, "InSource");
         }
 
-        [WorkItem(545682)]
+        [WorkItem(545682, "DevDiv")]
         [Fact]
         public void PropertyWithParametersHidingMethod01()
         {

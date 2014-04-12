@@ -3080,7 +3080,7 @@ class C : INormal, IWinRT
             }
         }
 
-        [WorkItem(547321)]
+        [WorkItem(547321, "DevDiv")]
         [Fact(Skip="547321")]
         public void ERR_MixingWinRTEventWithRegular_BaseTypeImplementsInterface()
         {

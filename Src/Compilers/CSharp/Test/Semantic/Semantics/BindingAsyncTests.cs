@@ -1063,7 +1063,7 @@ class Driver
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [WorkItem(611150)]
+        [WorkItem(611150, "DevDiv")]
         [Fact]
         public void AwaitInLambdaInLock()
         {
@@ -2377,7 +2377,7 @@ partial class Test
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
         }
 
-        [WorkItem(611150)]
+        [WorkItem(611150, "DevDiv")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12()
         {
@@ -2432,7 +2432,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((int?)null)"));
         }
 
-        [WorkItem(611150)]
+        [WorkItem(611150, "DevDiv")]
         [Fact]
         public void UnobservedAwaitableExpression_ForgetAwait12_breaking()
         {
@@ -3398,7 +3398,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
         }
 
-        [Fact, WorkItem(547077)]
+        [Fact, WorkItem(547077, "DevDiv")]
         public void Repro_17880()
         {
             var source = @"
@@ -3414,7 +3414,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"));
         }
 
-        [Fact, WorkItem(547079)]
+        [Fact, WorkItem(547079, "DevDiv")]
         public void Repro_17883()
         {
             var source = @"
@@ -3436,7 +3436,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
 
-        [Fact, WorkItem(547081)]
+        [Fact, WorkItem(547081, "DevDiv")]
         public void Repro_17885()
         {
             var source = @"
@@ -3455,7 +3455,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("Test.Main()"));
         }
 
-        [Fact, WorkItem(547088)]
+        [Fact, WorkItem(547088, "DevDiv")]
         public void Repro_17914()
         {
             var source = @"
@@ -3530,7 +3530,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552382)]
+        [WorkItem(552382, "DevDiv")]
         public void GetAwaiterIsExtension()
         {
             var source =
@@ -3572,7 +3572,7 @@ namespace B
         }
 
         [Fact]
-        [WorkItem(576311)]
+        [WorkItem(576311, "DevDiv")]
         public void BadDelegateTypeForAsync()
         {
             var source =
@@ -3594,7 +3594,7 @@ class C
            );
         }
 
-        [WorkItem(588706)]
+        [WorkItem(588706, "DevDiv")]
         [Fact]
         public void AsyncAsLambdaParameter()
         {
@@ -3618,7 +3618,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(629368)]
+        [WorkItem(629368, "DevDiv")]
         public void GetAwaiterFieldUsedLikeMethod()
         {
             string source = @"
@@ -3642,7 +3642,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(629368)]
+        [WorkItem(629368, "DevDiv")]
         public void GetAwaiterPropertyUsedLikeMethod()
         {
             string source = @"
@@ -3666,7 +3666,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(628619)]
+        [WorkItem(628619, "DevDiv")]
         public void ReturnExpressionNotConvertible()
         {
             string source = @"
@@ -3688,7 +3688,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(632824)]
+        [WorkItem(632824, "DevDiv")]
         public void RefParameterOnAsyncLambda()
         {
             string source = @"
@@ -3720,7 +3720,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(858059)]
+        [WorkItem(858059, "DevDiv")]
         public void UnawaitedVersusLambda()
         {
             string source =

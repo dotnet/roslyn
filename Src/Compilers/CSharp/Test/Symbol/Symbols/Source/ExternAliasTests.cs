@@ -365,7 +365,7 @@ class A : Bar::NS.Foo {}
             Assert.Equal(SymbolKind.Alias, alias1.Kind);
         }
 
-        [WorkItem(546729)]
+        [WorkItem(546729, "DevDiv")]
         [Fact]
         public void Crash16681()
         {
@@ -388,7 +388,7 @@ class A : Bar::NS.Foo {}
                 Diagnostic(ErrorCode.INF_UnusedExternAlias, "extern alias Bar;"));
         }
 
-        [WorkItem(529751)]
+        [WorkItem(529751, "DevDiv")]
         [Fact]
         public void SameExternAliasInMultipleTreesValid()
         {
@@ -420,7 +420,7 @@ class A : Bar::NS.Foo {}
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
 
-        [WorkItem(529751)]
+        [WorkItem(529751, "DevDiv")]
         [Fact]
         public void SameExternAliasInMultipleTreesInvalid()
         {
@@ -445,7 +445,7 @@ class A : Bar::NS.Foo {}
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
 
-        [WorkItem(875899)]
+        [WorkItem(875899, "DevDiv")]
         [Fact]
         public void SymbolInfoForExternAliasInAliasTarget()
         {

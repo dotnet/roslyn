@@ -131,7 +131,7 @@ class C7
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "C7").WithArguments("C7.~C7()"));
         }
 
-        [WorkItem(528912)]
+        [WorkItem(528912, "DevDiv")]
         [Fact]
         public void InvokeFinalize()
         {
@@ -213,7 +213,7 @@ class G : F
                 Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()"));
         }
 
-        [WorkItem(528912)]
+        [WorkItem(528912, "DevDiv")]
         [Fact]
         public void InvokeBaseFinalize()
         {
@@ -356,7 +356,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "C").WithArguments("C", "I.Finalize()", "C.~C()"));
         }
 
-        [WorkItem(528912)]
+        [WorkItem(528912, "DevDiv")]
         [Fact]
         public void DestructorDelegate()
         {
@@ -422,7 +422,7 @@ class @ref
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(546830)]
+        [WorkItem(546830, "DevDiv")]
         [Fact]
         public void OverrideSealedFinalizer()
         {
@@ -457,7 +457,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.~Base()"));
         }
 
-        [WorkItem(546830)]
+        [WorkItem(546830, "DevDiv")]
         [Fact]
         public void OverrideNewslotVirtualFinalFinalizer()
         {
@@ -495,7 +495,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.Finalize()"));
         }
 
-        [WorkItem(528903)]
+        [WorkItem(528903, "DevDiv")]
         [Fact]
         public void AbstractFinalize()
         {
@@ -521,7 +521,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.~Base()"));
         }
 
-        [WorkItem(647933)]
+        [WorkItem(647933, "DevDiv")]
         [Fact]
         public void ConditionalAttributeOnDestructor()
         {

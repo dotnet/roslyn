@@ -772,7 +772,7 @@ class C
                 "'U64.Min - 2' error CS0220: The operation overflows at compile time in checked mode");
         }
 
-        [Fact, WorkItem(528727)]
+        [Fact, WorkItem(528727, "DevDiv")]
         public void TestConstantNumericConversionsNotOverflow()
         {
             var source = @"
@@ -1347,7 +1347,7 @@ ulong.MinValue --> 0";
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730)]
+        [WorkItem(529730, "DevDiv")]
         [Fact]
         public void TestConstantFoldingDecimalOperations01()
         {
@@ -1406,7 +1406,7 @@ class C
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730)]
+        [WorkItem(529730, "DevDiv")]
         [Fact]
         public void TestConstantFoldingDecimalOperations02()
         {
@@ -1532,7 +1532,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(538179)]
+        [WorkItem(538179, "DevDiv")]
         [Fact]
         public void TestConstantErrors()
         {
@@ -2329,7 +2329,7 @@ class c1
             Assert.Equal(constantValue.Value, 6);
         }
 
-        [WorkItem(544620)]
+        [WorkItem(544620, "DevDiv")]
         [Fact]
         public void NoConstantValueForOverflows()
         {
@@ -2357,7 +2357,7 @@ class c1
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void CircularConstantReportingRace()
         {
@@ -2387,7 +2387,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C0.X"));
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void MultiCircularConstantReportingRace()
         {
@@ -2444,7 +2444,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C8.X"));
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void CircularEnumReportingRace()
         {
@@ -2474,7 +2474,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E0.X"));
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void MultiCircularEnumReportingRace()
         {
@@ -2531,7 +2531,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E8.X").WithLocation(44, 5));
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void CircularImplicitEnumReportingRace()
         {
@@ -2564,7 +2564,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E0.A"));
         }
 
-        [WorkItem(545965)]
+        [WorkItem(545965, "DevDiv")]
         [Fact]
         public void MultiCircularImplicitEnumReportingRace()
         {
@@ -2624,7 +2624,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E8.A"));
         }
 
-        [Fact, WorkItem(544941)]
+        [Fact, WorkItem(544941, "DevDiv")]
         public static void ConstantNullNotObject()
         {
             var source =

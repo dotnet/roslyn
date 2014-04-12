@@ -529,7 +529,7 @@ class Query
             );
         }
 
-        [WorkItem(543022)]
+        [WorkItem(543022, "DevDiv")]
         [Fact()]
         public void AnonymousTypeSymbol_StandardNames()
         {
@@ -552,7 +552,7 @@ class Query
                 expectedOutput: "<>f__AnonymousType0`1[<>f__AnonymousType1]-<>f__AnonymousType1");
         }
 
-        [WorkItem(543022)]
+        [WorkItem(543022, "DevDiv")]
         [Fact()]
         public void AnonymousTypeSymbol_StandardNames2()
         {
@@ -1328,7 +1328,7 @@ class Test
             CompileAndVerify(source, expectedOutput:"1221");
         }
 
-        [WorkItem(543693)]
+        [WorkItem(543693, "DevDiv")]
         [Fact()]
         public void Bug11593a()
         {
@@ -1365,7 +1365,7 @@ class P
             CompileAndVerify(source, expectedOutput: "Success");
         }
 
-        [WorkItem(543693)]
+        [WorkItem(543693, "DevDiv")]
         [Fact()]
         public void Bug11593b()
         {
@@ -1404,7 +1404,7 @@ class P
             CompileAndVerify(source, expectedOutput: "Success");
         }
 
-        [WorkItem(543177)]
+        [WorkItem(543177, "DevDiv")]
         [Fact()]
         public void AnonymousTypePropertyValueWithWarning()
         {
@@ -1428,7 +1428,7 @@ class Program
             CompileAndVerify(source, expectedOutput:"True");
         }
 
-        [Fact(), WorkItem(544323)]
+        [Fact(), WorkItem(544323, "DevDiv")]
         public void AnonymousTypeAndMemberSymbolsLocations()
         {
             var source = @"
@@ -1546,7 +1546,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// Bug#15914: Breaking Changes
         /// </summary>
-        [Fact, WorkItem(530365)]
+        [Fact, WorkItem(530365, "DevDiv")]
         public void NoStdLibNoEmitToStringForAnonymousType()
         {
             var source = @"
@@ -1576,7 +1576,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.String", "Format"));
         }
 
-        [Fact, WorkItem(530365)]
+        [Fact, WorkItem(530365, "DevDiv")]
         public void NoDebuggerBrowsableStateType()
         {
             var stateSource = @"

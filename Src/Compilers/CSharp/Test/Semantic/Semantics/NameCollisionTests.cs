@@ -404,7 +404,7 @@ namespace name1
                 );
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void TestCollisionOfDelegateWithConst()
         {
@@ -1263,7 +1263,7 @@ partial class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"));
         }
 
-        [WorkItem(792744)]
+        [WorkItem(792744, "DevDiv")]
         [Fact]
         private void TestCollisionInsideForeach()
         {
@@ -1649,7 +1649,7 @@ partial class Class
             CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
         }
 
-        [WorkItem(543045)]
+        [WorkItem(543045, "DevDiv")]
         [Fact]
         private void TestCollisionInsideQuery()
         {
@@ -1744,7 +1744,7 @@ public class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "U").WithArguments("U"));
         }
 
-        [WorkItem(542088)]
+        [WorkItem(542088, "DevDiv")]
         [Fact]
         public void LocalCollidesWithGenericType()
         {
@@ -1764,7 +1764,7 @@ public class C
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void BindingOrderCollisions01()
         {
@@ -1812,7 +1812,7 @@ class A
                 );
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void BindingOrderCollisions02()
         {
@@ -1860,7 +1860,7 @@ class A
                 );
         }
 
-        [WorkItem(542039)]
+        [WorkItem(542039, "DevDiv")]
         [Fact]
         public void BindingOrderCollisions03()
         {
@@ -1920,7 +1920,7 @@ class Outer
                 );
         }
 
-        [WorkItem(835569)]
+        [WorkItem(835569, "DevDiv")]
         [Fact]
         private void CollisionWithSameWhenError()
         {
