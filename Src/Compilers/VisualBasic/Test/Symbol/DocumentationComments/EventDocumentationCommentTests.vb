@@ -43,21 +43,21 @@ End Namespace
             m_widgetClass = DirectCast(m_acmeNamespace.GetTypeMembers("Widget").Single(), NamedTypeSymbol)
         End Sub
 
-        <Fact, WorkItem(530915)>
+        <Fact, WorkItem(530915, "DevDiv")>
         Public Sub SimpleEvent()
             Dim member = m_widgetClass.GetMembers("S").First
             Assert.Equal("E:Acme.Widget.S",
                          member.GetDocumentationCommentId())
         End Sub
 
-        <Fact, WorkItem(530915)>
+        <Fact, WorkItem(530915, "DevDiv")>
         Public Sub SimpleEventBackingFIeld()
             Dim member = m_widgetClass.GetMembers("SEvent").First
             Assert.Equal("F:Acme.Widget.SEvent",
                          member.GetDocumentationCommentId())
         End Sub
 
-        <Fact, WorkItem(530915)>
+        <Fact, WorkItem(530915, "DevDiv")>
         Public Sub CustomEvent()
             Dim member = m_widgetClass.GetMembers("C").First
             Assert.Equal("E:Acme.Widget.C",

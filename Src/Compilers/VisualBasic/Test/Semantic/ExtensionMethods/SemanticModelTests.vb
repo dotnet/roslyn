@@ -1399,7 +1399,7 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(544933)>
+        <WorkItem(544933, "DevDiv")>
         <Fact>
         Public Sub LookupSymbolsGenericExtensionMethodWithConstraints()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(

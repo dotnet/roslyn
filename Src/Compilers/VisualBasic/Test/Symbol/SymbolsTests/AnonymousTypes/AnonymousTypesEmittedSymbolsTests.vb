@@ -610,7 +610,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(641639)>
+        <WorkItem(641639, "DevDiv")>
         Public Sub Bug641639()
             Dim moduleDef =
     <compilation name="TestModule">

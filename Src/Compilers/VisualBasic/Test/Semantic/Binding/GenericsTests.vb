@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GenericsTests
         Inherits BasicTestBase
 
-        <WorkItem(543690)>
-        <WorkItem(543690)>
+        <WorkItem(543690, "DevDiv")>
+        <WorkItem(543690, "DevDiv")>
         <Fact()>
         Public Sub WrongNumberOfGenericArgumentsTest()
 
@@ -54,7 +54,7 @@ BC32042: Too few type arguments to 'GenArity200.vbCls5(Of UInteger()()).vbStrA(O
 
         End Sub
 
-        <WorkItem(543706)>
+        <WorkItem(543706, "DevDiv")>
         <Fact()>
         Public Sub TestNestedGenericTypeInference()
             Dim vbCompilation = CreateVisualBasicCompilation("TestNestedGenericTypeInference",
@@ -80,7 +80,7 @@ BC32042: Too few type arguments to 'GenArity200.vbCls5(Of UInteger()()).vbStrA(O
 System.Int64]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543783)>
+        <WorkItem(543783, "DevDiv")>
         <Fact()>
         Public Sub ImportNestedGenericTypeWithErrors()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -109,7 +109,7 @@ Imports GenImpClassOpenErrors.GenClassA(Of String).GenClassB.GenClassC(Of String
 </expected>)
         End Sub
 
-        <WorkItem(543850)>
+        <WorkItem(543850, "DevDiv")>
         <Fact()>
         Public Sub ConflictingNakedConstraint()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -163,7 +163,7 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543900)>
+        <WorkItem(543900, "DevDiv")>
         <Fact()>
         Public Sub NarrowingConversionNoReturn()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -185,7 +185,7 @@ End Namespace
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543900)>
+        <WorkItem(543900, "DevDiv")>
         <Fact()>
         Public Sub NarrowingConversionNoReturn2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -207,7 +207,7 @@ End Namespace
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(543902)>
+        <WorkItem(543902, "DevDiv")>
         <Fact()>
         Public Sub ConversionOperatorShouldBePublic()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -229,7 +229,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_UndefinedType1, "CScen5b").WithArguments("CScen5b"))
         End Sub
 
-        <Fact(), WorkItem(529249)>
+        <Fact(), WorkItem(529249, "DevDiv")>
         Public Sub ArrayOfRuntimeArgumentHandle()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -248,7 +248,7 @@ End Module
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_RestrictedType1, "RuntimeArgumentHandle()").WithArguments("System.RuntimeArgumentHandle"))
         End Sub
 
-        <WorkItem(543909)>
+        <WorkItem(543909, "DevDiv")>
         <Fact()>
         Public Sub StructureContainsItself()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -273,7 +273,7 @@ End Namespace
             "    'System.Collections.Generic.List(Of Program.s2).Enumerator' contains 'Program.s2' (variable 'current')."))
         End Sub
 
-        <WorkItem(543921)>
+        <WorkItem(543921, "DevDiv")>
         <Fact()>
         Public Sub GenericConstraintInheritanceWithEvent()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -338,7 +338,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_WithEventsAsStruct, "x2"))
         End Sub
 
-        <WorkItem(529287)>
+        <WorkItem(529287, "DevDiv")>
         <Fact()>
         Public Sub ProtectedMemberGenericClass()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -357,7 +357,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544122)>
+        <WorkItem(544122, "DevDiv")>
         <Fact()>
         Public Sub BoxAlreadyBoxed()
             Dim compilation = CompileAndVerify(
@@ -383,7 +383,7 @@ End Module
             )
         End Sub
 
-        <WorkItem(531075)>
+        <WorkItem(531075, "DevDiv")>
         <Fact()>
         Public Sub Bug17530()
             Dim vbCompilation = CreateVisualBasicCompilation("Bug17530",

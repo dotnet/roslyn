@@ -485,7 +485,7 @@ End Class
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(544122)>
+        <WorkItem(544122, "DevDiv")>
         <Fact()>
         Public Sub [TryCast]()
             Dim compilationVerifier = CompileAndVerify(
@@ -815,7 +815,7 @@ B.M]]>)
         End Sub
 
         ' Access fields on constrained generic types.
-        <WorkItem(543305)>
+        <WorkItem(543305, "DevDiv")>
         <Fact()>
         Public Sub Fields()
             Dim compilationVerifier = CompileAndVerify(
@@ -906,7 +906,7 @@ End Module
 
         ' Catch into a captured local to test
         ' catching into field of type T.
-        <WorkItem(543382)>
+        <WorkItem(543382, "DevDiv")>
         <Fact()>
         Public Sub FieldInCatch()
             Dim compilationVerifier = CompileAndVerify(
@@ -2036,7 +2036,7 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(542978)>
+        <WorkItem(542978, "DevDiv")>
         <Fact()>
         Public Sub ExtensionMethodWithConstraints()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -2665,7 +2665,7 @@ BC32078: 'Friend Sub M(Of V As A)()' cannot implement 'I(Of A, B).Sub M(Of V As 
 </expected>)
         End Sub
 
-        <WorkItem(528855)>
+        <WorkItem(528855, "DevDiv")>
         <Fact()>
         Public Sub ModReqsInConstraintsAreNotSupported()
             Dim ilSource = <![CDATA[
@@ -2713,7 +2713,7 @@ Class C(Of T)
         ''' generates invalid types when implementing or overriding
         ''' generic methods with such constraints.)
         ''' </summary>
-        <WorkItem(528856)>
+        <WorkItem(528856, "DevDiv")>
         <Fact()>
         Public Sub ModOptsInConstraintsAreIgnored()
             Dim ilSource = <![CDATA[
@@ -2790,7 +2790,7 @@ BC32044: Type argument 'A' does not inherit from or implement the constraint typ
         ''' constraints from the containing types.
         ''' Note: Dev11 checks constraint flags only.
         ''' </summary>
-        <WorkItem(528859)>
+        <WorkItem(528859, "DevDiv")>
         <Fact()>
         Public Sub InconsistentConstraintsAreNotSupported()
             Dim ilSource = <![CDATA[
@@ -2969,7 +2969,7 @@ BC36739: Type 'IIn(Of In T).IOut' does not inherit the generic type parameters o
         ''' Behavior differs from C#. VB does not check constraints
         ''' along the inheritance hierarchy.
         ''' </summary>
-        <WorkItem(528861)>
+        <WorkItem(528861, "DevDiv")>
         <Fact()>
         Public Sub ConstraintsAreCheckedAlongHierarchy()
             Dim ilSource = <![CDATA[
@@ -3530,7 +3530,7 @@ BC32044: Type argument 'B' does not inherit from or implement the constraint typ
 </expected>)
         End Sub
 
-        <WorkItem(543348)>
+        <WorkItem(543348, "DevDiv")>
         <Fact()>
         Public Sub DuplicateConstraintTypes()
             Dim sources = <compilation>
@@ -3581,7 +3581,7 @@ End Interface
             CompileAndVerify(sources, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(543348)>
+        <WorkItem(543348, "DevDiv")>
         <Fact()>
         Public Sub DuplicateConstraintTypesMetadata()
             Dim ilSource = <![CDATA[
@@ -3660,7 +3660,7 @@ End Class
         ' checking constraints (see CreateNullableOf()). In cases where "C?"
         ' appears in a method signature, ensure we're not checking constraints
         ' twice as a result, since constraints in signatures are checked later.
-        <WorkItem(543335)>
+        <WorkItem(543335, "DevDiv")>
         <Fact()>
         Public Sub NullableOfTStructureConstraint()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3702,7 +3702,7 @@ BC33101: Type 'C' must be a value type or a type argument constrained to 'Struct
         ' and also prevents downstream diagnostics from being generated.
         ' By contrast, redundant 'class' constraints should not be removed
         ' if explicit class constraint is specified.
-        <WorkItem(543335)>
+        <WorkItem(543335, "DevDiv")>
         <Fact()>
         Public Sub ObjectAndValueTypeMetadataConstraints()
             Dim ilSource = <![CDATA[
@@ -3736,7 +3736,7 @@ BC33101: Type 'C' must be a value type or a type argument constrained to 'Struct
             CheckConstraints([namespace].GetMember(Of NamedTypeSymbol)("R2").TypeParameters(0), TypeParameterConstraintKind.ReferenceType, "A")
         End Sub
 
-        <WorkItem(543335)>
+        <WorkItem(543335, "DevDiv")>
         <Fact()>
         Public Sub ObjectAndValueTypeMethodMetadataConstraints()
             Dim ilSource = <![CDATA[
@@ -4004,7 +4004,7 @@ End Class
             CheckConstraints(type.BaseType.GetMember(Of MethodSymbol)("M").TypeParameters(0), TypeParameterConstraintKind.None, "Object")
         End Sub
 
-        <WorkItem(543449)>
+        <WorkItem(543449, "DevDiv")>
         <Fact()>
         Public Sub ExplicitImplementationTypeParameterInSignature()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4162,7 +4162,7 @@ BC32044: Type argument 'Object' does not inherit from or implement the constrain
      </errors>)
         End Sub
 
-        <WorkItem(543639)>
+        <WorkItem(543639, "DevDiv")>
         <Fact()>
         Public Sub TestDefaultPropertyThroughConstraint()
             Dim vbCompilation = CreateVisualBasicCompilation("TestDefaultPropertyThroughConstraint",
@@ -4196,7 +4196,7 @@ End Module]]>,
 101]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543639)>
+        <WorkItem(543639, "DevDiv")>
         <Fact()>
         Public Sub TestDictionaryAccessThroughConstraint()
             Dim vbCompilation = CreateVisualBasicCompilation("TestDictionaryAccessThroughConstraint",
@@ -4230,7 +4230,7 @@ End Module]]>,
 2]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543688)>
+        <WorkItem(543688, "DevDiv")>
         <Fact()>
         Public Sub ConflictingInheritedConstraints()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4319,7 +4319,7 @@ BC32119: Constraint 'Class B' conflicts with the constraint 'Class A' already sp
      </errors>)
         End Sub
 
-        <WorkItem(543707)>
+        <WorkItem(543707, "DevDiv")>
         <Fact()>
         Public Sub ConstraintsWithNestedType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4350,7 +4350,7 @@ End Class
 
         ' Object constraint should be emitted
         ' for compatibility with Dev10.
-        <WorkItem(543710)>
+        <WorkItem(543710, "DevDiv")>
         <Fact()>
         Public Sub EmittedObjectConstraint()
             Dim sources = <compilation>
@@ -4396,7 +4396,7 @@ End Class
 
         ' The native compiler reports constraint errors at
         ' the syntax location of invalid type argument.
-        <WorkItem(529188)>
+        <WorkItem(529188, "DevDiv")>
         <Fact(Skip:="529188")>
         Public Sub ConstraintErrorLocation()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4583,7 +4583,7 @@ BC30002: Type 'B4' is not defined.
 </expected>)
         End Sub
 
-        <WorkItem(545255)>
+        <WorkItem(545255, "DevDiv")>
         <Fact()>
         Public Sub Bug13573()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4606,7 +4606,7 @@ BC30002: Type 'X' is not defined.
      </errors>)
         End Sub
 
-        <WorkItem(545415)>
+        <WorkItem(545415, "DevDiv")>
         <Fact()>
         Public Sub Bug13812()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4635,7 +4635,7 @@ BC32044: Type argument 'String' does not inherit from or implement the constrain
                                           </expected>)
         End Sub
 
-        <WorkItem(545806)>
+        <WorkItem(545806, "DevDiv")>
         <Fact()>
         Public Sub ClassOrBasesSatisfyConstraints()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4671,7 +4671,7 @@ BC30311: Value of type 'B' cannot be converted to 'T'.
         ''' System.Array. Dev11 fails to resolve the extension method, although
         ''' this appears to be a bug in Dev11. Roslyn resolves the extension method.
         ''' </summary>
-        <WorkItem(529820)>
+        <WorkItem(529820, "DevDiv")>
         <Fact()>
         Public Sub ExtensionMethodOnArrayInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -4754,7 +4754,7 @@ End Module
         ''' <summary>
         ''' Constraint failures on derived type when referencing members of base type.
         ''' </summary>
-        <WorkItem(530022)>
+        <WorkItem(530022, "DevDiv")>
         <Fact()>
         Public Sub MembersOfBaseTypeConstraintViolationOnDerived()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4821,7 +4821,7 @@ BC32105: Type argument 'C6' does not satisfy the 'Structure' constraint for type
      ]]></errors>)
         End Sub
 
-        <WorkItem(545327)>
+        <WorkItem(545327, "DevDiv")>
         <Fact()>
         Public Sub MissingObjectType()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -4903,7 +4903,7 @@ BC31091: Import of type 'Object' from assembly or module '525144ec-61b9-49ff-b07
         ''' <summary>
         ''' Cycle with field types with New constraint.
         ''' </summary>
-        <WorkItem(546394)>
+        <WorkItem(546394, "DevDiv")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4925,7 +4925,7 @@ End Class
         ''' <summary>
         ''' Cycle with event types with New constraint.
         ''' </summary>
-        <WorkItem(546394)>
+        <WorkItem(546394, "DevDiv")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4981,7 +4981,7 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
         ''' <summary>
         ''' Cycle with property types with New constraint.
         ''' </summary>
-        <WorkItem(546394)>
+        <WorkItem(546394, "DevDiv")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5004,7 +5004,7 @@ End Class
         ''' Cycle with property types with New constraint where the types
         ''' are parameter types and properties are explicit implementations.
         ''' </summary>
-        <WorkItem(546394)>
+        <WorkItem(546394, "DevDiv")>
         <Fact()>
         Public Sub HasPublicParameterlessConstructorCycle04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5067,7 +5067,7 @@ BC32083: Type argument 'B' must have a public parameterless instance constructor
         ''' Avoid redundant errors from accessors when the
         ''' same errors are reported from property signature.
         ''' </summary>
-        <WorkItem(530423)>
+        <WorkItem(530423, "DevDiv")>
         <Fact(Skip:="530423")>
         Public Sub PropertySignatureDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5122,7 +5122,7 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
      ]]></errors>)
         End Sub
 
-        <WorkItem(546780)>
+        <WorkItem(546780, "DevDiv")>
         <Fact()>
         Public Sub Bug16806()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5146,7 +5146,7 @@ BC30182: Type expected.
      ]]></errors>)
         End Sub
 
-        <WorkItem(531227)>
+        <WorkItem(531227, "DevDiv")>
         <Fact()>
         Public Sub ConstraintOverrideBaseTypeCycle()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -5167,7 +5167,7 @@ End Class
             Assert.DoesNotThrow(Function() derivedType.GetMembers())
         End Sub
 
-        <WorkItem(531227)>
+        <WorkItem(531227, "DevDiv")>
         <Fact()>
         Public Sub ConstraintExplicitImplementationInterfaceCycle()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -5261,7 +5261,7 @@ BC30652: Reference required to assembly 'e521fe98-c881-45cf-8870-249e00ae400d, V
         ''' when the type of o is a type parameter with certain
         ''' constraints. Roslyn handles such cases correctly.
         ''' </summary>
-        <WorkItem(578752)>
+        <WorkItem(578752, "DevDiv")>
         <Fact()>
         Public Sub Bug578752()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -5296,7 +5296,7 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(578762)>
+        <WorkItem(578762, "DevDiv")>
         <Fact()>
         Public Sub Bug578762()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -5331,7 +5331,7 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(578762)>
+        <WorkItem(578762, "DevDiv")>
         <Fact()>
         Public Sub Bug578762_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -5486,7 +5486,7 @@ End Class
             CompilationUtils.CheckSymbols(typeParameter.ConstraintTypes, constraintTypeDescriptions)
         End Sub
 
-        <WorkItem(578123)>
+        <WorkItem(578123, "DevDiv")>
         <Fact()>
         Public Sub Bug578123()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -5592,7 +5592,7 @@ BC30456: 'P' is not a member of 'T'.
 </expected>)
         End Sub
 
-        <WorkItem(837422)>
+        <WorkItem(837422, "DevDiv")>
         <Fact()>
         Public Sub RedundantValueTypeConstraint()
             CompileAndVerify(

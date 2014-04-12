@@ -489,7 +489,7 @@ End Module
             Assert.Equal(#8/13/2002 12:14:00 PM#, semanticSummary.ConstantValue.Value)
         End Sub
 
-        <WorkItem(543098)>
+        <WorkItem(543098, "DevDiv")>
         <Fact()>
         Public Sub SelectCase_BoundLocal()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -532,7 +532,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543387)>
+        <WorkItem(543387, "DevDiv")>
         <Fact()>
         Public Sub SelectCase_AnonymousLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

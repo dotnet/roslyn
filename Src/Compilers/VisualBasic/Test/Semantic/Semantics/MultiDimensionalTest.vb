@@ -270,7 +270,7 @@ End Module
 
         End Sub
 
-        <WorkItem(542531)>
+        <WorkItem(542531, "DevDiv")>
         <Fact>
         Public Sub AssignMultiDimArrayToArrayWithExplicitBounds()
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(

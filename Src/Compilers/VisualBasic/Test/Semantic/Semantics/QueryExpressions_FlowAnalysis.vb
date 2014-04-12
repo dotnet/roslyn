@@ -4230,7 +4230,7 @@ End Module
             Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-        <WorkItem(543164)>
+        <WorkItem(543164, "DevDiv")>
         <Fact()>
         Public Sub LambdaFunctionInsideSkipClause()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -4266,7 +4266,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-        <WorkItem(543164)>
+        <WorkItem(543164, "DevDiv")>
         <Fact()>
         Public Sub LambdaFunctionInsideSkipClause2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(

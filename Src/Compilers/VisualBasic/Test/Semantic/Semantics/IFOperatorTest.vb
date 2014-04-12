@@ -367,7 +367,7 @@ End Module
         End Sub
 
         ' Lambda works  in return argument 
-        <WorkItem(528700)>
+        <WorkItem(528700, "DevDiv")>
         <Fact>
         Public Sub LambdaAsArgument()
 
@@ -455,7 +455,7 @@ End Module
         End Sub
 
         ' Conflict variable name declare in IF 
-        <WorkItem(528700)>
+        <WorkItem(528700, "DevDiv")>
         <Fact>
         Public Sub VariableNameConflict_2()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -658,7 +658,7 @@ End Module
         End Sub
 
         ' Implicit conversion between Enum and null
-        <WorkItem(542116)>
+        <WorkItem(542116, "DevDiv")>
         <Fact()>
         Public Sub ImplicitConversion()
             Dim compilationDef =

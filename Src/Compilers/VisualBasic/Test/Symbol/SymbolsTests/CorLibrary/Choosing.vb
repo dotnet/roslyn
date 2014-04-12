@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Assert.Same(assemblies(1), DirectCast(assemblies(0).Modules(0), PEModuleSymbol).CorLibrary)
         End Sub
 
-        <Fact, WorkItem(760148)>
+        <Fact, WorkItem(760148, "DevDiv")>
         Public Sub Bug760148_1()
             Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
 <compilation>
@@ -60,7 +60,7 @@ End Namespace
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object))
         End Sub
 
-        <Fact, WorkItem(760148)>
+        <Fact, WorkItem(760148, "DevDiv")>
         Public Sub Bug760148_2()
             Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
 <compilation>

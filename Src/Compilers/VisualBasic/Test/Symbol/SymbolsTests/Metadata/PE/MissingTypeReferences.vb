@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class MissingTypeReferences
         Inherits BasicTestBase
 
-        <Fact, WorkItem(910594)>
+        <Fact, WorkItem(910594, "DevDiv")>
         Public Sub Test1()
             Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib2)
 

@@ -285,7 +285,7 @@ End Class
                                 Diagnostic(ERRID.ERR_ExpectedExpression, ""))
         End Sub
 
-        <Fact, WorkItem(529545), WorkItem(782216)>
+        <Fact, WorkItem(529545, "DevDiv"), WorkItem(782216, "DevDiv")>
         Sub ExitPropertyInSyncLock()
 
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -314,7 +314,7 @@ End Module
 </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543319)>
+        <WorkItem(543319, "DevDiv")>
         <Fact()>
         Sub SyncLockInSelect()
 
@@ -432,7 +432,7 @@ End Class
                         Diagnostic(ERRID.ERR_EndSyncLockNoSyncLock, "End SyncLock"))
         End Sub
 
-        <Fact(), WorkItem(529059)>
+        <Fact(), WorkItem(529059, "DevDiv")>
         Sub SingleElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SingleElseInSyncLock">
@@ -448,7 +448,7 @@ End Module
 </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_ElseNoMatchingIf, "Else"))
         End Sub
 
-        <WorkItem(529066)>
+        <WorkItem(529066, "DevDiv")>
         <Fact()>
         Sub SingleCaseElseInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(

@@ -2930,7 +2930,7 @@ End Class
                 "Public P As Object")
         End Sub
 
-        <WorkItem(540253)>
+        <WorkItem(540253, "DevDiv")>
         <Fact()>
         Public Sub TestOverloads()
             Dim text =
@@ -3358,7 +3358,7 @@ End Class
                 SymbolDisplayPartKind.ClassName)
         End Sub
 
-        <WorkItem(537447)>
+        <WorkItem(537447, "DevDiv")>
         <Fact>
         Public Sub TestBug2239()
             Dim text =
@@ -3393,7 +3393,7 @@ End class
                 SymbolDisplayPartKind.Punctuation})
         End Sub
 
-        <WorkItem(538954)>
+        <WorkItem(538954, "DevDiv")>
         <Fact>
         Public Sub ParameterOptionsIncludeName()
             Dim text =
@@ -3422,7 +3422,7 @@ End Class
                 {SymbolDisplayPartKind.ParameterName})
         End Sub
 
-        <WorkItem(539076)>
+        <WorkItem(539076, "DevDiv")>
         <Fact>
         Public Sub Bug4878()
             Dim text =
@@ -3448,7 +3448,7 @@ End Namespace
             Assert.Equal("Global.Global.c1", comp.SourceModule.GlobalNamespace.LookupNestedNamespace({"Global"}).GetTypeMembers.Single().ToDisplayString(format))
         End Sub
 
-        <WorkItem(541005)>
+        <WorkItem(541005, "DevDiv")>
         <Fact>
         Public Sub Bug7515()
             Dim text =
@@ -3476,7 +3476,7 @@ End Namespace
                                                                 GetMembers("MyDel").Single().ToDisplayString(m_DelegateSignatureFormat))
         End Sub
 
-        <WorkItem(542619)>
+        <WorkItem(542619, "DevDiv")>
         <Fact>
         Public Sub Bug9913()
             Dim text =
@@ -3528,7 +3528,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <WorkItem(542619)>
+        <WorkItem(542619, "DevDiv")>
         <Fact>
         Public Sub Bug9913_2()
             Dim text =
@@ -3578,7 +3578,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <WorkItem(542619)>
+        <WorkItem(542619, "DevDiv")>
         <Fact>
         Public Sub Bug9913_3()
             Dim text =
@@ -3747,7 +3747,7 @@ End Class
                 SymbolDisplayPartKind.ClassName}, minimal:=True)
         End Sub
 
-        <WorkItem(543938)>
+        <WorkItem(543938, "DevDiv")>
         <Fact>
         Public Sub Bug12025()
             Dim text =
@@ -3798,7 +3798,7 @@ End Class
                 minimal:=True)
         End Sub
 
-        <Fact, WorkItem(544414)>
+        <Fact, WorkItem(544414, "DevDiv")>
         Public Sub Bug12724()
             Dim text =
         <compilation>
@@ -3944,7 +3944,7 @@ End Class
                 minimal:=False)
         End Sub
 
-        <Fact, WorkItem(543806)>
+        <Fact, WorkItem(543806, "DevDiv")>
         Public Sub Bug11752()
             Dim text =
         <compilation>
@@ -3991,7 +3991,7 @@ End Module
                 SymbolDisplayPartKind.Punctuation}, minimal:=True)
         End Sub
 
-        <Fact(), WorkItem(529764)>
+        <Fact(), WorkItem(529764, "DevDiv")>
         Public Sub TypeParameterFromMetadata()
             Dim src1 =
         <compilation>
@@ -4045,7 +4045,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(545625)>
+        <Fact, WorkItem(545625, "DevDiv")>
         Public Sub ReverseArrayRankSpecifiers()
             Dim text =
 <compilation>
@@ -4178,7 +4178,7 @@ End Module
                 minimal:=True)
         End Sub
 
-        <WorkItem(765287)>
+        <WorkItem(765287, "DevDiv")>
         <Fact>
         Public Sub TestCSharpSymbols()
             Dim csComp = CreateCSharpCompilation("CSharp", <![CDATA[

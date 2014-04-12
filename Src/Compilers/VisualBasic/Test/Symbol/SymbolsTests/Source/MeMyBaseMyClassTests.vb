@@ -1109,7 +1109,7 @@ End Module
         End Sub
 
         ' Call MyBase in Query
-        <WorkItem(543465)>
+        <WorkItem(543465, "DevDiv")>
         <Fact()>
         Public Sub UseMyBaseInQuery()
 

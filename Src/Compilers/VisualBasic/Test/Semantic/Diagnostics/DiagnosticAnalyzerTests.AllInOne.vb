@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class DiagnosticAnalyzerTests
-        <WorkItem(897137)>
+        <WorkItem(897137, "DevDiv")>
         <Fact>
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()
         End Sub
 
-        <WorkItem(896273)>
+        <WorkItem(896273, "DevDiv")>
         <Fact>
         Public Sub DiagnosticAnalyzerEnumBlock()
             Dim source =

@@ -2178,7 +2178,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
         End Sub
 
         <Fact()>
-        <WorkItem(528983)>
+        <WorkItem(528983, "DevDiv")>
         Public Sub ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible()
 
             'namespace Extensions
@@ -2376,7 +2376,7 @@ BC30662: Attribute 'ExtensionAttribute' cannot be applied to 'C' because the att
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(545799)>
+        <Fact(), WorkItem(545799, "DevDiv")>
         Public Sub SameExtensionMethodSymbol()
 
             Dim comp = CreateCompilationWithMscorlibAndReferences(

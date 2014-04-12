@@ -311,7 +311,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542246)>
+        <WorkItem(542246, "DevDiv")>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromGeneric01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -393,7 +393,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
 ]]></errors>)
         End Sub
 
-        <WorkItem(544370)>
+        <WorkItem(544370, "DevDiv")>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -633,7 +633,7 @@ BC36557: 'x' is not a member of '&lt;anonymous type&gt;'; it does not exist in t
 </errors>)
         End Sub
 
-        <WorkItem(542940)>
+        <WorkItem(542940, "DevDiv")>
         <Fact>
         Public Sub LambdaReturningAnonymousType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -655,7 +655,7 @@ VB$AnonymousDelegate_0`1[VB$AnonymousType_0`1[System.String]]
 ]]>)
         End Sub
 
-        <WorkItem(543286)>
+        <WorkItem(543286, "DevDiv")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1()
             Dim compilationDef =
@@ -683,7 +683,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="{ x2 = 0 }")
         End Sub
 
-        <WorkItem(543286)>
+        <WorkItem(543286, "DevDiv")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod2()
             Dim compilationDef =
@@ -745,7 +745,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="{ x2 = 0 }")
         End Sub
 
-        <WorkItem(529688)>
+        <WorkItem(529688, "DevDiv")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Valid()
             Dim compilationDef =
@@ -790,7 +790,7 @@ End Module
             Assert.Same(associatedDelegate, info.Symbol.ContainingSymbol)
         End Sub
 
-        <WorkItem(529688)>
+        <WorkItem(529688, "DevDiv")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Action_SameSignature()
             Dim compilationDef =
@@ -835,7 +835,7 @@ End Module
             Assert.NotSame(associatedDelegate, info.Symbol.ContainingSymbol)
         End Sub
 
-        <WorkItem(529688)>
+        <WorkItem(529688, "DevDiv")>
         <Fact()>
         Public Sub AssociatedAnonymousDelegate_Action_DifferentSignature()
             Dim compilationDef =

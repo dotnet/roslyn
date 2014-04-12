@@ -55,7 +55,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(530123)>
+        <WorkItem(530123, "DevDiv")>
         <Fact>
         Public Sub MetadataTypeSymbolModule01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -83,7 +83,7 @@ End Module
                                               End Sub)
         End Sub
 
-        <WorkItem(537324)>
+        <WorkItem(537324, "DevDiv")>
         <Fact>
         Public Sub MetadataTypeSymbolClass01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -368,7 +368,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(542755)>
+        <WorkItem(542755, "DevDiv")>
         <Fact>
         Public Sub SpellingOfGenericClassNameIsPreserved()
             Dim ilSource = <![CDATA[

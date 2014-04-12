@@ -1151,7 +1151,7 @@ class C3 {}
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(argType)
         End Sub
 
-        <Fact, WorkItem(685240)>
+        <Fact, WorkItem(685240, "DevDiv")>
         Public Sub Bug685240()
 
             Dim piaSource =
@@ -1217,7 +1217,7 @@ End Class
             CompileAndVerify(consumer, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
-        <Fact, WorkItem(528047)>
+        <Fact, WorkItem(528047, "DevDiv")>
         Public Sub OverloadResolutionWithEmbeddedInteropType()
             Dim source1 =
 <compilation>

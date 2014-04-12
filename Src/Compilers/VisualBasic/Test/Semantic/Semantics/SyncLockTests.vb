@@ -214,7 +214,7 @@ End Class
 
 #Region "Semantic API"
 
-        <WorkItem(545364)>
+        <WorkItem(545364, "DevDiv")>
         <Fact()>
         Public Sub SyncLockLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

@@ -891,7 +891,7 @@ End Class
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <WorkItem(530442)>
+        <WorkItem(530442, "DevDiv")>
         <Fact()>
         Public Sub Bug16169()
             Dim compilationDef =

@@ -198,7 +198,7 @@ BC30205: End of statement expected.
         End Sub
 
 
-        <WorkItem(545766)>
+        <WorkItem(545766, "DevDiv")>
         <Fact>
         Public Sub LocalSameNameAsOperatorAllowed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -321,7 +321,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
 </expected>)
         End Sub
 
-        <WorkItem(538590)>
+        <WorkItem(538590, "DevDiv")>
         <Fact>
         Public Sub CallStatementNothingAsInvocationExpression_Bug_4247()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -398,7 +398,7 @@ BC30112: 'N1.N2' is a namespace and cannot be used as an expression.
 
 
         ' related to bug 4247
-        <WorkItem(545166)>
+        <WorkItem(545166, "DevDiv")>
         <Fact>
         Public Sub CallStatementTypeAsInvocationExpression()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1178,7 +1178,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(542987)>
+        <WorkItem(542987, "DevDiv")>
         <Fact()>
         Public Sub MultiDimensionalArrayWithTooFewInitializers()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1200,7 +1200,7 @@ BC30567: Array initializer is missing 2 elements.
 </expected>)
         End Sub
 
-        <WorkItem(542988)>
+        <WorkItem(542988, "DevDiv")>
         <Fact()>
         Public Sub Max32ArrayDimensionsAreAllowed()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1394,7 +1394,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(543381)>
+        <WorkItem(543381, "DevDiv")>
         <Fact()>
         Public Sub GotoUndefinedLabel()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1417,7 +1417,7 @@ BC30132: Label 'lab1' is not defined.
 </expected>)
         End Sub
 
-        <WorkItem(538574)>
+        <WorkItem(538574, "DevDiv")>
         <Fact()>
         Public Sub ArrayModifiersOnVariableAndType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1478,7 +1478,7 @@ Module Program
             CompileAndVerify(comp, expectedOutput:="True")
         End Sub
 
-        <WorkItem(540390)>
+        <WorkItem(540390, "DevDiv")>
         <Fact()>
         Public Sub Bug6637()
 
@@ -1508,7 +1508,7 @@ BC30451: 'i' is not declared. It may be inaccessible due to its protection level
 
         End Sub
 
-        <WorkItem(540412)>
+        <WorkItem(540412, "DevDiv")>
         <Fact()>
         Public Sub Bug6662()
 
@@ -1541,7 +1541,7 @@ BC30451: 'i' is not declared. It may be inaccessible due to its protection level
 
         End Sub
 
-        <WorkItem(542801)>
+        <WorkItem(542801, "DevDiv")>
         <Fact()>
         Public Sub ExtTryFromFinally()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -1606,7 +1606,7 @@ BC31082: 'ex' is not a local variable or parameter, and so cannot be used as a '
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(651622)>
+        <Fact(), WorkItem(651622, "DevDiv")>
         Public Sub Bug651622()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1967,7 +1967,7 @@ BC42031: 'Catch' block never reached; 'System.Exception' handled above in the sa
 </expected>)
         End Sub
 
-        <WorkItem(837820)>
+        <WorkItem(837820, "DevDiv")>
         <Fact()>
         Public Sub CatchShadowingGeneric()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2765,7 +2765,7 @@ End Module
 11:Greater than 10]]>)
         End Sub
 
-        <WorkItem(542156)>
+        <WorkItem(542156, "DevDiv")>
         <Fact()>
         Public Sub ImplicitVarInRedim()
             CompileAndVerify(
@@ -3223,7 +3223,7 @@ LabelOK3:
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(543055)>
+        <WorkItem(543055, "DevDiv")>
         <Fact()>
         Public Sub Bug10583()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3257,7 +3257,7 @@ BC30754: 'GoTo label5' is not valid because 'label5' is inside a 'Try', 'Catch' 
                                                </expected>)
         End Sub
 
-        <WorkItem(543060)>
+        <WorkItem(543060, "DevDiv")>
         <Fact()>
         Public Sub SelectCase_ImplicitOperator()
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3316,7 +3316,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(543333)>
+        <WorkItem(543333, "DevDiv")>
         <Fact()>
         Public Sub Binding_Return_As_Declaration()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -3341,7 +3341,7 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
 </expected>)
         End Sub
 
-        <WorkItem(529050)>
+        <WorkItem(529050, "DevDiv")>
         <Fact>
         Public Sub WhileOutOfMethod()
             Dim source =
@@ -3354,7 +3354,7 @@ While (true)
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
         End Sub
 
-        <WorkItem(529050)>
+        <WorkItem(529050, "DevDiv")>
         <Fact>
         Public Sub WhileOutOfMethod_1()
             Dim source =
@@ -3369,7 +3369,7 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
         End Sub
 
-        <WorkItem(529051)>
+        <WorkItem(529051, "DevDiv")>
         <Fact>
         Public Sub IfOutOfMethod()
             Dim source =
@@ -3382,7 +3382,7 @@ If (true)
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
         End Sub
 
-        <WorkItem(529051)>
+        <WorkItem(529051, "DevDiv")>
         <Fact>
         Public Sub IfOutOfMethod_1()
             Dim source =
@@ -3397,7 +3397,7 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
         End Sub
 
-        <WorkItem(529052)>
+        <WorkItem(529052, "DevDiv")>
         <Fact>
         Public Sub TryOutOfMethod()
             Dim source =
@@ -3412,7 +3412,7 @@ Catch
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Catch"))
         End Sub
 
-        <WorkItem(529052)>
+        <WorkItem(529052, "DevDiv")>
         <Fact>
         Public Sub TryOutOfMethod_1()
             Dim source =
@@ -3429,7 +3429,7 @@ End Class
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Catch"))
         End Sub
 
-        <WorkItem(529053)>
+        <WorkItem(529053, "DevDiv")>
         <Fact>
         Public Sub DoOutOfMethod()
             Dim source =
@@ -3442,7 +3442,7 @@ Do
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Do"))
         End Sub
 
-        <WorkItem(529053)>
+        <WorkItem(529053, "DevDiv")>
         <Fact>
         Public Sub DoOutOfMethod_1()
             Dim source =
@@ -3485,7 +3485,7 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Else"))
         End Sub
 
-        <WorkItem(544465)>
+        <WorkItem(544465, "DevDiv")>
         <Fact()>
         Public Sub DuplicateNullableLocals()
             Dim source =
@@ -3506,7 +3506,7 @@ End Module
                     Diagnostic(ERRID.ERR_DuplicateLocals1, "A?").WithArguments("A"))
         End Sub
 
-        <WorkItem(544431)>
+        <WorkItem(544431, "DevDiv")>
         <Fact()>
         Public Sub IllegalModifiers()
             Dim source =
@@ -3542,7 +3542,7 @@ Const Interface
                 </errors>)
         End Sub
 
-        <WorkItem(545196)>
+        <WorkItem(545196, "DevDiv")>
         <Fact()>
         Public Sub InvalidCode_Event()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3739,7 +3739,7 @@ Done
 
         End Sub
 
-        <WorkItem(660010)>
+        <WorkItem(660010, "DevDiv")>
         <Fact>
         Public Sub Regress660010()
             Dim source =
@@ -3771,7 +3771,7 @@ End C
 
         End Sub
 
-        <WorkItem(718436)>
+        <WorkItem(718436, "DevDiv")>
         <Fact>
         Public Sub NotYetImplementedStatement()
             Dim source =

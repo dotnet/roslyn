@@ -52,8 +52,8 @@ Hello, world
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(547017)>
-        <WorkItem(547018)>
+        <WorkItem(547017, "DevDiv")>
+        <WorkItem(547018, "DevDiv")>
         <Fact>
         Public Sub SimpleImplicitDeclaration2()
             Dim compilation = CompileAndVerify(
@@ -724,7 +724,7 @@ BC42104: Variable 'r' is used before it has been assigned a value. A null refere
 ]]></expected>)
         End Sub
 
-        <WorkItem(542455)>
+        <WorkItem(542455, "DevDiv")>
         <Fact>
         Public Sub VariableAcrossIfParts()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -751,7 +751,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "x").WithArguments("x"))
         End Sub
 
-        <WorkItem(542455)>
+        <WorkItem(542455, "DevDiv")>
         <Fact>
         Public Sub VariableAcrossIfParts2()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -779,7 +779,7 @@ End Module]]>
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "z").WithArguments("z"))
         End Sub
 
-        <WorkItem(542530)>
+        <WorkItem(542530, "DevDiv")>
         <Fact>
         Public Sub LambdaBindingOrder()
             Dim compilation = CompileAndVerify(
@@ -881,7 +881,7 @@ done
 
 #Region "BindExpression Tests"
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub SpeculativeBindImplicitVariableAsLeftHandSideOfOfAssignment()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND
@@ -891,7 +891,7 @@ done
             symbolKind:=SymbolKind.Local)
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub SpeculativeBindImplicitVariableAsMethodArgument()
             VerifyImplicitDeclarationBindExpression(<![CDATA[
                 'BIND

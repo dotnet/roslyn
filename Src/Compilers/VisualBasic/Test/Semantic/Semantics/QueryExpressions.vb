@@ -9673,7 +9673,7 @@ BC30367: Class 'DefaultQueryIndexer11' cannot be indexed because it has no defau
         ''' to be a field, while Roslyn requires ElementAtOrDefault
         ''' to be a method or property.
         ''' </summary>
-        <WorkItem(576814)>
+        <WorkItem(576814, "DevDiv")>
         <Fact()>
         Public Sub DefaultQueryIndexerField()
             Dim source =
@@ -9805,7 +9805,7 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 </expected>)
         End Sub
 
-        <WorkItem(528731)>
+        <WorkItem(528731, "DevDiv")>
         <Fact>
         Public Sub BC36598ERR_CannotLiftRestrictedTypeQuery()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -9837,7 +9837,7 @@ BC36598: Instance of restricted type 'System.ArgIterator' cannot be used in a qu
 </expected>)
         End Sub
 
-        <WorkItem(545801)>
+        <WorkItem(545801, "DevDiv")>
         <Fact>
         Public Sub NoPropertyMethodConflictForQueryOperators()
             Dim verifier = CompileAndVerify(
@@ -10192,7 +10192,7 @@ BC31396: 'System.TypedReference' cannot be made nullable, and cannot be used as 
 </expected>)
         End Sub
 
-        <WorkItem(542724)>
+        <WorkItem(542724, "DevDiv")>
         <Fact>
         Public Sub QueryExprInAttributes()
             Dim compilationDef =
@@ -10263,7 +10263,7 @@ System.Int32
 ]]>)
         End Sub
 
-        <WorkItem(528969)>
+        <WorkItem(528969, "DevDiv")>
         <Fact>
         Public Sub InaccessibleElementAtOrDefault()
             Dim compilationDef =
@@ -10303,7 +10303,7 @@ BC30367: Class 'Q1' cannot be indexed because it has no default property.
 
         End Sub
 
-        <WorkItem(543120)>
+        <WorkItem(543120, "DevDiv")>
         <Fact()>
         Public Sub ExplicitTypeNameInExprRangeVarDeclInLetClause()
             Dim compilationDef =
@@ -10327,7 +10327,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(543138)>
+        <WorkItem(543138, "DevDiv")>
         <Fact()>
         Public Sub FunctionLambdaInConditionOfJoinClause()
             Dim compilationDef =
@@ -10354,7 +10354,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543171)>
+        <WorkItem(543171, "DevDiv")>
         <Fact()>
         Public Sub FunctionLambdaInOrderByClause()
             Dim compilationDef =
@@ -10387,7 +10387,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(529014)>
+        <WorkItem(529014, "DevDiv")>
         <Fact>
         Public Sub MissingByInGroupByQueryOperator()
             Dim compilationDef =
@@ -10691,7 +10691,7 @@ BC36594: Definition of method 'GroupJoin' is not accessible in this context.
 </expected>)
         End Sub
 
-        <WorkItem(543523)>
+        <WorkItem(543523, "DevDiv")>
         <Fact()>
         Public Sub IncompleteLambdaInsideOrderByClause()
             Dim compilationDef =
@@ -10728,7 +10728,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(544312)>
+        <Fact(), WorkItem(544312, "DevDiv")>
         Public Sub WideningConversionInOverloadResolution()
             Dim compilationDef =
 <compilation name="WideningConversionInOverloadResolution">
@@ -10786,7 +10786,7 @@ Join1
 
         End Sub
 
-        <Fact, WorkItem(530910)>
+        <Fact, WorkItem(530910, "DevDiv")>
         Public Sub IQuerableOverStringMax()
             Dim compilationDef =
 <compilation name="IQuerableOverStringMax">

@@ -23,7 +23,7 @@ Public Class MetadataFileReferenceCompilationTests
         Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_LibNotFound)
     End Sub
 
-    <WorkItem(539480)>
+    <WorkItem(539480, "DevDiv")>
     <Fact>
     Public Sub BC31011ERR_BadRefLib1()
         Using MetadataCache.LockAndClean()
@@ -65,8 +65,8 @@ BC31007: Unable to load module file '<%= refFile %>': Image too small to contain
         End Using
     End Sub
 
-    <WorkItem(538349)>
-    <WorkItem(545062)>
+    <WorkItem(538349, "DevDiv")>
+    <WorkItem(545062, "DevDiv")>
     <Fact>
     Public Sub DuplicateReferences()
         Using MetadataCache.LockAndClean()

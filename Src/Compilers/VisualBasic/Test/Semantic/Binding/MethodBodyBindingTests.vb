@@ -168,7 +168,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538834)>
+        <WorkItem(538834, "DevDiv")>
         <Fact>
         Public Sub AssertPassMultipleArgumentsWithByRef()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -213,7 +213,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(538870)>
+        <WorkItem(538870, "DevDiv")>
         <Fact>
         Public Sub AssertInvalidArrayInitnializer()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -254,7 +254,7 @@ BC30987: '{' expected.
         End Sub
 
 
-        <WorkItem(538967)>
+        <WorkItem(538967, "DevDiv")>
         <Fact>
         Public Sub Bug4745()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -280,7 +280,7 @@ Shared x As Integer = 10
 </expected>)
         End Sub
 
-        <WorkItem(538491)>
+        <WorkItem(538491, "DevDiv")>
         <Fact>
         Public Sub Bug4118()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
@@ -301,7 +301,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub BindCatchStatementLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -343,7 +343,7 @@ End Class
             Assert.Equal("ex", sym2.Name)
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub BindCatchStatementNonLocal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -397,7 +397,7 @@ End Module
             Assert.Null(sym3)
         End Sub
 
-        <WorkItem(529206)>
+        <WorkItem(529206, "DevDiv")>
         <Fact>
         Public Sub IntrinsicAliases_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -437,7 +437,7 @@ BC30002: Type 'System.Integer' is not defined.
 </expected>)
         End Sub
 
-        <WorkItem(529206)>
+        <WorkItem(529206, "DevDiv")>
         <Fact>
         Public Sub IntrinsicAliases_2()
             Dim compilation = CompilationUtils.CreateCompilationWithoutReferences(
@@ -472,7 +472,7 @@ BC30456: 'MinValue' is not a member of 'Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(529206)>
+        <WorkItem(529206, "DevDiv")>
         <Fact>
         Public Sub IntrinsicAliases_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

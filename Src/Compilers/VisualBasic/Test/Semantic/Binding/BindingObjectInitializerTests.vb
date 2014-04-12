@@ -198,7 +198,7 @@ BC30201: Expression expected.
                                            </expected>)
         End Sub
 
-        <WorkItem(529213)>
+        <WorkItem(529213, "DevDiv")>
         <Fact()>
         Sub ObjectInitializerKeyKeywordInInitializer()
             Dim source =
@@ -231,7 +231,7 @@ BC30451: 'Key' is not declared. It may be inaccessible due to its protection lev
                                            </expected>)
         End Sub
 
-        <WorkItem(544357)>
+        <WorkItem(544357, "DevDiv")>
         <Fact()>
         Sub ObjectInitializerMultipleInitializations()
             Dim source =
@@ -1090,7 +1090,7 @@ End Class
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <Fact(), WorkItem(788522)>
+        <Fact(), WorkItem(788522, "DevDiv")>
         Sub ObjectInitializerNoStackOverflowFor250LevelsOfNesting()
             Dim source =
 <compilation>
@@ -1322,7 +1322,7 @@ BC42109: Variable 'uinst2' is used before it has been assigned a value. A null r
                                            </expected>)
         End Sub
 
-        <Fact(), WorkItem(567976)>
+        <Fact(), WorkItem(567976, "DevDiv")>
         Sub Bug567976()
             Dim source =
 <compilation>
@@ -1346,7 +1346,7 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
                                                 </expected>)
         End Sub
 
-        <Fact(), WorkItem(599393)>
+        <Fact(), WorkItem(599393, "DevDiv")>
         Sub Bug599393()
             Dim source =
 <compilation>

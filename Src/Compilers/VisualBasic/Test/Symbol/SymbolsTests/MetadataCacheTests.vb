@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Using
         End Sub
 
-        <WorkItem(537422)>
+        <WorkItem(537422, "DevDiv")>
         <Fact()>
         Public Sub CompilationWithMscorlibReference()
             Dim mscorlibPath = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib).Path

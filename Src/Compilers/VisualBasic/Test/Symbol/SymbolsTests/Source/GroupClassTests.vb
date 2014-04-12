@@ -3570,7 +3570,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="disposed", emitPdb:=True).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(560657)>
+        <Fact, WorkItem(560657, "DevDiv")>
         Public Sub Bug560657()
             Dim compilationDef =
 <compilation>

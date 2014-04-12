@@ -53,7 +53,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
             Assert.Null(sym.ContainingSymbol)
         End Sub
 
-        <WorkItem(537302)>
+        <WorkItem(537302, "DevDiv")>
         <Fact>
         Public Sub SourceModule()
 
@@ -81,7 +81,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
             Assert.Equal("Banana", sym.ContainingSymbol.Name)
         End Sub
 
-        <WorkItem(537421)>
+        <WorkItem(537421, "DevDiv")>
         <Fact>
         Public Sub StandardModule()
 
@@ -401,7 +401,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <Fact, WorkItem(544009)>
+        <Fact, WorkItem(544009, "DevDiv")>
         Public Sub MultiModulesNamespace()
 
             Dim text3 = <![CDATA[
@@ -455,7 +455,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem(537310)>
+        <WorkItem(537310, "DevDiv")>
         <Fact>
         Public Sub MultiModulesNamespaceCorLibraries()
 
@@ -505,7 +505,7 @@ End Namespace
             Next
         End Sub
 
-        <WorkItem(690871)>
+        <WorkItem(690871, "DevDiv")>
         <Fact>
         Public Sub SpecialTypesAndAliases()
             Dim source =
@@ -532,7 +532,7 @@ End Class
             Assert.Equal(objectType, comp.Assembly.CorLibrary.GetSpecialType(SpecialType.System_Object))
         End Sub
 
-        <WorkItem(690871)>
+        <WorkItem(690871, "DevDiv")>
         <Fact>
         Public Sub WellKnownTypesAndAliases()
             Dim [lib] =

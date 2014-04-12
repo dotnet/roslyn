@@ -421,7 +421,7 @@ End Module
             Assert.Equal(1, symbol.SetMethod.Parameters().Length)
         End Sub
 
-        <WorkItem(545659)>
+        <WorkItem(545659, "DevDiv")>
         <Fact>
         Public Sub LookupValueExtensionProperty()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -484,7 +484,7 @@ BC30456: 'Value' is not a member of 'System.Collections.Generic.IEnumerable(Of O
             Next
         End Sub
 
-        <WorkItem(544421)>
+        <WorkItem(544421, "DevDiv")>
         <Fact()>
         Public Sub XmlEndElementNoMatchingStart()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -509,7 +509,7 @@ End Module
             CheckSymbol(info.Type, "XElement")
         End Sub
 
-        <WorkItem(545167)>
+        <WorkItem(545167, "DevDiv")>
         <Fact()>
         Public Sub XmlElementEndTag()
             Dim compilation = CreateCompilationWithMscorlib(

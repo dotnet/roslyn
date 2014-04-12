@@ -489,7 +489,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(529809)>
+        <Fact, WorkItem(529809, "DevDiv")>
         Public Sub NetModuleWithVbCore()
             Dim options As New VisualBasicCompilationOptions(OutputKind.NetModule, embedVbCoreRuntime:=True)
 

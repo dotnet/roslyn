@@ -733,7 +733,7 @@ BC42019: Operands of type Object used for operator '&gt;'; runtime errors could 
 
         End Sub
 
-        <WorkItem(543387)>
+        <WorkItem(543387, "DevDiv")>
         <Fact()>
         Public Sub Test9()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -767,7 +767,7 @@ Succeeded
             Assert.Equal("Public Shared Overloads Operator =(d1 As System.MulticastDelegate, d2 As System.MulticastDelegate) As Boolean", symbolInfo.Symbol.ToDisplayString())
         End Sub
 
-        <WorkItem(544620)>
+        <WorkItem(544620, "DevDiv")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -789,7 +789,7 @@ End Module
             Assert.False(DirectCast(symbol, FieldSymbol).HasConstantValue)
         End Sub
 
-        <Fact(), WorkItem(531531)>
+        <Fact(), WorkItem(531531, "DevDiv")>
         Public Sub Bug18257()
             Dim source =
 <compilation name="ErrorHandling">
@@ -1294,7 +1294,7 @@ End Class
             builder2.Free()
         End Sub
 
-        <Fact(), WorkItem(721565)>
+        <Fact(), WorkItem(721565, "DevDiv")>
         Public Sub Bug721565()
 
             Dim source =

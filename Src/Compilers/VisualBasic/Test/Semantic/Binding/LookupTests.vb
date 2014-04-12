@@ -1549,7 +1549,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(545575)>
+        <WorkItem(545575, "DevDiv")>
         Public Sub Bug14079()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -1582,7 +1582,7 @@ End Class
             CompilationUtils.AssertNoDiagnostics(compilation)
         End Sub
 
-        <Fact(), WorkItem(531293)>
+        <Fact(), WorkItem(531293, "DevDiv")>
         Public Sub Bug17900()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2770,7 +2770,7 @@ BC30109: 'NS1.NS6.NS7.Module1.T1' is a class type and cannot be used as an expre
             Next
         End Sub
 
-        <Fact()> <WorkItem(842056)>
+        <Fact()> <WorkItem(842056, "DevDiv")>
         Public Sub AmbiguousNamespaces_11()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

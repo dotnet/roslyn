@@ -6903,7 +6903,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(737273)>
+        <Fact(), WorkItem(737273, "DevDiv")>
         Public Sub Resume_in_ForEach_Enumerable_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -10893,7 +10893,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(737273)>
+        <Fact(), WorkItem(737273, "DevDiv")>
         Public Sub Resume_in_ForEach_Array_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14806,7 +14806,7 @@ BC42105: Function 'test1' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547095)>
+        <Fact(), WorkItem(547095, "DevDiv")>
         Public Sub Bug17937()
             Dim source =
 <compilation name="AscW">
@@ -15813,7 +15813,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact(), WorkItem(737273)>
+        <Fact(), WorkItem(737273, "DevDiv")>
         Sub OnError_WithLoopingConstructs()
             'Various Looping constructs with Errors and capturing the behaviour of Resume Next as going into the loop rather
             ' then skipping to the next statement outstide of the loop

@@ -105,7 +105,7 @@ End Class
         End Sub
 
         ' Using the iteration variable in the collection expression
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub IterationVarInCollectionExpression()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -231,8 +231,8 @@ End Class
         End Sub
 
         ' Nested ForEach can use a var declared in the outer ForEach
-        <WorkItem(542080)>
-        <WorkItem(542234)>
+        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub NestedForeach()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -277,7 +277,7 @@ End Class
         End Sub
 
         ' Inner foreach loop referencing the outer foreach loop iteration variable
-        <WorkItem(542080)>
+        <WorkItem(542080, "DevDiv")>
         <Fact>
         Public Sub NestedForeach_1()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -363,7 +363,7 @@ End Class
         End Sub
 
         ' Continuing for nested Loops
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub ContinueInForeach()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -639,7 +639,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub BC30290ERR_LocalSameAsFunc_1()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -789,7 +789,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem(542083)>
+        <WorkItem(542083, "DevDiv")>
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_5()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -878,7 +878,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact()>
         Public Sub BC32006ERR_CharToIntegralTypeMismatch1_1()
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -934,7 +934,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact>
         Public Sub VarDeclOutOfForeach()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -964,7 +964,7 @@ End Class
         End Sub
 
         ' No confusion in a foreach statement when from is a value type
-        <WorkItem(542081)>
+        <WorkItem(542081, "DevDiv")>
         <Fact>
         Public Sub LambdaAsIteration()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -1134,7 +1134,7 @@ End Class
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
         End Sub
 
-        <WorkItem(667616)>
+        <WorkItem(667616, "DevDiv")>
         <Fact>
         Public Sub PortableLibraryStringForEach()
             Dim comp = CreateCompilationWithReferences(
@@ -1174,7 +1174,7 @@ End Class
             Assert.Equal(ConversionKind.Identity, conv.Kind)
         End Sub
 
-        <WorkItem(667616)>
+        <WorkItem(667616, "DevDiv")>
         <Fact>
         Public Sub PortableLibraryStringForEach_ExplicitCast()
             Dim comp = CreateCompilationWithReferences(
@@ -1214,7 +1214,7 @@ End Class
             Assert.Equal(ConversionKind.Identity, conv.Kind)
         End Sub
 
-        <WorkItem(529956)>
+        <WorkItem(529956, "DevDiv")>
         <Fact>
         Public Sub CastArrayToIEnumerable()
             Dim source =

@@ -120,7 +120,7 @@ Imports System.Reflection
             libCompilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546110)>
+        <WorkItem(546110, "DevDiv")>
         <Fact()>
         Public Sub TestAssemblyImport1()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -138,7 +138,7 @@ End Class
             compilation.AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(546110)>
+        <WorkItem(546110, "DevDiv")>
         <Fact()>
         Public Sub TestAssemblyImport2()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -162,7 +162,7 @@ Imports System.Runtime.CompilerServices
             'Assert.Equal(1, unusedImports.Count)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub SemanticModelCallDoesNotCountsAsUse()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -195,7 +195,7 @@ Imports System.Collections.Generic
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub INF_UnusedImportStatement_Single()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -212,7 +212,7 @@ Imports System
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub INF_UnusedImportStatement_Multiple()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -229,7 +229,7 @@ Imports System, System.Diagnostics
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub INF_UnusedImportClause_Single()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -249,7 +249,7 @@ Imports System, System.Diagnostics
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub INF_UnusedImportClause_Multiple()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -275,7 +275,7 @@ Imports System, System.Diagnostics, System.Collections
                                                </errors>, suppressInfos:=False)
         End Sub
 
-        <WorkItem(747219)>
+        <WorkItem(747219, "DevDiv")>
         <Fact()>
         Public Sub CrefCountsAsUse()
             Dim source =

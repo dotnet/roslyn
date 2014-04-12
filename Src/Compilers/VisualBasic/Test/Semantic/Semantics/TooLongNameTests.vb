@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class TooLongNames
         Inherits BasicTestBase
 
-        <WorkItem(531481)>
+        <WorkItem(531481, "DevDiv")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
         End Sub
 
-        <WorkItem(531481)>
+        <WorkItem(531481, "DevDiv")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes2()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
         End Sub
 
-        <WorkItem(530442)>
+        <WorkItem(530442, "DevDiv")>
         <Fact>
         Public Sub StaticLocalWithTooLongName()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -72,7 +72,7 @@ BC37220: Name '$STATIC$MaximumLengthIdentifierIn2012$001$abcdefghijklmnopqrstuvw
 </expected>)
         End Sub
 
-        <WorkItem(530442)>
+        <WorkItem(530442, "DevDiv")>
         <Fact>
         Public Sub StaticLocalWithTooLongName2()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

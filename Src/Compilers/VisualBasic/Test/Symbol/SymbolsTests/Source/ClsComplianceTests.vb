@@ -2554,7 +2554,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(697178)>
+        <WorkItem(697178, "DevDiv")>
         <Fact>
         Public Sub ConstructedSpecialTypes()
             Dim source =
@@ -2606,7 +2606,7 @@ BC30002: Type 'Missing' is not defined.
 ]]></errors>)
         End Sub
 
-        <WorkItem(709317)>
+        <WorkItem(709317, "DevDiv")>
         <Fact>
         Public Sub Repro709317()
             Dim libSource =
@@ -2646,7 +2646,7 @@ End Class
             Assert.DoesNotThrow(Sub() comp.GetDiagnosticsForTree(CompilationStage.Declare, tree, filterSpanWithinTree:=Nothing, includeEarlierStages:=True))
         End Sub
 
-        <WorkItem(709317)>
+        <WorkItem(709317, "DevDiv")>
         <Fact>
         Public Sub FilterTree()
             Dim sourceTemplate = <![CDATA[
@@ -2737,7 +2737,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
 ]]></errors>)
         End Sub
 
-        <WorkItem(718503)>
+        <WorkItem(718503, "DevDiv")>
         <Fact>
         Public Sub ErrorTypeAccessibility()
             Dim source =
@@ -3554,7 +3554,7 @@ BC40027: Return type of function 'F' is not CLS-compliant.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749432)>
+        <WorkItem(749432, "DevDiv")>
         <Fact>
         Public Sub InvalidAttributeArgument()
             Dim source =
@@ -3586,7 +3586,7 @@ BC30059: Constant expression is required.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749352)>
+        <WorkItem(749352, "DevDiv")>
         <Fact>
         Public Sub Repro749352()
             Dim source =

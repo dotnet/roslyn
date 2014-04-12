@@ -158,7 +158,7 @@ BC30643: Property 'A.R(val As Integer, Param As Integer)' is of an unsupported t
         ' Dev11 uses the accessor to determine whether access
         ' is through instance or type name. Roslyn does not
         ' support such properties. Breaking change.
-        <WorkItem(528159)>
+        <WorkItem(528159, "DevDiv")>
         <Fact()>
         Public Sub MismatchedStaticInstanceAccessors()
             Dim customIL = <![CDATA[
@@ -211,7 +211,7 @@ BC30643: Property 'A.P' is of an unsupported type.
 
         ' Property with type that does not match accessors.
         ' Expression type should be determined from accessor.
-        <WorkItem(528160)>
+        <WorkItem(528160, "DevDiv")>
         <Fact()>
         Public Sub WrongPropertyType()
             Dim customIL = <![CDATA[
@@ -557,7 +557,7 @@ End Class
 #End Region
 #Region "Code Gen"
         ' All property overload metadata should have a name that matches the casing the of the first declared overload
-        <WorkItem(539893)>
+        <WorkItem(539893, "DevDiv")>
         <Fact()>
         Public Sub PropertiesILCaseSenstivity()
             Dim source =
@@ -1327,7 +1327,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542749)>
+        <WorkItem(542749, "DevDiv")>
         <Fact>
         Public Sub ValueInAutoAndDefaultProperties()
 
@@ -2526,7 +2526,7 @@ BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o A
 </expected>)
         End Sub
 
-        <WorkItem(529554)>
+        <WorkItem(529554, "DevDiv")>
         <Fact(Skip:="529554")>
         Public Sub DefaultPropertiesWithShadowingMethod()
             Dim customIL = <![CDATA[
@@ -2590,7 +2590,7 @@ BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o A
 </expected>)
         End Sub
 
-        <WorkItem(529553)>
+        <WorkItem(529553, "DevDiv")>
         <Fact(Skip:="529553")>
         Public Sub DefaultPropertiesInterfacesWithShadowingMethod()
             Dim customIL = <![CDATA[
@@ -2943,7 +2943,7 @@ BC31048: Properties with no required parameters cannot be declared 'Default'.
         ''' types from metadata), bind the argument list to the
         ''' default property of the return type instead.
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessDefaultPropertyReturnType01()
             Dim source1 =
@@ -3004,7 +3004,7 @@ BC30367: Class 'B' cannot be indexed because it has no default property.
         ''' <summary>
         ''' WriteOnly default parameterless property.
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessDefaultPropertyReturnType02()
             Dim source1 =
@@ -3056,7 +3056,7 @@ BC30524: Property 'Q' is 'WriteOnly'.
 </expected>)
         End Sub
 
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessDefaultPropertyReturnType03()
             Dim source1 =
@@ -3101,7 +3101,7 @@ BC32016: 'Public ReadOnly Default Property Q As A' has no parameters and its ret
 </expected>)
         End Sub
 
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessDefaultPropertyReturnType04()
             Dim source1 =
@@ -3251,7 +3251,7 @@ End Module
         ''' <summary>
         ''' Default member from ElementAtOrDefault.
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessElementAtOrDefault01()
             Dim source =
@@ -3327,7 +3327,7 @@ BC30455: Argument not specified for parameter 'o' of 'D'.
         ''' <summary>
         ''' Default member from ElementAtOrDefault.
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessElementAtOrDefault02()
             Dim source =
@@ -3391,8 +3391,8 @@ BC30057: Too many arguments to 'Public Function ElementAtOrDefault() As B'.
         ''' <summary>
         ''' ElementAtOrDefault returning System.Array.
         ''' </summary>
-        <WorkItem(531372)>
-        <WorkItem(575547)>
+        <WorkItem(531372, "DevDiv")>
+        <WorkItem(575547, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessElementAtOrDefault03()
             ' Option Strict On
@@ -3469,7 +3469,7 @@ End Module
         ''' ElementAtOrDefault property. (ElementAtOrDefault field
         ''' not supported - see #576814.)
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessElementAtOrDefault04()
             Dim source =
@@ -3523,7 +3523,7 @@ End Module
         ''' <summary>
         ''' Parentheses required for call to delegate.
         ''' </summary>
-        <WorkItem(531372)>
+        <WorkItem(531372, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfParameterlessDelegate()
             Dim source =
@@ -3556,7 +3556,7 @@ BC30057: Too many arguments to 'D'.
 </expected>)
         End Sub
 
-        <WorkItem(578180)>
+        <WorkItem(578180, "DevDiv")>
         <Fact()>
         Public Sub DefaultPropertyOfInheritedConstrainedTypeParameter()
             Dim source1 =
@@ -3675,7 +3675,7 @@ BC30547: 'U' cannot be indexed because it has no default property.
 </expected>)
         End Sub
 
-        <WorkItem(539951)>
+        <WorkItem(539951, "DevDiv")>
         <Fact>
         Public Sub ImportedParameterlessDefaultProperties()
             Dim customIL = <![CDATA[
@@ -3747,7 +3747,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="9")
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub DefaultPropertyInFunctionReturn()
             Dim source =
@@ -3808,7 +3808,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub EmptyArgumentListWithNoIndexerOrDefaultProperty()
             Dim source =
@@ -3857,7 +3857,7 @@ BC30057: Too many arguments to 'Private Function C() As Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub WrongArityWithFunctionsOfZeroParameters()
             Dim source =
@@ -3907,7 +3907,7 @@ BC30057: Too many arguments to 'Public Function Foo(Of T)() As Integer()'.
 
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub PropertyReturningDelegate()
             Dim source =
@@ -3955,7 +3955,7 @@ BC30545: Property access must assign to the property or use its value.
 </expected>)
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub FunctionWithZeroParametersReturingDelegate()
             Dim source =
@@ -3995,7 +3995,7 @@ BC30057: Too many arguments to 'Public Function Foo() As System.Func(Of String, 
 </expected>)
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub EmptyArgumentListWithFunctionAndSub()
             Dim source =
@@ -4024,7 +4024,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="234")
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub FunctionsWithDifferentArity_0()
             Dim source =
@@ -4068,7 +4068,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub FunctionsWithDifferentArity_1()
             Dim source =
@@ -4116,7 +4116,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub FunctionsWithDifferentArity_2()
             Dim source =
@@ -4169,7 +4169,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub PropertiesWithInheritanceAndParentheses()
             Dim source =
@@ -4231,7 +4231,7 @@ BC30545: Property access must assign to the property or use its value.
 
         End Sub
 
-        <WorkItem(539957)>
+        <WorkItem(539957, "DevDiv")>
         <Fact>
         Public Sub WriteOnlyPropertiesWithInheritanceAndParentheses()
             Dim source =
@@ -4290,7 +4290,7 @@ BC30524: Property 'Foo' is 'WriteOnly'.
 </expected>)
         End Sub
 
-        <WorkItem(539903)>
+        <WorkItem(539903, "DevDiv")>
         <Fact>
         Public Sub DefaultPropertyBangOperator()
             Dim source =
@@ -4416,7 +4416,7 @@ System.Console.WriteLine(String.Join(",", obj.P1.id, obj.P2.id))]]>.Value)
         End Sub
 #End Region
 #Region "Properties member access"
-        <WorkItem(539962)>
+        <WorkItem(539962, "DevDiv")>
         <Fact>
         Public Sub PropertiesAccess()
             Dim source =
@@ -4851,7 +4851,7 @@ End Class
             CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
-        <WorkItem(528038)>
+        <WorkItem(528038, "DevDiv")>
         <Fact()>
         Public Sub CanNotReadInstancePropertyWithStaticGetterAsInstance()
             Dim ilSource = <![CDATA[
@@ -4870,7 +4870,7 @@ End Class
             CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
-        <WorkItem(527658)>
+        <WorkItem(527658, "DevDiv")>
         <Fact(Skip:="527658")>
         Public Sub PropertyWithPinnedModifierIsBogus()
             Dim ilSource = <![CDATA[
@@ -4889,7 +4889,7 @@ End Class
             CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(538850)>
+        <WorkItem(538850, "DevDiv")>
         <Fact()>
         Public Sub PropertyWithMismatchedReturnTypeOfGetterIsBogus()
             Dim ilSource = <![CDATA[
@@ -4909,7 +4909,7 @@ End Class
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(527659)>
+        <WorkItem(527659, "DevDiv")>
         <Fact()>
         Public Sub PropertyWithCircularReturnTypeIsNotSupported()
             Dim ilSource = <![CDATA[
@@ -4934,7 +4934,7 @@ End Class
             ' error CS0570: 'A.Foo' is not supported by the language
         End Sub
 
-        <WorkItem(527664)>
+        <WorkItem(527664, "DevDiv")>
         <Fact(Skip:="527664")>
         Public Sub PropertyWithOpenGenericTypeAsTypeArgumentOfReturnTypeIsNotSupported()
             Dim ilSource = <![CDATA[
@@ -4954,7 +4954,7 @@ End Class
             CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(527657)>
+        <WorkItem(527657, "DevDiv")>
         <Fact(Skip:="527657")>
         Public Sub Dev10IgnoresSentinelInPropertySignature()
             Dim ilSource = <![CDATA[
@@ -4991,7 +4991,7 @@ End Class
             CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
-        <WorkItem(527660)>
+        <WorkItem(527660, "DevDiv")>
         <Fact(Skip:="527660")>
         Public Sub CanReadPropertyWithModOptInBaseClassOfReturnType()
             Dim ilSource = <![CDATA[
@@ -5048,7 +5048,7 @@ End Class
             CompileWithCustomILSource(vbSource, ilSource, emitOptions:=EmitOptions.RefEmitBug)
         End Sub
 
-        <WorkItem(527656)>
+        <WorkItem(527656, "DevDiv")>
         <Fact(Skip:="527656")>
         Public Sub CanReadNonModOptPropertyWithOpenGenericModOptGetter()
             Dim ilSource = <![CDATA[
@@ -5107,7 +5107,7 @@ End Class
         ''' Nested modopt is invalid and results in a use-site error
         ''' in Roslyn. The native compiler ignores modopts completely.
         ''' </summary>
-        <WorkItem(538845)>
+        <WorkItem(538845, "DevDiv")>
         <Fact>
         Public Sub CanReadPropertyWithMultipleAndNestedModOpts()
             Dim ilSource = <![CDATA[
@@ -5158,7 +5158,7 @@ BC30643: Property 'Foo' is of an unsupported type.
 </expected>)
         End Sub
 
-        <WorkItem(538846)>
+        <WorkItem(538846, "DevDiv")>
         <Fact>
         Public Sub CanNotReadPropertyWithModReq()
             Dim ilSource = <![CDATA[
@@ -5187,7 +5187,7 @@ BC30456: 'get_Foo' is not a member of 'A'.
 </expected>)
         End Sub
 
-        <WorkItem(527662)>
+        <WorkItem(527662, "DevDiv")>
         <Fact(Skip:="527662")>
         Public Sub CanNotReadPropertyWithModReqInBaseClassOfReturnType()
             Dim ilSource = <![CDATA[
@@ -5232,7 +5232,7 @@ End Class
                 Diagnostic(ERRID.ERR_VoidValue, "A.Foo"))
         End Sub
 
-        <WorkItem(527663)>
+        <WorkItem(527663, "DevDiv")>
         <Fact>
         Public Sub CanNotReadPropertyFromAmbiguousGenericClass()
             Dim ilSource = <![CDATA[
@@ -5282,7 +5282,7 @@ End Class
                 Diagnostic(ERRID.ERR_NameNotMember2, "B.Foo").WithArguments("Foo", "B"))
         End Sub
 
-        <WorkItem(538946)>
+        <WorkItem(538946, "DevDiv")>
         <Fact>
         Public Sub FalseAmbiguity()
             Dim text = <compilation><file name="c.vb"><![CDATA[
@@ -5312,7 +5312,7 @@ End Class
             Assert.Empty(diagnostics)
         End Sub
 
-        <WorkItem(539320)>
+        <WorkItem(539320, "DevDiv")>
         <Fact>
         Public Sub FalseWarningCS0109ForNewModifier()
             Dim text = <compilation><file name="c.vb"><![CDATA[
@@ -5486,7 +5486,7 @@ End Class
             compilation.VerifyIL("Program.Main", ilSource)
         End Sub
 
-        <WorkItem(528542)>
+        <WorkItem(528542, "DevDiv")>
         <Fact()>
         Public Sub MismatchedAccessorTypes()
             Dim source = <code><file name="c.vb"><![CDATA[
@@ -5634,7 +5634,7 @@ IL_001a:  ret
 #End Region
 #End Region
 
-        <WorkItem(540343)>
+        <WorkItem(540343, "DevDiv")>
         <Fact>
         Public Sub PropertiesWithCircularTypeReferences()
             CompileAndVerify(
@@ -5678,7 +5678,7 @@ End Module
 </compilation>, emitPdb:=True, expectedOutput:="")
         End Sub
 
-        <WorkItem(540342)>
+        <WorkItem(540342, "DevDiv")>
         <Fact>
         Public Sub NoSequencePointsForAutoPropertyAccessors()
             Dim source =
@@ -5983,7 +5983,7 @@ End Interface
             Assert.True(q.SetMethod.IsImplicitlyDeclared)
         End Sub
 
-        <Fact(), WorkItem(544315)>
+        <Fact(), WorkItem(544315, "DevDiv")>
         Public Sub PropertyAccessorParameterLocation()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -6022,7 +6022,7 @@ End Class
         ''' Consistent accessor signatures but different
         ''' from property signature.
         ''' </summary>
-        <WorkItem(545814)>
+        <WorkItem(545814, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_AccessorsConsistent()
             Dim source1 = <![CDATA[
@@ -6169,7 +6169,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integ
         ''' property signatures. (Both are supported by Dev11, but
         ''' Roslyn requires accessors to have consistent signatures.)
         ''' </summary>
-        <WorkItem(545814)>
+        <WorkItem(545814, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_AccessorsDifferent()
             Dim source1 = <![CDATA[
@@ -6274,7 +6274,7 @@ BC30643: Property 'D.P(i As C)' is of an unsupported type.
         ''' <summary>
         ''' Properties used in object initializers and attributes.
         ''' </summary>
-        <WorkItem(545814)>
+        <WorkItem(545814, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_ObjectInitializersAndAttributes()
             Dim source1 = <![CDATA[
@@ -6336,7 +6336,7 @@ BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expres
         ''' as unsupported, this can lead to different overload resolution than Dev11.
         ''' </summary>
         ''' <remarks></remarks>
-        <WorkItem(545814)>
+        <WorkItem(545814, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_OverloadResolution()
             Dim source1 = <![CDATA[
@@ -6418,7 +6418,7 @@ End Module
         ''' <summary>
         ''' Accessors with different parameter count than property.
         ''' </summary>
-        <WorkItem(545814)>
+        <WorkItem(545814, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_ParameterCount()
             Dim source1 = <![CDATA[
@@ -6481,7 +6481,7 @@ BC30643: Property 'A.Q(o As Object, v As Object)' is of an unsupported type.
 ]]></errors>)
         End Sub
 
-        <WorkItem(545959)>
+        <WorkItem(545959, "DevDiv")>
         <Fact()>
         Public Sub DifferentAccessorSignatures_NamedArguments_1()
             Dim ilSource = <![CDATA[
@@ -7172,7 +7172,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public Property P3(x As Ob
             Assert.Equal(parameter.ExplicitDefaultConstantValue, defaultValue)
         End Sub
 
-        <WorkItem(545959)>
+        <WorkItem(545959, "DevDiv")>
         <Fact()>
         Public Sub DistinctOptionalParameterValues()
             Dim ilSource = <![CDATA[
@@ -7232,7 +7232,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overri
 </expected>)
         End Sub
 
-        <WorkItem(545959)>
+        <WorkItem(545959, "DevDiv")>
         <Fact()>
         Public Sub DistinctOptionalParameterValues_BadValue()
             Dim ilSource = <![CDATA[
@@ -7310,7 +7310,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overri
 </expected>)
         End Sub
 
-        <WorkItem(545959)>
+        <WorkItem(545959, "DevDiv")>
         <Fact()>
         Public Sub DistinctOptionalParameterValues_AdditionalOptional()
             Dim ilSource = <![CDATA[
@@ -7410,7 +7410,7 @@ BC30455: Argument not specified for parameter 'y' of 'Public MustOverride Overri
         ''' Signatures where the property value type
         ''' does not match the getter return type.
         ''' </summary>
-        <WorkItem(546476)>
+        <WorkItem(546476, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_PropertyType()
             Dim source1 = <![CDATA[
@@ -7498,7 +7498,7 @@ BC30311: Value of type 'B2' cannot be converted to 'B1'.
         ''' Signatures where the property value type
         ''' does not match the setter value type.
         ''' </summary>
-        <WorkItem(546476)>
+        <WorkItem(546476, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_PropertyType_2()
             Dim source1 = <![CDATA[
@@ -7583,7 +7583,7 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'o' back to the matching arg
         ''' Signatures where the property value type does not
         ''' match the accessors, used in compound assignment.
         ''' </summary>
-        <WorkItem(546476)>
+        <WorkItem(546476, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_PropertyType_3()
             Dim source1 = <![CDATA[
@@ -7632,7 +7632,7 @@ BC30038: Option Strict On prohibits operands of type Object for operator '+'.
         ''' Getter return type is used for type inference.
         ''' Note: Dev11 uses the property type rather than getter.
         ''' </summary>
-        <WorkItem(546476)>
+        <WorkItem(546476, "DevDiv")>
         <Fact()>
         Public Sub DifferentSignatures_PropertyType_4()
             Dim source1 = <![CDATA[
@@ -7847,7 +7847,7 @@ BC30002: Type 'System.Object' is not defined.
      ]]></errors>)
         End Sub
 
-        <WorkItem(530418)>
+        <WorkItem(530418, "DevDiv")>
         <Fact(Skip:="530418")>
         Public Sub MissingSystemTypes_AutoProperty()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -7877,7 +7877,7 @@ BC30002: Type 'System.Object' is not defined.
      ]]></errors>)
         End Sub
 
-        <WorkItem(531292)>
+        <WorkItem(531292, "DevDiv")>
         <Fact()>
         Public Sub Bug17897()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

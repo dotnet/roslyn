@@ -75,7 +75,7 @@ End Module
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
         End Sub
 
-        <Fact(), WorkItem(544083)>
+        <Fact(), WorkItem(544083, "DevDiv")>
         Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>

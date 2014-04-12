@@ -541,7 +541,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact>
         Public Sub Bug5181()
             Dim source =
@@ -622,7 +622,7 @@ End Class
             Assert.Equal(firstMeFSymbol.Name, "C2")
         End Sub
 
-        <WorkItem(542375)>
+        <WorkItem(542375, "DevDiv")>
         <Fact>
         Public Sub ConstFieldNonConstValueAsArrayBoundary()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

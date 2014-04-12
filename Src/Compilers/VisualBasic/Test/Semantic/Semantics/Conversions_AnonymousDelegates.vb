@@ -539,7 +539,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Sub <generated me
 ]]></expected>)
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing2()
 
@@ -627,7 +627,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3()
 
@@ -715,7 +715,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3_2()
 
@@ -804,7 +804,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3_3()
 

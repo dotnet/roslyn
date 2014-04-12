@@ -3518,7 +3518,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(546132)>
+        <WorkItem(546132, "DevDiv")>
         <Fact()>
         Public Sub SymbolnfoForFunctionAggregationSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -3570,7 +3570,7 @@ End Module
             Assert.Equal(2, info.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(542521)>
+        <WorkItem(542521, "DevDiv")>
         <Fact()>
         Public Sub AddressOfOperatorInQuery()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3596,7 +3596,7 @@ End Module
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(542823)>
+        <WorkItem(542823, "DevDiv")>
         <Fact()>
         Public Sub DefaultAggregateClauseInfo()
             Dim aggrClauseSymInfo = New AggregateClauseSymbolInfo()
@@ -3607,7 +3607,7 @@ End Module
             Assert.Equal(0, aggrClauseSymInfo.Select2.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(543084)>
+        <WorkItem(543084, "DevDiv")>
         <Fact()>
         Public Sub MissingIdentifierNameSyntaxInIncompletLetClause()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3637,7 +3637,7 @@ End Module
             Assert.Equal(TypeInfo.None, info)
         End Sub
 
-        <WorkItem(542914)>
+        <WorkItem(542914, "DevDiv")>
         <Fact()>
         Public Sub Bug10356()
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
@@ -3669,7 +3669,7 @@ End Module
             Assert.Equal("Function (z As System.Int32) As <anonymous type: Key z As System.Int32, Key Group As ?>", DirectCast(containingSymbol, Symbol).ToTestDisplayString())
         End Sub
 
-        <WorkItem(543161)>
+        <WorkItem(543161, "DevDiv")>
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3728,7 +3728,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(546165)>
+        <WorkItem(546165, "DevDiv")>
         <Fact()>
         Public Sub QueryInsideEnumMemberDecl()
             Dim compilation = CreateCompilationWithMscorlib(

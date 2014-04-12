@@ -380,8 +380,8 @@ End Class
 
         End Sub
 
-        <WorkItem(537281)>
-        <WorkItem(537300)>
+        <WorkItem(537281, "DevDiv")>
+        <WorkItem(537300, "DevDiv")>
         <WorkItem(932303, "DevDiv/Personal")>
         <Fact>
         Public Sub ArrayTypeInterfaces()
@@ -423,8 +423,8 @@ End Class
             Assert.Throws(Of ArgumentNullException)(Sub() compilation.CreateArrayTypeSymbol(Nothing))
         End Sub
 
-        <WorkItem(537420)>
-        <WorkItem(537515)>
+        <WorkItem(537420, "DevDiv")>
+        <WorkItem(537515, "DevDiv")>
         <Fact>
         Public Sub ArrayTypeGetFullNameAndHashCode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -529,7 +529,7 @@ End Class
             Assert.Equal("A.Cbc As System.Object()()", sym73.ToTestDisplayString())
         End Sub
 
-        <Fact(), WorkItem(537187), WorkItem(529941)>
+        <Fact(), WorkItem(537187, "DevDiv"), WorkItem(529941, "DevDiv")>
         Public Sub EnumFields()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation name="EnumFields">
@@ -671,7 +671,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537199)>
+        <WorkItem(537199, "DevDiv")>
         <Fact>
         Public Sub UseTypeInNetModule()
             Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
@@ -761,7 +761,7 @@ End Namespace
             Assert.Equal("System.DateTime", ary.ElementType.ToTestDisplayString())
         End Sub
 
-        <WorkItem(537461)>
+        <WorkItem(537461, "DevDiv")>
         <Fact>
         Public Sub SourceTypeUndefinedBaseType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -776,7 +776,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
-        <WorkItem(537467)>
+        <WorkItem(537467, "DevDiv")>
         <Fact>
         Public Sub TopLevelPrivateTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -829,7 +829,7 @@ BC31047: Protected types can only be declared inside of a class.
 
         End Sub
 
-        <WorkItem(527185)>
+        <WorkItem(527185, "DevDiv")>
         <Fact>
         Public Sub InheritTypeFromMetadata01()
 
@@ -884,7 +884,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537753)>
+        <WorkItem(537753, "DevDiv")>
         <Fact>
         Public Sub ImplementTypeCrossComps()
 
@@ -932,7 +932,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537492)>
+        <WorkItem(537492, "DevDiv")>
         <Fact>
         Public Sub PartialClassImplInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2376,7 +2376,7 @@ BC30270: 'Public' is not valid on an interface method declaration.
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123)>
+        <WorkItem(541123, "DevDiv")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2506,7 +2506,7 @@ End Structure
                 Diagnostic(ERRID.ERR_NewInStruct, "new"))
         End Sub
 
-        <Fact, WorkItem(530171)>
+        <Fact, WorkItem(530171, "DevDiv")>
         Public Sub ErrorTypeTest01()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation name="Err">

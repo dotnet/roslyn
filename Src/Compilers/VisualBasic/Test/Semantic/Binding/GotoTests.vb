@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GotoTests
         Inherits BasicTestBase
 
-        <WorkItem(543106)>
+        <WorkItem(543106, "DevDiv")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda()
 
@@ -52,7 +52,7 @@ BC30518: Overload resolution failed because no accessible 'Where' can be called 
             </expected>)
         End Sub
 
-        <WorkItem(543392)>
+        <WorkItem(543392, "DevDiv")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda_1()
 
@@ -180,7 +180,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543364)>
+        <WorkItem(543364, "DevDiv")>
         <Fact()>
         Public Sub LabelAfterElse()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -225,7 +225,7 @@ End Module
                                   Diagnostic(ERRID.ERR_LabelNotDefined1, "100").WithArguments("100"))
         End Sub
 
-        <WorkItem(543364)>
+        <WorkItem(543364, "DevDiv")>
         <Fact()>
         Public Sub LabelAfterElse_NotNumberic()
             CreateCompilationWithMscorlibAndVBRuntime(

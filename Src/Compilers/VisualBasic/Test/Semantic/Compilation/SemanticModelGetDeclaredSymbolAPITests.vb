@@ -338,7 +338,7 @@ End Namespace
             Assert.NotEqual(symbol1, symbol2)
         End Sub
 
-        <WorkItem(539707)>
+        <WorkItem(539707, "DevDiv")>
         <Fact()>
         Public Sub GetDeclaredSymbolSameForStatementOrBlock()
 
@@ -540,7 +540,7 @@ Class M
         End Sub
 
 
-        <WorkItem(540580)>
+        <WorkItem(540580, "DevDiv")>
         <Fact()>
         Public Sub GetSemanticInfoInsideType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1465,7 +1465,7 @@ End Class
 
         End Sub
 
-        <WorkItem(540877)>
+        <WorkItem(540877, "DevDiv")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAlias()
 
@@ -1588,7 +1588,7 @@ End Class
         End Sub
 
 
-        <WorkItem(541238)>
+        <WorkItem(541238, "DevDiv")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
             Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
@@ -1610,7 +1610,7 @@ Imports VB6 = Microsoft.VisualBasic
 
         End Sub
 
-        <Fact(), WorkItem(544076)>
+        <Fact(), WorkItem(544076, "DevDiv")>
         Public Sub TestGetDeclaredSymbolFromSubFunctionConstructor()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2109,7 +2109,7 @@ End Class
             Assert.Equal("System.Int32()", symbol.Type.ToTestDisplayString())
         End Sub
 
-        <WorkItem(543476)>
+        <WorkItem(543476, "DevDiv")>
         <Fact()>
         Public Sub BindingLocalConstantValue()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2211,7 +2211,7 @@ End Module
             Assert.Equal(Nothing, semanticInfo.ConstantValue.Value)
         End Sub
 
-        <WorkItem(543476)>
+        <WorkItem(543476, "DevDiv")>
         <Fact()>
         Public Sub BindingLocalConstantVariable()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2318,7 +2318,7 @@ End Module
 
 #Region "Regression"
 
-        <WorkItem(540374)>
+        <WorkItem(540374, "DevDiv")>
         <Fact()>
         Public Sub Bug6617()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2355,7 +2355,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(540665)>
+        <WorkItem(540665, "DevDiv")>
         <Fact()>
         Public Sub GetSemanticInfoForPartiallyTypedMemberAccessNodes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2422,7 +2422,7 @@ End Namespace
             Assert.Equal("Integer", info.Type.ToString())
         End Sub
 
-        <WorkItem(541134)>
+        <WorkItem(541134, "DevDiv")>
         <Fact()>
         Public Sub Bug7732()
 
@@ -2445,7 +2445,7 @@ End Namespace
             Assert.Equal("Program.D", delegateSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
-        <WorkItem(541244)>
+        <WorkItem(541244, "DevDiv")>
         <Fact()>
         Public Sub GetDeclaredSymbolDelegateStatementSyntax()
             Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
@@ -2487,7 +2487,7 @@ End Namespace
             Assert.Equal("Foo.Bar.Server.C1.FD4", symbol.ToString())
         End Sub
 
-        <WorkItem(541379)>
+        <WorkItem(541379, "DevDiv")>
         <Fact()>
         Public Sub GetDeclaredSymbolLambdaParamError()
             Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
@@ -2516,7 +2516,7 @@ End Module
             Assert.Equal("lambdaParam As Integer", symbol.ToDisplayString())
         End Sub
 
-        <WorkItem(541425)>
+        <WorkItem(541425, "DevDiv")>
         <Fact()>
         Public Sub NoParenthesisSub()
             Dim xml =
@@ -2542,7 +2542,7 @@ End Class
             Assert.Equal("Sub [Class].Bob()", memberSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
-        <WorkItem(542342)>
+        <WorkItem(542342, "DevDiv")>
         <Fact()>
         Public Sub SourceNamespaceSymbolMergeWithMetadata()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2600,7 +2600,7 @@ End Namespace
             Assert.Equal(Of ISymbol)(nsSymbolA, memSymbol)
         End Sub
 
-        <WorkItem(542595)>
+        <WorkItem(542595, "DevDiv")>
         <Fact()>
         Public Sub Bug9881Test()
 
@@ -2624,7 +2624,7 @@ End Namespace
             Dim info1 = model.GetSemanticInfoSummary(binaryOp)
         End Sub
 
-        <WorkItem(542702)>
+        <WorkItem(542702, "DevDiv")>
         <Fact>
         Public Sub Bug10037()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -2650,7 +2650,7 @@ End Module
             CheckSymbol(symbol, "functio As Object")
         End Sub
 
-        <WorkItem(543605)>
+        <WorkItem(543605, "DevDiv")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameterInLambdaExprOfAddHandlerStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2686,7 +2686,7 @@ BC30201: Expression expected.
             Assert.Equal("x As System.Object", paramSymbol1.ToTestDisplayString())
         End Sub
 
-        <WorkItem(543666)>
+        <WorkItem(543666, "DevDiv")>
         <Fact()>
         Public Sub BindingLocalConstantObjectVariable()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2799,7 +2799,7 @@ End Module
             Assert.Equal(0, CType(local.ConstantValue, Integer))
         End Sub
 
-        <Fact(), WorkItem(545106)>
+        <Fact(), WorkItem(545106, "DevDiv")>
         Public Sub GetDeclaedSymbolForDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2841,7 +2841,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(611537)>
+        <WorkItem(611537, "DevDiv")>
         <Fact()>
         Public Sub Bug611537()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2859,7 +2859,7 @@ Property 'BIND1:"Property"
             Assert.Null(semanticModel.GetDeclaredSymbol(nodes(0)))
         End Sub
 
-        <Fact(), WorkItem(747446)>
+        <Fact(), WorkItem(747446, "DevDiv")>
         Public Sub TestGetDeclaredSymbolWithChangedRootNamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">

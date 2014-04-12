@@ -392,7 +392,7 @@ System.Func`2[System.Int16,System.Int64]
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545209)>
+        <Fact(), WorkItem(545209, "DevDiv")>
         Public Sub TestLambda4()
             Dim compilationDef =
 <compilation name="TypeArgumentInferenceLambda4">
@@ -1011,7 +1011,7 @@ BC36564: Type arguments could not be inferred from the delegate.
         End Sub
 
 
-        <WorkItem(540950)>
+        <WorkItem(540950, "DevDiv")>
         <Fact>
         Public Sub InferForAddressOf3()
             Dim source =
@@ -1037,7 +1037,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(540951)>
+        <WorkItem(540951, "DevDiv")>
         <Fact>
         Public Sub InferForAddressOf4()
             Dim source =
@@ -1064,7 +1064,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(542040)>
+        <WorkItem(542040, "DevDiv")>
         <Fact>
         Public Sub InferInPresenceOfOverloadsAndSubLambda()
             Dim source =
@@ -1439,7 +1439,7 @@ Module1+B3
 </expected>)
         End Sub
 
-        <Fact, WorkItem(545092)>
+        <Fact, WorkItem(545092, "DevDiv")>
         Public Sub Bug13357()
             Dim compilationDef =
 <compilation name="TypeArgumentInference1">
@@ -1550,7 +1550,7 @@ LATE BOUND
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545812)>
+        <Fact, WorkItem(545812, "DevDiv")>
         Public Sub Bug14478()
             Dim compilationDef =
 <compilation name="TypeArgumentInference2">
@@ -1596,7 +1596,7 @@ f5 - T: (System.Int32)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545812)>
+        <Fact, WorkItem(545812, "DevDiv")>
         Public Sub Bug14478_2()
             Dim compilationDef =
 <compilation name="TypeArgumentInference2">
@@ -1642,7 +1642,7 @@ scen2: CB
 ]]>)
         End Sub
 
-        <Fact, WorkItem(629539)>
+        <Fact, WorkItem(629539, "DevDiv")>
         Public Sub Bug629539()
             Dim compilationDef =
 <compilation>
@@ -1701,7 +1701,7 @@ BC30518: Overload resolution failed because no accessible '[Select]' can be call
 </expected>)
         End Sub
 
-        <Fact, WorkItem(811902)>
+        <Fact, WorkItem(811902, "DevDiv")>
         Public Sub Bug811902()
             Dim compilationDef =
 <compilation>

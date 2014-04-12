@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         <Fact>
-        <WorkItem(546314)>
+        <WorkItem(546314, "DevDiv")>
         Public Sub Bug15562()
             Dim assembly = MetadataTestHelpers.LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
             Dim module0 = assembly.Modules(0)

@@ -1258,7 +1258,7 @@ End Structure
             VerifyDiagnostics(compilation1)
         End Sub
 
-        <WorkItem(543059)>
+        <WorkItem(543059, "DevDiv")>
         <Fact()>
         Public Sub MultileResource()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1303,7 +1303,7 @@ BC30203: Identifier expected.
 </expected>)
         End Sub
 
-        <WorkItem(543059)>
+        <WorkItem(543059, "DevDiv")>
         <Fact()>
         Public Sub MultileResource_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1341,7 +1341,7 @@ End Class
             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem(528963)>
+        <WorkItem(528963, "DevDiv")>
         <Fact()>
         Public Sub InitWithMultipleDeclarators()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1470,7 +1470,7 @@ End Class
         End Sub
 
         'Anonymous Delegate in using block
-        <WorkItem(528974)>
+        <WorkItem(528974, "DevDiv")>
         <Fact()>
         Public Sub AnonymousDelegateInUsing()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1541,7 +1541,7 @@ End Class
 
         End Sub
 
-        <WorkItem(528975)>
+        <WorkItem(528975, "DevDiv")>
         <Fact>
         Public Sub InitMultipleResourceWithUsingDecl()
             CompileAndVerify(
@@ -1570,7 +1570,7 @@ End Class
 </compilation>)
         End Sub
 
-        <WorkItem(543059)>
+        <WorkItem(543059, "DevDiv")>
         <Fact()>
         Public Sub MultipleResource()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1605,7 +1605,7 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "x"))
         End Sub
 
-        <WorkItem(543059)>
+        <WorkItem(543059, "DevDiv")>
         <Fact()>
         Public Sub MultipleResource_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1643,7 +1643,7 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem(529046)>
+        <WorkItem(529046, "DevDiv")>
         <Fact>
         Sub UsingOutOfMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -1658,7 +1658,7 @@ End Class
                                 Diagnostic(ERRID.ERR_EndUsingWithoutUsing, "End Using"))
         End Sub
 
-        <WorkItem(529046)>
+        <WorkItem(529046, "DevDiv")>
         <Fact>
         Sub UsingOutOfMethod_1()
             CreateCompilationWithMscorlibAndVBRuntime(

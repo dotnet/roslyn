@@ -539,7 +539,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(543613)>
+        <WorkItem(543613, "DevDiv")>
         <Fact()>
         Public Sub IntegerObjectConcatAssignWithNothing()
 
@@ -1065,7 +1065,7 @@ End Class
             End If
         End Sub
 
-        <Fact(), WorkItem(642269)>
+        <Fact(), WorkItem(642269, "DevDiv")>
         Public Sub Bug642269()
 
             Dim compilationDef =

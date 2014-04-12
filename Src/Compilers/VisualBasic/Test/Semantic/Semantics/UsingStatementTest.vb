@@ -209,7 +209,7 @@ End Structure
         End Sub
 #End Region
 
-        <Fact(), WorkItem(545110)>
+        <Fact(), WorkItem(545110, "DevDiv")>
         Public Sub UsingWithNothingOptionStrictOff()
             Dim verifier = CompileAndVerify(
     <compilation name="UsingWithNothing">

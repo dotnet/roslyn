@@ -153,7 +153,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537491)>
+        <WorkItem(537491, "DevDiv")>
         <Fact>
         Public Sub ImplicitTypedFields01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -410,7 +410,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(543689)>
+        <WorkItem(543689, "DevDiv")>
         <Fact()>
         Public Sub TestReadonlyFieldAccessWithoutQualifyingInstance()
             Dim vbCompilation = CreateVisualBasicCompilation("TestReadonlyFieldAccessWithoutQualifyingInstance",
@@ -430,7 +430,7 @@ End Class]]>,
         ''' <summary>
         ''' Fields named "value__" should be marked rtspecialname.
         ''' </summary>
-        <WorkItem(546185)>
+        <WorkItem(546185, "DevDiv")>
         <Fact()>
         Public Sub RTSpecialName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

@@ -4024,7 +4024,7 @@ End Module]]>,
             CompileAndVerify(vbCompilation, expectedOutput:="A").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544919)>
+        <WorkItem(544919, "DevDiv")>
         <Fact>
         Public Sub TestClassifyConversion()
             Dim source =
@@ -4110,7 +4110,7 @@ End Module
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem(544919)>
+        <WorkItem(544919, "DevDiv")>
         <Fact>
         Public Sub TestClassifyConversionStaticLocal()
             Dim source =
@@ -4195,7 +4195,7 @@ End Module
             Assert.True(conversion.IsNumeric)
         End Sub
 
-        <WorkItem(544620)>
+        <WorkItem(544620, "DevDiv")>
         <Fact()>
         Public Sub Bug13088()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4228,7 +4228,7 @@ End Module
             Assert.False(DirectCast(symbol, FieldSymbol).HasConstantValue)
         End Sub
 
-        <WorkItem(545760)>
+        <WorkItem(545760, "DevDiv")>
         <Fact()>
         Public Sub Bug14409()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4251,7 +4251,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(545760)>
+        <WorkItem(545760, "DevDiv")>
         <Fact()>
         Public Sub Bug14409_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4284,7 +4284,7 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
 
         End Sub
 
-        <WorkItem(571095)>
+        <WorkItem(571095, "DevDiv")>
         <Fact()>
         Public Sub Bug571095()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SourceSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem(539740)>
+        <WorkItem(539740, "DevDiv")>
         <Fact()>
         Public Sub NamespaceWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(String.Empty, symbol.Name)
         End Sub
 
-        <WorkItem(540447)>
+        <WorkItem(540447, "DevDiv")>
         <Fact()>
         Public Sub FunctionWithoutName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -61,7 +61,7 @@ BC30203: Identifier expected.
                 </errors>)
         End Sub
 
-        <WorkItem(540655)>
+        <WorkItem(540655, "DevDiv")>
         <Fact()>
         Public Sub Bug6998()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -92,7 +92,7 @@ End Class
 
         End Sub
 
-        <WorkItem(546566)>
+        <WorkItem(546566, "DevDiv")>
         <Fact()>
         Public Sub Bug16199()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -411,7 +411,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537442)>
+        <WorkItem(537442, "DevDiv")>
         <Fact()>
         Public Sub InvalidOptionCompare()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -437,7 +437,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(527175)>
+        <WorkItem(527175, "DevDiv")>
         <Fact()>
         Public Sub DoubleBracketsNames()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -484,7 +484,7 @@ End Namespace
         End Sub
 
 
-        <WorkItem(542508)>
+        <WorkItem(542508, "DevDiv")>
         <Fact()>
         Public Sub LocalsWithoutAsClauseInForStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -513,7 +513,7 @@ End Module
             Assert.Null(symbol)
         End Sub
 
-        <WorkItem(543720)>
+        <WorkItem(543720, "DevDiv")>
         <Fact()>
         Public Sub InvalidLocalsWithColon()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

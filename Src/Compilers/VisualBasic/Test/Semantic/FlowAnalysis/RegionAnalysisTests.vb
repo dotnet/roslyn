@@ -93,7 +93,7 @@ End Class
             Assert.Equal("s", GetSymbolNamesSortedAndJoined(analysis.WrittenInside))
         End Sub
 
-        <WorkItem(768095)>
+        <WorkItem(768095, "DevDiv")>
         <Fact()>
         Public Sub Bug768095()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -117,7 +117,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(531223)>
+        <WorkItem(531223, "DevDiv")>
         <Fact()>
         Public Sub Bug17780a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -133,7 +133,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(531223)>
+        <WorkItem(531223, "DevDiv")>
         <Fact()>
         Public Sub Bug17780b()
             ' TODO: Rewrite the test when Yield is supported
@@ -153,7 +153,7 @@ Friend Class SourceFileScope
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543362)>
+        <WorkItem(543362, "DevDiv")>
         <Fact()>
         Public Sub Bug11067()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -169,7 +169,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(529967)>
+        <WorkItem(529967, "DevDiv")>
         <Fact()>
         Public Sub Bug14894a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -193,7 +193,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(529967)>
+        <WorkItem(529967, "DevDiv")>
         <Fact()>
         Public Sub Bug14894b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -212,7 +212,7 @@ End Module
             Assert.Equal("o3", GetSymbolNamesSortedAndJoined(analysis.DataFlowsIn))
         End Sub
 
-        <WorkItem(544602)>
+        <WorkItem(544602, "DevDiv")>
         <Fact()>
         Public Sub Bug13053a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -229,7 +229,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545069)>
+        <WorkItem(545069, "DevDiv")>
         <Fact()>
         Public Sub ParameterNameAsAnInvalidRegion()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -245,7 +245,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545443)>
+        <WorkItem(545443, "DevDiv")>
         <Fact()>
         Public Sub XmlNameInsideEndTag()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -261,7 +261,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545077)>
+        <WorkItem(545077, "DevDiv")>
         <Fact()>
         Public Sub ExpressionsInAttributeValues()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -279,7 +279,7 @@ Imports System.Reflection
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545077)>
+        <WorkItem(545077, "DevDiv")>
         <Fact()>
         Public Sub ExpressionsInAttributeValues2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -321,7 +321,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545432)>
+        <WorkItem(545432, "DevDiv")>
         <Fact()>
         Public Sub LowerBoundOfArrayDefinitionSize()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -337,7 +337,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544602)>
+        <WorkItem(544602, "DevDiv")>
         <Fact()>
         Public Sub Bug13053b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -354,7 +354,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765)>
+        <WorkItem(679765, "DevDiv")>
         <Fact()>
         Public Sub Bug679765a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -371,7 +371,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765)>
+        <WorkItem(679765, "DevDiv")>
         <Fact()>
         Public Sub Bug679765b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -388,7 +388,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(679765)>
+        <WorkItem(679765, "DevDiv")>
         <Fact()>
         Public Sub Bug679765c()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -405,7 +405,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543570)>
+        <WorkItem(543570, "DevDiv")>
         <Fact()>
         Public Sub Bug11428()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -431,7 +431,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543581)>
+        <WorkItem(543581, "DevDiv")>
         <Fact()>
         Public Sub Bug11440a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -465,7 +465,7 @@ End Module
             Assert.Equal("arg, arg1, arg2, args, lambda", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(543581)>
+        <WorkItem(543581, "DevDiv")>
         <Fact()>
         Public Sub Bug11440b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -495,7 +495,7 @@ End Module
             Assert.Equal("arg2, args, y", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(544330)>
+        <WorkItem(544330, "DevDiv")>
         <Fact()>
         Public Sub Bug12609()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -510,7 +510,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(542231)>
+        <WorkItem(542231, "DevDiv")>
         <Fact()>
         Public Sub TestUnreachableRegion()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -532,7 +532,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(542231)>
+        <WorkItem(542231, "DevDiv")>
         <Fact()>
         Public Sub TestUnreachableRegion2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -574,7 +574,7 @@ End Class
             Assert.Equal("i, k", GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(542231)>
+        <WorkItem(542231, "DevDiv")>
         <Fact()>
         Public Sub TestUnreachableRegionInExpression()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -596,7 +596,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(545445)>
+        <WorkItem(545445, "DevDiv")>
         <Fact()>
         Public Sub ExpressionInside()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -618,7 +618,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544201)>
+        <WorkItem(544201, "DevDiv")>
         <Fact()>
         Public Sub Bug12423a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -638,7 +638,7 @@ End Class
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(544201)>
+        <WorkItem(544201, "DevDiv")>
         <Fact()>
         Public Sub Bug12423b()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -727,7 +727,7 @@ End Enum
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(768094)>
+        <WorkItem(768094, "DevDiv")>
         <Fact()>
         Public Sub Bug768094a()
             Dim program =
@@ -780,7 +780,7 @@ end class
             Assert.Equal(0, analysis.EntryPoints.Count())
         End Sub
 
-        <WorkItem(768094)>
+        <WorkItem(768094, "DevDiv")>
         <Fact()>
         Public Sub Bug768094b()
             Dim program =
@@ -935,7 +935,7 @@ End Namespace
             analysis = model.AnalyzeDataFlow(expr.Name) ' NO THROW
         End Sub
 
-        <WorkItem(768094)>
+        <WorkItem(768094, "DevDiv")>
         <Fact()>
         Public Sub Bug768094c()
             Dim program =
@@ -963,7 +963,7 @@ End Class
             Dim analysis = model.AnalyzeDataFlow(expr) ' NO THROW
         End Sub
 
-        <WorkItem(768094)>
+        <WorkItem(768094, "DevDiv")>
         <Fact()>
         Public Sub Bug768094d()
             Dim program =
@@ -1068,7 +1068,7 @@ end class
             Assert.True(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(543320)>
+        <WorkItem(543320, "DevDiv")>
         <Fact()>
         Public Sub Bug10987()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1150,7 +1150,7 @@ End Class
             Assert.Equal("args, s, t", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(542789)>
+        <WorkItem(542789, "DevDiv")>
         <Fact()>
         Public Sub Bug10172()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -1174,7 +1174,7 @@ End Module
             Assert.True(analysis.Item2.Succeeded)
         End Sub
 
-        <WorkItem(543645)>
+        <WorkItem(543645, "DevDiv")>
         <Fact()>
         Public Sub Bug11526()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -1201,7 +1201,7 @@ End Module
             Assert.True(analysis.Item2.Succeeded)
         End Sub
 
-        <WorkItem(543111)>
+        <WorkItem(543111, "DevDiv")>
         <Fact()>
         Public Sub Bug10683a()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1358,7 +1358,7 @@ End Module
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(540454)>
+        <WorkItem(540454, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowAnalysisWithErrorsInStaticContext()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -2209,7 +2209,7 @@ end class</file>
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(543492)>
+        <WorkItem(543492, "DevDiv")>
         <Fact()>
         Public Sub MeAndMyBaseReference1()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -2231,7 +2231,7 @@ End Class
             Assert.Equal("Me", GetSymbolNamesSortedAndJoined(analysis.DataFlowsIn))
         End Sub
 
-        <WorkItem(543492)>
+        <WorkItem(543492, "DevDiv")>
         <Fact()>
         Public Sub MeAndMyBaseReference2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -2515,7 +2515,7 @@ End Class
                 writtenOutside:={"x"})
         End Sub
 
-        <WorkItem(542156)>
+        <WorkItem(542156, "DevDiv")>
         <Fact()>
         Public Sub TestRedimImplicitDataFlow()
             VerifyReDimDataFlowAnalysis(
@@ -2534,7 +2534,7 @@ End Class
                 writtenOutside:={"y"})
         End Sub
 
-        <WorkItem(542156)>
+        <WorkItem(542156, "DevDiv")>
         <Fact()>
         Public Sub TestRedimMultipleImplicitDataFlow()
             VerifyReDimDataFlowAnalysis(
@@ -3058,7 +3058,7 @@ end class
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891)>
+        <WorkItem(541891, "DevDiv")>
         <Fact()>
         Public Sub TestRefArgumentSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3088,7 +3088,7 @@ end class
             Assert.Equal("Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891)>
+        <WorkItem(541891, "DevDiv")>
         <Fact()>
         Public Sub TestRefArgumentSelection02a()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3205,7 +3205,7 @@ End Module
             Assert.Equal("ary, local01, local02", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(541891)>
+        <WorkItem(541891, "DevDiv")>
         <Fact()>
         Public Sub TestRefArgumentSelection03()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -3341,7 +3341,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-        <Fact, WorkItem(538979)>
+        <Fact, WorkItem(538979, "DevDiv")>
         Public Sub AssertFromInvalidLocalDeclaration()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
       <compilation name="AssertFromInvalidLocalDeclaration">
@@ -3376,7 +3376,7 @@ end class
             Assert.Equal("b", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(538979)>
+        <Fact(), WorkItem(538979, "DevDiv")>
         Public Sub AssertFromInvalidKeywordAsExpr()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
       <compilation name="AssertFromInvalidKeywordAsExpr">
@@ -3401,7 +3401,7 @@ end class
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable)
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_Simple()
 
@@ -3431,7 +3431,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact()>
         Public Sub RegionAnalysisInPtopertyInitializers_Simple()
 
@@ -3461,7 +3461,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_WithMyBase()
             Dim source =
@@ -3502,7 +3502,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_Lambda()
 
@@ -3577,7 +3577,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact()>
         Public Sub RegionAnalysisInFieldInitializers_NestedLambdaAndTwoConstructors()
 
@@ -3674,7 +3674,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539197)>
+        <WorkItem(539197, "DevDiv")>
         <Fact()>
         Public Sub ByRefParameterNotInAppropriateCollections1()
             ' ByRef parameters are not considered assigned
@@ -3711,7 +3711,7 @@ End Class
             Assert.Equal("Me, t, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(539197)>
+        <WorkItem(539197, "DevDiv")>
         <Fact()>
         Public Sub ByRefParameterNotInAppropriateCollections2()
             ' ByRef parameters are not considered assigned
@@ -4251,7 +4251,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(541005)>
+        <WorkItem(541005, "DevDiv")>
         <Fact()>
         Public Sub TestMultipleLocalsInitializedByAsNew1()
             Dim dataFlowAnalysis = CompileAndAnalyzeDataFlow(
@@ -4276,7 +4276,7 @@ End Module
             Assert.Equal("a, args, x, y, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysis.WrittenOutside))
         End Sub
 
-        <WorkItem(541005)>
+        <WorkItem(541005, "DevDiv")>
         <Fact()>
         Public Sub TestMultipleLocalsInitializedByAsNew2()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -4307,7 +4307,7 @@ End Module
             Assert.True(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(528623)>
+        <WorkItem(528623, "DevDiv")>
         <Fact()>
         Public Sub TestElementAccess01()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -4373,7 +4373,7 @@ End Enum
             Assert.Equal("args, ex, Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(542565)>
+        <WorkItem(542565, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameInForStatement()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4391,7 +4391,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(528860)>
+        <WorkItem(528860, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameInMemberAccessExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4409,7 +4409,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(528860)>
+        <WorkItem(528860, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameInMemberAccessExpr2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4427,7 +4427,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860)>
+        <WorkItem(542860, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameSyntax()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4445,7 +4445,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860)>
+        <WorkItem(542860, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameSyntax2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4466,7 +4466,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(542860)>
+        <WorkItem(542860, "DevDiv")>
         <Fact()>
         Public Sub IdentifierNameSyntax3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4489,7 +4489,7 @@ End Class
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543369)>
+        <WorkItem(543369, "DevDiv")>
         <Fact()>
         Public Sub PredefinedTypeIncompleteSub()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4505,7 +4505,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543369)>
+        <WorkItem(543369, "DevDiv")>
         <Fact()>
         Public Sub PredefinedType2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -4523,7 +4523,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543461)>
+        <WorkItem(543461, "DevDiv")>
         <Fact()>
         Public Sub CollectionInitSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4545,7 +4545,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543461)>
+        <WorkItem(543461, "DevDiv")>
         <Fact()>
         Public Sub CollectionInitSyntax2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4568,7 +4568,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543461)>
+        <WorkItem(543461, "DevDiv")>
         <Fact()>
         Public Sub CollectionInitSyntax3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4591,7 +4591,7 @@ End Module
             Assert.True(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543509)>
+        <WorkItem(543509, "DevDiv")>
         <Fact()>
         Public Sub IfStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4664,7 +4664,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(757796)>
+        <WorkItem(757796, "DevDiv")>
         <Fact()>
         Public Sub Bug757796()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4764,7 +4764,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543722)>
+        <WorkItem(543722, "DevDiv")>
         <Fact()>
         Public Sub SyncLockStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4787,7 +4787,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543736)>
+        <WorkItem(543736, "DevDiv")>
         <Fact()>
         Public Sub WhileStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4833,7 +4833,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(545449)>
+        <WorkItem(545449, "DevDiv")>
         <Fact()>
         Public Sub LoopWhileStatementSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4977,7 +4977,7 @@ End Class
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543548)>
+        <WorkItem(543548, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5001,7 +5001,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548)>
+        <WorkItem(543548, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5025,7 +5025,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548)>
+        <WorkItem(543548, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5052,7 +5052,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543548)>
+        <WorkItem(543548, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess4()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5079,7 +5079,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695)>
+        <WorkItem(543695, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess5()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5098,7 +5098,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695)>
+        <WorkItem(543695, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess6()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5115,7 +5115,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695)>
+        <WorkItem(543695, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess7()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5138,7 +5138,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543695)>
+        <WorkItem(543695, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess8()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5161,7 +5161,7 @@ End Module
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(545080)>
+        <WorkItem(545080, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess9()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5191,7 +5191,7 @@ End Class
             Assert.False(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(545080)>
+        <WorkItem(545080, "DevDiv")>
         <Fact()>
         Public Sub NamespaceIdentifierNameInMemberAccess10()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5285,7 +5285,7 @@ End Class
 
         End Sub
 
-        <WorkItem(543701)>
+        <WorkItem(543701, "DevDiv")>
         <Fact()>
         Public Sub LiteralExprInVarDeclInsideSingleLineLambda()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5302,7 +5302,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543702)>
+        <WorkItem(543702, "DevDiv")>
         <Fact()>
         Public Sub LiteralExprInsideEnumMemberDecl()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -5371,7 +5371,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_OnlyImplicitReceiverRegion1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5397,7 +5397,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_OnlyImplicitReceiverRegion2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5423,7 +5423,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_DeclAndImplicitReceiverRegion()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5458,7 +5458,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_ValidRegion1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5500,7 +5500,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_ValidRegion2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5541,7 +5541,7 @@ End Class
             Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1_InvalidRegion3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5573,7 +5573,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226)>
+        <WorkItem(531226, "DevDiv")>
         <Fact()>
         Public Sub DisableConstantLiteralRegion()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5592,7 +5592,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226)>
+        <WorkItem(531226, "DevDiv")>
         <Fact()>
         Public Sub WithStatement_LValueExpression()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5626,7 +5626,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(531226)>
+        <WorkItem(531226, "DevDiv")>
         <Fact()>
         Public Sub WithStatement_LValueExpression2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5652,7 +5652,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(531226)>
+        <WorkItem(531226, "DevDiv")>
         <Fact()>
         Public Sub WithStatement_LValueExpression3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5683,7 +5683,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
         End Sub
 
-        <WorkItem(531226)>
+        <WorkItem(531226, "DevDiv")>
         <Fact()>
         Public Sub WithStatement_LValueExpression4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5709,7 +5709,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1a_ObjectInitializer()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5746,7 +5746,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1a_ObjectInitializer2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5783,7 +5783,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1b()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5821,7 +5821,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializersLocalsAccessed1bb()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5857,7 +5857,7 @@ End Class
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5893,7 +5893,7 @@ End Structure
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5940,7 +5940,7 @@ End Structure
             Assert.Equal("a, b", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -5989,7 +5989,7 @@ End Structure
             Assert.Equal("a, b, i, l, Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6034,7 +6034,7 @@ End Structure
             Assert.Equal("a, b, i, Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda5()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6078,7 +6078,7 @@ End Structure
             Assert.Equal("a, b, i, Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda6()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6122,7 +6122,7 @@ End Structure
             Assert.Equal("a, b, i, Me", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(544298)>
+        <WorkItem(544298, "DevDiv")>
         <Fact()>
         Public Sub ObjectInitializers_PassingFieldByRef()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6393,7 +6393,7 @@ End Class
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(530032)>
+        <WorkItem(530032, "DevDiv")>
         <Fact(Skip:="530032")>
         Public Sub CollectionInitializersNestedInitializer()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -6482,7 +6482,7 @@ End Module
 
 #End Region
 
-        <Fact(), WorkItem(544079)>
+        <Fact(), WorkItem(544079, "DevDiv")>
         Public Sub UserDefinedOperatorBody()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
@@ -6531,7 +6531,7 @@ End Module
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(544079)>
+        <Fact(), WorkItem(544079, "DevDiv")>
         Public Sub UserDefinedOperatorBody_1()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
@@ -6620,7 +6620,7 @@ End Module
             Assert.Equal("args, bb, ret, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(545047)>
+        <Fact(), WorkItem(545047, "DevDiv")>
         Public Sub UserDefinedLiftedOperatorInExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -6666,7 +6666,7 @@ End Module
             Assert.Equal("f, local, p", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(545047)>
+        <Fact(), WorkItem(545047, "DevDiv")>
         Public Sub DataFlowsInAndNullable()
             ' WARNING: if this test is edited, the test with the 
             '          test with the same name in C# must be modified too
@@ -6707,7 +6707,7 @@ End Module
             Assert.Equal("args, i, s", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545249)>
+        <WorkItem(545249, "DevDiv")>
         <Fact()>
         Sub TestWithEventsInitializer()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -6721,7 +6721,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem(545249)>
+        <WorkItem(545249, "DevDiv")>
         <Fact()>
         Sub TestWithEventsInitializer2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -6767,7 +6767,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem(545480)>
+        <WorkItem(545480, "DevDiv")>
         <Fact()>
         Sub ReturnStatementInElseInsideIncompleteFunction()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
@@ -6789,7 +6789,7 @@ Public Class vbPartialCls002
             Assert.True(controlFlowAnalysis.Succeeded)
         End Sub
 
-        <WorkItem(545900)>
+        <WorkItem(545900, "DevDiv")>
         <Fact()>
         Sub AnonymousObjectCreationExprInsideOptionalParamDecl()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -6804,7 +6804,7 @@ End Module
             Assert.False(comp.Succeeded)
         End Sub
 
-        <WorkItem(545900)>
+        <WorkItem(545900, "DevDiv")>
         <Fact()>
         Sub AnonymousObjectCreationExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -6821,7 +6821,7 @@ End Class
             Assert.False(comp.Succeeded)
         End Sub
 
-        <WorkItem(545900)>
+        <WorkItem(545900, "DevDiv")>
         <Fact()>
         Sub LambdaExprInsideOptionalParamDecl2()
             Dim comp = CompileAndAnalyzeDataFlow(
@@ -6887,7 +6887,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(546639)>
+        <WorkItem(546639, "DevDiv")>
         <Fact()>
         Public Sub AddressOfUnevaluatedReceiver()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -6908,7 +6908,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(546629)>
+        <WorkItem(546629, "DevDiv")>
         <Fact()>
         Public Sub TypeExpressionUnevaluatedReceiver()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -6930,7 +6930,7 @@ End Class
             model.AnalyzeDataFlow(expr)
         End Sub
 
-        <WorkItem(545266)>
+        <WorkItem(545266, "DevDiv")>
         <Fact()>
         Public Sub DataFlowImplicitLoopVariableInBrokenCodeNotInDataFlowsOut()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -6960,7 +6960,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266)>
+        <WorkItem(545266, "DevDiv")>
         <Fact()>
         Public Sub DataFlowImplicitLoopVariableInBrokenCodeNotInDataFlowsOut_2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -6992,7 +6992,7 @@ End Module
             Assert.Equal("args, i, j, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266)>
+        <WorkItem(545266, "DevDiv")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_1()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7026,7 +7026,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266)>
+        <WorkItem(545266, "DevDiv")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7060,7 +7060,7 @@ End Module
             Assert.Equal("args, i, j, k", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(545266)>
+        <WorkItem(545266, "DevDiv")>
         <Fact()>
         Public Sub DataFlowImplicitUsingVariableInBrokenCodeNotInDataFlowsOut()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7090,7 +7090,7 @@ End Module
             Assert.Equal("args, i, j", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(546995)>
+        <WorkItem(546995, "DevDiv")>
         <Fact()>
         Public Sub DataFlowUnassignedVariablesWithoutAssignmentInsideDoNotFlowOut_3()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7119,7 +7119,7 @@ End Module
             Assert.Empty(dataFlowResults.ReadOutside)
             Assert.Equal("args", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
-        <WorkItem(669341)>
+        <WorkItem(669341, "DevDiv")>
         <Fact()>
         Public Sub ReceiverRead()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7154,7 +7154,7 @@ End Module
             Assert.Equal("Value, X", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(669341)>
+        <WorkItem(669341, "DevDiv")>
         <Fact()>
         Public Sub ReceiverWritten()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7189,7 +7189,7 @@ End Module
             Assert.Equal("X", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(669341)>
+        <WorkItem(669341, "DevDiv")>
         <Fact()>
         Public Sub ReceiverReadAndWritten()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7227,7 +7227,7 @@ End Module
 
 #Region "Anonymous Type, Lambda"
 
-        <WorkItem(543464)>
+        <WorkItem(543464, "DevDiv")>
         <Fact()>
         Public Sub TestCaptured()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -7257,7 +7257,7 @@ end class</file>
             Assert.Equal("a, c, Me, x, y", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside))
         End Sub
 
-        <WorkItem(542629)>
+        <WorkItem(542629, "DevDiv")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -7279,7 +7279,7 @@ End Module
             Assert.False(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(542629)>
+        <WorkItem(542629, "DevDiv")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda2()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -7301,7 +7301,7 @@ End Module
             Assert.False(controlFlowAnalysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(542629)>
+        <WorkItem(542629, "DevDiv")>
         <Fact()>
         Public Sub TestRegionControlFlowAnalysisInsideLambda3()
             Dim controlFlowAnalysis = CompileAndAnalyzeControlFlow(
@@ -7714,7 +7714,7 @@ End Module
             Assert.Equal("an, Me", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(543046)>
+        <WorkItem(543046, "DevDiv")>
         <Fact()>
         Public Sub Lambda()
             ' The region is not correct and it is not clear if there is a way to fix the test
@@ -7748,7 +7748,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(543684)>
+        <WorkItem(543684, "DevDiv")>
         <Fact()>
         Public Sub AddressOfExpr()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7765,7 +7765,7 @@ End Module
             Assert.True(dataFlowResults.Succeeded)
         End Sub
 
-        <WorkItem(543741)>
+        <WorkItem(543741, "DevDiv")>
         <Fact()>
         Public Sub AddressOfExpr2()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
@@ -7884,7 +7884,7 @@ End Module
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysis.WrittenOutside))
         End Sub
 
-        <WorkItem(529322)>
+        <WorkItem(529322, "DevDiv")>
         <Fact(Skip:="529322")>
         Public Sub GenericStructureCycleFromMetadata()
             Dim ilSource = <![CDATA[
@@ -9353,7 +9353,7 @@ End Module
             Assert.Equal("obj1, obj2, obj3, obj4, obj5", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(529089)>
+        <WorkItem(529089, "DevDiv")>
         <Fact>
         Public Sub CaseClauseNotReachable()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
@@ -9390,7 +9390,7 @@ End Module
             Assert.Equal("args, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <WorkItem(543402)>
+        <WorkItem(543402, "DevDiv")>
         <Fact()>
         Public Sub EndSelectStatement()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -9413,7 +9413,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <WorkItem(543434)>
+        <WorkItem(543434, "DevDiv")>
         <Fact()>
         Public Sub SelectCaseStatement()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -9436,7 +9436,7 @@ End Module
             Assert.False(analysis.Succeeded)
         End Sub
 
-        <Fact, WorkItem(543492)>
+        <Fact, WorkItem(543492, "DevDiv")>
         Public Sub MyBaseExpressionSyntax()
             Dim source =
 <compilation>

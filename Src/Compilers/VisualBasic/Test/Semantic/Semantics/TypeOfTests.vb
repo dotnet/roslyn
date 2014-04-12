@@ -705,7 +705,7 @@ y
 ]]>)
         End Sub
 
-        <WorkItem(543781)>
+        <WorkItem(543781, "DevDiv")>
         <Fact()>
         Public Sub TypeParameterWithConstraints02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(

@@ -196,7 +196,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(753078)>
+        <WorkItem(753078, "DevDiv")>
         <Fact()>
         Public Sub RootNamespaceUpdateViaChangeInCompilationOptions()
             Dim sourceTree = ParserTestUtilities.Parse(
@@ -2158,7 +2158,7 @@ End Class
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3)
         End Sub
 
-        <WorkItem(578706)>
+        <WorkItem(578706, "DevDiv")>
         <Fact>
         Public Sub DeclaringCompilationOfAddedModule()
             Dim source1 =

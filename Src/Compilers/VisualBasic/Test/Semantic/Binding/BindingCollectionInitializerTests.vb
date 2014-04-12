@@ -881,7 +881,7 @@ BC36719: Cannot initialize the type 'T' with a collection initializer because it
                                                </expected>)
         End Sub
 
-        <WorkItem(529265)>
+        <WorkItem(529265, "DevDiv")>
         <Fact()>
         Sub CollectionInitializerCollectionInitializerArityCheck()
             Dim source =
@@ -1333,7 +1333,7 @@ Hello World!!!
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(529787)>
+        <Fact(), WorkItem(529787, "DevDiv")>
         Public Sub GetCollectionInitializerSymbolInfo_01()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1386,7 +1386,7 @@ End Class
             End If
         End Sub
 
-        <Fact(), WorkItem(529787)>
+        <Fact(), WorkItem(529787, "DevDiv")>
         Public Sub GetCollectionInitializerSymbolInfo_02()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1428,7 +1428,7 @@ End Class
                          symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString()).Order().ToArray())
         End Sub
 
-        <Fact(), WorkItem(529787)>
+        <Fact(), WorkItem(529787, "DevDiv")>
         Public Sub GetCollectionInitializerSymbolInfo_03()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1470,7 +1470,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787)>
+        <Fact(), WorkItem(529787, "DevDiv")>
         Public Sub GetCollectionInitializerSymbolInfo_04()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1507,7 +1507,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787)>
+        <Fact(), WorkItem(529787, "DevDiv")>
         Public Sub GetCollectionInitializerSymbolInfo_05()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>

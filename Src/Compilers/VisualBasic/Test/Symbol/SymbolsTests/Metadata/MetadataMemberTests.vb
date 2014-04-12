@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Interface
 ]]>.Value
 
-        <WorkItem(527152)>
+        <WorkItem(527152, "DevDiv")>
         <Fact>
         Public Sub MetadataMethodSymbolCtor01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -180,7 +180,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537334)>
+        <WorkItem(537334, "DevDiv")>
         <Fact>
         Public Sub MetadataMethodSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -235,8 +235,8 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(527150)>
-        <WorkItem(537337)>
+        <WorkItem(527150, "DevDiv")>
+        <WorkItem(537337, "DevDiv")>
         <Fact>
         Public Sub MetadataParameterSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -352,7 +352,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537335)>
+        <WorkItem(537335, "DevDiv")>
         <Fact>
         Public Sub MetadataParameterSymbolGen02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -737,7 +737,7 @@ End Class
         End Sub
 
         ' TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        <Fact, WorkItem(546951)>
+        <Fact, WorkItem(546951, "DevDiv")>
         Public Sub VTableGapsNotInSymbolTable()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -766,7 +766,7 @@ End Class
             Assert.Null(propWithoutSetter.SetMethod)
         End Sub
 
-        <Fact, WorkItem(546951)>
+        <Fact, WorkItem(546951, "DevDiv")>
         Public Sub CallVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -801,7 +801,7 @@ End Module
                 Diagnostic(ERRID.ERR_NoSetProperty1, "c.SetterIsGap = x").WithArguments("SetterIsGap"))
         End Sub
 
-        <Fact, WorkItem(546951)>
+        <Fact, WorkItem(546951, "DevDiv")>
         Public Sub ImplementVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">

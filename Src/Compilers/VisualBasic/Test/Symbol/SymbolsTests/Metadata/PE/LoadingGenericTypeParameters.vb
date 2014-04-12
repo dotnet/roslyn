@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(619267)>
+        <WorkItem(619267, "DevDiv")>
         <Fact>
         Public Sub InvalidNestedArity_2()
             Dim ilSource = <![CDATA[

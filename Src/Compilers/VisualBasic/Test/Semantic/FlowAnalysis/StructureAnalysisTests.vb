@@ -273,7 +273,7 @@ End Class
 
         End Sub
 
-        <WorkItem(530076)>
+        <WorkItem(530076, "DevDiv")>
         <Fact>
         Public Sub Bug530076a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -300,7 +300,7 @@ End class
 
         End Sub
 
-        <WorkItem(530076)>
+        <WorkItem(530076, "DevDiv")>
         <Fact>
         Public Sub Bug530076b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -328,7 +328,7 @@ End class
 </errors>)
         End Sub
 
-        <WorkItem(807595)>
+        <WorkItem(807595, "DevDiv")>
         <Fact>
         Public Sub Bug807595()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -387,7 +387,7 @@ End class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(542579)>
+        <WorkItem(542579, "DevDiv")>
         <Fact>
         Public Sub AllPiecesAssigned2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -408,7 +408,7 @@ End class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(542579)>
+        <WorkItem(542579, "DevDiv")>
         <Fact>
         Public Sub AllPiecesAssigned3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

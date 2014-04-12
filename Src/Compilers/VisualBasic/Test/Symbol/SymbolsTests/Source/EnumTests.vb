@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         ' Enumerator initializers must be of integral or enumeration type 
-        <WorkItem(539945)>
+        <WorkItem(539945, "DevDiv")>
         <Fact>
         Public Sub OutOfUnderlyingRange()
             Dim text =
@@ -321,7 +321,7 @@ End Enum
         End Sub
 
         ' Modifiers for enum
-        <WorkItem(539944)>
+        <WorkItem(539944, "DevDiv")>
         <Fact>
         Public Sub BC30396ERR_BadEnumFlags1_ModifiersForEnum()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -574,7 +574,7 @@ BC30354: Interface can inherit only from another interface.
         End Sub
 
         ' Enums can Not be declared in nested enum declaration
-        <WorkItem(539943)>
+        <WorkItem(539943, "DevDiv")>
         <Fact>
         Public Sub BC30619ERR_InvInsideEndsEnum_NestedFromEnum()
             Dim text =
@@ -789,7 +789,7 @@ End Class
         End Sub
 
         ' No Base type after ‘As’ 
-        <WorkItem(528031)>
+        <WorkItem(528031, "DevDiv")>
         <Fact>
         Public Sub BC30182ERR_UnrecognizedType_NoUnderlyingTypeForEnum()
             Dim text =
@@ -813,7 +813,7 @@ Public Enum Figure  As
         End Sub
 
         ' All integral type could be as BASE type
-        <WorkItem(539945)>
+        <WorkItem(539945, "DevDiv")>
         <Fact>
         Public Sub BC30650ERR_InvalidEnumBase_BaseType()
             Dim text =
@@ -900,7 +900,7 @@ End Class
             CompilationUtils.AssertTheseDeclarationDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(540427)>
+        <WorkItem(540427, "DevDiv")>
         <Fact>
         Public Sub EnumInitializerCircularReference()
             Dim text =
@@ -915,7 +915,7 @@ End Enum
             CompilationUtils.CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ERRID.ERR_CircularEvaluation1, "A").WithArguments("A"))
         End Sub
 
-        <WorkItem(540526)>
+        <WorkItem(540526, "DevDiv")>
         <Fact>
         Public Sub EnumBadMember()
             Dim text =
@@ -934,7 +934,7 @@ End Enum
                     Diagnostic(ERRID.ERR_BadEmptyEnum1, "E").WithArguments("E"))
         End Sub
 
-        <WorkItem(540526)>
+        <WorkItem(540526, "DevDiv")>
         <Fact>
         Public Sub EnumBadMember2()
             Dim text =
@@ -950,7 +950,7 @@ End Enum
         End Sub
 
 
-        <WorkItem(540557)>
+        <WorkItem(540557, "DevDiv")>
         <Fact>
         Public Sub EnumInDifferentFile()
             Dim text =
@@ -1130,7 +1130,7 @@ BC30500: Constant 'ValueDoesntWork4' cannot depend on its own value.
         End Sub
 
         ' The value can be used off an enum member 
-        <WorkItem(541364)>
+        <WorkItem(541364, "DevDiv")>
         <Fact>
         Public Sub EnumUseQualified()
             Dim text =
@@ -1150,7 +1150,7 @@ BC30500: Constant 'ValueDoesntWork4' cannot depend on its own value.
             VerifyEnumsValue(text, "Y", 0, 0)
         End Sub
 
-        <WorkItem(750553)>
+        <WorkItem(750553, "DevDiv")>
         <Fact>
         Public Sub InvalidEnumUnderlyingType()
             Dim text =
@@ -1181,7 +1181,7 @@ BC30650: Enums must be declared as an integral type.
             Assert.Equal(type.SpecialType, SpecialType.System_Int32)
         End Sub
 
-        <Fact, WorkItem(895284)>
+        <Fact, WorkItem(895284, "DevDiv")>
         Public Sub CircularDefinition_Explicit()
             ' Bug#895284 Roslyn gives extra error BC30060: 
             '      Conversion from 'E2' to 'Integer' cannot occur in a constant expression.
@@ -1232,7 +1232,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
 </errors>)
         End Sub
 
-        <Fact(Skip:="886047"), WorkItem(886047)>
+        <Fact(Skip:="886047"), WorkItem(886047, "DevDiv")>
         Public Sub CircularDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = Mn + 1
@@ -1250,7 +1250,7 @@ BC30500: Constant 'M0' cannot depend on its own value.
                                         </errors>)
         End Sub
 
-        <Fact(Skip:="886047"), WorkItem(886047)>
+        <Fact(Skip:="886047"), WorkItem(886047, "DevDiv")>
         Public Sub InvertedDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = M1 - 1

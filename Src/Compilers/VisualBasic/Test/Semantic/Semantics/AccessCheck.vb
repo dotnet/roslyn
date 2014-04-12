@@ -505,7 +505,7 @@ BC30389: 'D' is not accessible in this context because it is 'Friend'.
 </expected>)
         End Sub
 
-        <WorkItem(540036)>
+        <WorkItem(540036, "DevDiv")>
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodP2P()
             Dim other As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
@@ -599,7 +599,7 @@ End Class
             CompilationUtils.AssertNoErrors(c)
         End Sub
 
-        <WorkItem(542206)>
+        <WorkItem(542206, "DevDiv")>
         <Fact>
         Public Sub AccessCheckInternalVisibleToAttributeVBModule()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1837,7 +1837,7 @@ BC30909: 'C' cannot expose type 'Project1.A.B' outside the project through class
 
         End Sub
 
-        <WorkItem(543576)>
+        <WorkItem(543576, "DevDiv")>
         <Fact()>
         Public Sub InconsistentAccessibilityOfGenericConstraint()
 
@@ -1873,7 +1873,7 @@ BC30508: 'D' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545722)>
+        <Fact(), WorkItem(545722, "DevDiv")>
         Public Sub AccessCheckInaccessibleReturnType()
             Dim assem1 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Assem1">
@@ -1979,7 +1979,7 @@ BC36666: 'Friend Function Class2.GetClass1() As Class1' is not accessible in thi
 </expected>)
         End Sub
 
-        <WorkItem(546209)>
+        <WorkItem(546209, "DevDiv")>
         <Fact()>
         Public Sub OverriddenMemberFromInternalType()
             Dim vbSource1 =
@@ -2031,7 +2031,7 @@ End Module
             compilation3.AssertNoErrors()
         End Sub
 
-        <WorkItem(546209)>
+        <WorkItem(546209, "DevDiv")>
         <Fact()>
         Public Sub InternalOverriddenMember()
             Dim vbSource1 =
@@ -2083,7 +2083,7 @@ End Module
             compilation3.AssertNoErrors()
         End Sub
 
-        <Fact, WorkItem(531415)>
+        <Fact, WorkItem(531415, "DevDiv")>
         Public Sub Bug18091()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>

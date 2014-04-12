@@ -198,7 +198,7 @@ End Class
             Assert.Equal(source.IsImplicitlyDeclared, underlying.IsImplicitlyDeclared)
         End Sub
 
-        <WorkItem(542571)>
+        <WorkItem(542571, "DevDiv")>
         <Fact>
         Public Sub RetargetExplicitImplementationDifferentModule()
 
@@ -325,7 +325,7 @@ Public Interface I(Of T)
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetInvalidEnumUnderlyingType_Implicit()
             Dim source =
 <compilation name="test">
@@ -363,7 +363,7 @@ End Enum]]>.Value.Replace(vbLf, vbCrLf)).WithArguments("System.Void"),
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetInvalidEnumUnderlyingType_Explicit()
             Dim source =
 <compilation name="test">
@@ -401,7 +401,7 @@ End Enum]]>.Value.Replace(vbLf, vbCrLf)).WithArguments("System.Void"),
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetInvalidInterfaceType_Class()
             Dim source =
 <compilation>
@@ -428,7 +428,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetMissingInterfaceType_Class()
             Dim source =
 <compilation name="test">
@@ -468,7 +468,7 @@ BC30002: Type 'System.Int16' is not defined.
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetInvalidInterfaceType_Struct()
             Dim source =
     <compilation>
@@ -495,8 +495,8 @@ End Structure
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
-        <WorkItem(609515)>
+        <WorkItem(604878, "DevDiv")>
+        <WorkItem(609515, "DevDiv")>
         Public Sub RetargetMissingInterfaceType_Struct()
             Dim source =
     <compilation name="test">
@@ -536,7 +536,7 @@ BC30002: Type 'System.Int16' is not defined.
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
+        <WorkItem(604878, "DevDiv")>
         Public Sub RetargetInvalidInterfaceType_Interface()
             Dim source =
     <compilation>
@@ -568,8 +568,8 @@ BC30354: Interface can inherit only from another interface.
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
-        <WorkItem(609515)>
+        <WorkItem(604878, "DevDiv")>
+        <WorkItem(609515, "DevDiv")>
         Public Sub RetargetMissingInterfaceType_Interface()
             Dim source =
     <compilation>
@@ -596,8 +596,8 @@ End Interface
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
-        <WorkItem(609519)>
+        <WorkItem(604878, "DevDiv")>
+        <WorkItem(609519, "DevDiv")>
         Public Sub RetargetInvalidConstraint()
             Dim source =
     <compilation>
@@ -628,8 +628,8 @@ Public Class C(Of T As Short)
         End Sub
 
         <Fact>
-        <WorkItem(604878)>
-        <WorkItem(609519)>
+        <WorkItem(604878, "DevDiv")>
+        <WorkItem(609519, "DevDiv")>
         Public Sub RetargetMissingConstraint()
             Dim source =
     <compilation name="test">
@@ -3177,7 +3177,7 @@ End Namespace
             Return New VisualBasicCompilationReference(NewCompilation)
         End Function
 
-        <Fact> <WorkItem(703433)>
+        <Fact> <WorkItem(703433, "DevDiv")>
         Public Sub Bug703433()
             Dim source1 =
 <compilation>

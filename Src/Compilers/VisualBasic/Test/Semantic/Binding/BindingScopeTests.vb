@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes1()
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                               )(x As Integer)</expected>)
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes2()
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes3()
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -224,7 +224,7 @@ End Class 'hello
 
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestScopes4()
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">
@@ -250,7 +250,7 @@ End Class 'hello
 
         End Sub
 
-        <Fact(), WorkItem(546396)>
+        <Fact(), WorkItem(546396, "DevDiv")>
         Public Sub TestPropertyScopes()
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="Compilation">

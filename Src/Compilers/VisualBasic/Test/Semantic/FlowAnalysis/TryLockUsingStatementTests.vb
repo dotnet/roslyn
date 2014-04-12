@@ -1528,7 +1528,7 @@ End Class
             Assert.Equal("e, local, p", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact, WorkItem(541892)>
+        <Fact, WorkItem(541892, "DevDiv")>
         Public Sub TestTryWithLambda05()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
                 <compilation name="TestTryWithLambda05">
@@ -1576,7 +1576,7 @@ End Module
             Assert.Equal("local, p", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact, WorkItem(541892), WorkItem(528622)>
+        <Fact, WorkItem(541892, "DevDiv"), WorkItem(528622, "DevDiv")>
         Public Sub TestTryWithLambda06()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
                 <compilation name="TestTryWithLambda06">
@@ -1611,7 +1611,7 @@ End Class
             Assert.Equal("e, Me, p", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(543597)>
+        <WorkItem(543597, "DevDiv")>
         <Fact()>
         Public Sub TryStatement()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1646,7 +1646,7 @@ End Module
             Assert.False(model.AnalyzeDataFlow(statement, statement).Succeeded)
         End Sub
 
-        <WorkItem(543597)>
+        <WorkItem(543597, "DevDiv")>
         <Fact()>
         Public Sub CatchStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1675,7 +1675,7 @@ End Module
             Assert.False(dataFlowAnalysisResults.Succeeded)
         End Sub
 
-        <WorkItem(543597)>
+        <WorkItem(543597, "DevDiv")>
         <Fact()>
         Public Sub FinallyStatement()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

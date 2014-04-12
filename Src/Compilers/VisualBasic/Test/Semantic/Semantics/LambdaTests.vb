@@ -1332,7 +1332,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </expected>)
         End Sub
 
-        <WorkItem(539777)>
+        <WorkItem(539777, "DevDiv")>
         <Fact>
         Public Sub TestOverloadResolutionWithStrictOff()
 
@@ -1367,7 +1367,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(539608)>
+        <WorkItem(539608, "DevDiv")>
         <Fact>
         Public Sub InvokeOffOfLambda()
 
@@ -1395,7 +1395,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="12")
         End Sub
 
-        <WorkItem(539519)>
+        <WorkItem(539519, "DevDiv")>
         <Fact>
         Public Sub ParseIncompleteMultiLineLambdaWithExpressionAfterAsClause()
             ' This looks like a single line lambda with an as clause but it is in fact a badly formed multi-line lambda
@@ -1527,7 +1527,7 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
 </expected>)
         End Sub
 
-        <WorkItem(540867)>
+        <WorkItem(540867, "DevDiv")>
         <Fact>
         Public Sub LambdaForSub2()
             Dim source =
@@ -1550,7 +1550,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="Hello World.")
         End Sub
 
-        <WorkItem(528344)>
+        <WorkItem(528344, "DevDiv")>
         <Fact()>
         Public Sub DelegateParametersCanBeOmittedInLambda()
             Dim source =
@@ -1570,7 +1570,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528346)>
+        <WorkItem(528346, "DevDiv")>
         <Fact()>
         Public Sub ParameterTypesCanBeRelaxedInLambda()
             Dim source =
@@ -1590,7 +1590,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528347)>
+        <WorkItem(528347, "DevDiv")>
         <Fact()>
         Public Sub ReturnTypeCanBeRelaxedInLambda()
             Dim source =
@@ -1613,7 +1613,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528348)>
+        <WorkItem(528348, "DevDiv")>
         <Fact()>
         Public Sub ReturnValueOfLambdaCanBeIgnored()
             Dim source =
@@ -1633,7 +1633,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528355)>
+        <WorkItem(528355, "DevDiv")>
         <Fact()>
         Public Sub OverloadResolutionWithNestedLambdas()
             Dim source =
@@ -1660,7 +1660,7 @@ End Class
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(541008)>
+        <WorkItem(541008, "DevDiv")>
         <Fact>
         Public Sub LambdaInFieldInitializer()
             Dim source =
@@ -1683,7 +1683,7 @@ End Class
             CompileAndVerify(comp2, expectedOutput:="C")
         End Sub
 
-        <WorkItem(541894)>
+        <WorkItem(541894, "DevDiv")>
         <Fact()>
         Public Sub InvokeLambda01()
             Dim source =
@@ -1707,7 +1707,7 @@ End Module
             CompileAndVerify(comp2, expectedOutput:="123")
         End Sub
 
-        <WorkItem(528678)>
+        <WorkItem(528678, "DevDiv")>
         <Fact>
         Public Sub LambdaInsideParens()
             Dim source =
@@ -1740,7 +1740,7 @@ End Module
 
         End Sub
 
-        <WorkItem(542665)>
+        <WorkItem(542665, "DevDiv")>
         <Fact>
         Public Sub DimInSingleLineIfInSingleLineLambda()
 
@@ -1789,7 +1789,7 @@ End Module
             CompileAndVerify(compilationDef).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546167)>
+        <WorkItem(546167, "DevDiv")>
         <Fact()>
         Public Sub ImplicitlyDeclaredVariableInsideLambdaReused()
 
@@ -1831,7 +1831,7 @@ BC42104: Variable 'implicit2' is used before it has been assigned a value. A nul
 </expected>)
         End Sub
 
-        <WorkItem(760094)>
+        <WorkItem(760094, "DevDiv")>
         <Fact()>
         Public Sub Bug760094_OneTopLevelLambda()
 
@@ -1949,7 +1949,7 @@ Done.
 ]]>)
         End Sub
 
-        <WorkItem(760094)>
+        <WorkItem(760094, "DevDiv")>
         <Fact()>
         Public Sub Bug760094_TwoTopLevelLambdas()
 

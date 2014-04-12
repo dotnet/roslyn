@@ -574,7 +574,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integ
 </expected>)
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing2()
 
@@ -658,7 +658,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing3()
 
@@ -742,7 +742,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543114)>
+        <WorkItem(543114, "DevDiv")>
         <Fact()>
         Public Sub ArgumentIsNarrowing4()
 
@@ -2921,7 +2921,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="F1" & vbCrLf & "L1" & vbCrLf & "L2")
         End Sub
 
-        <WorkItem(543647)>
+        <WorkItem(543647, "DevDiv")>
         <Fact()>
         Public Sub BaseMethodParamIntegerDelegateParamShort()
 
@@ -2966,7 +2966,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="Base Method")
         End Sub
 
-        <WorkItem(531532)>
+        <WorkItem(531532, "DevDiv")>
         <Fact()>
         Public Sub Bug18258()
 

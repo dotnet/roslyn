@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GetSemanticInfoBrokenCodeTests
         Inherits SemanticModelTestBase
 
-        <WorkItem(544328)>
+        <WorkItem(544328, "DevDiv")>
         <Fact>
         Public Sub Bug12601()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -29,7 +29,7 @@ End Module
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem(544455)>
+        <WorkItem(544455, "DevDiv")>
         <Fact>
         Public Sub EmptyDefaultPropertyName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -50,7 +50,7 @@ End Module
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem(545233)>
+        <WorkItem(545233, "DevDiv")>
         <Fact>
         Public Sub Bug13538()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -91,7 +91,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(545667)>
+        <WorkItem(545667, "DevDiv")>
         <Fact()>
         Public Sub Bug14266()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -115,7 +115,7 @@ End Enum
             VisitAllDeclarations(model, newTree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem(546685)>
+        <WorkItem(546685, "DevDiv")>
         <Fact()>
         Public Sub Bug16557()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -159,7 +159,7 @@ End Module
         ''' <summary>
         ''' Me references are not valid within a Module.
         ''' </summary>
-        <WorkItem(546570)>
+        <WorkItem(546570, "DevDiv")>
         <Fact()>
         Public Sub AnalyzeForEachMeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -180,7 +180,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(546914)>
+        <WorkItem(546914, "DevDiv")>
         <Fact()>
         Public Sub Bug17230_If()
             AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
@@ -229,7 +229,7 @@ End Module
 </compilation>))
         End Sub
 
-        <WorkItem(546914)>
+        <WorkItem(546914, "DevDiv")>
         <Fact()>
         Public Sub Bug17230_Other()
             AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
@@ -314,7 +314,7 @@ End Module
 </compilation>))
         End Sub
 
-        <WorkItem(571062)>
+        <WorkItem(571062, "DevDiv")>
         <Fact()>
         Public Sub Bug571062()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -343,7 +343,7 @@ End Namespace
             VisitAllExpressions(model, tree.GetCompilationUnitRoot())
         End Sub
 
-        <WorkItem(578141)>
+        <WorkItem(578141, "DevDiv")>
         <Fact()>
         Public Sub IsImplicitlyDeclared()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -369,7 +369,7 @@ MustOverride Sub M()
             Assert.False(member.IsImplicitlyDeclared)
         End Sub
 
-        <WorkItem(578141)>
+        <WorkItem(578141, "DevDiv")>
         <Fact()>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
@@ -422,7 +422,7 @@ End Class
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(611707)>
+        <WorkItem(611707, "DevDiv")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -437,7 +437,7 @@ Interface(Await
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(611707)>
+        <WorkItem(611707, "DevDiv")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -452,7 +452,7 @@ Delegate Sub D(Of From
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(762034)>
+        <WorkItem(762034, "DevDiv")>
         <Fact()>
         Public Sub Bug762034()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(

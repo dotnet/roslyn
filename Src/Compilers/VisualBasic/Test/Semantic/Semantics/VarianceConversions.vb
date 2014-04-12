@@ -2846,7 +2846,7 @@ T1->Func(Of B)
 </expected>)
         End Sub
 
-        <WorkItem(545815)>
+        <WorkItem(545815, "DevDiv")>
         <Fact>
         Public Sub Bug14483()
             Dim compilationDef =

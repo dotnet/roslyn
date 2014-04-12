@@ -2905,7 +2905,7 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
 </expected>)
         End Sub
 
-        <WorkItem(539691)>
+        <WorkItem(539691, "DevDiv")>
         <Fact>
         Public Sub DiagnosticsOnInvalidConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4699,7 +4699,7 @@ BC30517: Overload resolution failed because no 'Test2' is accessible.
 </expected>)
         End Sub
 
-        <WorkItem(543719)>
+        <WorkItem(543719, "DevDiv")>
         <Fact()>
         Public Sub CallByRefWithTwoArgs()
             Dim compilationDef =
@@ -4728,7 +4728,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(544511)>
+        <Fact, WorkItem(544511, "DevDiv")>
         Public Sub Bug12877_1()
             Dim source =
 <compilation name="AscW">
@@ -4817,7 +4817,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545521)>
+        <Fact, WorkItem(545521, "DevDiv")>
         Public Sub Bug14020()
             Dim source =
 <compilation name="AscW">
@@ -4850,7 +4850,7 @@ Foo(Of T)(x As T)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545522)>
+        <Fact, WorkItem(545522, "DevDiv")>
         Public Sub Bug14021()
             Dim source =
 <compilation name="AscW">
@@ -4889,7 +4889,7 @@ Foo(x As Object, y As Integer)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545522)>
+        <Fact, WorkItem(545522, "DevDiv")>
         Public Sub Bug14021_2()
             Dim source =
 <compilation name="AscW">
@@ -4929,7 +4929,7 @@ Foo(x As Object, y As Integer)
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545524)>
+        <Fact, WorkItem(545524, "DevDiv")>
         Public Sub Bug14024()
             Dim source =
 <compilation name="AscW">
@@ -4967,7 +4967,7 @@ Function Foo() As Integer()
 ]]>)
         End Sub
 
-        <Fact, WorkItem(545524)>
+        <Fact, WorkItem(545524, "DevDiv")>
         Public Sub Bug14024_2()
             Dim source =
 <compilation name="AscW">
@@ -5003,7 +5003,7 @@ BC30057: Too many arguments to 'Public Overloads Function Foo(Of T)() As Integer
 
         End Sub
 
-        <Fact, WorkItem(546006)>
+        <Fact, WorkItem(546006, "DevDiv")>
         Public Sub Bug14936()
             Dim source =
 <compilation name="Bug14936">
@@ -5044,7 +5044,7 @@ BC42017: Late bound resolution; runtime errors could occur.
 </expected>)
         End Sub
 
-        <Fact, WorkItem(547132)>
+        <Fact, WorkItem(547132, "DevDiv")>
         Public Sub Bug18047()
             Dim source =
 <compilation>
@@ -5100,7 +5100,7 @@ S1
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448)>
+        <Fact, WorkItem(531448, "DevDiv")>
         Public Sub Bug18133_1()
             Dim source =
 <compilation>
@@ -5129,7 +5129,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448)>
+        <Fact, WorkItem(531448, "DevDiv")>
         Public Sub Bug18133_2()
             Dim source =
 <compilation>
@@ -5165,7 +5165,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531413)>
+        <Fact, WorkItem(531413, "DevDiv")>
         Public Sub Bug18089()
             Dim source =
 <compilation>
@@ -5215,7 +5215,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(570936)>
+        <Fact, WorkItem(570936, "DevDiv")>
         Public Sub Bug570936()
             Dim source =
 <compilation>
@@ -5361,7 +5361,7 @@ End Interface
 ]]>, emitPdb:=True)
         End Sub
 
-        <Fact(), WorkItem(758861)>
+        <Fact(), WorkItem(758861, "DevDiv")>
         Sub Bug758861()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5415,7 +5415,7 @@ End Module
             Assert.Equal("DefaultValue2", CStr(cnt.Value))
         End Sub
 
-        <Fact(), WorkItem(762717)>
+        <Fact(), WorkItem(762717, "DevDiv")>
         Sub Bug762717()
 
             Dim library = CreateCompilationWithMscorlib(

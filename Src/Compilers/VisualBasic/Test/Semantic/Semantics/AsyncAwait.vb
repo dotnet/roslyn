@@ -4969,7 +4969,7 @@ BC42357: Some overloads here take an Async Function rather than an Async Sub. Co
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(547087)>
+        <Fact(), WorkItem(547087, "DevDiv")>
         Public Sub Bug17912_1()
             Dim source =
 <compilation>
@@ -5046,7 +5046,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 
         End Sub
 
-        <Fact(), WorkItem(547087)>
+        <Fact(), WorkItem(547087, "DevDiv")>
         Public Sub Bug17912_2()
             Dim source =
 <compilation>
@@ -5095,7 +5095,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547087)>
+        <Fact(), WorkItem(547087, "DevDiv")>
         Public Sub Bug17912_3()
             Dim source =
 <compilation>
@@ -5192,7 +5192,7 @@ BC30183: Keyword is not valid as an identifier.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(568948)>
+        <Fact(), WorkItem(568948, "DevDiv")>
         Public Sub Bug568948()
             Dim source =
 <compilation>

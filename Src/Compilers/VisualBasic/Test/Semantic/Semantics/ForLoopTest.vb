@@ -127,7 +127,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1)
         End Sub
 
-        <WorkItem(542080)>
+        <WorkItem(542080, "DevDiv")>
         <Fact>
         Public Sub ForLoopNested()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -186,7 +186,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1, 4)
         End Sub
 
-        <WorkItem(542080)>
+        <WorkItem(542080, "DevDiv")>
         <Fact>
         Public Sub ChangeOuterVarInInnerFor()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -225,7 +225,7 @@ End Class
             ClassfiConversionTestForLoops(compilation1, 2)
         End Sub
 
-        <WorkItem(542080)>
+        <WorkItem(542080, "DevDiv")>
         <Fact>
         Public Sub InnerForRefOuterForVar()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -529,7 +529,7 @@ End Class
             GetDeclareSymbolTestForLoops(compilation1, Nothing, 2)
         End Sub
 
-        <WorkItem(543649)>
+        <WorkItem(543649, "DevDiv")>
         <Fact()>
         Public Sub TestTypeInferenceWithGarbageTypes()
             Dim vbCompilation = CreateVisualBasicCompilation("TestTypeInferenceWithGarbageTypes",
@@ -669,7 +669,7 @@ End Module]]>,
             Return DirectCast(node, ForBlockSyntax)
         End Function
 
-        <Fact, WorkItem(652041)>
+        <Fact, WorkItem(652041, "DevDiv")>
         Public Sub Bug652041()
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

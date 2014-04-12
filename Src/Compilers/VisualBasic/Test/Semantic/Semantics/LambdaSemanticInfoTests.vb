@@ -639,7 +639,7 @@ End Module
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(544647)>
+        <Fact, WorkItem(544647, "DevDiv")>
         Public Sub InvokeGenericOverloadedMethod()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -678,7 +678,7 @@ End Module
             Assert.NotNull(info.Symbol)
         End Sub
 
-        <Fact, WorkItem(566495)>
+        <Fact, WorkItem(566495, "DevDiv")>
         Public Sub Bug566495()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation>

@@ -141,7 +141,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
 
         End Sub
 
-        <WorkItem(538814)>
+        <WorkItem(538814, "DevDiv")>
         <Fact>
         Public Sub DuplicateInterfaceInheritance()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -164,7 +164,7 @@ BC30584: 'IA(Of String)' cannot be inherited more than once.
 </expected>)
         End Sub
 
-        <WorkItem(543788)>
+        <WorkItem(543788, "DevDiv")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -196,7 +196,7 @@ BC42024: Unused local variable: 's'.
 </expected>)
         End Sub
 
-        <WorkItem(543909)>
+        <WorkItem(543909, "DevDiv")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -223,7 +223,7 @@ BC30294: Structure 's2' cannot contain an instance of itself:
 </expected>)
         End Sub
 
-        <Fact, WorkItem(607394)>
+        <Fact, WorkItem(607394, "DevDiv")>
         Public Sub Bug607394()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

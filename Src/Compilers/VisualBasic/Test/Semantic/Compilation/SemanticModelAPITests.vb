@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 #Region "Get Various Semantic Info, such as GetSymbolInfo, GetTypeInfo"
 
-        <WorkItem(541500)>
+        <WorkItem(541500, "DevDiv")>
         <Fact()>
         Public Sub TestModuleNamespaceClassNesting()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -47,7 +47,7 @@ Module
             Assert.Equal(CandidateReason.None, info.CandidateReason)
         End Sub
 
-        <Fact(), WorkItem(543532)>
+        <Fact(), WorkItem(543532, "DevDiv")>
         Public Sub GetSymbolInfoForImplicitDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -168,7 +168,7 @@ End Module
             Assert.Equal(SymbolKind.Local, infoP.Symbol.Kind)
         End Sub
 
-        <Fact(), WorkItem(542861), WorkItem(529673)>
+        <Fact(), WorkItem(542861, "DevDiv"), WorkItem(529673, "DevDiv")>
         Public Sub GetSymbolInfoForAccessorParameters()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -471,7 +471,7 @@ End Class    </file>
             Assert.Equal("Sub C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="755801"), WorkItem(755801)>
+        <Fact(Skip:="755801"), WorkItem(755801, "DevDiv")>
         Public Sub GetSpeculativeSymbolInfoForQualifiedNameInCref()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="GetSemanticInfo">
@@ -575,7 +575,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(680657)>
+        <WorkItem(680657, "DevDiv")>
         Public Sub TestGetSpeculativeSemanticModelInFieldInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -590,7 +590,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(680657)>
+        <WorkItem(680657, "DevDiv")>
         Public Sub TestGetSpeculativeSemanticModelInPropertyInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -1705,7 +1705,7 @@ End Class
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "System.ArgumentException")
         End Sub
 
-        <WorkItem(745766)>
+        <WorkItem(745766, "DevDiv")>
         <Fact(Skip:="745766")>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InImplementsClauseForMember()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2169,7 +2169,7 @@ Module M
 
         End Sub
 
-        <WorkItem(527766)>
+        <WorkItem(527766, "DevDiv")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2424,7 +2424,7 @@ End Enum
         End Sub
 
 
-        <WorkItem(541564)>
+        <WorkItem(541564, "DevDiv")>
         <Fact()>
         Public Sub ClassifyConversionForParameter()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2484,7 +2484,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(541577)>
+        <WorkItem(541577, "DevDiv")>
         <Fact()>
         Public Sub ClassifyConversionForPropAsBinaryOperand()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2520,7 +2520,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(544251)>
+        <Fact(), WorkItem(544251, "DevDiv")>
         Public Sub ClassifyConversionEnumExplicitOn()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2557,7 +2557,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(544251)>
+        <Fact(), WorkItem(544251, "DevDiv")>
         Public Sub ClassifyConversionEnumExplicitOff()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2593,7 +2593,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(545101)>
+        <Fact(), WorkItem(545101, "DevDiv")>
         Public Sub ClassifyConversionNarrowingNullableStrictOff()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2646,7 +2646,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(799045)>
+        <WorkItem(799045, "DevDiv")>
         <Fact(Skip:="799045")>
         Public Sub ClassifyConversionForArrayLiteral()
 
@@ -2734,7 +2734,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(652109)>
+        <WorkItem(652109, "DevDiv")>
         <Fact()>
         Public Sub Bug652109()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2850,7 +2850,7 @@ stem.Func`2[System.Int32,System.Int32]", z Function(d) d)
             Next
         End Sub
 
-        <WorkItem(652026)>
+        <WorkItem(652026, "DevDiv")>
         <Fact()>
         Public Sub Bug652026()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3319,7 +3319,7 @@ Val Sng As Single, ByVal C As Char, ByVal        Public Overloads Property olp14
             Next
         End Sub
 
-        <WorkItem(652118)>
+        <WorkItem(652118, "DevDiv")>
         <Fact()>
         Public Sub Bug652118()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3646,7 +3646,7 @@ End Class
             Assert.True(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember3))
         End Sub
 
-        <WorkItem(791793)>
+        <WorkItem(791793, "DevDiv")>
         <Fact>
         Public Sub SpeculateAboutParamElementOnField()
             Dim source =
@@ -3761,7 +3761,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(654753)>
+        <WorkItem(654753, "DevDiv")>
         Public Sub Repro654753()
             Dim source =
                 <compilation>
@@ -3859,7 +3859,7 @@ End Class
             Assert.Equal(2, treeErrs.Length())
         End Sub
 
-        <WorkItem(859721)>
+        <WorkItem(859721, "DevDiv")>
         <Fact()>
         Sub TestMethodBodyDiagnostics()
             ' Even with a root namespace, we should still have these diagnostics with or without root namespace specified

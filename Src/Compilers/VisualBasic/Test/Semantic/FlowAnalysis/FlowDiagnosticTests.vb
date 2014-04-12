@@ -212,7 +212,7 @@ BC42024: Unused local variable: 'x'.
 </errors>))
         End Sub
 
-        <WorkItem(722619)>
+        <WorkItem(722619, "DevDiv")>
         <Fact()>
         Public Sub Bug_722619()
             Dim program =
@@ -246,7 +246,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(722575)>
+        <WorkItem(722575, "DevDiv")>
         <Fact()>
         Public Sub Bug_722575a()
             Dim program =
@@ -279,7 +279,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(722575)>
+        <WorkItem(722575, "DevDiv")>
         <Fact()>
         Public Sub Bug_722575b()
             Dim program =
@@ -312,7 +312,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(722575)>
+        <WorkItem(722575, "DevDiv")>
         <Fact()>
         Public Sub Bug_722575c()
             Dim program =
@@ -353,7 +353,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(722575)>
+        <WorkItem(722575, "DevDiv")>
         <Fact()>
         Public Sub Bug_722575d()
             Dim program =
@@ -385,7 +385,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(722575)>
+        <WorkItem(722575, "DevDiv")>
         <Fact()>
         Public Sub Bug_722575e()
             Dim program =
@@ -482,7 +482,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(617061)>
+        <WorkItem(617061, "DevDiv")>
         <Fact()>
         Public Sub Bug_617061()
             Dim program =
@@ -508,7 +508,7 @@ End Structure
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
-        <WorkItem(544072)>
+        <WorkItem(544072, "DevDiv")>
         <Fact()>
         Public Sub TestBug12221a()
             Dim program =
@@ -540,7 +540,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
 </expected>))
         End Sub
 
-        <WorkItem(544072)>
+        <WorkItem(544072, "DevDiv")>
         <Fact()>
         Public Sub TestBug12221b()
             Dim program =
@@ -569,7 +569,7 @@ End Module
  </expected>))
         End Sub
 
-        <WorkItem(544072)>
+        <WorkItem(544072, "DevDiv")>
         <Fact()>
         Public Sub TestBug12221c()
             Dim program =
@@ -595,7 +595,7 @@ End Module
  </expected>))
         End Sub
 
-        <WorkItem(544072)>
+        <WorkItem(544072, "DevDiv")>
         <Fact()>
         Public Sub TestBug12221d()
             Dim program =
@@ -952,7 +952,7 @@ end class</file>
                                                 </errors>))
         End Sub
 
-        <WorkItem(540687)>
+        <WorkItem(540687, "DevDiv")>
         <Fact>
         Public Sub FunctionDoesNotReturnAnEnumValue()
             Dim program = <compilation name="FunctionDoesNotReturnAValue">
@@ -993,7 +993,7 @@ BC42353: Function '<anonymous method>' doesn't return a value on all code paths.
                                                 </errors>))
         End Sub
 
-        <WorkItem(541005)>
+        <WorkItem(541005, "DevDiv")>
         <Fact>
         Public Sub TestLocalsInitializedByAsNew()
             Dim program = <compilation name="TestLocalsInitializedByAsNew">
@@ -1017,7 +1017,7 @@ BC42353: Function '<anonymous method>' doesn't return a value on all code paths.
             errs.AssertNoErrors()
         End Sub
 
-        <WorkItem(542817)>
+        <WorkItem(542817, "DevDiv")>
         <Fact>
         Public Sub ConditionalStateInsideQueryLambda()
             Dim program = <compilation name="ConditionalStateInsideQueryLambda">
@@ -1225,7 +1225,7 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
             errs.AssertNoErrors()
         End Sub
 
-        <WorkItem(543095)>
+        <WorkItem(543095, "DevDiv")>
         <Fact()>
         Public Sub TestSelectCase_Error_MissingCaseStatement()
             Dim program = <compilation name="TestSelectCase_Error_MissingCaseStatement">
@@ -1250,7 +1250,7 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
             errs.AssertNoErrors()
         End Sub
 
-        <WorkItem(543095)>
+        <WorkItem(543095, "DevDiv")>
         <Fact()>
         Public Sub TestSelectCase_Error_MissingCaseExpression()
             Dim program = <compilation name="TestSelectCase_Error_MissingCaseExpression">
@@ -1276,7 +1276,7 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
             errs.AssertNoErrors()
         End Sub
 
-        <Fact(Skip:="529405"), WorkItem(529405)>
+        <Fact(Skip:="529405"), WorkItem(529405, "DevDiv")>
         Public Sub TestThrowDoNotReportUnreachable()
             Dim program =
 <compilation>
@@ -1301,7 +1301,7 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlib(program).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(531310)>
+        <WorkItem(531310, "DevDiv")>
         <Fact()>
         Public Sub Bug_17926()
             Dim program =
@@ -1330,7 +1330,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(531529)>
+        <WorkItem(531529, "DevDiv")>
         <Fact()>
         Public Sub Bug_18255()
             Dim program =
@@ -1352,7 +1352,7 @@ End Class
 </errors>)
         End Sub
 
-        <WorkItem(531530)>
+        <WorkItem(531530, "DevDiv")>
         <Fact()>
         Public Sub Bug_18256()
             Dim program =
@@ -1418,7 +1418,7 @@ BC42355: Property 'Prop6' doesn't return a value on all code paths. Are you miss
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(531237)>
+        <Fact(), WorkItem(531237, "DevDiv")>
         Public Sub Bug17796()
             Dim program = <compilation>
                               <file name="a.b"><![CDATA[

@@ -636,7 +636,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <WorkItem(546682)>
+        <WorkItem(546682, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOn()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -688,7 +688,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C1' to 'I1'.
 </errors>)
         End Sub
 
-        <WorkItem(546682)>
+        <WorkItem(546682, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOff()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -755,7 +755,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(546595)>
+        <WorkItem(546595, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -801,7 +801,7 @@ BC31450: Type 'A(Of )' cannot be used as an implementing class.
 </errors>)
         End Sub
 
-        <WorkItem(546595)>
+        <WorkItem(546595, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata2()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -863,7 +863,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(546595)>
+        <WorkItem(546595, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata3()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -928,7 +928,7 @@ BC31450: Type 'A(Of ).B(Of )' cannot be used as an implementing class.
 </errors>)
         End Sub
 
-        <WorkItem(546595)>
+        <WorkItem(546595, "DevDiv")>
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericFromMetadata4()
             Dim reference = CreateReferenceFromIlCode(<![CDATA[
@@ -1715,7 +1715,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <WorkItem(546560)>
+        <WorkItem(546560, "DevDiv")>
         <Fact()>
         Public Sub RetargetingUseSiteErrorMissingConstraintTypeAndCircularConstraint()
             Dim vbSource1 =
@@ -1768,7 +1768,7 @@ BC30401: 'Bar' cannot implement 'Bar' because there is no matching sub on interf
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(657731)>
+        <Fact(), WorkItem(657731, "DevDiv")>
         Public Sub Bug657731()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>

@@ -1286,7 +1286,7 @@ m+C[]
 
         End Sub
 
-        <WorkItem(544203)>
+        <WorkItem(544203, "DevDiv")>
         <Fact()>
         Public Sub ArrayLiteralInferenceBug12426()
             Dim source =
@@ -1345,7 +1345,7 @@ ImmutableArray`1[BoundStatement]
 
         End Sub
 
-        <WorkItem(544381)>
+        <WorkItem(544381, "DevDiv")>
         <Fact()>
         Public Sub ArrayLiteralInferenceBug12679()
             Dim source =
@@ -1426,7 +1426,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(544363)>
+        <WorkItem(544363, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralWithAmbiguousOverloadWithParamArray()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1450,7 +1450,7 @@ End Module
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
         End Sub
 
-        <WorkItem(544352)>
+        <WorkItem(544352, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralErrorMsgArrayOfDelegate()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1475,7 +1475,7 @@ End Module
         End Sub
 
 
-        <WorkItem(544566)>
+        <WorkItem(544566, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralInTernaryIf()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1514,7 +1514,7 @@ System.Int64[]
                         ]]>)
         End Sub
 
-        <WorkItem(529543)>
+        <WorkItem(529543, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralSemanticModelCTypeLongConversion()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1643,7 +1643,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(545375)>
+        <WorkItem(545375, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInIf()
             Dim source =
@@ -1675,7 +1675,7 @@ End Module
                         ]]>)
         End Sub
 
-        <WorkItem(545517)>
+        <WorkItem(545517, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInWithinParens1()
             Dim source =
@@ -1710,7 +1710,7 @@ Sub Foo(Of T)(x As IList(Of T)())
                         ]]>)
         End Sub
 
-        <WorkItem(545517)>
+        <WorkItem(545517, "DevDiv")>
         <Fact()>
         Public Sub TestArrayLiteralInferTypeInWithinParens2()
             Dim source =
@@ -1733,7 +1733,7 @@ End Module
 
         End Sub
 
-        <WorkItem(530876)>
+        <WorkItem(530876, "DevDiv")>
         <Fact()>
         Public Sub Bug17124()
             Dim source =
@@ -1751,7 +1751,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(796610)>
+        <WorkItem(796610, "DevDiv")>
         <Fact()>
         Public Sub Bug796610_1()
             Dim source =
@@ -1914,7 +1914,7 @@ Static=System.Object[,], Runtime x=System.Object[,], Runtime y=Nothing
 ]]>)
         End Sub
 
-        <WorkItem(796610)>
+        <WorkItem(796610, "DevDiv")>
         <Fact()>
         Public Sub Bug796610_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

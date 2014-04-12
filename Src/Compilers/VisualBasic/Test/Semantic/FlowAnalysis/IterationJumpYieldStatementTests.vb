@@ -291,7 +291,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <Fact(), WorkItem(538421)>
+        <Fact(), WorkItem(538421, "DevDiv")>
         Public Sub TestLoopWithConstantEnumEquality()
             Dim analysisResults = CompileAndAnalyzeControlFlow(
       <compilation name="TestLoopWithConstantEnumEquality">
@@ -583,7 +583,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(539303)>
+        <WorkItem(539303, "DevDiv")>
         <Fact()>
         Public Sub DoLoopWithContinue()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -622,7 +622,7 @@ End Class
             Assert.Equal("Me, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        <WorkItem(539303)>
+        <WorkItem(539303, "DevDiv")>
         <Fact()>
         Public Sub DoLoopWithGoto()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -697,7 +697,7 @@ Class A
 
 #Region "For, For Each"
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact()>
         Public Sub TestVariablesDeclaredInForLoop()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -719,7 +719,7 @@ end class</file>\n</compilation>)
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(542234)>
+        <WorkItem(542234, "DevDiv")>
         <Fact()>
         Public Sub TestVariablesDeclaredInForeachLoop()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -1262,7 +1262,7 @@ End Class
             Assert.Equal("X, Y, Z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
         End Sub
 
-        <WorkItem(542112)>
+        <WorkItem(542112, "DevDiv")>
         <Fact()>
         Public Sub ForEachExitPoints_Failure()
             Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
@@ -1360,7 +1360,7 @@ End Module
             Assert.Equal(True, flow.VariablesDeclared.Any(Function(s) s.Name = "s"))
         End Sub
 
-        <WorkItem(543462)>
+        <WorkItem(543462, "DevDiv")>
         <Fact()>
         Public Sub NextStatementSyntaxInForEach()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1466,7 +1466,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(543399)>
+        <Fact, WorkItem(543399, "DevDiv")>
         Public Sub GotoLabelName()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
    <compilation>
@@ -1522,7 +1522,7 @@ end class
             Assert.Equal(1, analysis.ExitPoints.Count())
         End Sub
 
-        <WorkItem(539295)>
+        <WorkItem(539295, "DevDiv")>
         <Fact()>
         Public Sub TestReturnStatements03()
             Dim analysis = CompileAndAnalyzeControlFlow(
@@ -1545,7 +1545,7 @@ end class
             Assert.True(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(539295)>
+        <WorkItem(539295, "DevDiv")>
         <Fact()>
         Public Sub TestReturnStatements03a()
             Dim analysis = CompileAndAnalyzeControlFlow(
@@ -1568,7 +1568,7 @@ end class
             Assert.False(analysis.EndPointIsReachable)
         End Sub
 
-        <WorkItem(539295)>
+        <WorkItem(539295, "DevDiv")>
         <Fact()>
         Public Sub TestReturnStatements04()
             Dim analysis = CompileAndAnalyzeControlFlow(

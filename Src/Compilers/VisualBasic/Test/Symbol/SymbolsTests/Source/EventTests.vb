@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem(542806)>
+        <WorkItem(542806, "DevDiv")>
         <Fact()>
         Public Sub EmptyCustomEvent()
             Dim source = <compilation name="F">
@@ -46,7 +46,7 @@ BC31122: 'Custom' modifier is not valid on events declared without explicit dele
 </expected>)
         End Sub
 
-        <WorkItem(542891)>
+        <WorkItem(542891, "DevDiv")>
         <Fact()>
         Public Sub InterfaceImplements()
             Dim source = <compilation name="F">
@@ -166,7 +166,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543309)>
+        <WorkItem(543309, "DevDiv")>
         <Fact()>
         Public Sub EventSyntheticDelegateShadows()
             Dim source = <compilation name="F">
@@ -573,7 +573,7 @@ End Class
 
         End Sub
 
-        <WorkItem(543321)>
+        <WorkItem(543321, "DevDiv")>
         <Fact()>
         Public Sub DeclareEventWithArgument()
             CompileAndVerify(
@@ -588,7 +588,7 @@ End Class
     </compilation>)
         End Sub
 
-        <WorkItem(543366)>
+        <WorkItem(543366, "DevDiv")>
         <Fact()>
         Public Sub UseEventDelegateType()
             CompileAndVerify(
@@ -610,7 +610,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(543372)>
+        <WorkItem(543372, "DevDiv")>
         <Fact()>
         Public Sub AddHandlerWithoutAddressOf()
             Dim source = <compilation name="F">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         ' Check that both errors are reported
-        <WorkItem(543504)>
+        <WorkItem(543504, "DevDiv")>
         <Fact()>
         Public Sub TestEventWithParamArray()
             Dim source =
@@ -1156,7 +1156,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543447)>
+        <WorkItem(543447, "DevDiv")>
         <Fact()>
         Public Sub BindOnFieldOfRegularEventHandlerType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1193,7 +1193,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543725)>
+        <WorkItem(543725, "DevDiv")>
         <Fact()>
         Public Sub SynthesizedEventDelegateSymbolImplicit()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1234,7 +1234,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545200)>
+        <WorkItem(545200, "DevDiv")>
         <Fact()>
         Public Sub TestBadlyFormattedEventCode()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1260,7 +1260,7 @@ Imports System<Serializable>Class c11    <NonSerialized()>
             Assert.Equal("StartEventHandler", eventDelegate.Name)
         End Sub
 
-        <WorkItem(545221)>
+        <WorkItem(545221, "DevDiv")>
         <Fact()>
         Public Sub TestBadlyFormattedCustomEvent()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1305,7 +1305,7 @@ End Class
         ''' Avoid redundant errors from handlers when
         ''' a custom event type has errors.
         ''' </summary>
-        <WorkItem(530406)>
+        <WorkItem(530406, "DevDiv")>
         <Fact(Skip:="530406")>
         Public Sub CustomEventTypeDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1383,7 +1383,7 @@ BC30002: Type 'System.Object' is not defined.
      ]]></errors>)
         End Sub
 
-        <WorkItem(780993)>
+        <WorkItem(780993, "DevDiv")>
         <Fact()>
         Public Sub EventInMemberNames()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

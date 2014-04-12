@@ -702,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         ''' Didnot Skip the test - will remove the explist cast (from IMethodSymbol to MethodSymbol)once this bug is fixed
-        <WorkItem(528029)>
+        <WorkItem(528029, "DevDiv")>
         <Fact>
         Public Sub TestInteropAttributesInterface()
 
@@ -769,7 +769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(32, attrSym.CommonConstructorArguments(0).Value)
         End Sub
 
-        <WorkItem(539942)>
+        <WorkItem(539942, "DevDiv")>
         <Fact>
         Public Sub TestInteropAttributesDelegate()
 
@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(539965)>
+        <WorkItem(539965, "DevDiv")>
         <Fact>
         Public Sub TestAttributesOnTypeParameters()
 
@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         '    // Explicit NotImpl
         '    // ushort IFoo<T, ushort>.Method(T t) { return 0; }
         '}
-        <WorkItem(539965)>
+        <WorkItem(539965, "DevDiv")>
         <Fact>
         Public Sub TestAttributesMultiples()
 
@@ -1201,7 +1201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
 #Region "Regression"
 
-        <WorkItem(539995)>
+        <WorkItem(539995, "DevDiv")>
         <Fact>
         Public Sub TestAttributesAssemblyVersionValue()
 
@@ -1230,7 +1230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(539996)>
+        <WorkItem(539996, "DevDiv")>
         <Fact>
         Public Sub TestAttributesWithTypeOfInternalClass()
 
@@ -1262,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(539999)>
+        <WorkItem(539999, "DevDiv")>
         <Fact>
         Public Sub TestAttributesStaticInstanceCtors()
 
@@ -1295,7 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(540000)>
+        <WorkItem(540000, "DevDiv")>
         <Fact>
         Public Sub TestAttributesOverloadedCtors()
 
@@ -1337,7 +1337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
 #End Region
 
-        <WorkItem(530209)>
+        <WorkItem(530209, "DevDiv")>
         <Fact>
         Public Sub Bug530209()
 

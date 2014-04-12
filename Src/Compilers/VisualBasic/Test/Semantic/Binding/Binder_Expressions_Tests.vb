@@ -65,7 +65,7 @@ End Module
 expectedOutput:="123")
         End Sub
 
-        <WorkItem(679765)>
+        <WorkItem(679765, "DevDiv")>
         <Fact(Skip:="679765")>
         Public Sub Bug679765()
             CompileAndVerify(
@@ -76,7 +76,7 @@ expectedOutput:="123")
 </compilation>, additionalRefs:={MsvbRef})
         End Sub
 
-        <WorkItem(707924)>
+        <WorkItem(707924, "DevDiv")>
         <Fact()>
         Public Sub Bug707924a()
             Dim source = My.Resources.Resource.T_1247520
@@ -84,8 +84,8 @@ expectedOutput:="123")
             Assert.Equal(source, result)
         End Sub
 
-        <WorkItem(784211)>
-        <WorkItem(707924)>
+        <WorkItem(784211, "DevDiv")>
+        <WorkItem(707924, "DevDiv")>
         <Fact(Skip:="784211")>
         Public Sub Bug707924b()
             Dim source = My.Resources.Resource.T_1556342
@@ -392,7 +392,7 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
 </expected>)
         End Sub
 
-        <WorkItem(538871)>
+        <WorkItem(538871, "DevDiv")>
         <Fact>
         Public Sub QualifiedNameBeforeDotNotFound()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -685,7 +685,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(531587)>
+        <Fact(), WorkItem(531587, "DevDiv")>
         Public Sub CircularSharedMemberAccessThroughInstance()
             Dim source =
 <compilation name="FieldsConst">
@@ -919,7 +919,7 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 
         End Sub
 
-        <WorkItem(538802)>
+        <WorkItem(538802, "DevDiv")>
         <Fact>
         Public Sub MethodAccessibilityChecking()
             CompileAndVerify(
@@ -1079,7 +1079,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
 </expected>)
         End Sub
 
-        <WorkItem(538438)>
+        <WorkItem(538438, "DevDiv")>
         <Fact>
         Public Sub TestRangeExpressionAllowableLowerBounds()
 
@@ -1104,7 +1104,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(537219)>
+        <WorkItem(537219, "DevDiv")>
         <Fact>
         Public Sub BC32059ERR_OnlyNullLowerBound()
             Dim compilationDef =
@@ -2093,7 +2093,7 @@ BC30182: Type expected.
 </errors>)
         End Sub
 
-        <WorkItem(542383)>
+        <WorkItem(542383, "DevDiv")>
         <Fact>
         Public Sub GetTypeOnModuleName()
             Dim text =
@@ -2587,7 +2587,7 @@ BC30438: Constants must have a value.
 </expected>)
         End Sub
 
-        <WorkItem(546469)>
+        <WorkItem(546469, "DevDiv")>
         <Fact>
         Public Sub GetTypeAllowsArrayOfModules()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2649,8 +2649,8 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                                            </expected>)
         End Sub
 
-        <WorkItem(530438)>
-        <WorkItem(546469)>
+        <WorkItem(530438, "DevDiv")>
+        <WorkItem(546469, "DevDiv")>
         <Fact()>
         Public Sub GetTypeAllowsModuleAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

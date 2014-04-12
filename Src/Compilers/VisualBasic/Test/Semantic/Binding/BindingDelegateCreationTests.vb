@@ -1031,7 +1031,7 @@ foo
 ]]>)
         End Sub
 
-        <WorkItem(542068)>
+        <WorkItem(542068, "DevDiv")>
         <Fact>
         Public Sub DelegateBindingForGenericMethods01b()
             For Each OptionStrict In {"On", "Off"}
@@ -1097,7 +1097,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543083)>
+        <WorkItem(543083, "DevDiv")>
         <Fact()>
         Public Sub AddressOfOfCurrentMethod()
             Dim source =
@@ -1211,7 +1211,7 @@ BC36625: Lambda expression cannot be converted to 'System.Linq.Expressions.Expre
             Next
         End Sub
 
-        <WorkItem(546014)>
+        <WorkItem(546014, "DevDiv")>
         <Fact>
         Public Sub Bug14947()
             Dim source =

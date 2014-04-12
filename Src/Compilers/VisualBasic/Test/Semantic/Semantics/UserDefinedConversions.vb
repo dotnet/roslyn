@@ -4457,7 +4457,7 @@ False
 
 #Region "Regressions"
 
-        <Fact(), WorkItem(544073)>
+        <Fact(), WorkItem(544073, "DevDiv")>
         Public Sub NoReturnInOperatorBody()
             Dim compilationDef =
 <compilation name="NoReturnInOperatorBody">

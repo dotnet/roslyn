@@ -418,7 +418,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
             CheckVariableType(tree, model, "Test:v", "System.Int32()()()")
         End Sub
 
-        <WorkItem(542371)>
+        <WorkItem(542371, "DevDiv")>
         <Fact>
         Public Sub TestOptionInferWithOptionStrict()
             Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
@@ -590,7 +590,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         End Sub
 
 
-        <WorkItem(542402)>
+        <WorkItem(542402, "DevDiv")>
         <Fact>
         Public Sub TestCircularDeclarationReference()
             Dim options = OptionsDll.WithRootNamespace("Foo.Bar")
@@ -623,7 +623,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         End Sub
 
-        <WorkItem(545427)>
+        <WorkItem(545427, "DevDiv")>
         <Fact()>
         Public Sub TestNothingConversionLocalConst1()
 
@@ -650,7 +650,7 @@ End Module
                 )
         End Sub
 
-        <WorkItem(545427)>
+        <WorkItem(545427, "DevDiv")>
         <Fact()>
         Public Sub TestNothingConversionLocalConst2()
 
@@ -682,7 +682,7 @@ End Module
                     Diagnostic(ERRID.WRN_UnusedLocalConst, "bar5").WithArguments("bar5"))
         End Sub
 
-        <WorkItem(545763)>
+        <WorkItem(545763, "DevDiv")>
         <Fact()>
         Public Sub TestInferNullableType()
 

@@ -2786,7 +2786,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(546315)>
+        <WorkItem(546315, "DevDiv")>
         <Fact>
         Public Sub Bug15563()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

@@ -1870,7 +1870,7 @@ end class
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541891)>
+        <WorkItem(541891, "DevDiv")>
         <Fact()>
         Public Sub TestRefArgumentSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -1901,7 +1901,7 @@ end class
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541891)>
+        <WorkItem(541891, "DevDiv")>
         <Fact()>
         Public Sub TestRefArgumentSelection02a()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -4140,7 +4140,7 @@ End Class
             Debug.Assert(comp.Succeeded)
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4164,7 +4164,7 @@ end class
             Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut2()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4190,7 +4190,7 @@ end class
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut3()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4212,7 +4212,7 @@ end class
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut4()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4233,7 +4233,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut5()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -4255,7 +4255,7 @@ end class
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut))
         End Sub
 
-        <WorkItem(546820)>
+        <WorkItem(546820, "DevDiv")>
         <Fact()>
         Public Sub TestDataFlowsInAndOut6()
             Dim analysis = CompileAndAnalyzeDataFlow(
@@ -6187,7 +6187,7 @@ End Module
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <WorkItem(529089)>
+        <WorkItem(529089, "DevDiv")>
         <Fact>
         Public Sub CaseClauseNotReachable()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(

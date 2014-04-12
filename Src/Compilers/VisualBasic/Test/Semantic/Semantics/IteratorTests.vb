@@ -861,7 +861,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <Fact(), WorkItem(629565)>
+        <Fact(), WorkItem(629565, "DevDiv")>
         Public Sub Bug629565()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
