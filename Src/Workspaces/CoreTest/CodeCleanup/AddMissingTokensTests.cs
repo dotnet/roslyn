@@ -77,7 +77,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544318)]
+        [WorkItem(544318, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void MethodInvocation_TypeArgParens()
         {
@@ -881,7 +881,7 @@ End Class""";
         }
 
         [Fact]
-        [WorkItem(544225)]
+        [WorkItem(544225, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void StringLiterals_AfterRegion()
         {
@@ -891,7 +891,7 @@ End Class""";
         }
 
         [Fact]
-        [WorkItem(544225)]
+        [WorkItem(544225, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void StringLiterals_AfterConst()
         {
@@ -901,7 +901,7 @@ End Class""";
         }
 
         [Fact]
-        [WorkItem(544225)]
+        [WorkItem(544225, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void StructuredTrivia_Expression_DontCrash()
         {
@@ -921,7 +921,7 @@ End Class""";
         }
 
         [Fact]
-        [WorkItem(544169)]
+        [WorkItem(544169, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void EventStatement_AsClause()
         {
@@ -938,7 +938,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544167)]
+        [WorkItem(544167, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void InvocationExpression_NoParentheseForPredefinedCastExpression()
         {
@@ -957,8 +957,8 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544178)]
-        [WorkItem(544317)]
+        [WorkItem(544178, "DevDiv")]
+        [WorkItem(544317, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ObjectCreationExpression()
         {
@@ -977,7 +977,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544317)]
+        [WorkItem(544317, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ObjectCreationExpression_Initializer()
         {
@@ -1000,7 +1000,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544178)]
+        [WorkItem(544178, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ObjectCreationExpression_GenericName()
         {
@@ -1024,7 +1024,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544178)]
+        [WorkItem(544178, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ObjectCreationExpression_AsNewClause()
         {
@@ -1039,7 +1039,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544301)]
+        [WorkItem(544301, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ContinueStatement_While()
         {
@@ -1062,7 +1062,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544301)]
+        [WorkItem(544301, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ContinueStatement_For()
         {
@@ -1085,7 +1085,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544380)]
+        [WorkItem(544380, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void IfDirective()
         {
@@ -1102,7 +1102,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544386)]
+        [WorkItem(544386, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void NamedFieldInitializer()
         {
@@ -1127,7 +1127,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544526)]
+        [WorkItem(544526, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void DontCrash_ImplementsStatement()
         {
@@ -1146,7 +1146,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544525)]
+        [WorkItem(544525, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void AccessorStatement_AddRemoveHandler_RaiseEvent()
         {
@@ -1175,7 +1175,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(545176)]
+        [WorkItem(545176, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void CallStatement_Lambda()
         {
@@ -1194,7 +1194,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545256)]
+        [WorkItem(545256, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void HandlesClauseItem_DontAddParenthese()
         {
@@ -1213,7 +1213,7 @@ End Structure";
         }
 
         [Fact]
-        [WorkItem(545380)]
+        [WorkItem(545380, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void DontAddParentheseInForEachControlVariable()
         {
@@ -1238,7 +1238,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545380)]
+        [WorkItem(545380, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void DontAddParentheseInForControlVariable()
         {
@@ -1263,7 +1263,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545483)]
+        [WorkItem(545483, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void DontAddParentheseForMissingName()
         {
@@ -1276,7 +1276,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545483)]
+        [WorkItem(545483, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void CombinedDelegates()
         {
@@ -1303,7 +1303,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546581)]
+        [WorkItem(546581, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ThenOmittedWithSurroundingErrors()
         {
@@ -1316,7 +1316,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546581)]
+        [WorkItem(546581, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ThenOmittedWithSurroundingErrors1()
         {
@@ -1329,7 +1329,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546797)]
+        [WorkItem(546797, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ParenthesisWithLineContinuation()
         {
@@ -1341,7 +1341,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546806)]
+        [WorkItem(546806, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ThenWithLineContinuation()
         {
@@ -1357,7 +1357,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(531278)]
+        [WorkItem(531278, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void ThenInIfDirective()
         {
@@ -1385,7 +1385,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(607792)]
+        [WorkItem(607792, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void CaseKeywordInSelectStatement()
         {
@@ -1427,7 +1427,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(530789)]
+        [WorkItem(530789, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void Bug530789()
         {
@@ -1449,7 +1449,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(530039)]
+        [WorkItem(530039, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestArraySyntax()
         {
@@ -1471,7 +1471,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithoutAsClause()
         {
@@ -1559,7 +1559,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithoutAsClause_WithAddedImports()
         {
@@ -1653,7 +1653,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithoutAsClause()
         {
@@ -1735,7 +1735,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithoutAsClause_WithAddedImports()
         {
@@ -1825,7 +1825,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithAsClause()
         {
@@ -1995,7 +1995,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithAsClause_WithAddedImports()
         {
@@ -2171,7 +2171,7 @@ End Class";
         }
         
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithAsClause()
         {
@@ -2367,7 +2367,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithAsClause_WithAddedImports()
         {
@@ -2569,7 +2569,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithAliasedReturnType()
         {
@@ -2599,7 +2599,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithAliasedReturnType()
         {
@@ -2629,7 +2629,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithAliasedReturnType_2()
         {
@@ -2657,7 +2657,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithAliasedReturnType_2()
         {
@@ -2685,7 +2685,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncFunctionWithQualifiedNameReturnType()
         {
@@ -2711,7 +2711,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorFunctionWithQualifiedNameReturnType()
         {
@@ -2737,7 +2737,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestAsyncLambdaFunction()
         {
@@ -2805,7 +2805,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(602932)]
+        [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public void TestIteratorLambdaFunction()
         {

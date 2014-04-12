@@ -225,7 +225,7 @@ Imports System.Diagnostics
         }
 
         [Fact]
-        [WorkItem(774295)]
+        [WorkItem(774295, "DevDiv")]
         public void DontCrash_VB_2()
         {
             var code = @"
@@ -262,7 +262,7 @@ End Class
         }
 
         [Fact]
-        [WorkItem(547075)]
+        [WorkItem(547075, "DevDiv")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"

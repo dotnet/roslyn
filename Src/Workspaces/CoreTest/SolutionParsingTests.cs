@@ -105,7 +105,7 @@ EndGlobal
         }
 
         [Fact]
-        [WorkItem(547294)]
+        [WorkItem(547294, "DevDiv")]
         public void ParseSolutionWithMissingWhiteSpaces()
         {
             var vbConsoleApplicationSolution = @"
@@ -141,7 +141,7 @@ EndGlobal
         }
 
         [Fact]
-        [WorkItem(708726)]
+        [WorkItem(708726, "DevDiv")]
         public void ParseSolutionFileWithVisualStudioVersion()
         {
             var vbConsoleApplicationSolution = @"

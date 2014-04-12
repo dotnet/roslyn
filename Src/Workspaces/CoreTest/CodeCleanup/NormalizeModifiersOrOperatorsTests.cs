@@ -631,7 +631,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520)]
+        [WorkItem(544520, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void RemoveByVal1()
         {
@@ -649,7 +649,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520)]
+        [WorkItem(544520, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void RemoveByVal2()
         {
@@ -667,7 +667,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520)]
+        [WorkItem(544520, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void RemoveByVal_LineContinuation()
         {
@@ -816,7 +816,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544300)]
+        [WorkItem(544300, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void NormalizedOperator_StructuredTrivia()
         {
@@ -828,7 +828,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544520)]
+        [WorkItem(544520, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void DontRemoveByVal()
         {
@@ -852,7 +852,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544561)]
+        [WorkItem(544561, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void NormalizeOperator_Text()
         {
@@ -876,7 +876,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544557)]
+        [WorkItem(544557, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void NormalizeOperator_OperatorStatement()
         {
@@ -892,7 +892,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544574)]
+        [WorkItem(544574, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void Reorder_OperatorTokenAndModifiers()
         {
@@ -908,7 +908,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546521)]
+        [WorkItem(546521, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void SkippedTokenOperator()
         {
@@ -928,7 +928,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(547255)]
+        [WorkItem(547255, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void ReorderAsyncModifier()
         {
@@ -964,7 +964,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(547255)]
+        [WorkItem(547255, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void ReorderIteratorModifier()
         {
@@ -1000,7 +1000,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(611766)]
+        [WorkItem(611766, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void ReorderDuplicateModifiers()
         {
@@ -1028,7 +1028,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(530058)]
+        [WorkItem(530058, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
         public void TestBadOperatorToken()
         {

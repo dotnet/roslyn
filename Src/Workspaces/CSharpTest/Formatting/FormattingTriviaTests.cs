@@ -1334,7 +1334,7 @@ void Method() {
             AssertFormat(expected, content);
         }
 
-        [WorkItem(537895)]
+        [WorkItem(537895, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Preprocessor9()
         {
@@ -1366,7 +1366,7 @@ void Method() {
             AssertFormat(expected, content);
         }
 
-        [WorkItem(537895)]
+        [WorkItem(537895, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Preprocessor10()
         {
@@ -1396,7 +1396,7 @@ void Method() {
             AssertFormat(expected, content);
         }
 
-        [WorkItem(537765)]
+        [WorkItem(537765, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Comment25()
         {
@@ -1423,7 +1423,7 @@ double y;
             AssertFormat(expected, content);
         }
 
-        [WorkItem(537765)]
+        [WorkItem(537765, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Comment26()
         {
@@ -1551,7 +1551,7 @@ class Program
             AssertFormat(code, content);
         }
 
-        [WorkItem(538703)]
+        [WorkItem(538703, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Comment32()
         {
@@ -1576,7 +1576,7 @@ class Program
             AssertFormat(code, content);
         }
 
-        [WorkItem(542316)]
+        [WorkItem(542316, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void CommentInExpression()
         {
@@ -1613,7 +1613,7 @@ class Program
             AssertFormat(code, content);
         }
 
-        [WorkItem(542546)]
+        [WorkItem(542546, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatInvalidCode_1()
         {
@@ -1621,7 +1621,7 @@ class Program
             AssertFormat(content, content);
         }
 
-        [WorkItem(542546)]
+        [WorkItem(542546, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatInvalidCode_2()
         {
@@ -1630,7 +1630,7 @@ class Program
             AssertFormat(expectedContent, content);
         }
 
-        [WorkItem(537895)]
+        [WorkItem(537895, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmbededStatement1()
         {

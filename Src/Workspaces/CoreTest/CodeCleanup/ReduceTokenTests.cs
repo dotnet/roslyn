@@ -1752,7 +1752,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(623319)]
+        [WorkItem(623319, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public void ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
@@ -1789,7 +1789,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(652147)]
+        [WorkItem(652147, "DevDiv")]
         public void ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;

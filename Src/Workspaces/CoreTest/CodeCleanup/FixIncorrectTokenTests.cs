@@ -723,7 +723,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(606015)]
+        [WorkItem(606015, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public void FixFullWidthSingleQuotes()
         {
@@ -750,7 +750,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(707135)]
+        [WorkItem(707135, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
         public void FixFullWidthSingleQuotes2()
         {

@@ -1047,7 +1047,7 @@ End Class</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538354)>
+        <WorkItem(538354, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix3939()
             Dim code = <Code>               
@@ -1063,7 +1063,7 @@ Imports System.
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538579)>
+        <WorkItem(538579, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4235()
             Dim code = <Code>               
@@ -1846,7 +1846,7 @@ End Class</Code>
             AssertFormatUsingAllEntryPoints(code, expected)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_1()
             Dim code = "Dim a = <xml>   <%=<xml></xml>%>    </xml>"
@@ -1855,7 +1855,7 @@ End Class</Code>
             AssertFormat(CreateMethod(code), CreateMethod(expected))
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_2()
             Dim code = <Code>Class Foo
@@ -1897,7 +1897,7 @@ End Class</Code>
             AssertFormat(code, expected)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_3()
             Dim code = My.Resources.XmlLiterals.Test4_Input
@@ -1906,7 +1906,7 @@ End Class</Code>
             AssertFormat(code, expected)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_4()
             Dim code = <code>Class C
@@ -1925,7 +1925,7 @@ End Class</code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_5()
             Dim code = <code>Module Module1
@@ -1937,7 +1937,7 @@ End Module</code>
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_6()
             Dim code = <code>Module module1
@@ -1948,7 +1948,7 @@ End Module</code>
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_7()
             Dim code = <code>Module Module1
@@ -1970,7 +1970,7 @@ End Module</code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_8()
             Dim code = <code>Module Module1
@@ -1994,7 +1994,7 @@ End Module</code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538533)>
+        <WorkItem(538533, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4173_9()
             Dim code = <code>Module Module1
@@ -2016,7 +2016,7 @@ End Module</code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538772)>
+        <WorkItem(538772, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4482()
             Dim code = <code>_' Public Function GroupBy(Of K, R)( _
@@ -2027,7 +2027,7 @@ _' ByVal selector As SelectorFunc(Of K, QueryableCollection(Of T), R)) _
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(538754)>
+        <WorkItem(538754, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4459()
@@ -2056,7 +2056,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538675)>
+        <WorkItem(538675, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4352()
@@ -2083,7 +2083,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538703)>
+        <WorkItem(538703, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4394()
@@ -2130,7 +2130,7 @@ End Module</Code>
             AssertFormat(CreateMethod(code), CreateMethod(expected))
         End Sub
 
-        <WorkItem(538703)>
+        <WorkItem(538703, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4394_1()
             Dim code = My.Resources.XmlLiterals.Test6_Input
@@ -2139,7 +2139,7 @@ End Module</Code>
             AssertFormat(code, expected)
         End Sub
 
-        <WorkItem(538889)>
+        <WorkItem(538889, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4639()
             Dim code = "Imports <xmlns=""http://DefaultNamespace""       >       "
@@ -2148,7 +2148,7 @@ End Module</Code>
             AssertFormat(code, expected)
         End Sub
 
-        <WorkItem(538891)>
+        <WorkItem(538891, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4641()
             Dim code = <Code>Module module1
@@ -2173,7 +2173,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538892)>
+        <WorkItem(538892, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4642()
             Dim code = <Code>_      
@@ -2185,7 +2185,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538894)>
+        <WorkItem(538894, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4644()
             Dim code = <Code>Option Explicit Off
@@ -2227,7 +2227,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538897)>
+        <WorkItem(538897, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4647()
             Dim code = <Code>Option Explicit Off
@@ -2271,7 +2271,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(538962)>
+        <WorkItem(538962, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub WorkItem4737()
             Dim code = "Dim x = <?xml version =""1.0""?><code></code>"
@@ -2280,7 +2280,7 @@ End Module
             AssertFormat(CreateMethod(code), CreateMethod(expected))
         End Sub
 
-        <WorkItem(539031)>
+        <WorkItem(539031, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix4826()
             Dim code = <Code>Imports &lt;xmlns:a=""&gt;
@@ -2322,7 +2322,7 @@ End Class
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(539170)>
+        <WorkItem(539170, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5022()
             Dim code = <Code>Class A
@@ -2337,7 +2337,7 @@ End Class</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539324)>
+        <WorkItem(539324, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5232()
@@ -2358,7 +2358,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539353)>
+        <WorkItem(539353, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5270()
@@ -2387,7 +2387,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539358)>
+        <WorkItem(539358, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5277()
@@ -2404,7 +2404,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539455)>
+        <WorkItem(539455, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5432()
@@ -2435,7 +2435,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539351)>
+        <WorkItem(539351, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5268()
@@ -2446,7 +2446,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(539351)>
+        <WorkItem(539351, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5268_1()
@@ -2462,7 +2462,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(539473)>
+        <WorkItem(539473, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5456()
@@ -2488,7 +2488,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539474)>
+        <WorkItem(539474, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5457()
@@ -2525,7 +2525,7 @@ End Class</Code>
             AssertFormatSpan(code.Value.Replace(vbLf, vbCrLf), expected.Value.Replace(vbLf, vbCrLf))
         End Sub
 
-        <WorkItem(539503)>
+        <WorkItem(539503, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5492()
@@ -2559,7 +2559,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539508)>
+        <WorkItem(539508, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5497()
@@ -2589,7 +2589,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539581)>
+        <WorkItem(539581, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5594()
@@ -2625,7 +2625,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539582)>
+        <WorkItem(539582, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5595()
@@ -2647,7 +2647,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539616)>
+        <WorkItem(539616, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5637()
@@ -2681,15 +2681,15 @@ End Class</Code>
         End Sub
 
         <Fact>
-        <WorkItem(539458)>
-        <WorkItem(539459)>
+        <WorkItem(539458, "DevDiv")>
+        <WorkItem(539459, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlProcessingInstruction()
             AssertFormat(My.Resources.XmlLiterals.XmlTest3_Input, My.Resources.XmlLiterals.XmlTest3_Output)
         End Sub
 
-        <WorkItem(539463)>
-        <WorkItem(530597)>
+        <WorkItem(539463, "DevDiv")>
+        <WorkItem(530597, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlTest5442()
@@ -2712,7 +2712,7 @@ End Class</Code>
             End Using
         End Sub
 
-        <WorkItem(539687)>
+        <WorkItem(539687, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5731()
@@ -2743,7 +2743,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539545)>
+        <WorkItem(539545, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5547()
@@ -2776,7 +2776,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539453)>
+        <WorkItem(539453, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5430()
@@ -2785,7 +2785,7 @@ End Module</Code>
             AssertFormat(code, code)
         End Sub
 
-        <WorkItem(539889)>
+        <WorkItem(539889, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix5989()
@@ -2810,7 +2810,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539409)>
+        <WorkItem(539409, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix6367()
@@ -2831,7 +2831,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(539409)>
+        <WorkItem(539409, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix6367_1()
@@ -2844,7 +2844,7 @@ End Module
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(540678)>
+        <WorkItem(540678, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BugFix7023_1()
@@ -2881,7 +2881,7 @@ End Module
             AssertFormat(My.Resources.XmlLiterals.XmlTest8_Input, My.Resources.XmlLiterals.XmlTest8_Output)
         End Sub
 
-        <WorkItem(541628)>
+        <WorkItem(541628, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub MutilpleControlVariables()
@@ -2906,7 +2906,7 @@ End Module</Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
-        <WorkItem(541561)>
+        <WorkItem(541561, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ColonTrivia()
@@ -2968,7 +2968,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(539574)>
+        <WorkItem(539574, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub Preprocessors()
             Dim code = <Code>Imports System
@@ -3033,7 +3033,7 @@ namespace'</Code>
         End Sub
 
         <Fact>
-        <WorkItem(542698)>
+        <WorkItem(542698, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ColonTrivia1()
             Dim code = <Code>Imports _
@@ -3067,7 +3067,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(542698)>
+        <WorkItem(542698, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ColonTrivia2()
             Dim code = <Code>Imports _
@@ -3087,7 +3087,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(543197)>
+        <WorkItem(543197, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub KeyInAnonymousType()
             Dim code = <Code>Class C
@@ -3108,7 +3108,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544008)>
+        <WorkItem(544008, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub TestGetXmlNamespace()
             Dim code = <Code>Class C
@@ -3129,7 +3129,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(539409)>
+        <WorkItem(539409, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub StructuredTrivia()
             Dim code = <Code>#const foo=2.0d</Code>
@@ -3188,7 +3188,7 @@ End Class</Code>
         End Sub
 
         <Fact>
-        <WorkItem(543248)>
+        <WorkItem(543248, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub FormatBadCode()
             Dim code = <Code>Imports System
@@ -3204,7 +3204,7 @@ End Class</Code>
         End Sub
 
         <Fact>
-        <WorkItem(544496)>
+        <WorkItem(544496, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub AttributeInParameterList()
             Dim code = <Code>Module Program
@@ -3221,7 +3221,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(544980)>
+        <WorkItem(544980, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlElement_Expression()
             Dim code = <Code>Module Program
@@ -3236,7 +3236,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(542976)>
+        <WorkItem(542976, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlElementStartTag()
             Dim code = <Code>Module Program
@@ -3255,7 +3255,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(545088)>
+        <WorkItem(545088, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ForNext_MultipleVariables()
             Dim code = <Code>Module Program
@@ -3280,7 +3280,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(545088)>
+        <WorkItem(545088, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ForNext_MultipleVariables2()
             Dim code = <Code>Module Program
@@ -3309,7 +3309,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(544459)>
+        <WorkItem(544459, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub DictionaryAcessOperator()
             Dim code = <Code>Class S
@@ -3348,7 +3348,7 @@ End Module</Code>
         End Sub
 
         <Fact>
-        <WorkItem(542976)>
+        <WorkItem(542976, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlElementStartTag1()
             AssertFormat(My.Resources.XmlLiterals.XmlElementStartTag1_Input, My.Resources.XmlLiterals.XmlElementStartTag1_Output)
@@ -3419,7 +3419,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <Fact>
-        <WorkItem(545630)>
+        <WorkItem(545630, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub SpacesInXmlStrings()
             Dim text = "Imports <xmlns:x='&#70;'>"
@@ -3428,7 +3428,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <Fact>
-        <WorkItem(545680)>
+        <WorkItem(545680, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub SpaceBetweenPercentGreaterThanAndXmlName()
             Dim text = <code>Module Program
@@ -3455,7 +3455,7 @@ End Class
             AssertFormatLf2CrLf(code.Value, code.Value)
         End Sub
 
-        <WorkItem(547005)>
+        <WorkItem(547005, "DevDiv")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub BadDirectivesAreValidRanges()
             Dim code = <Code>
@@ -3675,7 +3675,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(531444)>
+        <WorkItem(531444, "DevDiv")>
         Sub TestElseIfFormattingForNestedSingleLineIf()
             Dim code =
 <Code><![CDATA[
@@ -3732,7 +3732,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(679864)>
+        <WorkItem(679864, "DevDiv")>
         Sub InsertSpaceBetweenXMLMemberAttributeAccessAndEqualsToken()
             Dim expected =
 <Code><![CDATA[
@@ -3763,7 +3763,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(530601)>
+        <WorkItem(530601, "DevDiv")>
         Sub TestElasticFormattingPropertySetter()
             Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", "Integer"))
             Dim setter = SyntaxFactory.AccessorBlock(SyntaxKind.PropertySetBlock,

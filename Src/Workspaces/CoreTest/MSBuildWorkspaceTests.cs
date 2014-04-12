@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = MSBuildWorkspace.Create();
         }
 
-        [WorkItem(542339)]
+        [WorkItem(542339, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageService()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(bigText.ToString(), newText.ToString());
         }
 
-        [WorkItem(552981)]
+        [WorkItem(552981, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceLoadWithDuplicatedGuid()
         {
@@ -294,7 +294,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenCSharpProjectAsyncWithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -306,7 +306,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenCSharpProjectAsyncWithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -319,7 +319,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenCSharpProjectAsyncWithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -331,7 +331,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenCSharpProjectAsyncWithPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -344,7 +344,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenCSharpProjectAsyncWithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -357,7 +357,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenVBProjectAsyncWithoutPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -369,7 +369,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenVBProjectAsyncWithoutPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -382,7 +382,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenVBProjectAsyncWithPrefer32BitAndConsoleApplication()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -394,7 +394,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenVBProjectAsyncWithPrefer32BitAndLibrary()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -407,7 +407,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(739043)]
+        [WorkItem(739043, "DevDiv")]
         public void TestOpenVBProjectAsyncWithPrefer32BitAndWinMDObj()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -478,7 +478,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631)]
+        [WorkItem(531631, "DevDiv")]
         public void TestLoadWithAssemblyNamePath()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -493,7 +493,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531631)]
+        [WorkItem(531631, "DevDiv")]
         public void TestLoadWithAssemblyNamePath2()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -564,7 +564,7 @@ class C1
 
         [ConditionalFact(typeof(Framework35Installed))]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(528984)]
+        [WorkItem(528984, "DevDiv")]
         public void TestLoadStandaloneProject_AddVBDefaultReferences()
         {
             string projectFile = "VisualBasicProject_VisualBasicProject_3_5.vbproj";
@@ -1520,7 +1520,7 @@ class C1
             var vbdoc8 = AssertSemanticVersionChanged(vbdoc7, vbdoc7.GetTextAsync().Result.Replace(literal7.Span, "100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276), WorkItem(12086, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "DevDiv"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public void TestProjectReferenceLoadStandalone()
         {
             var projPath = @"CSharpProject\CSharpProject_ProjectReference.csproj";
@@ -1544,7 +1544,7 @@ class C1
             }
         }
 
-        [WorkItem(918072)]
+        [WorkItem(918072, "DevDiv")]
         [Fact(Skip = "918072"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
@@ -1567,7 +1567,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
         public void TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -1588,7 +1588,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "DevDiv")]
         public void TestProjectReferenceWithExternAlias()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -1809,7 +1809,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531543)]
+        [WorkItem(531543, "DevDiv")]
         public void TestLoad_SolutionFileWithEmptyLineBetweenProjectBlock()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -1823,7 +1823,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(531283)]
+        [WorkItem(531283, "DevDiv")]
         public void TestLoad_SolutionFileWithMissingEndProject()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -1841,7 +1841,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912)]
+        [WorkItem(792912, "DevDiv")]
         public void TestLoadSolutionWithDuplicatedGuidsBecomeSelfReferential()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -1861,7 +1861,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(792912)]
+        [WorkItem(792912, "DevDiv")]
         public void TestLoadSolutionWithDuplicatedGuidsBecomeCircularReferential()
         {
             var files = new FileSet(new Dictionary<string, object>

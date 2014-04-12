@@ -78,7 +78,7 @@ public class C {
             Assert.Equal(1, typeSymbol.Locations.Count());
         }
 
-        [Fact, WorkItem(537936)]
+        [Fact, WorkItem(537936, "DevDiv")]
         public void FindReferences_InterfaceMapping()
         {
             var text = @"

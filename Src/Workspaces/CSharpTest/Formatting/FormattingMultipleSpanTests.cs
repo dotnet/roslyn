@@ -103,7 +103,7 @@ class A { }";
         }
 
         [Fact]
-        [WorkItem(554160)]
+        [WorkItem(554160, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSpanNullReference01()
         {
@@ -128,7 +128,7 @@ class A { }";
         }
 
         [Fact]
-        [WorkItem(554160)]
+        [WorkItem(554160, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSpanNullReference02()
         {
@@ -152,7 +152,7 @@ class A { }";
             AssertFormat(code, expected, changedOptionSet: changingOptions);
         }
 
-        [WorkItem(539231)]
+        [WorkItem(539231, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmptySpan()
         {

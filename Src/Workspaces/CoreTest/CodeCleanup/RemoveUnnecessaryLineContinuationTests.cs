@@ -583,7 +583,7 @@ End _
         }
 
         [Fact]
-        [WorkItem(544470)]
+        [WorkItem(544470, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void AttributeTargetColon()
         {
@@ -597,7 +597,7 @@ CLSCompliant>";
         }
 
         [Fact]
-        [WorkItem(529428)]
+        [WorkItem(529428, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationInImport()
         {
@@ -613,7 +613,7 @@ CLSCompliant>";
         }
 
         [Fact]
-        [WorkItem(529425)]
+        [WorkItem(529425, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void ColonInOption()
         {
@@ -625,7 +625,7 @@ CLSCompliant>";
         }
 
         [Fact]
-        [WorkItem(544524)]
+        [WorkItem(544524, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationInNamedFieldInitializer()
         {
@@ -653,7 +653,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(544523)]
+        [WorkItem(544523, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void IfPart_Colon1()
         {
@@ -675,7 +675,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544523)]
+        [WorkItem(544523, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void IfPart_Colon2()
         {
@@ -697,7 +697,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544523)]
+        [WorkItem(544523, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void IfPart_Colon3()
         {
@@ -719,7 +719,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544523)]
+        [WorkItem(544523, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void IfPart_Colon4()
         {
@@ -741,7 +741,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544521)]
+        [WorkItem(544521, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LabelColon()
         {
@@ -761,7 +761,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544521)]
+        [WorkItem(544521, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LabelColon_ColonTrivia()
         {
@@ -781,7 +781,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544520)]
+        [WorkItem(544520, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuation_MixedWithImplicitLineContinuation()
         {
@@ -805,7 +805,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(544549)]
+        [WorkItem(544549, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void ColonTrivia_EndOfFile()
         {
@@ -819,7 +819,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545538)]
+        [WorkItem(545538, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void ColonTriviaBeforeCommentTrivia()
         {
@@ -839,7 +839,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545540)]
+        [WorkItem(545540, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithMemberCall()
         {
@@ -865,7 +865,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545540)]
+        [WorkItem(545540, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithMemberCall2()
         {
@@ -891,7 +891,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545540)]
+        [WorkItem(545540, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithMemberCall3()
         {
@@ -917,7 +917,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545540)]
+        [WorkItem(545540, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithMemberCall4()
         {
@@ -943,7 +943,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(607791)]
+        [WorkItem(607791, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithDictionaryAccess()
         {
@@ -973,7 +973,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(607791)]
+        [WorkItem(607791, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideWithStatementWithDictionaryAccess2()
         {
@@ -1001,7 +1001,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(529821)]
+        [WorkItem(529821, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void InsideObjectInitializer()
         {
@@ -1033,7 +1033,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545545)]
+        [WorkItem(545545, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationBetweenXmlAndDot()
         {
@@ -1055,7 +1055,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545545)]
+        [WorkItem(545545, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationBetweenXmlAndDot1()
         {
@@ -1077,7 +1077,7 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(545565)]
+        [WorkItem(545565, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationBeforeFromQueryExpression()
         {
@@ -1099,7 +1099,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(545565)]
+        [WorkItem(545565, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationBeforeFromAggregateExpression()
         {
@@ -1121,7 +1121,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(530635)]
+        [WorkItem(530635, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationAtEndOfLambdaExpression1()
         {
@@ -1149,7 +1149,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(530635)]
+        [WorkItem(530635, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationAtEndOfLambdaExpression2()
         {
@@ -1181,7 +1181,7 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(546798)]
+        [WorkItem(546798, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void LineContinuationAfterDot()
         {
@@ -1197,8 +1197,8 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(530621)]
-        [WorkItem(631933)]
+        [WorkItem(530621, "DevDiv")]
+        [WorkItem(631933, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void DontRemoveLineContinuationAfterColonInSingleLineIfStatement()
         {
@@ -1216,8 +1216,8 @@ End Module";
         }
 
         [Fact]
-        [WorkItem(609481)]
-        [WorkItem(631933)]
+        [WorkItem(609481, "DevDiv")]
+        [WorkItem(631933, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void DontRemoveLineContinuationInSingleLineIfStatement()
         {
@@ -1248,8 +1248,8 @@ End Module
         }
 
         [Fact]
-        [WorkItem(609481)]
-        [WorkItem(631933)]
+        [WorkItem(609481, "DevDiv")]
+        [WorkItem(631933, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public void DontRemoveLineContinuationInNestedSingleLineIfStatement()
         {

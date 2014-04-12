@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestTemporaryStorage(service, text);
         }
 
-        [WorkItem(531188)]
+        [WorkItem(531188, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageStream()
         {

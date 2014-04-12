@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(543964)]
+        [WorkItem(543964, "DevDiv")]
         public void MultipleProjectsWithSameDisplayName()
         {
             var solution = CreateSolution();
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution;
         }
 
-        [WorkItem(636431)]
+        [WorkItem(636431, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestProjectDependencyLoading()
         {
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        [WorkItem(542736)]
+        [WorkItem(542736, "DevDiv")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem(666263)]
+        [WorkItem(666263, "DevDiv")]
         public void TestWorkspaceDiagnosticHasDebuggerText()
         {
             var solution = new CustomWorkspace().CurrentSolution;

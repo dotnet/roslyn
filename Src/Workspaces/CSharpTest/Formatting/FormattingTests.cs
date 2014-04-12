@@ -946,7 +946,7 @@ label3:
     }");
         }
 
-        [WorkItem(766133)]
+        [WorkItem(766133, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
@@ -986,7 +986,7 @@ class D
 }", false, changingOptions);
         }
 
-        [WorkItem(772298)]
+        [WorkItem(772298, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
@@ -1361,7 +1361,7 @@ class foo
 class foo{int x = 0;}", false, changingOptions);
         }
 
-        [WorkItem(751789)]
+        [WorkItem(751789, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NewLineForOpenBracesDefault()
         {
@@ -1486,7 +1486,7 @@ public class foo : System.Object
 }");
         }
 
-        [WorkItem(751789)]
+        [WorkItem(751789, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NewLineForOpenBracesNonDefault()
         {
@@ -2223,7 +2223,7 @@ goto Foo;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(545909)]
+        [WorkItem(545909, "DevDiv")]
         public void DontAddSpaceAfterIncrement()
         {
             var code = @"class C
@@ -2237,7 +2237,7 @@ goto Foo;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(545909)]
+        [WorkItem(545909, "DevDiv")]
         public void DontAddSpaceBeforeIncrement()
         {
             var code = @"class C
@@ -2251,7 +2251,7 @@ goto Foo;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(545909)]
+        [WorkItem(545909, "DevDiv")]
         public void DontAddSpaceAfterDecrement()
         {
             var code = @"class C
@@ -2265,7 +2265,7 @@ goto Foo;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(545909)]
+        [WorkItem(545909, "DevDiv")]
         public void DontAddSpaceBeforeDecrement()
         {
             var code = @"class C
@@ -2836,7 +2836,7 @@ int         i           =           10                  ;
     }           ");
         }
 
-        [WorkItem(537763)]
+        [WorkItem(537763, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NullableType()
         {
@@ -2855,7 +2855,7 @@ int         i           =           10                  ;
 }");
         }
 
-        [WorkItem(537766)]
+        [WorkItem(537766, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SuppressWrappingOnBraces()
         {
@@ -2866,7 +2866,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [WorkItem(537824)]
+        [WorkItem(537824, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoWhile()
         {
@@ -2891,7 +2891,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [WorkItem(537774)]
+        [WorkItem(537774, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SuppressWrappingBug()
         {
@@ -2911,7 +2911,7 @@ int         i           =           10                  ;
 ");
         }
 
-        [WorkItem(537768)]
+        [WorkItem(537768, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PreserveLineForAttribute()
         {
@@ -2932,7 +2932,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537878)]
+        [WorkItem(537878, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingOnMissingTokens()
         {
@@ -2959,7 +2959,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537783)]
+        [WorkItem(537783, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void UnaryExpression()
         {
@@ -2982,7 +2982,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537885)]
+        [WorkItem(537885, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Pointer()
         {
@@ -3003,7 +3003,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537886)]
+        [WorkItem(537886, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Tild()
         {
@@ -3026,7 +3026,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537884)]
+        [WorkItem(537884, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ArrayInitializer1()
         {
@@ -3051,7 +3051,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537884)]
+        [WorkItem(537884, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ArrayInitializer2()
         {
@@ -3076,7 +3076,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537884)]
+        [WorkItem(537884, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ImplicitArrayInitializer()
         {
@@ -3101,7 +3101,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537884)]
+        [WorkItem(537884, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void CollectionInitializer()
         {
@@ -3126,7 +3126,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537916)]
+        [WorkItem(537916, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AddressOfOperator()
         {
@@ -3149,7 +3149,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537885)]
+        [WorkItem(537885, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DereferenceOperator()
         {
@@ -3174,7 +3174,7 @@ static void Main(string[] args)
 ");
         }
 
-        [WorkItem(537905)]
+        [WorkItem(537905, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Namespaces()
         {
@@ -3192,7 +3192,7 @@ using System.Data;", @"using System; using System.Data;");
 }");
         }
 
-        [WorkItem(537902)]
+        [WorkItem(537902, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoWhile1()
         {
@@ -3288,7 +3288,7 @@ public       void       Method      (       )           {           }
 }");
         }
 
-        [WorkItem(538288)]
+        [WorkItem(538288, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ColonColon1()
         {
@@ -3306,7 +3306,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [WorkItem(538354)]
+        [WorkItem(538354, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix3939()
         {
@@ -3319,14 +3319,14 @@ public       void       Method      (       )           {
                                 Generic;");
         }
 
-        [WorkItem(538354)]
+        [WorkItem(538354, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Tab1()
         {
             AssertFormat(@"using System;", @"			using System;");
         }
 
-        [WorkItem(538329)]
+        [WorkItem(538329, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SuppressLinkBreakInIfElseStatement()
         {
@@ -3349,7 +3349,7 @@ public       void       Method      (       )           {
 }");
         }
 
-        [WorkItem(538464)]
+        [WorkItem(538464, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix4087()
         {
@@ -3369,7 +3369,7 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [WorkItem(538511)]
+        [WorkItem(538511, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AttributeTargetSpecifier()
         {
@@ -3393,7 +3393,7 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [WorkItem(538635)]
+        [WorkItem(538635, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Finalizer()
         {
@@ -3411,7 +3411,7 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [WorkItem(538743)]
+        [WorkItem(538743, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix4442()
         {
@@ -3429,7 +3429,7 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [WorkItem(538658)]
+        [WorkItem(538658, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix4328()
         {
@@ -3451,7 +3451,7 @@ public       void       Method      (       )           {
         }
 
         [Fact]
-        [WorkItem(538658)]
+        [WorkItem(538658, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix4515()
         {
@@ -3518,7 +3518,7 @@ public       void       Method      (       )           {
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539259)]
+        [WorkItem(539259, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5143()
@@ -3542,7 +3542,7 @@ public       void       Method      (       )           {
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539338)]
+        [WorkItem(539338, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5251()
@@ -3558,7 +3558,7 @@ public       void       Method      (       )           {
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539358)]
+        [WorkItem(539358, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5277()
@@ -3574,7 +3574,7 @@ public       void       Method      (       )           {
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539542)]
+        [WorkItem(539542, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5544()
@@ -3602,7 +3602,7 @@ class Program
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539587)]
+        [WorkItem(539587, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5602()
@@ -3624,7 +3624,7 @@ class Program
             AssertFormat(expected, code);
         }
 
-        [WorkItem(539616)]
+        [WorkItem(539616, "DevDiv")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5637()
@@ -3666,7 +3666,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(539878)]
+        [WorkItem(539878, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5978()
         {
@@ -3712,7 +3712,7 @@ System.Console.WriteLine(""a"");
         }
 
         [Fact]
-        [WorkItem(539878)]
+        [WorkItem(539878, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5979()
         {
@@ -3744,7 +3744,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(539891)]
+        [WorkItem(539891, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix5993()
         {
@@ -3774,7 +3774,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(540315)]
+        [WorkItem(540315, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix6536()
         {
@@ -3796,7 +3796,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(540801)]
+        [WorkItem(540801, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix7211()
         {
@@ -3825,7 +3825,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(541035)]
+        [WorkItem(541035, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix7564_1()
         {
@@ -3854,7 +3854,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(541035)]
+        [WorkItem(541035, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void BugFix7564_2()
         {
@@ -3906,7 +3906,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(541925)]
+        [WorkItem(541925, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void QueryContinuation()
         {
@@ -3962,7 +3962,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(542305)]
+        [WorkItem(542305, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AttributeFormatting1()
         {
@@ -3983,7 +3983,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(542304)]
+        [WorkItem(542304, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void CloseBracesInArgumentList()
         {
@@ -4018,7 +4018,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(542538)]
+        [WorkItem(542538, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void MissingTokens()
         {
@@ -4046,7 +4046,7 @@ class innerClass
         }
 
         [Fact]
-        [WorkItem(542199)]
+        [WorkItem(542199, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ColumnOfVeryFirstToken()
         {
@@ -4058,7 +4058,7 @@ class innerClass
         }
 
         [Fact]
-        [WorkItem(542718)]
+        [WorkItem(542718, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmptySuppressionSpan()
         {
@@ -4076,7 +4076,7 @@ class innerClass
         }
 
         [Fact]
-        [WorkItem(542790)]
+        [WorkItem(542790, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void LabelInSwitch()
         {
@@ -4118,7 +4118,7 @@ class innerClass
         }
 
         [Fact]
-        [WorkItem(543112)]
+        [WorkItem(543112, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatArbitaryNode()
         {
@@ -4161,7 +4161,7 @@ class innerClass
         }
 
         [Fact]
-        [WorkItem(543140)]
+        [WorkItem(543140, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void OmittedTypeArgument()
         {
@@ -4193,7 +4193,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(543131)]
+        [WorkItem(543131, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TryAfterLabel()
         {
@@ -4371,7 +4371,7 @@ case 1: break; case 2: break; default: break;}
         }
 
         [Fact]
-        [WorkItem(545335)]
+        [WorkItem(545335, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PreprocessorOnSameLine()
         {
@@ -4392,7 +4392,7 @@ case 1: break; case 2: break; default: break;}
         }
 
         [Fact]
-        [WorkItem(545626)]
+        [WorkItem(545626, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ArraysInAttributes()
         {
@@ -4412,7 +4412,7 @@ public class A : Attribute
         }
 
         [Fact]
-        [WorkItem(530580)]
+        [WorkItem(530580, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoNewLineAfterBraceInExpression()
         {
@@ -4440,7 +4440,7 @@ public class A : Attribute
         }
 
         [Fact]
-        [WorkItem(530580)]
+        [WorkItem(530580, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoIndentForNestedUsingWithoutBraces()
         {
@@ -4472,7 +4472,7 @@ using (null)
         }
 
         [Fact]
-        [WorkItem(546678)]
+        [WorkItem(546678, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void UnicodeWhitespace()
         {
@@ -4611,7 +4611,7 @@ foo:
         }
 
         [Fact]
-        [WorkItem(772313)]
+        [WorkItem(772313, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Bugfix_772313_ReturnKeywordBeforeQueryClauseDoesNotTriggerNewLineOnFormat()
         {
@@ -4636,7 +4636,7 @@ foo:
         }
 
         [Fact]
-        [WorkItem(772304)]
+        [WorkItem(772304, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Bugfix_772313_PreserveMethodParameterIndentWhenAttributePresent()
         {
@@ -4699,7 +4699,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(776513)]
+        [WorkItem(776513, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Bugfix_776513_CheckBraceIfNotMissingBeforeApplyingOperationForBracedBlocks()
         {
@@ -4711,7 +4711,7 @@ class C
             AssertFormat(expected, code);
         }
 
-        [WorkItem(769342)]
+        [WorkItem(769342, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShouldFormatDocCommentWithIndentSameAsTabSizeWithUseTabTrue()
         {
@@ -4736,7 +4736,7 @@ class C
 }", changedOptionSet: optionSet);
         }
 
-        [WorkItem(797278)]
+        [WorkItem(797278, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestSpacingOptionAroundControlFlow()
         {
@@ -4792,7 +4792,7 @@ class Program
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
 
-        [WorkItem(766212)]
+        [WorkItem(766212, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestOptionForSpacingAroundCommas()
         {
@@ -4842,7 +4842,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(772308)]
+        [WorkItem(772308, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void Bugfix_772308_SeparateSuppressionForEachCaseLabelEvenIfEmpty()
         {
@@ -4883,7 +4883,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(849870)]
+        [WorkItem(849870, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PropertyAccessorOptionOff()
         {
@@ -4922,7 +4922,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(844913)]
+        [WorkItem(844913, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void QueryExpressionInExpression()
         {
@@ -4983,7 +4983,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(843479)]
+        [WorkItem(843479, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmbeddedStatementElse()
         {
@@ -5018,7 +5018,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(772311)]
+        [WorkItem(772311, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void CommentAtTheEndOfLine()
         {
@@ -5055,7 +5055,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(772311)]
+        [WorkItem(772311, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestTab()
         {
@@ -5247,7 +5247,7 @@ class Program
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
-        [WorkItem(917351)]
+        [WorkItem(917351, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestLockStatement()
         {
