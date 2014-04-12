@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CSharpCA1008DiagnosticAnalyzer();
         }
 
-        [WorkItem(836193)]
+        [WorkItem(836193, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CSharp_EnumsShouldZeroValueFlagsRename()
         {
@@ -280,7 +280,7 @@ End Enum
                 GetBasicResultAt(16, 2, CA1008DiagnosticAnalyzer.RuleId, expectedMessage3));
         }
 
-        [WorkItem(836193)]
+        [WorkItem(836193, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void VisualBasic_EnumsShouldZeroValueFlagsRename_AttributeListHasTrivia()
         {

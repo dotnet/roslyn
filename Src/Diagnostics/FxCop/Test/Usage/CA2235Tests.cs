@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CSharpSerializationRulesDiagnosticAnalyzer();
         }
 
-        [WorkItem(858655)]
+        [WorkItem(858655, "DevDiv")]
         #region CA2235
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]

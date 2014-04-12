@@ -225,7 +225,7 @@ public class Class2
             GetCA1821CSharpResultAt(7, 3));
         }
 
-        [WorkItem(820941)]
+        [WorkItem(820941, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1821CSharpTestRemoveEmptyFinalizersWithNonInvocationBody()
         {

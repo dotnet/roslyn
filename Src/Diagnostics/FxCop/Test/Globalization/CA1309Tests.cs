@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Globalization
 {
-    [WorkItem(858659)]
+    [WorkItem(858659, "DevDiv")]
     public class CA1309Tests : DiagnosticAnalyzerTestBase
     {
         #region Helper methods

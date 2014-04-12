@@ -618,7 +618,7 @@ End Class
             GetCA2213BasicResultAt(42, 9));
         }
 
-        [WorkItem(858613)]
+        [WorkItem(858613, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA2213BasicTestUsingDisposeDisposableFieldsWithScope()
         {

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [WorkItem(858659)]
+    [WorkItem(858659, "DevDiv")]
     public partial class CA1030Tests : DiagnosticAnalyzerTestBase
     {
         protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()

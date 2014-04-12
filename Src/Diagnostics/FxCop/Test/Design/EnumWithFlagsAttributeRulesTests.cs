@@ -150,7 +150,7 @@ End Enum|]";
                 GetCA1027BasicResultAt(10, 13, "HexFlagsEnumClass"));
         }
 
-        [WorkItem(823796)]
+        [WorkItem(823796, "DevDiv")]
         [Fact(Skip = "823796"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CSharp_EnumWithFlagsAttributes_DuplicateValues()
         {
