@@ -40,6 +40,15 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            // if map grew too big, don't put it back to pool.
+            // when testing with whole roslyn solution, this droped about 2.5% of all requests.
+            // which I believe reasonable.
+            if (this.valueToIdMap.Count > 1024)
+            {
+                DictionaryPool.ForgetTrackedObject(this.valueToIdMap);
+                return;
+            }
+
             this.valueToIdMap.Clear();
             DictionaryPool.Free(this.valueToIdMap);
         }
