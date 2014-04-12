@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem(611805)]
+        [WorkItem(611805, "DevDiv")]
         [Fact]
         public void TestMultithreadedDecoding()
         {

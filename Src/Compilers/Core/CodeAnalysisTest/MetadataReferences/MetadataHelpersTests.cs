@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [WorkItem(546277)]
+        [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestDecodeTypeNameMatrix()
         {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DecodeTypeNamesAndVerify(decoder, namesToDecode, expectedDecodedNames);
         }
 
-        [WorkItem(546277)]
+        [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestDecodeArrayTypeName_Bug15478()
         {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 1 });
         }
 
-        [WorkItem(546277)]
+        [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestDecodeArrayTypeName_Valid()
         {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 1, 2 });
         }
 
-        [WorkItem(546277)]
+        [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestDecodeArrayTypeName_Invalid()
         {

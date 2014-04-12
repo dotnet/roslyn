@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public readonly int Value;
         }
 
-        [WorkItem(620704)]
+        [WorkItem(620704, "DevDiv")]
         [Fact]
         public void ZeroHash()
         {

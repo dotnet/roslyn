@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(correctSpan, vbTrivia3.Span);
         }
 
-        [Fact, WorkItem(824695)]
+        [Fact, WorkItem(824695, "DevDiv")]
         public void CSharpSyntax_VisualBasicKind()
         {
             var node = CSharp.SyntaxFactory.Identifier("a");
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(VisualBasic.SyntaxKind.None, trivia.VisualBasicKind());
         }
 
-        [Fact, WorkItem(824695)]
+        [Fact, WorkItem(824695, "DevDiv")]
         public void VisualBasicSyntax_CSharpKind()
         {
             var node = VisualBasic.SyntaxFactory.Identifier("a");

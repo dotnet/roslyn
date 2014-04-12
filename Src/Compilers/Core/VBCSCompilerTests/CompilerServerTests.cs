@@ -467,7 +467,7 @@ class Hello
             Assert.False(File.Exists(Path.Combine(tempDirectory.Path, "hello.exe")));
         }
 
-        [WorkItem(546067)]
+        [WorkItem(546067, "DevDiv")]
         [Fact]
         public void InvalidMetadataFileErrorCS()
         {
@@ -500,7 +500,7 @@ class Hello
             Assert.False(File.Exists(Path.Combine(tempDirectory.Path, "missingfile.exe")));
         }
 
-        [Fact(), WorkItem(761131)]
+        [Fact(), WorkItem(761131, "DevDiv")]
         public void MissingReferenceErrorVB()
         {
             Dictionary<string, string> files =
@@ -524,7 +524,7 @@ End Module"}};
             Assert.False(File.Exists(Path.Combine(tempDirectory.Path, "hellovb.exe")));
         }
 
-        [WorkItem(546067)]
+        [WorkItem(546067, "DevDiv")]
         [Fact]
         public void InvalidMetadataFileErrorVB()
         {
@@ -549,7 +549,7 @@ End Module"}};
         }
 
         [Fact()]
-        [WorkItem(723280)]
+        [WorkItem(723280, "DevDiv")]
         public void ReferenceCachingVB()
         {
             TempDirectory rootDirectory = tempDirectory.CreateDirectory("ReferenceCachingVB");
@@ -669,7 +669,7 @@ End Module
         }
 
         [Fact()]
-        [WorkItem(723280)]
+        [WorkItem(723280, "DevDiv")]
         public void ReferenceCachingCS()
         {
             TempDirectory rootDirectory = tempDirectory.CreateDirectory("ReferenceCachingCS");
@@ -833,7 +833,7 @@ End Module", i));
             Assert.Equal(string.Format("VB Hello number {0}\r\n", i), runningResult.Output);
         }
 
-        [Fact(), WorkItem(761326)]
+        [Fact(), WorkItem(761326, "DevDiv")]
         public void MultipleSimultaneousCompiles()
         {
             // Run this many compiles simultaneously in different directories.
@@ -1518,7 +1518,7 @@ End Module
             var resultFile = root.AddFile(GetResultFile(tempDirectory, "hello1.exe"));
         }
 
-        [WorkItem(545446)]
+        [WorkItem(545446, "DevDiv")]
         [Fact()]
         public void Utf8Output_WithRedirecting_Off_rcsc2()
         {
@@ -1533,7 +1533,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(545446)]
+        [WorkItem(545446, "DevDiv")]
         [Fact()]
         public void Utf8Output_WithRedirecting_Off_rvbc2()
         {
@@ -1552,7 +1552,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(545446)]
+        [WorkItem(545446, "DevDiv")]
         [Fact()]
         public void Utf8Output_WithRedirecting_On_rcsc2()
         {
@@ -1567,7 +1567,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(545446)]
+        [WorkItem(545446, "DevDiv")]
         [Fact()]
         public void Utf8Output_WithRedirecting_On_rvbc2()
         {
@@ -1586,7 +1586,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(871477)]
+        [WorkItem(871477, "DevDiv")]
         [Fact]
         public void AssemblyIdentityComparer1()
         {

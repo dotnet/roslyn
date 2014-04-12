@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<BadImageFormatException>(() => AssemblyMetadata.CreateFromFile(invalidModuleName.Path));
         }
 
-        [Fact, WorkItem(547015)]
+        [Fact, WorkItem(547015, "DevDiv")]
         public void IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
         {
             Assert.Throws<BadImageFormatException>(() =>
