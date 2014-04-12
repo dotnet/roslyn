@@ -827,7 +827,7 @@ BC30180: Keyword does not name a type.
 </expected>)
         End Sub
 
-        <WorkItem(541266)>
+        <WorkItem(541266, "DevDiv")>
         <Fact>
         Public Sub AsNewMissingType()
             Dim source =
@@ -943,7 +943,7 @@ End Class
                 expectedOutput:=<![CDATA[2, 3]]>)
         End Sub
 
-        <WorkItem(541398)>
+        <WorkItem(541398, "DevDiv")>
         <Fact>
         Public Sub ArrayFieldWithoutInitializer()
             Dim compilation = CompileAndVerify(

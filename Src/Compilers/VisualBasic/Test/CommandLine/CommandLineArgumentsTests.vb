@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        <WorkItem(543297)>
-        <WorkItem(546751)>
+        <WorkItem(543297, "DevDiv")>
+        <WorkItem(546751, "DevDiv")>
         Public Sub TestParseConditionalCompilationSymbols1()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
             Dim text As String
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(4, dict("A"))
         End Sub
 
-        <Fact(), WorkItem(546034), WorkItem(780817)>
+        <Fact(), WorkItem(546034, "DevDiv"), WorkItem(780817, "DevDiv")>
         Public Sub TestParseConditionalCompilationCaseInsensitiveSymbols()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
             Dim text = "Blah,blah"
@@ -279,7 +279,7 @@ blah
         End Sub
 
         <Fact()>
-        <WorkItem(546035)>
+        <WorkItem(546035, "DevDiv")>
         Public Sub TestParseConditionalCompilationSymbolsInSingleQuote()
             Dim errors As IEnumerable(Of Diagnostic) = Nothing
 
@@ -288,7 +288,7 @@ blah
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ^^ 'Blah' ^^ "))
         End Sub
 
-        <WorkItem(546536)>
+        <WorkItem(546536, "DevDiv")>
         <Fact()>
         Sub AllDev11WarningsAreStillWarnings()
             ' the warning numbers have been taken from the Dev11 sources (vb\include\errors.inc)

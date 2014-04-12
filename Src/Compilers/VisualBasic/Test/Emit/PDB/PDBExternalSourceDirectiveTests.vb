@@ -754,7 +754,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
 
-        <WorkItem(545302)>
+        <WorkItem(545302, "DevDiv")>
         <Fact()>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_4()
             Dim source =
@@ -776,7 +776,7 @@ End Module
                                 OptionsExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource (""bar1.vb"", 23)"))
         End Sub
 
-        <WorkItem(545307)>
+        <WorkItem(545307, "DevDiv")>
         <Fact>
         Public Sub OverflowLineNumbers()
             Dim source =
@@ -860,7 +860,7 @@ End Module
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact, WorkItem(846584)>
+        <Fact, WorkItem(846584, "DevDiv")>
         Public Sub RelativePathForExternalSource()
             Dim source =
 <compilation>

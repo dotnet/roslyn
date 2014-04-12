@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenOverridingAndHiding
         Inherits BasicTestBase
 
-        <WorkItem(540852)>
+        <WorkItem(540852, "DevDiv")>
         <Fact>
         Public Sub TestSimpleMustOverride()
             Dim source =
@@ -37,8 +37,8 @@ End Class
             })
         End Sub
 
-        <WorkItem(528311)>
-        <WorkItem(540865)>
+        <WorkItem(528311, "DevDiv")>
+        <WorkItem(540865, "DevDiv")>
         <Fact>
         Public Sub TestSimpleOverrides()
             Dim source =
@@ -63,7 +63,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540884)>
+        <WorkItem(540884, "DevDiv")>
         <Fact>
         Public Sub TestMustOverrideOverrides()
             Dim source =
@@ -91,7 +91,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(542576)>
+        <WorkItem(542576, "DevDiv")>
         <Fact>
         Public Sub TestDontMergePartials()
             Dim source =
@@ -138,8 +138,8 @@ End Class
             VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751)>
-        <Fact(), WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
+        <Fact(), WorkItem(543751, "DevDiv")>
         Public Sub TestMustOverloadWithOptional()
             CompileAndVerify(
                 <compilation>
@@ -362,7 +362,7 @@ C2]]>)
     C1: Public MustOverride Sub foo()]]>.Value.Replace(vbLf, vbCrLf)))
         End Sub
 
-        <WorkItem(543794)>
+        <WorkItem(543794, "DevDiv")>
         <Fact()>
         Public Sub CrossLanguageTest4()
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
@@ -396,7 +396,7 @@ C2]]>)
             CompileAndVerify(vb2Compilation).VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(544536)>
+        <Fact(), WorkItem(544536, "DevDiv")>
         Public Sub VBOverrideCsharpOptional()
             Dim cs1Compilation = CreateCSharpCompilation("CS1",
             <![CDATA[
@@ -694,7 +694,7 @@ End Class
     </compilation>, expectedOutput:="Function S")
         End Sub
 
-        <Fact, WorkItem(546816)>
+        <Fact, WorkItem(546816, "DevDiv")>
         Public Sub OverrideFinalizeWithoutNewslot()
             CompileAndVerify(
                 <compilation>

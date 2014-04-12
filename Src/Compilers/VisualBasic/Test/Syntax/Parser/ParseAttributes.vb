@@ -29,7 +29,7 @@ Public Class Attributes
         ]]>.Value, isFullWidth:=False)
     End Sub
 
-    <WorkItem(570756)>
+    <WorkItem(570756, "DevDiv")>
     <Fact()>
     Public Sub ParseFullWidthModuleAndAssemblyAttributes()
         ParseModuleOrAssemblyAttribute("<Assembly:A>".ToFullWidth(), isFullWidth:=True)
@@ -208,7 +208,7 @@ A>
              Diagnostic(ERRID.ERR_ExpectedGreater, ""))
     End Sub
 
-    <WorkItem(527027)>
+    <WorkItem(527027, "DevDiv")>
     <Fact>
     Public Sub BC30203_ParseMoreErrorStandaloneAttribute()
         ParseAndVerify(<![CDATA[
@@ -235,7 +235,7 @@ A>
             </errors>)
     End Sub
 
-    <WorkItem(537226)>
+    <WorkItem(537226, "DevDiv")>
     <Fact>
     Public Sub BC40008WRN_UseOfObsoleteSymbolNoMessage1()
         Dim code = <![CDATA[
@@ -258,7 +258,7 @@ End Module
         ParseAndVerify(code).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
-    <WorkItem(537226)>
+    <WorkItem(537226, "DevDiv")>
     <Fact>
     Public Sub ParseAttributeBeforeStatic()
         ParseAndVerify(<![CDATA[
@@ -288,7 +288,7 @@ End Module
              </errors>)
     End Sub
 
-    <WorkItem(569310)>
+    <WorkItem(569310, "DevDiv")>
     <Fact()>
     Public Sub ParseFileLevelAttributesWithExtraColon()
         ParseAndVerify(<![CDATA[
@@ -317,7 +317,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(638911)>
+    <WorkItem(638911, "DevDiv")>
     <Fact(Skip:="638911")>
     Public Sub ParseFileLevelAttributesWithExtraColon_2()
         ParseAndVerify(<![CDATA[
@@ -336,7 +336,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(570808)>
+    <WorkItem(570808, "DevDiv")>
     <Fact()>
     Public Sub ParseAttributeTargetOtherContextualKeyword()
         ParseAndVerify(<![CDATA[
@@ -366,7 +366,7 @@ End Module
     ''' <summary>
     ''' &lt;&gt; should be treated as an empty attributes list.
     ''' </summary>
-    <WorkItem(668159)>
+    <WorkItem(668159, "DevDiv")>
     <Fact()>
     Public Sub EmptyAttributesList()
         ParseAndVerify(<![CDATA[

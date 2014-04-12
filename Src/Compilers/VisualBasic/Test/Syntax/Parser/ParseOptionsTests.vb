@@ -40,7 +40,7 @@ Public Class ParseOptionsTests
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(Int32.MaxValue, LanguageVersion)))
     End Sub
 
-    <Fact, WorkItem(546206)>
+    <Fact, WorkItem(546206, "DevDiv")>
     Public Sub InvalidDefineSymbols()
 
         ' Command line: error BC31030: Project-level conditional compilation constant 'xxx' is not valid: Identifier expected
@@ -160,7 +160,7 @@ Public Class ParseOptionsTests
             </errors>)
     End Sub
 
-    <Fact, WorkItem(536060)>
+    <Fact, WorkItem(536060, "DevDiv")>
     Public Sub BC30620ERR_InvalidOptionStrict_FollowedByAssemblyAttribute()
         ParseAndVerify(<![CDATA[
             Option Strict False
@@ -171,7 +171,7 @@ Public Class ParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536067)>
+    <Fact, WorkItem(536067, "DevDiv")>
     Public Sub BC30627ERR_OptionStmtWrongOrder()
         ParseAndVerify(<![CDATA[
             Imports System
@@ -182,7 +182,7 @@ Public Class ParseOptionsTests
         </errors>)
     End Sub
 
-    <Fact, WorkItem(536362)>
+    <Fact, WorkItem(536362, "DevDiv")>
     Public Sub BC30206ERR_ExpectedForOptionStmt_NullReferenceException()
         ParseAndVerify(<![CDATA[
             Option
@@ -199,7 +199,7 @@ Public Class ParseOptionsTests
     </errors>)
     End Sub
 
-    <Fact, WorkItem(536432)>
+    <Fact, WorkItem(536432, "DevDiv")>
     Public Sub BC30205ERR_ExpectedEOS_ParseOption_ExtraSyntaxAtEOL()
         ParseAndVerify(<![CDATA[
             Option Infer On O
@@ -224,7 +224,7 @@ Public Class ParseOptionsTests
                 "PreprocessorSymbols")
     End Sub
 
-    <Fact, WorkItem(665448)>
+    <Fact, WorkItem(665448, "DevDiv")>
     Public Sub Serialization()
         Dim preprocessorSymbols = ImmutableArray.Create(Of KeyValuePair(Of String, Object))(New KeyValuePair(Of String, Object)("Alpha", 1),
                                                                                            New KeyValuePair(Of String, Object)("Beta", "Foo"))

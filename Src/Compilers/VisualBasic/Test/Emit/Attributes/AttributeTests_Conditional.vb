@@ -691,7 +691,7 @@ Imports System.Diagnostics
             TestConditionalMethod_DifferentSource(conditionalDefsDummy, preprocessorSymbolsDummy, conditionalDefs, preprocessorSymbols)
         End Sub
 
-        <WorkItem(546089)>
+        <WorkItem(546089, "DevDiv")>
         <Fact>
         Public Sub CaseInsensitivityTest()
             Dim source =
@@ -717,7 +717,7 @@ End Module
             CompileAndVerify(source, expectedOutput:=<![CDATA[Sub1 Called]]>)
         End Sub
 
-        <WorkItem(546089)>
+        <WorkItem(546089, "DevDiv")>
         <Fact>
         Public Sub CaseInsensitivityTest_02()
             Dim source =
@@ -744,7 +744,7 @@ End Module
             CompileAndVerify(source, expectedOutput:=<![CDATA[Sub1 Called]]>)
         End Sub
 
-        <WorkItem(546094)>
+        <WorkItem(546094, "DevDiv")>
         <Fact>
         Public Sub ConditionalAttributeOnPropertySetter()
             Dim source =

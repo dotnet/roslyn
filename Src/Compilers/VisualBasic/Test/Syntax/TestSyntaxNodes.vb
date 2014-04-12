@@ -1794,7 +1794,7 @@ End Module
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
-        <Fact, WorkItem(789824), WorkItem(530316)>
+        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
         Public Sub TestGetPreviousToken()
             Dim prog = ParseAndVerify(<![CDATA[
 Module Module1
@@ -1842,7 +1842,7 @@ End Module
             Assert.Equal(SyntaxKind.IdentifierToken, listToken.VisualBasicKind)
         End Sub
 
-        <Fact, WorkItem(789824), WorkItem(530316)>
+        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
         Public Sub TestGetNextSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1860,7 +1860,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(789824), WorkItem(530316)>
+        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
         Public Sub TestGetPreviousSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1948,7 +1948,7 @@ End Module
 
         End Sub
 
-        <WorkItem(537404)>
+        <WorkItem(537404, "DevDiv")>
         <Fact()>
         Public Sub TestNodeTokenConversion01()
             Dim prog = ParseAndVerify(<![CDATA[ Class A
@@ -1974,7 +1974,7 @@ End Class
             Assert.Equal(sN.Width, cS.Span.Length)
         End Sub
 
-        <WorkItem(537403)>
+        <WorkItem(537403, "DevDiv")>
         <Fact()>
         Public Sub TestNodeTokenConversion02()
 
@@ -1985,15 +1985,15 @@ End Class
 
         End Sub
 
-        <WorkItem(537673)>
+        <WorkItem(537673, "DevDiv")>
         <Fact()>
         Public Sub SyntaxTriviaDefaultIsDirective()
             Dim trivia As New SyntaxTrivia()
             Assert.False(trivia.IsDirective)
         End Sub
 
-        <WorkItem(538362)>
-        <Fact(), WorkItem(530316)>
+        <WorkItem(538362, "DevDiv")>
+        <Fact(), WorkItem(530316, "DevDiv")>
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
@@ -2025,7 +2025,7 @@ End Class
             Debug.Assert(lastToken.VisualBasicKind = SyntaxKind.EndOfFileToken)
         End Sub
 
-        <WorkItem(755236)>
+        <WorkItem(755236, "DevDiv")>
         <Fact(Skip:="802431")>
         Public Sub TestFindNode()
             Dim code = <code><![CDATA[
@@ -2087,7 +2087,7 @@ End Class]]>
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl.FindNode(root.FullSpan))
         End Sub
 
-        <WorkItem(539940)>
+        <WorkItem(539940, "DevDiv")>
                                      <Fact()>
         Public Sub TestFindTrivaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
@@ -2219,7 +2219,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).VisualBasicKind)
         End Sub
 
-        <Fact(), WorkItem(530316)>
+        <Fact(), WorkItem(530316, "DevDiv")>
         Public Sub TestDescendantTrivia()
             Dim text = <![CDATA[' Foo
 a + b
@@ -2234,7 +2234,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).VisualBasicKind)
         End Sub
 
-        <Fact(), WorkItem(530316)>
+        <Fact(), WorkItem(530316, "DevDiv")>
         Public Sub TestDescendantTriviaIntoStructuredTrivia()
             Dim text = <![CDATA[
 ''' <foo >
@@ -2449,7 +2449,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(530316)>
+        <Fact(), WorkItem(530316, "DevDiv")>
         Public Sub TestRemove_KeepExternalTrivia_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True

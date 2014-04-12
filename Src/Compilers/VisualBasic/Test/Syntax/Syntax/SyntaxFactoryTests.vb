@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxFactoryTests
 
         <Fact>
-        <WorkItem(720708)>
+        <WorkItem(720708, "DevDiv")>
         Public Sub TestLiteralDefaultStringValues()
 
             ' string

@@ -1424,7 +1424,7 @@ End Module
 ]]>)
         End Sub
         <Fact>
-        <WorkItem(703361)>
+        <WorkItem(703361, "DevDiv")>
         Public Sub VerifyHelpers()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -1441,7 +1441,7 @@ End Class]]></file>
             Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il)
         End Sub
 
-        <WorkItem(835430)>
+        <WorkItem(835430, "DevDiv")>
         <Fact>
         Sub YieldInWith()
             Dim source =

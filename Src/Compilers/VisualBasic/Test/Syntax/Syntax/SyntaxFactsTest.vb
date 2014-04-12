@@ -1261,7 +1261,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(531480)>
+    <WorkItem(531480, "DevDiv")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1289,7 +1289,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(530665)>
+    <WorkItem(530665, "DevDiv")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterDictionaryAccessOperator()
         Dim tree = ParseAndVerify(<![CDATA[

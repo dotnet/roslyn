@@ -15,7 +15,7 @@ Imports Xunit
 Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 
 Partial Public Class CommandLineTests
-    <Fact, WorkItem(530256)>
+    <Fact, WorkItem(530256, "DevDiv")>
     Public Sub WarnAsErrorPrecedence1()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -45,7 +45,7 @@ SRC.VB(5) : warning BC42104: Variable 'x' is used before it has been assigned a 
         CleanupAllGeneratedFiles(tempLog.Path)
     End Sub
 
-    <Fact, WorkItem(530668)>
+    <Fact, WorkItem(530668, "DevDiv")>
     Public Sub WarnAsErrorPrecedence2()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1
@@ -85,7 +85,7 @@ SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 </text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
     End Sub
 
-    <Fact, WorkItem(530668)>
+    <Fact, WorkItem(530668, "DevDiv")>
     Public Sub WarnAsErrorPrecedence3()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module M1

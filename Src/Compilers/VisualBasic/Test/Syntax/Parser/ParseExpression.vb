@@ -763,7 +763,7 @@ Skip 2
         Assert.Equal(SyntaxKind.SimpleJoinClause, GetOperator(expr, 1).Kind)
     End Sub
 
-    <WorkItem(542686)>
+    <WorkItem(542686, "DevDiv")>
     <Fact>
     Public Sub RangeVariableNamedFrom()
         Dim expr = ParseExpression("From From In ""qq"" Join y In ""www"" On From Equals y")
@@ -1036,7 +1036,7 @@ Skip 2
         ]]>)
     End Sub
 
-    <WorkItem(537571)>
+    <WorkItem(537571, "DevDiv")>
     <Fact>
     Public Sub TestLambdaInModule2()
         ' Test that a declaration with an attribute terminates the lambda.
@@ -1611,7 +1611,7 @@ Skip 2
             </errors>)
     End Sub
 
-    <WorkItem(527019)>
+    <WorkItem(527019, "DevDiv")>
     <Fact>
     Public Sub ParseErrorMismatchExpectedEOSVSBadCCExpression()
         ParseAndVerify(<![CDATA[
@@ -1696,7 +1696,7 @@ end class
                  </errors>).VerifyNoMissingChildren()
     End Sub
 
-    <WorkItem(537225)>
+    <WorkItem(537225, "DevDiv")>
     <Fact>
     Public Sub TestNewWithAnonymousExpression()
         ParseAndVerify(<![CDATA[
@@ -1715,7 +1715,7 @@ End Module
     End Sub
 
 
-    <WorkItem(538492)>
+    <WorkItem(538492, "DevDiv")>
     <Fact>
     Public Sub TestMultipleConditionValid002()
         ParseAndVerify(<![CDATA[
@@ -1765,7 +1765,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(537003)>
+    <WorkItem(537003, "DevDiv")>
     <Fact>
     Public Sub ParseFromFollowedById()
         Dim code = <![CDATA[
@@ -1785,7 +1785,7 @@ End Module
         Assert.Equal(SyntaxKind.FromClause, expr.ChildNodesAndTokens()(0).VisualBasicKind())
     End Sub
 
-    <WorkItem(537003)>
+    <WorkItem(537003, "DevDiv")>
     <Fact>
     Public Sub ParseFromFollowedByAndAlso()
         Dim code = <![CDATA[
@@ -1803,7 +1803,7 @@ End Module
                       </errors>)
     End Sub
 
-    <WorkItem(527765)>
+    <WorkItem(527765, "DevDiv")>
     <Fact>
     Public Sub NumericLiteralLongMinValue()
         Dim code = <![CDATA[
@@ -1829,7 +1829,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(541324)>
+    <WorkItem(541324, "DevDiv")>
     <Fact>
     Public Sub ParsingIntoClauseShouldNotCreateMissingTokens()
         Dim code = <![CDATA[
@@ -1860,7 +1860,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(542057)>
+    <WorkItem(542057, "DevDiv")>
     <Fact>
     Public Sub ParsingImplicitLineContinuationAfterDistinct()
         Dim code = <![CDATA[
@@ -1884,7 +1884,7 @@ End Module
         Assert.True(name.ContainsDiagnostics)
     End Sub
 
-    <WorkItem(542686)>
+    <WorkItem(542686, "DevDiv")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_1()
         Dim code = <![CDATA[
@@ -1900,7 +1900,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(542686)>
+    <WorkItem(542686, "DevDiv")>
     <Fact>
     Public Sub FromAsIdentifierInRangeQuery_2()
         Dim code = <![CDATA[
@@ -1917,7 +1917,7 @@ End Module
                              Diagnostic(ERRID.ERR_ExpectedEOS, "Class"))
     End Sub
 
-    <WorkItem(542715)>
+    <WorkItem(542715, "DevDiv")>
     <Fact()>
     Public Sub ParseExpressionRangeVariableDeclarationList_1()
 
@@ -1934,7 +1934,7 @@ End Module
     End Sub
 
 
-    <WorkItem(544274)>
+    <WorkItem(544274, "DevDiv")>
     <Fact()>
     Public Sub ParseMemberAccessExpressionWithDotDot()
 
@@ -1949,7 +1949,7 @@ End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
     End Sub
 
-    <WorkItem(545515)>
+    <WorkItem(545515, "DevDiv")>
     <Fact>
     Public Sub FromAsNewInQuery()
         Dim code = <![CDATA[
@@ -1962,7 +1962,7 @@ End Module
         ParseAndVerify(code, Diagnostic(ERRID.ERR_UnrecognizedTypeKeyword, ""))
     End Sub
 
-    <WorkItem(545584)>
+    <WorkItem(545584, "DevDiv")>
     <Fact>
     Public Sub ParseNullableAfterOpenGeneric()
         Dim code = <![CDATA[
@@ -1979,7 +1979,7 @@ End Class
     Diagnostic(ERRID.ERR_UnrecognizedType, ")"))
     End Sub
 
-    <WorkItem(545166)>
+    <WorkItem(545166, "DevDiv")>
     <Fact>
     Public Sub ParseNullableWithQuestionMark()
         Dim code = <![CDATA[
@@ -1996,7 +1996,7 @@ End Module
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(546514)>
+    <WorkItem(546514, "DevDiv")>
     <Fact>
     Public Sub XmlMemberAccessWithInvalidWhitespace()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2027,7 +2027,7 @@ End Module
 
     End Sub
 
-    <WorkItem(546378)>
+    <WorkItem(546378, "DevDiv")>
     <Fact>
     Public Sub SpuriousLineContinuationAtBeginingOfStatement()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2046,7 +2046,7 @@ End Module
 
     End Sub
 
-    <WorkItem(531567)>
+    <WorkItem(531567, "DevDiv")>
     <Fact>
     Public Sub ColonAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2061,7 +2061,7 @@ End Module
 
     End Sub
 
-    <WorkItem(546515)>
+    <WorkItem(546515, "DevDiv")>
     <Fact>
     Public Sub ParseBadAsClauseInJoinQuery()
         Dim code = <![CDATA[
@@ -2078,7 +2078,7 @@ End Module
                        Diagnostic(ERRID.ERR_ExpectedInto, ""))
     End Sub
 
-    <WorkItem(546515)>
+    <WorkItem(546515, "DevDiv")>
     <Fact>
     Public Sub ParseBadSourceInJoinQuery()
         Dim code = <![CDATA[
@@ -2096,7 +2096,7 @@ End Module
                        Diagnostic(ERRID.ERR_IllegalChar, "$"))
     End Sub
 
-    <WorkItem(546710)>
+    <WorkItem(546710, "DevDiv")>
     <Fact()>
     Public Sub Bug16626()
         Dim source = <![CDATA[
@@ -2167,7 +2167,7 @@ End Module
         Assert.Equal(asClause.ToFullString(), "As Object ")
     End Sub
 
-    <WorkItem(601108)>
+    <WorkItem(601108, "DevDiv")>
     <Fact>
     Public Sub DistinctAfterOctal()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -2513,7 +2513,7 @@ End Module
     ''' Allow missing optional expression at end of statement
     ''' within single-line expression/statement.
     ''' </summary>
-    <WorkItem(642273)>
+    <WorkItem(642273, "DevDiv")>
     <Fact()>
     Public Sub MissingOptionalExpressionEndingSingleLineStatement()
         ParseAndVerify(<![CDATA[

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenInterfaceImplementationTests
         Inherits BasicTestBase
 
-        <WorkItem(540794)>
+        <WorkItem(540794, "DevDiv")>
         <Fact>
         Public Sub TestInterfaceMembersSignature()
             Dim source =
@@ -34,10 +34,10 @@ End Interface
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540794)>
-        <WorkItem(540805)>
-        <WorkItem(540861)>
-        <WorkItem(540807)>
+        <WorkItem(540794, "DevDiv")>
+        <WorkItem(540805, "DevDiv")>
+        <WorkItem(540861, "DevDiv")>
+        <WorkItem(540807, "DevDiv")>
         <Fact>
         Public Sub TestNestedInterface()
             Dim source =
@@ -97,7 +97,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543426)>
+        <WorkItem(543426, "DevDiv")>
         <Fact()>
         Public Sub TestExplicitlyImplementInterfaceNestedInGenericType()
             Dim source =

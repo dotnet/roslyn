@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
             End Get
         End Property
 
-        <Fact, WorkItem(762316)>
+        <Fact, WorkItem(762316, "DevDiv")>
         Public Sub InheritFromTypeWithProjections()
             Dim source =
             <compilation>

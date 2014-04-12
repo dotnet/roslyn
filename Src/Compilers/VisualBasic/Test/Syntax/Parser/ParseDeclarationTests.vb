@@ -385,7 +385,7 @@ End Enum
         TraverseAllNodes()
     End Sub
 
-    <WorkItem(527076)>
+    <WorkItem(527076, "DevDiv")>
     <Fact>
     Public Sub ParseMustOverrideInsideModule()
         ParseAndVerify(<![CDATA[
@@ -445,7 +445,7 @@ End Class
              </errors>)
     End Sub
 
-    <WorkItem(543607)>
+    <WorkItem(543607, "DevDiv")>
     <Fact()>
     Public Sub ParseInheritsAtInvalidLocation()
         ParseAndVerify(<![CDATA[
@@ -488,7 +488,7 @@ End Class
              </errors>)
     End Sub
 
-    <WorkItem(527022)>
+    <WorkItem(527022, "DevDiv")>
     <Fact()>
     Public Sub BC30037ERR_IllegalChar_TypeParamMissingAsCommaOrRParen()
         ParseAndVerify(<![CDATA[
@@ -709,7 +709,7 @@ p1 as vb$anonymous1
 
     <WorkItem(887748, "DevDiv/Personal")>
     <WorkItem(889062, "DevDiv/Personal")>
-    <WorkItem(538919)>
+    <WorkItem(538919, "DevDiv")>
     <Fact>
     Public Sub BC30602ERR_InterfaceMemberSyntax_TypeStatement()
         ParseAndVerify(<![CDATA[
@@ -875,7 +875,7 @@ p1 as vb$anonymous1
             </errors>)
     End Sub
 
-    <WorkItem(536278)>
+    <WorkItem(536278, "DevDiv")>
     <Fact>
     Public Sub BC31140ERR_InvalidUseOfCustomModifier_ExpectedSpecifierAndInvalidEndSub()
         ParseAndVerify(<![CDATA[
@@ -920,7 +920,7 @@ p1 as vb$anonymous1
     End Sub
 
 
-    <WorkItem(538990)>
+    <WorkItem(538990, "DevDiv")>
     <Fact>
     Public Sub Bug4770()
         ParseAndVerify(<![CDATA[
@@ -932,7 +932,7 @@ p1 as vb$anonymous1
                  </errors>)
     End Sub
 
-    <WorkItem(539509)>
+    <WorkItem(539509, "DevDiv")>
     <Fact>
     Public Sub EnumsWithGenericParameter()
         ' Enums should recover the same was as other declarations that do not allow generics.

@@ -478,7 +478,7 @@ End Class
     expectedOutput:=<![CDATA[x = 1, y = 1]]>)
         End Sub
 
-        <WorkItem(540460)>
+        <WorkItem(540460, "DevDiv")>
         <Fact>
         Public Sub TestStaticInitializerErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -505,7 +505,7 @@ BC30491: Expression does not produce a value.
             End Using
         End Sub
 
-        <WorkItem(540460)>
+        <WorkItem(540460, "DevDiv")>
         <Fact>
         Public Sub TestInstanceInitializerErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -532,7 +532,7 @@ BC30491: Expression does not produce a value.
             End Using
         End Sub
 
-        <WorkItem(540467)>
+        <WorkItem(540467, "DevDiv")>
         <Fact>
         Public Sub TestCallNoParentheses()
             Dim source =
@@ -555,7 +555,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(539286)>
+        <WorkItem(539286, "DevDiv")>
         <Fact>
         Public Sub TestLambdasInFieldInitializers()
             Dim source =
@@ -607,7 +607,7 @@ System.String
 15129]]>)
         End Sub
 
-        <WorkItem(540603)>
+        <WorkItem(540603, "DevDiv")>
         <Fact>
         Public Sub TestAsNewInitializers()
             Dim source =

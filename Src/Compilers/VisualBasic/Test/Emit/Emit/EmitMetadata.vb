@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class EmitMetadata
         Inherits BasicTestBase
 
-        <Fact, WorkItem(547015)>
+        <Fact, WorkItem(547015, "DevDiv")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
             CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
@@ -552,7 +552,7 @@ End Class
             Assert.Equal(0, reader.GetTypeDefinition(typeDefs(0)).Attributes)
         End Sub
 
-        <WorkItem(543517)>
+        <WorkItem(543517, "DevDiv")>
         <Fact()>
         Public Sub EmitBeforeFieldInit()
             CompileAndVerify(

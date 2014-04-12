@@ -1099,8 +1099,8 @@ End Interface
 
         End Sub
 
-        <WorkItem(545182)>
-        <WorkItem(545184)>
+        <WorkItem(545182, "DevDiv")>
+        <WorkItem(545184, "DevDiv")>
         <Fact()>
         Public Sub TestHandlesForWithEventsFromBaseFromADifferentAssembly()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestHandlesForWithEventsFromBaseFromADifferentAssembly_Assembly1",
@@ -1148,7 +1148,7 @@ End Module]]>,
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545185)>
+        <WorkItem(545185, "DevDiv")>
         <Fact()>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
@@ -1170,7 +1170,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(529548)>
+        <WorkItem(529548, "DevDiv")>
         <Fact()>
         Public Sub TestIssueWeFixedInNativeCompiler()
             Dim comp = CreateVisualBasicCompilation("TestIssueWeFixedInNativeCompiler",
@@ -1197,7 +1197,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545188)>
+        <WorkItem(545188, "DevDiv")>
         <Fact>
         Public Sub Bug13470()
             Dim compilation1 = CompileAndVerify(
@@ -1222,7 +1222,7 @@ End Class
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem(545187)>
+        <WorkItem(545187, "DevDiv")>
         <Fact>
         Public Sub Bug13469()
             'Note: Below IL is for the following VB code compiled with Dev11 (using /debug-) -
@@ -1421,7 +1421,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <Fact(), WorkItem(545250)>
+        <Fact(), WorkItem(545250, "DevDiv")>
         Public Sub HookupOrder()
             CompileAndVerify(
     <compilation>
@@ -1483,7 +1483,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529653)>
+        <Fact, WorkItem(529653, "DevDiv")>
         Public Sub TestExecutionOrder1()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrder1",
             <![CDATA[Imports System, System.Collections.Generic
@@ -1603,7 +1603,7 @@ End Module]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(529653)>
+        <Fact, WorkItem(529653, "DevDiv")>
         Public Sub TestExecutionOrder2()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestExecutionOrder2",
             <![CDATA[Option Strict Off
@@ -1686,7 +1686,7 @@ Derived H2]]>)
             assembly2Verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(545250), WorkItem(529653)>
+        <Fact(), WorkItem(545250, "DevDiv"), WorkItem(529653, "DevDiv")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("TestCrossLanguageOptionalAndParamarray1_CS",
             <![CDATA[public class CSClass
@@ -1888,7 +1888,7 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
         End Sub
 
-        <Fact, WorkItem(545257)>
+        <Fact, WorkItem(545257, "DevDiv")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error2()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass

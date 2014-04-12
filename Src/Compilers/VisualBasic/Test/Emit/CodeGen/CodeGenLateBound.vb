@@ -524,7 +524,7 @@ expectedOutput:=<![CDATA[EvalObjEvalArgGetSetGet42]]>).
 ]]>)
         End Sub
 
-        <WorkItem(543749)>
+        <WorkItem(543749, "DevDiv")>
         <Fact()>
         Public Sub MethodCallWithoutArgParensEnclosedInParens()
             CompileAndVerify(
@@ -2646,7 +2646,7 @@ End Module
 expectedOutput:=<![CDATA[short]]>)
         End Sub
 
-        <WorkItem(546467)>
+        <WorkItem(546467, "DevDiv")>
         <Fact()>
         Public Sub Bug15939_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2690,7 +2690,7 @@ End Module
                     Diagnostic(ERRID.ERR_NameNotMember2, "I2.GoHome").WithArguments("GoHome", "Module1.II2"))
         End Sub
 
-        <WorkItem(546467)>
+        <WorkItem(546467, "DevDiv")>
         <Fact()>
         Public Sub Bug15939_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2817,7 +2817,7 @@ expectedOutput:=<![CDATA[42
 777]]>)
         End Sub
 
-        <Fact(), WorkItem(531546)>
+        <Fact(), WorkItem(531546, "DevDiv")>
         Public Sub Bug18273()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -2887,7 +2887,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531546)>
+        <Fact(), WorkItem(531546, "DevDiv")>
         Public Sub Bug18273_2()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -2948,7 +2948,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531546)>
+        <Fact(), WorkItem(531546, "DevDiv")>
         Public Sub Bug18273_3()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3011,7 +3011,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531546)>
+        <Fact(), WorkItem(531546, "DevDiv")>
         Public Sub Bug18273_4()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3078,7 +3078,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531546)>
+        <Fact(), WorkItem(531546, "DevDiv")>
         Public Sub Bug18273_5()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3141,7 +3141,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531547)>
+        <Fact(), WorkItem(531547, "DevDiv")>
         Public Sub Bug18274()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3159,7 +3159,7 @@ End Module
 </compilation>)
         End Sub
 
-        <Fact(), WorkItem(531547)>
+        <Fact(), WorkItem(531547, "DevDiv")>
         Public Sub Bug18274_1()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3743,7 +3743,7 @@ BC42016: Implicit conversion from 'Object' to 'Integer'.
         End Sub
 
 
-        <Fact(), WorkItem(531153)>
+        <Fact(), WorkItem(531153, "DevDiv")>
         Public Sub Bug531153()
 
             Dim verifier = CompileAndVerify(
@@ -3816,7 +3816,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531153)>
+        <Fact(), WorkItem(531153, "DevDiv")>
         Public Sub Bug531153_1()
 
             Dim verifier = CompileAndVerify(
@@ -3906,7 +3906,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(575833)>
+        <WorkItem(575833, "DevDiv")>
         <Fact()>
         Public Sub OverloadedMethodUsingNamespaceDotMethodSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3936,7 +3936,7 @@ End Namespace
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(531569)>
+        <WorkItem(531569, "DevDiv")>
         <Fact()>
         Public Sub ObjectToXmlLiteral()
             Dim verifier = CompileAndVerify(
@@ -3965,7 +3965,7 @@ End Module
 
         End Sub
 
-        <WorkItem(531569)>
+        <WorkItem(531569, "DevDiv")>
         <Fact()>
         Public Sub ObjectToXmlLiteral_Err()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -4003,7 +4003,7 @@ End Module
 
         End Sub
 
-        <WorkItem(632206)>
+        <WorkItem(632206, "DevDiv")>
         <Fact()>
         Public Sub LateBang()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

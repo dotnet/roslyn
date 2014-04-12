@@ -42,7 +42,7 @@ Partial Public Class CommandLineTests
         End If
     End Sub
 
-    <Fact, WorkItem(546322)>
+    <Fact, WorkItem(546322, "DevDiv")>
     Public Sub NowarnWarnaserrorTest()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -70,7 +70,7 @@ End Class
         CleanupAllGeneratedFiles(src)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CommandLineCompilationWithQuotedMainArgument()
         ' Arguments with quoted rootnamespace and maintype are unquoted when
@@ -124,7 +124,7 @@ End Module
 
     End Sub
 
-    <WorkItem(546536)>
+    <WorkItem(546536, "DevDiv")>
     <Fact()>
     Public Sub EnsureLegacyWarningsAreMaintained()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
@@ -186,7 +186,7 @@ vbc : warning BC2026: warning number '42325' for the option 'nowarn' is either n
         CleanupAllGeneratedFiles(src)
     End Sub
 
-    <WorkItem(722561)>
+    <WorkItem(722561, "DevDiv")>
     <Fact()>
     Public Sub Bug_722561()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
@@ -384,7 +384,7 @@ a.vb
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(685392)>
+    <WorkItem(685392, "DevDiv")>
     <Fact()>
     Public Sub ResponseFiles_RootNamespace()
         Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
@@ -462,7 +462,7 @@ a.vb
                        cmd.Arguments.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
     End Sub
 
-    <Fact, WorkItem(546028)>
+    <Fact, WorkItem(546028, "DevDiv")>
     Public Sub Win32ResourceArguments()
         Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
@@ -1034,7 +1034,7 @@ a.vb
         Assert.Null(parsedArgs.CompilationOptions.DelaySign)
     End Sub
 
-    <WorkItem(546113)>
+    <WorkItem(546113, "DevDiv")>
     <Fact>
     Public Sub OutputVerbose()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose", "a.vb"}, _baseDirectory)
@@ -1074,7 +1074,7 @@ a.vb
         Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
     End Sub
 
-    <WorkItem(546113)>
+    <WorkItem(546113, "DevDiv")>
     <Fact>
     Public Sub OutputQuiet()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet", "a.vb"}, _baseDirectory)
@@ -1146,7 +1146,7 @@ a.vb
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
     End Sub
 
-    <WorkItem(546301)>
+    <WorkItem(546301, "DevDiv")>
     <Fact>
     Public Sub Parallel()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/parallel", "a.vb"}, _baseDirectory)
@@ -1494,9 +1494,9 @@ a.vb
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optionstrict", ":custom"))
     End Sub
 
-    <WorkItem(546319)>
-    <WorkItem(546318)>
-    <WorkItem(685392)>
+    <WorkItem(546319, "DevDiv")>
+    <WorkItem(546318, "DevDiv")>
+    <WorkItem(685392, "DevDiv")>
     <Fact>
     Public Sub RootNamespace()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
@@ -1653,8 +1653,8 @@ a.vb
         CleanupAllGeneratedFiles(file5.Path)
     End Sub
 
-    <WorkItem(545991)>
-    <WorkItem(546009)>
+    <WorkItem(545991, "DevDiv")>
+    <WorkItem(546009, "DevDiv")>
     <Fact>
     Public Sub Recurse_SimpleTests2()
         Dim folder = Temp.CreateDirectory()
@@ -2111,7 +2111,7 @@ a.vb
         parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pdb:something"))
     End Sub
 
-    <WorkItem(540891)>
+    <WorkItem(540891, "DevDiv")>
     <Fact>
     Public Sub ParseOut()
         Const baseDirectory As String = "C:\abc\def\baz"
@@ -2346,7 +2346,7 @@ a.vb
         Assert.Equal("x.netmodule", parsedArgs.CompilationOptions.ModuleName)
     End Sub
 
-    <Fact, WorkItem(531020)>
+    <Fact, WorkItem(531020, "DevDiv")>
     Public Sub ParseDocBreak1()
         Const baseDirectory As String = "C:\abc\def\baz"
 
@@ -2358,7 +2358,7 @@ a.vb
         Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
     End Sub
 
-    <Fact, WorkItem(705173)>
+    <Fact, WorkItem(705173, "DevDiv")>
     Public Sub Ensure_UTF8_Explicit_Prefix_In_Documentation_Comment_File()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("src.vb")
@@ -2385,7 +2385,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(733242)>
+    <Fact, WorkItem(733242, "DevDiv")>
     Public Sub Bug733242()
         Dim dir = Temp.CreateDirectory()
 
@@ -2436,7 +2436,7 @@ content)
         CleanupAllGeneratedFiles(xml.Path)
     End Sub
 
-    <Fact, WorkItem(768605)>
+    <Fact, WorkItem(768605, "DevDiv")>
     Public Sub Bug768605()
         Dim dir = Temp.CreateDirectory()
 
@@ -2517,7 +2517,7 @@ content)
         CleanupAllGeneratedFiles(xml.Path)
     End Sub
 
-    <Fact, WorkItem(705148)>
+    <Fact, WorkItem(705148, "DevDiv")>
     Public Sub Bug705148a()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2536,7 +2536,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(705148)>
+    <Fact, WorkItem(705148, "DevDiv")>
     Public Sub Bug705148b()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2555,7 +2555,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(705148)>
+    <Fact, WorkItem(705148, "DevDiv")>
     Public Sub Bug705148c()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2574,7 +2574,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(705202)>
+    <Fact, WorkItem(705202, "DevDiv")>
     Public Sub Bug705202a()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2593,7 +2593,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(705202)>
+    <Fact, WorkItem(705202, "DevDiv")>
     Public Sub Bug705202b()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2612,7 +2612,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(705202)>
+    <Fact, WorkItem(705202, "DevDiv")>
     Public Sub Bug705202c()
         Dim dir = Temp.CreateDirectory()
         Dim src = dir.CreateFile("a.vb")
@@ -2631,7 +2631,7 @@ End Class
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <Fact, WorkItem(531021)>
+    <Fact, WorkItem(531021, "DevDiv")>
     Public Sub ParseDocBreak2()
 
         ' In dev11, if you give an invalid file name, the documentation comments
@@ -2889,7 +2889,7 @@ End Class
                        StringComparer.OrdinalIgnoreCase)
     End Sub
 
-    <Fact, WorkItem(530088)>
+    <Fact, WorkItem(530088, "DevDiv")>
     Public Sub Platform()
         ' test recognizing all options
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:X86", "a.vb"}, _baseDirectory)
@@ -3155,7 +3155,7 @@ End Class
         parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/libpath+")) ' TODO: Dev11 reports ERR_ArgumentRequired
     End Sub
 
-    <Fact(), WorkItem(546005)>
+    <Fact(), WorkItem(546005, "DevDiv")>
     Public Sub LibPathsAndLibEnvVariable_Relative_Rvbc()
         Dim tempFolder = Temp.CreateDirectory()
         Dim baseDirectory = tempFolder.ToString()
@@ -3387,7 +3387,7 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
         CleanupAllGeneratedFiles(src.Path)
     End Sub
 
-    <WorkItem(598158)>
+    <WorkItem(598158, "DevDiv")>
     <Fact()>
     Public Sub MultiplePathsInSdkPath()
 
@@ -3683,7 +3683,7 @@ End Class
             expectedOutputName:="p.exe")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName7()
         Dim source1 = <![CDATA[
@@ -3706,7 +3706,7 @@ End Class
             expectedOutputName:="foo.dll")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName8()
         Dim source1 = <![CDATA[
@@ -3729,7 +3729,7 @@ End Class
             expectedOutputName:="foo.dll")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName9()
         Dim source1 = <![CDATA[
@@ -3752,7 +3752,7 @@ End Class
             expectedOutputName:="foo.a.dll")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName10()
         Dim source1 = <![CDATA[
@@ -3775,7 +3775,7 @@ End Class
             expectedOutputName:="foo.a")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName11()
         Dim source1 = <![CDATA[
@@ -3798,7 +3798,7 @@ End Class
             expectedOutputName:="foo.a")
     End Sub
 
-    <WorkItem(545773)>
+    <WorkItem(545773, "DevDiv")>
     <Fact>
     Public Sub OutputFileName12()
         Dim source1 = <![CDATA[
@@ -3982,7 +3982,7 @@ End Class
         Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("abc", "nowarn"))
     End Sub
 
-    <WorkItem(545025)>
+    <WorkItem(545025, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithWarnAsError()
         Dim source = <![CDATA[
@@ -4016,7 +4016,7 @@ End Class
         Return vbc.Run(outWriter, Nothing)
     End Function
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_01()
         Dim source =
@@ -4076,7 +4076,7 @@ PATH(11) : warning BC42105: Function 'foo' doesn't return a value on all code pa
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_02()
         ' It verifies the case where diagnostic does not have the associated location in it.
@@ -4128,7 +4128,7 @@ PATH(9) : error BC36640: Instance of restricted type 'System.ArgIterator' cannot
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_03()
         ' It verifies the case where the squiggles covers the error span with tabs in it.
@@ -4168,7 +4168,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_04()
         ' It verifies the case where the squiggles covers multiple lines.
@@ -4217,7 +4217,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_05()
         ' It verifies the case where the squiggles covers multiple lines.
@@ -4262,7 +4262,7 @@ Module _
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_06()
         ' It verifies the case where the squiggles covers the very long error span.
@@ -4311,7 +4311,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545214)>
+    <WorkItem(545214, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_07()
         ' It verifies the case where the error is on the last line.
@@ -4358,7 +4358,7 @@ End Class
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(531606)>
+    <WorkItem(531606, "DevDiv")>
     <Fact()>
     Public Sub ErrorMessageWithSquiggles_08()
         Dim source =
@@ -4401,7 +4401,7 @@ PATH(6) : error BC30203: Identifier expected.
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithNonExistingOutPath()
         Dim source =
@@ -4433,7 +4433,7 @@ End Module
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithWrongOutPath_01()
         Dim source =
@@ -4467,7 +4467,7 @@ End Module
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithWrongOutPath_02()
         Dim source =
@@ -4501,7 +4501,7 @@ End Module
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithWrongOutPath_03()
         Dim source =
@@ -4533,7 +4533,7 @@ End Module
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
-    <WorkItem(545247)>
+    <WorkItem(545247, "DevDiv")>
     <Fact()>
     Public Sub CompilationWithWrongOutPath_04()
         Dim source =
@@ -4986,7 +4986,7 @@ End Module
         CleanupAllGeneratedFiles(sourceFile.Path)
     End Sub
 
-    <WorkItem(530221)>
+    <WorkItem(530221, "DevDiv")>
     <Fact()>
     Public Sub Bug15538()
         Dim folder = Temp.CreateDirectory()
@@ -5012,7 +5012,7 @@ End Module
         CleanupAllGeneratedFiles(source)
     End Sub
 
-    <WorkItem(544926)>
+    <WorkItem(544926, "DevDiv")>
     <Fact()>
     Public Sub ResponseFilesWithNoconfig_01()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5061,7 +5061,7 @@ End Module
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(544926)>
+    <WorkItem(544926, "DevDiv")>
     <Fact()>
     Public Sub ResponseFilesWithNoconfig_02()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5095,7 +5095,7 @@ End Module
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(544926)>
+    <WorkItem(544926, "DevDiv")>
     <Fact()>
     Public Sub ResponseFilesWithNoconfig_03()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5129,7 +5129,7 @@ End Module
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(544926)>
+    <WorkItem(544926, "DevDiv")>
     <Fact()>
     Public Sub ResponseFilesWithNoconfig_04()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5163,7 +5163,7 @@ End Module
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(545832)>
+    <WorkItem(545832, "DevDiv")>
     <Fact()>
     Public Sub ResponseFilesWithEmptyAliasReference()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5185,9 +5185,9 @@ Imports System
         CleanupAllGeneratedFiles(rsp)
     End Sub
 
-    <WorkItem(546031)>
-    <WorkItem(546032)>
-    <WorkItem(546033)>
+    <WorkItem(546031, "DevDiv")>
+    <WorkItem(546032, "DevDiv")>
+    <WorkItem(546033, "DevDiv")>
     <Fact()>
     Public Sub InvalidDefineSwitch()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5360,7 +5360,7 @@ Imports System
         Assert.False(vbc.Arguments.CompilationOptions.OptionInfer)
     End Sub
 
-    <Fact(), WorkItem(546114)>
+    <Fact(), WorkItem(546114, "DevDiv")>
     Public Sub TestFilterCommandLineDiagnostics()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -5391,7 +5391,7 @@ End Module
         CleanupAllGeneratedFiles(source)
     End Sub
 
-    <WorkItem(546305)>
+    <WorkItem(546305, "DevDiv")>
     <Fact()>
     Public Sub Bug15539()
         Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5508,7 +5508,7 @@ End Module
         CleanupAllGeneratedFiles(source)
     End Sub
 
-    <WorkItem(531263)>
+    <WorkItem(531263, "DevDiv")>
     <Fact>
     Public Sub EmptyFileName()
         Dim outWriter As New StringWriter()
@@ -5557,7 +5557,7 @@ End Module
         Assert.DoesNotContain("BC2038", outWriter.ToString())
     End Sub
 
-    <Fact, WorkItem(650083)>
+    <Fact, WorkItem(650083, "DevDiv")>
     Public Sub ReservedDeviceNameAsFileName()
         ' Source file name
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", "con.vb"}, _baseDirectory)
@@ -5619,7 +5619,7 @@ End Module
         CleanupAllGeneratedFiles(source)
     End Sub
 
-    <Fact(Skip:="574361"), WorkItem(574361)>
+    <Fact(Skip:="574361"), WorkItem(574361, "DevDiv")>
     Public Sub LangVersionForOldBC36716()
 
         Dim dir = Temp.CreateDirectory()

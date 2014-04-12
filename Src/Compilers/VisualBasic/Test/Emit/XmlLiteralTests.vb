@@ -1658,7 +1658,7 @@ End Module
         ' InternalXmlHelper.RemoveNamespaceAttributes() modifies
         ' the embedded expression argument so subsequent uses of
         ' the expression may give different results.
-        <WorkItem(529410)>
+        <WorkItem(529410, "DevDiv")>
         <Fact()>
         Public Sub ImplicitXmlnsAttributes_SideEffects()
             Dim compilation = CompileAndVerify(
@@ -2857,14 +2857,14 @@ End Module
             compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(544261)>
+        <WorkItem(544261, "DevDiv")>
         <Fact()>
         Public Sub IncompleteProjectLevelImport()
             Assert.Throws(Of ArgumentException)(Sub() OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."""})))
             Assert.Throws(Of ArgumentException)(Sub() OptionsDll.WithGlobalImports(GlobalImport.Parse({"<xmlns:p=""..."">, <xmlns:q=""..."""})))
         End Sub
 
-        <WorkItem(544360)>
+        <WorkItem(544360, "DevDiv")>
         <Fact()>
         Public Sub ExplicitDefaultXmlnsAttribute_1()
             Dim compilation = CompileAndVerify(
@@ -2908,7 +2908,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(544461)>
+        <WorkItem(544461, "DevDiv")>
         <Fact()>
         Public Sub ValueExtensionProperty()
             Dim compilation = CompileAndVerify(
@@ -3476,7 +3476,7 @@ End Module
         ''' CR/LF and single CR characters should be
         ''' replaced by single LF characters.
         ''' </summary>
-        <WorkItem(545508)>
+        <WorkItem(545508, "DevDiv")>
         <Fact()>
         Public Sub NormalizeNewlines()
             For Each eol In {vbCr, vbLf, vbCrLf}
@@ -3565,7 +3565,7 @@ End Module
         ' Dev11 treats p:xmlns="..." as an xmlns declaration for the default
         ' namespace. Roslyn issues warnings for these cases and only considers
         ' p:xmlns="..." an xmlns declaration if 'p' maps to the default namespace.
-        <WorkItem(544366)>
+        <WorkItem(544366, "DevDiv")>
         <Fact()>
         Public Sub PrefixAndXmlnsLocalName()
             Dim compilation = CompileAndVerify(
@@ -3815,7 +3815,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(545345)>
+        <WorkItem(545345, "DevDiv")>
         <Fact()>
         Public Sub RemoveExistingNamespaceAttribute()
             Dim compilation = CompileAndVerify(
@@ -3901,7 +3901,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545401)>
+        <WorkItem(545401, "DevDiv")>
         <Fact()>
         Public Sub DefaultAndEmptyNamespaces_2()
             Dim compilation = CompileAndVerify(
@@ -3948,7 +3948,7 @@ End Module
         ''' Should not call RemoveNamespaceAttributes
         ''' on intrinsic types or enums.
         ''' </summary>
-        <WorkItem(546191)>
+        <WorkItem(546191, "DevDiv")>
         <Fact()>
         Public Sub RemoveNamespaceAttributes_OtherContentTypes()
             Dim verifier = CompileAndVerify(
@@ -4091,7 +4091,7 @@ End Class
         ''' Should not call RemoveNamespaceAttributes
         ''' unless there are xmlns Imports in scope.
         ''' </summary>
-        <WorkItem(546191)>
+        <WorkItem(546191, "DevDiv")>
         <Fact()>
         Public Sub RemoveNamespaceAttributes_XmlnsInScope()
             ' No xmlns.
@@ -4169,7 +4169,7 @@ End Module
             Return actualIL.Contains("My.InternalXmlHelper.RemoveNamespaceAttributes")
         End Function
 
-        <WorkItem(546480)>
+        <WorkItem(546480, "DevDiv")>
         <Fact()>
         Public Sub OpenCloseTag()
             Dim compilation = CompileAndVerify(
@@ -4212,7 +4212,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(530882)>
+        <Fact(), WorkItem(530882, "DevDiv")>
         Public Sub SelectFromIEnumerableOfXElementMultitargettingNetFX35()
             Dim source =
                 <compilation>
@@ -4261,7 +4261,7 @@ End Module]]>
                                                    "foo1")
         End Sub
 
-        <Fact(), WorkItem(530882)>
+        <Fact(), WorkItem(530882, "DevDiv")>
         Public Sub SelectFromIEnumerableOfXElementMultitargettingNetFX35_Errors()
             Dim source =
                 <compilation>
@@ -4292,7 +4292,7 @@ End Module
                                     Diagnostic(ERRID.ERR_TypeDisallowsAttributes, "objArray.@someAttrib").WithArguments("Object()"))
         End Sub
 
-        <Fact(), WorkItem(531351)>
+        <Fact(), WorkItem(531351, "DevDiv")>
         Public Sub Bug17985()
             Dim compilation = CompileAndVerify(
 <compilation>
@@ -4323,7 +4323,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(531445)>
+        <WorkItem(531445, "DevDiv")>
         <Fact(Skip:="531445")>
         Public Sub SameNamespaceDifferentPrefixes()
             Dim options = OptionsExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:r=""http://roslyn/"">", "<xmlns:s=""http://roslyn/"">"}))
@@ -4348,7 +4348,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(623035)>
+        <WorkItem(623035, "DevDiv")>
         <Fact()>
         Public Sub Bug623035()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -4390,7 +4390,7 @@ BC30518: Overload resolution failed because no accessible 'New' can be called wi
 ]]></expected>)
         End Sub
 
-        <WorkItem(631047)>
+        <WorkItem(631047, "DevDiv")>
         <Fact()>
         Public Sub Regress631047()
             CompileAndVerify(
@@ -4408,7 +4408,7 @@ End Module
 </compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[True]]>)
         End Sub
 
-        <WorkItem(814075)>
+        <WorkItem(814075, "DevDiv")>
         <Fact()>
         Public Sub ExpressionTreeContainingExtensionProperty()
             Dim compilation = CompileAndVerify(
@@ -4497,7 +4497,7 @@ content
 ]]>)
         End Sub
 
-        <WorkItem(814052)>
+        <WorkItem(814052, "DevDiv")>
         <Fact()>
         Public Sub XmlnsNamespaceTooLong()
             Dim identifier = New String("a"c, PeWriter.PdbLengthLimit)
@@ -4548,7 +4548,7 @@ Module M
         ''' <summary>
         ''' Constant embedded expression with duplicate xmlns attribute.
         ''' </summary>
-        <WorkItem(863159)>
+        <WorkItem(863159, "DevDiv")>
         <Fact()>
         Public Sub XmlnsPrefixUsedInEmbeddedExpressionAndSibling_Constant()
             CompileAndVerify(
@@ -4580,7 +4580,7 @@ End Module
         ''' <summary>
         ''' Non-constant embedded expression with duplicate xmlns attribute.
         ''' </summary>
-        <WorkItem(863159)>
+        <WorkItem(863159, "DevDiv")>
         <Fact()>
         Public Sub XmlnsPrefixUsedInEmbeddedExpressionAndSibling_NonConstant()
             ' Dev12 generates code that throws "InvalidOperationException: Duplicate attribute".
@@ -4852,7 +4852,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(863159)>
+        <WorkItem(863159, "DevDiv")>
         <Fact()>
         Public Sub XmlnsPrefixUsedInEmbeddedExpressionAndSibling_ExpressionTree()
             CompileAndVerify(

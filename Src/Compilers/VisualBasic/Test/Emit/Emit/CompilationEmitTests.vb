@@ -316,7 +316,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(540643)>
+        <WorkItem(540643, "DevDiv")>
         <Fact>
         Public Sub Bug6981()
             ' tests different casing of the method
@@ -787,7 +787,7 @@ End Module
             Assert.Equal(CType(&H8560, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
-        <WorkItem(764418)>
+        <WorkItem(764418, "DevDiv")>
         <Fact()>
         Public Sub CheckDllCharacteristicsWinRtApp()
             Dim source =
@@ -2029,7 +2029,7 @@ End Class
             Assert.Throws(Of ArgumentException)(Function() compilation.Emit(New MemoryStream(), outputName:=" "))
         End Sub
 
-        <WorkItem(545084), WorkItem(529492)>
+        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
         <Fact>
         Public Sub PermissionSetAttribute_Fixup()
             Dim tempDir = Temp.CreateDirectory()
@@ -2095,7 +2095,7 @@ End Class
                         hexFileContent})
         End Sub
 
-        <WorkItem(545084), WorkItem(529492)>
+        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
         <Fact>
         Public Sub PermissionSetAttributeInvalidFile()
             Dim source =
@@ -2135,7 +2135,7 @@ end class
                 Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(3, 46))
         End Sub
 
-        <WorkItem(546074)>
+        <WorkItem(546074, "DevDiv")>
         <Fact()>
         Public Sub ReDimPreserve()
             Dim source =
@@ -2154,7 +2154,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074)>
+        <WorkItem(546074, "DevDiv")>
         <Fact()>
         Public Sub ReDimPreserve2()
             Dim source =
@@ -2173,7 +2173,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074)>
+        <WorkItem(546074, "DevDiv")>
         <Fact()>
         Public Sub ReDimPreserve3()
             Dim source =
@@ -2194,7 +2194,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(545084), WorkItem(529492)>
+        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
         <Fact>
         Public Sub PermissionSetAttributeFileReadError()
             Dim tempDir = Temp.CreateDirectory()
@@ -2247,7 +2247,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(654522)>
+        <WorkItem(654522, "DevDiv")>
         <Fact>
         Public Sub Bug654522()
             Dim refSource =
@@ -2287,7 +2287,7 @@ Public Interface I(Of W As Structure) : End Interface
             CompileAndVerify(comp, symbolValidator:=metadataValidator)
         End Sub
 
-        <WorkItem(546450)>
+        <WorkItem(546450, "DevDiv")>
         <Fact>
         Public Sub EmitNetModuleWithReferencedNetModule()
             Dim source1 =
@@ -2745,7 +2745,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact, WorkItem(769741)>
+        <Fact, WorkItem(769741, "DevDiv")>
         Public Sub Bug769741()
             Dim source =
 <compilation>

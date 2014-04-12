@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBIteratorTests
         Inherits BasicTestBase
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>
@@ -75,7 +75,7 @@ End Module
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(651996), WorkItem(789705)>
+        <Fact(), WorkItem(651996, "DevDiv"), WorkItem(789705, "DevDiv")>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -179,7 +179,7 @@ End Module
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -245,7 +245,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -306,7 +306,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -369,7 +369,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>

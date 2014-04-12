@@ -179,7 +179,7 @@ End Class
 
         End Sub
 
-        <WorkItem(729235)>
+        <WorkItem(729235, "DevDiv")>
         <Fact>
         Public Sub NormalizedPath_Tree()
             Dim source = <![CDATA[
@@ -215,7 +215,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(729235)>
+        <WorkItem(729235, "DevDiv")>
         <Fact>
         Public Sub NormalizedPath_ExternalSource()
             Dim source = <![CDATA[
@@ -276,7 +276,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(729235)>
+        <WorkItem(729235, "DevDiv")>
         <Fact>
         Public Sub NormalizedPath_ExternalChecksum()
             Dim source = <![CDATA[
@@ -344,7 +344,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(729235)>
+        <WorkItem(729235, "DevDiv")>
         <Fact>
         Public Sub NormalizedPath_NoBaseDirectory()
             Dim source = <![CDATA[

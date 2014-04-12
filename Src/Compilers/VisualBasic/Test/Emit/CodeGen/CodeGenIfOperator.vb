@@ -82,7 +82,7 @@ False
         End Sub
 
         ' Function call in return expression 
-        <WorkItem(541647)>
+        <WorkItem(541647, "DevDiv")>
         <Fact()>
         Public Sub FuntionCallAsArgument()
             CompileAndVerify(
@@ -365,7 +365,7 @@ End Module
         End Sub
 
         ' Not boolean type as conditional-argument 
-        <WorkItem(541647)>
+        <WorkItem(541647, "DevDiv")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument()
             Dim compilation1 = CompileAndVerify(
@@ -406,7 +406,7 @@ End Module
         End Sub
 
         ' Not boolean type as conditional-argument 
-        <WorkItem(541647)>
+        <WorkItem(541647, "DevDiv")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument_2()
             CompileAndVerify(
@@ -434,7 +434,7 @@ End Enum
 ]]>)
         End Sub
 
-        <WorkItem(541647)>
+        <WorkItem(541647, "DevDiv")>
         <Fact>
         Public Sub FunctionWithNoReturnType()
             Dim compilation1 = CompileAndVerify(
@@ -474,7 +474,7 @@ End Module
         End Sub
 
         ' Const as conditional- argument
-        <WorkItem(541452)>
+        <WorkItem(541452, "DevDiv")>
         <Fact()>
         Public Sub ConstAsArgument()
             Dim compilation1 = CompileAndVerify(
@@ -523,7 +523,7 @@ End Module
         End Sub
 
         ' IF used in Redim 
-        <WorkItem(528563)>
+        <WorkItem(528563, "DevDiv")>
         <Fact>
         Public Sub IfUsedInRedim()
             Dim compilation1 = CompileAndVerify(
@@ -652,7 +652,7 @@ End Module
         End Sub
 
         ' Passing IF as byref arg 
-        <WorkItem(541647)>
+        <WorkItem(541647, "DevDiv")>
         <Fact()>
         Public Sub IFAsByrefArg()
             CompileAndVerify(
@@ -687,7 +687,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(541674)>
+        <WorkItem(541674, "DevDiv")>
         <Fact>
         Public Sub TypeConverstionInRuntime()
             Dim compilation1 = CompileAndVerify(
@@ -728,7 +728,7 @@ End Class
 ]]>).Compilation
         End Sub
 
-        <WorkItem(541673)>
+        <WorkItem(541673, "DevDiv")>
         <Fact>
         Public Sub TypeConverstionInRuntime_1()
             Dim compilation1 = CompileAndVerify(
@@ -1209,7 +1209,7 @@ End Structure
 }]]>).Compilation
         End Sub
 
-        <Fact, WorkItem(545065)>
+        <Fact, WorkItem(545065, "DevDiv")>
         Public Sub IfOnMethodTypeParameter()
             CompileAndVerify(
 <compilation>

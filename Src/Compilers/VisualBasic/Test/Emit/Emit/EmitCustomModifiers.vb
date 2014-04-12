@@ -54,7 +54,7 @@ M4
         End Sub
 
         <Fact>
-        <WorkItem(737971)>
+        <WorkItem(737971, "DevDiv")>
         Public Sub ByRefBeforeCustomModifiers()
             Dim il = <![CDATA[
 .class public auto ansi beforefieldinit C

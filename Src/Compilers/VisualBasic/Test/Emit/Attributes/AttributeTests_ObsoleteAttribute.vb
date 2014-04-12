@@ -881,7 +881,7 @@ Public Delegate Sub MyDeleg()
         End Sub
 
         <Fact>
-        <WorkItem(546636)>
+        <WorkItem(546636, "DevDiv")>
         Public Sub TestObsoleteAttributeOnAttributes()
             Dim source =
 <compilation>
@@ -1016,7 +1016,7 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
-        <WorkItem(578023)>
+        <WorkItem(578023, "DevDiv")>
         <Fact>
         Sub TestObsoleteInAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1067,7 +1067,7 @@ Imports A(Of C()).B
      </errors>)
         End Sub
 
-        <WorkItem(580832)>
+        <WorkItem(580832, "DevDiv")>
         <Fact>
         Sub TestObsoleteOnVirtualMethod()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1231,7 +1231,7 @@ BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
-        <Fact(), WorkItem(858839)>
+        <Fact(), WorkItem(858839, "DevDiv")>
         Public Sub Bug858839_1()
             Dim source1 =
 <compilation>
@@ -1323,7 +1323,7 @@ BC40000: 'Sub Foo()' is obsolete: 'IFoo1.Foo has been deprecated'.
             compilation1.AssertTheseDiagnostics(expected)
         End Sub
 
-        <Fact(), WorkItem(858839)>
+        <Fact(), WorkItem(858839, "DevDiv")>
         Public Sub Bug858839_2()
             Dim source0 =
 <compilation>

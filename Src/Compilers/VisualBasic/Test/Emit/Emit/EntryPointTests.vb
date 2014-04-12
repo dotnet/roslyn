@@ -137,7 +137,7 @@ End Class
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
         End Sub
 
-        <WorkItem(528677)>
+        <WorkItem(528677, "DevDiv")>
         <Fact()>
         Public Sub ERR_OneEntryPointAndOverload()
             Dim source =
@@ -1066,7 +1066,7 @@ End Class
                 Diagnostic(ERRID.ERR_MoreThanOneValidMainWasFound2).WithArguments("a", "A.mAIN(), M1.mAIN()"))
         End Sub
 
-        <Fact, WorkItem(543591)>
+        <Fact, WorkItem(543591, "DevDiv")>
         Public Sub MainInPrivateClass()
             Dim source =
 <compilation name="a">
@@ -1086,7 +1086,7 @@ End Class
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("a"))
         End Sub
 
-        <Fact, WorkItem(543591)>
+        <Fact, WorkItem(543591, "DevDiv")>
         Public Sub MainInPrivateClass_1()
             Dim source =
 <compilation>
@@ -1104,7 +1104,7 @@ End Class
             CreateCompilationWithMscorlibAndVBRuntime(source, Nothing, options:=OptionsExe).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(543591)>
+        <Fact, WorkItem(543591, "DevDiv")>
         Public Sub MainInPrivateClass_2()
             Dim source =
 <compilation>
@@ -1335,7 +1335,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_PublicInBase()
             Dim source =
@@ -1357,7 +1357,7 @@ End Class
                          compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_ProtectedInBase()
             Dim source =
@@ -1379,7 +1379,7 @@ End Class
                          compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_PrivateInBase()
             Dim source =
@@ -1401,7 +1401,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InGenericBase()
             Dim source =
@@ -1423,7 +1423,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InBaseHiddenByField()
             Dim source =
@@ -1447,7 +1447,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803)>
+        <WorkItem(545803, "DevDiv")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InBaseInOtherAssembly()
             Dim source1 =
@@ -1474,7 +1474,7 @@ End Class
             Assert.Null(compilation2.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(630763)>
+        <WorkItem(630763, "DevDiv")>
         <Fact()>
         Public Sub Bug630763()
             Dim source =
@@ -1505,7 +1505,7 @@ BC30420: 'Sub Main' was not found in 'Bug630763'.
 </expected>)
         End Sub
 
-        <WorkItem(753028)>
+        <WorkItem(753028, "DevDiv")>
         <Fact>
         Public Sub RootMemberNamedScript()
             Dim comp As VisualBasicCompilation

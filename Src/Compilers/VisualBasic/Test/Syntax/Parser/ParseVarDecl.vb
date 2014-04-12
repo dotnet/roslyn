@@ -147,7 +147,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(527021)>
+    <WorkItem(527021, "DevDiv")>
     <Fact>
     Public Sub BC30036_ParseErrorMismatchExpectedExpression()
         ParseAndVerify(<![CDATA[
@@ -162,7 +162,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(538746)>
+    <WorkItem(538746, "DevDiv")>
     <Fact>
     Public Sub ParseDecimalLiteralWithExponent()
         ParseAndVerify(<![CDATA[
@@ -184,7 +184,7 @@ FixedRankArray_19 = New Short() (1,
             </errors>)
     End Sub
 
-    <WorkItem(541293)>
+    <WorkItem(541293, "DevDiv")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer()
         ParseAndVerify(<![CDATA[
@@ -204,7 +204,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(541293)>
+    <WorkItem(541293, "DevDiv")>
     <Fact>
     Public Sub ParsePropertyWithFromInitializer_2()
         ParseAndVerify(<![CDATA[
@@ -217,7 +217,7 @@ End Class
 ]]>)
     End Sub
 
-    <WorkItem(543755)>
+    <WorkItem(543755, "DevDiv")>
     <Fact()>
     Public Sub Bug11682()
 

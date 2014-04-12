@@ -2841,7 +2841,7 @@ End Module
 
         ' TODO: Update test case once bug 10352 and bug 10354 are fixed.
         ' TODO: Verify switch table is used in codegen for select case statement.
-        <WorkItem(542910)>
+        <WorkItem(542910, "DevDiv")>
         <WorkItem(10354)>
         <Fact()>
         Public Sub SelectCase_SwitchTable_Conversions_01()
@@ -3192,7 +3192,7 @@ End Module
 
 #Region "Select case string tests"
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -3635,7 +3635,7 @@ End Module
 Equal to A]]>)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary_02()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -3965,7 +3965,7 @@ Equal to a]]>).VerifyIL("M1.Test", <![CDATA[
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub SelectCase_SwitchTable_String_RelationalEqualityClause()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4292,7 +4292,7 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub SelectCase_String_Multiple_Hash_SwitchTable()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4534,7 +4534,7 @@ End Class
             VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub
 
-        <WorkItem(529047)>
+        <WorkItem(529047, "DevDiv")>
         <Fact>
         Public Sub SelectOutOfMethod()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -4550,7 +4550,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(529047)>
+        <WorkItem(529047, "DevDiv")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -4564,7 +4564,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(543410)>
+        <WorkItem(543410, "DevDiv")>
         <Fact()>
         Public Sub SelectCase_GetType()
             Dim compVerifier = CompileAndVerify(
@@ -4589,8 +4589,8 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(634404)>
-        <WorkItem(913556)>
+        <WorkItem(634404, "DevDiv")>
+        <WorkItem(913556, "DevDiv")>
         <Fact()>
         Public Sub MissingCharsProperty()
             CompilationUtils.CreateCompilationWithReferences(

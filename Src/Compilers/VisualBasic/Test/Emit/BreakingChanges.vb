@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ' In Dev10 (and earlier), this didn't generate an error.
-        <Fact, WorkItem(529599)>
+        <Fact, WorkItem(529599, "DevDiv")>
         Public Sub ParsePreprocessorEndIfInMethodBody()
             ParseAndVerify(<![CDATA[
                 Module Module1
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' Rosly doesn't give warning BC30934 while Dev10 does (Eval ctor as no const)
         '''  but gives new warning BC42025 for accessing const field through object instance
         ''' This is an improvement in Roslyn that we are able to eval the const access through 'new object()' instance
-        <WorkItem(528223)>
+        <WorkItem(528223, "DevDiv")>
         <Fact>
         Public Sub BC30934ERR_RequiredAttributeConstConversion2_1()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib(
@@ -87,7 +87,7 @@ End Class
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <Fact(), WorkItem(542389)>
+        <Fact(), WorkItem(542389, "DevDiv")>
         Public Sub BC30519_InferVariableAsRHSValueType()
             Dim text =
 <compilation>
@@ -114,8 +114,8 @@ End Namespace
 
         End Sub
 
-        <WorkItem(531529)>
-        <WorkItem(543241)>
+        <WorkItem(531529, "DevDiv")>
+        <WorkItem(543241, "DevDiv")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -146,8 +146,8 @@ End Module
             'Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem(543241)>
-        <WorkItem(531310)>
+        <WorkItem(543241, "DevDiv")>
+        <WorkItem(531310, "DevDiv")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -177,7 +177,7 @@ End Module
             'Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem(543241)>
+        <WorkItem(543241, "DevDiv")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -209,7 +209,7 @@ End Module
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem(529262)>
+        <WorkItem(529262, "DevDiv")>
         <Fact()>
         Public Sub PartialMethod_EmitNamesInProperCase()
             CompileAndVerify(
@@ -239,7 +239,7 @@ End Class
 </compilation>, expectedOutput:="Void S(Int32)|Int32 A") 'Dev10 would emit "Void s(Int32)|Int32 a"
         End Sub
 
-        <WorkItem(529261)>
+        <WorkItem(529261, "DevDiv")>
         <Fact()>
         Public Sub PartialMethod_AllowNonExecutableStatements()
             'Dev10 used to report errors for each of the three cases identified below. Roslyn doesn't.
@@ -278,7 +278,7 @@ End Module
                              </compilation>, expectedOutput:="Success")
         End Sub
 
-        <WorkItem(543241)>
+        <WorkItem(543241, "DevDiv")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -309,7 +309,7 @@ End Module
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
         End Sub
 
-        <WorkItem(544500)>
+        <WorkItem(544500, "DevDiv")>
         <Fact>
         Public Sub PartialConstructors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -357,7 +357,7 @@ BC30269: 'Private Sub New(x As T, y As C1(Of U, V).C1(Of U), z As U, w As C1(Of 
 </errors>)
         End Sub
 
-        <WorkItem(544500)>
+        <WorkItem(544500, "DevDiv")>
         <Fact>
         Public Sub PartialConstructors2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -385,7 +385,7 @@ BC36969: 'Sub New' cannot be declared 'Partial'.
 </errors>)
         End Sub
 
-        <WorkItem(528311)>
+        <WorkItem(528311, "DevDiv")>
         <Fact()>
         Public Sub TestHideBySigChangeForOverridenMethods()
             Dim vbCompilation = CreateVisualBasicCompilation("TestHideBySigChangeForOverridenMethods",
@@ -473,7 +473,7 @@ public class Program
             csCompilation.VerifyDiagnostics() 'No errors
         End Sub
 
-        <Fact(), WorkItem(529471)>
+        <Fact(), WorkItem(529471, "DevDiv")>
         Public Sub LiftedLogicalOperationsNoSideEffect()
             CompileAndVerify(
                 <compilation>
@@ -523,7 +523,7 @@ End Module
                 </compilation>, expectedOutput:="F OrElse F=False |T AndAlso T=True | F Or F=False | T Or F=True | T And T=True | F And T=False")
         End Sub
 
-        <Fact(), WorkItem(545050)>
+        <Fact(), WorkItem(545050, "DevDiv")>
         Public Sub NoBC32126ERR_AddressOfNullableMethod_Static()
 
             ' Native: error BC32126: Methods of 'System.Nullable(Of T)' cannot be used as operands of the 'AddressOf' operator.
@@ -542,7 +542,7 @@ End Module
     </compilation>).AssertNoDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(529544)>
+        <Fact(), WorkItem(529544, "DevDiv")>
         Public Sub TestMissingSynchronizedFlagForEvents()
             Dim comp = CreateVisualBasicCompilation("TestMissingSynchronizedFlagForEvents",
             <![CDATA[Public Class C1
@@ -561,7 +561,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(529653)>
+        <Fact, WorkItem(529653, "DevDiv")>
         Public Sub TestExecutionOrderForHandles()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrderForHandles",
             <![CDATA[Option Strict Off
@@ -622,7 +622,7 @@ Base F]]>)
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(529574)>
+        <Fact, WorkItem(529574, "DevDiv")>
         Public Sub TestCrossLanguageOptionalAndParamarrayForHandles()
             Dim csCompilation = CreateCSharpCompilation("TestCrossLanguageOptionalAndParamarrayForHandles_CS",
             <![CDATA[public class CSClass
@@ -674,7 +674,7 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
         End Sub
 
-        <Fact, WorkItem(569036)>
+        <Fact, WorkItem(569036, "DevDiv")>
         Public Sub DifferenceInExceptionEvaluationWithRoslyn()
             CompileAndVerify(
 <compilation>

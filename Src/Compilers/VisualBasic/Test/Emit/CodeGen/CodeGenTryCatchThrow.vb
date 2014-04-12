@@ -738,7 +738,7 @@ End Module
 }]]>)
         End Sub
 
-        <WorkItem(542208)>
+        <WorkItem(542208, "DevDiv")>
         <Fact()>
         Public Sub OverlapingCatch()
             CompileAndVerify(
@@ -759,7 +759,7 @@ End Module
             expectedOutput:="")
         End Sub
 
-        <WorkItem(542208)>
+        <WorkItem(542208, "DevDiv")>
         <Fact>
         Public Sub DuplicateCatch()
             CompileAndVerify(
@@ -843,7 +843,7 @@ Unhandled
 ]]>)
         End Sub
 
-        <WorkItem(542510)>
+        <WorkItem(542510, "DevDiv")>
         <Fact()>
         Public Sub ExitTryFromCatch()
             CompileAndVerify(

@@ -48,7 +48,7 @@ Public Class ParseXml
 
     End Sub
 
-    <Fact(), WorkItem(545537)>
+    <Fact(), WorkItem(545537, "DevDiv")>
     Public Sub ParseNameWhitespace()
         ' Basic xml literal test
 
@@ -67,7 +67,7 @@ End Module
 
     End Sub
 
-    <Fact(), WorkItem(529879)>
+    <Fact(), WorkItem(529879, "DevDiv")>
     Public Sub ParseFWPercent()
         ' Basic xml literal test
 
@@ -102,7 +102,7 @@ End Module
 
     End Sub
 
-    <Fact(), WorkItem(546401)>
+    <Fact(), WorkItem(546401, "DevDiv")>
     Public Sub ParseAccessorSpaceDisallowed01()
         ' Basic xml literal test
 
@@ -123,7 +123,7 @@ VB
 
     End Sub
 
-    <WorkItem(531396)>
+    <WorkItem(531396, "DevDiv")>
     <Fact()>
     Public Sub ParseEmbeddedExpressionAttributeNoSpace()
         ParseAndVerify(<![CDATA[
@@ -200,7 +200,7 @@ End Module
 
     End Sub
 
-    <WorkItem(641680)>
+    <WorkItem(641680, "DevDiv")>
     <Fact>
     Public Sub ParseDocumentationComment()
         ParseAndVerify(<![CDATA[
@@ -223,7 +223,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(641680)>
+    <WorkItem(641680, "DevDiv")>
     <Fact>
     Public Sub ParseDocumentationComment2()
         ParseAndVerify(<![CDATA[
@@ -233,7 +233,7 @@ End Class
             ]]>)
     End Sub
 
-    <WorkItem(551848)>
+    <WorkItem(551848, "DevDiv")>
     <Fact()>
     Public Sub KeywordAndColonInXmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -453,7 +453,7 @@ end module
 
     End Sub
 
-    <WorkItem(539502)>
+    <WorkItem(539502, "DevDiv")>
     <Fact>
     Public Sub ParseAttributeWithLeftDoubleQuotationMark()
         ParseAndVerify(<![CDATA[
@@ -463,7 +463,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539502)>
+    <WorkItem(539502, "DevDiv")>
     <Fact>
     Public Sub ParseAttributeWithRegularDoubleQuotationMark()
         ParseAndVerify(<![CDATA[
@@ -1622,8 +1622,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(527094)>
-    <WorkItem(586871)>
+    <WorkItem(527094, "DevDiv")>
+    <WorkItem(586871, "DevDiv")>
     <Fact>
     Public Sub BC31197ERR_FullWidthAsXmlDelimiter_ParseXmlStart()
         ParseAndVerify(<![CDATA[
@@ -1801,7 +1801,7 @@ End Module]]>, <errors>
                </errors>)
     End Sub
 
-    <WorkItem(537183)>
+    <WorkItem(537183, "DevDiv")>
     <WorkItem(930327, "DevDiv/Personal")>
     <Fact>
     Public Sub BC31146ERR_ExpectedXmlName_ParseBadEncodingAttributeInPrologue()
@@ -1837,8 +1837,8 @@ vbCrLf &
               </errors>)
     End Sub
 
-    <WorkItem(538550)>
-    <WorkItem(538551)>
+    <WorkItem(538550, "DevDiv")>
+    <WorkItem(538551, "DevDiv")>
     <Fact>
     Public Sub ParseXmlStringIncludingSmartQuotes()
         ParseAndVerify(
@@ -1872,7 +1872,7 @@ vbCrLf &
 "End Module")
     End Sub
 
-    <WorkItem(544979)>
+    <WorkItem(544979, "DevDiv")>
     <Fact()>
     Public Sub ParseEmbeddedLambda()
         ParseAndVerify(<![CDATA[
@@ -1882,7 +1882,7 @@ End Module
  ]]>.Value)
     End Sub
 
-    <WorkItem(538241)>
+    <WorkItem(538241, "DevDiv")>
     <Fact>
     Public Sub ParseXmlMemberFollowedByWSColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1910,7 +1910,7 @@ End Module
         Assert.Equal(memAccess.Name.ToString, "WriteLine")
     End Sub
 
-    <WorkItem(541291)>
+    <WorkItem(541291, "DevDiv")>
     <Fact()>
     Public Sub Bug7954()
         '                   0123456789ABC
@@ -1920,7 +1920,7 @@ End Module
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
-    <WorkItem(545076)>
+    <WorkItem(545076, "DevDiv")>
     <Fact()>
     Public Sub WhitespaceInClosingTag()
         ParseAndVerify(<![CDATA[
@@ -1934,7 +1934,7 @@ End Module
             Diagnostic(ERRID.ERR_ExpectedLT, ""))
     End Sub
 
-    <WorkItem(529395)>
+    <WorkItem(529395, "DevDiv")>
     <Fact()>
     Public Sub Bug12644()
         ParseAndVerify(<![CDATA[
@@ -1944,7 +1944,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(544399)>
+    <WorkItem(544399, "DevDiv")>
     <Fact()>
     Public Sub BrokenEndElementStartInXmlDoc()
         ParseAndVerify(<![CDATA[
@@ -1959,8 +1959,8 @@ End Module
             Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("error BC30636: '>' expected."))
     End Sub
 
-    <WorkItem(547320)>
-    <WorkItem(548952)>
+    <WorkItem(547320, "DevDiv")>
+    <WorkItem(548952, "DevDiv")>
     <Fact()>
     Public Sub Bug18598()
         ParseAndVerify(<![CDATA[
@@ -1990,7 +1990,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(548996)>
+    <WorkItem(548996, "DevDiv")>
     <Fact()>
     Public Sub Bug548996()
         ParseAndVerify(<![CDATA[
@@ -2027,7 +2027,7 @@ Return : %>]]>.Value),
             Diagnostic(ERRID.ERR_ExpectedGreater, ""))
     End Sub
 
-    <WorkItem(575763)>
+    <WorkItem(575763, "DevDiv")>
     <Fact()>
     Public Sub Bug575763()
         ParseAndVerify(<![CDATA[
@@ -2071,7 +2071,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(575780)>
+    <WorkItem(575780, "DevDiv")>
     <Fact()>
     Public Sub Bug575780()
         ParseAndVerify(<![CDATA[
@@ -2198,7 +2198,7 @@ End Module
     ''' <summary>
     ''' As above but with lambda inside embedded expression.
     ''' </summary>
-    <WorkItem(575780)>
+    <WorkItem(575780, "DevDiv")>
     <Fact()>
     Public Sub Bug575780_EmbeddedExpression()
         ParseAndVerify(<![CDATA[
@@ -2348,7 +2348,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(577617)>
+    <WorkItem(577617, "DevDiv")>
     <Fact()>
     Public Sub Bug577617()
         ParseAndVerify(String.Format(<source>
@@ -2359,7 +2359,7 @@ End Module
             Diagnostic(ERRID.ERR_FullWidthAsXmlDelimiter, "＜"))
     End Sub
 
-    <WorkItem(611206)>
+    <WorkItem(611206, "DevDiv")>
     <Fact()>
     Public Sub Bug611206()
         ParseAndVerify(<![CDATA[
@@ -2372,7 +2372,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(602208)>
+    <WorkItem(602208, "DevDiv")>
     <Fact()>
     Public Sub Bug602208()
         ParseAndVerify(<![CDATA[
@@ -2503,7 +2503,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(598156)>
+    <WorkItem(598156, "DevDiv")>
     <Fact()>
     Public Sub Bug598156()
         ParseAndVerify(<![CDATA[
@@ -2586,7 +2586,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(598799)>
+    <WorkItem(598799, "DevDiv")>
     <Fact()>
     Public Sub Bug598799()
         ParseAndVerify(<![CDATA[
@@ -2630,7 +2630,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(601050)>
+    <WorkItem(601050, "DevDiv")>
     <Fact()>
     Public Sub Bug601050()
         ParseAndVerify(<![CDATA[
@@ -2646,7 +2646,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(601899)>
+    <WorkItem(601899, "DevDiv")>
     <Fact()>
     Public Sub Bug601899()
         ParseAndVerify(<![CDATA[
@@ -2758,7 +2758,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(607253)>
+    <WorkItem(607253, "DevDiv")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors()
         ParseAndVerify(<![CDATA[
@@ -2826,7 +2826,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(607352)>
+    <WorkItem(607352, "DevDiv")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors_2()
         ParseAndVerify(<![CDATA[
@@ -2842,7 +2842,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(607560)>
+    <WorkItem(607560, "DevDiv")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors_3()
         ParseAndVerify(<![CDATA[
@@ -2862,7 +2862,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(610345)>
+    <WorkItem(610345, "DevDiv")>
     <Fact()>
     Public Sub Bug610345()
         ParseAndVerify(<![CDATA[
@@ -3239,7 +3239,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(671111)>
+    <WorkItem(671111, "DevDiv")>
     <Fact()>
     Public Sub Bug671111()
         ParseAndVerify(<![CDATA[
@@ -3269,7 +3269,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(673558)>
+    <WorkItem(673558, "DevDiv")>
     <Fact()>
     Public Sub Bug673558()
         ParseAndVerify(<![CDATA[
@@ -3309,7 +3309,7 @@ REM]]>,
             </errors>)
     End Sub
 
-    <WorkItem(673638)>
+    <WorkItem(673638, "DevDiv")>
     <Fact()>
     Public Sub NotLessThan_Imports()
         ParseAndVerify(<![CDATA[
@@ -3517,7 +3517,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(674567)>
+    <WorkItem(674567, "DevDiv")>
     <Fact()>
     Public Sub Bug674567()
         ParseAndVerify(<![CDATA[
@@ -3630,7 +3630,7 @@ Dim x = F(<?xml version="1.0" encoding=<%=F(
             </errors>)
     End Sub
 
-    <WorkItem(682381)>
+    <WorkItem(682381, "DevDiv")>
     <Fact()>
     Public Sub Bug682381()
         ParseAndVerify(<![CDATA[
@@ -3648,7 +3648,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(682391)>
+    <WorkItem(682391, "DevDiv")>
     <Fact()>
     Public Sub Bug682391()
         ParseAndVerify(<![CDATA[
@@ -3680,7 +3680,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(682394)>
+    <WorkItem(682394, "DevDiv")>
     <Fact()>
     Public Sub Bug682394()
         ParseAndVerify(<![CDATA[
@@ -3765,7 +3765,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(684872)>
+    <WorkItem(684872, "DevDiv")>
     <Fact()>
     Public Sub Bug684872()
         ParseAndVerify(<![CDATA[
@@ -3856,7 +3856,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(693901)>
+    <WorkItem(693901, "DevDiv")>
     <Fact()>
     Public Sub Bug693901()
         ParseAndVerify(<![CDATA[
@@ -3922,7 +3922,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(716121)>
+    <WorkItem(716121, "DevDiv")>
     <Fact()>
     Public Sub Bug716121()
         ParseAndVerify(<![CDATA[
@@ -3966,7 +3966,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(697114)>
+    <WorkItem(697114, "DevDiv")>
     <Fact()>
     Public Sub Bug697114()
         ' No attributes.

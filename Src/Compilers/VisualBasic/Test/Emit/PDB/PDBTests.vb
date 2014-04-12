@@ -739,7 +739,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -1020,7 +1020,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(527647)>
+        <WorkItem(527647, "DevDiv")>
         <Fact()>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
@@ -1079,7 +1079,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(538821)>
+        <WorkItem(538821, "DevDiv")>
         <Fact()>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
@@ -1245,7 +1245,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(538944)>
+        <WorkItem(538944, "DevDiv")>
         <Fact()>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
@@ -2313,7 +2313,7 @@ End Class
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(727419)>
+        <WorkItem(727419, "DevDiv")>
         <Fact()>
         Public Sub Bug727419()
             Dim source =
@@ -2413,7 +2413,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(722627)>
+        <WorkItem(722627, "DevDiv")>
         <Fact()>
         Public Sub Bug722627()
             Dim source =
@@ -2470,7 +2470,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(543703)>
+        <WorkItem(543703, "DevDiv")>
         <Fact()>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
@@ -2529,7 +2529,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(529300)>
+        <Fact(), WorkItem(529300, "DevDiv")>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -2618,7 +2618,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(544000)>
+        <WorkItem(544000, "DevDiv")>
         Public Sub TestLambdaNameStability()
             Dim source =
             <compilation>
@@ -2693,7 +2693,7 @@ End Module
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(760994)>
+        <WorkItem(760994, "DevDiv")>
         <Fact()>
         Public Sub Bug760994()
             Dim source =
@@ -2852,7 +2852,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(797482)>
+        <Fact(), WorkItem(797482, "DevDiv")>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -2910,7 +2910,7 @@ End Module
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <WorkItem(804681)>
+        <WorkItem(804681, "DevDiv")>
         <Fact()>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
@@ -3047,7 +3047,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery()
             Dim source =
@@ -3204,7 +3204,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_01()
             Dim source =
@@ -3278,7 +3278,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_02()
             Dim source =
@@ -3379,7 +3379,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_03()
             Dim source =
@@ -3464,7 +3464,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_04()
             Dim source =
@@ -3559,7 +3559,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_05()
             Dim source =
@@ -3643,7 +3643,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_06()
             Dim source =
@@ -3727,7 +3727,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_07()
             Dim source =
@@ -3812,7 +3812,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_08()
             Dim source =
@@ -3914,7 +3914,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_09()
             Dim source =
@@ -4029,7 +4029,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_10()
             Dim source =
@@ -4132,7 +4132,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_11()
             Dim source =
@@ -4303,7 +4303,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_12()
             Dim source =
@@ -4419,7 +4419,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_13()
             Dim source =
@@ -4512,7 +4512,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_14()
             Dim source =
@@ -4605,7 +4605,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_15()
             Dim source =
@@ -4698,7 +4698,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_16()
             Dim source =
@@ -4773,7 +4773,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_17()
             Dim source =
@@ -4848,7 +4848,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_18()
             Dim source =
@@ -4942,7 +4942,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_19()
             Dim source =
@@ -5055,7 +5055,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_20()
             Dim source =
@@ -5170,7 +5170,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_21()
             Dim source =
@@ -5273,7 +5273,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_22()
             Dim source =
@@ -5385,7 +5385,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_23()
             Dim source =
@@ -5498,7 +5498,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_24()
             Dim source =
@@ -5603,7 +5603,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_25()
             Dim source =
@@ -5726,7 +5726,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_26()
             Dim source =
@@ -5858,7 +5858,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_27()
             Dim source =
@@ -5972,7 +5972,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_28()
             Dim source =
@@ -6104,7 +6104,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_29()
             Dim source =
@@ -6245,7 +6245,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_30()
             Dim source =
@@ -6332,7 +6332,7 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(824944)>
+        <WorkItem(824944, "DevDiv")>
         <Fact()>
         Public Sub SequencePointsInAQuery_31()
             Dim source =
@@ -6428,8 +6428,8 @@ End Module
 GetPdbXml(compilation))
         End Sub
 
-        <WorkItem(846228)>
-        <WorkItem(845078)>
+        <WorkItem(846228, "DevDiv")>
+        <WorkItem(845078, "DevDiv")>
         <Fact()>
         Public Sub RaiseEvent001()
             Dim source =
@@ -6492,7 +6492,7 @@ End Class
             AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -6570,7 +6570,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -6644,7 +6644,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -6721,7 +6721,7 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(827337), WorkItem(836491)>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>

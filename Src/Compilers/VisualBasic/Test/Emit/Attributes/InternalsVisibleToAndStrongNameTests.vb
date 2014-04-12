@@ -738,7 +738,7 @@ End Class
         Assert.False(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
     End Sub
 
-    <WorkItem(820450)>
+    <WorkItem(820450, "DevDiv")>
     <Fact>
     Public Sub IVTGivesAccessToUsingDifferentKeys()
         Dim giver As VisualBasicCompilation = CreateCompilationWithMscorlib(
@@ -941,8 +941,8 @@ End Class
         Assert.True(emitResult.Success)
     End Sub
 
-    <WorkItem(545720)>
-    <WorkItem(530050)>
+    <WorkItem(545720, "DevDiv")>
+    <WorkItem(530050, "DevDiv")>
     <Fact>
     Public Sub InvalidAssemblyName()
 
@@ -1015,7 +1015,7 @@ End Class
     ''' <summary>
     ''' Won't fix (easy to be tested here)
     ''' </summary>
-    <Fact(), WorkItem(529953), WorkItem(530112)>
+    <Fact(), WorkItem(529953, "DevDiv"), WorkItem(530112, "DevDiv")>
     Public Sub DeclareAssemblyKeyNameAndFile_BC41008()
 
         Dim src = "<Assembly: System.Reflection.AssemblyKeyName(""Key1"")>" & vbCrLf &
@@ -1136,7 +1136,7 @@ End Class
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
     End Sub
 
-    <WorkItem(531195)>
+    <WorkItem(531195, "DevDiv")>
     <Fact>
     Public Sub SignModuleKeyContainerCmdLine()
         Dim source =
@@ -1156,7 +1156,7 @@ End Class
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
     End Sub
 
-    <WorkItem(531195)>
+    <WorkItem(531195, "DevDiv")>
     <Fact>
     Public Sub SignModuleKeyContainerCmdLine_1()
         Dim source =
@@ -1178,7 +1178,7 @@ End Class
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute)
     End Sub
 
-    <WorkItem(531195)>
+    <WorkItem(531195, "DevDiv")>
     <Fact>
     Public Sub SignModuleKeyContainerCmdLine_2()
         Dim source =
@@ -1199,7 +1199,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyNameAttribute' given in a sourc
 </expected>)
     End Sub
 
-    <WorkItem(531195)>
+    <WorkItem(531195, "DevDiv")>
     <Fact>
     Public Sub SignModuleKeyFileCmdLine()
         Dim source =
@@ -1219,7 +1219,7 @@ End Class
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute)
     End Sub
 
-    <WorkItem(531195)>
+    <WorkItem(531195, "DevDiv")>
     <Fact>
     Public Sub SignModuleKeyFileCmdLine_1()
         Dim x = KeyPairFile
@@ -1262,7 +1262,7 @@ BC37207: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a sourc
 </expected>)
     End Sub
 
-    <Fact> <WorkItem(529779)>
+    <Fact> <WorkItem(529779, "DevDiv")>
     Public Sub Bug529779_1()
 
         Dim unsigned As VisualBasicCompilation = CreateCompilationWithMscorlib(
@@ -1294,7 +1294,7 @@ End Class
         CompileAndVerify(other.WithReferences({other.References(0), New MetadataImageReference(unsigned.EmitToArray)})).VerifyDiagnostics()
     End Sub
 
-    <Fact> <WorkItem(529779)>
+    <Fact> <WorkItem(529779, "DevDiv")>
     Public Sub Bug529779_2()
 
         Dim unsigned As VisualBasicCompilation = CreateCompilationWithMscorlib(
@@ -1527,7 +1527,7 @@ End Class
 
 #End Region
 
-    <Fact, WorkItem(769840)>
+    <Fact, WorkItem(769840, "DevDiv")>
     Public Sub Bug769840()
         Dim ca = CreateCompilationWithMscorlib(
 <compilation name="Bug769840_A">

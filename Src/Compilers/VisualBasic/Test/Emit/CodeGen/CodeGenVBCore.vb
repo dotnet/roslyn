@@ -51,7 +51,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb core runtime is included.
-        <WorkItem(546059)>
+        <WorkItem(546059, "DevDiv")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode2()
             Dim sources = <compilation>
@@ -76,7 +76,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb core runtime is included.
-        <WorkItem(546059)>
+        <WorkItem(546059, "DevDiv")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode3()
             Dim sources = <compilation>
@@ -202,7 +202,7 @@ End Class
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(545438), WorkItem(546887)>
+        <WorkItem(545438, "DevDiv"), WorkItem(546887, "DevDiv")>
         <Fact()>
         Public Sub InternalXmlHelper_ValueProperty()
             Dim symbols = <expected>
@@ -1712,7 +1712,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        <WorkItem(544511)>
+        <WorkItem(544511, "DevDiv")>
         Sub VbCore_SingleSymbol_Strings_AscW_Char()
             CompileAndVerify(
 <compilation>
@@ -2994,7 +2994,7 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem(544291)>
+        <Fact, WorkItem(544291, "DevDiv")>
         Sub VbCoreSyncLockOnObject()
             CompileAndVerify(
 <compilation>
@@ -3037,7 +3037,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545772)>
+        <Fact(), WorkItem(545772, "DevDiv")>
         Public Sub VbCoreNoStdLib()
             Dim source =
 <compilation>

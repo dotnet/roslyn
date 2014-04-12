@@ -795,7 +795,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(544125)>
+        <WorkItem(544125, "DevDiv")>
         <Fact()>
         Sub CollectionInitializerFieldInitializer()
             Dim source =

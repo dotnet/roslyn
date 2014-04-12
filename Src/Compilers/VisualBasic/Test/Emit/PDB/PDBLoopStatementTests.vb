@@ -386,7 +386,7 @@ End Class
 
 #Region "For Loop"
 
-        <WorkItem(529183)>
+        <WorkItem(529183, "DevDiv")>
         <Fact()>
         Public Sub ForLoop01()
             Dim source =
@@ -452,7 +452,7 @@ End Module
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
-        <WorkItem(529183)>
+        <WorkItem(529183, "DevDiv")>
         <Fact()>
         Public Sub ForLoop02()
             Dim source =

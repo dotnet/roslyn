@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxFormatterTests
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestAllInVB()
             Dim allInVB As String = TestResource.AllInOneVisualBasicCode
             Dim expected As String = TestResource.AllInOneVisualBasicBaseline
@@ -95,12 +95,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestFormatBlock("Imports          <xmlns:db=""http://example.org/database"">", "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestLabelStatements()
             TestFormatStatement("while a<b" + vbCrLf + "foo:" + vbCrLf + "c" + vbCrLf + "end while", "while a < b" + vbCrLf + "foo:" + vbCrLf + "  c" + vbCrLf + "end while")
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestMethodStatements()
             TestFormatBlock("Sub foo()" + vbCrLf + "a()" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  a()" + vbCrLf + "end Sub" + vbCrLf)
             TestFormatBlock("Function foo()         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo() as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestFormatBlock("Sub foo()" + vbCrLf + "Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  Dim a()() = New Integer()()() {}" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestWithStatements()
             TestFormatBlock(
 <code>
@@ -126,13 +126,13 @@ end Sub
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestSyncLockStatements()
             TestFormatBlock("Sub foo()" + vbCrLf + "SyncLock me" + vbCrLf + "bar()" + vbCrLf + "end synclock" + vbCrLf + "end Sub",
                             "Sub foo()" + vbCrLf + "  SyncLock me" + vbCrLf + "    bar()" + vbCrLf + "  end synclock" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestEventStatements()
             TestFormatBlock(
 <code>
@@ -153,7 +153,7 @@ end module
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestAssignmentStatements()
             TestFormatBlock("module m1" + vbCrLf + _
                             "sub s1()" + vbCrLf + _
@@ -220,7 +220,7 @@ end module
                             "end module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestCallStatements()
             TestFormatBlock("module m1" + vbCrLf + _
                             "sub s2()" + vbCrLf + _
@@ -255,7 +255,7 @@ end module
                             "Dim zipState = New With {Key .ZipCode = 98112, .State = ""WA""}" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397), WorkItem(546514)>
+        <Fact(), WorkItem(546397, "DevDiv"), WorkItem(546514, "DevDiv")>
         Public Sub TestXmlAccessStatements()
             TestFormatBlock("Imports <xmlns:db=""http://example.org/database"">" + vbCrLf + _
                             "Module Test" + vbCrLf + _
@@ -275,7 +275,7 @@ end module
                             "End Module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestNamespaceStatements()
             TestFormatBlock("Imports I1.I2" + vbCrLf + _
                             "Namespace N1" + vbCrLf + _
@@ -291,7 +291,7 @@ end module
                             "end Namespace" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestNullableStatements()
             TestFormatBlock(
 <code>
@@ -306,7 +306,7 @@ end module
 </code>.Value)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestInterfaceStatements()
             TestFormatBlock("namespace N1" + vbCrLf + _
                             "Interface I1" + vbCrLf + _
@@ -341,7 +341,7 @@ end module
                             "End Namespace" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestEnumStatements()
             TestFormatBlock("Module M1" + vbCrLf + vbCrLf + _
                             "ENUM E1 as long" + vbCrLf + _
@@ -416,7 +416,7 @@ end module
                             "end class" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestDelegateStatements()
 
             TestFormatBlock("Module M1" + vbCrLf + _
@@ -460,7 +460,7 @@ end module
 
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestSelectStatements()
 
             TestFormatBlock("    Module M1" + vbCrLf + _
@@ -503,7 +503,7 @@ end module
                             "end module" + vbCrLf)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestFormatIfStatement()
 
             ' expressions
@@ -542,7 +542,7 @@ end module
             Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestLoopStatements()
             TestFormatStatement("while a<b" + vbCrLf + "c                  " + vbCrLf + "end while", "while a < b" + vbCrLf + "  c" + vbCrLf + "end while")
 
@@ -597,7 +597,7 @@ end module
                             "next j, i")
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestExceptionsStatements()
 
             TestFormatStatement("   try" + vbCrLf + _
@@ -621,7 +621,7 @@ end module
                             "end try")
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestUsingStatements()
 
             TestFormatStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf + _
@@ -643,7 +643,7 @@ end module
                             "Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestDefaultCasingForKeywords()
             Dim expected = "Module m1" + vbCrLf + vbCrLf + _
                             "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf + _
@@ -655,7 +655,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestComment()
 
             ' trailing whitespace will be aligned to the indent level (see second comment)
@@ -693,7 +693,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestMultilineLambdaFunctionsAsParameter()
 
             ' trailing whitespace will be aligned to the indent level (see second comment)
@@ -722,7 +722,7 @@ end module
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestProperty()
             Dim input = <text>Property    p   As  Integer         
                 Get
@@ -757,7 +757,7 @@ End Property
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(546397)>
+        <Fact(), WorkItem(546397, "DevDiv")>
         Public Sub TestStructuredTriviaAndAttributes()
             Dim source = "Module m1" + vbCrLf + _
                             " '''<x>...</x>" + vbCrLf + _
@@ -778,7 +778,7 @@ End Property
             Assert.Equal(expected, actual)
         End Sub
 
-        <Fact(), WorkItem(531607)>
+        <Fact(), WorkItem(531607, "DevDiv")>
         Public Sub TestNestedStructuredTrivia()
             Dim trivia = SyntaxFactory.TriviaList(
                 SyntaxFactory.Trivia(

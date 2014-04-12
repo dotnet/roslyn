@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenForLoops
         Inherits BasicTestBase
 
-        <WorkItem(541539)>
+        <WorkItem(541539, "DevDiv")>
         <Fact>
         Public Sub SimpleForLoopsTest()
             Dim TEMP = CompileAndVerify(
@@ -465,7 +465,7 @@ End Class
         End Sub
 
         ' Step past the end value
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ForLoopStepPassedEnd()
             Dim TEMP = CompileAndVerify(
@@ -505,7 +505,7 @@ End Class
         End Sub
 
         ' Step past the end value
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ForLoopStepPassedEndStepNegative()
             Dim TEMP = CompileAndVerify(
@@ -545,7 +545,7 @@ End Class
         End Sub
 
         ' Use a FOR/NEXT with Decimal type and a positive STEP where start
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ForLoopStepIsDecimalVar3()
             Dim TEMP = CompileAndVerify(
@@ -578,7 +578,7 @@ End Class
         End Sub
 
         ' FOR/NEXT loops can be nested
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ForLoopNested()
             Dim TEMP = CompileAndVerify(
@@ -647,7 +647,7 @@ End Class
         End Sub
 
         ' When NEXT is used without a variable, the current loop is incremented
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ForLoopNextWithoutVariable()
             CompileAndVerify(
@@ -693,7 +693,7 @@ End Class
         End Sub
 
         ' Change outer variable in inner for Loops 
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ChangeOuterVarInInnerFor()
             Dim TEMP = CompileAndVerify(
@@ -748,7 +748,7 @@ End Class
         End Sub
 
         ' Inner for loop referencing the outer for loop iteration variable
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub InnerForRefOuterForVar()
             Dim TEMP = CompileAndVerify(
@@ -802,7 +802,7 @@ End Class
         End Sub
 
         ' Exit for nested for loops
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ExitNestedFor()
             Dim TEMP = CompileAndVerify(
@@ -848,7 +848,7 @@ End Class
         End Sub
 
         ' Continue for nested for loops
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ContinueNestedFor()
             Dim TEMP = CompileAndVerify(
@@ -903,7 +903,7 @@ End Class
         End Sub
 
         ' Use nothing as the start value
-        <WorkItem(542033)>
+        <WorkItem(542033, "DevDiv")>
         <Fact>
         Public Sub NothingAsStart()
             Dim TEMP = CompileAndVerify(
@@ -957,7 +957,7 @@ End Class
         End Sub
 
         ' Use nothing as the end value
-        <WorkItem(542033)>
+        <WorkItem(542033, "DevDiv")>
         <Fact>
         Public Sub NothingAsEnd()
             Dim TEMP = CompileAndVerify(
@@ -1008,7 +1008,7 @@ End Class
         End Sub
 
         ' Use nothing as the step value
-        <WorkItem(542033)>
+        <WorkItem(542033, "DevDiv")>
         <Fact>
         Public Sub NothingAsStep()
             Dim TEMP = CompileAndVerify(
@@ -1055,7 +1055,7 @@ End Class
         End Sub
 
         ' Use a function as the start and end value
-        <WorkItem(542036)>
+        <WorkItem(542036, "DevDiv")>
         <Fact>
         Public Sub FunctionCallAsStart()
             Dim TEMP = CompileAndVerify(
@@ -1112,7 +1112,7 @@ End Class
         End Sub
 
         ' Overflow check while increase by steps
-        <WorkItem(542041)>
+        <WorkItem(542041, "DevDiv")>
         <Fact>
         Public Sub OverflowCheck()
             Dim TEMP = CompileAndVerify(
@@ -1146,7 +1146,7 @@ End Class
         End Sub
 
         ' For With Object
-        <WorkItem(542042)>
+        <WorkItem(542042, "DevDiv")>
         <Fact>
         Public Sub ObjectAsStart()
             Dim TEMP = CompileAndVerify(
@@ -1201,7 +1201,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542045)>
+        <WorkItem(542045, "DevDiv")>
         <Fact>
         Public Sub EnumAsStart()
             Dim TEMP = CompileAndVerify(
@@ -1241,7 +1241,7 @@ End Enum
         End Sub
 
         ' Declare a loop variable and initialize it with a property using the variable as argument
-        <WorkItem(542046)>
+        <WorkItem(542046, "DevDiv")>
         <Fact>
         Public Sub PropertyAsStart()
             Dim TEMP = CompileAndVerify(
@@ -1328,7 +1328,7 @@ End Class
         End Sub
 
         ' Use a Field variable x that has the same name as the variable we are initializing
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub FieldNameAsIteration_1()
             Dim TEMP = CompileAndVerify(
@@ -1372,8 +1372,8 @@ End Class
 
         ' Use a global variable x that has the same name as the variable we are initializing via a
         ' function
-        <WorkItem(542126)>
-        <WorkItem(528679)>
+        <WorkItem(542126, "DevDiv")>
+        <WorkItem(528679, "DevDiv")>
         <Fact>
         Public Sub GlobalNameAsIteration()
             Dim TEMP = CompileAndVerify(
@@ -1418,7 +1418,7 @@ End Class
         End Sub
 
         ' Use the declared variable to initialize limit and step
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub UseDeclaredVarToLInitLimit()
             Dim TEMP = CompileAndVerify(
@@ -1481,7 +1481,7 @@ End Class
         End Sub
 
         ' Iteration variable is a variable declared outside the loop
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub VarDeclaredOutOfLoop()
             CompileAndVerify(
@@ -1515,7 +1515,7 @@ End Class
         End Sub
 
         ' Change limit value in for loop
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub ChangeLimitInloop()
             Dim TEMP = CompileAndVerify(
@@ -1572,7 +1572,7 @@ End Class
         End Sub
 
         ' Whole For loop on the same line
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub SingleLine()
             CompileAndVerify(
@@ -1604,7 +1604,7 @@ End Class
         End Sub
 
         ' For statement is split in every possible place
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub SplitForLoop()
             CompileAndVerify(
@@ -1644,7 +1644,7 @@ End Class
         End Sub
 
         ' Infinite loop
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub InfiniteLoop()
             Dim TEMP = CompileAndVerify(
@@ -1679,7 +1679,7 @@ End Module
         End Sub
 
         ' Infinite loop
-        <WorkItem(542032)>
+        <WorkItem(542032, "DevDiv")>
         <Fact>
         Public Sub InfiniteLoop_1()
             Dim TEMP = CompileAndVerify(

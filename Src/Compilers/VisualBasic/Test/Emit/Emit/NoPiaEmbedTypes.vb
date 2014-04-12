@@ -2126,7 +2126,7 @@ End Class
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
-        <WorkItem(837420)>
+        <WorkItem(837420, "DevDiv")>
         <Fact()>
         Public Sub BC31556ERR_SourceInterfaceMustBeInterface()
             Dim sources0 = <compilation>
@@ -4038,7 +4038,7 @@ BC36924: Type 'System.Collections.Generic.List(Of I1)' cannot be used across ass
             CompileAndVerify(compilation4, emitOptions:=EmitOptions.RefEmitBug, verify:=False)
         End Sub
 
-        <Fact(), WorkItem(673546)>
+        <Fact(), WorkItem(673546, "DevDiv")>
         Public Sub MissingComAwareEventInfo()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[

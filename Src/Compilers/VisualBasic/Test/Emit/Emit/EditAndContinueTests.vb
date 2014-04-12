@@ -151,7 +151,7 @@ End Namespace
 ]]>.Value)
         End Sub
 
-        <WorkItem(829353)>
+        <WorkItem(829353, "DevDiv")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ArrayInitializer_FromMetadata()
             Dim sources0 = <compilation>
@@ -243,7 +243,7 @@ End Class
         ''' Should not generate method for string switch since
         ''' the CLR only allows adding private members.
         ''' </summary>
-        <WorkItem(834086)>
+        <WorkItem(834086, "DevDiv")>
         <Fact()>
         Public Sub PrivateImplementationDetails_ComputeStringHash()
             Dim sources = <compilation>
@@ -454,7 +454,7 @@ End Class
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
         End Sub
 
-        <WorkItem(844472)>
+        <WorkItem(844472, "DevDiv")>
         <Fact()>
         Public Sub MethodSignatureWithNoPIAType()
             Dim sourcesPIA = <compilation>
@@ -635,7 +635,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <WorkItem(844536)>
+        <WorkItem(844536, "DevDiv")>
         <Fact()>
         Public Sub NoPIATypeInNamespace()
             Dim sourcesPIA = <compilation>
@@ -706,7 +706,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <Fact, WorkItem(837315)>
+        <Fact, WorkItem(837315, "DevDiv")>
         Public Sub AddingSetAccessor()
             Dim source0 =
 <compilation>
@@ -787,7 +787,7 @@ End Module</file>
         End Sub
 
 #Region "Local Slots"
-        <Fact, WorkItem(828389)>
+        <Fact, WorkItem(828389, "DevDiv")>
         Public Sub CatchClause()
             Dim source0 =
 <compilation>
@@ -1267,7 +1267,7 @@ End Class
         ''' used by the method body, since there may be existing
         ''' references to that slot, in a Watch window for instance.
         ''' </summary>
-        <WorkItem(843320)>
+        <WorkItem(843320, "DevDiv")>
         <Fact>
         Public Sub PreserveLocalTypes()
             Dim sources0 = <compilation>
@@ -3529,7 +3529,7 @@ End Class
 ]]>.Value)
         End Sub
 
-        <WorkItem(839414)>
+        <WorkItem(839414, "DevDiv")>
         <Fact>
         Public Sub Bug839414()
             Dim source0 =
@@ -3565,7 +3565,7 @@ End Module
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
         End Sub
 
-        <WorkItem(849649)>
+        <WorkItem(849649, "DevDiv")>
         <Fact>
         Public Sub Bug849649()
             Dim source0 =

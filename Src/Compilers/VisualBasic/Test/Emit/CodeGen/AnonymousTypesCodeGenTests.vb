@@ -93,7 +93,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If1()
             CompileAndVerify(
@@ -113,7 +113,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If2()
             CompileAndVerify(
@@ -133,7 +133,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_If3()
             CompileAndVerify(
@@ -153,7 +153,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional1()
             CompileAndVerify(
@@ -171,7 +171,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional2()
             CompileAndVerify(
@@ -189,7 +189,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional3()
             CompileAndVerify(
@@ -207,7 +207,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional4()
             CompileAndVerify(
@@ -225,7 +225,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional5()
             CompileAndVerify(
@@ -245,7 +245,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional_CollInitializer1()
             CompileAndVerify(
@@ -263,7 +263,7 @@ End Module
 expectedOutput:="VB$AnonymousType_0`1[T0]")
         End Sub
 
-        <WorkItem(544243)>
+        <WorkItem(544243, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInUnreachableCode_Conditional_CollInitializer2()
             CompileAndVerify(
@@ -570,7 +570,7 @@ New XCData(<![CDATA[
 
         End Sub
 
-        <WorkItem(531571)>
+        <WorkItem(531571, "DevDiv")>
         <Fact()>
         Public Sub Bug_531571()
             CompileAndVerify(

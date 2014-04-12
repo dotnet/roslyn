@@ -148,7 +148,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871)>
+    <WorkItem(545871, "DevDiv")>
     <Fact>
     Public Sub FW_Hash()
         ParseAndVerify(<![CDATA[
@@ -160,7 +160,7 @@ End Module
     End Sub
 
 
-    <WorkItem(679758)>
+    <WorkItem(679758, "DevDiv")>
     <Fact>
     Public Sub TypeCharMismatch()
         ParseAndVerify(<![CDATA[
@@ -174,8 +174,8 @@ End Module
         )
     End Sub
 
-    <WorkItem(530922)>
-    <WorkItem(658448)>
+    <WorkItem(530922, "DevDiv")>
+    <WorkItem(658448, "DevDiv")>
     <Fact>
     Public Sub FullWidthDirective()
         ParseAndVerify(<![CDATA[
@@ -255,7 +255,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(531493)>
+    <WorkItem(531493, "DevDiv")>
     <Fact>
     Public Sub Repro18189()
         ParseAndVerify(<![CDATA[
@@ -266,7 +266,7 @@ REM _
         ]]>)
     End Sub
 
-    <WorkItem(697520)>
+    <WorkItem(697520, "DevDiv")>
     <Fact>
     Public Sub BigShift()
         ParseAndVerify(<![CDATA[
@@ -297,7 +297,7 @@ End Module
 )
     End Sub
 
-    <WorkItem(530921)>
+    <WorkItem(530921, "DevDiv")>
     <Fact>
     Public Sub Repro17195()
         ParseAndVerify(<![CDATA[
@@ -310,7 +310,7 @@ _
         ]]>)
     End Sub
 
-    <WorkItem(530679)>
+    <WorkItem(530679, "DevDiv")>
     <Fact>
     Public Sub Repro16694()
         ParseAndVerify(<![CDATA[
@@ -333,7 +333,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871)>
+    <WorkItem(545871, "DevDiv")>
     <Fact>
     Public Sub ParseIfDirectiveWithCChar()
         ParseAndVerify(<![CDATA[
@@ -380,7 +380,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(538581)>
+    <WorkItem(538581, "DevDiv")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithBad()
         ParseAndVerify(<![CDATA[
@@ -392,7 +392,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(528617)>
+    <WorkItem(528617, "DevDiv")>
     <Fact>
     Public Sub LineContinuationInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -407,7 +407,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(545211)>
+    <WorkItem(545211, "DevDiv")>
     <Fact>
     Public Sub FunctionKeywordInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -417,7 +417,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(586984)>
+    <WorkItem(586984, "DevDiv")>
     <Fact>
     Public Sub DW_Underscore()
         ParseAndVerify(<![CDATA[
@@ -446,7 +446,7 @@ Region
         ]]>)
     End Sub
 
-    <WorkItem(586984)>
+    <WorkItem(586984, "DevDiv")>
     <Fact>
     Public Sub DW_Underscore_001()
         ParseAndVerify(<![CDATA[
@@ -484,7 +484,7 @@ Region
     Diagnostic(ERRID.ERR_LbNoMatchingIf, "#End If"))
     End Sub
 
-    <WorkItem(538578)>
+    <WorkItem(538578, "DevDiv")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithUnderscore()
         ParseAndVerify(<![CDATA[
@@ -571,7 +571,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(542109)>
+    <WorkItem(542109, "DevDiv")>
     <Fact>
     Public Sub BC30277_ParseConstTypeChar()
         ParseAndVerify(<![CDATA[
@@ -583,7 +583,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(541882)>
+    <WorkItem(541882, "DevDiv")>
     <Fact>
     Public Sub ParseConstWithLineContinuation()
         ParseAndVerify(<![CDATA[
@@ -604,7 +604,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(528617)>
+    <WorkItem(528617, "DevDiv")>
     <Fact()>
     Public Sub ParseConstWithLineContinuation1()
         ParseAndVerify(<![CDATA[
@@ -619,8 +619,8 @@ blah _
         </errors>)
     End Sub
 
-    <WorkItem(537851)>
-    <WorkItem(538488)>
+    <WorkItem(537851, "DevDiv")>
+    <WorkItem(538488, "DevDiv")>
     <Fact>
     Public Sub ParseLiteralIfDirective()
         ParseAndVerify(<![CDATA[
@@ -649,7 +649,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(538486)>
+    <WorkItem(538486, "DevDiv")>
     <Fact>
     Public Sub ParseNothingStringCompare()
         ParseAndVerify(<![CDATA[
@@ -673,7 +673,7 @@ End Class
         ]]>)
     End Sub
 
-    <WorkItem(536090)>
+    <WorkItem(536090, "DevDiv")>
     <Fact>
     Public Sub BC30035ERR_Syntax_ParsePreprocessorIfAfterLineTerminator()
         ParseAndVerify(<![CDATA[
@@ -690,7 +690,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(538589)>
+    <WorkItem(538589, "DevDiv")>
     <Fact>
     Public Sub ParsePreprocessorSeparatedWithColon()
         ParseAndVerify(<![CDATA[
@@ -1108,7 +1108,7 @@ Sub DynLateSetLHS010()
              </errors>)
     End Sub
 
-    <WorkItem(527211)>
+    <WorkItem(527211, "DevDiv")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion()
@@ -1118,7 +1118,7 @@ Sub DynLateSetLHS010()
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
     End Sub
 
-    <WorkItem(527211)>
+    <WorkItem(527211, "DevDiv")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion2()
@@ -1190,7 +1190,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(527211)>
+    <WorkItem(527211, "DevDiv")>
     <WorkItem(927710, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30205ERR_ExpectedEOS()
@@ -1238,7 +1238,7 @@ End Module]]>,
 
     End Sub
 
-    <WorkItem(537144)>
+    <WorkItem(537144, "DevDiv")>
     <WorkItem(929947, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseNestedDirectives()
@@ -1251,7 +1251,7 @@ End Module]]>,
     End Sub
 
 
-    <WorkItem(538483)>
+    <WorkItem(538483, "DevDiv")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
         ParseAndVerify(<![CDATA[
@@ -1263,7 +1263,7 @@ End Module]]>,
             </error>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 0)
     End Sub
 
-    <WorkItem(538750)>
+    <WorkItem(538750, "DevDiv")>
     <Fact>
     Public Sub ParseDirectiveWithStrings()
         ParseAndVerify(<![CDATA[
@@ -1316,7 +1316,7 @@ End Class
             ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
-    <WorkItem(528675)>
+    <WorkItem(528675, "DevDiv")>
     <Fact()>
     Public Sub ParseDirectiveAfterLabel()
         ParseAndVerify(<![CDATA[
@@ -1331,7 +1331,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552845)>
+    <WorkItem(552845, "DevDiv")>
     <Fact()>
     Public Sub Repro552845()
         ParseAndVerify(<![CDATA[
@@ -1341,7 +1341,7 @@ End Module
                 </errors>)
     End Sub
 
-    <WorkItem(552845)>
+    <WorkItem(552845, "DevDiv")>
     <Fact()>
     Public Sub Repro552845_1()
         ParseAndVerify(<![CDATA[
@@ -1351,7 +1351,7 @@ End Module
                            </errors>)
     End Sub
 
-    <WorkItem(552845)>
+    <WorkItem(552845, "DevDiv")>
     <Fact()>
     Public Sub Repro552845_2()
         ParseAndVerify(<![CDATA[
@@ -1362,7 +1362,7 @@ End Module
              </errors>)
     End Sub
 
-    <WorkItem(552845)>
+    <WorkItem(552845, "DevDiv")>
     <Fact()>
     Public Sub Repro552845_3()
         ParseAndVerify(<![CDATA[
@@ -1375,7 +1375,7 @@ End Module
 
 
     <WorkItem(9710, "DevDiv_Projects/Roslyn")>
-    <WorkItem(542447)>
+    <WorkItem(542447, "DevDiv")>
     <Fact>
     Public Sub ParseConditionalIfElseIfElse()
         ParseAndVerify(<![CDATA[
@@ -1429,7 +1429,7 @@ Namespace CHDIR48
      </errors>)
     End Sub
 
-    <WorkItem(675842)>
+    <WorkItem(675842, "DevDiv")>
     <Fact()>
     Public Sub BadDateInConditionalCompilation()
         ' Failed to parse.
@@ -1542,7 +1542,7 @@ BC30059: Constant expression is required.
 </expected>)
     End Sub
 
-    <WorkItem(780817)>
+    <WorkItem(780817, "DevDiv")>
     <Fact>
     Public Sub ParseProjConstsCaseInsensitivity()
 

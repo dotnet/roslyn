@@ -278,8 +278,8 @@ Public Class XmlInternalSyntax
         End Using
     End Sub
 
-    <WorkItem(538550)>
-    <WorkItem(538551)>
+    <WorkItem(538550, "DevDiv")>
+    <WorkItem(538551, "DevDiv")>
     <Fact>
     Public Sub ScannerXml_SmartStrings()
         ' smart strings
@@ -349,7 +349,7 @@ Public Class XmlInternalSyntax
         End Using
     End Sub
 
-    <WorkItem(541284)>
+    <WorkItem(541284, "DevDiv")>
     <Fact>
     Public Sub ParseWithChrw0()
         Dim code = <![CDATA[
@@ -362,7 +362,7 @@ Public Class XmlInternalSyntax
         VisualBasicSyntaxTree.ParseText(code)
     End Sub
 
-    <Fact(), WorkItem(825859)>
+    <Fact(), WorkItem(825859, "DevDiv")>
     Public Sub NbspFollowedByXmlDocComment()
         Dim tree = SyntaxFactory.ParseSyntaxTree("")
 

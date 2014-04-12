@@ -2451,7 +2451,7 @@ BC36754: 'System.Func(Of System.ArgumentException, System.Exception)' cannot be 
 </expected>)
         End Sub
 
-        <WorkItem(542068)>
+        <WorkItem(542068, "DevDiv")>
         <Fact>
         Public Sub DelegateBindingForGenericMethods01()
             For Each OptionStrict In {"On", "Off"}
@@ -2677,7 +2677,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="Test111()").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544065)>
+        <WorkItem(544065, "DevDiv")>
         <Fact()>
         Public Sub Bug12211()
             Dim source =
@@ -2767,7 +2767,7 @@ BC30950: No accessible method 'foo' has a signature compatible with delegate 'De
 
         End Sub
 
-        <Fact(), WorkItem(545253)>
+        <Fact(), WorkItem(545253, "DevDiv")>
         Public Sub Bug13571()
             Dim source =
     <compilation>

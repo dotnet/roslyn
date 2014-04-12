@@ -2690,7 +2690,7 @@ End Structure
                     Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(545120)>
+        <WorkItem(545120, "DevDiv")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

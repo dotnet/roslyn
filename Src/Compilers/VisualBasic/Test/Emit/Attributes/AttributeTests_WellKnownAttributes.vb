@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540573)>
+        <WorkItem(540573, "DevDiv")>
         <Fact()>
         Public Sub TestPseudoAttributes01()
             Dim source =
@@ -433,7 +433,7 @@ End Class
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(531121)>
+        <WorkItem(531121, "DevDiv")>
         <Fact()>
         Public Sub TestDecimalConstantAttribute()
             Dim source =
@@ -486,7 +486,7 @@ End Class
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
         ''' 6879: Pseudo DllImport looks very different in metadata Metadata: pinvokeimpl(...) +
         ''' PreserveSig
-        <WorkItem(540573)>
+        <WorkItem(540573, "DevDiv")>
         <Fact>
         Public Sub TestPseudoDllImport()
             Dim source =
@@ -754,7 +754,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(544176)>
+        <WorkItem(544176, "DevDiv")>
         Public Sub TestPseudoAttributes_DllImport_AllTrue()
             Dim source =
 <compilation>
@@ -829,7 +829,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601)>
+        <WorkItem(544601, "DevDiv")>
         Public Sub GetDllImportData_UnspecifiedProperties()
             Dim source =
 <compilation>
@@ -866,7 +866,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601)>
+        <WorkItem(544601, "DevDiv")>
         Public Sub GetDllImportData_Declare()
             Dim source =
 <compilation>
@@ -1775,7 +1775,7 @@ End Module
 #End Region
 
 #Region "DefaultCharSetAttribute"
-        <Fact, WorkItem(544518)>
+        <Fact, WorkItem(544518, "DevDiv")>
         Public Sub DllImport_DefaultCharSet1()
             Dim source =
 <compilation>
@@ -1949,7 +1949,7 @@ End Class
         ''' <summary>
         ''' DefaultCharSet is not applied on embedded types.
         ''' </summary>
-        <WorkItem(546644)>
+        <WorkItem(546644, "DevDiv")>
         <Fact>
         Public Sub DefaultCharSet_EmbeddedTypes()
             Dim source =
@@ -2310,7 +2310,7 @@ End Class
 #End Region
 
 #Region "ParamArrayAttribute"
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact>
         Public Sub TestParamArrayAttributeForParams2()
             Dim source =
@@ -2614,7 +2614,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(545199)>
+        <WorkItem(545199, "DevDiv")>
         <Fact>
         Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
@@ -2656,7 +2656,7 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 
 #Region "AttributeUsageAttribute"
 
-        <WorkItem(541733)>
+        <WorkItem(541733, "DevDiv")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_01()
             Dim source = <compilation>
@@ -2680,7 +2680,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "AttributeUsage(AttributeTargets.Class)").WithArguments("AttributeUsageAttribute"))
         End Sub
 
-        <WorkItem(541733)>
+        <WorkItem(541733, "DevDiv")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_02()
             Dim source = <compilation>
@@ -3316,7 +3316,7 @@ end class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"))
         End Sub
 
-        <WorkItem(546623)>
+        <WorkItem(546623, "DevDiv")>
         <Fact>
         Public Sub TestSecurityAttributeInvalidTarget()
             Dim source = <compilation>
@@ -3351,7 +3351,7 @@ End Class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermissionAttribute"))
         End Sub
 
-        <WorkItem(544929)>
+        <WorkItem(544929, "DevDiv")>
         <Fact>
         Public Sub PrincipalPermissionAttribute()
             Dim source = <compilation>
@@ -3380,7 +3380,7 @@ End Class
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
         End Sub
 
-        <WorkItem(544956)>
+        <WorkItem(544956, "DevDiv")>
         <Fact>
         Public Sub SuppressUnmanagedCodeSecurityAttribute()
             Dim source = <compilation>
@@ -3708,7 +3708,7 @@ BC30662: Attribute 'InterfaceTypeAttribute' cannot be applied to 'InvalidTarget'
 ]]></expected>)
         End Sub
 
-        <WorkItem(546664)>
+        <WorkItem(546664, "DevDiv")>
         <Fact()>
         Public Sub TestIsExtensibleInterface()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3788,7 +3788,7 @@ End Interface
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(546664)>
+        <WorkItem(546664, "DevDiv")>
         <Fact()>
         Public Sub TestIsExtensibleInterface_LateBinding()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3894,7 +3894,7 @@ BC30456: 'LateBound' is not a member of 'NotExtensibleInterface3'.
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(546664)>
+        <WorkItem(546664, "DevDiv")>
         <Fact()>
         Public Sub Bug16489_StackOverflow()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4173,7 +4173,7 @@ BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied becaus
 ]]></expected>)
         End Sub
 
-        <WorkItem(545490)>
+        <WorkItem(545490, "DevDiv")>
         <Fact>
         Public Sub TestInvalidGuidAttribute_02()
             Dim source = <compilation>
@@ -4251,7 +4251,7 @@ BC32500: 'System.Runtime.InteropServices.GuidAttribute' cannot be applied becaus
 #Region "WindowsRuntimeImportAttribute"
 
         <Fact>
-        <WorkItem(531295)>
+        <WorkItem(531295, "DevDiv")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
                              <file name="a.vb">

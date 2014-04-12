@@ -240,7 +240,7 @@ Public Class ParseStatements
             ]]>)
     End Sub
 
-    <WorkItem(538594)>
+    <WorkItem(538594, "DevDiv")>
     <Fact>
     Public Sub ParseOnErrorGoto()
         ParseAndVerify(<![CDATA[
@@ -341,7 +341,7 @@ Public Class ParseStatements
         ]]>)
     End Sub
 
-    <WorkItem(539194)>
+    <WorkItem(539194, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineIfThenWithColon()
         ' Foo should be a call statement and not a label
@@ -383,7 +383,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(539204)>
+    <WorkItem(539204, "DevDiv")>
     <Fact>
     Public Sub ParseColonLineCont()
         ' 2nd Else and ElseIf are dangling in the line ifs
@@ -407,7 +407,7 @@ End Module
         Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_"))
     End Sub
 
-    <WorkItem(539204)>
+    <WorkItem(539204, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineIfThenExtraElse()
         ' 2nd Else and ElseIf are dangling in the line ifs
@@ -428,7 +428,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(539205)>
+    <WorkItem(539205, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineIfWithNestedSingleLineIf()
         ' This is a valid nested line if in a line if
@@ -495,7 +495,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(539207)>
+    <WorkItem(539207, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineIfWithNestedDoLoop1()
         ' This is a single line if that contains an invalid do .. loop 
@@ -545,7 +545,7 @@ End Module
     End Sub
 
 
-    <WorkItem(539209)>
+    <WorkItem(539209, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByColonComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -558,7 +558,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539210)>
+    <WorkItem(539210, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineIfFollowedByColonNewLine()
         ' Per Dev10 the second WriteLine should NOT be part of
@@ -600,7 +600,7 @@ End Module
 
     End Sub
 
-    <WorkItem(539211)>
+    <WorkItem(539211, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -613,7 +613,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539211)>
+    <WorkItem(539211, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByParen()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -626,7 +626,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(530904)>
+    <WorkItem(530904, "DevDiv")>
     <Fact>
     Public Sub SingleLineLambdaComma()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -647,7 +647,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(539212)>
+    <WorkItem(539212, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfWithAnotherSingleLineSub()
         ' The second single line sub is within a var declaration after the end statement in the then clause!
@@ -661,7 +661,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(539212)>
+    <WorkItem(539212, "DevDiv")>
     <Fact>
     Public Sub ParseSingleLineSubWithIncompleteSingleLineIf()
         ' Dev10 reports single line if must contain one statement.
@@ -674,7 +674,7 @@ End Module
 ]]>, Diagnostic(ERRID.ERR_ExpectedEndIf, "If True Then"))
     End Sub
 
-    <WorkItem(539212)>
+    <WorkItem(539212, "DevDiv")>
     <Fact>
     Public Sub ParseSubLambdaWithIncompleteSingleLineIf()
         ' The single line if actually gets parsed as a block if in both dev10 and roslyn
@@ -729,7 +729,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(538606)>
+    <WorkItem(538606, "DevDiv")>
     <Fact>
     Public Sub LabelFollowedByMethodInvocation()
         ParseAndVerify(<![CDATA[
@@ -744,7 +744,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(541358)>
+    <WorkItem(541358, "DevDiv")>
     <Fact>
     Public Sub LabelRelatedToBug8037()
         ParseAndVerify(<![CDATA[
@@ -831,7 +831,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(542623)>
+    <WorkItem(542623, "DevDiv")>
     <Fact>
     Public Sub ParseMidIdentifier1()
         ParseAndVerify(<![CDATA[
@@ -852,7 +852,7 @@ End Module
         )
     End Sub
 
-    <WorkItem(542623)>
+    <WorkItem(542623, "DevDiv")>
     <Fact>
     Public Sub ParseMidIdentifier2()
         ParseAndVerify(<![CDATA[
@@ -1169,7 +1169,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(536076)>
+    <WorkItem(536076, "DevDiv")>
     <Fact>
     Public Sub ParseQueryFromNullableRangeVariable()
         ParseAndVerify(<![CDATA[
@@ -1290,7 +1290,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(531540)>
+    <WorkItem(531540, "DevDiv")>
     <Fact>
     Public Sub SelectCaseInLambda()
         ParseAndVerify(<![CDATA[
@@ -1310,7 +1310,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(530633)>
+    <WorkItem(530633, "DevDiv")>
     <Fact>
     Public Sub SubImplements()
         ParseAndVerify(<![CDATA[
@@ -1502,7 +1502,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(546693)>
+    <WorkItem(546693, "DevDiv")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_1()
         ParseAndVerify(<![CDATA[
@@ -1521,7 +1521,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(546693)>
+    <WorkItem(546693, "DevDiv")>
     <Fact()>
     Public Sub ParseLambdaSingleLineIfWithColonElseIfInsideIfBlock_2()
         ParseAndVerify(<![CDATA[
@@ -1586,7 +1586,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(530940)>
+    <WorkItem(530940, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineIfColon()
         ParseAndVerify(<![CDATA[
@@ -1646,7 +1646,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(601004)>
+    <WorkItem(601004, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineIfEmptyElse()
         ParseAndVerify(<![CDATA[
@@ -1678,7 +1678,7 @@ End Module
     ''' <summary>
     ''' EmptyStatement following colon.
     ''' </summary>
-    <WorkItem(530966)>
+    <WorkItem(530966, "DevDiv")>
     <Fact()>
     Public Sub ParseEmptyStatementFollowingColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1754,7 +1754,7 @@ End Module
             SyntaxKind.EndOfFileToken)
     End Sub
 
-    <WorkItem(531486)>
+    <WorkItem(531486, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineIfElse()
         ParseAndVerify(<![CDATA[
@@ -1769,7 +1769,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(546910)>
+    <WorkItem(546910, "DevDiv")>
     <Fact()>
     Public Sub ParseMultiLineIfLambdaWithStatementColonElse()
         ParseAndVerify(<![CDATA[
@@ -1786,7 +1786,7 @@ End Module
 </errors>)
     End Sub
 
-    <WorkItem(546910)>
+    <WorkItem(546910, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineIfLambdaWithStatementColonElse()
         ParseAndVerify(<![CDATA[
@@ -2004,7 +2004,7 @@ End Module
         Assert.Equal(SyntaxKind.ForBlock, statement.Kind)
     End Sub
 
-    <WorkItem(537169)>
+    <WorkItem(537169, "DevDiv")>
     <Fact>
     Public Sub ParseGettypeNextString()
         ParseAndVerify(<![CDATA[Next.foo(GetType(Func(Of A))), "")]]>,
@@ -2012,7 +2012,7 @@ End Module
             Diagnostic(ERRID.ERR_ExtraNextVariable, ".foo(GetType(Func(Of A)))"))
     End Sub
 
-    <WorkItem(538515)>
+    <WorkItem(538515, "DevDiv")>
     <Fact>
     Public Sub IncParseAGPower17()
         Dim code As String = (<![CDATA[
@@ -2063,7 +2063,7 @@ End Namespace
         ParseAndVerify(code)
     End Sub
 
-    <WorkItem(539055)>
+    <WorkItem(539055, "DevDiv")>
     <Fact>
     Public Sub ParseReturnFollowedByComma()
         ParseAndVerify(<![CDATA[
@@ -2073,7 +2073,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538443)>
+    <WorkItem(538443, "DevDiv")>
     <Fact>
     Public Sub ParseMultiIfThenElseOnOneLine()
         ParseAndVerify(<![CDATA[
@@ -2090,7 +2090,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538440)>
+    <WorkItem(538440, "DevDiv")>
     <Fact>
     Public Sub ParseSingleIfElseTerminatedByColon()
         Dim t = ParseAndVerify(<![CDATA[ 
@@ -2128,7 +2128,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(538481)>
+    <WorkItem(538481, "DevDiv")>
     <Fact>
     Public Sub ParseLineContAtEnd()
         Dim t = ParseAndVerify(<![CDATA[
@@ -2234,7 +2234,7 @@ End Module
         Assert.IsType(Of LocalDeclarationStatementSyntax)(ifBlock.IfPart.Statements(0))
 
     End Sub
-    <WorkItem(540669)>
+    <WorkItem(540669, "DevDiv")>
     <Fact>
     Public Sub SingleLineIfNotTerminateByEmptyStatement()
 
@@ -2267,7 +2267,7 @@ End Module
 
     End Sub
 
-    <WorkItem(540844)>
+    <WorkItem(540844, "DevDiv")>
     <Fact>
     Public Sub TestForEachAfterOffset()
         Const prefix As String = "GARBAGE"
@@ -2301,7 +2301,7 @@ End Module
 
     End Sub
 
-    <WorkItem(543248)>
+    <WorkItem(543248, "DevDiv")>
     <Fact()>
     Public Sub ParseBadCollectionRangeVariableDeclaration1()
 
@@ -2317,7 +2317,7 @@ End Module
                           Diagnostic(ERRID.ERR_ExpectedIn, ""))
     End Sub
 
-    <WorkItem(543364)>
+    <WorkItem(543364, "DevDiv")>
     <Fact()>
     Public Sub ParseLabelAfterElse()
 
@@ -2332,7 +2332,7 @@ End Module
     End Module]]>, Diagnostic(ERRID.ERR_Syntax, "100"))
     End Sub
 
-    <WorkItem(544224)>
+    <WorkItem(544224, "DevDiv")>
     <Fact()>
     Public Sub ParsePartialSingleLineIfStatement()
         Dim stmt = SyntaxFactory.ParseExecutableStatement("If True")
@@ -2360,7 +2360,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(536260)>
+    <WorkItem(536260, "DevDiv")>
     <Fact()>
     Public Sub BC30012ERR_LbExpectedEndIf()
         ParseAndVerify(<![CDATA[
@@ -2376,7 +2376,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(527095)>
+    <WorkItem(527095, "DevDiv")>
     <Fact()>
     Public Sub BC30016ERR_InvOutsideProc_Label()
         ParseAndVerify(<![CDATA[
@@ -3076,7 +3076,7 @@ End Module]]>,
             </errors>)
     End Sub
 
-    <WorkItem(527019)>
+    <WorkItem(527019, "DevDiv")>
     <Fact()>
     Public Sub BC31427ERR_BadCCExpression_ParseErrorMismatchExpectedEOSVSBadCCExpressionExpected()
         ParseAndVerify(<![CDATA[
@@ -3091,7 +3091,7 @@ End Module]]>,
             </errors>)
     End Sub
 
-    <WorkItem(536271)>
+    <WorkItem(536271, "DevDiv")>
     <Fact()>
     Public Sub BC32020ERR_ExpectedAssignmentOperator()
         ParseAndVerify(<![CDATA[
@@ -3256,7 +3256,7 @@ End Module]]>,
         </errors>)
     End Sub
 
-    <WorkItem(527028)>
+    <WorkItem(527028, "DevDiv")>
     <Fact()>
     Public Sub BC36631ERR_ExpectedJoin()
         ParseAndVerify(<![CDATA[
@@ -3432,7 +3432,7 @@ End Module
             Diagnostic(ERRID.ERR_InvalidEndProperty, "End Property"))
     End Sub
 
-    <WorkItem(536268)>
+    <WorkItem(536268, "DevDiv")>
     <Fact()>
     Public Sub ParseExpectedXmlNameAndIllegalChar()
         ParseAndVerify(<![CDATA[
@@ -3447,7 +3447,7 @@ End Module
                  Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
     End Sub
 
-    <WorkItem(536270)>
+    <WorkItem(536270, "DevDiv")>
     <Fact()>
     Public Sub ParseExpectedXmlnsAndExpectedEQAndExpectedXmlName()
         ParseAndVerify(<![CDATA[
@@ -3520,7 +3520,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(545166)>
+    <WorkItem(545166, "DevDiv")>
     <WorkItem(894062, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30287ERR_ExpectedDot_ParseVariant()
@@ -3683,7 +3683,7 @@ End Namespace
         </errors>)
     End Sub
 
-    <WorkItem(539208)>
+    <WorkItem(539208, "DevDiv")>
     <Fact()>
     Public Sub BC32005ERR_BogusWithinLineIf_2()
         ParseAndVerify(<![CDATA[
@@ -3742,7 +3742,7 @@ End Namespace
         Diagnostic(ERRID.ERR_InvInsideEnum, "300:"))
     End Sub
 
-    <WorkItem(539182)>
+    <WorkItem(539182, "DevDiv")>
     <Fact()>
     Public Sub ParseEmptyStatementWithBadToken()
         ' There should only be one error reported
@@ -3761,7 +3761,7 @@ End Namespace
              </errors>)
     End Sub
 
-    <WorkItem(539515)>
+    <WorkItem(539515, "DevDiv")>
     <Fact()>
     Public Sub ParseNestedSingleLineIfFollowedByEndIf()
         ' Report error for mismatched END IF.  
@@ -3777,7 +3777,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(539515)>
+    <WorkItem(539515, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineWithNestedMultiLineIf()
         ' Report error for mismatched END IF.
@@ -3957,7 +3957,7 @@ End Namespace
              Diagnostic(ERRID.ERR_ExpectedIdentifier, ""))
     End Sub
 
-    <WorkItem(542066)>
+    <WorkItem(542066, "DevDiv")>
     <Fact()>
     Public Sub Bug9035()
         ParseAndVerify(<![CDATA[
@@ -4089,7 +4089,7 @@ End Namespace
             Diagnostic(ERRID.ERR_EndSyncLockNoSyncLock, "end synclock"))
     End Sub
 
-    <WorkItem(543724)>
+    <WorkItem(543724, "DevDiv")>
     <Fact()>
     Public Sub ElseIfStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4101,7 +4101,7 @@ End Class
         Diagnostic(ERRID.ERR_ExpectedExpression, ""))
     End Sub
 
-    <WorkItem(544495)>
+    <WorkItem(544495, "DevDiv")>
     <Fact>
     Public Sub CatchFinallyStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4111,7 +4111,7 @@ End Class
         Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Finally"))
     End Sub
 
-    <WorkItem(544519)>
+    <WorkItem(544519, "DevDiv")>
     <Fact>
     Public Sub TryStatementOutsideMethodBody()
         ParseAndVerify(<![CDATA[
@@ -4129,7 +4129,7 @@ End Module
 
 #End Region
 
-    <WorkItem(545543)>
+    <WorkItem(545543, "DevDiv")>
     <Fact>
     Public Sub ParseInvalidUseOfBlockWithinSingleLineLambda()
         Dim compilationDef =
@@ -4151,7 +4151,7 @@ End Module
                                        Diagnostic(ERRID.ERR_NameNotDeclared1, "j").WithArguments("j"))
     End Sub
 
-    <WorkItem(545543)>
+    <WorkItem(545543, "DevDiv")>
     <Fact>
     Public Sub ParseValidUseOfBlockWithinMultiLineLambda()
         Dim compilationDef =
@@ -4179,7 +4179,7 @@ End Module
         Assert.Equal(1, NodeFound.Count)
     End Sub
 
-    <WorkItem(545543)>
+    <WorkItem(545543, "DevDiv")>
     <Fact>
     Public Sub ParseValidUseOfNonBlockWithinSingleLineLambda()
         Dim compilationDef =
@@ -4209,7 +4209,7 @@ End Module
         Assert.Equal(1, NodeFound1.Count)
     End Sub
 
-    <WorkItem(545543)>
+    <WorkItem(545543, "DevDiv")>
     <Fact>
     Public Sub ParseValidUseOfBlockWithinSingleLineLambda()
         'Subtle Variation with Single line Statement Lambda and a Block Construct
@@ -4239,7 +4239,7 @@ End Module
         Assert.Equal(1, NodeFound1.Count)
     End Sub
 
-    <WorkItem(530516)>
+    <WorkItem(530516, "DevDiv")>
     <Fact()>
     Public Sub Bug530516()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4386,7 +4386,7 @@ End Class
         Assert.True(identifierToken.IsMissing)
     End Sub
 
-    <WorkItem(546688)>
+    <WorkItem(546688, "DevDiv")>
     <Fact()>
     Public Sub Bug16568_If()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4474,7 +4474,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546688)>
+    <WorkItem(546688, "DevDiv")>
     <Fact()>
     Public Sub Bug16568_Else()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4562,7 +4562,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(546734)>
+    <WorkItem(546734, "DevDiv")>
     <Fact()>
     Public Sub Bug16688()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4694,7 +4694,7 @@ End Class
         Assert.Equal(token.ToFullString(), "    Exit ")
     End Sub
 
-    <WorkItem(531059)>
+    <WorkItem(531059, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineLambdaInSingleLineIf()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4735,7 +4735,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(547060)>
+    <WorkItem(547060, "DevDiv")>
     <Fact()>
     Public Sub ParseSingleLineLambdaInSingleLineIf01()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4758,7 +4758,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(578144)>
+    <WorkItem(578144, "DevDiv")>
     <Fact()>
     Public Sub ParseStatementLambdaOnSingleLineLambdaWithColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -4772,7 +4772,7 @@ End Module
             Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
     End Sub
 
-    <WorkItem(531086)>
+    <WorkItem(531086, "DevDiv")>
     <Fact()>
     Public Sub Bug17550()
         ParseAndVerify("<!--" + vbCrLf,
@@ -4793,7 +4793,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531102)>
+    <WorkItem(531102, "DevDiv")>
     <Fact()>
     Public Sub Bug17574_XmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -5184,7 +5184,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102)>
+    <WorkItem(531102, "DevDiv")>
     <Fact()>
     Public Sub Bug17574_XmlElementAccess()
         ParseAndVerify(<![CDATA[
@@ -5340,7 +5340,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102)>
+    <WorkItem(531102, "DevDiv")>
     <Fact()>
     Public Sub Bug17574_XmlDescendantAccess()
         ParseAndVerify(<![CDATA[
@@ -5520,7 +5520,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102)>
+    <WorkItem(531102, "DevDiv")>
     <Fact()>
     Public Sub Bug17574_Comment()
         ParseAndVerify(<![CDATA[
@@ -5582,7 +5582,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(531102)>
+    <WorkItem(531102, "DevDiv")>
     <Fact()>
     Public Sub Bug17574_Other()
         ParseAndVerify(<![CDATA[
@@ -5632,7 +5632,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531480)>
+    <WorkItem(531480, "DevDiv")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         ParseAndVerify(<![CDATA[
@@ -5741,7 +5741,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(531632)>
+    <WorkItem(531632, "DevDiv")>
     <Fact()>
     Public Sub ColonTerminatorFollowingXmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -5754,7 +5754,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(547195)>
+    <WorkItem(547195, "DevDiv")>
     <Fact()>
     Public Sub ColonFollowingImplicitContinuation()
         ParseAndVerify(<![CDATA[
@@ -5824,7 +5824,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(547305)>
+    <WorkItem(547305, "DevDiv")>
     <Fact()>
     Public Sub Bug547305()
         ParseAndVerify(<![CDATA[
@@ -5903,7 +5903,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552836)>
+    <WorkItem(552836, "DevDiv")>
     <Fact()>
     Public Sub MoreNextVariablesThanBlockContexts()
         ParseAndVerify(<![CDATA[
@@ -5939,7 +5939,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962)>
+    <WorkItem(553962, "DevDiv")>
     <Fact()>
     Public Sub Bug553962()
         ParseAndVerify(<![CDATA[
@@ -6091,8 +6091,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(553962)>
-    <WorkItem(571807)>
+    <WorkItem(553962, "DevDiv")>
+    <WorkItem(571807, "DevDiv")>
     <Fact()>
     Public Sub Bug571807()
         ParseAndVerify(<![CDATA[
@@ -6129,7 +6129,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(570756)>
+    <WorkItem(570756, "DevDiv")>
     <Fact()>
     Public Sub FullWidthKeywords()
         Dim source = <![CDATA[
@@ -6140,8 +6140,8 @@ End Module
         ParseAndVerify(source)
     End Sub
 
-    <WorkItem(588122)>
-    <WorkItem(587130)>
+    <WorkItem(588122, "DevDiv")>
+    <WorkItem(587130, "DevDiv")>
     <Fact()>
     Public Sub FullWidthKeywords001()
         Dim source = <![CDATA[
@@ -6158,7 +6158,7 @@ End Module
         ParseAndVerify(source)
     End Sub
 
-    <WorkItem(571529)>
+    <WorkItem(571529, "DevDiv")>
     <Fact()>
     Public Sub Bug571529()
         ParseAndVerify(<![CDATA[
@@ -6171,7 +6171,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(581662)>
+    <WorkItem(581662, "DevDiv")>
     <Fact()>
     Public Sub BlankLinesFollowingUnderscore()
         ParseAndVerify(<![CDATA[
@@ -6240,7 +6240,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608214)>
+    <WorkItem(608214, "DevDiv")>
     <Fact()>
     Public Sub Bug608214()
         ParseAndVerify(<![CDATA[
@@ -6296,8 +6296,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608214)>
-    <WorkItem(610345)>
+    <WorkItem(608214, "DevDiv")>
+    <WorkItem(610345, "DevDiv")>
     <Fact()>
     Public Sub Bug608214_2()
         ParseAndVerify(<![CDATA[
@@ -6349,7 +6349,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(608225)>
+    <WorkItem(608225, "DevDiv")>
     <Fact()>
     Public Sub Bug608225()
         ParseAndVerify(<![CDATA[
@@ -6482,7 +6482,7 @@ End Module
     ''' <summary>
     ''' Line continuation trivia should include the underscore only.
     ''' </summary>
-    <WorkItem(581662)>
+    <WorkItem(581662, "DevDiv")>
     <Fact()>
     Public Sub LineContinuationTrivia()
         Dim source = <![CDATA[
@@ -6535,7 +6535,7 @@ End Module
     ''' <summary>
     ''' Each colon should be a separate trivia node.
     ''' </summary>
-    <WorkItem(612584)>
+    <WorkItem(612584, "DevDiv")>
     <Fact()>
     Public Sub ConsecutiveColonsTrivia()
         Dim source = <![CDATA[
@@ -6631,7 +6631,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(619627)>
+    <WorkItem(619627, "DevDiv")>
     <Fact()>
     Public Sub OuterEndWithinMultiLineLambda()
         ParseAndVerify(<![CDATA[
@@ -6769,7 +6769,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(620546)>
+    <WorkItem(620546, "DevDiv")>
     <Fact()>
     Public Sub NestedMultiLineBlocksInSingleLineIf()
         ParseAndVerify(<![CDATA[
@@ -7001,7 +7001,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(622712)>
+    <WorkItem(622712, "DevDiv")>
     <Fact()>
     Public Sub ColonTerminatorWithTrailingTrivia()
         ParseAndVerify(<![CDATA[
@@ -7027,7 +7027,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(623023)>
+    <WorkItem(623023, "DevDiv")>
     <Fact()>
     Public Sub SingleLineIfWithinNestedSingleLineBlocks()
         ParseAndVerify(<![CDATA[
@@ -7160,7 +7160,7 @@ End Module
     ''' scanner if the colons are on the same line vs.
     ''' separate lines with line continuations.
     ''' </summary>
-    <WorkItem(634703)>
+    <WorkItem(634703, "DevDiv")>
     <Fact>
     Public Sub MultipleColons()
         CheckMethodStatementsAndTrivia(<![CDATA[
@@ -7350,7 +7350,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(638187)>
+    <WorkItem(638187, "DevDiv")>
     <Fact()>
     Public Sub IsNextStatementInsideLambda()
         ParseAndVerify(<![CDATA[
@@ -7510,7 +7510,7 @@ End Module
     ''' Currently, any statement on the same line as
     ''' the invalid label is ignored.
     ''' </summary>
-    <WorkItem(642558)>
+    <WorkItem(642558, "DevDiv")>
     <Fact()>
     Public Sub ErrorInStatementFollowingInvalidLabel()
         ParseAndVerify(<![CDATA[
@@ -7568,7 +7568,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(640520)>
+    <WorkItem(640520, "DevDiv")>
     <Fact()>
     Public Sub Bug640520()
         ParseAndVerify(<![CDATA[
@@ -7609,7 +7609,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(648998)>
+    <WorkItem(648998, "DevDiv")>
     <Fact()>
     Public Sub Bug648998()
         ParseAndVerify(<![CDATA[
@@ -7661,7 +7661,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(649162)>
+    <WorkItem(649162, "DevDiv")>
     <Fact()>
     Public Sub Bug649162()
         ParseAndVerify(<![CDATA[
@@ -7684,7 +7684,7 @@ Imports <xmlns:=''>, Imports <xmlns::=''>, Imports <xmlns==''>
             </errors>)
     End Sub
 
-    <WorkItem(650318)>
+    <WorkItem(650318, "DevDiv")>
     <Fact()>
     Public Sub Bug650318()
         ParseAndVerify(<![CDATA[
@@ -7739,7 +7739,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(671115)>
+    <WorkItem(671115, "DevDiv")>
     <Fact()>
     Public Sub IsNewLine()
         Dim sourceFormat = "Module M{0}    Dim x = 1 'Comment{0}End Module{0}"
@@ -7750,7 +7750,7 @@ End Module
         ParseAndVerify(String.Format(sourceFormat, UCH_PS))
     End Sub
 
-    <WorkItem(674590)>
+    <WorkItem(674590, "DevDiv")>
     <Fact()>
     Public Sub Bug674590()
         ParseAndVerify(<![CDATA[
@@ -7833,7 +7833,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(684860)>
+    <WorkItem(684860, "DevDiv")>
     <Fact()>
     Public Sub Bug684860_SkippedTokens()
         Const n = 100000
@@ -7860,7 +7860,7 @@ End Class
         Assert.True((tokens2.Length - tokens1.Length) > n)
     End Sub
 
-    <WorkItem(684860)>
+    <WorkItem(684860, "DevDiv")>
     <Fact()>
     Public Sub Bug684860_XmlText()
         Const n = 100000
@@ -7898,7 +7898,7 @@ End Class
         End Sub
     End Class
 
-    <WorkItem(685268)>
+    <WorkItem(685268, "DevDiv")>
     <Fact()>
     Public Sub Bug685268()
         ParseAndVerify(<![CDATA[
@@ -7916,7 +7916,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(685474)>
+    <WorkItem(685474, "DevDiv")>
     <Fact()>
     Public Sub Bug685474()
         ParseAndVerify(<![CDATA[
@@ -7946,7 +7946,7 @@ b
             </errors>)
     End Sub
 
-    <WorkItem(697117)>
+    <WorkItem(697117, "DevDiv")>
     <Fact()>
     Public Sub Bug697117()
         ParseAndVerify(<![CDATA[
@@ -8306,7 +8306,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(716242)>
+    <WorkItem(716242, "DevDiv")>
     <Fact()>
     Public Sub Bug716242()
         ParseAndVerify(<![CDATA[
@@ -8391,7 +8391,7 @@ End Class
         Next
     End Sub
 
-    <WorkItem(539515)>
+    <WorkItem(539515, "DevDiv")>
     <Fact()>
     Public Sub ParseIllegaLineCont()
         ParseAndVerify(
@@ -8406,7 +8406,7 @@ End Module
 )
     End Sub
 
-    <WorkItem(539515)>
+    <WorkItem(539515, "DevDiv")>
     <Fact()>
     Public Sub ParseIllegaLineCont_1()
         ParseAndVerify(

@@ -1217,7 +1217,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(811916)>
+        <Fact, WorkItem(811916, "DevDiv")>
         Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
             Dim source =
 <compilation>

@@ -782,7 +782,7 @@ End If]]>.Value,
         Assert.Equal(TypeCharacter.Decimal, tks(1).GetTypeCharacter())
     End Sub
 
-    <WorkItem(538543)>
+    <WorkItem(538543, "DevDiv")>
     <Fact>
     Public Sub Scanner_DecimalLiteralExpToken()
         Dim Str = "1E1D"
@@ -958,7 +958,7 @@ End If]]>.Value,
         Assert.Equal(31085, token.GetSyntaxErrorsNoTree()(0).Code)
     End Sub
 
-    <Fact, WorkItem(529782)>
+    <Fact, WorkItem(529782, "DevDiv")>
     Public Sub DateAndDecimalCultureIndependentTokens()
         Dim SavedCultureInfo = CurrentThread.CurrentCulture
         Try
@@ -1136,7 +1136,7 @@ End If
         ]]>)
     End Sub
 
-    <WorkItem(538747)>
+    <WorkItem(538747, "DevDiv")>
     <Fact>
     Public Sub OghamSpacemark()
         ParseAndVerify(<![CDATA[
@@ -1146,7 +1146,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(531175)>
+    <WorkItem(531175, "DevDiv")>
     <Fact>
     Public Sub Bug17703()
         ParseAndVerify(<![CDATA[
@@ -1165,7 +1165,7 @@ Dim x = <
                        </errors>)
     End Sub
 
-    <WorkItem(530916)>
+    <WorkItem(530916, "DevDiv")>
     <Fact>
     Public Sub Bug17189()
         ParseAndVerify(<![CDATA[
@@ -1187,7 +1187,7 @@ a<
         </errors>)
     End Sub
 
-    <WorkItem(530682)>
+    <WorkItem(530682, "DevDiv")>
     <Fact>
     Public Sub Bug16698()
         ParseAndVerify(<![CDATA[#Const x = <!--
@@ -1210,7 +1210,7 @@ a<
         VerifyNoWhitespaceInKeywords()
     End Sub
 
-    <WorkItem(547317)>
+    <WorkItem(547317, "DevDiv")>
     <Fact>
     Public Sub ParseHugeNumber()
         ParseAndVerify(<![CDATA[
@@ -1230,7 +1230,7 @@ EndModule
         VerifyNoWhitespaceInKeywords()
     End Sub
 
-    <WorkItem(547317)>
+    <WorkItem(547317, "DevDiv")>
     <Fact>
     Public Sub ParseHugeNumberLabel()
         ParseAndVerify(<![CDATA[

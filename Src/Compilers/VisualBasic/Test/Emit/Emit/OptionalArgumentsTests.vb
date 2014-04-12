@@ -350,7 +350,7 @@ Attribute: System.Runtime.CompilerServices.DecimalConstantAttribute(999.99)
 ]]>)
         End Sub
 
-        <WorkItem(543530)>
+        <WorkItem(543530, "DevDiv")>
         <Fact()>
         Public Sub OptionalForConstructorofAttribute()
             Dim source =
@@ -727,7 +727,7 @@ End Interface
             Return attributes.Where(Function(a) DirectCast(a, VisualBasicAttributeData).AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesMetadata()
             Dim ilSource = <![CDATA[
@@ -830,7 +830,7 @@ System.Decimal: 3
 ]]>)
         End Sub
 
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues()
             Dim source1 =
@@ -954,7 +954,7 @@ BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(
 ]]>)
         End Sub
 
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1009,7 +1009,7 @@ End Class
             End If
         End Sub
 
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1097,7 +1097,7 @@ Delegate Sub D(<DateTimeConstant(1), DefaultParameterValue(2)> o As DateTime)
 ]]></errors>)
         End Sub
 
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1140,7 +1140,7 @@ BC37226: The parameter has multiple distinct default values.
         ''' <summary>
         ''' Should not report differences if either value is bad.
         ''' </summary>
-        <WorkItem(529684)>
+        <WorkItem(529684, "DevDiv")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_BadValue()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1195,7 +1195,7 @@ False
 ]]>)
         End Sub
 
-        <WorkItem(543076)>
+        <WorkItem(543076, "DevDiv")>
         <Fact()>
         Public Sub TestPropertyIntegerOptionalDouble()
             Dim source =
@@ -1223,7 +1223,7 @@ Parameter: Type=System.Double, Name=j, Optional=True, DefaultValue=100
 ]]>)
         End Sub
 
-        <WorkItem(543093)>
+        <WorkItem(543093, "DevDiv")>
         <Fact()>
         Public Sub TestIntegerWithDateTimeOptionalValue()
             Dim source =
@@ -1243,7 +1243,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "IntegerWithDateTimeOptionalValue()").WithArguments("Date", "Integer"))
         End Sub
 
-        <WorkItem(543093)>
+        <WorkItem(543093, "DevDiv")>
         <Fact()>
         Public Sub TestStringWithOptionalDateTimeValue()
             ' Error when option strict is on
@@ -1278,7 +1278,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543139)>
+        <WorkItem(543139, "DevDiv")>
         <Fact()>
         Public Sub TestOverrideOptionalArgumentFromMetadata()
             Dim source =
@@ -1306,7 +1306,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543227)>
+        <WorkItem(543227, "DevDiv")>
         <Fact()>
         Public Sub TestMultpleEnumDefaultValuesFromMetadata()
             Dim source =

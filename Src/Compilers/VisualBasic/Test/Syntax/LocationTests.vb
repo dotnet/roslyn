@@ -160,7 +160,7 @@ end class </text>.Value
             Assert.NotEqual(loc3, loc4)
         End Sub
 
-        <Fact(), WorkItem(537926), WorkItem(545223)>
+        <Fact(), WorkItem(537926, "DevDiv"), WorkItem(545223, "DevDiv")>
         Public Sub TestSourceLocationToString()
             Dim sampleProgram As String = <text>Imports System
 Class Test

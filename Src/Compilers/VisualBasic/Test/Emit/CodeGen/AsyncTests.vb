@@ -2007,7 +2007,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(553894)>
+        <WorkItem(553894, "DevDiv")>
         <Fact()>
         Public Sub Simple_TaskOfT_EmitMetadataOnly()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3380,7 +3380,7 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="1")
         End Sub
 
-        <Fact(Skip:="785170"), WorkItem(785170)>
+        <Fact(Skip:="785170"), WorkItem(785170, "DevDiv")>
         Public Sub Imported_AsyncWithEH()
             CompileAndVerify(
 <compilation>
@@ -8095,7 +8095,7 @@ End Class
             EmittedSymbolsCheck(False)
         End Sub
 
-        <WorkItem(840843)>
+        <WorkItem(840843, "DevDiv")>
         <Fact>
         Public Sub MissingAsyncMethodBuilder()
             Dim source = <compilation name="Async">

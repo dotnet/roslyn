@@ -1993,7 +1993,7 @@ Public Enum E_Long As Long : Dummy : End Enum
 
 #Region "Lambdas"
 
-        <Fact, WorkItem(530883)>
+        <Fact, WorkItem(530883, "DevDiv")>
         Public Sub ExpressionTreeParameterWithLambdaArgumentAndTypeInference()
             Dim source = <compilation>
                              <file name="expr.vb"><![CDATA[
@@ -2015,7 +2015,7 @@ End Module
             CompileAndVerify(source, additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(577271)>
+        <Fact, WorkItem(577271, "DevDiv")>
         Public Sub Bug577271()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict On 
@@ -2041,7 +2041,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>, addXmlReferences:=True)
         End Sub
 
-        <WorkItem(577272)>
+        <WorkItem(577272, "DevDiv")>
         <Fact>
         Public Sub Bug577272()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -2991,7 +2991,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.XmlLiteralsInExprLambda03_Result, addXmlReferences:=True)
         End Sub
 
-        <WorkItem(545738)>
+        <WorkItem(545738, "DevDiv")>
         <Fact()>
         Public Sub Bug_14377b()
             ' Expression Trees: Xml literals NYI
@@ -4512,7 +4512,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub ExprTree_LegacyTests06_IL()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6026,7 +6026,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub ExprTreeIL()
             CompileAndVerify(
 <compilation>
@@ -6237,7 +6237,7 @@ Lambda(
 )]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(651996)>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub LocalVariableAccessIL()
             CompileAndVerify(
 <compilation>
@@ -6583,7 +6583,7 @@ End Module]]></file>
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
-        <WorkItem(545757)>
+        <WorkItem(545757, "DevDiv")>
         <Fact()>
         Public Sub Bug_14402()
             Dim source = <compilation>
@@ -6610,7 +6610,7 @@ End Module
                  expectedOutput:="() => (value(Form1+_Closure$__1).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__1).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(531513)>
+        <WorkItem(531513, "DevDiv")>
         <Fact()>
         Public Sub Bug_18234()
             Dim file = <file name="a.vb"><![CDATA[
@@ -6706,7 +6706,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <WorkItem(545738)>
+        <WorkItem(545738, "DevDiv")>
         <Fact()>
         Public Sub Bug_14377a()
             Dim source = <compilation>
@@ -6728,7 +6728,7 @@ End Module
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(547151)>
+        <WorkItem(547151, "DevDiv")>
         <Fact()>
         Public Sub Bug_18156()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7130,7 +7130,7 @@ BC36603: Multi-dimensional array cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531526)>
+        <WorkItem(531526, "DevDiv")>
         <Fact()>
         Public Sub ByRefParamsInExpressionLambdas_BC36538()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7260,7 +7260,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(545804)>
+        <WorkItem(545804, "DevDiv")>
         <Fact()>
         Public Sub Bug_14469()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7294,7 +7294,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(531420)>
+        <WorkItem(531420, "DevDiv")>
         <Fact()>
         Public Sub ExprTreeLiftedUserDefinedOperatorsWithNullableResult_Binary_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7337,7 +7337,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531423)>
+        <WorkItem(531423, "DevDiv")>
         <Fact()>
         Public Sub ExprTreeUserDefinedAndAlsoOrElseWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7383,7 +7383,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(531424)>
+        <WorkItem(531424, "DevDiv")>
         <Fact()>
         Public Sub ExprTreeUserDefinedUnaryWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7462,7 +7462,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
 </errors>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim comp = CreateCompilationWithoutReferences(
@@ -7524,7 +7524,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
             Dim comp = CreateCompilationWithoutReferences(
@@ -7601,7 +7601,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
             Dim comp = CreateCompilationWithoutReferences(
@@ -7715,7 +7715,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #End Region
 
-        <Fact, WorkItem(808608)>
+        <Fact, WorkItem(808608, "DevDiv")>
         Public Sub Bug808608_01()
 
             Dim source = <compilation>
@@ -7780,7 +7780,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808608)>
+        <Fact, WorkItem(808608, "DevDiv")>
         Public Sub Bug808608_02()
 
             Dim source = <compilation>
@@ -7839,7 +7839,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808651)>
+        <Fact, WorkItem(808651, "DevDiv")>
         Public Sub Bug808651()
 
             Dim source = <compilation>

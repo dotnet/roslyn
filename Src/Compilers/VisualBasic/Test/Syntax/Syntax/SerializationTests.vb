@@ -218,7 +218,7 @@ End Class
         End Sub
 
         <Fact()>
-        <WorkItem(530374)>
+        <WorkItem(530374, "DevDiv")>
         Public Sub RoundtripSerializeDeepExpression()
             Dim text = <Foo><![CDATA[
 Module Module15
@@ -425,7 +425,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(530374)>
+        <WorkItem(530374, "DevDiv")>
         Public Sub RoundtripSerializeDeepExpression2()
             Dim text = <Foo><![CDATA[
 Module GroupJoin2

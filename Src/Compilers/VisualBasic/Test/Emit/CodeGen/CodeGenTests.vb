@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenTests
         Inherits BasicTestBase
 
-        <WorkItem(776642)>
+        <WorkItem(776642, "DevDiv")>
         <Fact()>
         Public Sub Bug776642a()
             CompileAndVerify(
@@ -68,7 +68,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(776642)>
+        <WorkItem(776642, "DevDiv")>
         <Fact()>
         Public Sub Bug776642b()
             CompileAndVerify(
@@ -187,7 +187,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(776642)>
+        <WorkItem(776642, "DevDiv")>
         <Fact()>
         Public Sub Bug776642_shared()
             CompileAndVerify(
@@ -234,7 +234,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(545724)>
+        <WorkItem(545724, "DevDiv")>
         <Fact()>
         Public Sub Bug14352()
             CompileAndVerify(
@@ -274,7 +274,7 @@ End Module
 </compilation>, expectedOutput:="Passed - 1")
         End Sub
 
-        <WorkItem(578074)>
+        <WorkItem(578074, "DevDiv")>
         <Fact()>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
@@ -411,7 +411,7 @@ expectedOutput:=<![CDATA[False]]>).
 ]]>)
         End Sub
 
-        <WorkItem(546809)>
+        <WorkItem(546809, "DevDiv")>
         <Fact()>
         Public Sub Bug16872()
             CompileAndVerify(
@@ -489,7 +489,7 @@ expectedOutput:="").
 ]]>)
         End Sub
 
-        <WorkItem(529861)>
+        <WorkItem(529861, "DevDiv")>
         <Fact()>
         Public Sub Bug14632a()
 
@@ -543,8 +543,8 @@ expectedOutput:=<![CDATA[
 
         End Sub
 
-        <WorkItem(529861)>
-        <WorkItem(568475)>
+        <WorkItem(529861, "DevDiv")>
+        <WorkItem(568475, "DevDiv")>
         <Fact()>
         Public Sub Bug14632b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -583,7 +583,7 @@ BC30036: Overflow.
 ]]></errors>)
         End Sub
 
-        <WorkItem(529861)>
+        <WorkItem(529861, "DevDiv")>
         <Fact()>
         Public Sub Bug14632c()
             CompileAndVerify(
@@ -613,7 +613,7 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <Fact, WorkItem(568494), WorkItem(568520)>
+        <Fact, WorkItem(568494, "DevDiv"), WorkItem(568520, "DevDiv")>
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
@@ -723,7 +723,7 @@ End Module
         ''' (The native compiler ignores sign and scale in 0eNm if N > 0
         ''' and represents such cases as 0e0m.)
         ''' </summary>
-        <WorkItem(568475)>
+        <WorkItem(568475, "DevDiv")>
         <Fact()>
         Public Sub DecimalZero_BreakingChange()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -832,7 +832,7 @@ expectedOutput:=<![CDATA[Done]]>).
 ]]>)
         End Sub
 
-        <WorkItem(545120)>
+        <WorkItem(545120, "DevDiv")>
         <Fact()>
         Public Sub Bug13399a()
             CompileAndVerify(
@@ -867,7 +867,7 @@ End Module
 expectedOutput:="S:1-S:2")
         End Sub
 
-        <WorkItem(545120)>
+        <WorkItem(545120, "DevDiv")>
         <Fact()>
         Public Sub Bug13399b()
             CompileAndVerify(
@@ -1011,7 +1011,7 @@ expectedOutput:=<![CDATA[False]]>).
 ]]>)
         End Sub
 
-        <WorkItem(545404)>
+        <WorkItem(545404, "DevDiv")>
         <Fact()>
         Public Sub Bug13798()
             CompileAndVerify(
@@ -1596,7 +1596,7 @@ End Module
                                                ]]>)
         End Sub
 
-        <WorkItem(546853)>
+        <WorkItem(546853, "DevDiv")>
         <Fact()>
         Public Sub CallingVistualFinalMethod()
             Dim ilSource = <![CDATA[
@@ -1828,7 +1828,7 @@ IL_0063:  ret
 
         End Sub
 
-        <WorkItem(529442)>
+        <WorkItem(529442, "DevDiv")>
         <Fact>
         Public Sub ExplicitStandardModuleAttribute()
             CompileAndVerify(
@@ -1981,7 +1981,7 @@ S1:M
 ]]>)
         End Sub
 
-        <WorkItem(531085)>
+        <WorkItem(531085, "DevDiv")>
         <Fact()>
         Public Sub EmitMyBaseCall()
             CompileAndVerify(
@@ -2223,7 +2223,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(546809)>
+        <WorkItem(546809, "DevDiv")>
         <Fact()>
         Public Sub TestBinaryConditionalOperator_16872a()
             CompileAndVerify(
@@ -2281,7 +2281,7 @@ expectedOutput:="C1").
 ]]>)
         End Sub
 
-        <WorkItem(634407)>
+        <WorkItem(634407, "DevDiv")>
         <Fact()>
         Public Sub TestTernary_Null()
             CompileAndVerify(
@@ -2339,7 +2339,7 @@ End Class
         End Sub
 
 
-        <WorkItem(546809)>
+        <WorkItem(546809, "DevDiv")>
         <Fact()>
         Public Sub TestBinaryConditionalOperator_16872b()
             CompileAndVerify(
@@ -4270,7 +4270,7 @@ End Class]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(544432)>
+        <WorkItem(544432, "DevDiv")>
         <Fact()>
         Public Sub PartialMethod_InNestedStructsAndModules()
             Dim vbCompilation = CreateVisualBasicCompilation("PartialMethod_InNestedStructsAndModules",
@@ -4805,7 +4805,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(538660)>
+        <WorkItem(538660, "DevDiv")>
         <Fact()>
         Public Sub LocalArray3()
             CompileAndVerify(
@@ -4923,7 +4923,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(529849)>
+        <WorkItem(529849, "DevDiv")>
         <Fact>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
@@ -4960,7 +4960,7 @@ c c
 ]]>)
         End Sub
 
-        <WorkItem(538660)>
+        <WorkItem(538660, "DevDiv")>
         <Fact()>
         Public Sub ArrayOneDimention()
             CompileAndVerify(
@@ -5010,8 +5010,8 @@ XXX
 ]]>)
         End Sub
 
-        <WorkItem(538660)>
-        <WorkItem(529849)>
+        <WorkItem(538660, "DevDiv")>
+        <WorkItem(529849, "DevDiv")>
         <Fact>
         Public Sub ArrayOneDimentionWitStaticLocals()
             CompileAndVerify(
@@ -5505,7 +5505,7 @@ End Module
 
 #Region "Regressions"
 
-        <WorkItem(543277)>
+        <WorkItem(543277, "DevDiv")>
         <Fact()>
         Public Sub Bug10931_1()
             CompileAndVerify(
@@ -5531,7 +5531,7 @@ End Module
     expectedOutput:="")
         End Sub
 
-        <WorkItem(538751)>
+        <WorkItem(538751, "DevDiv")>
         <Fact()>
         Public Sub AssertCondBranchWithLogicOperator()
             CompileAndVerify(
@@ -5564,7 +5564,7 @@ End Module
     expectedOutput:="True")
         End Sub
 
-        <WorkItem(538752)>
+        <WorkItem(538752, "DevDiv")>
         <Fact()>
         Public Sub StructureDefaultAccessibilityPublic()
             CompileAndVerify(
@@ -5609,7 +5609,7 @@ End Namespace
     expectedOutput:="PublicSub400")
         End Sub
 
-        <WorkItem(538800)>
+        <WorkItem(538800, "DevDiv")>
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -5677,7 +5677,7 @@ End Class
             VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
         End Sub
 
-        <WorkItem(538792)>
+        <WorkItem(538792, "DevDiv")>
         <Fact>
         Public Sub InvokeGenericSharedMethods()
             CompileAndVerify(
@@ -5699,7 +5699,7 @@ End Module
             expectedOutput:="Pass")
         End Sub
 
-        <WorkItem(538865)>
+        <WorkItem(538865, "DevDiv")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
 
@@ -6643,7 +6643,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(540882)>
+        <WorkItem(540882, "DevDiv")>
         <Fact>
         Public Sub TestGetObjectValueCalls2()
             Dim verifier = CompileAndVerify(
@@ -6712,7 +6712,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538853)>
+        <WorkItem(538853, "DevDiv")>
         <Fact>
         Public Sub Bug4597()
             CompileAndVerify(
@@ -6753,7 +6753,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(538852)>
+        <WorkItem(538852, "DevDiv")>
         <Fact>
         Public Sub Bug4596()
             CompileAndVerify(
@@ -6842,7 +6842,7 @@ End Module
         ''' Won't fix :(
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact, WorkItem(527773)>
+        <Fact, WorkItem(527773, "DevDiv")>
         Public Sub ConstantLiteralToDecimal()
             CompileAndVerify(
 <compilation>
@@ -7039,7 +7039,7 @@ IL_0046:  ret
 ]]>)
         End Sub
 
-        <WorkItem(539920)>
+        <WorkItem(539920, "DevDiv")>
         <Fact>
         Public Sub TestNestedFunctionLambdas()
             CompileAndVerify(
@@ -7061,7 +7061,7 @@ End Module
             expectedOutput:="abc")
         End Sub
 
-        <WorkItem(540121)>
+        <WorkItem(540121, "DevDiv")>
         <Fact>
         Public Sub TestEmitBinaryTrueAndFalseExpressionForDebug()
             CompileAndVerify(
@@ -7079,7 +7079,7 @@ End Module
                 emitPdb:=True)
         End Sub
 
-        <WorkItem(540121)>
+        <WorkItem(540121, "DevDiv")>
         <Fact>
         Public Sub BooleanAndOrInDebug()
             CompileAndVerify(
@@ -7350,7 +7350,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(540443)>
+        <WorkItem(540443, "DevDiv")>
         <Fact>
         Public Sub LoadReadOnlyField()
             CompileAndVerify(
@@ -7458,7 +7458,7 @@ IL_000d:  ret
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123)>
+        <WorkItem(541123, "DevDiv")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             CompileAndVerify(
@@ -7574,7 +7574,7 @@ S1.New(x As C1)
 ]]>)
         End Sub
 
-        <WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersCSVB()
 
@@ -7611,7 +7611,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB()
 
@@ -7644,7 +7644,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB2()
 
@@ -7788,7 +7788,7 @@ DERIVED: f(x As Integer, Optional y As Integer = 0)
 DERIVED: f(x As Integer, Optional y As String = "")
 ]]>)
         End Sub
-        <WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
         <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters()
 
@@ -7828,7 +7828,7 @@ End Class
             vbexeVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543751)>
+        <WorkItem(543751, "DevDiv")>
         <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters2()
 
@@ -8037,7 +8037,7 @@ End Structure
         End Sub
 
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123)>
+        <WorkItem(541123, "DevDiv")>
         <Fact>
         Public Sub StructNonDefaultConstructorInitializer()
             CompileAndVerify(
@@ -8950,8 +8950,8 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541123)>
-        <WorkItem(541308)>
+        <WorkItem(541123, "DevDiv")>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Public()
             Dim ilSource = <![CDATA[
@@ -9020,7 +9020,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Protected()
             Dim ilSource = <![CDATA[
@@ -9089,7 +9089,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Private()
             Dim ilSource = <![CDATA[
@@ -9158,7 +9158,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
             Dim ilSource = <![CDATA[
@@ -9228,7 +9228,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub SimpleStructInstantiationAndAssigningNothing()
             Dim ilSource = <![CDATA[
@@ -9291,7 +9291,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub TypeParameterInitializationWithNothing()
             CompileAndVerify(
@@ -9319,7 +9319,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact()>
         Public Sub TypeParameterInitializationWithNothing_StructConstraint()
             CompileAndVerify(
@@ -9353,7 +9353,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact()>
         Public Sub TypeParameterInitializationWithNothing_NewConstraint()
             CompileAndVerify(
@@ -9387,7 +9387,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541308)>
+        <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub StructInstantiationWithParameters()
             CompileAndVerify(
@@ -9432,8 +9432,8 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(541123)>
-        <WorkItem(541309)>
+        <WorkItem(541123, "DevDiv")>
+        <WorkItem(541309, "DevDiv")>
         <Fact>
         Public Sub PrivateParameterlessConstructorInMetadata()
             Dim ilSource = <![CDATA[
@@ -9533,7 +9533,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(540533)>
+        <WorkItem(540533, "DevDiv")>
         <Fact()>
         Public Sub Bug6817()
             CompileAndVerify(
@@ -9631,7 +9631,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(528679)>
+        <WorkItem(528679, "DevDiv")>
         <Fact()>
         Public Sub FunctionCallWhileOptionInferOn()
             CompileAndVerify(
@@ -9669,7 +9669,7 @@ End Class
         End Sub
 
         ' Verify that the metadata for an attribute with a serialized an enum type with generics and nested class is correctly written by compiler and read by reflection.
-        <WorkItem(541278)>
+        <WorkItem(541278, "DevDiv")>
         <Fact>
         Public Sub EmittingAttributesWithGenericsAndNestedClasses()
             CompileAndVerify(
@@ -9808,7 +9808,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542593)>
+        <WorkItem(542593, "DevDiv")>
         <Fact>
         Sub InheritClassFromRetargetedAssemblyReference()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
@@ -9861,7 +9861,7 @@ End Class
                          c2GetEnumerator2.ExplicitInterfaceImplementations(0).OriginalDefinition)
         End Sub
 
-        <WorkItem(542593)>
+        <WorkItem(542593, "DevDiv")>
         <Fact>
         Sub InheritClassFromRetargetedAssemblyReferenceProperty()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
@@ -10026,7 +10026,7 @@ End Namespace
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(542974)>
+        <Fact, WorkItem(542974, "DevDiv")>
         Public Sub LogicalOrWithBinaryExpressionOperands()
             Dim comp = CompileAndVerify(
 <compilation>
@@ -10085,7 +10085,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543243)>
+        <WorkItem(543243, "DevDiv")>
         <Fact()>
         Public Sub TestAutoProperty()
             Dim vbCompilation = CreateVisualBasicCompilation("TestAutoProperty",
@@ -10104,7 +10104,7 @@ End Module]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543243)>
+        <WorkItem(543243, "DevDiv")>
         <Fact()>
         Public Sub TestOrInDebug()
             CompileAndVerify(
@@ -10169,7 +10169,7 @@ expectedOutput:=<![CDATA[Pass]]>).
 ]]>)
         End Sub
 
-        <WorkItem(539392)>
+        <WorkItem(539392, "DevDiv")>
         <Fact()>
         Public Sub DecimalBinaryOp_01()
             CompileAndVerify(
@@ -10200,7 +10200,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543611)>
+        <WorkItem(543611, "DevDiv")>
         <Fact()>
         Public Sub CompareToOnDecimalLiteral()
             CompileAndVerify(
@@ -10233,7 +10233,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543611)>
+        <WorkItem(543611, "DevDiv")>
         <Fact()>
         Public Sub CallOnReadonlyValField()
             CompileAndVerify(
@@ -10365,7 +10365,7 @@ End Structure
         End Sub
 
 
-        <WorkItem(543611)>
+        <WorkItem(543611, "DevDiv")>
         <Fact()>
         Public Sub MultipleconstsByRef()
             CompileAndVerify(
@@ -10432,7 +10432,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(638119)>
+        <WorkItem(638119, "DevDiv")>
         <Fact()>
         Public Sub ArrayInitZero()
             CompileAndVerify(
@@ -10516,7 +10516,7 @@ True
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529162)>
+        <Fact, WorkItem(529162, "DevDiv")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -10578,7 +10578,7 @@ End Class]]>
         End Sub
 
 
-        <WorkItem(543757)>
+        <WorkItem(543757, "DevDiv")>
         <Fact()>
         Public Sub TestNotXor()
             CompileAndVerify(
@@ -10689,7 +10689,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544128)>
+        <Fact(), WorkItem(544128, "DevDiv")>
         Public Sub CodeGenLambdaNarrowingRelaxation()
             CompileAndVerify(
 <compilation>
@@ -10703,7 +10703,7 @@ End Class
 </compilation>, emitPdb:=True)
         End Sub
 
-        <Fact(), WorkItem(544182)>
+        <Fact(), WorkItem(544182, "DevDiv")>
         Public Sub OverrideImplementMembersWithOptArguments()
             Dim optParameterSource = <![CDATA[
 .class interface public abstract auto ansi IAnimal
@@ -10831,7 +10831,7 @@ expectedOutput:="")
 
         End Sub
 
-        <WorkItem(545201)>
+        <WorkItem(545201, "DevDiv")>
         <Fact()>
         Public Sub TestConversionMultiDimArrayToIList()
             Dim vbCompilation = CreateVisualBasicCompilation("TestConversionMultiDimArrayToIList",
@@ -10892,7 +10892,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545349)>
+        <WorkItem(545349, "DevDiv")>
         <Fact()>
         Public Sub CompoundPropGeneric()
             CompileAndVerify(
@@ -11239,7 +11239,7 @@ In get
 ]]>)
         End Sub
 
-        <WorkItem(545716)>
+        <WorkItem(545716, "DevDiv")>
         <Fact()>
         Public Sub Regress14344()
             CompileAndVerify(
@@ -11271,7 +11271,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(546189)>
+        <WorkItem(546189, "DevDiv")>
         <Fact()>
         Public Sub Regress15299()
             CompileAndVerify(
@@ -11326,7 +11326,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(546422)>
+        <WorkItem(546422, "DevDiv")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex01()
             CompileAndVerify(
@@ -11426,7 +11426,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(575547)>
+        <WorkItem(575547, "DevDiv")>
         <Fact()>
         Public Sub LateBindingToSystemArrayIndex02()
             ' Option Strict On
@@ -11483,7 +11483,7 @@ End Module
             compilation2.AssertNoErrors()
         End Sub
 
-        <Fact(), WorkItem(546860)>
+        <Fact(), WorkItem(546860, "DevDiv")>
         Public Sub Bug17007()
             CompileAndVerify(
 <compilation>
@@ -11704,7 +11704,7 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
 ]]>)
         End Sub
 
-        <WorkItem(530067)>
+        <WorkItem(530067, "DevDiv")>
         <Fact>
         Public Sub NopAfterCall()
             ' For a nop to be inserted after a call, three conditions must be met:
@@ -11788,7 +11788,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(529162)>
+        <WorkItem(529162, "DevDiv")>
         <Fact()>
         Public Sub Bug529162()
             Dim source =
@@ -11917,7 +11917,7 @@ Microsoft.VisualBasic.CompilerServices.Versioned - System.String VbTypeName(Syst
 ]]>)
         End Sub
 
-        <WorkItem(653588)>
+        <WorkItem(653588, "DevDiv")>
         <Fact()>
         Public Sub UnusedStructFieldLoad()
             CompileAndVerify(
@@ -11953,7 +11953,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(531166)>
+        <WorkItem(531166, "DevDiv")>
         <Fact()>
         Public Sub LoadingEnumValue__()
             CompileAndVerify(
@@ -11986,7 +11986,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(665317)>
+        <WorkItem(665317, "DevDiv")>
         <Fact()>
         Public Sub InitGenericElement()
             CompileAndVerify(
@@ -12069,7 +12069,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(718502)>
+        <WorkItem(718502, "DevDiv")>
         <Fact()>
         Public Sub UnaryMinusInCondition()
             CompileAndVerify(
@@ -12132,7 +12132,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(745103)>
+        <WorkItem(745103, "DevDiv")>
         <Fact()>
         Public Sub TestCompoundOnAfieldOfGeneric()
             CompileAndVerify(
@@ -12327,7 +12327,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(770557)>
+        <WorkItem(770557, "DevDiv")>
         <Fact()>
         Public Sub BoolConditionDebug001()
             CompileAndVerify(
@@ -12398,7 +12398,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(770557)>
+        <WorkItem(770557, "DevDiv")>
         <Fact()>
         Public Sub BoolConditionDebug002()
             CompileAndVerify(
@@ -12475,7 +12475,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean()
             Dim comp = CreateCompilationWithoutReferences(
@@ -12519,7 +12519,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         ' As above with Microsoft.VisualBasic.CompilerServices.EmbeddedOperators defined.
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean()
             Dim comp = CreateCompilationWithoutReferences(
@@ -12566,7 +12566,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim comp = CreateCompilationWithoutReferences(
@@ -12599,7 +12599,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(797996)>
+        <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError()
             Dim comp = CreateCompilationWithoutReferences(
@@ -12636,7 +12636,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(765569)>
+        <WorkItem(765569, "DevDiv")>
         <Fact()>
         Public Sub ConstMatchesType()
             CompileAndVerify(
@@ -12670,7 +12670,7 @@ End CLass
 ]]>)
         End Sub
 
-        <WorkItem(824308)>
+        <WorkItem(824308, "DevDiv")>
         <Fact()>
         Public Sub ConstCircular001()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -12701,7 +12701,7 @@ BC30500: Constant 'blah' cannot depend on its own value.
 
         End Sub
 
-        <WorkItem(824308)>
+        <WorkItem(824308, "DevDiv")>
         <Fact()>
         Public Sub ConstCircular002()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -12735,7 +12735,7 @@ BC42104: Variable 'blah' is used before it has been assigned a value. A null ref
 
         End Sub
 
-        <WorkItem(824308)>
+        <WorkItem(824308, "DevDiv")>
         <Fact()>
         Public Sub ConstCircular003()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenClosureLambdaTests
         Inherits BasicTestBase
 
-        <WorkItem(546416)>
+        <WorkItem(546416, "DevDiv")>
         <Fact>
         Public Sub TestAnonymousTypeInsideGroupBy_Enumerable()
             CompileAndVerify(
@@ -44,8 +44,8 @@ End Class
 </compilation>, expectedOutput:="")
         End Sub
 
-        <WorkItem(546538)>
-        <WorkItem(546416)>
+        <WorkItem(546538, "DevDiv")>
+        <WorkItem(546416, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_1()
             Dim compilation =
@@ -90,7 +90,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <WorkItem(546538)>
+        <WorkItem(546538, "DevDiv")>
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_2()
             CompileAndVerify(
@@ -2804,7 +2804,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542070)>
+        <WorkItem(542070, "DevDiv")>
         <Fact>
         Public Sub DeeplyNestedLambda()
             CompileAndVerify(
@@ -2905,7 +2905,7 @@ End Class
 "Level5" & vbCrLf)
         End Sub
 
-        <WorkItem(542121)>
+        <WorkItem(542121, "DevDiv")>
         <Fact>
         Public Sub TestLambdaNoClosureClass()
 
@@ -2951,7 +2951,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(545390)>
+        <WorkItem(545390, "DevDiv")>
         <Fact>
         Public Sub Regress13769()
             CompileAndVerify(
@@ -2984,7 +2984,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-26 ===========")
         End Sub
 
-        <WorkItem(545391)>
+        <WorkItem(545391, "DevDiv")>
         <Fact>
         Public Sub Regress13770()
             CompileAndVerify(
@@ -3037,7 +3037,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-12 ===========")
         End Sub
 
-        <WorkItem(545392)>
+        <WorkItem(545392, "DevDiv")>
         <Fact>
         Public Sub Regress13771()
             CompileAndVerify(
@@ -3090,7 +3090,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-14 ===========")
         End Sub
 
-        <WorkItem(545393)>
+        <WorkItem(545393, "DevDiv")>
         <Fact>
         Public Sub Regress13772()
             CompileAndVerify(
@@ -3142,7 +3142,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-4 ===========")
         End Sub
 
-        <WorkItem(545394)>
+        <WorkItem(545394, "DevDiv")>
         <Fact>
         Public Sub Regress13773()
             CompileAndVerify(
@@ -3203,7 +3203,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem(545395)>
+        <WorkItem(545395, "DevDiv")>
         <Fact>
         Public Sub Regress13774()
             CompileAndVerify(
@@ -3258,7 +3258,7 @@ End Module
 </compilation>, expectedOutput:="======== Generic-5 ===========")
         End Sub
 
-        <WorkItem(545389)>
+        <WorkItem(545389, "DevDiv")>
         <Fact>
         Public Sub Regress13768()
             CompileAndVerify(
@@ -3294,7 +3294,7 @@ End Module
 </compilation>, expectedOutput:="correct")
         End Sub
 
-        <WorkItem(531533)>
+        <WorkItem(531533, "DevDiv")>
         <Fact>
         Public Sub Regress531533()
 
@@ -3393,7 +3393,7 @@ End Module
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem(836488)>
+        <WorkItem(836488, "DevDiv")>
         <Fact>
         Public Sub RelaxedInitializer()
             CompileAndVerify(

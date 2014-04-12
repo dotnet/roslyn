@@ -32,7 +32,7 @@ End Class
         Assert.Equal(New Version(1, 2, 3, 4), other.Assembly.Identity.Version)
     End Sub
 
-    <Fact, WorkItem(543708)>
+    <Fact, WorkItem(543708, "DevDiv")>
     Public Sub VersionAttribute02()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -65,7 +65,7 @@ End Class
 
     End Sub
 
-    <Fact, WorkItem(545948)>
+    <Fact, WorkItem(545948, "DevDiv")>
     Public Sub VersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -121,7 +121,7 @@ End Class
         Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
     End Sub
 
-    <Fact, WorkItem(545948)>
+    <Fact, WorkItem(545948, "DevDiv")>
     Public Sub SatelliteContractVersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -307,7 +307,7 @@ End Class
         VerifyAssemblyTable(comp, Sub(r) Assert.True(r.Culture.IsNil))
     End Sub
 
-    <Fact, WorkItem(545951)>
+    <Fact, WorkItem(545951, "DevDiv")>
     Public Sub CultureAttributeErr()
 
         Dim src = <compilation>
@@ -599,7 +599,7 @@ End Class
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
-    <Fact(), WorkItem(529922)>
+    <Fact(), WorkItem(529922, "DevDiv")>
     Public Sub AlgorithmIdAttribute()
 
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
@@ -944,7 +944,7 @@ Imports System.Reflection
 
     End Sub
 
-    <Fact, WorkItem(546635)>
+    <Fact, WorkItem(546635, "DevDiv")>
     Public Sub AssemblyFlagsAttribute02()
         Dim comp = CreateVisualBasicCompilation("AssemblyFlagsAttribute02",
         <![CDATA[<Assembly: System.Reflection.AssemblyFlags(12345)>]]>,
@@ -1317,7 +1317,7 @@ End Class
         Next
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromNetModuleBadMulti()
         Dim source As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple (from source)")>
@@ -1351,7 +1351,7 @@ End Class
         Assert.Equal(5, attrs.Length)
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub InternalsVisibleToAttributeDropIdentical()
         Dim source =
             <compilation>
@@ -1373,7 +1373,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="InternalsVisibleToAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromSourceDropIdentical()
         Dim source =
             <compilation>
@@ -1409,7 +1409,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromSourceDropIdentical_02()
         Dim source1 As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultipleAttribute(0)> ' unique
@@ -1446,7 +1446,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_01()
         ' Duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1477,7 +1477,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodules
         Dim netmodule1Attributes As String = <![CDATA[
@@ -1525,7 +1525,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         ' All duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1560,7 +1560,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963)>
+    <Fact(), WorkItem(546963, "DevDiv")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodule & source
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1600,7 +1600,7 @@ Imports System
     End Sub
 #End Region
 
-    <Fact, WorkItem(545527)>
+    <Fact, WorkItem(545527, "DevDiv")>
     Public Sub CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         Dim moduleSrc =
 <compilation>
@@ -1637,7 +1637,7 @@ End Class
             End Sub)
     End Sub
 
-    <Fact, WorkItem(546460)>
+    <Fact, WorkItem(546460, "DevDiv")>
     Public Sub RuntimeCompatibilityAttribute_False()
         ' VB emits catch(Exception) even for an empty catch, so it can never catch non-Exception objects.
 
@@ -1668,7 +1668,7 @@ BC42031: 'Catch' block never reached; 'System.Exception' handled above in the sa
 </errors>)
     End Sub
 
-    <Fact, WorkItem(530585)>
+    <Fact, WorkItem(530585, "DevDiv")>
     Public Sub Bug16465()
         Dim modSource =
         <![CDATA[
@@ -1745,7 +1745,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Assert.True(expectedStr.Equals(actualStr), AssertEx.GetAssertMessage(expectedStr, actualStr))
     End Sub
 
-    <Fact, WorkItem(530579)>
+    <Fact, WorkItem(530579, "DevDiv")>
     Public Sub Bug530579_1()
         Dim mod1Source =
 <compilation name="M1">
@@ -1797,7 +1797,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Next
     End Sub
 
-    <Fact, WorkItem(530579)>
+    <Fact, WorkItem(530579, "DevDiv")>
     Public Sub Bug530579_2()
         Dim mod1Source =
 <compilation name="M1">
@@ -1845,7 +1845,7 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
 
     End Sub
 
-    <Fact, WorkItem(530579)>
+    <Fact, WorkItem(530579, "DevDiv")>
     Public Sub Bug530579_3()
         Dim mod1Source =
 <compilation name="M1">
@@ -1895,7 +1895,7 @@ BC42370: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from module 
 
     End Sub
 
-    <Fact, WorkItem(530579)>
+    <Fact, WorkItem(530579, "DevDiv")>
     Public Sub Bug530579_4()
         Dim mod1Source =
 <compilation name="M1">

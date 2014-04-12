@@ -165,7 +165,7 @@ Interface I
 ]]></errors>)
         End Sub
 
-        <WorkItem(540610)>
+        <WorkItem(540610, "DevDiv")>
         <Fact>
         Public Sub OverrideProperty()
             CompileAndVerify(
@@ -200,7 +200,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(540577)>
+        <WorkItem(540577, "DevDiv")>
         <Fact>
         Public Sub AddErrorCompRef()
             Dim comp1 = CreateCompilationWithMscorlib(
@@ -224,7 +224,7 @@ End Module
             comp2.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(540643)>
+        <WorkItem(540643, "DevDiv")>
         <Fact>
         Public Sub PEVerifyOverrides()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -281,7 +281,7 @@ End Module
 
         End Sub
 
-        <WorkItem(540536)>
+        <WorkItem(540536, "DevDiv")>
         <Fact>
         Public Sub SkipCodeGenIfErrorExist()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -329,7 +329,7 @@ True
 ]]>)
         End Sub
 
-        <WorkItem(540659)>
+        <WorkItem(540659, "DevDiv")>
         <Fact>
         Public Sub LambdaForSub()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -353,7 +353,7 @@ Hello Bug 7002
 ]]>)
         End Sub
 
-        <WorkItem(540658)>
+        <WorkItem(540658, "DevDiv")>
         <Fact>
         Public Sub LambdaTest1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -396,7 +396,7 @@ BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature
 </expected>)
         End Sub
 
-        <WorkItem(528232)>
+        <WorkItem(528232, "DevDiv")>
         <Fact()>
         Public Sub LambdaTest3()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -416,7 +416,7 @@ End Module
             CompileAndVerify(comp1)
         End Sub
 
-        <WorkItem(540660)>
+        <WorkItem(540660, "DevDiv")>
         <Fact>
         Public Sub LambdaTest4()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -442,7 +442,7 @@ BC36673: Multiline lambda expression is missing 'End Sub'.
 </expected>)
         End Sub
 
-        <WorkItem(528233)>
+        <WorkItem(528233, "DevDiv")>
         <Fact()>
         Public Sub LambdaTest5()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -464,7 +464,7 @@ End Module
         End Sub
 
 
-        <WorkItem(541360)>
+        <WorkItem(541360, "DevDiv")>
         <Fact>
         Public Sub ERR_30500_CircularEvaluation1()
             Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -491,7 +491,7 @@ End Module
                 )
         End Sub
 
-        <Fact(), WorkItem(543653)>
+        <Fact(), WorkItem(543653, "DevDiv")>
         Public Sub CompareToOnDecimalTypeChar()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -513,7 +513,7 @@ End Module
 
 #Region "Mixed Error Tests"
 
-        <Fact, WorkItem(530211)>
+        <Fact, WorkItem(530211, "DevDiv")>
         Public Sub ModuleNameMismatch()
             Dim netModule = CreateCompilationWithMscorlib(
     <compilation name="ModuleNameMismatch">

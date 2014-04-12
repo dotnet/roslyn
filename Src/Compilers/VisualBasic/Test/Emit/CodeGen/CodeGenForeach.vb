@@ -339,7 +339,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096)>
+        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096, "DevDiv")>
         Public Sub IterationVarInConditionalExpression()
             CompileAndVerify(
 <compilation>
@@ -421,7 +421,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096)>
+        <Fact(), WorkItem(9151, "DevDiv_Projects/Roslyn"), WorkItem(546096, "DevDiv")>
         Public Sub TraversingNothing()
             Dim TEMP = CompileAndVerify(
 <compilation>
@@ -1805,7 +1805,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(528679)>
+        <WorkItem(528679, "DevDiv")>
         <Fact>
         Public Sub TestForEachNested()
             Dim TEMP = CompileAndVerify(
@@ -1889,7 +1889,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542075)>
+        <WorkItem(542075, "DevDiv")>
         <Fact>
         Public Sub TestGetEnumeratorWithParams()
             Dim TEMP = CompileAndVerify(
@@ -2031,7 +2031,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(542079)>
+        <WorkItem(542079, "DevDiv")>
         <Fact>
         Public Sub TestForEachStructEnumerable()
             Dim TEMP = CompileAndVerify(
@@ -2166,7 +2166,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(542079)>
+        <WorkItem(542079, "DevDiv")>
         <Fact>
         Public Sub TestForEachMutableStructEnumerableInterface()
             Dim TEMP = CompileAndVerify(
@@ -2478,7 +2478,7 @@ End Class
             ' there should be a check for null before calling Dispose
         End Sub
 
-        <WorkItem(542185)>
+        <WorkItem(542185, "DevDiv")>
         <Fact>
         Public Sub CustomDefinedType()
             Dim TEMP = CompileAndVerify(
@@ -2533,7 +2533,7 @@ End Module
 
         End Sub
 
-        <WorkItem(544311)>
+        <WorkItem(544311, "DevDiv")>
         <Fact()>
         Public Sub ForEachWithMultipleDimArray()
             CompileAndVerify(
@@ -2562,7 +2562,7 @@ End Module
 
         End Sub
 
-        <WorkItem(545519)>
+        <WorkItem(545519, "DevDiv")>
         <Fact()>
         Public Sub NewForEachScopeDev11()
             Dim source =
@@ -2672,7 +2672,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519)>
+        <WorkItem(545519, "DevDiv")>
         <Fact()>
         Public Sub NewForEachScopeDev11_2()
             Dim source =
@@ -2762,7 +2762,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519)>
+        <WorkItem(545519, "DevDiv")>
         <Fact()>
         Public Sub NewForEachScopeDev11_3()
             Dim source =
@@ -2888,7 +2888,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519)>
+        <WorkItem(545519, "DevDiv")>
         <Fact()>
         Public Sub NewForEachScopeDev11_4()
             Dim source =

@@ -385,7 +385,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(530663)>
+    <WorkItem(530663, "DevDiv")>
     <Fact()>
     Public Sub Bug16663()
         Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -429,7 +429,7 @@ End Module
         compilation.AssertNoErrors()
     End Sub
 
-    <WorkItem(530663)>
+    <WorkItem(530663, "DevDiv")>
     <Fact()>
     Public Sub ParseXmlNameWithLeadingSpaces()
         ParseAndVerify(<![CDATA[
@@ -464,8 +464,8 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(530663)>
-    <WorkItem(547297)>
+    <WorkItem(530663, "DevDiv")>
+    <WorkItem(547297, "DevDiv")>
     <Fact(Skip:="547297")>
     Public Sub ParseOpenBracket()
         ParseAndVerify(<![CDATA[
@@ -478,7 +478,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(697115)>
+    <WorkItem(697115, "DevDiv")>
     <Fact()>
     Public Sub Bug697115()
         ParseAndVerify(<![CDATA[
@@ -515,7 +515,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(697269)>
+    <WorkItem(697269, "DevDiv")>
     <Fact()>
     Public Sub Bug697269()
         ParseAndVerify(<![CDATA[

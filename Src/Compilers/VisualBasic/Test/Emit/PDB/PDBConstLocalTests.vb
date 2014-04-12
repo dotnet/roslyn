@@ -150,7 +150,7 @@ class C
         End Sub
 #End If
 
-        <WorkItem(529101)>
+        <WorkItem(529101, "DevDiv")>
         <Fact()>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>

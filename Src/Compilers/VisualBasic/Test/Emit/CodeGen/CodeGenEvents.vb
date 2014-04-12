@@ -815,7 +815,7 @@ End Module]]>,
 
         End Sub
 
-        <Fact(), WorkItem(543612)>
+        <Fact(), WorkItem(543612, "DevDiv")>
         Public Sub CallEventHandlerThroughWithEvent01()
             CompileAndVerify(
     <compilation>
@@ -869,7 +869,7 @@ End Class
     ]]>)
         End Sub
 
-        <Fact(), WorkItem(543612)>
+        <Fact(), WorkItem(543612, "DevDiv")>
         Public Sub CallEventHandlerThroughWithEvent02()
             CompileAndVerify(
     <compilation>
@@ -901,7 +901,7 @@ End Class
     </compilation>, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem(543612)>
+        <Fact(), WorkItem(543612, "DevDiv")>
         Public Sub ObsoleteRaiseEvent()
             CompileAndVerify(
     <compilation>
@@ -943,7 +943,7 @@ End Module
     </compilation>, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem(545428)>
+        <Fact(), WorkItem(545428, "DevDiv")>
         Public Sub AddHandlerConflictingLocal()
             CompileAndVerify(
     <compilation>
@@ -969,7 +969,7 @@ End Module
     </compilation>, expectedOutput:="System.Int32")
         End Sub
 
-        <Fact(), WorkItem(546055)>
+        <Fact(), WorkItem(546055, "DevDiv")>
         Public Sub AddHandlerEventNameLookupViaImport()
             CompileAndVerify(
     <compilation>
@@ -1221,7 +1221,7 @@ PASS
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(545257)>
+        <Fact, WorkItem(545257, "DevDiv")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
