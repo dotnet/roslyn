@@ -22,6 +22,7 @@ using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using Microsoft.Win32;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -40,11 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var applicationDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
             var workingDirectory = Environment.CurrentDirectory;
+            var msbuildDirectory = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false).GetValue("MSBuildToolsPath").ToString();
 
             var foundCompiler = FindCompiler(new[] {
                     Path.Combine(applicationDirectory, "rcsc.exe"),
+                    Path.Combine(applicationDirectory, "csc.exe"),
                     Path.Combine(workingDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "csc.exe"),
+                    Path.Combine(msbuildDirectory, "rcsc.exe"),
+                    Path.Combine(msbuildDirectory, "csc.exe"),
                     "csc.exe"});
 
             if (string.IsNullOrEmpty(foundCompiler))

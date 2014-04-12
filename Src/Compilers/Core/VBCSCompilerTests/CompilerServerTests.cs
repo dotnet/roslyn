@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.Win32;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -38,6 +39,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
+        private string msbuildDirectory;
+
+        private string MSBuildDirectory
+        {
+            get
+            {
+                if(null == msbuildDirectory)
+                {
+                    msbuildDirectory = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false).GetValue("MSBuildToolsPath").ToString();
+                }
+                return msbuildDirectory;
+            }
+        }
+
         private string binariesDirectory;
 
         private string BinariesDirectory
@@ -49,6 +64,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     binariesDirectory = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
                 }
                 return binariesDirectory;
+            }
+        }
+
+        private string applicationDirectory;
+
+        private string ApplicationDirectory
+        {
+            get
+            {
+                if(applicationDirectory == null)
+                {
+                    applicationDirectory = Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location);
+                }
+                return applicationDirectory;
             }
         }
 
@@ -68,16 +97,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         private string GetFilePathConsideringShadowCopy(string fileName)
         {
-            var filePath = Path.Combine(BinariesDirectory, fileName);
-            if (!File.Exists(filePath))
+            //In order of priority, the directories that should be inspected for a dll.
+            var directoryList = new[] {
+                BinariesDirectory,
+                ApplicationDirectory,
+                Environment.CurrentDirectory,
+                MSBuildDirectory
+            };
+
+            var retval = Path.Combine(BinariesDirectory, fileName);
+
+            foreach(var dir in directoryList)
             {
-                var originalDirectory = Environment.CurrentDirectory;
-                if (originalDirectory != null)
+                if (null == dir)
+                    continue;
+                var filePathCandidate = Path.Combine(dir, fileName);
+                if(File.Exists(filePathCandidate))
                 {
-                    filePath = Path.Combine(originalDirectory, fileName);
+                    retval = filePathCandidate;
+                    break;
                 }
             }
-            return filePath;
+            return retval;
         }
 
         private string CSharpCommandLineCompiler
