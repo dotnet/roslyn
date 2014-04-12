@@ -690,7 +690,7 @@ namespace X
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact(Skip = "913022"), WorkItem(913022)]
+        [Fact(Skip = "913022"), WorkItem(913022, "DevDiv")]
         public void ReferenceWithMultipleAliases()
         {
             var source1 = @"
@@ -762,7 +762,7 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(913022)]
+        [Fact, WorkItem(913022, "DevDiv")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
             var source1 = @"
@@ -1538,7 +1538,7 @@ class C : I1, I2
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(692496)]
+        [WorkItem(692496, "DevDiv")]
         [Fact]
         public void SequencePointOnUsingExpression()
         {
@@ -1686,7 +1686,7 @@ class Test { static void Main() { } }
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "Test.Main"));
         }
 
-        [WorkItem(842479)]
+        [WorkItem(842479, "DevDiv")]
         [Fact]
         public void UsingExternAlias()
         {
@@ -1741,7 +1741,7 @@ namespace N
             AssertXmlEqual(expectedXml, GetPdbXml(comp, "N.D.Main"));
         }
 
-        [WorkItem(842478)]
+        [WorkItem(842478, "DevDiv")]
         [Fact]
         public void AliasIncludingDynamic()
         {

@@ -1368,7 +1368,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(546866)]
+        [WorkItem(546866, "DevDiv")]
         [Fact]
         public void FixedStatementProperty()
         {
@@ -5536,7 +5536,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem(546750)]
+        [WorkItem(546750, "DevDiv")]
         [Fact]
         public void NumericAdditionUnchecked_SizeOne()
         {
@@ -5620,7 +5620,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(546750)]
+        [WorkItem(546750, "DevDiv")]
         [Fact]
         public void NumericAdditionChecked_SizeOne()
         {
@@ -6382,7 +6382,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem(544155)]
+        [WorkItem(544155, "DevDiv")]
         [Fact]
         public void SubtractPointerTypes()
         {
@@ -8511,7 +8511,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(544229)]
+        [WorkItem(544229, "DevDiv")]
         [Fact]
         public void UnsafeTypeAsAttributeArgument()
         {
@@ -8547,7 +8547,7 @@ class A : Attribute
 
         #region Regression tests
 
-        [WorkItem(545026)]
+        [WorkItem(545026, "DevDiv")]
         [Fact]
         public void MixedSafeAndUnsafeFields()
         {
@@ -8577,7 +8577,7 @@ public class Test
             CompileAndVerify(text, options: TestOptions.UnsafeExe, verify: false).VerifyDiagnostics();
         }
 
-        [WorkItem(545026)]
+        [WorkItem(545026, "DevDiv")]
         [Fact]
         public void SafeFieldBeforeUnsafeField()
         {
@@ -8594,7 +8594,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem(545026)]
+        [WorkItem(545026, "DevDiv")]
         [Fact]
         public void SafeFieldAfterUnsafeField()
         {
@@ -8611,7 +8611,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem(545026), WorkItem(598170)]
+        [WorkItem(545026, "DevDiv"), WorkItem(598170, "DevDiv")]
         [Fact]
         public void FixedPassByRef()
         {
@@ -8665,7 +8665,7 @@ unsafe struct S
     );
         }
 
-        [Fact, WorkItem(545293), WorkItem(881188)]
+        [Fact, WorkItem(545293, "DevDiv"), WorkItem(881188, "DevDiv")]
         public void EmptyAndFixedBufferStructIsInitialized()
         {
             var text = @"
@@ -8689,7 +8689,7 @@ public struct OuterStruct
                 );
         }
 
-        [Fact, WorkItem(545296), WorkItem(545999)]
+        [Fact, WorkItem(545296, "DevDiv"), WorkItem(545999, "DevDiv")]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializer()
         {
             var text = @"
@@ -8705,7 +8705,7 @@ unsafe public struct FixedStruct
             CompileAndVerify(text, options: TestOptions.UnsafeDll, verify: false).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(545299)]
+        [Fact, WorkItem(545299, "DevDiv")]
         public void FixedStatementInlambda()
         {
             var text = @"
@@ -8743,7 +8743,7 @@ class A
             CompileAndVerify(text, options: TestOptions.UnsafeExe, emitPdb: true, expectedOutput: "b");
         }
 
-        [Fact, WorkItem(546865)]
+        [Fact, WorkItem(546865, "DevDiv")]
         public void DontStackScheduleLocalPerformingPointerConversion()
         {
             var text = @"
@@ -8833,7 +8833,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem(546807)]
+        [Fact, WorkItem(546807, "DevDiv")]
         public void PointerMemberAccessReadonlyField()
         {
             var text = @"
@@ -8901,7 +8901,7 @@ True");
 ");
         }
 
-        [Fact, WorkItem(546807)]
+        [Fact, WorkItem(546807, "DevDiv")]
         public void PointerMemberAccessCall()
         {
             var text = @"
@@ -8976,7 +8976,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem(531327)]
+        [Fact, WorkItem(531327, "DevDiv")]
         public void PointerParameter()
         {
             var text = @"
@@ -8998,7 +8998,7 @@ namespace N
             var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeDll.WithConcurrentBuild(false) );
         }
 
-        [Fact, WorkItem(531327)]
+        [Fact, WorkItem(531327, "DevDiv")]
         public void PointerReturn()
         {
             var text = @"
@@ -9022,7 +9022,7 @@ unsafe struct S1
             var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeDll.WithConcurrentBuild(false));
         }
 
-        [Fact, WorkItem(748530)]
+        [Fact, WorkItem(748530, "DevDiv")]
         public void Repro748530()
         {
             var text = @"
@@ -9041,7 +9041,7 @@ unsafe class A
             Assert.DoesNotThrow(() => comp.VerifyDiagnostics());
         }
 
-        [WorkItem(682584)]
+        [WorkItem(682584, "DevDiv")]
         [Fact]
         public void UnsafeMathConv()
         {
@@ -9087,7 +9087,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584)]
+        [WorkItem(682584, "DevDiv")]
         [Fact]
         public void UnsafeMathConv001()
         {
@@ -9137,7 +9137,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584)]
+        [WorkItem(682584, "DevDiv")]
         [Fact]
         public void UnsafeMathConv002()
         {
@@ -9179,7 +9179,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584)]
+        [WorkItem(682584, "DevDiv")]
         [Fact]
         public void UnsafeMathConv002a()
         {
@@ -9220,7 +9220,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(857598)]
+        [WorkItem(857598, "DevDiv")]
         [Fact]
         public void VoidToNullable()
         {
@@ -9257,7 +9257,7 @@ class c1
 ");
         }
 
-        [WorkItem(907771)]
+        [WorkItem(907771, "DevDiv")]
         [Fact]
         public void UnsafeBeforeReturn001()
         {
@@ -9330,7 +9330,7 @@ public unsafe class C
 ");
         }
 
-        [WorkItem(907771)]
+        [WorkItem(907771, "DevDiv")]
         [Fact]
         public void UnsafeBeforeReturn002()
         {

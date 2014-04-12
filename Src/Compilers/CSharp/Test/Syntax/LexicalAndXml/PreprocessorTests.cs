@@ -1356,7 +1356,7 @@ class A
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541898)]
+        [WorkItem(541898, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestIfNoEmptyTrivia()
@@ -1580,7 +1580,7 @@ class A
             VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
         }
 
-        [WorkItem(542198)]
+        [WorkItem(542198, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegElifWithoutIfWithSkipped()
@@ -2110,7 +2110,7 @@ class Test
             VerifyMembers(node);
         }
 
-        [WorkItem(527079)]
+        [WorkItem(527079, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegressRegionWithExcapeUnicodePrefixOnly()
@@ -2352,7 +2352,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243)]
+        [Fact, WorkItem(869243, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void Bug869243_01()
         {
@@ -2376,7 +2376,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243)]
+        [Fact, WorkItem(869243, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void Bug869243_02()
         {
@@ -2409,7 +2409,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243)]
+        [Fact, WorkItem(869243, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void Bug869243_03()
         {
@@ -2439,7 +2439,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243)]
+        [Fact, WorkItem(869243, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void Bug869243_04()
         {
@@ -2921,7 +2921,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541954)]
+        [WorkItem(541954, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestErrorWithNonLatinChars()
@@ -2934,7 +2934,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541953)]
+        [WorkItem(541953, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestDiagnosticStringFileName()
@@ -3164,7 +3164,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 12345, Text = "bogus.cs" });
         }
 
-        [WorkItem(536699)]
+        [WorkItem(536699, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegressNegLineWithErrorMessage()
@@ -3220,7 +3220,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981)]
+        [WorkItem(537981, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithoutSpaceBeforeFile()
@@ -3237,7 +3237,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981)]
+        [WorkItem(537981, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithZeroWidthSpaceBeforeFile()
@@ -3322,7 +3322,7 @@ public class Test
             });
         }
 
-        [Fact, WorkItem(536701), WorkItem(530051)]
+        [Fact, WorkItem(536701, "DevDiv"), WorkItem(530051, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {

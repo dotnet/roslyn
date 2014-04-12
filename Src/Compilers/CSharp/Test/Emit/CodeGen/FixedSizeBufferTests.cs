@@ -176,7 +176,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(531407)]
+        [WorkItem(531407, "DevDiv")]
         public void FixedBufferPointer()
         {
             var text =
@@ -223,7 +223,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(587119)]
+        [WorkItem(587119, "DevDiv")]
         public void FixedSizeBufferInFixedSizeBufferSize_Class()
         {
             var source = @"
@@ -246,7 +246,7 @@ unsafe class C
         }
 
         [Fact]
-        [WorkItem(587119)]
+        [WorkItem(587119, "DevDiv")]
         public void FixedSizeBufferInFixedSizeBufferSize_Struct()
         {
             var source = @"
@@ -264,7 +264,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem(586977)]
+        [WorkItem(586977, "DevDiv")]
         public void FixedSizeBufferInFixedSizeBufferSize_Cycle()
         {
             var source = @"
@@ -283,7 +283,7 @@ unsafe struct S
         }
 
         [Fact]
-        [WorkItem(587000)]
+        [WorkItem(587000, "DevDiv")]
         public void SingleDimensionFixedBuffersOnly()
         {
             var source = @"

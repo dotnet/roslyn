@@ -206,7 +206,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [WorkItem(542828)]
+        [WorkItem(542828, "DevDiv")]
         [Fact]
         public void BaseTypeHasNonVirtualFinalize()
         {
@@ -262,7 +262,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
         }
 
-        [WorkItem(542828)]
+        [WorkItem(542828, "DevDiv")]
         [Fact]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
@@ -516,7 +516,7 @@ public class M<T> : L<T>
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer()); //same but has "newslot"
         }
 
-        [WorkItem(528903)] // Won't fix - test just captures behavior.
+        [WorkItem(528903, "DevDiv")] // Won't fix - test just captures behavior.
         [Fact]
         public void DestructorOverridesPublicFinalize()
         {
@@ -543,7 +543,7 @@ public class B : A
             Assert.Throws<PeVerifyException>(()=> CompileAndVerify(compilation));
         }
 
-        [WorkItem(528907)]
+        [WorkItem(528907, "DevDiv")]
         [Fact]
         public void BaseTypeHasGenericFinalize()
         {
@@ -580,7 +580,7 @@ public class B : A
 ");
         }
 
-        [WorkItem(528903)]
+        [WorkItem(528903, "DevDiv")]
         [Fact]
         public void MethodImplEntry()
         {

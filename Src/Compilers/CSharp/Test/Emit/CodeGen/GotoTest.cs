@@ -115,7 +115,7 @@ class C
         }
 
         // Goto location outside enclosing block 
-        [WorkItem(527952)]
+        [WorkItem(527952, "DevDiv")]
         [Fact]
         public void LocationOfGotoOutofClosure()
         {
@@ -158,7 +158,7 @@ class C
         }
 
         // Goto location in enclosing block  
-        [WorkItem(527952)]
+        [WorkItem(527952, "DevDiv")]
         [Fact]
         public void LocationOfGotoInClosure()
         {
@@ -199,7 +199,7 @@ class C
         }
 
         // Same label in different scope  
-        [WorkItem(539876)]
+        [WorkItem(539876, "DevDiv")]
         [Fact]
         public void SameLabelInDiffScope()
         {
@@ -239,7 +239,7 @@ class C
         }
 
         // Label Next to Label  
-        [WorkItem(539877)]
+        [WorkItem(539877, "DevDiv")]
         [Fact]
         public void LabelNexttoLabel()
         {
@@ -268,7 +268,7 @@ class C
         }
 
         // Infinite loop
-        [WorkItem(527952)]
+        [WorkItem(527952, "DevDiv")]
         [Fact]
         public void Infiniteloop()
         {
@@ -297,7 +297,7 @@ class C
         }
 
         // unreachable code
-        [WorkItem(527952)]
+        [WorkItem(527952, "DevDiv")]
         [Fact]
         public void CS0162WRN_UnreachableCode()
         {
@@ -340,7 +340,7 @@ class C
         }
 
         // Declare variable after goto
-        [WorkItem(527952)]
+        [WorkItem(527952, "DevDiv")]
         [Fact]
         public void DeclareVariableAfterGoto()
         {
@@ -371,7 +371,7 @@ class C
         }
 
         // Finally is executed while use ‘goto’ to exit try block
-        [WorkItem(540721)]
+        [WorkItem(540721, "DevDiv")]
         [Fact]
         public void GotoInTry()
         {
@@ -428,7 +428,7 @@ class C
                 VerifyIL("C.Main", expectedIL);
         }
 
-        [WorkItem(540716)]
+        [WorkItem(540716, "DevDiv")]
         [Fact]
         public void GotoInFinallyBlock()
         {
@@ -482,7 +482,7 @@ class C
         }
 
         // Optimization redundant branch for code generate
-        [Fact, WorkItem(527952)]
+        [Fact, WorkItem(527952, "DevDiv")]
         public void OptimizationForGoto()
         {
             var source = @"
@@ -514,7 +514,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(528010)]
+        [Fact, WorkItem(528010, "DevDiv")]
         public void GotoInLambda()
         {
             var text = @"
@@ -614,7 +614,7 @@ class C
         }
 
         // Control is transferred to the target of the goto statement after finally
-        [WorkItem(540720)]
+        [WorkItem(540720, "DevDiv")]
         [Fact]
         public void ControlTransferred()
         {
@@ -641,7 +641,7 @@ Label
         }
 
         // Control is transferred to the target of the goto statement in nested try
-        [WorkItem(540720)]
+        [WorkItem(540720, "DevDiv")]
         [Fact]
         public void ControlTransferred_02()
         {
@@ -720,7 +720,7 @@ label
             return base.CompileAndVerify(source: source, emitOptions: EmitOptions.CCI, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540719)]
+        [WorkItem(540719, "DevDiv")]
         [Fact]
         public void LabelBetweenLocalAndInitialize()
         {
@@ -742,7 +742,7 @@ class C
             CompileAndVerify(text);
         }
 
-        [WorkItem(540719)]
+        [WorkItem(540719, "DevDiv")]
         [Fact]
         public void LabelBetweenLocalAndInitialize02()
         {
@@ -778,7 +778,7 @@ public class A
             CompileAndVerify(text, expectedOutput: "Catch");
         }
 
-        [WorkItem(540719)]
+        [WorkItem(540719, "DevDiv")]
         [Fact]
         public void LabelBetweenLocalAndInitialize03()
         {

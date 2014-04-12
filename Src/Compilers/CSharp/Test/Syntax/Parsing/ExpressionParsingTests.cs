@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.CSharpKind());
         }
 
-        [WorkItem(540379)]
+        [WorkItem(540379, "DevDiv")]
         [Fact]
         public void TestVerbatimLiteralExpression()
         {
@@ -1967,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("y", gs.ByExpression.ToString());
         }
 
-        [WorkItem(543075)]
+        [WorkItem(543075, "DevDiv")]
         [Fact]
         public void UnterminatedRankSpecifier()
         {
@@ -1981,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, arrayCreation.Type.RankSpecifiers.Single().Rank);
         }
 
-        [WorkItem(543075)]
+        [WorkItem(543075, "DevDiv")]
         [Fact]
         public void UnterminatedTypeArgumentList()
         {
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ((NameSyntax)objectCreation.Type).Arity);
         }
 
-        [WorkItem(675602)]
+        [WorkItem(675602, "DevDiv")]
         [Fact]
         public void QueryKeywordInObjectInitializer()
         {
@@ -2022,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ElementAccessExpression, parenExp.Expression.Kind);
         }
 
-        [WorkItem(543993)]
+        [WorkItem(543993, "DevDiv")]
         [Fact]
         public void ShiftOperator()
         {

@@ -552,7 +552,7 @@ using System;
             TestConditionMethods_DifferentSource(conditionalDefsDummy, conditionalDefs);
         }
 
-        [Fact, WorkItem(529683)]
+        [Fact, WorkItem(529683, "DevDiv")]
         public void CondMethodInDelegateCreationExpr()
         {
             var compilation = CreateCompilationWithMscorlib(@"

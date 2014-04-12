@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (DebuggerBrowsableState) attributes.Single(a => a.AttributeClass.Name == "DebuggerBrowsableAttribute").ConstructorArguments.First().Value;
         }
 
-        [Fact, WorkItem(546632)]
+        [Fact, WorkItem(546632, "DevDiv")]
         public void PrivateImplementationDetails()
         {
             string source = @"
@@ -46,7 +46,7 @@ class C
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546958)]
+        [Fact, WorkItem(546958, "DevDiv")]
         public void FixedSizeBuffers()
         {
             string source = @"
@@ -67,7 +67,7 @@ unsafe struct S
             AssertEx.SetEqual(expectedAttrs, actualAttrs);
         }
 
-        [Fact, WorkItem(546927)]
+        [Fact, WorkItem(546927, "DevDiv")]
         public void BackingFields()
         {
             string source = @"
@@ -109,7 +109,7 @@ class Test
             }
         }
 
-        [Fact, WorkItem(546927)]
+        [Fact, WorkItem(546927, "DevDiv")]
         public void Accessors()
         {
             string source = @"

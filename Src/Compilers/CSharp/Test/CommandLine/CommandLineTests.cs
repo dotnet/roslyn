@@ -278,8 +278,8 @@ d.cs
             Assert.Equal("решения.Class1", args.CompilationOptions.MainTypeName);
         }
 
-        [WorkItem(546009)]
-        [WorkItem(545991)]
+        [WorkItem(546009, "DevDiv")]
+        [WorkItem(545991, "DevDiv")]
         [Fact]
         public void SourceFiles_Patterns2()
         {
@@ -343,7 +343,7 @@ d.cs
             f.WriteAllText("");
         }
 
-        [Fact, WorkItem(546023)]
+        [Fact, WorkItem(546023, "DevDiv")]
         public void Win32ResourceArguments()
         {
             string[] args = new string[] 
@@ -1142,7 +1142,7 @@ d.cs
         }
 
         [Fact]
-        [WorkItem(546961)]
+        [WorkItem(546961, "DevDiv")]
         public void Define()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "a.cs" }, baseDirectory);
@@ -1631,7 +1631,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CantReadRulesetFile).WithArguments(file.Path, "Data at the root level is invalid. Line 1, position 1."));
         }
 
-        [WorkItem(892467)]
+        [WorkItem(892467, "DevDiv")]
         [Fact]
         public void Analyzers_Found()
         {
@@ -1791,7 +1791,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 itemSeparator: "\r\n");
         }
 
-        [WorkItem(540891)]
+        [WorkItem(540891, "DevDiv")]
         [Fact]
         public void ParseOut()
         {
@@ -1945,8 +1945,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.ModuleName);
         }
 
-        [WorkItem(546012)]
-        [WorkItem(546007)]
+        [WorkItem(546012, "DevDiv")]
+        [WorkItem(546007, "DevDiv")]
         [Fact]
         public void ParseOut2()
         {
@@ -2244,10 +2244,10 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal(Platform.AnyCpu, parsedArgs.CompilationOptions.Platform);  //anycpu is default
         }
 
-        [WorkItem(546016)]
-        [WorkItem(545997)]
-        [WorkItem(546019)]
-        [WorkItem(546029)]
+        [WorkItem(546016, "DevDiv")]
+        [WorkItem(545997, "DevDiv")]
+        [WorkItem(546019, "DevDiv")]
+        [WorkItem(546029, "DevDiv")]
         [Fact]
         public void ParseBaseAddress()
         {
@@ -2399,7 +2399,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "lib")); 
         }
 
-        [Fact, WorkItem(546005)]
+        [Fact, WorkItem(546005, "DevDiv")]
         public void SdkPathAndLibEnvVariable_Relative_Rcsc()
         {
             var tempFolder = Temp.CreateDirectory();
@@ -2797,7 +2797,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.DelaySign);
         }
 
-        [WorkItem(546301)]
+        [WorkItem(546301, "DevDiv")]
         [Fact]
         public void SubsystemVersionTests()
         {
@@ -2966,7 +2966,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/ADDMODULE:"));
         }
 
-        [Fact, WorkItem(530751)]
+        [Fact, WorkItem(530751, "DevDiv")]
         public void CS7061fromCS0647_ModuleWithCompilationRelaxations()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -3016,7 +3016,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(530780)]
+        [Fact, WorkItem(530780, "DevDiv")]
         public void AddModuleWithExtensionMethod()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"public static class Extensions { public static bool EB(this bool b) { return b; } }").Path;
@@ -3036,7 +3036,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(source2);
         }
 
-        [Fact, WorkItem(546297)]
+        [Fact, WorkItem(546297, "DevDiv")]
         public void OLDCS0013FTL_MetadataEmitFailureSameModAndRes()
         {
             string source1 = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Mod { }").Path;
@@ -3103,7 +3103,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
-        [WorkItem(546653)]
+        [WorkItem(546653, "DevDiv")]
         [Fact]
         public void NoSourcesWithModule()
         {
@@ -3123,7 +3123,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653)]
+        [WorkItem(546653, "DevDiv")]
         [Fact]
         public void NoSourcesWithResource()
         {
@@ -3137,7 +3137,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(aCs.Path);
         }
 
-        [WorkItem(546653)]
+        [WorkItem(546653, "DevDiv")]
         [Fact]
         public void NoSourcesWithLinkResource()
         {
@@ -3221,7 +3221,7 @@ class Test { static void Main() {} }").Path;
             Assert.Equal("b", parsedArgs.CompilationOptions.CryptoKeyContainer);
         }
 
-        [Fact, WorkItem(554551)]
+        [Fact, WorkItem(554551, "DevDiv")]
         public void CS1698WRN_AssumedMatchThis()
         {
             // compile with: /target:library /keyfile:mykey.snk
@@ -3317,7 +3317,7 @@ public class CS1698_a {}
         }
 
 
-        [WorkItem(530221)]
+        [WorkItem(530221, "DevDiv")]
         [Fact]
         public void Bug15538()
         {
@@ -3345,7 +3345,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(source);
         }
 
-        [WorkItem(545832)]
+        [WorkItem(545832, "DevDiv")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference()
         {
@@ -3387,7 +3387,7 @@ class myClass
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(545832)]
+        [WorkItem(545832, "DevDiv")]
         [Fact]
         public void ResponseFilesWithEmptyAliasReference2()
         {
@@ -3488,7 +3488,7 @@ class myClass
             AssertEx.Equal(new[] { @"d:\abc def\baz.cs", @"c:\abc de.cs" }, args.SourceFiles.Select(file => file.Path));
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName1()
         {
@@ -3511,7 +3511,7 @@ class B
                 expectedOutputName: "p.dll");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName2()
         {
@@ -3534,7 +3534,7 @@ class B
                 expectedOutputName: "r.dll");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName3()
         {
@@ -3557,7 +3557,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName4()
         {
@@ -3580,7 +3580,7 @@ class B
                 expectedOutputName: "r.exe");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName5()
         {
@@ -3604,7 +3604,7 @@ class B
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName6()
         {
@@ -3628,7 +3628,7 @@ class B
                 expectedOutputName: "q.exe");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName7()
         {
@@ -3652,7 +3652,7 @@ partial class A
                 expectedOutputName: "p.exe");
         }
 
-        [WorkItem(544441)]
+        [WorkItem(544441, "DevDiv")]
         [Fact]
         public void OutputFileName8()
         {
@@ -3877,7 +3877,7 @@ class C
             CleanupAllGeneratedFiles(file.Path); 
         }
 
-        [WorkItem(545025)]
+        [WorkItem(545025, "DevDiv")]
         [Fact]
         public void CompilationWithWarnAsError_01()
         {
@@ -3904,7 +3904,7 @@ public class C
             Assert.Equal(0, exitCode);
         }
 
-        [WorkItem(545025)]
+        [WorkItem(545025, "DevDiv")]
         [Fact]
         public void CompilationWithWarnAsError_02()
         {
@@ -3951,7 +3951,7 @@ public class C
             return exitCode;
         }
 
-        [WorkItem(545247)]
+        [WorkItem(545247, "DevDiv")]
         [Fact]
         public void CompilationWithNonExistingOutPath()
         {
@@ -3977,7 +3977,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path); 
         }
 
-        [WorkItem(545247)]
+        [WorkItem(545247, "DevDiv")]
         [Fact]
         public void CompilationWithWrongOutPath_01()
         {
@@ -4005,7 +4005,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path); 
         }
 
-        [WorkItem(545247)]
+        [WorkItem(545247, "DevDiv")]
         [Fact]
         public void CompilationWithWrongOutPath_02()
         {
@@ -4033,7 +4033,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path); 
         }
 
-        [WorkItem(545247)]
+        [WorkItem(545247, "DevDiv")]
         [Fact]
         public void CompilationWithWrongOutPath_03()
         {
@@ -4059,7 +4059,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path); 
         }
 
-        [WorkItem(545247)]
+        [WorkItem(545247, "DevDiv")]
         [Fact]
         public void CompilationWithWrongOutPath_04()
         {
@@ -4508,7 +4508,7 @@ class C
             FreeLibrary(lib);
         }
 
-        [WorkItem(544926)]
+        [WorkItem(544926, "DevDiv")]
         [Fact]
         public void ResponseFilesWithNoconfig_01()
         {
@@ -4556,7 +4556,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926)]
+        [WorkItem(544926, "DevDiv")]
         [Fact]
         public void ResponseFilesWithNoconfig_02()
         {
@@ -4590,7 +4590,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926)]
+        [WorkItem(544926, "DevDiv")]
         [Fact]
         public void ResponseFilesWithNoconfig_03()
         {
@@ -4624,7 +4624,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [WorkItem(544926)]
+        [WorkItem(544926, "DevDiv")]
         [Fact]
         public void ResponseFilesWithNoconfig_04()
         {
@@ -4658,7 +4658,7 @@ public class C
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact, WorkItem(530024)]
+        [Fact, WorkItem(530024, "DevDiv")]
         public void NoStdLib()
         {
             var src = Temp.CreateFile("a.cs");
@@ -4691,7 +4691,7 @@ public class C
             return Path.Combine(Environment.CurrentDirectory, "rcsc.rsp");
         }
 
-        [Fact, WorkItem(530359)]
+        [Fact, WorkItem(530359, "DevDiv")]
         public void NoStdLib02()
         {
             #region "source"
@@ -4840,7 +4840,7 @@ namespace System
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [Fact, WorkItem(546018), WorkItem(546020), WorkItem(546024), WorkItem(546049)]
+        [Fact, WorkItem(546018, "DevDiv"), WorkItem(546020, "DevDiv"), WorkItem(546024, "DevDiv"), WorkItem(546049, "DevDiv")]
         public void InvalidDefineSwitch()
         {
             var src = Temp.CreateFile("a.cs");
@@ -4897,7 +4897,7 @@ warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identif
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [Fact, WorkItem(733242)]
+        [Fact, WorkItem(733242, "DevDiv")]
         public void Bug733242()
         {
             var dir = Temp.CreateDirectory();
@@ -4940,7 +4940,7 @@ class C {} ");
             CleanupAllGeneratedFiles(xml.Path); 
         }
 
-        [Fact, WorkItem(768605)]
+        [Fact, WorkItem(768605, "DevDiv")]
         public void Bug768605()
         {
             var dir = Temp.CreateDirectory();
@@ -5167,7 +5167,7 @@ public class C
             }, StringComparer.OrdinalIgnoreCase);
         }
 
-        [Fact, WorkItem(545954)]
+        [Fact, WorkItem(545954, "DevDiv")]
         public void TestFilterParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5201,7 +5201,7 @@ static void Main() {
             CleanupAllGeneratedFiles(source);            
         }
 
-        [Fact, WorkItem(546058)]
+        [Fact, WorkItem(546058, "DevDiv")]
         public void TestNoWarnParseDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5230,7 +5230,7 @@ class Test
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546076)]
+        [Fact, WorkItem(546076, "DevDiv")]
         public void TestWarnAsError_CS1522()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5263,7 +5263,7 @@ public class Test
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact(), WorkItem(546025)]
+        [Fact(), WorkItem(546025, "DevDiv")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -5287,7 +5287,7 @@ public class Test
             CleanupAllGeneratedFiles(badres);
         }
 
-        [Fact, WorkItem(546114)]
+        [Fact, WorkItem(546114, "DevDiv")]
         public void TestFilterCommandLineDiagnostics()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5307,7 +5307,7 @@ static void Main() { }
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact, WorkItem(546452)]
+        [Fact, WorkItem(546452, "DevDiv")]
         public void CS1691WRN_BadWarningNumber_Bug15905()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
@@ -5670,7 +5670,7 @@ class Program
         /// (a) "/nowarn:warningCode" switch is passed to the command line compiler.
         /// (b) "#pragma warning disable warningCode" is present in the source file being compiled.
         /// </summary>
-        [Fact, WorkItem(546452)]
+        [Fact, WorkItem(546452, "DevDiv")]
         public void CS1691WRN_BadWarningNumber_AllErrorCodes()
         {
             const int jump = 200;
@@ -5780,7 +5780,7 @@ public class C { }
             CleanupAllGeneratedFiles(xmlPath);
         }
 
-        [Fact, WorkItem(546468)]
+        [Fact, WorkItem(546468, "DevDiv")]
         public void CS2002WRN_FileAlreadyIncluded()
         {
             const string cs2002 = @"warning CS2002: Source file '{0}' specified multiple times";
@@ -6007,7 +6007,7 @@ using System*
             Assert.DoesNotContain("CS2038", outWriter.ToString());
         }
 
-        [WorkItem(531263)]
+        [WorkItem(531263, "DevDiv")]
         [Fact]
         public void EmptyFileName()
         {
@@ -6019,7 +6019,7 @@ using System*
             Assert.Contains("CS2021", outWriter.ToString());
         }
 
-        [WorkItem(747219)]
+        [WorkItem(747219, "DevDiv")]
         [Fact]
         public void NoInfoDiagnostics()
         {
@@ -6067,7 +6067,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray()).Module.MetadataVersion, "_+@%#*^");
         }
 
-        [WorkItem(715339)]
+        [WorkItem(715339, "DevDiv")]
         [Fact]
         public void WRN_InvalidSearchPathDir()
         {
@@ -6104,7 +6104,7 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(sourceFile.Path );
         }
 
-        [Fact, WorkItem(650083)]
+        [Fact, WorkItem(650083, "DevDiv")]
         public void ReservedDeviceNameAsFileName()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "com9.cs", "/t:library " }, baseDirectory);

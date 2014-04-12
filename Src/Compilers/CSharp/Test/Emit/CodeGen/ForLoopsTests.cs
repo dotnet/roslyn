@@ -703,7 +703,7 @@ class C
         }
 
         // Breaking from nested Loops
-        [Fact, WorkItem(527952)]
+        [Fact, WorkItem(527952, "DevDiv")]
         public void BreakFromNestedLoop()
         {
             var source = @"
@@ -758,7 +758,7 @@ class C
 ");
         }
 
-        [WorkItem(539555)]
+        [WorkItem(539555, "DevDiv")]
         // Continuing for nested Loops
         [Fact]
         public void ContinueForNestedLoop()
@@ -883,7 +883,7 @@ class C
         }
 
         // Goto in for Loops
-        [Fact, WorkItem(527952)]
+        [Fact, WorkItem(527952, "DevDiv")]
         public void GotoForNestedLoop_2()
         {
             var source = @"
@@ -936,7 +936,7 @@ class C
         }
 
         // Goto in for Loops
-        [Fact, WorkItem(527952)]
+        [Fact, WorkItem(527952, "DevDiv")]
         public void GotoForNestedLoop_3()
         {
             var source =
@@ -1248,7 +1248,7 @@ class C
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
         }
 
-        [Fact, WorkItem(527952)]
+        [Fact, WorkItem(527952, "DevDiv")]
         public void CS0162WRN_UnreachableCode_2()
         {
             var source = @"
@@ -1273,7 +1273,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(528275)]
+        [Fact, WorkItem(528275, "DevDiv")]
         public void CS0162WRN_UnreachableCode_3()
         {
             var text = @"
@@ -1749,7 +1749,7 @@ public class C1
         }
 
         // PostFix Increment In For
-        [Fact, WorkItem(539759)]
+        [Fact, WorkItem(539759, "DevDiv")]
         public void PostFixIncrementInFor()
         {
             var text =

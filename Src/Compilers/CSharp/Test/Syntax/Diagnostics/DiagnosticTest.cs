@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
         }
 
-        [WorkItem(537801)]
+        [WorkItem(537801, "DevDiv")]
         [Fact]
         public void MissingNamespaceOpenBracket()
         {
@@ -75,7 +75,7 @@ End namespace
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
 
-        [WorkItem(540086)]
+        [WorkItem(540086, "DevDiv")]
         [Fact]
         public void ErrorApplyIndexingToMethod()
         {
@@ -112,7 +112,7 @@ public class A
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 10, Column = 34 });
         }
 
-        [WorkItem(540329)]
+        [WorkItem(540329, "DevDiv")]
         [Fact]
         public void ErrorMemberAccessOnLiteralToken()
         {
@@ -133,7 +133,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
         }
 
-        [WorkItem(542911)]
+        [WorkItem(542911, "DevDiv")]
         [Fact]
         public void WarningLevel_1()
         {
@@ -154,7 +154,7 @@ class X
             }
         }
 
-        [WorkItem(542911)]
+        [WorkItem(542911, "DevDiv")]
         [Fact]
         public void WarningLevel_2()
         {
@@ -1519,7 +1519,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_StringOrNumericLiteralExpected, ","));
         }
 
-        [WorkItem(546814)]
+        [WorkItem(546814, "DevDiv")]
         [Fact]
         public void PragmaWarningAlign_0()
         {
@@ -1540,7 +1540,7 @@ class Program
 
         }
 
-        [WorkItem(546814)]
+        [WorkItem(546814, "DevDiv")]
         [Fact]
         public void PragmaWarningAlign_1()
         {
@@ -1617,7 +1617,7 @@ class Program
             Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
-        [WorkItem(545407)]
+        [WorkItem(545407, "DevDiv")]
         [Fact]
         public void PragmaWarningDirectiveMapAtTheFirstLine()
         {
@@ -1641,7 +1641,7 @@ class Program
             return new TextSpan(index, textToFind.Length);
         }
 
-        [WorkItem(543705)]
+        [WorkItem(543705, "DevDiv")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

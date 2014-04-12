@@ -227,7 +227,7 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(538298)]
+        [WorkItem(538298, "DevDiv")]
         [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
@@ -380,7 +380,7 @@ public class SeqPointAfterReturn
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(538299)]
+        [WorkItem(538299, "DevDiv")]
         [Fact]
         public void WhileLoop()
         {
@@ -636,7 +636,7 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(544937)]
+        [WorkItem(544937, "DevDiv")]
         [Fact]
         public void ForEachLoopMultiDimensionalArray()
         {
@@ -708,7 +708,7 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(544937)]
+        [WorkItem(544937, "DevDiv")]
         [Fact]
         public void ForEachLoopMultiDimensionalArrayBreakAndContinue()
         {
@@ -957,7 +957,7 @@ public class SeqPointForWhile
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(538317)]
+        [WorkItem(538317, "DevDiv")]
         [Fact]
         public void RegressSeqPtAtBeginOfCtor()
         {
@@ -1078,7 +1078,7 @@ public class SeqPointForWhile
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(539898)]
+        [WorkItem(539898, "DevDiv")]
         [Fact]
         public void RegressSeqPointsForLambdaBody()
         {
@@ -1454,7 +1454,7 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(542064)]
+        [WorkItem(542064, "DevDiv")]
         [Fact]
         public void TestExceptionHandling()
         {
@@ -1934,7 +1934,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(543376)]
+        [WorkItem(543376, "DevDiv")]
         [Fact]
         public void SimpleIterator1()
         {
@@ -1977,7 +1977,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(543376)]
+        [WorkItem(543376, "DevDiv")]
         [Fact]
         public void SimpleIterator2()
         {
@@ -2041,7 +2041,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(543490)]
+        [WorkItem(543490, "DevDiv")]
         [Fact]
         public void SimpleIterator3()
         {
@@ -2244,7 +2244,7 @@ class Test<T>
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(542705), WorkItem(528790), WorkItem(543490)]
+        [WorkItem(542705, "DevDiv"), WorkItem(528790, "DevDiv"), WorkItem(543490, "DevDiv")]
         [Fact()]
         public void IteratorBackToNextStatementAfterYieldReturn()
         {
@@ -2362,7 +2362,7 @@ class C
             }
         }
 
-        [WorkItem(543490)]
+        [WorkItem(543490, "DevDiv")]
         [Fact()]
         public void IteratorMultipleEnumerables()
         {
@@ -2585,7 +2585,7 @@ public class Test
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(543313)]
+        [WorkItem(543313, "DevDiv")]
         [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
@@ -2654,7 +2654,7 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(543479)]
+        [Fact, WorkItem(543479, "DevDiv")]
         public void TestStepIntoNestedLambdas()
         {
             var text = @"using System;
@@ -2764,7 +2764,7 @@ class Test
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(543479)]
+        [Fact, WorkItem(543479, "DevDiv")]
         public void LambdaInitialSequencePoints()
         {
             var text = @"
@@ -2819,7 +2819,7 @@ class Test
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(543479)]
+        [Fact, WorkItem(543479, "DevDiv")]
         public void NestedLambdaInitialSequencePoints()
         {
             var text = @"
@@ -3448,7 +3448,7 @@ unsafe class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(544917)]
+        [WorkItem(544917, "DevDiv")]
         [Fact]
         public void DisabledLineDirective()
         {
@@ -3541,7 +3541,7 @@ class C
              * */
         }
 
-        [Fact(), WorkItem(543615)]
+        [Fact(), WorkItem(543615, "DevDiv")]
         public void WRN_DebugFullNameTooLong()
         {
             var text = @"
@@ -3573,7 +3573,7 @@ namespace foo
                 Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [WorkItem(546754)]
+        [WorkItem(546754, "DevDiv")]
         [Fact]
         public void TestArrayTypeInAlias()
         {
@@ -3689,7 +3689,7 @@ public class T
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(546862)]
+        [Fact, WorkItem(546862, "DevDiv")]
         public void TestInvalidUnicodeString()
         {
             var text = @"
@@ -3940,7 +3940,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(718501)]
+        [WorkItem(718501, "DevDiv")]
         [Fact]
         public void ForEachNops()
         {
@@ -4124,7 +4124,7 @@ namespace LocalsWindow
         /// the method must have a sequence point at
         /// offset 0 for correct stepping behavior.
         /// </summary>
-        [WorkItem(804681)]
+        [WorkItem(804681, "DevDiv")]
         [Fact]
         public void SequencePointAtOffset0()
         {
@@ -4215,7 +4215,7 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(778655)]
+        [WorkItem(778655, "DevDiv")]
         [Fact]
         public void BranchToStartOfTry()
         {
@@ -4287,7 +4287,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(846584)]
+        [Fact, WorkItem(846584, "DevDiv")]
         public void RelativePathForExternalSource()
         {
             var text1 = @"
@@ -4334,8 +4334,8 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void LambdaDisplayClassLocalHoistedInIterator()
         {
@@ -4408,8 +4408,8 @@ class C
             });
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void LambdaDisplayClassLocalNotHoistedInIterator()
         {
@@ -4480,8 +4480,8 @@ class C
             });
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void DynamicLocalHoistedInIterator()
         {
@@ -4539,8 +4539,8 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void DynamicLocalNotHoistedInIterator()
         {
@@ -4599,7 +4599,7 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [Fact, WorkItem(820806)]
+        [Fact, WorkItem(820806, "DevDiv")]
         public void BreakpointForAutoImplementedProperty()
         {
             var source = @"

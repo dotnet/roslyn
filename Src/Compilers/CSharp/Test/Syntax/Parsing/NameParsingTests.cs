@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
-        [WorkItem(545778)]
+        [WorkItem(545778, "DevDiv")]
         [Fact]
         public void TestFormattingCharacter()
         {
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFacts.ContainsDroppedIdentifierCharacters(tok.ValueText));
         }
 
-        [WorkItem(545778)]
+        [WorkItem(545778, "DevDiv")]
         [Fact]
         public void ContainsDroppedIdentifierCharacters()
         {

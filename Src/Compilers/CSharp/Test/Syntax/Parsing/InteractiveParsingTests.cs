@@ -58,7 +58,7 @@ static partial class C { }
                            );
         }
 
-        [WorkItem(529472)]
+        [WorkItem(529472, "DevDiv")]
         [Fact(Skip = "529472")]
         public void CS1002ERR_SemicolonExpected()
         {
@@ -8420,7 +8420,7 @@ p class A
                 new ErrorDescription { Code = 1002, Line = 2, Column = 3 });
         }
 
-        [WorkItem(528532)]
+        [WorkItem(528532, "DevDiv")]
         [Fact]
         public void ParseForwardSlash()
         {
@@ -8431,7 +8431,7 @@ p class A
             Assert.Equal(SyntaxKind.GlobalStatement, tree.GetCompilationUnitRoot().ChildNodes().ToList()[0].CSharpKind());
         }
 
-        [WorkItem(541164)]
+        [WorkItem(541164, "DevDiv")]
         [Fact]
         public void CS1733ERR_ExpressionExpected()
         {

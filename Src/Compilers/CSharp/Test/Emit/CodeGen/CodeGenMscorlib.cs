@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public partial class CodeGenMscorlibTests : EmitMetadataTestBase
     {
-        [WorkItem(544591)]
-        [WorkItem(544609)]
-        [WorkItem(544595)]
-        [WorkItem(544596)]
-        [WorkItem(544624)]
-        [WorkItem(544592)]
-        [WorkItem(544927)]
+        [WorkItem(544591, "DevDiv")]
+        [WorkItem(544609, "DevDiv")]
+        [WorkItem(544595, "DevDiv")]
+        [WorkItem(544596, "DevDiv")]
+        [WorkItem(544624, "DevDiv")]
+        [WorkItem(544592, "DevDiv")]
+        [WorkItem(544927, "DevDiv")]
         [Fact]
         public void CoreLibrary1()
         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             .VerifyDiagnostics();
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CoreLibrary2()
         {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(546832)]
+        [WorkItem(546832, "DevDiv")]
         [Fact]
         public void CoreLibrary3()
         {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0518 for missing System.Void
         /// when generating synthesized .ctor.
         /// </summary>
-        [WorkItem(530859)]
+        [WorkItem(530859, "DevDiv")]
         [Fact()]
         public void NoVoidForSynthesizedCtor()
         {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
-        [WorkItem(530860)]
+        [WorkItem(530860, "DevDiv")]
         [Fact(Skip = "530860")]
         public void NoDecimalConversion()
         {
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var verifier = CompileAndVerify(compilation2);
         }
 
-        [WorkItem(530861)]
+        [WorkItem(530861, "DevDiv")]
         [Fact]
         public void MissingStringLengthForEach()
         {
@@ -388,7 +388,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
         }
 
-        [WorkItem(631443)]
+        [WorkItem(631443, "DevDiv")]
         [Fact]
         public void CoreLibrary4()
         {

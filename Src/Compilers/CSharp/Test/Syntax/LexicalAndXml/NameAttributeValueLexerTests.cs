@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertTokens("\\u0066alse", Token(SyntaxKind.IdentifierToken, "\\u0066alse", "false"));
         }
 
-        [WorkItem(530519)]
+        [WorkItem(530519, "DevDiv")]
         [Fact]
         public void TestLexUnicodeEscapeKeywordsWithEntities()
         {
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertTokens("");
         }
 
-        [WorkItem(530523)]
+        [WorkItem(530523, "DevDiv")]
         [Fact(Skip = "530523")]
         public void TestLexNewline()
         {
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Token(SyntaxKind.IdentifierToken, "B"));
         }
 
-        [WorkItem(530523)]
+        [WorkItem(530523, "DevDiv")]
         [Fact(Skip = "530523")]
         public void TestLexEntityInTrivia()
         {
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Token(SyntaxKind.IdentifierToken, "B"));
         }
 
-        [WorkItem(530523)]
+        [WorkItem(530523, "DevDiv")]
         [Fact(Skip = "530523")]
         public void TestLexCSharpTrivia()
         {

@@ -100,7 +100,7 @@ namespace Test
                 expectedOutput: "True");
         }
 
-        [Fact, WorkItem(895655)]
+        [Fact, WorkItem(895655, "DevDiv")]
         public void Test_004_Enum()
         {
             // Enums conversions
@@ -1006,7 +1006,7 @@ namespace Test
                 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "4").WithLocation(8, 49));
         }
 
-        [WorkItem(543571)]
+        [WorkItem(543571, "DevDiv")]
         [Fact]
         public void CS0826ERR_ImplicitlyTypedArrayNoBestType()
         {

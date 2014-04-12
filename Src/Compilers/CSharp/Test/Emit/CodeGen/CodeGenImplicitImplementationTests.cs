@@ -748,7 +748,7 @@ Derived2.P.set";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540410)]
+        [WorkItem(540410, "DevDiv")]
         [Fact]
         public void ImplementMulipleInterfaceWithSommonBase()
         {
@@ -826,7 +826,7 @@ class C1 : IInterface
 
         }
 
-        [WorkItem(540410)]
+        [WorkItem(540410, "DevDiv")]
         [Fact]
         public void InterfaceDiamondInheritenceWithNewMember()
         {

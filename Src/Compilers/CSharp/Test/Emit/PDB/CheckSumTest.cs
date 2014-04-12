@@ -215,7 +215,7 @@ int y = 1;
             PDBTests.AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(729235)]
+        [WorkItem(729235, "DevDiv")]
         [Fact]
         public void NormalizedPath_Tree()
         {
@@ -298,7 +298,7 @@ class C { void M() { } }
             PDBTests.AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(729235)]
+        [WorkItem(729235, "DevDiv")]
         [Fact]
         public void NormalizedPath_LineDirective()
         {
@@ -359,7 +359,7 @@ class C
             PDBTests.AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(729235)]
+        [WorkItem(729235, "DevDiv")]
         [Fact]
         public void NormalizedPath_ChecksumDirective()
         {
@@ -428,7 +428,7 @@ class C
             PDBTests.AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(729235)]
+        [WorkItem(729235, "DevDiv")]
         [Fact]
         public void NormalizedPath_NoBaseDirectory()
         {

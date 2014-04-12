@@ -496,7 +496,7 @@ q");
 ");
         }
 
-        [WorkItem(540954)]
+        [WorkItem(540954, "DevDiv")]
         [Fact]
         public void StructInit()
         {
@@ -524,7 +524,7 @@ struct Struct
             CompileAndVerify(text, options: TestOptions.Exe.WithOptimizations(false), emitPdb: true).VerifyIL("Struct.Main()", expectedIL);
         }
 
-        [WorkItem(541845)]
+        [WorkItem(541845, "DevDiv")]
         [Fact]
         public void ConstructEnum()
         {
@@ -571,7 +571,7 @@ class A
             CompileAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
         }
 
-        [WorkItem(541599)]
+        [WorkItem(541599, "DevDiv")]
         [Fact]
         public void TestStructWithStaticField01()
         {
@@ -590,7 +590,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"123");
         }
 
-        [Fact, WorkItem(543088)]
+        [Fact, WorkItem(543088, "DevDiv")]
         public void UseStructLocal()
         {
             var text = @"
@@ -1576,7 +1576,7 @@ struct S
 ");
         }
 
-        [WorkItem(842477)]
+        [WorkItem(842477, "DevDiv")]
         [Fact]
         public void DecimalConst()
         {

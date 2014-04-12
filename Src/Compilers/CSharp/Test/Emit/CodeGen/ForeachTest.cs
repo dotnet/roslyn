@@ -244,7 +244,7 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540917)]
+        [WorkItem(540917, "DevDiv")]
         [Fact]
         public void TestArray()
         {

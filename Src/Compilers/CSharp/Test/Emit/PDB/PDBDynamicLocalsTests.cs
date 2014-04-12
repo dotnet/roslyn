@@ -1928,7 +1928,7 @@ class Program
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(637465)]
+        [WorkItem(637465, "DevDiv")]
         [Fact]
         public void DynamicLocalOptimizedAway()
         {

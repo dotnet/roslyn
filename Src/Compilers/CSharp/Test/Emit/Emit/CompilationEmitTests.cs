@@ -339,7 +339,7 @@ class Class2
             // NOTE: there's no point in trying to run the EXE since it depends on a DLL with no method bodies.
         }
 
-        [WorkItem(539982)]
+        [WorkItem(539982, "DevDiv")]
         [Fact]
         public void EmitNestedLambdaWithAddPlusOperator()
         {
@@ -358,7 +358,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(539983)]
+        [Fact, WorkItem(539983, "DevDiv")]
         public void EmitAlwaysFalseExpression()
         {
             CompileAndVerify(@"
@@ -374,7 +374,7 @@ class C
 ");
         }
 
-        [WorkItem(540146)]
+        [WorkItem(540146, "DevDiv")]
         [Fact]
         public void EmitLambdaInConstructorInitializer()
         {
@@ -396,7 +396,7 @@ public class A
             CompileAndVerify(source, expectedOutput: "Hello");
         }
 
-        [WorkItem(540146)]
+        [WorkItem(540146, "DevDiv")]
         [Fact]
         public void EmitLambdaInConstructorBody()
         {
@@ -424,7 +424,7 @@ public void func(Func<string> x)
             CompileAndVerify(source, expectedOutput: "Hello!");
         }
 
-        [WorkItem(540146)]
+        [WorkItem(540146, "DevDiv")]
         [Fact]
         public void EmitLambdaInConstructorInitializerAndBody()
         {
@@ -454,7 +454,7 @@ Hello!
 ");
         }
 
-        [WorkItem(541786)]
+        [WorkItem(541786, "DevDiv")]
         [Fact]
         public void EmitInvocationExprInIfStatementNestedInsideCatch()
         {
@@ -480,7 +480,7 @@ static class Test
             CompileAndVerify(source, expectedOutput: "45");
         }
 
-        [WorkItem(541822)]
+        [WorkItem(541822, "DevDiv")]
         [Fact]
         public void EmitSwitchOnByteType()
         {
@@ -509,7 +509,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(541823)]
+        [WorkItem(541823, "DevDiv")]
         [Fact]
         public void EmitSwitchOnIntTypeBoundary()
         {
@@ -546,7 +546,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "-1");
         }
 
-        [WorkItem(541824)]
+        [WorkItem(541824, "DevDiv")]
         [Fact]
         public void EmitSwitchOnLongTypeBoundary()
         {
@@ -592,7 +592,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(541840)]
+        [WorkItem(541840, "DevDiv")]
         [Fact]
         public void EmitSwitchOnLongTypeBoundary2()
         {
@@ -637,7 +637,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(541840)]
+        [WorkItem(541840, "DevDiv")]
         [Fact]
         public void EmitSwitchOnLongTypeBoundary3()
         {
@@ -710,7 +710,7 @@ public class Test
         }
 
 
-        [WorkItem(541840)]
+        [WorkItem(541840, "DevDiv")]
         [Fact]
         public void EmitSwitchOnCharTypeBoundary()
         {
@@ -754,7 +754,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(541840)]
+        [WorkItem(541840, "DevDiv")]
         [Fact]
         public void EmitSwitchOnUIntTypeBoundary()
         {
@@ -807,7 +807,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(541824)]
+        [WorkItem(541824, "DevDiv")]
         [Fact]
         public void EmitSwitchOnUnsignedLongTypeBoundary()
         {
@@ -832,7 +832,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(541847)]
+        [WorkItem(541847, "DevDiv")]
         [Fact]
         public void EmitSwitchOnUnsignedLongTypeBoundary2()
         {
@@ -891,7 +891,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(541839)]
+        [WorkItem(541839, "DevDiv")]
         [Fact]
         public void EmitSwitchOnShortTypeBoundary()
         {
@@ -926,7 +926,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(542563)]
+        [WorkItem(542563, "DevDiv")]
         [Fact]
         public void IncompleteIndexerDeclWithSyntaxErrors()
         {
@@ -947,7 +947,7 @@ public class Test
             Assert.NotEmpty(emitResult.Diagnostics);
         }
 
-        [WorkItem(541639)]
+        [WorkItem(541639, "DevDiv")]
         [Fact]
         public void VariableDeclInsideSwitchCaptureInLambdaExpr()
         {
@@ -979,7 +979,7 @@ class C
             Assert.True(emitResult.Success);
         }
 
-        [WorkItem(541639)]
+        [WorkItem(541639, "DevDiv")]
         [Fact]
         public void MultipleVariableDeclInsideSwitchCaptureInLambdaExpr()
         {
@@ -1288,7 +1288,7 @@ class C
             Assert.Equal(0x8560u, (ushort)peHeaders.PEHeader.DllCharacteristics);  //DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         }
 
-        [WorkItem(764418)]
+        [WorkItem(764418, "DevDiv")]
         [Fact]
         public void CheckDllCharacteristicsWinRtApp()
         {
@@ -1522,7 +1522,7 @@ using System;
 
         }
 
-        [WorkItem(543763)]
+        [WorkItem(543763, "DevDiv")]
         [Fact()]
         public void OptionalParamTypeAsDecimal()
         {
@@ -1543,7 +1543,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(543932)]
+        [WorkItem(543932, "DevDiv")]
         [Fact]
         public void BranchCodeGenOnConditionDebug()
         {
@@ -1752,7 +1752,7 @@ public class Test
             }
         }
 
-        [WorkItem(570975)]
+        [WorkItem(570975, "DevDiv")]
         [Fact]
         public void Bug570975()
         {
@@ -2130,7 +2130,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(545651)]
+        [WorkItem(545651, "DevDiv")]
         void TestReferenceToNestedGenericType()
         {
             string p1 = @"public class Foo<T> { }";
@@ -2150,7 +2150,7 @@ public class Test
             CompileAndVerify(p2, new[] { new MetadataImageReference(c1.EmitToStream()) }, expectedOutput: "0");
         }
 
-        [WorkItem(546450)]
+        [WorkItem(546450, "DevDiv")]
         [Fact]
         void EmitNetModuleWithReferencedNetModule()
         {
@@ -2162,7 +2162,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(530879)]
+        [WorkItem(530879, "DevDiv")]
         public void TestCompilationEmitUsesDifferentStreamsForBinaryAndPdb()
         {
             string p1 = @"public class C1 { }";
@@ -2182,7 +2182,7 @@ public class Test
             Assert.True(File.Exists(pdbPath));
         }
 
-        [Fact, WorkItem(540777), WorkItem(546354)]
+        [Fact, WorkItem(540777, "DevDiv"), WorkItem(546354, "DevDiv")]
         public void CS0219WRN_UnreferencedVarAssg_ConditionalOperator()
         {
             var text = @"
@@ -2564,7 +2564,7 @@ public interface IUsePlatform
             useCompilation.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(769741)]
+        [Fact, WorkItem(769741, "DevDiv")]
         public void Bug769741()
         {
             // modules not supported in ref emit

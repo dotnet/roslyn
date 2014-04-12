@@ -813,7 +813,7 @@ public class Test
 }");
         }
 
-        [WorkItem(529272)]
+        [WorkItem(529272, "DevDiv")]
         [Fact()]
         public void ObjectInitializerFieldlikeEvent()
         {

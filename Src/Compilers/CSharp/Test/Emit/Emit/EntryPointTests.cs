@@ -136,7 +136,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"));
         }
 
-        [WorkItem(528677)]
+        [WorkItem(528677, "DevDiv")]
         [Fact]
         public void ERR_OneEntryPointAndOverload()
         {
@@ -1073,7 +1073,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(543468)]
+        [WorkItem(543468, "DevDiv")]
         [Fact()]
         public void RefParameterForMain()
         {
@@ -1090,7 +1090,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(544478)]
+        [WorkItem(544478, "DevDiv")]
         [Fact()]
         public void ArglistParameterForMain()
         {
@@ -1114,7 +1114,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
 
-        [WorkItem(543467)]
+        [WorkItem(543467, "DevDiv")]
         [Fact()]
         public void OutParameterForMain()
         {
@@ -1236,7 +1236,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "D").WithArguments("D"));
         }
 
-        [WorkItem(753028)]
+        [WorkItem(753028, "DevDiv")]
         [Fact]
         public void RootMemberNamedScript()
         {
@@ -1358,7 +1358,7 @@ static class Main
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "Main").WithArguments("Main"));
         }
 
-        [WorkItem(543511)]
+        [WorkItem(543511, "DevDiv")]
         [Fact()]
         public void ExplicitMainType_OneDefineTwoDeclareValidMainForPartial()
         {
@@ -1377,7 +1377,7 @@ partial class Program
             CreateCompilationWithMscorlib(source, compOptions: TestOptions.Exe.WithMainTypeName("Program")).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(543512)]
+        [Fact, WorkItem(543512, "DevDiv")]
         public void DynamicParameterForMain()
         {
             // TODO: This should produce:
@@ -1398,7 +1398,7 @@ class Myderive : Mybase
                     Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Mybase.Main(dynamic)"));
         }
 
-        [WorkItem(630763)]
+        [WorkItem(630763, "DevDiv")]
         [Fact()]
         public void Bug630763()
         {

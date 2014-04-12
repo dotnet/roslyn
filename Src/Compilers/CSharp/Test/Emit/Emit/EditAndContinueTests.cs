@@ -2473,8 +2473,8 @@ class C
 }");
         }
 
-        [WorkItem(780989)]
-        [WorkItem(829353)]
+        [WorkItem(780989, "DevDiv")]
+        [WorkItem(829353, "DevDiv")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromMetadata()
         {
@@ -2624,8 +2624,8 @@ class C
 }");
         }
 
-        [WorkItem(780989)]
-        [WorkItem(829353)]
+        [WorkItem(780989, "DevDiv")]
+        [WorkItem(829353, "DevDiv")]
         [Fact]
         public void PrivateImplementationDetails_ArrayInitializer_FromSource()
         {
@@ -2798,7 +2798,7 @@ class C
         /// Should not generate method for string switch since
         /// the CLR only allows adding private members.
         /// </summary>
-        [WorkItem(834086)]
+        [WorkItem(834086, "DevDiv")]
         [Fact]
         public void PrivateImplementationDetails_ComputeStringHash()
         {
@@ -3419,7 +3419,7 @@ class B : A<B>
         /// used by the method body, since there may be existing
         /// references to that slot, in a Watch window for instance.
         /// </summary>
-        [WorkItem(843320)]
+        [WorkItem(843320, "DevDiv")]
         [Fact]
         public void PreserveLocalTypes()
         {
@@ -3613,7 +3613,7 @@ class B : A<B>
 }");
         }
 
-        [WorkItem(779531)]
+        [WorkItem(779531, "DevDiv")]
         [Fact]
         public void ChangeLocalType()
         {
@@ -3800,7 +3800,7 @@ class C
         /// <summary>
         /// Reuse existing anonymous types.
         /// </summary>
-        [WorkItem(825903)]
+        [WorkItem(825903, "DevDiv")]
         [Fact(Skip = "900633")]
         public void AnonymousTypes()
         {
@@ -4947,7 +4947,7 @@ class B
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) if the trailing slots are unnamed.
         /// </summary>
-        [WorkItem(782270)]
+        [WorkItem(782270, "DevDiv")]
         [Fact]
         public void Bug782270()
         {
@@ -5049,7 +5049,7 @@ class B
         /// <summary>
         /// Similar to above test but with no named locals in original.
         /// </summary>
-        [WorkItem(782270)]
+        [WorkItem(782270, "DevDiv")]
         [Fact]
         public void Bug782270_NoNamedLocals()
         {
@@ -5497,7 +5497,7 @@ class B
         /// Roslyn generates C$519$0000, CS$519$0001, CS$519$0002, ...
         /// rather than using a unique TempKind for each.
         /// </summary>
-        [WorkItem(770053)]
+        [WorkItem(770053, "DevDiv")]
         [Fact]
         public void TemporaryLocals_FixedMultiple()
         {
@@ -6776,8 +6776,8 @@ class C
         /// <summary>
         /// Disallow edits that include "dynamic" operations.
         /// </summary>
-        [WorkItem(770502)]
-        [WorkItem(839565)]
+        [WorkItem(770502, "DevDiv")]
+        [WorkItem(839565, "DevDiv")]
         [Fact]
         public void DynamicOperations()
         {
@@ -6890,7 +6890,7 @@ class B
             }
         }
 
-        [WorkItem(844472)]
+        [WorkItem(844472, "DevDiv")]
         [Fact]
         public void MethodSignatureWithNoPIAType()
         {
@@ -7072,7 +7072,7 @@ public struct S
             }
         }
 
-        [WorkItem(844536)]
+        [WorkItem(844536, "DevDiv")]
         [Fact]
         public void NoPIATypeInNamespace()
         {

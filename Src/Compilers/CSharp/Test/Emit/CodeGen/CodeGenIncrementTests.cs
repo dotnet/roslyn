@@ -826,7 +826,7 @@ class C
 ");
         }
 
-        [WorkItem(540718)]
+        [WorkItem(540718, "DevDiv")]
         [Fact]
         public void GenConditionalBranchTempForInc()
         {
@@ -860,7 +860,7 @@ class Test
                 );
         }
 
-        [WorkItem(540718)]
+        [WorkItem(540718, "DevDiv")]
         [Fact]
         public void IncrementField()
         {
@@ -909,7 +909,7 @@ class Test
                 );
         }
 
-        [WorkItem(540723)]
+        [WorkItem(540723, "DevDiv")]
         [Fact]
         public void MissingIncInFinallyBlock()
         {
@@ -930,7 +930,7 @@ class My
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(540810)]
+        [WorkItem(540810, "DevDiv")]
         [Fact]
         public void NestedIncrement()
         {
@@ -951,7 +951,7 @@ class My
             CompileAndVerify(source, expectedOutput: "11");
         }
 
-        [WorkItem(540810)]
+        [WorkItem(540810, "DevDiv")]
         [Fact]
         public void IncrementSideEffects()
         {
@@ -1007,7 +1007,7 @@ Zero
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(720742)]
+        [WorkItem(720742, "DevDiv")]
         [Fact]
         public void IncrementRefVal()
         {

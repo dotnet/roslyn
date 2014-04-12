@@ -685,7 +685,7 @@ class C: Base
             CompileAndVerify(source, expectedOutput: "444888");
         }
 
-        [WorkItem(543165)]
+        [WorkItem(543165, "DevDiv")]
         [Fact]
         public void TestIteratorWithLambda()
         {
@@ -764,7 +764,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "ab01");
         }
 
-        [WorkItem(543178)]
+        [WorkItem(543178, "DevDiv")]
         [Fact]
         public void TestIteratorWithLambda02()
         {
@@ -798,7 +798,7 @@ public class A
             CompileAndVerify(source, expectedOutput: "abc");
         }
 
-        [WorkItem(543373)]
+        [WorkItem(543373, "DevDiv")]
         [Fact]
         public void TestIteratorWithNestedForEachAndThrow()
         {
@@ -874,7 +874,7 @@ public class MyEnumerator : IEnumerator<int>
             CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
         }
 
-        [WorkItem(543542)]
+        [WorkItem(543542, "DevDiv")]
         [Fact]
         public void TestIteratorWithSwitchBreak()
         {
@@ -911,7 +911,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "234");
         }
 
-        [WorkItem(546128)]
+        [WorkItem(546128, "DevDiv")]
         [Fact]
         public void TestIteratorWithCapturedStruct()
         {
@@ -951,7 +951,7 @@ struct B
             CompileAndVerify(source, expectedOutput: "3210");
         }
 
-        [Fact, WorkItem(544908)]
+        [Fact, WorkItem(544908, "DevDiv")]
         public void TestIteratorWithNullableAsCollectionVariable_NonNull()
         {
             var source = @"
@@ -1035,7 +1035,7 @@ struct S : IEnumerable
 }");
         }
 
-        [Fact, WorkItem(544908)]
+        [Fact, WorkItem(544908, "DevDiv")]
         public void TestIteratorWithNullableAsCollectionVariable_Null()
         {
             var source = @"
@@ -1118,7 +1118,7 @@ struct S : IEnumerable
         }
 
         [Fact]
-        [WorkItem(545650)]
+        [WorkItem(545650, "DevDiv")]
         public void TestIteratorWithUsing()
         {
             var source =
@@ -1145,7 +1145,7 @@ class T
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [Fact, WorkItem(545767)]
+        [Fact, WorkItem(545767, "DevDiv")]
         public void DoNotCaptureUnusedParameters()
         {
             var source = @"
@@ -1274,7 +1274,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(563925)]
+        [WorkItem(563925, "DevDiv")]
         public void CaptureRefLocalNoParts()
         {
             var source =
@@ -1308,7 +1308,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(590712)]
+        [WorkItem(590712, "DevDiv")]
         public void MultipassAnalysisWithRefLocal()
         {
             var source =
@@ -1343,7 +1343,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(620862)]
+        [WorkItem(620862, "DevDiv")]
         public void DelegateCreationInIterator()
         {
             var source =
@@ -1793,7 +1793,7 @@ class A
         }
 
         [Fact]
-        [WorkItem(703361)]
+        [WorkItem(703361, "DevDiv")]
         public void VerifyHelpers()
         {
             var source =
@@ -1928,7 +1928,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"");
         }
 
-        [WorkItem(718498)]
+        [WorkItem(718498, "DevDiv")]
         [Fact]
         public void Regress718498a()
         {
@@ -1969,7 +1969,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem(718498)]
+        [WorkItem(718498, "DevDiv")]
         [Fact]
         public void Regress718498b()
         {
@@ -2014,7 +2014,7 @@ class Program
             CompileAndVerify(source, expectedOutput: @"12");
         }
 
-        [WorkItem(718498)]
+        [WorkItem(718498, "DevDiv")]
         [Fact]
         public void Regress718498c()
         {
@@ -2056,7 +2056,7 @@ class Program
         /// Name of public fields for spill temps must start with
         /// "&lt;&gt;[c]__" so the fields are hidden in the debugger.
         /// </summary>
-        [WorkItem(808600)]
+        [WorkItem(808600, "DevDiv")]
         [Fact]
         public void SpillFieldName()
         {

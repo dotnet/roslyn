@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)Int32.MaxValue));
         }
 
-        [Fact(), WorkItem(546206)]
+        [Fact(), WorkItem(546206, "DevDiv")]
         public void InvalidDefineSymbols()
         {
             // command line gives CS2029: Invalid value for '/define'; 'xxx' is not a valid identifier

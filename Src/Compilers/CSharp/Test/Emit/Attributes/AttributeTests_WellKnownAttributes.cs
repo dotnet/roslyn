@@ -918,7 +918,7 @@ public interface ISomeInterface
             CompileAndVerify(text, additionalRefs: new[] { SystemRef });
         }
 
-        [Fact, WorkItem(544934)]
+        [Fact, WorkItem(544934, "DevDiv")]
         public void Bug13129()
         {
             string source = @"
@@ -1005,7 +1005,7 @@ public class C
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitUnsupported_640494);
         }
 
-        [Fact, WorkItem(546785)]
+        [Fact, WorkItem(546785, "DevDiv")]
         public void OptionalAttributeOnPartialMethodParameters()
         {
             var source = @"
@@ -1060,7 +1060,7 @@ partial class C
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
         }
 
-        [WorkItem(544303)]
+        [WorkItem(544303, "DevDiv")]
         [Fact]
         public void OptionalAttributeBindingCycle()
         {
@@ -1173,7 +1173,7 @@ public class Foo: Attribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "Foo.Foo(int)").WithLocation(16, 38));
         }
 
-        [Fact, WorkItem(546624)]
+        [Fact, WorkItem(546624, "DevDiv")]
         public void DPV_Optional_Valid()
         {
             string source = @"
@@ -1278,7 +1278,7 @@ class C
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.Exe, expectedOutput: "");
         }
 
-        [Fact, WorkItem(546624)]
+        [Fact, WorkItem(546624, "DevDiv")]
         public void CS7067ERR_BadAttributeParamDefaultArgument()
         {
             string source = @"
@@ -1499,7 +1499,7 @@ class C
 
         #region DecimalConstantAttribute
 
-        [Fact, WorkItem(544438), WorkItem(538206)]
+        [Fact, WorkItem(544438, "DevDiv"), WorkItem(538206, "DevDiv")]
         public void DefaultParameterValueIntToObj()
         {
             // The native compiler's behaviour:
@@ -1554,7 +1554,7 @@ class Test
             CompileAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"100200300400");
         }
 
-        [WorkItem(544516)]
+        [WorkItem(544516, "DevDiv")]
         [Fact]
         public void DecimalConstantAttributesAsMetadata()
         {
@@ -1956,7 +1956,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(544180), WorkItem(545030)]
+        [WorkItem(544180, "DevDiv"), WorkItem(545030, "DevDiv")]
         public void DllImport_AttributeRedefinition()
         {
             var source = @"
@@ -2124,7 +2124,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(544176)]
+        [WorkItem(544176, "DevDiv")]
         public void TestPseudoAttributes_DllImport_AllTrue()
         {
             var source = @"
@@ -2202,7 +2202,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(544601)]
+        [WorkItem(544601, "DevDiv")]
         public void GetDllImportData_UnspecifiedProperties()
         {
             var source = @"
@@ -2452,8 +2452,8 @@ public class C
             return sb.ToString();
         }
 
-        [WorkItem(544238)]
-        [WorkItem(544163)]
+        [WorkItem(544238, "DevDiv")]
+        [WorkItem(544163, "DevDiv")]
         [Fact]
         public void DllImport_InvalidCharsetValue_Null()
         {
@@ -2868,7 +2868,7 @@ class Program1
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = (MethodCodeType)9").WithArguments("MethodCodeType"));
         }
 
-        [Fact, WorkItem(544518)]
+        [Fact, WorkItem(544518, "DevDiv")]
         public void DllImport_DefaultCharSet1()
         {
             var source = @"
@@ -3175,7 +3175,7 @@ public class MainClass
             Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, emitOptions: EmitOptions.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
         }
 
-        [Fact, WorkItem(544507)]
+        [Fact, WorkItem(544507, "DevDiv")]
         public void TestCoClassAttribute_NewOnInterface_FromSource()
         {
             string source = @"
@@ -4002,7 +4002,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new InterfaceType()").WithArguments("InterfaceType").WithLocation(16, 13));
         }
 
-        [Fact, WorkItem(544237)]
+        [Fact, WorkItem(544237, "DevDiv")]
         public void TestCoClassAttribute_NewOnInterface_NoConversion()
         {
             string source = @"
@@ -4070,7 +4070,7 @@ class E {}
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "null").WithArguments("Guid").WithLocation(18, 7));
         }
 
-        [WorkItem(545490)]
+        [WorkItem(545490, "DevDiv")]
         [Fact]
         public void TestInvalidGuidAttribute_02()
         {
@@ -4126,7 +4126,7 @@ using System.Runtime.InteropServices;
 
         #region SpecialNameAttribute
 
-        [Fact, WorkItem(544392)]
+        [Fact, WorkItem(544392, "DevDiv")]
         public void SpecialName()
         {
             string source = @"
@@ -4251,7 +4251,7 @@ struct S { }
 
         #region SerializableAttribute
 
-        [Fact, WorkItem(544392)]
+        [Fact, WorkItem(544392, "DevDiv")]
         public void Serializable()
         {
             string source = @"
@@ -4405,7 +4405,7 @@ namespace AttributeTest
 
         #region AttributeUsageAttribute
 
-        [WorkItem(541733)]
+        [WorkItem(541733, "DevDiv")]
         [Fact]
         public void TestSourceOverrideWellKnownAttribute_01()
         {
@@ -4436,8 +4436,8 @@ namespace System
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "AttributeUsage").WithArguments("AttributeUsage"));
         }
 
-        [WorkItem(541733)]
-        [WorkItem(546102)]
+        [WorkItem(541733, "DevDiv")]
+        [WorkItem(546102, "DevDiv")]
         [Fact]
         public void TestSourceOverrideWellKnownAttribute_02()
         {
@@ -4494,7 +4494,7 @@ namespace System
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator, emitOptions: EmitOptions.CCI);
         }
 
-        [WorkItem(546102)]
+        [WorkItem(546102, "DevDiv")]
         [Fact]
         public void TestAttributeUsageAllowMultiple()
         {
@@ -4524,7 +4524,7 @@ class A: Attribute {}
             CompileAndVerify(source);
         }
 
-        [WorkItem(546056)]
+        [WorkItem(546056, "DevDiv")]
         [Fact]
         public void TestBadAttributeUsageArgument()
         {
@@ -4550,7 +4550,7 @@ public class MyAttribute : Attribute
 
         #region InternalsVisibleToAttribute
 
-        [WorkItem(542173)]
+        [WorkItem(542173, "DevDiv")]
         [Fact]
         public void MergeMemberImplWithImportedInternals()
         {
@@ -4604,7 +4604,7 @@ public class Child2: Child
 
         #region CustomConstantAttribute
 
-        [Fact, WorkItem(544440), WorkItem(538206)]
+        [Fact, WorkItem(544440, "DevDiv"), WorkItem(538206, "DevDiv")]
         public void CustomConstantAttributeIntToObj()
         {
             #region "Source"
@@ -5039,7 +5039,7 @@ class A
 
         #region ObsoleteAttribute
 
-        [Fact, WorkItem(546062)]
+        [Fact, WorkItem(546062, "DevDiv")]
         public void TestObsoleteAttributeOnTypes()
         {
             var source = @"
@@ -5432,7 +5432,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c1 += c").WithArguments("Test.operator +(Test, Test)"));
         }
 
-        [Fact, WorkItem(546062)]
+        [Fact, WorkItem(546062, "DevDiv")]
         public void TestObsoleteAttributeInMetadata()
         {
             var peSource = @"
@@ -5708,7 +5708,7 @@ public class SomeAttr1: Attribute
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete"));
         }
 
-        [WorkItem(546064)]
+        [WorkItem(546064, "DevDiv")]
         [Fact]
         public void TestObsoleteAttributeCycles_02()
         {
@@ -5863,7 +5863,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(546455), WorkItem(546456), WorkItem(546457)]
+        [WorkItem(546455, "DevDiv"), WorkItem(546456, "DevDiv"), WorkItem(546457, "DevDiv")]
         public void TestObsoleteAttributeOnCollectionInitializer()
         {
             var source = @"
@@ -5918,7 +5918,7 @@ public class B : IEnumerable
         }
 
         [Fact]
-        [WorkItem(546636)]
+        [WorkItem(546636, "DevDiv")]
         public void TestObsoleteAttributeOnAttributes()
         {
             var source = @"
@@ -6072,7 +6072,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(546766)]
+        [WorkItem(546766, "DevDiv")]
         public void TestObsoleteAttributeOnMembers3()
         {
             var source = @"
@@ -6140,7 +6140,7 @@ class Event1
         }
 
         [Fact]
-        [WorkItem(547024)]
+        [WorkItem(547024, "DevDiv")]
         public void TestObsoleteForeachMembers()
         {
             var source =
@@ -6228,7 +6228,7 @@ internal sealed class C1 : I1
         }
 
         [Fact]
-        [WorkItem(531071)]
+        [WorkItem(531071, "DevDiv")]
         public void TestObsoleteTypeParameterInAlias()
         {
             var source =
@@ -6281,7 +6281,7 @@ namespace N
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnBase()
         {
             var source = @"
@@ -6380,7 +6380,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnDerived()
         {
             var source = @"
@@ -6442,7 +6442,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_GenericType()
         {
             var source = @"
@@ -6494,7 +6494,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_GenericMethod()
         {
             var source = @"
@@ -6530,7 +6530,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnBase_BaseCall()
         {
             var source = @"
@@ -6616,7 +6616,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnBaseAndDerived_BaseCall()
         {
             var source = @"
@@ -6697,7 +6697,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnDerived_BaseCall()
         {
             var source = @"
@@ -6764,7 +6764,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(580832)]
+        [WorkItem(580832, "DevDiv")]
         public void ObsoleteOnVirtual_OnDerived_BaseCall2()
         {
             var source = @"
@@ -6813,7 +6813,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion1()
         {
             var source = @"
@@ -6870,7 +6870,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion2()
         {
             var source = @"
@@ -6918,7 +6918,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion3()
         {
             var source = @"
@@ -6975,7 +6975,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion4()
         {
             var source = @"
@@ -7008,7 +7008,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion5()
         {
             var source = @"
@@ -7062,7 +7062,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(531148)]
+        [WorkItem(531148, "DevDiv")]
         public void ObsoleteUserDefinedConversion6()
         {
             var source = @"
@@ -7094,7 +7094,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(656345)]
+        [WorkItem(656345, "DevDiv")]
         public void ConditionalLazyObsoleteDiagnostic()
         {
             var source = @"
@@ -7130,7 +7130,7 @@ public class C : B
         }
 
         [Fact]
-        [WorkItem(656345)]
+        [WorkItem(656345, "DevDiv")]
         public void ConditionalLazyObsoleteDiagnosticInAttribute()
         {
             var source = @"
@@ -7182,7 +7182,7 @@ public class NumAttribute : Attribute
         }
 
         [Fact]
-        [WorkItem(665595)]
+        [WorkItem(665595, "DevDiv")]
         public void ConditionalLazyObsoleteDiagnosticInLazyObsoleteContext()
         {
             var source1 = @"
@@ -7241,7 +7241,7 @@ class C : ReadWriteControlDesigner
         }
 
         [Fact]
-        [WorkItem(668365)]
+        [WorkItem(668365, "DevDiv")]
         public void ObsoleteOverrideChain()
         {
             var source = @"
@@ -7423,7 +7423,7 @@ class Class6
             compilation2.VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(858839)]
+        [Fact, WorkItem(858839, "DevDiv")]
         public void Bug858839_1()
         {
             var source1 = @"
@@ -7529,7 +7529,7 @@ public sealed class ConcreteFoo5 : IFoo1
             compilation1.VerifyDiagnostics(expected);
         }
 
-        [Fact, WorkItem(858839)]
+        [Fact, WorkItem(858839, "DevDiv")]
         public void Bug858839_2()
         {
             var source1 = @"

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Functional Tests
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void HostProtectionSecurityAttribute()
         {
@@ -62,7 +62,7 @@ public struct EventDescriptor
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
-        [Fact, WorkItem(544956)]
+        [Fact, WorkItem(544956, "DevDiv")]
         public void SuppressUnmanagedCodeSecurityAttribute()
         {
             string source = @"
@@ -75,7 +75,7 @@ class Foo
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [WorkItem(544929)]
+        [WorkItem(544929, "DevDiv")]
         [Fact]
         public void PrincipalPermissionAttribute()
         {
@@ -107,7 +107,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"));
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CS7048ERR_SecurityAttributeMissingAction()
         {
@@ -158,7 +158,7 @@ public class C {}
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"));
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CS7049ERR_SecurityAttributeInvalidAction()
         {
@@ -196,7 +196,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "PrincipalPermission").WithArguments("PrincipalPermission", "class, method").WithLocation(12, 10));
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CS7049ERR_SecurityAttributeInvalidAction_02()
         {
@@ -240,7 +240,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "MySecurityAttribute").WithArguments("MySecurityAttribute", "assembly, class, struct, constructor, method").WithLocation(18, 10));
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void ValidSecurityAttributeActionsForAssembly()
         {
@@ -274,7 +274,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CS7050ERR_SecurityAttributeInvalidActionAssembly()
         {
@@ -362,7 +362,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.PermitOnly").WithArguments("SecurityAction.PermitOnly"));
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void ValidSecurityAttributeActionsForTypeOrMethod()
         {
@@ -419,7 +419,7 @@ class Test
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug);
         }
 
-        [WorkItem(544918)]
+        [WorkItem(544918, "DevDiv")]
         [Fact]
         public void CS7051ERR_SecurityAttributeInvalidActionTypeOrMethod()
         {
@@ -530,7 +530,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"));
         }
 
-        [WorkItem(546623)]
+        [WorkItem(546623, "DevDiv")]
         [Fact]
         public void CS7070ERR_SecurityAttributeInvalidTarget()
         {
@@ -563,7 +563,7 @@ class MyPermissionAttribute : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermission"));
         }
 
-        [WorkItem(546056)]
+        [WorkItem(546056, "DevDiv")]
         [Fact]
         public void TestMissingCodeAccessSecurityAttributeGeneratesNoErrors()
         {
@@ -1362,7 +1362,7 @@ namespace N
             CompileAndVerify(source, options: TestOptions.UnsafeDll, emitOptions: EmitOptions.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
-        [WorkItem(545084), WorkItem(529492)]
+        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
         [Fact]
         public void PermissionSetAttribute_Fixup()
         {
@@ -1425,7 +1425,7 @@ public class MyClass
                 });
         }
 
-        [WorkItem(545084), WorkItem(529492)]
+        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
         [Fact]
         public void CS7056ERR_PermissionSetAttributeInvalidFile()
         {
@@ -1452,7 +1452,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));
         }
 
-        [WorkItem(545084), WorkItem(529492)]
+        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
         [Fact]
         public void CS7057ERR_PermissionSetAttributeFileReadError()
         {

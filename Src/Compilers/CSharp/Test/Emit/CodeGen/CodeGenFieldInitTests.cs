@@ -570,7 +570,7 @@ class C
 ");
         }
 
-        [WorkItem(530445)]
+        [WorkItem(530445, "DevDiv")]
         [Fact]
         public void TestFieldInitializersInOptimizedMode6()
         {

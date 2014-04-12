@@ -555,7 +555,7 @@ class C
 ");
         }
 
-        [WorkItem(540146)]
+        [WorkItem(540146, "DevDiv")]
         [Fact]
         public void NestedClosureThisConstructorInitializer()
         {
@@ -671,7 +671,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "xxxpass");
         }
 
-        [WorkItem(541258)]
+        [WorkItem(541258, "DevDiv")]
         [Fact]
         public void CatchVarLifted1()
         {
@@ -3223,7 +3223,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [WorkItem(539346)]
+        [WorkItem(539346, "DevDiv")]
         [Fact]
         public void CachedLambdas()
         {
@@ -3775,7 +3775,7 @@ class Program
 
         #region "Regressions"
 
-        [WorkItem(539439)]
+        [WorkItem(539439, "DevDiv")]
         [Fact]
         public void LambdaWithReturn()
         {
@@ -3798,7 +3798,7 @@ class Program
         /// Based on MadsT blog post:
         /// http://blogs.msdn.com/b/madst/archive/2007/05/11/recursive-lambda-expressions.aspx
         /// </remarks>
-        [WorkItem(540034)]
+        [WorkItem(540034, "DevDiv")]
         [Fact]
         public void YCombinatorTest()
         {
@@ -3855,7 +3855,7 @@ public class Program
 );
         }
 
-        [WorkItem(540035)]
+        [WorkItem(540035, "DevDiv")]
         [Fact]
         public void LongNameTest()
         {
@@ -3907,7 +3907,7 @@ namespace Lambda.Bugs
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__2").WithLocation(19, 31));
         }
 
-        [WorkItem(540049)]
+        [WorkItem(540049, "DevDiv")]
         [Fact]
         public void LambdaWithUnreachableCode()
         {
@@ -3928,7 +3928,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "7");
         }
 
-        [WorkItem(540092)]
+        [WorkItem(540092, "DevDiv")]
         [Fact]
         public void NestedAnonymousMethodsusingLocalAndField()
         {
@@ -3974,7 +3974,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "111");
         }
 
-        [WorkItem(540129)]
+        [WorkItem(540129, "DevDiv")]
         [Fact]
         public void CacheStaticAnonymousMethodInField()
         {
@@ -4011,7 +4011,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "PASS");
         }
 
-        [WorkItem(540147)]
+        [WorkItem(540147, "DevDiv")]
         [Fact]
         public void CapturedVariableNamedThis()
         {
@@ -4050,7 +4050,7 @@ class A
                 expectedOutput: "12");
         }
 
-        [WorkItem(540178)]
+        [WorkItem(540178, "DevDiv")]
         [Fact]
         public void NestedGenericLambda()
         {
@@ -4077,7 +4077,7 @@ class Program
                 expectedOutput: "");
         }
 
-        [WorkItem(540768)]
+        [WorkItem(540768, "DevDiv")]
         [Fact]
         public void TestClosureMethodAccessibility()
         {
@@ -4103,7 +4103,7 @@ class Test
             });
         }
 
-        [WorkItem(541008)]
+        [WorkItem(541008, "DevDiv")]
         [Fact]
         public void TooEarlyForThis()
         {
@@ -4135,7 +4135,7 @@ class Program
                 expectedOutput: "11102");
         }
 
-        [WorkItem(542062)]
+        [WorkItem(542062, "DevDiv")]
         [Fact]
         public void TestLambdaNoClosureClass()
         {
@@ -4175,7 +4175,7 @@ class Test
 ");
         }
 
-        [WorkItem(543087)]
+        [WorkItem(543087, "DevDiv")]
         [Fact]
         public void LambdaInGenericMethod()
         {
@@ -4214,7 +4214,7 @@ class Test
                 expectedOutput: "True");
         }
 
-        [WorkItem(543344)]
+        [WorkItem(543344, "DevDiv")]
         [Fact]
         public void AnonymousMethodOmitParameterList()
         {
@@ -4241,7 +4241,7 @@ class C
                 expectedOutput: "0");
         }
 
-        [WorkItem(543345)]
+        [WorkItem(543345, "DevDiv")]
         [Fact()]
         public void ExtraCompilerGeneratedAttribute()
         {
@@ -4281,7 +4281,7 @@ class Test
             var compilation = CompileAndVerify(source, expectedOutput:"0");
         }
 
-        [WorkItem(545430)]
+        [WorkItem(545430, "DevDiv")]
         [Fact]
         public void CacheNonStaticLambdaInGenericMethod()
         {
@@ -4632,7 +4632,7 @@ class D
         }
 
 
-        [WorkItem(546211)]
+        [WorkItem(546211, "DevDiv")]
         [Fact]
         public void LambdaInCatchInLambdaInInstance()
         {
@@ -4674,7 +4674,7 @@ class VsCatalogProvider
             var compilation = CompileAndVerify(source, expectedOutput: "success");
         }
 
-        [WorkItem(546748)]
+        [WorkItem(546748, "DevDiv")]
         [Fact]
         public void LambdaWithCatchTypeParameter()
         {
@@ -4701,7 +4701,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(546748)]
+        [WorkItem(546748, "DevDiv")]
         [Fact]
         public void LambdaWithCapturedCatchTypeParameter()
         {
@@ -4731,7 +4731,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(530911)]
+        [WorkItem(530911, "DevDiv")]
         [Fact]
         public void LambdaWithOutParameter()
         {
@@ -4762,7 +4762,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(691006)]
+        [WorkItem(691006, "DevDiv")]
         [Fact]
         public void LambdaWithSwitch()
         {

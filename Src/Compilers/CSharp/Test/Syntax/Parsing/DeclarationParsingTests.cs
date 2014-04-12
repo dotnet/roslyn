@@ -4794,7 +4794,7 @@ class Class1<T>{
             Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
         }
 
-        [WorkItem(537690)]
+        [WorkItem(537690, "DevDiv")]
         [Fact]
         public void TestMissingSemicolonAfterListInitializer()
         {
@@ -4812,7 +4812,7 @@ class Program {
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(539120)]
+        [WorkItem(539120, "DevDiv")]
         [Fact]
         public void TestEscapedConstructor()
         {
@@ -4828,7 +4828,7 @@ class @class
             Assert.Equal(0, file.Errors().Length);
         }
 
-        [WorkItem(536956)]
+        [WorkItem(536956, "DevDiv")]
         [Fact]
         public void TestAnonymousMethodWithDefaultParameter()
         {
@@ -4848,7 +4848,7 @@ class C {
             Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
         }
 
-        [WorkItem(537865)]
+        [WorkItem(537865, "DevDiv")]
         [Fact]
         public void RegressIfDevTrueUnicode()
         {
@@ -4869,7 +4869,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815)]
+        [WorkItem(537815, "DevDiv")]
         [Fact]
         public void RegressLongDirectiveIdentifierDefn()
         {
@@ -4893,7 +4893,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815)]
+        [WorkItem(537815, "DevDiv")]
         [Fact]
         public void RegressLongDirectiveIdentifierUse()
         {

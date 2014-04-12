@@ -691,8 +691,8 @@ Derived.Interface.Property",
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540558)]
-        [WorkItem(540561)]
+        [WorkItem(540558, "DevDiv")]
+        [WorkItem(540561, "DevDiv")]
         [Fact]
         public void TestInterfaceMappingAcrossBaseClasses3()
         {
@@ -783,8 +783,8 @@ Derived.Property",
 }");
         }
 
-        [WorkItem(540558)]
-        [WorkItem(540561)]
+        [WorkItem(540558, "DevDiv")]
+        [WorkItem(540561, "DevDiv")]
         [Fact]
         public void TestInterfaceMappingAcrossBaseClasses3A()
         {
@@ -2110,7 +2110,7 @@ class Test
 
         }
 
-        [WorkItem(540581)]
+        [WorkItem(540581, "DevDiv")]
         [Fact]
         public void TestImplementAmbiguousSignaturesFromDifferentInterfaces()
         {
@@ -2275,7 +2275,7 @@ Explicit2.I3<string>.get_Property");
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("Base2.Property", "Base.Property"));
         }
 
-        [WorkItem(540581)]
+        [WorkItem(540581, "DevDiv")]
         [Fact]
         public void RegressionTestRefEmitBugRelatedToHidingInInterfaces()
         {
@@ -2489,7 +2489,7 @@ int Method(int x, Func<int, int> v, params int[] y)");
                 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])"));
         }
 
-        [WorkItem(540582)]
+        [WorkItem(540582, "DevDiv")]
         [Fact]
         public void TestImplementNestedInterface()
         {
@@ -2565,7 +2565,7 @@ U.set_Property").VerifyDiagnostics(); // No errors
             });
         }
 
-        [WorkItem(545625)]
+        [WorkItem(545625, "DevDiv")]
         [Fact]
         public void ReverseArrayRankSpecifiersInExplicitImplementationName()
         {
@@ -2594,7 +2594,7 @@ class C : I<int[][,]>
         }
 
         [Fact]
-        [WorkItem(530164), WorkItem(531642), WorkItem(531643)]
+        [WorkItem(530164, "DevDiv"), WorkItem(531642, "DevDiv"), WorkItem(531643, "DevDiv")]
         public void SynthesizedExplicitImplementationOfByRefReturn()
         {
             var il = @"
@@ -2655,7 +2655,7 @@ public class D : B, I
         }
 
         [Fact]
-        [WorkItem(530164)]
+        [WorkItem(530164, "DevDiv")]
         public void SynthesizedExplicitImplementationOfGenericByRefReturn()
         {
             var il = @"

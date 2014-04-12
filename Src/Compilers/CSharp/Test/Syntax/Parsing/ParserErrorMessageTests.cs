@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
-        [WorkItem(536666)]
+        [WorkItem(536666, "DevDiv")]
         [Fact]
         public void CS0071ERR_ExplicitEventFieldImpl()
         {
@@ -90,7 +90,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(3, 9));
         }
 
-        [WorkItem(527827)]
+        [WorkItem(527827, "DevDiv")]
         [Fact]
         public void CS0080ERR_ConstraintOnlyAllowedOnGenericDecl_2()
         {
@@ -123,7 +123,7 @@ public class C
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
         }
 
-        [Fact, WorkItem(543622)]
+        [Fact, WorkItem(543622, "DevDiv")]
         public void CS0116ERR__NamespaceUnexpected()
         {
             var test = @"{
@@ -177,7 +177,7 @@ namespace x
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"));
         }
 
-        [WorkItem(536667)]
+        [WorkItem(536667, "DevDiv")]
         [Fact]
         public void CS0150ERR_ConstantExpected()
         {
@@ -365,7 +365,7 @@ class Foo
     Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
-        [WorkItem(536668)]
+        [WorkItem(536668, "DevDiv")]
         [Fact]
         public void CS0267ERR_PartialMisplaced()
         {
@@ -777,7 +777,7 @@ public class MyClass
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6") );
         }
 
-        [Fact, WorkItem(535883)]
+        [Fact, WorkItem(535883, "DevDiv")]
         public void CS0687ERR_AliasQualAsExpression()
         {
 
@@ -798,7 +798,7 @@ class Test
                 );
         }
 
-        [WorkItem(542478)]
+        [WorkItem(542478, "DevDiv")]
         [Fact]
         public void CS0706ERR_BadConstraintType()
         {
@@ -1028,7 +1028,7 @@ class C
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
-        [WorkItem(535915)]
+        [WorkItem(535915, "DevDiv")]
         [Fact]
         public void CS0839ERR_MissingArgument()
         {
@@ -1074,7 +1074,7 @@ public class clx
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpected, ""));
         }
 
-        [Fact, WorkItem(542408)]
+        [Fact, WorkItem(542408, "DevDiv")]
         public void CS1001ERR_IdentifierExpected_2()
         {
             var test = @"
@@ -1087,7 +1087,7 @@ Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(542408)]
+        [Fact, WorkItem(542408, "DevDiv")]
         public void CS1001ERR_IdentifierExpected_5()
         {
             var test = @"
@@ -1101,7 +1101,7 @@ Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(542416)]
+        [Fact, WorkItem(542416, "DevDiv")]
         public void CS1001ERR_IdentifierExpected_3()
         {
             var test = @"
@@ -1125,7 +1125,7 @@ class NamedExample
     Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",", ""));
         }
 
-        [Fact, WorkItem(542416)]
+        [Fact, WorkItem(542416, "DevDiv")]
         public void CS1001ERR_IdentifierExpected_4()
         {
             var test = @"
@@ -1150,7 +1150,7 @@ class NamedExample
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ","));
         }
 
-        [Fact, WorkItem(542416)]
+        [Fact, WorkItem(542416, "DevDiv")]
         public void CS1001ERR_IdentifierExpected_6()
         {
             var test = @"
@@ -1202,7 +1202,7 @@ namespace x {
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_SemicolonExpected, ""));
         }
 
-        [WorkItem(528008)]
+        [WorkItem(528008, "DevDiv")]
         [Fact]
         public void CS1002ERR_SemicolonExpected_2()
         {
@@ -1228,7 +1228,7 @@ class Program
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
-        [WorkItem(527944)]
+        [WorkItem(527944, "DevDiv")]
         [Fact]
         public void CS1002ERR_SemicolonExpected_3()
         {
@@ -1443,7 +1443,7 @@ enum N : decimal { A }
             ParseAndValidate(@"enum E : byt { A, B }", Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "byt"));
         }
 
-        [Fact, WorkItem(540117)]
+        [Fact, WorkItem(540117, "DevDiv")]
         public void CS1009ERR_IllegalEscape_Strings()
         {
             var text = @"
@@ -1484,7 +1484,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem(528100)]
+        [Fact, WorkItem(528100, "DevDiv")]
         public void CS1009ERR_IllegalEscape_Identifiers()
         {
             var text = @"using System;
@@ -1571,7 +1571,7 @@ class Program
             );
         }
 
-        [WorkItem(535921)]
+        [WorkItem(535921, "DevDiv")]
         [Fact]
         public void CS1013ERR_InvalidNumber()
         {
@@ -1754,7 +1754,7 @@ namespace x
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ThisOrBaseExpected, "{"));
         }
 
-        [WorkItem(535924)]
+        [WorkItem(535924, "DevDiv")]
         [Fact]
         public void CS1019ERR_OvlUnaryOperatorExpected()
         {
@@ -1985,7 +1985,7 @@ public class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ErrorDirective, "(12345)").WithArguments("(12345)"));
         }
 
-        [WorkItem(541954)]
+        [WorkItem(541954, "DevDiv")]
         [Fact]
         public void CS1029ERR_ErrorDirectiveppNonLatin()
         {
@@ -1996,7 +1996,7 @@ public class Test
             Assert.Equal("error CS1029: #error: '\u0444\u0430\u0439\u043B'", CSharpDiagnosticFormatter.Instance.Format(error.WithLocation(Location.None)));
         }
 
-        [Fact(), WorkItem(526991)]
+        [Fact(), WorkItem(526991, "DevDiv")]
         public void CS1031ERR_TypeExpected01()
         {
             // Diff error - CS1003
@@ -2069,7 +2069,7 @@ namespace x
              );
         }
 
-        [WorkItem(541347)]
+        [WorkItem(541347, "DevDiv")]
         [Fact]
         public void CS1031ERR_TypeExpected03()
         {
@@ -2158,7 +2158,7 @@ class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_EndRegionDirectiveExpected, ""));
         }
 
-        [Fact, WorkItem(535926)]
+        [Fact, WorkItem(535926, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW()
         {
             // Diff errors
@@ -2200,7 +2200,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "const"),
 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly"));
         }
 
-        [Fact, WorkItem(541347)]
+        [Fact, WorkItem(541347, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW02()
         {
             var test =
@@ -2212,7 +2212,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
-        [Fact, WorkItem(541347)]
+        [Fact, WorkItem(541347, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW03()
         {
             var test =
@@ -2226,7 +2226,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this") );
         }
 
-        [Fact, WorkItem(541347)]
+        [Fact, WorkItem(541347, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW04()
         {
             var test = @"delegate void D(this object o);";
@@ -2234,7 +2234,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
-        [Fact, WorkItem(541347)]
+        [Fact, WorkItem(541347, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW05()
         {
             var test =
@@ -2256,7 +2256,7 @@ Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
         }
 
-        [Fact, WorkItem(541347)]
+        [Fact, WorkItem(541347, "DevDiv")]
         public void CS1041ERR_IdentifierExpectedKW06()
         {
             var test =
@@ -2401,7 +2401,7 @@ return 1;
     Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
         }
 
-        [WorkItem(536956)]
+        [WorkItem(536956, "DevDiv")]
         [Fact]
         public void CS1065ERR_DefaultValueNotAllowed()
         {
@@ -2430,7 +2430,7 @@ class A
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
         }
 
-        [WorkItem(540251)]
+        [WorkItem(540251, "DevDiv")]
         [Fact]
         public void CS7014ERR_AttributesNotAllowed()
         {
@@ -2588,7 +2588,7 @@ Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
 Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
         }
 
-        [Fact, WorkItem(535930)]
+        [Fact, WorkItem(535930, "DevDiv")]
         public void CS1107ERR_DupParamMod()
         {
             // Diff errors
@@ -2739,7 +2739,7 @@ namespace x
    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
-        [WorkItem(535932)]
+        [WorkItem(535932, "DevDiv")]
         [Fact]
         public void CS1515ERR_InExpected()
         {
@@ -3017,7 +3017,7 @@ namespace nms
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(540245)]
+        [WorkItem(540245, "DevDiv")]
         [Fact]
         public void CS1525RegressVoidInfiniteLoop()
         {
@@ -3095,7 +3095,7 @@ Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?"));
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
-        [WorkItem(542229)]
+        [WorkItem(542229, "DevDiv")]
         [Fact]
         public void CS1525ERR_InvalidExprTerm_FromInExprInQuery()
         {
@@ -3406,7 +3406,7 @@ public class MyClass {
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadArraySyntax, "["));
         }
 
-        [Fact, WorkItem(535933)] // ?
+        [Fact, WorkItem(535933, "DevDiv")] // ?
         public void CS1553ERR_BadOperatorSyntax()
         {
             // Extra errors
@@ -3441,7 +3441,7 @@ public class MainClass
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator"));
         }
 
-        [Fact(), WorkItem(526995)]
+        [Fact(), WorkItem(526995, "DevDiv")]
         public void CS1554ERR_BadOperatorSyntax2()
         {
             // Diff errors: CS1003, 1031 etc. (8 errors)
@@ -3461,7 +3461,7 @@ public class MainClass
             ParseAndValidateFirst(test, Diagnostic(ErrorCode.ERR_TypeExpected, "operator"));
         }
 
-        [Fact, WorkItem(536673)]
+        [Fact, WorkItem(536673, "DevDiv")]
         public void CS1575ERR_BadStackAllocExpr()
         {
             // Diff errors
@@ -3516,7 +3516,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_InvalidLineNumber, "0"));
         }
 
-        [WorkItem(541952)]
+        [WorkItem(541952, "DevDiv")]
         [Fact]
         public void CS1576ERR_InvalidLineNumber02()
         {
@@ -3534,7 +3534,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_ErrorDirective, "").WithArguments(""));
         }
 
-        [WorkItem(536689)]
+        [WorkItem(536689, "DevDiv")]
         [Fact]
         public void CS1578ERR_MissingPPFile()
         {
@@ -3601,7 +3601,7 @@ Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"),
 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"));
         }
 
-        [Fact, WorkItem(535935)]
+        [Fact, WorkItem(535935, "DevDiv")]
         public void CS1597ERR_UnexpectedSemicolon()
         {
             // Diff error: CS1519
@@ -3804,7 +3804,7 @@ class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 
-        [Fact(), WorkItem(527039)]
+        [Fact(), WorkItem(527039, "DevDiv")]
         public void CS1732ERR_ParameterExpected()
         {
             var test = @"
@@ -3829,7 +3829,7 @@ static class Test
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
-        [WorkItem(536674)]
+        [WorkItem(536674, "DevDiv")]
         [Fact]
         public void CS1733ERR_ExpressionExpected()
         {
@@ -3849,7 +3849,7 @@ static class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExpressionExpected, "}"));
         }
 
-        [WorkItem(536674)]
+        [WorkItem(536674, "DevDiv")]
         [Fact]
         public void CS1733ERR_ExpressionExpected_02()
         {
@@ -3980,7 +3980,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this") );
         }
 
-        [Fact, WorkItem(546212)]
+        [Fact, WorkItem(546212, "DevDiv")]
         public void InvalidQueryExpression()
         {
             var text = @"
@@ -4288,7 +4288,7 @@ class MyClass
             ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
 
-        [Fact, WorkItem(529895)]
+        [Fact, WorkItem(529895, "DevDiv")]
         public void AttributeInMethodBody()
         {
             var test = @"
@@ -4360,7 +4360,7 @@ partial class X
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
         }
 
-        [WorkItem(529870)]
+        [WorkItem(529870, "DevDiv")]
         [Fact]
         public void AsyncBeforeCSharp5()
         {
@@ -4380,7 +4380,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
         }
 
-        [WorkItem(529870)]
+        [WorkItem(529870, "DevDiv")]
         [Fact]
         public void AsyncWithOtherModifiersBeforeCSharp5()
         {

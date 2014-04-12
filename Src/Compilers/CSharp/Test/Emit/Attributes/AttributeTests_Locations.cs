@@ -651,7 +651,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "e").WithArguments("C.e"));
         }
 
-        [Fact, WorkItem(543977)]
+        [Fact, WorkItem(543977, "DevDiv")]
         public void OnInterfaceFieldEvent()
         {
             var source = @"
@@ -1093,7 +1093,7 @@ class C
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "set").WithArguments("set"));
         }
 
-        [Fact, WorkItem(545555)]
+        [Fact, WorkItem(545555, "DevDiv")]
         public void AttributesWithInvalidLocationNotEmitted()
         {
             var source = @"
@@ -1124,7 +1124,7 @@ public class A : Attribute { }
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo"));
         }
 
-        [WorkItem(537613), WorkItem(537738)]
+        [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTarget()
         {
@@ -1134,7 +1134,7 @@ public class A : Attribute { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X"));
         }
 
-        [WorkItem(537613), WorkItem(537738)]
+        [WorkItem(537613, "DevDiv"), WorkItem(537738, "DevDiv")]
         [Fact]
         public void CS0246ERR_SingleTypeNameNotFound_VerbatimIdentifierAttributeTargetAndAttribute()
         {

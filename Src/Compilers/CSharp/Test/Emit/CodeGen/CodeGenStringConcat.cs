@@ -419,7 +419,7 @@ F");
         }
 
         [Fact()]
-        [WorkItem(679120)]
+        [WorkItem(679120, "DevDiv")]
         public void ConcatEmptyArray()
         {
             var source = @"
@@ -471,7 +471,7 @@ End");
 ");
         }
 
-        [WorkItem(529064)]
+        [WorkItem(529064, "DevDiv")]
         [Fact()]
         public void TestStringConcatOnLiteralAndCompound()
         {

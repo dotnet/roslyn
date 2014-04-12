@@ -482,7 +482,7 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.CSharpKind());
         }
 
-        [WorkItem(755236)]
+        [WorkItem(755236, "DevDiv")]
         [Fact]
         public void TestFindNode()
         {
@@ -537,7 +537,7 @@ a + b";
             Assert.Throws<ArgumentOutOfRangeException>(() => classDecl.FindNode(root.FullSpan));
         }
 
-        [WorkItem(539941)]
+        [WorkItem(539941, "DevDiv")]
         [Fact]
         public void TestFindTriviaNoTriviaExistsAtPosition()
         {
@@ -623,7 +623,7 @@ a + b";
             Assert.False(tree1.GetCompilationUnitRoot().IsEquivalentTo(tree2.GetCompilationUnitRoot()));
         }
 
-        [Fact, WorkItem(536664)]
+        [Fact, WorkItem(536664, "DevDiv")]
         public void TestTriviaNodeCached()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(" class foo {}");
@@ -1418,7 +1418,7 @@ class A { }
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind);
         }
 
-        [Fact, WorkItem(536995)]
+        [Fact, WorkItem(536995, "DevDiv")]
         public void TestTextAndSpanWithTrivia1()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1435,7 +1435,7 @@ class A { }
             Assert.Equal(false, rootNode.ToString().Contains("/*START*/"));
         }
 
-        [Fact, WorkItem(536996)]
+        [Fact, WorkItem(536996, "DevDiv")]
         public void TestTextAndSpanWithTrivia2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1467,7 +1467,7 @@ namespace Microsoft.CSharp.Test
             Assert.Equal(namespaceNode.Span, nodeOrToken.Span);
         }
 
-        [Fact, WorkItem(537070)]
+        [Fact, WorkItem(537070, "DevDiv")]
         public void TestTraversalUsingCommonSyntaxNodeOrToken()
         {
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(@"class c1
@@ -1487,7 +1487,7 @@ namespace Microsoft.CSharp.Test
             walk(nodeOrToken);
         }
 
-        [WorkItem(537747)]
+        [WorkItem(537747, "DevDiv")]
         [Fact]
         public void SyntaxTriviaDefaultIsDirective()
         {
@@ -1654,7 +1654,7 @@ namespace Microsoft.CSharp.Test
             Assert.Equal(tt1, tr1);
         }
 
-        [WorkItem(537059)]
+        [WorkItem(537059, "DevDiv")]
         [Fact]
         public void TestIncompleteDeclWithDotToken()
         {
@@ -1669,7 +1669,7 @@ class Test
             Assert.Equal(SyntaxKind.MethodDeclaration, tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].ChildNodesAndTokens()[3].CSharpKind());
         }
 
-        [WorkItem(538360)]
+        [WorkItem(538360, "DevDiv")]
         [Fact]
         public void TestGetTokensLanguageAny()
         {
@@ -1690,7 +1690,7 @@ class Test
             Assert.True(expectedTokenKinds.SequenceEqual(actualTokens.Select(t => t.CSharpKind())));
         }
 
-        [WorkItem(538360)]
+        [WorkItem(538360, "DevDiv")]
         [Fact]
         public void TestGetTokensCommonAny()
         {
@@ -2398,7 +2398,7 @@ class C
             }
         }
 
-        [WorkItem(541188)]
+        [WorkItem(541188, "DevDiv")]
         [Fact]
         public void GetDiagnosticsOnMissingToken()
         {
@@ -2410,7 +2410,7 @@ class C
             Assert.Equal(1, diag.Count);
         }
 
-        [WorkItem(541325)]
+        [WorkItem(541325, "DevDiv")]
         [Fact]
         public void GetDiagnosticsOnMissingToken2()
         {
@@ -2438,7 +2438,7 @@ class Base<T>
             // TODO: Please add meaningful checks once the above deadlock issue is fixed.
         }
 
-        [WorkItem(541587)]
+        [WorkItem(541587, "DevDiv")]
         [Fact]
         public void GetDiagnosticsOnMissingToken3()
         {
@@ -2451,7 +2451,7 @@ class Base<T>
             Assert.Equal(2, diag.Count);
         }
 
-        [WorkItem(541648)]
+        [WorkItem(541648, "DevDiv")]
         [Fact]
         public void GetDiagnosticsOnMissingToken4()
         {
@@ -2473,7 +2473,7 @@ public class Test1
             Assert.Equal(3, diag.Count);
         }
 
-        [WorkItem(541630)]
+        [WorkItem(541630, "DevDiv")]
         [Fact]
         public void GetDiagnosticsOnBadReferenceDirective()
         {
@@ -2494,7 +2494,7 @@ public class Test1
             }
         }
 
-        [WorkItem(528626)]
+        [WorkItem(528626, "DevDiv")]
         [Fact]
         public void SpanOfNodeWithMissingChildren()
         {
@@ -2515,7 +2515,7 @@ public class Test1
             Assert.NotEqual(0, paramList.FullWidth);
         }
 
-        [WorkItem(542457)]
+        [WorkItem(542457, "DevDiv")]
         [Fact]
         public void AddMethodModifier()
         {
@@ -2552,7 +2552,7 @@ class Program
             Assert.Throws<ArgumentException>(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, intType }));
         }
 
-        [WorkItem(543310)]
+        [WorkItem(543310, "DevDiv")]
         [Fact]
         public void SyntaxDotParseCompilationUnitContainingOnlyWhitespace()
         {
@@ -2563,7 +2563,7 @@ class Program
             Assert.Equal("  ", node.GetLeadingTrivia().First().ToString());
         }
 
-        [WorkItem(543310)]
+        [WorkItem(543310, "DevDiv")]
         [Fact]
         public void SyntaxTreeDotParseCompilationUnitContainingOnlyWhitespace()
         {
@@ -2598,7 +2598,7 @@ class Program
             Assert.Equal(" ", trivia.ToFullString());
         }
 
-        [WorkItem(545116)]
+        [WorkItem(545116, "DevDiv")]
         [Fact]
         public void FindTriviaOutsideNode()
         {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Mixed Error Tests"
 
-        [WorkItem(543039)]
+        [WorkItem(543039, "DevDiv")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByField()
         {
@@ -49,7 +49,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        [WorkItem(543039)]
+        [WorkItem(543039, "DevDiv")]
         [Fact]
         public void BadConstantInOtherAssemblyUsedByLocal()
         {
@@ -79,7 +79,7 @@ public class B
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y"));
         }
 
-        [WorkItem(543039)]
+        [WorkItem(543039, "DevDiv")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly()
         {
@@ -108,7 +108,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        [WorkItem(543039)]
+        [WorkItem(543039, "DevDiv")]
         [Fact]
         public void BadDefaultArgumentInOtherAssembly_Decimal()
         {
@@ -137,7 +137,7 @@ public class B
             VerifyEmitDiagnostics(source2, compilation1);
         }
 
-        [WorkItem(543039)]
+        [WorkItem(543039, "DevDiv")]
         [Fact]
         public void BadReturnTypeInOtherAssembly()
         {
@@ -190,7 +190,7 @@ public class B
             }
         }
 
-        [Fact, WorkItem(530211)]
+        [Fact, WorkItem(530211, "DevDiv")]
         public void ModuleNameMismatch()
         {
             var moduleSource = "class Test {}";

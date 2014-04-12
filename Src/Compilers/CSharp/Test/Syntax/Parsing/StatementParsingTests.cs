@@ -2271,7 +2271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.Statement);
         }
 
-        [WorkItem(684860)]
+        [WorkItem(684860, "DevDiv")]
         [Fact]
         public void Bug684860_SkippedTokens()
         {
@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True((tokens2.Length - tokens1.Length) > n);
         }
 
-        [WorkItem(684860)]
+        [WorkItem(684860, "DevDiv")]
         [Fact]
         public void Bug684860_XmlText()
         {

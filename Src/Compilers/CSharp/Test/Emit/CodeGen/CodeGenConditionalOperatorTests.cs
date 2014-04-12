@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenConditionalOperatorTests : CSharpTestBase
     {
-        [Fact, WorkItem(638289)]
+        [Fact, WorkItem(638289, "DevDiv")]
         public void ConditionalDelegateInterfaceUnification1()
         {
             var src =
@@ -103,7 +103,7 @@ class C : I
 }");
         }
 
-        [Fact, WorkItem(638289)]
+        [Fact, WorkItem(638289, "DevDiv")]
         public void ConditionalDelegateInterfaceUnification2()
         {
             var src =
@@ -226,7 +226,7 @@ class C : I
 }");
         }
 
-        [Fact, WorkItem(638289)]
+        [Fact, WorkItem(638289, "DevDiv")]
         public void ConditionalDelegateInterfaceUnification3()
         {
             var src =
@@ -349,7 +349,7 @@ class C : I
 }");
         }
 
-        [Fact, WorkItem(638289)]
+        [Fact, WorkItem(638289, "DevDiv")]
         public void ConditionalDelegateInterfaceUnification4()
         {
             var src =
@@ -502,7 +502,7 @@ class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289)]
+        [Fact(), WorkItem(638289, "DevDiv")]
         public void NestedConditional1()
         {
             var src =
@@ -584,7 +584,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289)]
+        [Fact(), WorkItem(638289, "DevDiv")]
         public void NestedConditional2()
         {
             var src =
@@ -670,7 +670,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289)]
+        [Fact(), WorkItem(638289, "DevDiv")]
         public void NestedConditional3()
         {
             var src =
@@ -770,7 +770,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289)]
+        [Fact(), WorkItem(638289, "DevDiv")]
         public void NestedConditional4()
         {
             var src =
@@ -1571,7 +1571,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(528275)]
+        [WorkItem(528275, "DevDiv")]
         [Fact]
         public void TestConditionalOperatorForImplicitConv()
         {
@@ -1653,7 +1653,7 @@ class Program
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact, WorkItem(530071)]
+        [Fact, WorkItem(530071, "DevDiv")]
         public void TestConditionalOperatorForImplicitlyTypedArrays()
         {
             var source = @"
@@ -2070,7 +2070,7 @@ public static class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(543609)]
+        [Fact(), WorkItem(543609, "DevDiv")]
         public void SeveralAdjacentIfsWithConditionalExpressions()
         {
             var source = @"
@@ -2123,7 +2123,7 @@ class Class1
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(638289)]
+        [Fact(), WorkItem(638289, "DevDiv")]
         public void TestNestedConditionalAndNullOperators()
         {
             var src =
@@ -2206,7 +2206,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(543609)]
+        [Fact(), WorkItem(543609, "DevDiv")]
         public void UnreachableLabelInUnreachableCode()
         {
             var source = @"

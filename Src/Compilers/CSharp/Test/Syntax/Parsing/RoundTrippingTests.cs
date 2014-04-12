@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #endregion
 
         [Fact()]
-        [WorkItem(530410)]
+        [WorkItem(530410, "DevDiv")]
         public void NullChar()
         {
             ParseAndRoundTripping("\0", 1);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact()]
-        [WorkItem(530410)]
+        [WorkItem(530410, "DevDiv")]
         public void CharMaxValue()
         {
             string text = "abc" + char.MaxValue + "def";
@@ -1532,7 +1532,7 @@ A a { 0, 1 };
             ParseAndRoundTripping(text);
         }
 
-        [Fact, WorkItem(536922)]
+        [Fact, WorkItem(536922, "DevDiv")]
         public void RegressError4QueryWithNullable()
         {
             var text = @"using System.Linq;
@@ -1549,7 +1549,7 @@ class A
             ParseAndRoundTripping(text);
         }
 
-        [Fact, WorkItem(537265)]
+        [Fact, WorkItem(537265, "DevDiv")]
         public void PartialMethodWithLanguageVersion2()
         {
             var text = @"partial class P
@@ -1565,7 +1565,7 @@ class A
             Assert.Equal(text, newTest);
         }
 
-        [WorkItem(527490)]
+        [WorkItem(527490, "DevDiv")]
         [Fact]
         public void VariableDeclarationAsTypeOfArgument()
         {
@@ -1579,7 +1579,7 @@ class A
             Assert.NotEmpty(typeOfExpression.GetDiagnostics());
         }
 
-        [WorkItem(540809)]
+        [WorkItem(540809, "DevDiv")]
         [Fact]
         public void IncompleteGlobalAlias()
         {
@@ -1590,7 +1590,7 @@ class A
             ParseAndRoundTripping(text, errorCount: 3);
         }
 
-        [WorkItem(542229)]
+        [WorkItem(542229, "DevDiv")]
         [Fact]
         public void MethodCallWithQueryArgInsideQueryExpr()
         {
@@ -1616,7 +1616,7 @@ class Program
             ParseAndRoundTripping(text, 0);
         }
 
-        [WorkItem(542229)]
+        [WorkItem(542229, "DevDiv")]
         [Fact]
         public void MethodCallWithFromArgInsideQueryExpr()
         {
@@ -1642,7 +1642,7 @@ class Program
             ParseAndRoundTripping(text, -1);
         }
 
-        [WorkItem(542229)]
+        [WorkItem(542229, "DevDiv")]
         [Fact]
         public void ArrayCreationWithQueryArgInsideQueryExpr()
         {

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class BreakingChanges : CSharpTestBase
     {
-        [Fact, WorkItem(527050)]
+        [Fact, WorkItem(527050, "DevDiv")]
         [Trait("Feature", "Directives")]
         public void TestCS1024DefineWithUnicodeInMiddle()
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_PPDirectiveExpected, @"de\u0066in\U00000065"));
         }
 
-        [Fact, WorkItem(527951)]
+        [Fact, WorkItem(527951, "DevDiv")]
         public void CS0133ERR_NotConstantExpression05()
         {
             var text = @"
@@ -43,7 +43,7 @@ class A
                 );
         }
 
-        [WorkItem(527943)]
+        [WorkItem(527943, "DevDiv")]
         [Fact]
         public void CS0146ERR_CircularBase05()
         {
@@ -63,7 +63,7 @@ class B : IFace<B.C.D>
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
 
-        [WorkItem(540371), WorkItem(530792)]
+        [WorkItem(540371, "DevDiv"), WorkItem(530792, "DevDiv")]
         [Fact]
         void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
         {
@@ -163,7 +163,7 @@ public class MonthDays : idx
             Assert.Equal("MonthInfoIndexer", indexer.MetadataName);
         }
 
-        [WorkItem(527116)]
+        [WorkItem(527116, "DevDiv")]
         [Fact]
         public void RegressWarningInSingleMultiLineMixedXml()
         {
@@ -198,7 +198,7 @@ class Test
             Assert.Equal(8, tree.GetDiagnostics().Count());
         }
 
-        [Fact, WorkItem(527093)]
+        [Fact, WorkItem(527093, "DevDiv")]
         public void NoCS1570ForUndefinedXmlNamespace()
         {
             var text = @"
@@ -217,7 +217,7 @@ class A { }
             Assert.Empty(tree.GetDiagnostics());
         }
 
-        [Fact, WorkItem(541345)]
+        [Fact, WorkItem(541345, "DevDiv")]
         public void CS0019_TestNullCoalesceWithNullOperandsErrors()
         {
             var source = @"
@@ -251,7 +251,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
         }
 
-        [Fact, WorkItem(528676), WorkItem(528676)]
+        [Fact, WorkItem(528676, "DevDiv"), WorkItem(528676, "DevDiv")]
         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
         void CS1730ERR_CantUseAttributeOnInvaildLocation()
         {
@@ -275,7 +275,7 @@ public class Test { }
             SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 
-        [WorkItem(528711)]
+        [WorkItem(528711, "DevDiv")]
         [Fact]
         public void CS9259_StructLayoutCycle()
         {
@@ -299,7 +299,7 @@ public class Test { }
                 );
         }
 
-        [WorkItem(528094)]
+        [WorkItem(528094, "DevDiv")]
         [Fact]
         public void FormattingUnicodeNotPartOfId()
         {
@@ -334,7 +334,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(529000)]
+        [WorkItem(529000, "DevDiv")]
         [Fact]
         public void NoCS0121ForSwitchedParamNames_Dev10814222()
         {
@@ -377,8 +377,8 @@ class Test01
             CompileAndVerify(source, expectedOutput: "0000");
         }
 
-        [WorkItem(529001)]
-        [WorkItem(529002)]
+        [WorkItem(529001, "DevDiv")]
+        [WorkItem(529002, "DevDiv")]
         [Fact]
         public void CS0185ERR_LockNeedsReference_RequireRefType()
         {
@@ -416,7 +416,7 @@ class C
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct"));
         }
 
-        [WorkItem(528972)]
+        [WorkItem(528972, "DevDiv")]
         [Fact]
         public void CS0121ERR_AmbigCall_Lambda1()
         {
@@ -447,7 +447,7 @@ class A
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(529202)]
+        [Fact, WorkItem(529202, "DevDiv")]
         public void NoCS0029_ErrorOnZeroToEnumToTypeConversion()
         {
             string source = @"
@@ -479,7 +479,7 @@ struct S
                 );
         }
 
-        [Fact, WorkItem(529242)]
+        [Fact, WorkItem(529242, "DevDiv")]
         public void ThrowOverflowExceptionForUncheckedCheckedLambda()
         {
             string source = @"
@@ -511,7 +511,7 @@ class Program
 
         }
 
-        [Fact, WorkItem(529279)]
+        [Fact, WorkItem(529279, "DevDiv")]
         public void NewCS0029_ImplicitlyUnwrapGenericNullable()
         {
             string source = @"
@@ -529,7 +529,7 @@ public class GenC<T, U> where T : struct, U
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
         }
 
-        [Fact, WorkItem(529280), WorkItem(546864)]
+        [Fact, WorkItem(529280, "DevDiv"), WorkItem(546864, "DevDiv")]
         public void ExplicitUDCWithGenericConstraints()
         {
             // This compiles successfully in Dev10 dues to a bug; a user-defined conversion
@@ -571,7 +571,7 @@ public class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(529362)]
+        [Fact, WorkItem(529362, "DevDiv")]
         public void TestNullCoalescingOverImplicitExplictUDC()
         {
             string source = @"using System;
@@ -610,7 +610,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [Fact, WorkItem(529362)]
+        [Fact, WorkItem(529362, "DevDiv")]
         public void TestNullCoalescingOverImplicitExplictUDC_2()
         {
             string source = @"using System;
@@ -644,7 +644,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "Implicit");
         }
 
-        [Fact, WorkItem(529363)]
+        [Fact, WorkItem(529363, "DevDiv")]
         public void AssignmentNullCoalescingOperator()
         {
             string source = @"using System;
@@ -670,7 +670,7 @@ class NullCoallescingTest
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a"));
         }
 
-        [Fact, WorkItem(529464)]
+        [Fact, WorkItem(529464, "DevDiv")]
         public void MultiDimensionArrayWithDiffTypeIndexDevDiv31328()
         {
             var text = @"
@@ -728,7 +728,7 @@ class Boom : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
         }
 
-        [Fact, WorkItem(544232), WorkItem(544232)]
+        [Fact, WorkItem(544232, "DevDiv"), WorkItem(544232, "DevDiv")]
         public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_133087()
         {
             var text = @"
@@ -755,7 +755,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
         }
 
-        [Fact, WorkItem(544232), WorkItem(544232)]
+        [Fact, WorkItem(544232, "DevDiv"), WorkItem(544232, "DevDiv")]
         public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_176771()
         {
             var text = @"
@@ -811,7 +811,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m"));
         }
 
-        [WorkItem(529974)]
+        [WorkItem(529974, "DevDiv")]
         [Fact]
         public void TestCollisionForLoopControlVariable()
         {
@@ -889,7 +889,7 @@ public class Program
                     .WithArguments("Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count", "count", "field"));
         }
 
-        [Fact, WorkItem(530301)]
+        [Fact, WorkItem(530301, "DevDiv")]
         public void NoMore_CS0458WRN_AlwaysNull02()
         {
             CreateCompilationWithMscorlib(
@@ -928,7 +928,7 @@ public class Test
                     );
         }
 
-        [WorkItem(530403)]
+        [WorkItem(530403, "DevDiv")]
         [Fact]
         public void CS0135_local_param_cannot_be_declared()
         {
@@ -965,7 +965,7 @@ public class c
                 );
         }
 
-        [Fact, WorkItem(530518)]
+        [Fact, WorkItem(530518, "DevDiv")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
             var text = @"
@@ -992,7 +992,7 @@ x => Convert(Convert(Convert(x)))
 ");
         }
 
-        [Fact, WorkItem(530531)]
+        [Fact, WorkItem(530531, "DevDiv")]
         void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
@@ -1018,7 +1018,7 @@ True
 ");
         }
 
-        [Fact, WorkItem(530548)]
+        [Fact, WorkItem(530548, "DevDiv")]
         public void CS0219WRN_UnreferencedVarAssg_RHSMidRefType()
         {
             string source = @"
@@ -1044,7 +1044,7 @@ public class Test
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
         }
 
-        [Fact, WorkItem(530556)]
+        [Fact, WorkItem(530556, "DevDiv")]
         public void NoCS0591ERR_InvalidAttributeArgument()
         {
             string source = @"
@@ -1059,7 +1059,7 @@ public class Test {}
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530586)]
+        [Fact, WorkItem(530586, "DevDiv")]
         public void ThrowOnceInIteratorFinallyBlock()
         {
             string source = @"
@@ -1111,7 +1111,7 @@ class Program
             CompileAndVerify(source, expectedOutput: " ++ EX 1");
         }
 
-        [Fact, WorkItem(530587)]
+        [Fact, WorkItem(530587, "DevDiv")]
         public void NoFormatCharInIDEqual()
         {
             string source = @"
@@ -1133,7 +1133,7 @@ return x;
             CompileAndVerify(source, expectedOutput: "1"); // Native print 0
         }
 
-        [Fact, WorkItem(530614)]
+        [Fact, WorkItem(530614, "DevDiv")]
         public void CS1718WRN_ComparisonToSelf_Roslyn()
         {
             string source = @"
@@ -1154,7 +1154,7 @@ if (esbyte.e0 == esbyte.e0)
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
         }
 
-        [Fact, WorkItem(530629)]
+        [Fact, WorkItem(530629, "DevDiv")]
         public void CS0414WRN_UnreferencedFieldAssg_Roslyn()
         {
             string source = @"
@@ -1181,7 +1181,7 @@ namespace VS7_336319
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
         }
 
-        [Fact, WorkItem(530666)]
+        [Fact, WorkItem(530666, "DevDiv")]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
             string source = @"
@@ -1212,7 +1212,7 @@ static int Main()
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "3");
         }
 
-        [Fact, WorkItem(530696)]
+        [Fact, WorkItem(530696, "DevDiv")]
         public void CS0121Err_AmbigiousMethodCall()
         {
             string source = @"
@@ -1240,7 +1240,7 @@ static int Main()
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
         }
 
-        [Fact, WorkItem(530653)]
+        [Fact, WorkItem(530653, "DevDiv")]
         public void RepeatedObsoleteWarnings()
         {
             // <quote source="Srivatsn's comments from bug 16642">
@@ -1283,7 +1283,7 @@ public class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteType").WithArguments("ObsoleteType"));
         }
 
-        [Fact, WorkItem(530303)]
+        [Fact, WorkItem(530303, "DevDiv")]
         public void TestReferenceResolution()
         {
             var cs1Compilation = CreateCSharpCompilation("CS1",
@@ -1319,7 +1319,7 @@ public class Program
             cs4Compilation.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(531014)]
+        [Fact, WorkItem(531014, "DevDiv")]
         public void TestVariableAndTypeNameClashes()
         {
             CompileAndVerify(@"
@@ -1356,7 +1356,7 @@ public class Class1
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "A6").WithArguments("A6"));
         }
 
-        [WorkItem(530584)]
+        [WorkItem(530584, "DevDiv")]
         [Fact]
         public void NotRuntimeAmbiguousBecauseOfReturnTypes()
         {
@@ -1390,7 +1390,7 @@ class Derived : Base<int, int>
             CompileAndVerify(source, expectedOutput: "Derived.Out");
         }
 
-        [WorkItem(695311)]
+        [WorkItem(695311, "DevDiv")]
         [Fact]
         public void NestedCollectionInitializerOnGenericProperty()
         {
@@ -1540,7 +1540,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(770424)]
+        [WorkItem(770424, "DevDiv")]
         public void UserDefinedShortCircuitingOperators()
         {
             var source = @"

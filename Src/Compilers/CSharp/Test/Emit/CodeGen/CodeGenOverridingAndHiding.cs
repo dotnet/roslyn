@@ -1162,7 +1162,7 @@ Base.Method(ref, out)
 Base.Method(ref)");
         }
 
-        [WorkItem(540214)]
+        [WorkItem(540214, "DevDiv")]
         [Fact]
         void TestEmitSynthesizedSealedSetter()
         {
@@ -1220,7 +1220,7 @@ Base.P.Set(2)",
                 });
         }
 
-        [WorkItem(540214)]
+        [WorkItem(540214, "DevDiv")]
         [Fact]
         void TestEmitSynthesizedSealedGetter()
         {
@@ -1277,7 +1277,7 @@ Derived.P.Set(2)",
                 });
         }
 
-        [WorkItem(540327)]
+        [WorkItem(540327, "DevDiv")]
         [Fact]
         void TestOverrideWithSealedProperty()
         {
@@ -1872,7 +1872,7 @@ class Derived2 : Base2
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540341)]
+        [WorkItem(540341, "DevDiv")]
         [Fact]
         void TestInternalMethods()
         {
@@ -2016,7 +2016,7 @@ class Derived : Base2<int>
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540341)]
+        [WorkItem(540341, "DevDiv")]
         [Fact]
         void TestInternalAccessors()
         {
@@ -2357,7 +2357,7 @@ Derived.set_Property",
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(528172)]
+        [WorkItem(528172, "DevDiv")]
         [Fact]
         public void TestHideWithInaccessibleVirtualMember()
         {
@@ -2636,7 +2636,7 @@ Derived.get_Property");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540431)]
+        [WorkItem(540431, "DevDiv")]
         [Fact]
         public void TestOverrideNewToVBVirtualOverloadsMetadata()
         {
@@ -2698,7 +2698,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
         }
 
-        [WorkItem(540431)]
+        [WorkItem(540431, "DevDiv")]
         [Fact]
         public void TestOverrideNewToVBVirtualPropMetadata()
         {
@@ -2855,8 +2855,8 @@ class Test
             CompileAndVerify(comp2, expectedOutput: @"TwoThreeOneZero");
         }
 
-        [WorkItem(540452)]
-        [WorkItem(540453)]
+        [WorkItem(540452, "DevDiv")]
+        [WorkItem(540453, "DevDiv")]
         [Fact]
         public void TestGenericDDerivedImplWithBaseInMetadata()
         {
@@ -3404,7 +3404,7 @@ namespace Metadata
                 });
         }
 
-        [WorkItem(540516)]
+        [WorkItem(540516, "DevDiv")]
         [Fact]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
@@ -3424,7 +3424,7 @@ public class Program
                 expectedOutput: "51");
         }
 
-        [WorkItem(540517)]
+        [WorkItem(540517, "DevDiv")]
         [Fact]
         public void TestOverrideMethodsWithCustomModifiers()
         {
@@ -3573,7 +3573,7 @@ class Test
                 });
         }
 
-        [WorkItem(541834)]
+        [WorkItem(541834, "DevDiv")]
         [Fact]
         public void AccessorMethodAccessorOverridingExecution()
         {
@@ -3612,7 +3612,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "C1");
         }
 
-        [WorkItem(541834)]
+        [WorkItem(541834, "DevDiv")]
         [Fact]
         public void AccessorMethodAccessorOverridingRoundTrip()
         {
@@ -3656,7 +3656,7 @@ public class C : B
             CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-        [WorkItem(541834)]
+        [WorkItem(541834, "DevDiv")]
         [Fact]
         public void MethodAccessorMethodOverridingRoundTrip()
         {
@@ -3708,7 +3708,7 @@ public class C : B
         /// will be true, but OverriddenMethod will return null.
         /// This test just checks that nothing blows up in such cases.
         /// </summary>
-        [WorkItem(541834)]
+        [WorkItem(541834, "DevDiv")]
         [Fact]
         public void ExplicitOverrideWithoutCSharpOverride()
         {
@@ -3789,7 +3789,7 @@ public class Invoke
             });
         }
 
-        [WorkItem(542828)]
+        [WorkItem(542828, "DevDiv")]
         [Fact]
         public void MetadataOverrideVirtualHiddenByNonVirtual()
         {
@@ -3900,7 +3900,7 @@ DerivedNonVirtual
 ");
         }
 
-        [WorkItem(543158)]
+        [WorkItem(543158, "DevDiv")]
         [Fact()]
         public void NoDefaultForParams_Dev10781558()
         {
@@ -3962,7 +3962,7 @@ class B : A
 
         }
 
-        [WorkItem(543158)]
+        [WorkItem(543158, "DevDiv")]
         [Fact]
         public void XNoDefaultForParams_Dev10781558()
         {
@@ -4163,7 +4163,7 @@ public class Test
 Derived.M(y:2)");
         }
 
-        [WorkItem(531095)]
+        [WorkItem(531095, "DevDiv")]
         [Fact]
         public void MissingAssemblyReference01()
         {
@@ -4192,7 +4192,7 @@ Derived.M(y:2)");
                 );
         }
 
-        [WorkItem(531095)]
+        [WorkItem(531095, "DevDiv")]
         [Fact]
         public void MissingAssemblyReference02()
         {

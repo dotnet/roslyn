@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBAsyncTests : CSharpTestBase
     {
         [Fact]
-        [WorkItem(631350)]
-        [WorkItem(643501)]
-        [WorkItem(689616)]
+        [WorkItem(631350, "DevDiv")]
+        [WorkItem(643501, "DevDiv")]
+        [WorkItem(689616, "DevDiv")]
         public void TestAsyncDebug()
         {
             #region "Source"
@@ -173,7 +173,7 @@ class Driver
         }
 
         [Fact]
-        [WorkItem(734596)]
+        [WorkItem(734596, "DevDiv")]
         public void TestAsyncDebug2()
         {
             #region "Source"
@@ -349,7 +349,7 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [WorkItem(690180)]
+        [WorkItem(690180, "DevDiv")]
         public void TestAsyncDebug3()
         {
             #region "Source"
@@ -415,8 +415,8 @@ class TestCase
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void LambdaDisplayClassLocalHoistedInAsyncMethod()
         {
@@ -505,8 +505,8 @@ class C
             });
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void LambdaDisplayClassLocalNotHoistedInAsyncMethod()
         {
@@ -589,8 +589,8 @@ class C
             });
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void DynamicLocalHoistedInAsyncMethod()
         {
@@ -659,8 +659,8 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(836491)]
-        [WorkItem(827337)]
+        [WorkItem(836491, "DevDiv")]
+        [WorkItem(827337, "DevDiv")]
         [Fact]
         public void DynamicLocalNotHoistedInAsyncMethod()
         {

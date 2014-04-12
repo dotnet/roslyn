@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class OptionalArgumentsTests : CSharpTestBase
     {
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesMetadata()
         {
@@ -111,7 +111,7 @@ System.Int64: 3
 System.Decimal: 3");
         }
 
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesSameValues()
         {
@@ -184,7 +184,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 3");
         }
 
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesSameValues_PartialMethods()
         {
@@ -230,7 +230,7 @@ partial class C
             }
         }
 
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesDifferentValues()
         {
@@ -291,7 +291,7 @@ delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "4"));
         }
 
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesDifferentValues_PartialMethods()
         {
@@ -323,7 +323,7 @@ partial class C
         /// <summary>
         /// Should not report differences if either value is bad.
         /// </summary>
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestDuplicateConstantAttributesDifferentValues_BadValue()
         {
@@ -344,7 +344,7 @@ interface I
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C"));
         }
 
-        [WorkItem(529684)]
+        [WorkItem(529684, "DevDiv")]
         [Fact]
         public void TestExplicitConstantAttributesOnFields()
         {

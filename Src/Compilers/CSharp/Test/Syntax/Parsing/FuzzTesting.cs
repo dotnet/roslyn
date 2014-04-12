@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class FuzzTesting : CSharpTestBase
     {
-        [WorkItem(540005)]
+        [WorkItem(540005, "DevDiv")]
         [Fact]
         public void c01()
         {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540006)]
+        [WorkItem(540006, "DevDiv")]
         [Fact]
         public void c02()
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007)]
+        [WorkItem(540007, "DevDiv")]
         [Fact]
         public void c03()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007)]
+        [WorkItem(540007, "DevDiv")]
         [Fact]
         public void c04()
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007)]
+        [WorkItem(540007, "DevDiv")]
         [Fact]
         public void c000138()
         {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007)]
+        [WorkItem(540007, "DevDiv")]
         [Fact]
         public void c000241()
         {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [WorkItem(540007)]
+        [WorkItem(540007, "DevDiv")]
         [Fact]
         public void c024928()
         {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
 
-        [Fact(Skip = "658140"), WorkItem(658140)]
+        [Fact(Skip = "658140"), WorkItem(658140, "DevDiv")]
         public void ParseFileOnBinaryFile()
         {
             // This is doing the same thing as ParseFile, but using a MemoryStream

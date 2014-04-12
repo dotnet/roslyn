@@ -78,7 +78,7 @@ class C
 }");
         }
 
-        [WorkItem(544937)]
+        [WorkItem(544937, "DevDiv")]
         [Fact]
         public void TestForEachMultiDimensionalArray()
         {
@@ -165,7 +165,7 @@ class C
 }");
         }
 
-        [WorkItem(544937)]
+        [WorkItem(544937, "DevDiv")]
         [Fact]
         public void TestForEachMultiDimensionalArrayBreakAndContinue()
         {
@@ -854,7 +854,7 @@ struct Enumerator
 }");
         }
 
-        [WorkItem(540943)]
+        [WorkItem(540943, "DevDiv")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorStruct()
@@ -1050,7 +1050,7 @@ struct Enumerable
 }");
         }
 
-        [WorkItem(540943)]
+        [WorkItem(540943, "DevDiv")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorGenericStruct()
         {
@@ -1499,7 +1499,7 @@ class C
 3");
         }
 
-        [WorkItem(540952)]
+        [WorkItem(540952, "DevDiv")]
         [Fact]
         public void TestGetEnumeratorWithParams()
         {
@@ -1543,7 +1543,7 @@ b
 c");
         }
 
-        [WorkItem(540954)]
+        [WorkItem(540954, "DevDiv")]
         [Fact]
         public void TestMoveNextWithNonBoolDeclaredReturnType()
         {
@@ -1582,7 +1582,7 @@ class E<T>
             var compilation = CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(540958)]
+        [WorkItem(540958, "DevDiv")]
         [Fact]
         public void TestNonConstantNullInForeach()
         {

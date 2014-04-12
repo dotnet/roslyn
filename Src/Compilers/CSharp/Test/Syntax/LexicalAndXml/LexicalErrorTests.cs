@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
-        [WorkItem(535880)]
-        [WorkItem(553293)]
+        [WorkItem(535880, "DevDiv")]
+        [WorkItem(553293, "DevDiv")]
         [Fact]
         public void CS0594ERR_FloatOverflow()
         {
@@ -118,7 +118,7 @@ namespace x
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_TooManyCharsInConst, ""));
         }
 
-        [WorkItem(553293)]
+        [WorkItem(553293, "DevDiv")]
         [Fact]
         public void CS1021ERR_IntOverflow()
         {
@@ -185,7 +185,7 @@ public class MainClass
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OpenEndedComment, ""));
         }
 
-        [Fact, WorkItem(526993)]
+        [Fact, WorkItem(526993, "DevDiv")]
         public void CS1039ERR_UnterminatedStringLit()
         {
             // TODO: extra errors
@@ -212,7 +212,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(536688)]
+        [Fact, WorkItem(536688, "DevDiv")]
         public void CS1040ERR_BadDirectivePlacementpp()
         {
             var test = @"
@@ -225,7 +225,7 @@ class Test
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"));
         }
 
-        [Fact, WorkItem(526994)]
+        [Fact, WorkItem(526994, "DevDiv")]
         public void CS1056ERR_UnexpectedCharacter()
         {
             // TODO: Extra errors
@@ -286,7 +286,7 @@ int x = 0;
     Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
         }
 
-        [Fact, WorkItem(536882)]
+        [Fact, WorkItem(536882, "DevDiv")]
         public void CS1056RegressDisallowedUnicodeChars()
         {
             var test = @"using S\u0600 = System;
@@ -302,7 +302,7 @@ class A
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
         }
 
-        [Fact, WorkItem(535937)]
+        [Fact, WorkItem(535937, "DevDiv")]
         public void CS1646ERR_ExpectedVerbatimLiteral()
         {
             var test = @"
@@ -361,7 +361,7 @@ class Test
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
 
-        [Fact, WorkItem(535871), WorkItem(527942)]
+        [Fact, WorkItem(535871, "DevDiv"), WorkItem(527942, "DevDiv")]
         public void CS0078WRN_LowercaseEllSuffix()
         {
             var test = @"

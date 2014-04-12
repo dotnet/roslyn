@@ -366,8 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot()); 
         }
 
-        [WorkItem(545049)]
-        [WorkItem(896538)]
+        [WorkItem(545049, "DevDiv")]
+        [WorkItem(896538, "DevDiv")]
         [Fact]
         public void RewriteMissingIdentiferInExpressionStatement_ImplicitlyCreatedSyntaxTree()
         {
@@ -413,8 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFacts.IsStatementExpression(((Syntax.InternalSyntax.CSharpSyntaxNode)expression).Kind, expression.IsMissing);
         }
 
-        [WorkItem(545049)]
-        [WorkItem(896538)]
+        [WorkItem(545049, "DevDiv")]
+        [WorkItem(896538, "DevDiv")]
         [Fact]
         public void RewriteMissingIdentiferInExpressionStatement_WithSyntaxTree()
         {

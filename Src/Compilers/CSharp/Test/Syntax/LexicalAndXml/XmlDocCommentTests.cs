@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
         }
 
-        [WorkItem(537500)]
+        [WorkItem(537500, "DevDiv")]
         [Fact]
         public void TestFourOrMoreSlashesIsNotXmlComment()
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, leading[0].ToFullString());
         }
 
-        [WorkItem(537500)]
+        [WorkItem(537500, "DevDiv")]
         [Fact]
         public void TestFourOrMoreSlashesInsideXmlCommentIsNotXmlComment()
         {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, leading[1].CSharpKind());
         }
 
-        [WorkItem(537500)]
+        [WorkItem(537500, "DevDiv")]
         [Fact]
         public void TestThreeOrMoreAsterisksIsNotXmlComment()
         {
@@ -2601,7 +2601,7 @@ class C{}";
             Assert.Equal(typeof(XmlElementSyntax), doc.Content[0].GetType());
         }
 
-        [WorkItem(537113)]
+        [WorkItem(537113, "DevDiv")]
         [Fact]
         public void TestSingleLineXmlCommentWithAttributeWithoutQuotes()
         {
@@ -2710,7 +2710,7 @@ class A {}";
             VerifyDiagnostics(doc, new List<TestError>() { new TestError(1570, true), new TestError(1570, true) });
         }
 
-        [WorkItem(536748)]
+        [WorkItem(536748, "DevDiv")]
         [Fact]
         public void AttributesInEndTag()
         {
@@ -2736,7 +2736,7 @@ class A
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
         }
 
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void NonAsciiQuotationMarks()
         {
@@ -2779,7 +2779,7 @@ class A
                 CSharpTestBase.Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("other"));
         }
 
-        [WorkItem(546989)]
+        [WorkItem(546989, "DevDiv")]
         [Fact]
         public void Microsoft_TeamFoundation_Client_Dll()
         {
@@ -2832,7 +2832,7 @@ public class Program
                 CSharpTestBase.Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary"));
         }
 
-        [WorkItem(547188)]
+        [WorkItem(547188, "DevDiv")]
         [Fact]
         public void WhitespaceInXmlName()
         {

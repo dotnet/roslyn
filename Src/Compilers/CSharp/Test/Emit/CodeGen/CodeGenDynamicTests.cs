@@ -298,7 +298,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact, WorkItem(530436)]
+        [Fact, WorkItem(530436, "DevDiv")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
@@ -594,7 +594,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(625282)]
+        [WorkItem(625282, "DevDiv")]
         public void GenericIterator()
         {
             string source = @"
@@ -891,7 +891,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(627091)]
+        [WorkItem(627091, "DevDiv")]
         public void GenericContainer_Lambda()
         {
             string source = @"
@@ -3402,7 +3402,7 @@ public class C
 }");
         }
 
-        [WorkItem(547676)]
+        [WorkItem(547676, "DevDiv")]
         [Fact]
         public void BooleanOperation_Bug547676()
         {
@@ -6189,7 +6189,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(622532)]
+        [WorkItem(622532, "DevDiv")]
         public void InvokeMember_Static_Outer()
         {
             string source = @"
@@ -6253,7 +6253,7 @@ public class A
         }
 
         [Fact]
-        [WorkItem(622532)]
+        [WorkItem(622532, "DevDiv")]
         public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
         {
             string source = @"
@@ -6332,7 +6332,7 @@ public class A
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_StaticContext_StaticProperty()
         {
             string source = @"
@@ -6460,7 +6460,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
         {
             string source = @"
@@ -6591,7 +6591,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_StaticContext_Parameter()
         {
             string source = @"
@@ -6717,7 +6717,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
         {
             string source = @"
@@ -6845,7 +6845,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InstanceContext_Parameter()
         {
             string source = @"
@@ -6971,7 +6971,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
         {
             string source = @"
@@ -7101,7 +7101,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InFieldInitializer()
         {
             string source = @"
@@ -7161,7 +7161,7 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InScriptVariableInitializer()
         {
             var sourceLib = @"
@@ -7223,7 +7223,7 @@ dynamic x = Color.F((dynamic)1);
 ", realIL: true);
         }
 
-        [Fact, WorkItem(649805)]
+        [Fact, WorkItem(649805, "DevDiv")]
         public void InvokeMember_ColorColor_InScriptMethod()
         {
             var sourceLib = @"
@@ -7752,7 +7752,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(598043)]
+        [WorkItem(598043, "DevDiv")]
         public void InvokeMember_NamedArguments_PartialMethods()
         {
             string source = @"
@@ -8674,7 +8674,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(627091)]
+        [WorkItem(627091, "DevDiv")]
         public void InvokeStaticMember_InLambda()
         {
             string source = @"

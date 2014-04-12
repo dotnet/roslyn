@@ -243,7 +243,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(542466)]
+        [WorkItem(542466, "DevDiv")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_Enum()
         {
@@ -276,7 +276,7 @@ enum color
 
         }
 
-        [WorkItem(542466)]
+        [WorkItem(542466, "DevDiv")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_ExplicitEnumeration()
         {
@@ -309,7 +309,7 @@ enum color
 
         }
 
-        [WorkItem(542466)]
+        [WorkItem(542466, "DevDiv")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_ImplicitNumeric()
         {
@@ -340,7 +340,7 @@ class IsTest
 
         }
 
-        [Fact, WorkItem(542466)]
+        [Fact, WorkItem(542466, "DevDiv")]
         public void CS0184WRN_IsAlwaysFalse_ExplicitNumeric()
         {
             var text = @"
@@ -386,7 +386,7 @@ False");
 
         }
 
-        [Fact, WorkItem(546371)]
+        [Fact, WorkItem(546371, "DevDiv")]
         public void CS0184WRN_IsAlwaysFalse_NumericIsNullable()
         {
             #region src
@@ -638,7 +638,7 @@ public class TestAsOperatorGeneric
 }");
         }
 
-        [Fact, WorkItem(754408)]
+        [Fact, WorkItem(754408, "DevDiv")]
         public void TestNullCoalesce_DynamicAndObject()
         {
             var source = @"using System;
@@ -1027,7 +1027,7 @@ public class C
 ");
         }
 
-        [WorkItem(541337)]
+        [WorkItem(541337, "DevDiv")]
         [Fact]
         public void TestNullCoalesce_TypeParameter_Bug8008()
         {
@@ -1090,7 +1090,7 @@ public class Test
 ");
         }
 
-        [WorkItem(541232)]
+        [WorkItem(541232, "DevDiv")]
         [Fact]
         public void TestNullCoalesce_MethodGroups()
         {
@@ -1349,7 +1349,7 @@ class MainClass
 }");
         }
 
-        [Fact, WorkItem(638289)]
+        [Fact, WorkItem(638289, "DevDiv")]
         public void TestNullCoalesce_Nested()
         {
             var src =
@@ -1738,7 +1738,7 @@ using System.Collections.Generic;
 ");
         }
 
-        [WorkItem(543074)]
+        [WorkItem(543074, "DevDiv")]
         [Fact]
         public void TestEqualEqualOnNestedStructGuid()
         {
@@ -1763,7 +1763,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(543092)]
+        [WorkItem(543092, "DevDiv")]
         [Fact]
         public void ShortCircuitConditionalOperator()
         {
@@ -1801,7 +1801,7 @@ class P
                 expectedOutput: "0");
         }
 
-        [WorkItem(543109)]
+        [WorkItem(543109, "DevDiv")]
         [Fact()]
         public void ShortCircuitConditionalOperator02()
         {
@@ -1823,7 +1823,7 @@ class P
                 expectedOutput: "0");
         }
 
-        [WorkItem(543377)]
+        [WorkItem(543377, "DevDiv")]
         [Fact]
         public void DecimalComparison()
         {
@@ -1857,7 +1857,7 @@ VerifyIL("Program.Main", @"
 }");
         }
 
-        [WorkItem(543453)]
+        [WorkItem(543453, "DevDiv")]
         [Fact]
         public void TestIncrementDecrementOperator_Generic()
         {
@@ -1887,7 +1887,7 @@ class DrivedType : BaseType<DrivedType>
             CompileAndVerify(source);
         }
 
-        [WorkItem(543474)]
+        [WorkItem(543474, "DevDiv")]
         [Fact]
         public void LogicalComplementOperator()
         {
@@ -1907,7 +1907,7 @@ class Program
                 expectedOutput: "1");
         }
 
-        [WorkItem(543500)]
+        [WorkItem(543500, "DevDiv")]
         [Fact]
         public void BuiltInLeftShiftOperators()
         {
@@ -1972,7 +1972,7 @@ class Program
 ");
         }
 
-        [WorkItem(543500)]
+        [WorkItem(543500, "DevDiv")]
         [Fact]
         public void BuiltInRightShiftOperators()
         {
@@ -2037,7 +2037,7 @@ class Program
 ");
         }
 
-        [WorkItem(543500)]
+        [WorkItem(543500, "DevDiv")]
         [Fact]
         public void BuiltInShiftOperators()
         {
@@ -2139,7 +2139,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(543993)]
+        [Fact, WorkItem(543993, "DevDiv")]
         public void BuiltInShiftOperators01()
         {
             var source = @"
@@ -2220,7 +2220,7 @@ public class Test
 ");
         }
 
-        [Fact, WorkItem(543993)]
+        [Fact, WorkItem(543993, "DevDiv")]
         public void BuiltInShiftOperators02()
         {
             var source = @"
@@ -2240,7 +2240,7 @@ class Program
 65536");
         }
 
-        [WorkItem(543568)]
+        [WorkItem(543568, "DevDiv")]
         [Fact]
         public void ImplicitConversionOperatorWithOptionalParam()
         {
@@ -2269,7 +2269,7 @@ class TestFunction
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543569)]
+        [WorkItem(543569, "DevDiv")]
         [Fact()]
         public void AssignmentInOperandOfIsAlwaysFalse()
         {
@@ -2296,7 +2296,7 @@ public class Program
             var verifier = CompileAndVerify(source, expectedOutput: @"PASS");
         }
 
-        [WorkItem(543577)]
+        [WorkItem(543577, "DevDiv")]
         [Fact()]
         public void IsOperatorAlwaysFalseInLambda()
         {
@@ -2321,7 +2321,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543446), WorkItem(543446)]
+        [WorkItem(543446, "DevDiv"), WorkItem(543446, "DevDiv")]
         [Fact]
         public void ThrowExceptionByConversion()
         {
@@ -2359,7 +2359,7 @@ namespace Test
             var verifier = CompileAndVerify(source, expectedOutput: @"01");
         }
 
-        [WorkItem(543586)]
+        [WorkItem(543586, "DevDiv")]
         [Fact]
         public void ImplicitVsExplicitOverloadOperators()
         {
@@ -2394,8 +2394,8 @@ struct Str
             var verifier = CompileAndVerify(source, expectedOutput: @"10");
         }
 
-        [WorkItem(543602)]
-        [WorkItem(543660)]
+        [WorkItem(543602, "DevDiv")]
+        [WorkItem(543660, "DevDiv")]
         [Fact]
         public void SwitchExpressionWithImplicitConversion()
         {
@@ -2430,7 +2430,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543498)]
+        [WorkItem(543498, "DevDiv")]
         [Fact]
         public void UserDefinedConversionAfterUserDefinedIncrement()
         {
@@ -2633,7 +2633,7 @@ class MyClass
 }");
         }
 
-        [Fact, WorkItem(543446)]
+        [Fact, WorkItem(543446, "DevDiv")]
         public void UserDefinedConversionAfterUserDefinedConvert()
         {
             var source =
@@ -2707,7 +2707,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(529248)]
+        [Fact, WorkItem(529248, "DevDiv")]
         public void TestNullCoalescingOperatorWithNullableConversions()
         {
             // Native compiler violates the language specification while binding the type for the null coalescing operator (??).
@@ -2786,7 +2786,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(543980)]
+        [Fact, WorkItem(543980, "DevDiv")]
         public void IsOperatorOnEnumAndTypeParameterConstraintToStruct()
         {
             string source = @"using System;
@@ -2817,7 +2817,7 @@ One";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(543982)]
+        [Fact, WorkItem(543982, "DevDiv")]
         public void OverloadAdditionOperatorOnGenericClass()
         {
             var source = @"
@@ -2861,7 +2861,7 @@ G<System.Int32> binary addition";
                 expectedOutput: expected);
         }
 
-        [Fact, WorkItem(544539), WorkItem(544540)]
+        [Fact, WorkItem(544539, "DevDiv"), WorkItem(544540, "DevDiv")]
         public void NonShortCircuitBoolean()
         {
             var source = @"using System;
@@ -3023,7 +3023,7 @@ True
 ");
         }
 
-        [WorkItem(543893)]
+        [WorkItem(543893, "DevDiv")]
         [Fact]
         public void EnumBitwiseComplement()
         {
@@ -3260,7 +3260,7 @@ public static class Test
 
         }
 
-        [WorkItem(544452)]
+        [WorkItem(544452, "DevDiv")]
         [Fact]
         public void LiftedByteEnumAddition()
         {
@@ -3327,7 +3327,7 @@ public class Program
             comp.VerifyIL("Program.M", il);
         }
 
-        [WorkItem(544943)]
+        [WorkItem(544943, "DevDiv")]
         [Fact]
         public void OptimizedXor()
         {
@@ -3366,7 +3366,7 @@ class C
 }");
         }
 
-        [WorkItem(544943)]
+        [WorkItem(544943, "DevDiv")]
         [Fact]
         public void XorMalformedTrue()
         {
@@ -3390,7 +3390,7 @@ class C
 False");
         }
 
-        [WorkItem(539398)]
+        [WorkItem(539398, "DevDiv")]
         [Fact]
         public void TestFloatNegativeZero()
         {
@@ -3425,7 +3425,7 @@ Infinity
 Infinity");
         }
 
-        [WorkItem(539398)]
+        [WorkItem(539398, "DevDiv")]
         [Fact]
         public void TestDoubleNegativeZero()
         {
@@ -3461,7 +3461,7 @@ Infinity");
         }
 
         // NOTE: decimal doesn't have infinity, so we convert to double.
-        [WorkItem(539398)]
+        [WorkItem(539398, "DevDiv")]
         [Fact]
         public void TestDecimalNegativeZero()
         {
@@ -3496,7 +3496,7 @@ Infinity
 Infinity");
         }
 
-        [WorkItem(545239)]
+        [WorkItem(545239, "DevDiv")]
         [Fact()]
         public void IncrementPropertyOfTypeParameterReturnValue()
         {
@@ -3583,7 +3583,7 @@ public class Test
 ");
         }
 
-        [WorkItem(546750)]
+        [WorkItem(546750, "DevDiv")]
         [Fact()]
         public void IncrementStructFieldWithReceiverThis()
         {
@@ -4206,7 +4206,7 @@ using System.Security;
 ");
         }
 
-        [WorkItem(634407)]
+        [WorkItem(634407, "DevDiv")]
         [Fact]
         public void TestTernary_Null()
         {
@@ -4264,7 +4264,7 @@ using System.Security;
 }");
         }
 
-        [WorkItem(634406)]
+        [WorkItem(634406, "DevDiv")]
         [Fact]
         public void TestBinary_Implicit()
         {
@@ -4317,7 +4317,7 @@ class Program
 ");
         }
 
-        [WorkItem(656807)]
+        [WorkItem(656807, "DevDiv")]
         [Fact]
         public void DelegateEqualsNull()
         {
@@ -4364,7 +4364,7 @@ public class Program
 }");
         }
 
-        [WorkItem(717072)]
+        [WorkItem(717072, "DevDiv")]
         [Fact]
         public void DecimalOperators()
         {
@@ -4457,7 +4457,7 @@ class Program
 ");
         }
 
-        [WorkItem(732269)]
+        [WorkItem(732269, "DevDiv")]
         [Fact]
         public void NullCoalesce()
         {

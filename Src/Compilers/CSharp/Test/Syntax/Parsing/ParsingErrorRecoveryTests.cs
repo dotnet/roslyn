@@ -6090,7 +6090,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(537210)]
+        [WorkItem(537210, "DevDiv")]
         [Fact]
         public void RegressException4UseValueInAccessor()
         {
@@ -6152,7 +6152,7 @@ class C
             Assert.True(file.ContainsDiagnostics);
         }
 
-        [WorkItem(537214)]
+        [WorkItem(537214, "DevDiv")]
         [Fact]
         public void RegressWarning4UseContextKeyword()
         {
@@ -6173,7 +6173,7 @@ class C
             Assert.False(file.ContainsDiagnostics);
         }
 
-        [WorkItem(537150)]
+        [WorkItem(537150, "DevDiv")]
         [Fact]
         public void ParseStartOfAccessor()
         {
@@ -6192,7 +6192,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_GetOrSetExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(536050)]
+        [WorkItem(536050, "DevDiv")]
         [Fact]
         public void ParseMethodWithConstructorInitializer()
         {
@@ -6228,7 +6228,7 @@ class C
             Assert.False(methodBody.ContainsDiagnostics);
         }
 
-        [WorkItem(537157)]
+        [WorkItem(537157, "DevDiv")]
         [Fact]
         public void MissingInternalNode()
         {
@@ -6262,7 +6262,7 @@ class C
             Assert.True(identifierToken.IsMissing);
         }
 
-        [WorkItem(538469)]
+        [WorkItem(538469, "DevDiv")]
         [Fact]
         public void FromKeyword()
         {
@@ -6290,7 +6290,7 @@ public class QueryExpressionTest
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code); //we inserted a missing semicolon in a place we didn't expect
         }
 
-        [WorkItem(538971)]
+        [WorkItem(538971, "DevDiv")]
         [Fact]
         public void UnclosedGenericInExplicitInterfaceName()
         {
@@ -6314,7 +6314,7 @@ class C : I<int>
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //expecting close angle bracket
         }
 
-        [WorkItem(540788)]
+        [WorkItem(540788, "DevDiv")]
         [Fact]
         public void IncompleteForEachStatement()
         {
@@ -6337,7 +6337,7 @@ public class Test
             Assert.Equal(3, foreachNode.ChildNodes().ToList().Count);
         }
 
-        [WorkItem(542236)]
+        [WorkItem(542236, "DevDiv")]
         [Fact]
         public void InsertOpenBraceBeforeCodes()
         {
@@ -6367,7 +6367,7 @@ public class Test
             }));
         }
 
-        [WorkItem(542352)]
+        [WorkItem(542352, "DevDiv")]
         [Fact]
         public void IncompleteTopLevelOperator()
         {
@@ -6395,7 +6395,7 @@ class C { }
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void IncompleteVariableDeclarationAboveDotMemberAccess()
         {
@@ -6420,7 +6420,7 @@ class C
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void IncompleteVariableDeclarationAbovePointerMemberAccess()
         {
@@ -6445,7 +6445,7 @@ class C
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void IncompleteVariableDeclarationAboveBinaryExpression()
         {
@@ -6470,7 +6470,7 @@ class C
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void IncompleteVariableDeclarationAboveMemberAccess_MultiLine()
         {
@@ -6496,7 +6496,7 @@ class C
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void IncompleteVariableDeclarationBeforeMemberAccessOnSameLine()
         {
@@ -6520,7 +6520,7 @@ class C
             }));
         }
 
-        [WorkItem(545647)]
+        [WorkItem(545647, "DevDiv")]
         [Fact]
         public void EqualsIsNotAmbiguous()
         {
@@ -6541,7 +6541,7 @@ class C
             Assert.Empty(syntaxTree.GetDiagnostics());
         }
 
-        [WorkItem(547120)]
+        [WorkItem(547120, "DevDiv")]
         [Fact]
         public void ColonColonInExplicitInterfaceMember()
         {
@@ -6573,7 +6573,7 @@ _ _::this
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(649806)]
+        [WorkItem(649806, "DevDiv")]
         [Fact]
         public void Repro649806()
         {
@@ -6584,7 +6584,7 @@ _ _::this
             Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
         }
 
-        [WorkItem(674564)]
+        [WorkItem(674564, "DevDiv")]
         [Fact]
         public void Repro674564()
         {
@@ -6613,7 +6613,7 @@ class C
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "."));
         }
 
-        [WorkItem(680733)]
+        [WorkItem(680733, "DevDiv")]
         [Fact]
         public void Repro680733a()
         {
@@ -6629,7 +6629,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(680733)]
+        [WorkItem(680733, "DevDiv")]
         [Fact]
         public void Repro680733b()
         {
@@ -6647,7 +6647,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(680739)]
+        [WorkItem(680739, "DevDiv")]
         [Fact]
         public void Repro680739()
         {
@@ -6655,7 +6655,7 @@ class Test
             AssertEqualRoundtrip(source);
         }
 
-        [WorkItem(675600)]
+        [WorkItem(675600, "DevDiv")]
         [Fact]
         public void TestBracesToOperatorDoubleGreaterThan()
         {
@@ -6683,7 +6683,7 @@ class C {}");
             Assert.Equal(source, toString);
         }
 
-        [WorkItem(684816)]
+        [WorkItem(684816, "DevDiv")]
         [Fact]
         public void GenericPropertyWithMissingIdentifier()
         {
@@ -6714,7 +6714,7 @@ class C : I
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816)]
+        [WorkItem(684816, "DevDiv")]
         [Fact]
         public void GenericEventWithMissingIdentifier()
         {
@@ -6748,7 +6748,7 @@ class C : I
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816)]
+        [WorkItem(684816, "DevDiv")]
         [Fact]
         public void ExplicitImplementationEventWithColonColon()
         {
@@ -6773,7 +6773,7 @@ class C : I
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(684816)]
+        [WorkItem(684816, "DevDiv")]
         [Fact]
         public void EventNamedThis()
         {
@@ -6801,7 +6801,7 @@ class C
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [WorkItem(697022)]
+        [WorkItem(697022, "DevDiv")]
         [Fact]
         public void GenericEnumWithMissingIdentifiers()
         {
@@ -6816,7 +6816,7 @@ enum
             Assert.DoesNotThrow(() => tree.GetDiagnostics().ToArray());
         }
 
-        [WorkItem(703809)]
+        [WorkItem(703809, "DevDiv")]
         [Fact]
         public void ReplaceOmittedArrayRankWithMissingIdentifier()
         {
@@ -6830,7 +6830,7 @@ static
             Assert.DoesNotThrow(() => tree.GetDiagnostics().ToArray());
         }
 
-        [WorkItem(716245)]
+        [WorkItem(716245, "DevDiv")]
         [Fact]
         public void ManySkippedTokens()
         {

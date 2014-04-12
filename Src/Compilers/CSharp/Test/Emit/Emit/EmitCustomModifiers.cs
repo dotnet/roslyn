@@ -554,7 +554,7 @@ System.Int32[]
         }
 
         [Fact]
-        [WorkItem(737971)]
+        [WorkItem(737971, "DevDiv")]
         public void ByRefBeforeCustomModifiers()
         {
             var il = @"
@@ -608,7 +608,7 @@ class Test
         }
 
         [Fact]
-        [WorkItem(737971)]
+        [WorkItem(737971, "DevDiv")]
         public void ByRefBeforeCustomModifiersOnSourceParameter()
         {
             var il = @"

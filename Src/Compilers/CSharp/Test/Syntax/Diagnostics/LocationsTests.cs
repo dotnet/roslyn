@@ -217,7 +217,7 @@ int x;
             AssertMappedSpanEqual(syntaxTree, "x;", "c:\\foo.cs", 2, 4, 2, 6, hasMappedPath: false);
         }
 
-        [WorkItem(537005)]
+        [WorkItem(537005, "DevDiv")]
         [Fact]
         public void TestMissingTokenAtEndOfLine()
         {
@@ -280,7 +280,7 @@ comment*/
             Assert.Equal(flps, new FileLinePositionSpan("c:\\foo.cs", new LinePosition(8, 13), new LinePosition(8, 13)));
         }
 
-        [WorkItem(537537)]
+        [WorkItem(537537, "DevDiv")]
         [Fact]
         public void TestDiagnosticSpanForIdentifierExpectedError()
         {
@@ -305,7 +305,7 @@ class Program
             Assert.Equal(flps, new FileLinePositionSpan("c:\\foo.cs", new LinePosition(8, 15), new LinePosition(8, 19)));
         }
 
-        [WorkItem(540077)]
+        [WorkItem(540077, "DevDiv")]
         [Fact]
         public void TestDiagnosticSpanForErrorAtLastToken()
         {
@@ -327,7 +327,7 @@ class C
             }
         }
 
-        [WorkItem(537215)]
+        [WorkItem(537215, "DevDiv")]
         [Fact]
         public void TestLineMappingForErrors()
         {
@@ -362,7 +362,7 @@ end class";
             Assert.NotEqual(loc3, loc4);
         }
 
-        [WorkItem(541612)]
+        [WorkItem(541612, "DevDiv")]
         [Fact]
         public void DiagnsoticsGetLineSpanForErrorinTryCatch()
         {
@@ -393,7 +393,7 @@ class Program
             }
         }
 
-        [Fact, WorkItem(537926)]
+        [Fact, WorkItem(537926, "DevDiv")]
         public void TestSourceLocationToString()
         {
             string sampleProgram = @"using System;

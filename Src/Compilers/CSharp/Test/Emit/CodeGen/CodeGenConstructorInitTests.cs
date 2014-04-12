@@ -273,7 +273,7 @@ C()
         }
 
         // Successive Operator On Class
-        [WorkItem(540992)]
+        [WorkItem(540992, "DevDiv")]
         [Fact]
         public void TestSuccessiveOperatorOnClass()
         {

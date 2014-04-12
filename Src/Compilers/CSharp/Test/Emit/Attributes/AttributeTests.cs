@@ -60,7 +60,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [Fact, WorkItem(545326)]
+        [Fact, WorkItem(545326, "DevDiv")]
         public void TestAssemblyAttributes_Bug13670()
         {
             var source = @"
@@ -297,7 +297,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(688268)]
+        [WorkItem(688268, "DevDiv")]
         [Fact]
         public void Bug688268()
         {
@@ -1066,7 +1066,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(688007)]
+        [WorkItem(688007, "DevDiv")]
         [Fact]
         public void Bug688007a()
         {
@@ -1110,7 +1110,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007)]
+        [WorkItem(688007, "DevDiv")]
         [Fact]
         public void Bug688007b()
         {
@@ -1158,7 +1158,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007)]
+        [WorkItem(688007, "DevDiv")]
         [Fact]
         public void Bug688007c()
         {
@@ -1210,7 +1210,7 @@ partial class CDoc
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
 
-        [WorkItem(688007)]
+        [WorkItem(688007, "DevDiv")]
         [Fact]
         public void Bug688007d()
         {
@@ -1403,7 +1403,7 @@ namespace AttributeTest
                 });
         }
 
-        [Fact, WorkItem(531385)]
+        [Fact, WorkItem(531385, "DevDiv")]
         public void TestAttributesWithParamArrayInCtor3()
         {
             string source = @"
@@ -1527,7 +1527,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541058)]
+        [WorkItem(541058, "DevDiv")]
         [Fact]
         public void TestAttributesWithtypeof()
         {
@@ -1547,7 +1547,7 @@ public class MyAttribute : Attribute
             CompileAndVerify(source);
         }
 
-        [WorkItem(541071)]
+        [WorkItem(541071, "DevDiv")]
         [Fact]
         public void TestAttributesWithParams()
         {
@@ -1674,7 +1674,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541397)]
+        [WorkItem(541397, "DevDiv")]
         [Fact]
         public void TestAttributeWithSameNameAsTypeParameter()
         {
@@ -1716,7 +1716,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541615)]
+        [WorkItem(541615, "DevDiv")]
         [Fact]
         public void TestAttributeWithVarIdentifierName()
         {
@@ -1753,7 +1753,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541505)]
+        [WorkItem(541505, "DevDiv")]
         [Fact]
         public void AttributeArgumentBind_PropertyWithSameName()
         {
@@ -1798,7 +1798,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(541709)]
+        [WorkItem(541709, "DevDiv")]
         [Fact]
         public void AttributeOnSynthesizedParameterSymbol()
         {
@@ -2036,7 +2036,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541864)]
+        [WorkItem(541864, "DevDiv")]
         [Fact]
         public void Bug_8769_TestAttributesWithNamedConstructorArguments()
         {
@@ -2125,7 +2125,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541861)]
+        [WorkItem(541861, "DevDiv")]
         [Fact]
         public void Bug_8768_TestAttributesWithOptionalConstructorArguments()
         {
@@ -2166,7 +2166,7 @@ namespace AttributeTest
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(541854)]
+        [WorkItem(541854, "DevDiv")]
         [Fact]
         public void Bug8761_StringArrayArgument()
         {
@@ -2187,7 +2187,7 @@ public class A : Attribute
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541856)]
+        [WorkItem(541856, "DevDiv")]
         [Fact]
         public void Bug8763_NullInArrayInitializer()
         {
@@ -2215,7 +2215,7 @@ public class B
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541856)]
+        [WorkItem(541856, "DevDiv")]
         [Fact]
         public void AttributeArrayTypeArgument()
         {
@@ -2294,7 +2294,7 @@ public class I
             CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541859)]
+        [WorkItem(541859, "DevDiv")]
         [Fact]
         public void Bug8766_AttributeCtorOverloadResolution()
         {
@@ -2319,7 +2319,7 @@ public class A : Attribute
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitUnsupported_646007, expectedOutput: "int");
         }
 
-        [WorkItem(541876)]
+        [WorkItem(541876, "DevDiv")]
         [Fact]
         public void Bug8771_AttributeArgumentNameBinding()
         {
@@ -2375,7 +2375,7 @@ class B
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546380)]
+        [WorkItem(546380, "DevDiv")]
         [Fact]
         public void AttributeWithNestedUnboundGenericType()
         {
@@ -2421,7 +2421,7 @@ public class Program
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(546380)]
+        [WorkItem(546380, "DevDiv")]
         [Fact]
         public void AttributeWithUnboundGenericType()
         {
@@ -2462,7 +2462,7 @@ class Program
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(542223)]
+        [WorkItem(542223, "DevDiv")]
         [Fact]
         public void AttributeArgumentAsEnumFromMetadata()
         {
@@ -2489,7 +2489,7 @@ class Program
             Assert.Equal("Bar", ca.Type.Name);
         }
 
-        [WorkItem(542318)]
+        [WorkItem(542318, "DevDiv")]
         [Fact]
         public void AttributeWithDaysOfWeekArgument()
         {
@@ -2582,7 +2582,7 @@ public class A : Attribute
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(542534)]
+        [WorkItem(542534, "DevDiv")]
         [Fact]
         public void AttributeOnDefiningPartialMethodDeclaration()
         {
@@ -2606,7 +2606,7 @@ partial class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(542534)]
+        [WorkItem(542534, "DevDiv")]
         [Fact]
         public void AttributeOnDefiningPartialMethodDeclaration_02()
         {
@@ -2693,7 +2693,7 @@ partial class Program
             Assert.Equal(1, param.GetAttributes(e2Class).Count());
         }
 
-        [WorkItem(542533)]
+        [WorkItem(542533, "DevDiv")]
         [Fact]
         public void AttributesInMultipleParialDeclarations_Type()
         {
@@ -2734,7 +2734,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542533)]
+        [WorkItem(542533, "DevDiv")]
         [Fact]
         public void AttributesInMultipleParialDeclarations_TypeParam()
         {
@@ -2771,7 +2771,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542550)]
+        [WorkItem(542550, "DevDiv")]
         [Fact]
         public void Bug9824()
         {
@@ -2806,7 +2806,7 @@ public class GClass<T> where T : Attribute
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [WorkItem(543135)]
+        [WorkItem(543135, "DevDiv")]
         [Fact]
         public void AttributeAndDefaultValueArguments_01()
         {
@@ -2853,7 +2853,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(543135)]
+        [WorkItem(543135, "DevDiv")]
         [Fact]
         public void AttributeAndDefaultValueArguments_02()
         {
@@ -2925,7 +2925,7 @@ class C
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(529044)]
+        [WorkItem(529044, "DevDiv")]
         [Fact]
         public void AttributeNameLookup()
         {
@@ -2963,7 +2963,7 @@ public class Test
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        [WorkItem(542003)]
+        [WorkItem(542003, "DevDiv")]
         [Fact]
         public void Bug8956_NullArgumentToSystemTypeParam()
         {
@@ -3020,7 +3020,7 @@ public struct S
             Assert.True(etsym.HasSpecialName);
         }
 
-        [WorkItem(546277)]
+        [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestArrayTypeInAttributeArgument()
         {
@@ -3120,7 +3120,7 @@ public class C6 {}
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
-        [WorkItem(546621)]
+        [WorkItem(546621, "DevDiv")]
         [Fact]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
@@ -3143,7 +3143,7 @@ class C
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitBug, expectedOutput: "True");
         }
 
-        [WorkItem(546621)]
+        [WorkItem(546621, "DevDiv")]
         [Fact]
         public void TestUnicodeAttributeArgumentsStrings()
         {
@@ -3266,7 +3266,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(546896)]
+        [WorkItem(546896, "DevDiv")]
         public void MissingTypeInSignature()
         {
             string lib1 = @"
@@ -3314,7 +3314,7 @@ class D : C
         }
 
         [Fact]
-        [WorkItem(569089)]
+        [WorkItem(569089, "DevDiv")]
         public void NullArrays()
         {
             var source = @"
@@ -3673,7 +3673,7 @@ class X
                 );
         }
 
-        [WorkItem(540924)]
+        [WorkItem(540924, "DevDiv")]
         [Fact]
         public void AttributeEnumsAsAttributeParameters()
         {
@@ -3702,7 +3702,7 @@ public class MainClass
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(768798)]
+        [WorkItem(768798, "DevDiv")]
         [Fact(Skip = "768798")]
         public void AttributeInvalidTargetSpecifier()
         {
@@ -3725,7 +3725,7 @@ class X
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "type"));
         }
 
-        [WorkItem(768798)]
+        [WorkItem(768798, "DevDiv")]
         [Fact(Skip = "768798")]
         public void AttributeInvalidTargetSpecifierOnInvalidAttribute()
         {
@@ -3796,7 +3796,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2));
         }
 
-        [WorkItem(541059)]
+        [WorkItem(541059, "DevDiv")]
         [Fact]
         public void AttributeUsageIsNull()
         {
@@ -3821,7 +3821,7 @@ public class Foo
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.AttributeTargets"));
         }
 
-        [WorkItem(541072)]
+        [WorkItem(541072, "DevDiv")]
         [Fact]
         public void AttributeContainsGeneric()
         {
@@ -3894,7 +3894,7 @@ class Foo<T>
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Foo<int>").WithArguments("Foo<T>").WithLocation(2, 2));
         }
 
-        [WorkItem(541423)]
+        [WorkItem(541423, "DevDiv")]
         [Fact]
         public void ErrorsInMultipleSyntaxTrees()
         {
@@ -3920,7 +3920,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(1, 10));
         }
 
-        [WorkItem(542533)]
+        [WorkItem(542533, "DevDiv")]
         [Fact]
         public void ErrorsInMultipleSyntaxTrees_TypeParam()
         {
@@ -3950,7 +3950,7 @@ class Gen<[A] T> {}
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(1, 13));
         }
 
-        [WorkItem(541423)]
+        [WorkItem(541423, "DevDiv")]
         [Fact]
         public void ErrorsInMultiplePartialDeclarations()
         {
@@ -3980,7 +3980,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(14, 2));
         }
 
-        [WorkItem(542533)]
+        [WorkItem(542533, "DevDiv")]
         [Fact]
         public void ErrorsInMultiplePartialDeclarations_TypeParam()
         {
@@ -4011,7 +4011,7 @@ partial class Gen<[B] T>
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "B").WithArguments("B", "method").WithLocation(14, 20));
         }
 
-        [WorkItem(541505)]
+        [WorkItem(541505, "DevDiv")]
         [Fact]
         public void AttributeArgumentError_CS0120()
         {
@@ -4049,7 +4049,7 @@ class F
                 );
         }
 
-        [Fact, WorkItem(541427)]
+        [Fact, WorkItem(541427, "DevDiv")]
         public void AttributeTargetsString()
         {
             var source = @"
@@ -4081,7 +4081,7 @@ class Attr: Attribute { public Attr(){} }";
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Attr").WithArguments("Attr", "assembly"));
         }
 
-        [WorkItem(541259)]
+        [WorkItem(541259, "DevDiv")]
         [Fact]
         public void CS0182_NonConstantArrayCreationAttributeArgument()
         {
@@ -4124,7 +4124,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new A[0]"));
         }
 
-        [WorkItem(541753)]
+        [WorkItem(541753, "DevDiv")]
         [Fact]
         public void CS0182_NestedArrays()
         {
@@ -4152,7 +4152,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new int[][] { new int[] { 1 } }").WithLocation(4, 4));
         }
 
-        [WorkItem(541849)]
+        [WorkItem(541849, "DevDiv")]
         [Fact]
         public void CS0182_MultidimensionalArrays()
         {
@@ -4180,7 +4180,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int[][*,*]").WithLocation(8, 2));
         }
 
-        [WorkItem(541858)]
+        [WorkItem(541858, "DevDiv")]
         [Fact]
         public void AttributeDefaultValueArgument()
         {
@@ -4205,7 +4205,7 @@ namespace AttributeTest
             var compilation = CompileAndVerify(source, expectedOutput: "");
         }
 
-        [WorkItem(541858)]
+        [WorkItem(541858, "DevDiv")]
         [Fact]
         public void CS0416_GenericAttributeDefaultValueArgument()
         {
@@ -4240,7 +4240,7 @@ public class C<T>
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(E2)").WithArguments("C<T>.E2").WithLocation(17, 12));
         }
 
-        [WorkItem(541615)]
+        [WorkItem(541615, "DevDiv")]
         [Fact]
         public void CS0246_VarAttributeIdentifier()
         {
@@ -4307,7 +4307,7 @@ namespace AttributeTest
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithLocation(8, 17));
         }
 
-        [WorkItem(541877)]
+        [WorkItem(541877, "DevDiv")]
         [Fact]
         public void Bug8772_TestDelegateAttributeNameBinding()
         {
@@ -4910,7 +4910,7 @@ class A2 : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_AmbigousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
         }
 
-        [WorkItem(542279)]
+        [WorkItem(542279, "DevDiv")]
         [Fact]
         public void MethodSignatureAttributes()
         {
@@ -4977,7 +4977,7 @@ public class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new decimal()").WithLocation(2, 8));
         }
 
-        [WorkItem(542533)]
+        [WorkItem(542533, "DevDiv")]
         [Fact]
         public void DuplicateAttributeOnTypeParameterOfPartialClass()
         {
@@ -4996,7 +4996,7 @@ partial class C<[A][A] T> { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"A").WithArguments("A"));
         }
 
-        [WorkItem(542486)]
+        [WorkItem(542486, "DevDiv")]
         [Fact]
         public void MethodParameterScope()
         {
@@ -5046,7 +5046,7 @@ class C
             }
         }
 
-        [WorkItem(542486)]
+        [WorkItem(542486, "DevDiv")]
         [Fact]
         public void MethodTypeParameterScope()
         {
@@ -5086,7 +5086,7 @@ class C
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
 
-        [WorkItem(542625)]
+        [WorkItem(542625, "DevDiv")]
         [Fact]
         public void DuplicateAttributeOnPartialMethod()
         {
@@ -5116,7 +5116,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"B").WithArguments("B"));
         }
 
-        [WorkItem(542625)]
+        [WorkItem(542625, "DevDiv")]
         [Fact]
         public void DuplicateAttributeOnTypeParameterOfPartialMethod()
         {
@@ -5175,7 +5175,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3"));
         }
 
-        [WorkItem(542625)]
+        [WorkItem(542625, "DevDiv")]
         [Fact]
         public void DuplicateAttributeOnParameterOfPartialMethod()
         {
@@ -5249,7 +5249,7 @@ partial class C
             CompileAndVerify(source);
         }
 
-        [WorkItem(543456)]
+        [WorkItem(543456, "DevDiv")]
         [Fact]
         public void StructLayoutFieldsAreUsed()
         {
@@ -5263,7 +5263,7 @@ struct S
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542662)]
+        [WorkItem(542662, "DevDiv")]
         [Fact]
         public void FalseDuplicateOnPartial()
         {
@@ -5291,7 +5291,7 @@ partial class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(542652)]
+        [WorkItem(542652, "DevDiv")]
         [Fact]
         public void Bug9958()
         {
@@ -5317,7 +5317,7 @@ partial class C
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo").WithArguments("C.Foo<>()"));
         }
 
-        [WorkItem(542909)]
+        [WorkItem(542909, "DevDiv")]
         [Fact]
         public void OverriddenPropertyMissingAccessor()
         {
@@ -5344,7 +5344,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542899)]
+        [WorkItem(542899, "DevDiv")]
         [Fact]
         public void TwoSyntaxTrees()
         {
@@ -5365,7 +5365,7 @@ using EnterpriseLibraryExtensions;
             Assert.DoesNotThrow(() => compilation.GetDiagnostics());
         }
 
-        [WorkItem(543785)]
+        [WorkItem(543785, "DevDiv")]
         [Fact]
         public void OpenGenericTypesUsedAsAttributeArgs()
         {
@@ -5391,7 +5391,7 @@ class Gen<T>
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Fld6").WithArguments("Gen<T>.Fld6", ""));
         }
 
-        [WorkItem(543914)]
+        [WorkItem(543914, "DevDiv")]
         [Fact]
         public void OpenGenericTypeInAttribute()
         {
@@ -5454,7 +5454,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
         }
 
-        [WorkItem(544230)]
+        [WorkItem(544230, "DevDiv")]
         [Fact]
         public void Warnings_Unassigned_Unreferenced_AttributeTypeFields()
         {
@@ -5487,7 +5487,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "InternalField").WithArguments("B.InternalField", "null"));
         }
 
-        [WorkItem(544230)]
+        [WorkItem(544230, "DevDiv")]
         [Fact]
         public void No_Warnings_For_Assigned_AttributeTypeFields()
         {
@@ -5525,7 +5525,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "InternalField").WithArguments("InternalField"));
         }
 
-        [WorkItem(544351)]
+        [WorkItem(544351, "DevDiv")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_Bug_12638()
         {
@@ -5546,7 +5546,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new Array[] { new[] { 1 } }").WithLocation(4, 8));
         }
 
-        [WorkItem(544348)]
+        [WorkItem(544348, "DevDiv")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_WithConversions()
         {
@@ -5564,7 +5564,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(int)(object)""ABC""").WithLocation(3, 4));
         }
 
-        [WorkItem(544348)]
+        [WorkItem(544348, "DevDiv")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_WithConversions_02()
         {
@@ -5592,7 +5592,7 @@ class B : Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(object[])(object)(new string[] { ""a"", null })").WithLocation(9, 4));
         }
 
-        [WorkItem(529392)]
+        [WorkItem(529392, "DevDiv")]
         [Fact]
         public void CS0182_ERR_BadAttributeArgument_OpenType_ConstantValue()
         {
@@ -5635,7 +5635,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C<T>.E.V").WithLocation(11, 12));
         }
 
-        [WorkItem(529392)]
+        [WorkItem(529392, "DevDiv")]
         [Fact]
         public void AttributeArgument_ConstructedType_ConstantValue()
         {
@@ -5662,7 +5662,7 @@ public class C<T>
             CompileAndVerify(source, emitOptions: EmitOptions.RefEmitUnsupported_646014, expectedOutput: "");
         }
 
-        [WorkItem(544512)]
+        [WorkItem(544512, "DevDiv")]
         [Fact]
         public void LambdaInAttributeArg()
         {
@@ -5695,7 +5695,7 @@ class X
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "d").WithArguments("d").WithLocation(14, 9));
         }
 
-        [WorkItem(544590)]
+        [WorkItem(544590, "DevDiv")]
         [Fact]
         public void LambdaInAttributeArg2()
         {
@@ -5727,7 +5727,7 @@ public class Class1 {
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Click").WithArguments("Class1.Click"));
         }
 
-        [WorkItem(545030)]
+        [WorkItem(545030, "DevDiv")]
         [Fact]
         public void UserDefinedAttribute_Bug13264()
         {
@@ -5753,7 +5753,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("", "System.Object", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "object"));
         }
 
-        [WorkItem(545241)]
+        [WorkItem(545241, "DevDiv")]
         [Fact]
         public void ConditionalAttributeOnAttribute()
         {
@@ -5801,7 +5801,7 @@ class Test
             CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
-        [WorkItem(545499)]
+        [WorkItem(545499, "DevDiv")]
         [Fact]
         public void IncompleteMethodParamAttribute()
         {
@@ -5822,7 +5822,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [Fact, WorkItem(545556)]
+        [Fact, WorkItem(545556, "DevDiv")]
         public void NameLookupInDelegateParameterAttribute()
         {
             var source = @"
@@ -5842,7 +5842,7 @@ class A : Attribute
                 Diagnostic(ErrorCode.ERR_BadArgType, "Equals").WithArguments("1", "method group", "int"));
         }
 
-        [Fact, WorkItem(546234)]
+        [Fact, WorkItem(546234, "DevDiv")]
         public void AmbiguousClassNamespaceLookup()
         {
             // One from source, one from PE
@@ -5978,7 +5978,7 @@ class Foo: Attribute
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
         }
 
-        [WorkItem(546283)]
+        [WorkItem(546283, "DevDiv")]
         [Fact]
         public void ApplyIndexerNameAttributeTwice()
         {
@@ -6005,7 +6005,7 @@ public class IA
             Assert.Equal("ItemX", indexer.MetadataName); //First one wins.
         }
 
-        [WorkItem(530524)]
+        [WorkItem(530524, "DevDiv")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute1()
         {
@@ -6048,7 +6048,7 @@ public class IA
             Assert.True(method.IsExtensionMethod);
         }
 
-        [WorkItem(530524)]
+        [WorkItem(530524, "DevDiv")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute2()
         {
@@ -6095,7 +6095,7 @@ public class IA
             Assert.False(method.IsExtensionMethod);
         }
 
-        [WorkItem(530524)]
+        [WorkItem(530524, "DevDiv")]
         [Fact]
         public void PEMethodSymbolExtensionAttribute3()
         {
@@ -6142,7 +6142,7 @@ public class IA
             Assert.False(method.IsExtensionMethod);
         }
 
-        [WorkItem(530310)]
+        [WorkItem(530310, "DevDiv")]
         [Fact]
         public void PEParameterSymbolParamArrayAttribute()
         {
@@ -6181,7 +6181,7 @@ public class IA
             Assert.Equal(0, yParam.GetAttributes().Length);
         }
 
-        [WorkItem(546490)]
+        [WorkItem(546490, "DevDiv")]
         [Fact]
         public void Bug15984()
         {
@@ -6218,7 +6218,7 @@ public class IA
             Assert.Equal(0, type.GetAttributes()[0].ConstructorArguments.Count());
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void GenericAttributeType()
         {
@@ -6297,7 +6297,7 @@ public class C<T, U> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void AliasedGenericAttributeType_Source()
         {
@@ -6334,7 +6334,7 @@ public class C<T> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void AliasedGenericAttributeType_Metadata()
         {
@@ -6378,7 +6378,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
         }
 
-        [WorkItem(611177)]
+        [WorkItem(611177, "DevDiv")]
         [Fact]
         public void AliasedGenericAttributeType_Nested()
         {
@@ -6414,7 +6414,7 @@ public class Outer<T>
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
         }
 
-        [WorkItem(687816)]
+        [WorkItem(687816, "DevDiv")]
         [Fact]
         public void VerbatimAliasVersusNonVerbatimAlias()
         {
@@ -6440,7 +6440,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
-        [WorkItem(687816)]
+        [WorkItem(687816, "DevDiv")]
         [Fact]
         public void DeclarationVersusNonVerbatimAlias()
         {
@@ -6466,7 +6466,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void Repro728865()
         {
@@ -6567,7 +6567,7 @@ The type of the attribute is Microsoft.Yeti.CartesianRowDataAttribute
 ");
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void StringArrayArgument1()
         {
@@ -6641,7 +6641,7 @@ public class ArrayOrObjectAttribute : Attribute
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void StringArrayArgument2()
         {
@@ -6729,7 +6729,7 @@ public class ParamArrayOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, "A");
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void StringArrayArgument3()
         {
@@ -6811,7 +6811,7 @@ public class StringOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Array, value4);
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void IntArrayArgument1()
         {
@@ -6878,7 +6878,7 @@ public class ArrayOrObjectAttribute : Attribute
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void IntArrayArgument2()
         {
@@ -6959,7 +6959,7 @@ public class ParamArrayOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, 1);
         }
 
-        [WorkItem(728865)]
+        [WorkItem(728865, "DevDiv")]
         [Fact]
         public void IntArrayArgument3()
         {
@@ -7038,7 +7038,7 @@ public class IntOrObjectAttribute : Attribute
             attrs4[2].VerifyValue(0, TypedConstantKind.Array, value4);
         }
 
-        [WorkItem(739630)]
+        [WorkItem(739630, "DevDiv")]
         [Fact]
         public void NullVersusEmptyArray()
         {
@@ -7105,7 +7105,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(530266)]
+        [WorkItem(530266, "DevDiv")]
         public void UnboundGenericTypeInTypedConstant()
         {
             var source = @"

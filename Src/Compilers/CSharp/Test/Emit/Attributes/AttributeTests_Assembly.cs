@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             });
         }
 
-        [Fact, WorkItem(545947)]
+        [Fact, WorkItem(545947, "DevDiv")]
         public void VersionAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.*"")] public class C {}";
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(545947), WorkItem(546971)]
+        [Fact, WorkItem(545947, "DevDiv"), WorkItem(546971, "DevDiv")]
         public void SatelliteContractVersionAttributeErr()
         {
             string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.3.A"")] public class C {}";
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyAssemblyTable(comp, null, strData: "zh-CN");
         }
 
-        [Fact, WorkItem(545949)]
+        [Fact, WorkItem(545949, "DevDiv")]
         public void CultureAttribute03()
         {
             // Executables cannot be satellite assemblies; culture should always be empty
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyAssemblyTable(comp, r => { Assert.True(r.Culture.IsNil); });
         }
 
-        [Fact, WorkItem(545949)]
+        [Fact, WorkItem(545949, "DevDiv")]
         public void CultureAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyCulture(""pt-BR"")] public class C {  static void Main() { }  }";
@@ -410,7 +410,7 @@ public class neutral
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
 
-        [Fact, WorkItem(529921)]
+        [Fact, WorkItem(529921, "DevDiv")]
         public void AlgorithmIdAttribute()
         {
             var hash_module = TestReferences.SymbolsTests.netModule.hash_module;
@@ -728,7 +728,7 @@ public class C {}
             VerifyAssemblyTable(comp, r => { Assert.Equal((int)flags, (int)r.Flags); });
         }
 
-        [Fact, WorkItem(546635)]
+        [Fact, WorkItem(546635, "DevDiv")]
         public void AssemblyFlagsAttribute02()
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345)] public class C {} ";
@@ -1104,7 +1104,7 @@ public class C {}
             }
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromNetModuleBadMulti()
         {
             string consoleappSource =
@@ -1148,7 +1148,7 @@ public class C {}
             Assert.Equal(5, attrs.Length);
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void InternalsVisibleToAttributeDropIdentical()
         {
             var source = @"
@@ -1165,7 +1165,7 @@ using System.Runtime.CompilerServices;
                 attrTypeName: "InternalsVisibleToAttribute");
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromSourceDropIdentical()
         {
             // Attribute with AllowMultiple = True
@@ -1204,7 +1204,7 @@ class Program
                 attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromSourceDropIdentical_02()
         {
             // Attribute with AllowMultiple = False
@@ -1243,7 +1243,7 @@ using System;
 
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromNetModuleDropIdentical_01()
         {
             // Duplicate ignored attributes in netmodule
@@ -1284,7 +1284,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromNetModuleDropIdentical_02()
         {
             string netmodule1Attributes = @"
@@ -1337,7 +1337,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         {
             // All duplicate ignored attributes in netmodule
@@ -1379,7 +1379,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939)]
+        [Fact, WorkItem(546939, "DevDiv")]
         public void AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         {
             // Duplicate ignored attributes in netmodule & source
@@ -1426,7 +1426,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546825)]
+        [Fact, WorkItem(546825, "DevDiv")]
         public void Bug16910()
         {
             string mod =
@@ -1447,7 +1447,7 @@ class Program
             Assert.False(diagnostics.Any());
         }
 
-        [Fact, WorkItem(530585)]
+        [Fact, WorkItem(530585, "DevDiv")]
         public void Bug16465()
         {
             string mod =
@@ -1520,7 +1520,7 @@ System.Reflection.AssemblyTrademarkAttribute(""Roslyn"")
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute
 
-        [Fact, WorkItem(545527)]
+        [Fact, WorkItem(545527, "DevDiv")]
         public void CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         {
             string moduleSrc = @"
@@ -1548,7 +1548,7 @@ public class C { }
             });
         }
 
-        [Fact, WorkItem(546460)]
+        [Fact, WorkItem(546460, "DevDiv")]
         public void RuntimeCompatibilityAttribute_False()
         {
             // the attribute suppresses WRN_UnreachableGeneralCatch since catch {} can catch an object not derived from Exception
@@ -1571,7 +1571,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(546460)]
+        [Fact, WorkItem(546460, "DevDiv")]
         public void RuntimeCompatibilityAttribute_Default()
         {
             string source = @"
@@ -1594,7 +1594,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch"));
         }
 
-        [Fact, WorkItem(546460)]
+        [Fact, WorkItem(546460, "DevDiv")]
         public void RuntimeCompatibilityAttribute_GeneralNotLast()
         {
             string source = @"
@@ -1799,7 +1799,7 @@ public class C { }
 
         #endregion
 
-        [Fact, WorkItem(530579)]
+        [Fact, WorkItem(530579, "DevDiv")]
         public void Bug530579_1()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1838,7 +1838,7 @@ public class C { }
             }
         }
 
-        [Fact, WorkItem(530579)]
+        [Fact, WorkItem(530579, "DevDiv")]
         public void Bug530579_2()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1869,7 +1869,7 @@ public class C { }
             );
         }
 
-        [Fact, WorkItem(530579)]
+        [Fact, WorkItem(530579, "DevDiv")]
         public void Bug530579_3()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1902,7 +1902,7 @@ public class C { }
             );
         }
 
-        [Fact, WorkItem(530579)]
+        [Fact, WorkItem(530579, "DevDiv")]
         public void Bug530579_4()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1933,7 +1933,7 @@ public class C { }
             );
         }
 
-        [Fact, WorkItem(649346)]
+        [Fact, WorkItem(649346, "DevDiv")]
         public void Bug649346()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyFileVersionAttribute(\"1.2.3.4\")]";

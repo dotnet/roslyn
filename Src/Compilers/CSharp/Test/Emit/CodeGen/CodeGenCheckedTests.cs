@@ -2137,7 +2137,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"));
         }
 
-        [WorkItem(648109)]
+        [WorkItem(648109, "DevDiv")]
         [Fact(Skip = "648109")]
         public void CheckedExpressionWithDecimal()
         {
@@ -2156,7 +2156,7 @@ class M
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "decimal.MaxValue + 1"));
         }
 
-        [WorkItem(543894), WorkItem(543924)]
+        [WorkItem(543894, "DevDiv"), WorkItem(543924, "DevDiv")]
         [Fact]
         public void CheckedOperatorOnEnumOverflow()
         {
@@ -2187,7 +2187,7 @@ class Test
                 expectedOutput: "PASS");
         }
 
-        [WorkItem(529263)]
+        [WorkItem(529263, "DevDiv")]
         [Fact]
         public void CheckedOperatorOnLambdaExpr()
         {
@@ -2219,7 +2219,7 @@ class Program
                 expectedOutput: "PASS");
         }
 
-        [Fact, WorkItem(543981)]
+        [Fact, WorkItem(543981, "DevDiv")]
         public void CheckedOperatorOnUnaryExpression()
         {
             var source = @"
@@ -2265,7 +2265,7 @@ class Program
                 expectedOutput: "OV-0");
         }
 
-        [Fact, WorkItem(543983)]
+        [Fact, WorkItem(543983, "DevDiv")]
         public void CheckedStatementWithCompoundAssignment()
         {
             var source = @"
@@ -2296,7 +2296,7 @@ public class MyClass
                 expectedOutput: "32000OV");
         }
 
-        [Fact, WorkItem(546872)]
+        [Fact, WorkItem(546872, "DevDiv")]
         public void CheckPostIncrementOnBaseProtectedClassMember()
         {
             var source = @"

@@ -54,7 +54,7 @@ public class Test
             );
         }
 
-        [WorkItem(542298)]
+        [WorkItem(542298, "DevDiv")]
         [Fact]
         public void DefaultOnlySwitch_02()
         {
@@ -552,7 +552,7 @@ public class Test
             );
         }
 
-        [WorkItem(740058)]
+        [WorkItem(740058, "DevDiv")]
         [Fact]
         public void LongTypeSwitchArgumentExpressionOverflow()
         {
@@ -1620,7 +1620,7 @@ public class Test
             );
         }
 
-        [WorkItem(542398)]
+        [WorkItem(542398, "DevDiv")]
         [Fact]
         public void MaxValueGotoCaseExpression()
         {
@@ -1643,7 +1643,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "");
         }
 
-        [WorkItem(543967)]
+        [WorkItem(543967, "DevDiv")]
         [Fact()]
         public void NullableAsSwitchExpression()
         {
@@ -1712,7 +1712,7 @@ class Program
 }");
         }
 
-        [WorkItem(543967)]
+        [WorkItem(543967, "DevDiv")]
         [Fact()]
         public void NullableAsSwitchExpression_02()
         {
@@ -2078,7 +2078,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(546632)]
+        [WorkItem(546632, "DevDiv")]
         public void StringSwitch_HashTableSwitch_01()
         {
             var text = @"using System;
@@ -2820,7 +2820,7 @@ class Test
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
         }
 
-        [WorkItem(544322)]
+        [WorkItem(544322, "DevDiv")]
         [Fact]
         public void StringSwitch_HashTableSwitch_03()
         {
@@ -2928,8 +2928,8 @@ class Foo
 
         #region "Implicit user defined conversion tests"
 
-        [WorkItem(543602)]
-        [WorkItem(543660)]
+        [WorkItem(543602, "DevDiv")]
+        [WorkItem(543660, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_01()
         {
@@ -2969,7 +2969,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543660)]
+        [WorkItem(543660, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_02()
         {
@@ -3010,7 +3010,7 @@ class Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543660)]
+        [WorkItem(543660, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_03()
         {
@@ -3144,7 +3144,7 @@ struct Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -3181,7 +3181,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "0");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -3218,7 +3218,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
         {
@@ -3266,7 +3266,7 @@ struct A
 0");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
         {
@@ -3314,7 +3314,7 @@ struct A
 0");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -3357,7 +3357,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673)]
+        [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
@@ -3404,7 +3404,7 @@ struct A
 
         #endregion
 
-        [WorkItem(634404)]
+        [WorkItem(634404, "DevDiv")]
         [Fact()]
         public void MissingCharsProperty()
         {
@@ -3532,7 +3532,7 @@ class Program
 ");
         }
 
-        [WorkItem(642186)]
+        [WorkItem(642186, "DevDiv")]
         [Fact()]
         public void IsWarningSwitchEmit()
         {
@@ -6136,7 +6136,7 @@ public class Test
             );
         }
 
-        [WorkItem(913556)]
+        [WorkItem(913556, "DevDiv")]
         [Fact]
         public void DifferentStrategiesForDifferentSwitches()
         {
@@ -6307,8 +6307,8 @@ public class Test
 ");
         }
 
-        [WorkItem(634404)]
-        [WorkItem(913556)]
+        [WorkItem(634404, "DevDiv")]
+        [WorkItem(913556, "DevDiv")]
         [Fact]
         public void LargeStringSwitchWithoutStringChars()
         {

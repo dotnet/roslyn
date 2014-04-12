@@ -186,7 +186,7 @@ public class Test : Class2
             });
         }
 
-        [WorkItem(687434)]
+        [WorkItem(687434, "DevDiv")]
         [Fact()]
         public void Bug687434()
         {
@@ -237,7 +237,7 @@ public class Test : Class2
             Assert.Equal("foo", emittedReferences[0].Name);
         }
 
-        [Fact, WorkItem(529006)]
+        [Fact, WorkItem(529006, "DevDiv")]
         public void AddModule()
         {
             var netModule1 = new MetadataImageReference(
@@ -1067,7 +1067,7 @@ public class C : I
         // Property/method override should succeed (and should reference
         // the correct base method, even if there is a method/property
         // with the same name in an intermediate class.
-        [WorkItem(538720)]
+        [WorkItem(538720, "DevDiv")]
         [Fact]
         public void TestPropertyOverrideGet()
         {
@@ -1847,7 +1847,7 @@ True
 ");
         }
 
-        [WorkItem(540581)]
+        [WorkItem(540581, "DevDiv")]
         [Fact]
         public void RefEmit_DependencyGraphAndCachedTypeReferences()
         {

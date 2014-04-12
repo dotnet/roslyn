@@ -128,7 +128,7 @@ class C
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(543342)]
+        [WorkItem(543342, "DevDiv")]
         [Fact]
         public void TestIteratorLocalConstants()
         {

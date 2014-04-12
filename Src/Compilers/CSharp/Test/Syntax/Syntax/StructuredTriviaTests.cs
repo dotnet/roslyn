@@ -147,7 +147,7 @@ using Blah;
             Assert.Equal("a", directives[2].File.Value);
         }
 
-        [WorkItem(546207)]
+        [WorkItem(546207, "DevDiv")]
         [Fact]
         public void DocumentationCommentsLocation_SingleLine()
         {
@@ -163,7 +163,7 @@ class Program
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.CSharpKind());
         }
 
-        [WorkItem(546207)]
+        [WorkItem(546207, "DevDiv")]
         [Fact]
         public void DocumentationCommentsLocation_MultiLine()
         {

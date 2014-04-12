@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].CSharpKind());
         }
 
-        [WorkItem(537500)]
+        [WorkItem(537500, "DevDiv")]
         [Fact]
         [Trait("Feature", "Comments")]
         public void TestSingleLineDocCommentFollowedBySlash()
@@ -1398,8 +1398,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
         }
 
-        [WorkItem(547238)]
-        [Fact, WorkItem(547238)]
+        [WorkItem(547238, "DevDiv")]
+        [Fact, WorkItem(547238, "DevDiv")]
         [Trait("Feature", "Literals")]
         public void TestNumericLiteralWithExponentAndDecimalSpecifier04()
         {
@@ -2559,7 +2559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertGoodDecimalLiteral("7922816251426433759354395033549999E-5M", "ffffffffffffffffffffffff00000000");
         }
 
-        [WorkItem(545781)]
+        [WorkItem(545781, "DevDiv")]
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {

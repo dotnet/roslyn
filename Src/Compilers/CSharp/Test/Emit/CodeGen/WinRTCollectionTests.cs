@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        [Fact, WorkItem(762316)]
+        [Fact, WorkItem(762316, "DevDiv")]
         public void InheritFromTypeWithProjections()
         {
             var source = @"

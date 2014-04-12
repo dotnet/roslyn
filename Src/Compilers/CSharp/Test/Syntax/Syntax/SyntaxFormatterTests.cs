@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestFormatDeclaration("[a:b]class c{}", "[a: b]\r\nclass c\r\n{\r\n}");
         }
 
-        [WorkItem(541684)]
+        [WorkItem(541684, "DevDiv")]
         [Fact]
         public void TestFormatRegion1()
         {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "#region /*comment*/\r\n#endregion\r\n");
         }
 
-        [WorkItem(528584)]
+        [WorkItem(528584, "DevDiv")]
         [Fact]
         public void TestFormatRegion2()
         {
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [WorkItem(531607)]
+        [WorkItem(531607, "DevDiv")]
         public void TestFormatLineDirectiveTrivia()
         {
             TestFormat(
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
         }
 
-        [WorkItem(538115)]
+        [WorkItem(538115, "DevDiv")]
         [Fact]
         public void TestFormatWithinDirectives()
         {
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 "class C\r\n{\r\n#if true\r\n  void Foo(A x)\r\n  {\r\n  }\r\n#else\r\n#endif\r\n}");
         }
 
-        [WorkItem(542887)]
+        [WorkItem(542887, "DevDiv")]
         [Fact]
         public void TestFormattingForBlockSyntax()
         {

@@ -104,7 +104,7 @@ namespace X
             AssertXmlEqual(expected, actual);
         }
 
-        [WorkItem(693206)]
+        [WorkItem(693206, "DevDiv")]
         [Fact]
         public void Bug693206()
         {

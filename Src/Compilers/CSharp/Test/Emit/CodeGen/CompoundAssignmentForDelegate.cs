@@ -609,7 +609,7 @@ class C
         }
 
         // Removal or concatenation for the delegate that is virtual struct methods
-        [WorkItem(539908)]
+        [WorkItem(539908, "DevDiv")]
         [Fact]
         public void DelegateWithStructMethods()
         {
@@ -847,7 +847,7 @@ Derived1
         }
 
         // Compound assignment for the method with derived return type
-        [WorkItem(539927)]
+        [WorkItem(539927, "DevDiv")]
         [Fact]
         public void CompAssignOperatorForInherit03()
         {
@@ -909,7 +909,7 @@ Derived
         }
 
         // Compound assignment for the method with derived return type
-        [WorkItem(539927)]
+        [WorkItem(539927, "DevDiv")]
         [Fact]
         public void CompAssignOperatorForInherit04()
         {

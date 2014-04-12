@@ -366,7 +366,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 ";
         #endregion A string containing expression-tree dumping utilities
 
-        [WorkItem(544283)]
+        [WorkItem(544283, "DevDiv")]
         [Fact]
         public void MissingLibrary()
         {
@@ -397,7 +397,7 @@ namespace System.Linq.Expressions
                 );
         }
 
-        [WorkItem(543322)]
+        [WorkItem(543322, "DevDiv")]
         [Fact]
         public void CaptureParameterCallAddition()
         {
@@ -429,7 +429,7 @@ class Program : TestBase
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(543322)]
+        [WorkItem(543322, "DevDiv")]
         [Fact]
         public void ExpressionConversionInExpression()
         {
@@ -532,7 +532,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544027)]
+        [WorkItem(544027, "DevDiv")]
         [Fact]
         void AnonymousCreation()
         {
@@ -555,7 +555,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544028)]
+        [WorkItem(544028, "DevDiv")]
         [Fact]
         void ArrayIndex()
         {
@@ -582,7 +582,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544029)]
+        [WorkItem(544029, "DevDiv")]
         [Fact]
         void ArrayCreation()
         {
@@ -608,7 +608,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544030)]
+        [WorkItem(544030, "DevDiv")]
         [Fact]
         void ArrayInitialization()
         {
@@ -631,7 +631,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544112)]
+        [WorkItem(544112, "DevDiv")]
         [Fact]
         void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
@@ -652,7 +652,7 @@ class Program
                 );
         }
 
-        [WorkItem(544031)]
+        [WorkItem(544031, "DevDiv")]
         [Fact]
         void ArrayLength()
         {
@@ -678,7 +678,7 @@ class Program : TestBase
                 expectedOutput: @"k");
         }
 
-        [WorkItem(544032)]
+        [WorkItem(544032, "DevDiv")]
         [Fact]
         void AsOperator()
         {
@@ -701,7 +701,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544034)]
+        [WorkItem(544034, "DevDiv")]
         [Fact]
         void BaseReference()
         {
@@ -756,7 +756,7 @@ class Program : TestBase
                 );
         }
 
-        [WorkItem(544035)]
+        [WorkItem(544035, "DevDiv")]
         [Fact]
         void Multiply()
         {
@@ -809,7 +809,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544036)]
+        [WorkItem(544036, "DevDiv")]
         [Fact]
         void Subtract()
         {
@@ -865,7 +865,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544037)]
+        [WorkItem(544037, "DevDiv")]
         [Fact]
         void Divide()
         {
@@ -918,7 +918,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544038)]
+        [WorkItem(544038, "DevDiv")]
         [Fact]
         void Remainder()
         {
@@ -971,7 +971,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544041)]
+        [WorkItem(544041, "DevDiv")]
         [Fact]
         void And()
         {
@@ -1024,7 +1024,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544042)]
+        [WorkItem(544042, "DevDiv")]
         [Fact]
         void ExclusiveOr()
         {
@@ -1077,7 +1077,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544043)]
+        [WorkItem(544043, "DevDiv")]
         [Fact]
         void BitwiseOr()
         {
@@ -1130,7 +1130,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544039), WorkItem(544040)]
+        [WorkItem(544039, "DevDiv"), WorkItem(544040, "DevDiv")]
         [Fact]
         void MoreBinaryOperators()
         {
@@ -1177,7 +1177,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544059)]
+        [WorkItem(544059, "DevDiv")]
         [Fact]
         void UnaryOperators()
         {
@@ -1290,7 +1290,7 @@ class Program : TestBase
                 expectedOutput: "123k");
         }
 
-        [WorkItem(546147)]
+        [WorkItem(546147, "DevDiv")]
         [Fact]
         void DelegateInvoke()
         {
@@ -1434,7 +1434,7 @@ class Program
             );
         }
 
-        [WorkItem(544044)]
+        [WorkItem(544044, "DevDiv")]
         [Fact]
         void CollectionInitialization()
         {
@@ -1457,7 +1457,7 @@ class Program : TestBase
                 expectedOutput: "k");
         }
 
-        [WorkItem(544390)]
+        [WorkItem(544390, "DevDiv")]
         [Fact]
         void ObjectInitialization()
         {
@@ -1532,7 +1532,7 @@ partial class Program
                 expectedOutput: "k");
         }
 
-        [WorkItem(544218)]
+        [WorkItem(544218, "DevDiv")]
         [Fact]
         void Linq()
         {
@@ -1664,7 +1664,7 @@ S");
 
         #region Regression Tests
 
-        [WorkItem(544159)]
+        [WorkItem(544159, "DevDiv")]
         [Fact]
         public void BinaryAddOperandTypesEnumAndInt()
         {
@@ -1686,7 +1686,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Green");
         }
 
-        [WorkItem(544207)]
+        [WorkItem(544207, "DevDiv")]
         [Fact]
         public void BinaryAddOperandTypesStringAndString()
         {
@@ -1708,7 +1708,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Hello World!");
         }
 
-        [WorkItem(544226)]
+        [WorkItem(544226, "DevDiv")]
         [Fact]
         public void BinaryAddOperandTypesDelegate()
         {
@@ -1729,7 +1729,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => Convert((x + y))");
         }
 
-        [WorkItem(544187)]
+        [WorkItem(544187, "DevDiv")]
         [Fact]
         public void EnumLogicalOperators()
         {
@@ -1759,7 +1759,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Red, Green, Green");
         }
 
-        [WorkItem(544171)]
+        [WorkItem(544171, "DevDiv")]
         [Fact]
         public void GenericInterfacePropertyAccess()
         {
@@ -1783,7 +1783,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544171)]
+        [WorkItem(544171, "DevDiv")]
         [Fact]
         public void GenericFieldAccess()
         {
@@ -1807,7 +1807,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544185)]
+        [WorkItem(544185, "DevDiv")]
         [Fact]
         public void UnaryPlusOperandNullableInt()
         {
@@ -1845,7 +1845,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544213)]
+        [WorkItem(544213, "DevDiv")]
         [Fact]
         public void DelegateInvocation()
         {
@@ -1894,7 +1894,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544220)]
+        [WorkItem(544220, "DevDiv")]
         [Fact]
         public void CoalesceWithLiftedImplicitUDC()
         {
@@ -1921,7 +1921,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544222)]
+        [WorkItem(544222, "DevDiv")]
         [Fact]
         public void CoalesceWithImplicitUDC()
         {
@@ -1954,7 +1954,7 @@ class A
                 new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => (x ?? Convert(y))");
         }
 
-        [WorkItem(546156), WorkItem(546157)]
+        [WorkItem(546156, "DevDiv"), WorkItem(546157, "DevDiv")]
         [Fact]
         public void CoalesceWithImplicitUDCFromNullable01()
         {
@@ -2003,7 +2003,7 @@ CT0
 Coalesce(Parameter(c1 Type:System.Nullable`1[CT3]) Parameter(c2 Type:System.Nullable`1[CT0]) Conversion:Lambda((Parameter(p Type:CT3)) => Convert(Convert(Parameter(p Type:CT3) Lifted LiftedToNull Type:System.Nullable`1[CT3]) Method:[System.Nullable`1[CT0] op_Implicit(System.Nullable`1[CT3])] Type:System.Nullable`1[CT0]) ReturnType:System.Nullable`1[CT0] Type:System.Func`2[CT3,System.Nullable`1[CT0]]) Type:System.Nullable`1[CT0])");
         }
 
-        [WorkItem(544248)]
+        [WorkItem(544248, "DevDiv")]
         [Fact]
         public void CoalesceWithImplicitUDC2()
         {
@@ -2036,7 +2036,7 @@ Coalesce(Parameter(x Type:System.Nullable`1[SampStruct]) Parameter(y Type:System
             );
         }
 
-        [Fact, WorkItem(544223), WorkItem(546146)]
+        [Fact, WorkItem(544223, "DevDiv"), WorkItem(546146, "DevDiv")]
         public void CoalesceWithLiftedImplicitPDC()
         {
             var text =
@@ -2077,7 +2077,7 @@ ConvertChecked(ConvertChecked(Parameter(x Type:System.Int32) Type:System.Int64) 
                 new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544228)]
+        [WorkItem(544228, "DevDiv")]
         [Fact]
         public void NewOfDecimal()
         {
@@ -2110,7 +2110,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544241)]
+        [WorkItem(544241, "DevDiv")]
         [Fact]
         public void ArrayIndexTypeLong()
         {
@@ -2133,7 +2133,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544240)]
+        [WorkItem(544240, "DevDiv")]
         [Fact]
         public void EventAssignment()
         {
@@ -2165,7 +2165,7 @@ public class D : C
             );
         }
 
-        [WorkItem(544233)]
+        [WorkItem(544233, "DevDiv")]
         [Fact]
         public void UnsafePointerAddition()
         {
@@ -2194,7 +2194,7 @@ class Program
         }
 
 
-        [WorkItem(544276)]
+        [WorkItem(544276, "DevDiv")]
         [Fact]
         public void UnsafeParamTypeInDelegate()
         {
@@ -2218,7 +2218,7 @@ unsafe public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: Microsoft.CodeAnalysis.CSharp.Test.Utilities.TestOptions.UnsafeExe, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544246)]
+        [WorkItem(544246, "DevDiv")]
         [Fact]
         public void MethodCallWithParams()
         {
@@ -2243,7 +2243,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544270)]
+        [WorkItem(544270, "DevDiv")]
         [Fact]
         public void MethodCallWithParams2()
         {
@@ -2290,7 +2290,7 @@ public class Test
                 );
         }
 
-        [WorkItem(544419)]
+        [WorkItem(544419, "DevDiv")]
         [Fact]
         public void ExplicitUDC2()
         {
@@ -2348,7 +2348,7 @@ Lambda:
         }
 
 
-        [WorkItem(544027)]
+        [WorkItem(544027, "DevDiv")]
         [Fact]
         public void AnonTypes1()
         {
@@ -2388,7 +2388,7 @@ public class Test
                 expectedOutput: "New([Void .ctor(System.String, System.Decimal, Int32)](Constant(Bill Type:System.String), Constant(6950.85 Type:System.Decimal), Constant(45 Type:System.Int32)){System.String Name System.Decimal Salary Int32 Age} Type:<>f__AnonymousType0`3[System.String,System.Decimal,System.Int32])");
         }
 
-        [WorkItem(544252)]
+        [WorkItem(544252, "DevDiv")]
         [Fact]
         public void EqualsWithOperandsNullableStructAndNull()
         {
@@ -2409,7 +2409,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "False");
         }
 
-        [WorkItem(544254)]
+        [WorkItem(544254, "DevDiv")]
         [Fact]
         public void GreaterThanUD1()
         {
@@ -2441,7 +2441,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "True");
         }
 
-        [WorkItem(544255)]
+        [WorkItem(544255, "DevDiv")]
         [Fact]
         public void ExpressionTreeAndOperatorOverloading()
         {
@@ -2486,7 +2486,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "0");
         }
 
-        [WorkItem(544269)]
+        [WorkItem(544269, "DevDiv")]
         [Fact]
         public void CheckedImplicitConversion()
         {
@@ -2541,7 +2541,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544304)]
+        [WorkItem(544304, "DevDiv")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -2563,7 +2563,7 @@ class Test : TestBase
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544275)]
+        [WorkItem(544275, "DevDiv")]
         [Fact]
         public void SizeOf()
         {
@@ -2582,7 +2582,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => 4");
         }
 
-        [WorkItem(544285)]
+        [WorkItem(544285, "DevDiv")]
         [Fact]
         public void ImplicitReferenceConversion()
         {
@@ -2618,7 +2618,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544287)]
+        [WorkItem(544287, "DevDiv")]
         [Fact]
         public void ExplicitIdentityConversion()
         {
@@ -2660,7 +2660,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544411)]
+        [WorkItem(544411, "DevDiv")]
         [Fact]
         public void ExplicitConvIntToNullableInt()
         {
@@ -2702,7 +2702,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544277)]
+        [WorkItem(544277, "DevDiv")]
         [Fact]
         public void ConvertExtensionMethodToDelegate()
         {
@@ -2723,7 +2723,7 @@ class A
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544306)]
+        [WorkItem(544306, "DevDiv")]
         [Fact]
         public void ExplicitConversionNullToNullableType()
         {
@@ -2762,7 +2762,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544295)]
+        [WorkItem(544295, "DevDiv")]
         [Fact]
         public void LiftedEquality()
         {
@@ -2782,7 +2782,7 @@ class Program
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544396)]
+        [WorkItem(544396, "DevDiv")]
         [Fact]
         public void UserDefinedOperatorWithPointerType()
         {
@@ -2816,7 +2816,7 @@ unsafe class Test
             .VerifyDiagnostics();
         }
 
-        [WorkItem(544398)]
+        [WorkItem(544398, "DevDiv")]
         [Fact]
         public void BitwiseComplementOnNullableShort()
         {
@@ -2863,7 +2863,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544400)]
+        [WorkItem(544400, "DevDiv")]
         [Fact]
         public void ExpressionTreeWithIterators()
         {
@@ -2897,7 +2897,7 @@ namespace ConsoleApplication2
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544401)]
+        [WorkItem(544401, "DevDiv")]
         [Fact]
         public void AnonMethodInsideExprTree()
         {
@@ -2921,7 +2921,7 @@ public class A
                 );
         }
 
-        [WorkItem(544403)]
+        [WorkItem(544403, "DevDiv")]
         [Fact]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
@@ -2944,7 +2944,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544413)]
+        [WorkItem(544413, "DevDiv")]
         [Fact]
         public void ExplicitConversionLambdaToExprTree()
         {
@@ -3009,7 +3009,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544442)]
+        [WorkItem(544442, "DevDiv")]
         [Fact]
         public void ExprTreeFieldInitCoalesceWithNullOnLHS()
         {
@@ -3029,7 +3029,7 @@ class Program
                 );
         }
 
-        [WorkItem(544429)]
+        [WorkItem(544429, "DevDiv")]
         [Fact]
         public void ExtraConversionInDelegateCreation()
         {
@@ -3062,7 +3062,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544430)]
+        [WorkItem(544430, "DevDiv")]
         [Fact]
         public void ExtraConversionInLiftedUserDefined()
         {
@@ -3097,7 +3097,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(529420)]
+        [WorkItem(529420, "DevDiv")]
         [Fact(Skip = "529420")]
         public void HalfLiftedLeftShift()
         {
@@ -3122,7 +3122,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544451)]
+        [WorkItem(544451, "DevDiv")]
         [Fact]
         public void BinaryOnLiftedByteEnum()
         {
@@ -3180,7 +3180,7 @@ class Program : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544458)]
+        [WorkItem(544458, "DevDiv")]
         [Fact]
         public void EmptyCollectionInit()
         {
@@ -3204,7 +3204,7 @@ public class Parent
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544485)]
+        [WorkItem(544485, "DevDiv")]
         [Fact]
         public void EmptyObjectInitForPredefinedType()
         {
@@ -3242,7 +3242,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544546)]
+        [WorkItem(544546, "DevDiv")]
         [Fact]
         public void BadExprTreeLambdaInNSDecl()
         {
@@ -3288,7 +3288,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()"));
         }
 
-        [WorkItem(544548)]
+        [WorkItem(544548, "DevDiv")]
         [Fact]
         public void NSaliasSystemIsGlobal()
         {
@@ -3332,7 +3332,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"));
         }
 
-        [WorkItem(544586)]
+        [WorkItem(544586, "DevDiv")]
         [Fact]
         public void ExprTreeInsideAnonymousMethod()
         {
@@ -3367,7 +3367,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544598)]
+        [WorkItem(544598, "DevDiv")]
         [Fact]
         public void ConstructorWithParamsParameter()
         {
@@ -3393,7 +3393,7 @@ class MyClass
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544599)]
+        [WorkItem(544599, "DevDiv")]
         [Fact]
         public void ExplicitEnumToDecimal()
         {
@@ -3678,7 +3678,7 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
 }");
         }
 
-        [WorkItem(544955)]
+        [WorkItem(544955, "DevDiv")]
         [Fact]
         public void FirstOperandOfConditionalOperatorImplementsOperatorTrue()
         {
@@ -3716,7 +3716,7 @@ class MyClass
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545042)]
+        [WorkItem(545042, "DevDiv")]
         [Fact]
         public void AnonMethodInExprTree()
         {
@@ -3740,7 +3740,7 @@ public class Program
             );
         }
 
-        [WorkItem(545122)]
+        [WorkItem(545122, "DevDiv")]
         [Fact]
         public void CollInitAddMethodWithParams()
         {
@@ -3784,7 +3784,7 @@ public class B : IEnumerable
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(545189)]
+        [WorkItem(545189, "DevDiv")]
         [Fact]
         public void ExprTreeInTypeArgument()
         {
@@ -3818,7 +3818,7 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
         }
 
-        [WorkItem(545191)]
+        [WorkItem(545191, "DevDiv")]
         [Fact]
         public void ObjectInitializersValueType()
         {
@@ -3860,7 +3860,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545396)]
+        [WorkItem(545396, "DevDiv")]
         [Fact]
         public void LongLengthArrayProperty()
         {
@@ -3886,7 +3886,7 @@ public class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545457)]
+        [WorkItem(545457, "DevDiv")]
         [Fact]
         public void NullableDecimalToNullableEnumExplicitConv()
         {
@@ -3925,7 +3925,7 @@ three";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545461)]
+        [WorkItem(545461, "DevDiv")]
         [Fact]
         public void LiftedUserDefinedConversionWithNullArg()
         {
@@ -3956,7 +3956,7 @@ public struct C
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546731)]
+        [WorkItem(546731, "DevDiv")]
         [Fact]
         public void CallLeastDerivedOverride()
         {
@@ -3997,7 +3997,7 @@ TestClass1
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(530529)]
+        [WorkItem(530529, "DevDiv")]
         [Fact]
         public void BoxTypeParameter()
         {
@@ -4041,7 +4041,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546601)]
+        [WorkItem(546601, "DevDiv")]
         [Fact]
         public void NewArrayInitInAsAndIs()
         {
@@ -4075,8 +4075,8 @@ TypeAs(Parameter(t Type:Test) Type:System.Object)";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531047)]
-        [Fact, WorkItem(531047)]
+        [WorkItem(531047, "DevDiv")]
+        [Fact, WorkItem(531047, "DevDiv")]
         public void NullIsRegression()
         {
             string source =
@@ -4097,7 +4097,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546618)]
+        [WorkItem(546618, "DevDiv")]
         [Fact]
         public void TildeNullableEnum()
         {
@@ -4130,7 +4130,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531382)]
+        [WorkItem(531382, "DevDiv")]
         [Fact]
         public void IndexerIsIndexedPropoperty()
         {
@@ -4169,7 +4169,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(579711)]
+        [WorkItem(579711, "DevDiv")]
         [Fact]
         public void CheckedEnumConversion()
         {
@@ -4201,7 +4201,7 @@ x => ConvertChecked(x)";
                 new[] { ExpressionAssemblyRef }, expectedOutput: expected);
         }
 
-        [WorkItem(717364)]
+        [WorkItem(717364, "DevDiv")]
         [Fact]
         public void NullAs()
         {
@@ -4222,7 +4222,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => (null As String)");
         }
 
-        [WorkItem(797996)]
+        [WorkItem(797996, "DevDiv")]
         [Fact]
         public void MissingMember_System_Type__GetTypeFromHandle()
         {
@@ -4272,7 +4272,7 @@ class C
             }
         }
 
-        [WorkItem(797996)]
+        [WorkItem(797996, "DevDiv")]
         [Fact]
         public void MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
         {
@@ -4338,7 +4338,7 @@ class B<T>
             }
         }
 
-        [WorkItem(797996)]
+        [WorkItem(797996, "DevDiv")]
         [Fact]
         public void MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
         {

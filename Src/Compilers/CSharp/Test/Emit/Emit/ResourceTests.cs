@@ -225,7 +225,7 @@ class C
             );
         }
 
-        [WorkItem(543501)]
+        [WorkItem(543501, "DevDiv")]
         [Fact]
         public void CS1508_DuplicateMainfestResourceIdentifier()
         {
@@ -245,7 +245,7 @@ class C
             );
         }
 
-        [WorkItem(543501)]
+        [WorkItem(543501, "DevDiv")]
         [Fact]
         public void CS1508_DuplicateMainfestResourceIdentifier_EmbeddedResource()
         {
@@ -278,7 +278,7 @@ class C
             );
         }
 
-        [WorkItem(543501)]
+        [WorkItem(543501, "DevDiv")]
         [Fact]
         public void CS7041_DuplicateMainfestResourceFileName()
         {
@@ -298,7 +298,7 @@ class C
             );
         }
 
-        [WorkItem(543501)]
+        [WorkItem(543501, "DevDiv")]
         [Fact]
         public void NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
         {
@@ -325,7 +325,7 @@ class C
             result.Diagnostics.Verify();
         }
 
-        [WorkItem(543501), WorkItem(546297)]
+        [WorkItem(543501, "DevDiv"), WorkItem(546297, "DevDiv")]
         [Fact]
         public void CS1508_CS7041_DuplicateMainfestResourceDiagnostics()
         {

@@ -41,7 +41,7 @@ public class InternalsVisibleToAndStrongNameTests : CSharpTestBase
 
     #region Naming Tests
 
-    [Fact, WorkItem(529419)]
+    [Fact, WorkItem(529419, "DevDiv")]
     public void AssemblyKeyFileAttributeNotExistFile()
     {
         string source = @"
@@ -636,7 +636,7 @@ public class A
         requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
     }
 
-    [WorkItem(820450)]
+    [WorkItem(820450, "DevDiv")]
     [Fact]
     public void IVTGivesAccessToUsingDifferentKeys()
     {
@@ -842,7 +842,7 @@ public class Z
         other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", "File not found."));
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyContainerCmdLine()
     {
@@ -857,7 +857,7 @@ public class Z
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyContainerCmdLine_1()
     {
@@ -875,7 +875,7 @@ public class C {}";
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyContainerCmdLine_2()
     {
@@ -894,7 +894,7 @@ public class C {}";
             );
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyFileCmdLine()
     {
@@ -909,7 +909,7 @@ public class C {}";
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute);
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyFileCmdLine_1()
     {
@@ -925,7 +925,7 @@ public class C {}";
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute);
     }
 
-    [WorkItem(531195)]
+    [WorkItem(531195, "DevDiv")]
     [Fact()]
     public void SignModuleKeyFileCmdLine_2()
     {
@@ -1086,8 +1086,8 @@ public class C
         }
     }
 
-    [WorkItem(545720)]
-    [WorkItem(530050)]
+    [WorkItem(545720, "DevDiv")]
+    [WorkItem(530050, "DevDiv")]
     [Fact]
     public void InvalidAssemblyName()
     {
@@ -1128,7 +1128,7 @@ class Derived : Base
             Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base"));
     }
 
-    [WorkItem(546331)]
+    [WorkItem(546331, "DevDiv")]
     [Fact]
     public void IvtVirtualCall1()
     {
@@ -1242,7 +1242,7 @@ public class C : B
 ");
     }
 
-    [WorkItem(546331)]
+    [WorkItem(546331, "DevDiv")]
     [Fact]
     public void IvtVirtualCall2()
     {
@@ -1494,7 +1494,7 @@ public class C : B
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
     }
 
-    [Fact] [WorkItem(529779)]
+    [Fact] [WorkItem(529779, "DevDiv")]
     public void Bug529779_1()
     {
         CSharpCompilation unsigned = CreateCompilationWithMscorlib(
@@ -1522,7 +1522,7 @@ public class C
                          emitOptions: EmitOptions.CCI).VerifyDiagnostics();
     }
 
-    [Fact] [WorkItem(529779)]
+    [Fact] [WorkItem(529779, "DevDiv")]
     public void Bug529779_2()
     {
         CSharpCompilation unsigned = CreateCompilationWithMscorlib(
@@ -1746,7 +1746,7 @@ public class C
         }
     }
 
-    [Fact, WorkItem(769840)]
+    [Fact, WorkItem(769840, "DevDiv")]
     public void Bug769840()
     {
         var ca = CreateCompilationWithMscorlib(

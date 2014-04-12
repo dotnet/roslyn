@@ -1034,7 +1034,7 @@ System.Console.WriteLine(typeof(X));";
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
         }
 
-        [Fact, WorkItem(531108)]
+        [Fact, WorkItem(531108, "DevDiv")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
             var customDynamicAttrSource = @"
@@ -1141,7 +1141,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(552843)]
+        [WorkItem(552843, "DevDiv")]
         public void IteratorYieldingDynamic()
         {
             string source = @"

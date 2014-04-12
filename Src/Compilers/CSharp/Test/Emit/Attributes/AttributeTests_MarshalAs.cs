@@ -1109,7 +1109,7 @@ public partial class X
             CompileAndVerifyFieldMarshal(source, blobs, isField: false);
         }
 
-        [WorkItem(544508)]
+        [WorkItem(544508, "DevDiv")]
         [Fact]
         public void Parameters_Property_Accessors()
         {
@@ -1137,7 +1137,7 @@ public interface I
                 isField: false);
         }
 
-        [WorkItem(544508)]
+        [WorkItem(544508, "DevDiv")]
         [Fact]
         public void Parameters_Event_Accessors()
         {
@@ -1208,7 +1208,7 @@ public class C
                 isField: false);
         }
 
-        [WorkItem(544509)]
+        [WorkItem(544509, "DevDiv")]
         [Fact]
         public void Parameters_DelegateType()
         {
@@ -1336,7 +1336,7 @@ class X
             isField: false);
         }
 
-        [Fact, WorkItem(545374)]
+        [Fact, WorkItem(545374, "DevDiv")]
         public void ImportOptionalMarshalAsParameter()
         {
             string text1 = @"

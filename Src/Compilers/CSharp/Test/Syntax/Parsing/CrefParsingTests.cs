@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Ambiguities
 
-        [WorkItem(546992)]
+        [WorkItem(546992, "DevDiv")]
         [Fact]
         public void GreaterThanGreaterThan()
         {
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(531157)]
+        [WorkItem(531157, "DevDiv")]
         [Fact]
         public void ParameterVoidPointerType()
         {
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [WorkItem(531154)]
+        [WorkItem(531154, "DevDiv")]
         [Fact]
         public void NestedArrayTypes()
         {
@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Conversion operator return types
 
-        [WorkItem(531154)]
+        [WorkItem(531154, "DevDiv")]
         [Fact]
         public void PrimitiveArrayReturnType()
         {
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [WorkItem(531154)]
+        [WorkItem(531154, "DevDiv")]
         [Fact]
         public void NamedTypeArrayReturnType()
         {
