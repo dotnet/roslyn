@@ -254,27 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {
-            return LowerStatement(
-                generateDebugInfo,
-                method.ContainingType,
-                method.ThisParameter,
-                method,
-                body,
-                previousSubmissionFields,
-                compilationState,
-                diagnostics);
-        }
-
-        internal static BoundStatement LowerStatement(
-            bool generateDebugInfo,
-            NamedTypeSymbol thisType,
-            ParameterSymbol thisParameter,
-            MethodSymbol method,
-            BoundStatement body,
-            SynthesizedSubmissionFields previousSubmissionFields,
-            TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
-        {
             if (body.HasErrors)
             {
                 return body;
@@ -336,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LambdaRewriter.Analysis lambdaAnalysis = LambdaRewriter.Analysis.Analyze(loweredBody, method, out sawLambdas);
                 if (sawLambdas)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, thisType, thisParameter, method, compilationState, diagnostics, lambdaAnalysis, generateDebugInfo);
+                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, compilationState, diagnostics, lambdaAnalysis, generateDebugInfo);
                 }
             }
 
