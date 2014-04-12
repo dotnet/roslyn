@@ -47,7 +47,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 if(null == msbuildDirectory)
                 {
-                    msbuildDirectory = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false).GetValue("MSBuildToolsPath").ToString();
+                    var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
+                    if (key != null)
+                    {
+                        var toolsPath = key.GetValue("MSBuildToolsPath");
+                        if (toolsPath != null)
+                        {
+                            msbuildDirectory = toolsPath.ToString();
+                        }
+                    }
+
+                    if (msbuildDirectory == null)
+                    {
+                        msbuildDirectory = string.Empty;
+                    }
                 }
                 return msbuildDirectory;
             }
@@ -109,7 +122,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             foreach(var dir in directoryList)
             {
-                if (null == dir)
+                if (string.IsNullOrEmpty(dir))
                     continue;
                 var filePathCandidate = Path.Combine(dir, fileName);
                 if(File.Exists(filePathCandidate))

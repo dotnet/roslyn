@@ -41,16 +41,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var applicationDirectory = Path.GetDirectoryName(Assembly.GetAssembly(typeof(CSharpCompiler)).Location);
             var workingDirectory = Environment.CurrentDirectory;
-            var msbuildDirectory = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false).GetValue("MSBuildToolsPath").ToString();
 
-            var foundCompiler = FindCompiler(new[] {
+            string msbuildDirectory = null;
+            var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
+            if (regKey != null)
+            {
+                var toolsPath = regKey.GetValue("MSBuildToolsPath");
+                if (toolsPath != null)
+                {
+                    msbuildDirectory = toolsPath.ToString();
+                }
+            }
+
+            IEnumerable<string> paths = new[] {
                     Path.Combine(applicationDirectory, "rcsc.exe"),
                     Path.Combine(applicationDirectory, "csc.exe"),
                     Path.Combine(workingDirectory, "rcsc.exe"),
                     Path.Combine(workingDirectory, "csc.exe"),
+                    "csc.exe"};
+
+            if (msbuildDirectory != null)
+            {
+                paths = paths.Concat(new[] {
                     Path.Combine(msbuildDirectory, "rcsc.exe"),
-                    Path.Combine(msbuildDirectory, "csc.exe"),
-                    "csc.exe"});
+                    Path.Combine(msbuildDirectory, "csc.exe")});
+            }
+
+            var foundCompiler = FindCompiler(paths);
 
             if (string.IsNullOrEmpty(foundCompiler))
             {
