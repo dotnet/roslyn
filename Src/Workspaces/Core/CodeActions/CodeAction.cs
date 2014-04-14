@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// The sequence of operations that define the code action.
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
         /// </summary>
         public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
         {
@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
+        /// <summary>
+        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that includes custom <see cref="CodeActionOperation"/>'s.
+        /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
@@ -45,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         /// <summary>
         /// The sequence of operations used to construct a preview. 
-        /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
-        /// than the operations produced by <see cref="GetOperationsAsync(CancellationToken)"/>.
         /// </summary>
         public async Task<IEnumerable<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
@@ -60,6 +61,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
+        /// <summary>
+        /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
+        /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
+        /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);

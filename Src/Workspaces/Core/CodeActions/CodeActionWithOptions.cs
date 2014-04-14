@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public abstract object GetOptions(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the <see cref="CodeActionOperation"/>'s for this code action given the specified options.
+        /// Gets the <see cref="CodeActionOperation"/>'s for this <see cref="CodeAction"/> given the specified options.
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -34,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
+        /// <summary>
+        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.
+        /// </summary>
+        /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
     }
 }

@@ -30,17 +30,17 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\CSharpFxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{C711AC0D-D6A7-4843-8C1D-0D5684490F51}</Project>
+      <Project>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</Project>
       <Name>CSharpFxCopRulesDiagnosticAnalyzers</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicFxCopRulesDiagnosticAnalyzers.vbproj">
-      <Project>{5D20ADE3-86C7-4AF2-B858-43CB7F41CF69}</Project>
+      <Project>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</Project>
       <Name>BasicFxCopRulesDiagnosticAnalyzers</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</Project>
+      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
       <Name>FxCopRulesDiagnosticAnalyzers</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
