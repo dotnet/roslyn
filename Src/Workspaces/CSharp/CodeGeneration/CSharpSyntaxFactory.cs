@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -290,11 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.VariableDeclaration(
                     type == null ? SyntaxFactory.IdentifierName("var") : type.GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList((VariableDeclaratorSyntax)variableDeclarator)));
-        }
-
-        public override SyntaxNode CreateBlankStatement()
-        {
-            return SyntaxFactory.ParseStatement(Environment.NewLine);
         }
 
         public override SyntaxNode CreateSwitchLabel(SyntaxNode expressionOpt = null)

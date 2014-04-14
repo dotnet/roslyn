@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -238,10 +238,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If(expressionOpt Is Nothing,
                    Nothing,
                    SyntaxFactory.EqualsValue(DirectCast(expressionOpt, ExpressionSyntax))))
-        End Function
-
-        Public Overrides Function CreateBlankStatement() As SyntaxNode
-            Return SyntaxFactory.ParseExecutableStatement(Environment.NewLine)
         End Function
 
         Public Overrides Function CreateSwitchLabel(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
