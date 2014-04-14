@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     default:
                         // Any other character is something we cannot handle.  i.e.
                         // unicode chars or an escape.  Just break out and move to
-                        // the fast path.
+                        // the slow path.
                         return false;
                 }
             }
