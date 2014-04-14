@@ -32,9 +32,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        protected override CodeGenerationMethodSymbol CloneMethodSymbolCore()
+        protected override CodeGenerationSymbol Clone()
         {
-            return new CodeGenerationDestructorSymbol(this.ContainingType, this.GetAttributes());
+            var result = new CodeGenerationDestructorSymbol(this.ContainingType, this.GetAttributes());
+
+            CodeGenerationDestructorInfo.Attach(result,
+                CodeGenerationDestructorInfo.GetTypeName(this),
+                CodeGenerationDestructorInfo.GetStatements(this));
+
+            return result;
         }
     }
 }

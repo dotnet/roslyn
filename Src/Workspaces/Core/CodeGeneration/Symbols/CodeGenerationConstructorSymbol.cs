@@ -35,9 +35,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        protected override CodeGenerationMethodSymbol CloneMethodSymbolCore()
+        protected override CodeGenerationSymbol Clone()
         {
-            return new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
+            var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
+
+            CodeGenerationConstructorInfo.Attach(result,
+                CodeGenerationConstructorInfo.GetTypeName(this),
+                CodeGenerationConstructorInfo.GetStatements(this),
+                CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(this),
+                CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(this));
+
+            return result;
         }
     }
 }

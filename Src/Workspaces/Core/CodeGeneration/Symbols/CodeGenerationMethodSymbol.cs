@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected override CodeGenerationSymbol Clone()
         {
-            var result = CloneMethodSymbolCore();
+            var result = new CodeGenerationMethodSymbol(this.ContainingType,
+                this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
+                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
@@ -85,14 +88,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 
             return result;
-        }
-
-        protected virtual CodeGenerationMethodSymbol CloneMethodSymbolCore()
-        {
-            return new CodeGenerationMethodSymbol(this.ContainingType,
-                this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
         }
 
         public override int Arity
