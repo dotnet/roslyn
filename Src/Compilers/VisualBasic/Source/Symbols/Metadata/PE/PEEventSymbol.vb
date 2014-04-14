@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly m_addMethod As PEMethodSymbol
         Private ReadOnly m_removeMethod As PEMethodSymbol
 
-        'TODO: is there any use for the PE raiser method? Perhaps for overriding?
         Private ReadOnly m_raiseMethod As PEMethodSymbol
 
         Private m_lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)

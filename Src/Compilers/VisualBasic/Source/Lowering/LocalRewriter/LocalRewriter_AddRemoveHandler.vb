@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      receiver,
                                      ImmutableArray.Create(handler),
                                      Nothing,
-                                     GetSpecialType(SpecialType.System_Void))
+                                     accessorSymbol.ReturnType)
             End If
 
             Dim statement As BoundStatement = New BoundExpressionStatement(node.Syntax, expr)

@@ -2198,18 +2198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If eventSymbol IsNot Nothing Then
                 Dim method = If(node.Kind = SyntaxKind.AddHandlerStatement, eventSymbol.AddMethod, eventSymbol.RemoveMethod)
 
-                ' TODO: DevDiv #603290.
-                'TODO:  we need to enforce these invariants when importing events 
-                '       + check that Add/Remove match WRT accessibility and such
-                '
-                ' for now we let events get through if they're WinRt type events
-                ' without any checking here (the checking is done in the 
-                ' eventsymbol).
-                If method IsNot Nothing AndAlso
-                    method.ParameterCount = 1 AndAlso
-                    (method.Parameters(0).Type.IsDelegateType OrElse eventSymbol.IsWindowsRuntimeEvent) AndAlso
-                    Not method.Parameters(0).IsByRef Then
+                If method Is Nothing Then
+                    If eventSymbol.DeclaringCompilation IsNot Me.Compilation Then
+                        ReportDiagnostic(diagnostics, node.EventExpression, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedEvent1, eventSymbol))
+                    End If
 
+                Else
                     Dim targetType = eventSymbol.Type
 
                     handlerExpression = ApplyImplicitConversion(node.DelegateExpression, targetType, handlerExpression, diagnostics)
@@ -2238,9 +2232,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              eventSymbol.Name)
                         End If
                     End If
+
+                    If Not targetType.IsDelegateType() Then
+                        If eventSymbol.DeclaringCompilation IsNot Me.Compilation AndAlso TypeOf targetType IsNot MissingMetadataTypeSymbol Then
+                            ReportDiagnostic(diagnostics, node.EventExpression, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedEvent1, eventSymbol))
+                        End If
+
+                        hasErrors = True
+                    Else
+                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
+                        If Not Me.IsAccessible(method, useSiteDiagnostics, If(actualEventAccess.ReceiverOpt IsNot Nothing, actualEventAccess.ReceiverOpt.Type, eventSymbol.ContainingType)) Then
+                            Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
+                            ReportDiagnostic(diagnostics, node.EventExpression, GetInaccessibleErrorInfo(method))
+                        End If
+
+                        diagnostics.Add(node.EventExpression, useSiteDiagnostics)
+
+                        Dim badShape As Boolean = False
+                        Dim useSiteError As DiagnosticInfo = Nothing
+
+                        ' Decrease noise in diagnostics, if event is "bad", we already complained about it. 
+                        If eventSymbol.GetUseSiteErrorInfo() Is Nothing Then
+                            useSiteError = method.GetUseSiteErrorInfo()
+                        End If
+
+                        If useSiteError IsNot Nothing Then
+                            Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
+                            ReportDiagnostic(diagnostics, node.EventExpression, useSiteError)
+                            hasErrors = True
+
+                        ElseIf method.ParameterCount <> 1 OrElse method.Parameters(0).IsByRef Then
+                            badShape = True
+
+                        ElseIf eventSymbol.IsWindowsRuntimeEvent Then
+                            Dim tokenType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
+
+                            If node.Kind = SyntaxKind.AddHandlerStatement Then
+                                If Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) OrElse
+                                   Not method.ReturnType.IsSameTypeIgnoringCustomModifiers(tokenType) Then
+                                    badShape = True
+                                End If
+                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(tokenType) OrElse Not method.IsSub Then
+                                badShape = True
+                            End If
+
+                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                            badShape = True
+                        End If
+
+                        If badShape Then
+                            If eventSymbol.DeclaringCompilation IsNot Me.Compilation Then
+                                ReportDiagnostic(diagnostics, node.EventExpression, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, method))
+                            End If
+
+                            hasErrors = True
+                        End If
+                    End If
                 End If
             End If
-
 
             If node.Kind = SyntaxKind.AddHandlerStatement Then
                 Return New BoundAddHandlerStatement(node, eventAccess, handlerExpression, hasErrors:=hasErrors)

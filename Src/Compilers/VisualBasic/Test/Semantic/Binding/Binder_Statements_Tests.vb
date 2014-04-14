@@ -3810,6 +3810,936 @@ BC30024: Statement is not valid inside a method.
 
         End Sub
 
+        <Fact(), WorkItem(603290)>
+        Public Sub InaccessibleRemoveAccessor()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.Action TestEvent
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    // Code size       24 (0x18)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0007:  ldarg.1
+    IL_0008:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate,
+                                                                                            class [mscorlib]System.Delegate)
+    IL_000d:  castclass  [mscorlib]System.Action
+    IL_0012:  stfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method family specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    // Code size       24 (0x18)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0007:  ldarg.1
+    IL_0008:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate,
+                                                                                           class [mscorlib]System.Delegate)
+    IL_000d:  castclass  [mscorlib]System.Action
+    IL_0012:  stfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+	    Dim e = New E1()
+	    Dim d As System.Action = Nothing
+
+	    AddHandler e.Test, d
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+
+Class E2
+    Inherits E1
+
+    Sub Main()
+	    Dim d As System.Action = Nothing
+
+	    AddHandler Test, d
+        RemoveHandler Test, d
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30390: 'E1.Protected RemoveHandler Event Test(obj As System.Action)' is not accessible in this context because it is 'Protected'.
+        RemoveHandler e.Test, d
+                      ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InaccessibleAddAccessor()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.Action TestEvent
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method family specialname instance void 
+          add_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    // Code size       24 (0x18)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0007:  ldarg.1
+    IL_0008:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Combine(class [mscorlib]System.Delegate,
+                                                                                            class [mscorlib]System.Delegate)
+    IL_000d:  castclass  [mscorlib]System.Action
+    IL_0012:  stfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    // Code size       24 (0x18)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0007:  ldarg.1
+    IL_0008:  call       class [mscorlib]System.Delegate [mscorlib]System.Delegate::Remove(class [mscorlib]System.Delegate,
+                                                                                           class [mscorlib]System.Delegate)
+    IL_000d:  castclass  [mscorlib]System.Action
+    IL_0012:  stfld      class [mscorlib]System.Action E1::TestEvent
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+	    Dim e = New E1()
+	    Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+
+Class E2
+    Inherits E1
+
+    Sub Main()
+	    Dim d As System.Action = Nothing
+
+	    AddHandler Test, d
+        RemoveHandler Test, d
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30390: 'E1.Protected AddHandler Event Test(obj As System.Action)' is not accessible in this context because it is 'Protected'.
+        AddHandler e.Test, d
+                   ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub EventTypeIsNotADelegate()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class E1 obj) cil managed synchronized
+  {
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class E1 obj) cil managed synchronized
+  {
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event E1 Test
+  {
+    .addon instance void E1::add_Test(class E1)
+    .removeon instance void E1::remove_Test(class E1)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+	    Dim e = New E1()
+
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC37223: 'Public Event Test As E1' is an unsupported event.
+        AddHandler e.Test, e
+                   ~~~~~~
+BC37223: 'Public Event Test As E1' is an unsupported event.
+        RemoveHandler e.Test, e
+                      ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidAddAccessor_01()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class E1 obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class E1)
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30657: 'Public AddHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, d
+                   ~~~~~~
+BC30657: 'Public AddHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, e
+                   ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="remove_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidAddAccessor_02()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test() cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test()
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30657: 'Public AddHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, d
+                   ~~~~~~
+BC30657: 'Public AddHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, e
+                   ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="remove_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidAddAccessor_03()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class [mscorlib]System.Action obj1, class E1 obj2) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action, class E1)
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30657: 'Public AddHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, d
+                   ~~~~~~
+BC30657: 'Public AddHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+        AddHandler e.Test, e
+                   ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="remove_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidRemoveAccessor_01()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class E1 obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance void E1::remove_Test(class E1)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30657: 'Public RemoveHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, e
+                      ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+BC30657: 'Public RemoveHandler Event Test(obj As E1)' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, d
+                      ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="add_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidRemoveAccessor_02()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class [mscorlib]System.Action) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test() cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance void E1::remove_Test()
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30657: 'Public RemoveHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, e
+                      ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+BC30657: 'Public RemoveHandler Event Test()' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, d
+                      ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="add_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub InvalidRemoveAccessor_03()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance void 
+          add_Test(class [mscorlib]System.Action obj1) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance void 
+          remove_Test(class [mscorlib]System.Action obj1, class E1 obj2) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance void E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance void E1::remove_Test(class [mscorlib]System.Action, class E1)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, e
+        RemoveHandler e.Test, e
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<expected>
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        AddHandler e.Test, e
+                           ~
+BC30657: 'Public RemoveHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, e
+                      ~~~~~~
+BC30311: Value of type 'E1' cannot be converted to 'System.Action'.
+        RemoveHandler e.Test, e
+                              ~
+BC30657: 'Public RemoveHandler Event Test(obj1 As System.Action, obj2 As E1)' has a return type that is not supported or parameter types that are not supported.
+        RemoveHandler e.Test, d
+                      ~~~~~~
+</expected>)
+
+            'CompileAndVerify(compilation1)
+
+            Dim compilationDef2 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithCustomILSource(compilationDef2, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation2, expectedOutput:="add_Test")
+        End Sub
+
+        <Fact(), WorkItem(603290)>
+        Public Sub NonVoidAccessors()
+
+            Dim ilSource = <![CDATA[
+.class public auto ansi E1
+       extends [mscorlib]System.Object
+{
+  .method public specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method E1::.ctor
+
+  .method public specialname instance int32 
+          add_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "add_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0016:  ldc.i4.0
+    IL_0017:  ret
+  } // end of method E1::add_Test
+
+  .method public specialname instance int32 
+          remove_Test(class [mscorlib]System.Action obj) cil managed synchronized
+  {
+    IL_0008:  ldstr      "remove_Test"
+    IL_000d:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_0016:  ldc.i4.0
+    IL_0017:  ret
+  } // end of method E1::remove_Test
+
+  .event [mscorlib]System.Action Test
+  {
+    .addon instance int32 E1::add_Test(class [mscorlib]System.Action)
+    .removeon instance int32 E1::remove_Test(class [mscorlib]System.Action)
+  } // end of event E1::Test
+} // end of class E1
+]]>
+
+            Dim compilationDef1 =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim e = New E1()
+        Dim d As System.Action = Nothing
+
+        AddHandler e.Test, d
+        RemoveHandler e.Test, d
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithCustomILSource(compilationDef1, ilSource.Value, includeVbRuntime:=True, options:=OptionsExe)
+
+            CompileAndVerify(compilation1, expectedOutput:="add_Test
+remove_Test")
+        End Sub
+
     End Class
 
 End Namespace
