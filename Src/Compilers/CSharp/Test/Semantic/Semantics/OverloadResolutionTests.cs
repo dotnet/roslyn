@@ -6933,5 +6933,102 @@ class C
 
             CompileAndVerify(source1, expectedOutput: @"2");
         }
+
+        [Fact]
+        public void ExactlyMatchingAsyncLambda_01()
+        {
+
+            string source1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+#pragma warning disable 1998
+        Foo(async () => { return 0; ; });
+        Foo(async () => { return 0; });
+        Foo(async () => 0);
+
+        Foo(async () => { return (short)0; ; });
+        Foo(async () => { return (short)0; });
+        Foo(async () => (short)0);
+    }
+
+    static void Foo(Func<Task<short>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Task<int>> x) { Console.WriteLine(2); }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+            CompileAndVerify(compilation, expectedOutput: @"2
+2
+2
+1
+1
+1");
+        }
+
+        [Fact]
+        public void ExactlyMatchingAsyncLambda_02()
+        {
+
+            string source1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+#pragma warning disable 1998
+        Foo(() => async () => { return 0; ; });
+        Foo(() => async () => { return 0; });
+        Foo(() => async () => 0);
+        Foo(() => { return async () => 0; ; });
+        Foo(() => { return async () => 0; });
+    }
+
+    static void Foo(Func<Func<Task<short>>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Func<Task<int>>> x) { Console.WriteLine(2); }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+            CompileAndVerify(compilation, expectedOutput: @"2
+2
+2
+2
+2");
+        }
+
+        [Fact]
+        public void ExactlyMatchingAsyncLambda_03()
+        {
+
+            string source1 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+#pragma warning disable 1998
+        Foo(async () => { return () => 0; });
+        Foo(async () => { return () => (short)0; });
+    }
+    static void Foo(Func<Task<Func<short>>> x) { Console.WriteLine(1); }
+    static void Foo(Func<Task<Func<int>>> x) { Console.WriteLine(2); }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source1, compOptions: TestOptions.Exe);
+
+            CompileAndVerify(compilation, expectedOutput: @"2
+1");
+        }
+
     }
 }

@@ -1620,12 +1620,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   type Expression<D>, D has a return type Y, and one of the following holds:
             NamedTypeSymbol d;
             MethodSymbol invoke;
+            TypeSymbol y;
+
             if (node.Kind == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
-                (object)(invoke = d.DelegateInvokeMethod) != null)
+                (object)(invoke = d.DelegateInvokeMethod) != null &&
+                (y = invoke.ReturnType).SpecialType != SpecialType.System_Void)
             {
-                TypeSymbol y = invoke.ReturnType;
-
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
@@ -1635,59 +1636,75 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // - The body of E is an expression that exactly matches Y, or
-                //   has a return statement with expression and all return statements have expression that 
-                //   exactly matches Y.
-
-                // Handle trivial cases first
-                switch (lambda.Body.Statements.Length)
+                if (lambda.Symbol.IsAsync)
                 {
-                    case 0:
-                        break;
+                    // Dig through Task<...> for an async lambda.
+                    if (y.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    {
+                        y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0];
+                    }
+                    else
+                    {
+                        y = null;
+                    }
+                }
 
-                    case 1:
-                        if (lambda.Body.Statements[0].Kind == BoundKind.ReturnStatement)
-                        {
-                            var returnStmt = (BoundReturnStatement)lambda.Body.Statements[0];
-                            if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteDiagnostics))
+                if ((object)y != null)
+                {
+                    // - The body of E is an expression that exactly matches Y, or
+                    //   has a return statement with expression and all return statements have expression that 
+                    //   exactly matches Y.
+
+                    // Handle trivial cases first
+                    switch (lambda.Body.Statements.Length)
+                    {
+                        case 0:
+                            break;
+
+                        case 1:
+                            if (lambda.Body.Statements[0].Kind == BoundKind.ReturnStatement)
                             {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            goto default;
-                        }
-
-                        break;
-
-                    default:
-                        var returnStatements = ArrayBuilder<BoundReturnStatement>.GetInstance();
-                        var walker = new ReturnStatements(returnStatements);
-
-                        walker.Visit(lambda.Body);
-
-                        bool result = false;
-                        foreach (BoundReturnStatement r in returnStatements)
-                        {
-                            if (r.ExpressionOpt == null || !ExpressionMatchExactly(r.ExpressionOpt, y, ref useSiteDiagnostics))
-                            {
-                                result = false;
-                                break;
+                                var returnStmt = (BoundReturnStatement)lambda.Body.Statements[0];
+                                if (returnStmt.ExpressionOpt != null && ExpressionMatchExactly(returnStmt.ExpressionOpt, y, ref useSiteDiagnostics))
+                                {
+                                    return true;
+                                }
                             }
                             else
                             {
-                                result = true;
+                                goto default;
                             }
-                        }
 
-                        returnStatements.Free();
+                            break;
 
-                        if (result)
-                        {
-                            return true;
-                        }
-                        break;
+                        default:
+                            var returnStatements = ArrayBuilder<BoundReturnStatement>.GetInstance();
+                            var walker = new ReturnStatements(returnStatements);
+
+                            walker.Visit(lambda.Body);
+
+                            bool result = false;
+                            foreach (BoundReturnStatement r in returnStatements)
+                            {
+                                if (r.ExpressionOpt == null || !ExpressionMatchExactly(r.ExpressionOpt, y, ref useSiteDiagnostics))
+                                {
+                                    result = false;
+                                    break;
+                                }
+                                else
+                                {
+                                    result = true;
+                                }
+                            }
+
+                            returnStatements.Free();
+
+                            if (result)
+                            {
+                                return true;
+                            }
+                            break;
+                    }
                 }
             }
 
@@ -1917,15 +1934,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
 #if DEBUG
-                        bool ignore;
-                        // Since we are dealing with variance delegate conversion and delegates have identical parameter
-                        // lists, return types must be implicitly convertable in the same direction.
-                        // Or we might be dealing with error return types and we may have one error delegate matching exactly
-                        // while another not being an error and not convertable.
-                        Debug.Assert(
-                            r1.IsErrorType() ||
-                            r2.IsErrorType() ||
-                            currentResult == BetterConversionTarget(null, r1, r2, ref useSiteDiagnostics, out ignore));
+                        if (fromTypeAnalysis)
+                        {
+                            bool ignore;
+                            // Since we are dealing with variance delegate conversion and delegates have identical parameter
+                            // lists, return types must be implicitly convertable in the same direction.
+                            // Or we might be dealing with error return types and we may have one error delegate matching exactly
+                            // while another not being an error and not convertable.
+                            Debug.Assert(
+                                r1.IsErrorType() ||
+                                r2.IsErrorType() ||
+                                currentResult == BetterConversionTarget(null, r1, r2, ref useSiteDiagnostics, out ignore));
+                        }
 #endif
                     }
                 }
