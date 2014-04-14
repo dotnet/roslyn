@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</ProjectGuid>
+    <ProjectGuid>{C711AC0D-D6A7-4843-8C1D-0D5684490F51}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <StyleCopEnabled>true</StyleCopEnabled>
@@ -33,7 +33,7 @@
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
+      <Project>{ABD37A20-C734-4B09-91FE-BEC5DB82938A}</Project>
       <Name>FxCopRulesDiagnosticAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Workspaces.csproj">
