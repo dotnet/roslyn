@@ -420,10 +420,18 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // get changes by diffing the trees
-                    SyntaxTree tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    SyntaxTree oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    if (this.SupportsSyntaxTree)
+                    {
+                        var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                    return tree.GetChanges(oldTree);
+                        return tree.GetChanges(oldTree);
+                    }
+
+                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    return text.GetTextChanges(oldText).ToList();
                 }
             }
             catch (Exception e) if (ExceptionHelpers.CrashUnlessCanceled(e))

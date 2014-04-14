@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return ranges[0];
             }
 
-            return ranges.Collapse();
+            return TextChangeRange.Collapse(ranges);
         }
 
         public static int IndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             // just check that subset to reduce verification cost.
             if (changes != null)
             {
-                var change = changes.Collapse().Span;
+                var change = TextChangeRange.Collapse(changes).Span;
                 if (change != fullSpan)
                 {
                     // Find the lowest node in the tree that contains the changed region.

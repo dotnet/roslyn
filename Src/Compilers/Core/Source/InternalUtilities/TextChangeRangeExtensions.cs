@@ -8,39 +8,6 @@ namespace Roslyn.Utilities
 {
     internal static class TextChangeRangeExtensions
     {
-        public static TextChangeRange Collapse(this IEnumerable<TextChangeRange> changes)
-        {
-            var diff = 0;
-            var start = int.MaxValue;
-            var end = 0;
-
-            foreach (var change in changes)
-            {
-                diff += change.NewLength - change.Span.Length;
-
-                if (change.Span.Start < start)
-                {
-                    start = change.Span.Start;
-                }
-
-                if (change.Span.End > end)
-                {
-                    end = change.Span.End;
-                }
-            }
-
-            if (start > end)
-            {
-                // there were no changes.
-                return default(TextChangeRange);
-            }
-
-            var combined = TextSpan.FromBounds(start, end);
-            var newLen = combined.Length + diff;
-
-            return new TextChangeRange(combined, newLen);
-        }
-
         public static TextChangeRange? Accumulate(this TextChangeRange? accumulatedTextChangeSoFar, IEnumerable<TextChangeRange> changesInNextVersion)
         {
             if (!changesInNextVersion.Any())
@@ -52,7 +19,7 @@ namespace Roslyn.Utilities
             // we could apply each one individually like we do in SyntaxDiff::ComputeSpansInNew by calculating delta
             // between each change in changesInNextVersion which is already sorted in its textual position ascending order.
             // but end result will be same as just applying it once with encompassed text change range.
-            var newChange = changesInNextVersion.Collapse();
+            var newChange = TextChangeRange.Collapse(changesInNextVersion);
 
             // no previous accumulated change, return the new value.
             if (accumulatedTextChangeSoFar == null)

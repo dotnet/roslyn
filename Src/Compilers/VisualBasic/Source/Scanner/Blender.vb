@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return  ' tree seems to be empty
             End If
 
-            _change = changes.Collapse()
+            _change = TextChangeRange.Collapse(changes)
 
 #If DEBUG Then
             Dim start = _change.Span.Start

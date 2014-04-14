@@ -86,5 +86,42 @@ namespace Microsoft.CodeAnalysis.Text
         /// An empty set of changes.
         /// </summary>
         public static readonly IReadOnlyList<TextChangeRange> NoChanges = SpecializedCollections.EmptyReadOnlyList<TextChangeRange>();
+
+        /// <summary>
+        /// Collapse a set of <see cref="TextChangeRange"/>s into a single encompassing range.  If
+        /// the set of ranges provided is empty, an empty range is returned.
+        /// </summary>
+        public static TextChangeRange Collapse(IEnumerable<TextChangeRange> changes)
+        {
+            var diff = 0;
+            var start = int.MaxValue;
+            var end = 0;
+
+            foreach (var change in changes)
+            {
+                diff += change.NewLength - change.Span.Length;
+
+                if (change.Span.Start < start)
+                {
+                    start = change.Span.Start;
+                }
+
+                if (change.Span.End > end)
+                {
+                    end = change.Span.End;
+                }
+            }
+
+            if (start > end)
+            {
+                // there were no changes.
+                return default(TextChangeRange);
+            }
+
+            var combined = TextSpan.FromBounds(start, end);
+            var newLen = combined.Length + diff;
+
+            return new TextChangeRange(combined, newLen);
+        }
     }
 }

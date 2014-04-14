@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // once we have normalized collection for TextSpan we will not need to collapse all
                 // the change spans.
 
-                var collapsed = changes.Collapse();
+                var collapsed = TextChangeRange.Collapse(changes);
 
                 // extend the change to its affected range. This will make it easier 
                 // to filter out affected nodes since we will be able simply check 
