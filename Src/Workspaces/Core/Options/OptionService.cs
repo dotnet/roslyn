@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.Options
                 {
                     foreach (var serializer in optionSerializers)
                     {
-                        // there can be options (ex, formatting) that only exist in only one specific language. in those cases,
+                        // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
                         // feature's serialzier should exist in only that language.
                         if (!SupportedSerializer(optionKey, serializer.Metadata))
                         {
                             continue;
                         }
 
-                        // We have one a deserializer, so deserialize and use that value
+                        // We have a deserializer, so deserialize and use that value.
                         object deserializedValue;
                         if (serializer.Value.TryFetch(optionKey, out deserializedValue))
                         {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     if (object.Equals(currentValue, setValue))
                     {
-                        // Identical, so nothing changing
+                        // Identical, so nothing is changing
                         continue;
                     }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         foreach (var serializer in optionSerializers)
                         {
-                            // there can be options (ex, formatting) that only exist in only one specific language. in those cases,
+                            // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
                             // feature's serialzier should exist in only that language.
                             if (!SupportedSerializer(optionKey, serializer.Metadata))
                             {

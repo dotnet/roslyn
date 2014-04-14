@@ -8,24 +8,24 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
     /// <summary>
-    /// code cleaner that requires semantic information to do its job
+    /// A code cleaner that requires semantic information to do its job.
     /// </summary>
     internal interface ICodeCleanupProvider
     {
         /// <summary>
-        /// return name of this provider
+        /// Returns the name of this provider.
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// this should apply its code clean up logic to the spans of the document
+        /// This should apply its code clean up logic to the spans of the document.
         /// </summary>
         Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// this will run all provided code cleaners in an order that is given to the method.
+        /// This will run all provided code cleaners in an order that is given to the method.
         /// 
-        /// this will do cleanups that doesn't require any semantic information
+        /// This will do cleanups that don't require any semantic information
         /// </summary>
         SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken));
     }

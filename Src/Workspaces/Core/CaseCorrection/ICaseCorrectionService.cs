@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         Task<Document> CaseCorrectAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken);
 
         /// <summary>
-        /// case corrects only things that doesn't require semantic information
+        /// Case corrects only things that don't require semantic information
         /// </summary>
         SyntaxNode CaseCorrect(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken);
     }

@@ -14,14 +14,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     /// <summary>
-    /// static CodeCleaner class that provides default code cleaning behavior
+    /// Static CodeCleaner class that provides default code cleaning behavior.
     /// </summary>
     internal static class CodeCleaner
     {
         /// <summary>
-        /// return default code cleaners for a given document
+        /// Return default code cleaners for a given document.
         /// 
-        /// this can be modified and given to Cleanup method to provide different cleaners
+        /// This can be modified and given to the Cleanup method to provide different cleaners.
         /// </summary>
         public static IEnumerable<ICodeCleanupProvider> GetDefaultProviders(Document document)
         {
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the whole document.
-        /// Optionally you can provide your own options and code cleaners. otherwise, default will be used.
+        /// Cleans up the whole document.
+        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
         /// </summary>
         public static async Task<Document> CleanupAsync(Document document, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the document marked with the provided annotation.
-        /// Optionally you can provide your own options and code cleaners. otherwise, default will be used.
+        /// Cleans up the document marked with the provided annotation.
+        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
         /// </summary>
         public static async Task<Document> CleanupAsync(Document document, SyntaxAnnotation annotation, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the provided span in the document
-        /// Optionally you can provide your own options and code cleaners. otherwise, default will be used.
+        /// Clean up the provided span in the document.
+        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
         /// </summary>
         public static Task<Document> CleanupAsync(Document document, TextSpan span, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the provided spans in the document
-        /// Optionally you can provide your own options and code cleaners. otherwise, default will be used.
+        /// Clean up the provided spans in the document.
+        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
         /// </summary>
         public static Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the provided span in the node
-        /// this will only cleanup stuff that doesn't require semantic information
+        /// Clean up the provided span in the node.
+        /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
         public static SyntaxNode Cleanup(SyntaxNode root, TextSpan span, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         /// <summary>
-        /// Clean up the provided spans in the node
-        /// this will only cleanup stuff that doesn't require semantic information
+        /// Clean up the provided spans in the node.
+        /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
         public static SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {

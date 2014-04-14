@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var currentDestination = destination;
 
-            // Filter out the members that are implicitly declared.  THey're implicit, hence we do
+            // Filter out the members that are implicitly declared.  They're implicit, hence we do
             // not want an explicit declaration.
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared);
 

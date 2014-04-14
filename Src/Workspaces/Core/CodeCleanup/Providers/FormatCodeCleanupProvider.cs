@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
-            // if old text already exist, use fast path for formatting
+            // If the old text already exists, use the fast path for formatting.
             SourceText oldText;
             if (document.TryGetText(out oldText))
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
-            // if old text already exist, use fast path for formatting
+            // If the old text already exists, use the fast path for formatting.
             SourceText oldText;
             if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out oldText))
             {
