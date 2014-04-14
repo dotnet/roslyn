@@ -418,7 +418,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified project reference.
+        /// Creates a new instance of this project updated to include the specified project reference
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddProjectReference(ProjectReference projectReference)
         {
@@ -426,7 +427,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified project references.
+        /// Creates a new instance of this project updated to include the specified project references
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddProjectReferences(IEnumerable<ProjectReference> projectReferences)
         {
@@ -442,7 +444,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to contain no project references.
+        /// Creates a new instance of this project updated to replace existing project references 
+        /// with the specified ones.
         /// </summary>
         public Project WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
         {
@@ -450,7 +453,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified metadata reference.
+        /// Creates a new instance of this project updated to include the specified metadata reference
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddMetadataReference(MetadataReference metadataReference)
         {
@@ -458,7 +462,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified metadata references.
+        /// Creates a new instance of this project updated to include the specified metadata references
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
@@ -474,7 +479,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified metadata references.
+        /// Creates a new instance of this project updated to replace existing metadata reference
+        /// with the specified ones.
         /// </summary>
         public Project WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
@@ -482,7 +488,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified analyzer reference.
+        /// Creates a new instance of this project updated to include the specified analyzer reference 
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddAnalyzerReference(AnalyzerReference analyzerReference)
         {
@@ -490,7 +497,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified analyzer references.
+        /// Creates a new instance of this project updated to include the specified analyzer references
+        /// in addition to already existing ones.
         /// </summary>
         public Project AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
@@ -506,7 +514,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new instance of this project updated to include the specified analyzer references.
+        /// Creates a new instance of this project updated to replace existing analyzer references 
+        /// with the specified ones.
         /// </summary>
         public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
         {
