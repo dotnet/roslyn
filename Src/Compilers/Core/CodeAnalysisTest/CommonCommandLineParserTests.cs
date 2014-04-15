@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Xml.Schema;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -858,6 +855,118 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message);
             }
+        }
+
+        [Fact]
+        public void GetEffectiveIncludes_NoIncludes()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"" >
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(source);
+
+            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+
+            Assert.Equal(expected: 1, actual: includePaths.Length);
+            Assert.Equal(expected: file.Path, actual: includePaths[0]);
+        }
+
+        [Fact]
+        public void GetEffectiveIncludes_OneLevel()
+        {
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Include Path=""file1.ruleset"" Action=""Error"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1000"" Action=""Warning"" />
+    <Rule Id=""CA1001"" Action=""Warning"" />
+    <Rule Id=""CA2111"" Action=""None"" />
+  </Rules>
+</RuleSet>
+";
+
+            string includeSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""New Rule Set2"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA2100"" Action=""Warning"" />
+    <Rule Id=""CA2111"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(ruleSetSource);
+
+            var include = dir.CreateFile("file1.ruleset");
+            include.WriteAllText(includeSource);
+
+            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+
+            Assert.Equal(expected: 2, actual: includePaths.Length);
+            Assert.Equal(expected: file.Path, actual: includePaths[0]);
+            Assert.Equal(expected: include.Path, actual: includePaths[1]);
+        }
+
+        [Fact]
+        public void GetEffectiveIncludes_TwoLevels()
+        {
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Include Path=""file1.ruleset"" Action=""Error"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1000"" Action=""Warning"" />
+    <Rule Id=""CA1001"" Action=""Warning"" />
+    <Rule Id=""CA2111"" Action=""None"" />
+  </Rules>
+</RuleSet>
+";
+
+            string includeSource1 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""New Rule Set2"" Description=""Test"" ToolsVersion=""12.0"">
+  <Include Path=""file2.ruleset"" Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA2100"" Action=""Warning"" />
+    <Rule Id=""CA2111"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            string includeSource2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA2100"" Action=""Warning"" />
+    <Rule Id=""CA2111"" Action=""Warning"" />
+    <Rule Id=""CA2119"" Action=""None"" />
+    <Rule Id=""CA2104"" Action=""Error"" />
+    <Rule Id=""CA2105"" Action=""Warning"" />
+  </Rules>
+</RuleSet>";
+
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(ruleSetSource);
+
+            var include1 = dir.CreateFile("file1.ruleset");
+            include1.WriteAllText(includeSource1);
+
+            var include2 = dir.CreateFile("file2.ruleset");
+            include2.WriteAllText(includeSource2);
+
+            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+
+            Assert.Equal(expected: 3, actual: includePaths.Length);
+            Assert.Equal(expected: file.Path, actual: includePaths[0]);
+            Assert.Equal(expected: include1.Path, actual: includePaths[1]);
+            Assert.Equal(expected: include2.Path, actual: includePaths[2]);
         }
     }
 }

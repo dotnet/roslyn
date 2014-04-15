@@ -174,6 +174,36 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Get all the files involved in resolving this ruleset.
+        /// </summary>
+        private ImmutableArray<string> GetEffectiveIncludes()
+        {
+            var arrayBuilder = ImmutableArray.CreateBuilder<string>();
+
+            GetEffectiveIncludesCore(arrayBuilder);
+
+            return arrayBuilder.ToImmutable();
+        }
+
+        private void GetEffectiveIncludesCore(ImmutableArray<string>.Builder arrayBuilder)
+        {
+            arrayBuilder.Add(this.FilePath);
+
+            foreach (var ruleSetInclude in includes)
+            {
+                var ruleSet = ruleSetInclude.LoadRuleSet(this);
+
+                // If we couldn't load the ruleset file, then there's nothing to do.
+                if (ruleSet == null)
+                {
+                    continue;
+                }
+
+                ruleSet.GetEffectiveIncludesCore(arrayBuilder);
+            }
+        }
+
+        /// <summary>
         /// Returns true if the action1 is stricter than action2.
         /// </summary>
         private static bool IsStricterThan(ReportDiagnostic action1, ReportDiagnostic action2)
@@ -196,9 +226,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Load the rulset from the specified file. This ruleset will contain
+        /// Load the ruleset from the specified file. This ruleset will contain
         /// all the rules resolved from the includes specified in the ruleset file
-        /// as well.
+        /// as well. See also: <seealso cref="GetEffectiveIncludesFromFile(string)" />.
         /// </summary>
         /// <returns>
         /// A ruleset that contains resolved rules or null if there were errors.
@@ -212,6 +242,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get the paths to all files contributing rules to the ruleset from the specified file.
+        /// See also: <seealso cref="LoadEffectiveRuleSetFromFile(string)" />.
+        /// </summary>
+        /// <returns>
+        /// The full paths to included files, or an empty array if there were errors.
+        /// </returns>
+        public static ImmutableArray<string> GetEffectiveIncludesFromFile(string filePath)
+        {
+            var ruleSet = RuleSetProcessor.LoadFromFile(filePath);
+            if (ruleSet != null)
+            {
+                return ruleSet.GetEffectiveIncludes();
+            }
+
+            return ImmutableArray<string>.Empty;
         }
 
         /// <summary>
