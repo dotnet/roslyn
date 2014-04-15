@@ -45,6 +45,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Me
         End Function
+
+        Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
+            If Me.Severity <> severity Then
+                Return New VBDiagnostic(Me.Info.GetInstanceWithSeverity(severity), Me.Location)
+            End If
+
+            Return Me
+        End Function
     End Class
 End Namespace
 

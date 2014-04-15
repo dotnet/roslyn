@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticInfo info;
         private readonly Location location;
-
+        
         internal DiagnosticWithInfo(DiagnosticInfo info, Location location)
         {
             Debug.Assert(info != null);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string Category
         {
-            get { return "Compiler"; }
+            get { return CompilerDiagnosticCategory; }
         }
 
         internal sealed override int Code
@@ -196,6 +196,16 @@ namespace Microsoft.CodeAnalysis
             if (this.IsWarningAsError != isWarningAsError)
             {
                 return new DiagnosticWithInfo(this.Info.GetInstanceWithReportWarning(isWarningAsError), this.location);
+            }
+
+            return this;
+        }
+
+        internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+        {
+            if (this.Severity != severity)
+            {
+                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), this.location);
             }
 
             return this;

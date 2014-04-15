@@ -1953,23 +1953,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     options.SpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
                                                         VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
-                                                        options)
+                                                        options,
+                                                        diagnostic.Category)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.Id, options)
+                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.Id, options, diagnostic.Category)
             End If
 
-            Select Case report
-                Case ReportDiagnostic.Suppress
-                    ' Skip it
-                    Return Nothing
-                Case ReportDiagnostic.Error
-                    Debug.Assert(diagnostic.Severity = DiagnosticSeverity.Warning)
-                    Return diagnostic.WithWarningAsError(True)
-                Case ReportDiagnostic.Default, ReportDiagnostic.Warn
-                    Return diagnostic
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(report)
-            End Select
+            Return diagnostic.WithReportDiagnostic(report)
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
@@ -2002,12 +1992,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, id As String, options As CompilationOptions) As ReportDiagnostic
+        Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, id As String, options As CompilationOptions, category As String) As ReportDiagnostic
             Select Case (severity)
                 Case InternalDiagnosticSeverity.Void
                     Return ReportDiagnostic.Suppress
+                Case DiagnosticSeverity.None
+                    ' Compiler diagnostics cannot have severity None, but user generated diagnostics can.
+                    Debug.Assert(category <> Diagnostic.CompilerDiagnosticCategory)
+                    ' Leave Select
                 Case DiagnosticSeverity.Info
-                    Return ReportDiagnostic.Default
+                    If category = Diagnostic.CompilerDiagnosticCategory Then
+                        ' Don't modify compiler generated Info diagnostics.
+                        Return ReportDiagnostic.Default
+                    End If
                 Case DiagnosticSeverity.Warning
                     ' Leave Select
                 Case Else

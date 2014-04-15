@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
 
+            internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                throw new NotImplementedException();
+            }
+
             internal override Diagnostic WithWarningAsError(bool isWarningAsError)
             {
                 if (isWarningAsError && severity == DiagnosticSeverity.Warning)
@@ -438,6 +443,97 @@ public class C { }";
                     Diagnostic("XX0001", "[Obsolete]").WithWarningAsError(true),
                     Diagnostic("XX0001", "C").WithWarningAsError(true));
 
+        }
+
+        [Fact]
+        void TestGetEffectiveDiagnostics()
+        {
+            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.None);
+            var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info);
+            var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning);
+            var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error);
+
+            var noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None);
+            var infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None);
+            var warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
+            var errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
+
+            var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
+
+            // Escalate all diagnostics to error.
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Error);
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Error);
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Error);
+            var options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            var comp = CreateCompilationWithMscorlib45("", compOptions: options);
+            var effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(diags.Length, effectiveDiags.Length);
+            foreach (var effectiveDiag in effectiveDiags)
+            {
+                Assert.True(effectiveDiag.Severity == DiagnosticSeverity.Error ||
+                    (effectiveDiag.Severity == DiagnosticSeverity.Warning && effectiveDiag.IsWarningAsError));
+            }
+
+            // Suppress all diagnostics.
+            // NOTE: Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Suppress);
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Suppress);
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Suppress);
+            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Suppress);
+            options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            comp = CreateCompilationWithMscorlib45("", compOptions: options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(1, effectiveDiags.Length);
+            Assert.Equal(errorDiagDesciptor.Id, effectiveDiags[0].Id);
+
+            // Shuffle diagnostic severity.
+            specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info);
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Warn);
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Error);
+            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn);
+            options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
+
+            comp = CreateCompilationWithMscorlib45("", compOptions: options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(diags.Length, effectiveDiags.Length);
+            var diagIds = new HashSet<string>(diags.Select(d => d.Id));
+            foreach (var effectiveDiag in effectiveDiags)
+            {
+                Assert.True(diagIds.Remove(effectiveDiag.Id));
+
+                switch (effectiveDiag.Severity)
+                {
+                    case DiagnosticSeverity.Info:
+                        Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id);
+                        break;
+
+                    case DiagnosticSeverity.Warning:
+                        if (!effectiveDiag.IsWarningAsError)
+                        {
+                            Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id);
+                        }
+                        else
+                        {
+                            Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id);
+                        }
+
+                        break;
+
+                    case DiagnosticSeverity.Error:
+                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            Assert.Empty(diagIds);
         }
     }
 }

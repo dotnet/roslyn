@@ -55,5 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return this;
         }
+
+        internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+        {
+            if (this.Severity != severity)
+            {
+                return new CSDiagnostic(this.Info.GetInstanceWithSeverity(severity), this.Location);
+            }
+
+            return this;
+        }
     }
 }

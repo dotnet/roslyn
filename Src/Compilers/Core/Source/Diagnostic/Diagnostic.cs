@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class Diagnostic : IEquatable<Diagnostic>
     {
+        internal const string CompilerDiagnosticCategory = "Compiler";
+
         /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
         /// </summary>
@@ -212,6 +214,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract Diagnostic WithWarningAsError(bool isWarningAsError);
 
+        /// <summary>
+        /// Create a new instance of this diagnostic with the Severity property changed.
+        /// </summary>
+        internal abstract Diagnostic WithSeverity(DiagnosticSeverity severity);
+
         // compatibility
         internal virtual int Code { get { return 0; } }
 
@@ -254,6 +261,40 @@ namespace Microsoft.CodeAnalysis
                         yield return additionalLocation;
                     }
                 }
+            }
+        }
+
+        internal Diagnostic WithReportDiagnostic(ReportDiagnostic reportAction)
+        {
+            switch (reportAction)
+            {
+                case ReportDiagnostic.Suppress:
+                    // Suppressed diagnostic.
+                    return null;
+                case ReportDiagnostic.Error:
+                    if (this.IsWarningAsError)
+                    {
+                        // If the flag has already been set, return it without creating new one. 
+                        return this;
+                    }
+                    else if (this.Severity == DiagnosticSeverity.Warning)
+                    {
+                        // For a warning treated as an error, we replace the existing one 
+                        // with a new diagnostic setting the WarningAsError flag to be true.
+                        return this.WithWarningAsError(true);
+                    }
+                    else
+                    {
+                        return this.WithSeverity(DiagnosticSeverity.Error);
+                    }
+                case ReportDiagnostic.Default:
+                    return this;
+                case ReportDiagnostic.Warn:
+                    return this.WithSeverity(DiagnosticSeverity.Warning);
+                case ReportDiagnostic.Info:
+                    return this.WithSeverity(DiagnosticSeverity.Info);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportAction);
             }
         }
     }

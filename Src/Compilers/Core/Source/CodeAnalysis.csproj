@@ -145,6 +145,7 @@
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />
     <Compile Include="Diagnostic\Diagnostic.cs" />
+    <Compile Include="Diagnostic\DiagnosticInfo.DiagnosticInfoWithOverridenSeverity.cs" />
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
     <Compile Include="Diagnostic\DiagnosticBag.cs" />
     <Compile Include="Diagnostic\DiagnosticDescriptor.cs" />

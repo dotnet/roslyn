@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     [Serializable]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal class DiagnosticInfo : ISerializable, IFormattable, IObjectWritable, IObjectReadable
+    internal partial class DiagnosticInfo : ISerializable, IFormattable, IObjectWritable, IObjectReadable
     {
         private static readonly object[] NoArguments = new object[0];
 
@@ -66,6 +66,12 @@ namespace Microsoft.CodeAnalysis
         internal virtual DiagnosticInfo GetInstanceWithReportWarning(bool isWarningAsError)
         {
             return new DiagnosticInfo(this.messageProvider, isWarningAsError, this.errorCode, this.arguments == null ? SpecializedCollections.EmptyArray<object>() : this.arguments);
+        }
+
+        // Create a copy of this instance with a explicit overridden severity
+        internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new DiagnosticInfoWithOverridenSeverity(this, severity);
         }
 
         #region Serialization
@@ -199,7 +205,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns whether this diagnostic is informational, warning, or error.
         /// For checking if it is a warning treated as an error, use IsWarningsAsError.
         /// </summary>
-        public DiagnosticSeverity Severity
+        public virtual DiagnosticSeverity Severity
         {
             get
             {

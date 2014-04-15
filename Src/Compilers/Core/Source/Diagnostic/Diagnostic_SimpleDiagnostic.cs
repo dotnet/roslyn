@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -161,6 +162,18 @@ namespace Microsoft.CodeAnalysis
                 if (this.isWarningAsError != isWarningAsError)
                 {
                     return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
+                }
+
+                return this;
+            }
+
+            internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                Debug.Assert(severity != DiagnosticSeverity.Error || this.severity != DiagnosticSeverity.Warning, "Use WithWarningAsError API");
+
+                if (this.Severity != severity)
+                {
+                    return new SimpleDiagnostic(this.id, this.category, this.message, severity, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations);
                 }
 
                 return this;

@@ -2052,29 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
             }
 
-            switch (reportAction)
-            {
-                case ReportDiagnostic.Suppress:
-                    return null;
-                case ReportDiagnostic.Error:
-                    Debug.Assert(d.Severity == DiagnosticSeverity.Warning);
-                    if (d.IsWarningAsError)
-                    {
-                        // If the flag has already been set, return it without creating new one. 
-                        return d;
-                    }
-                    else
-                    {
-                        // For a warning treated as an error, we replace the existing one 
-                        // with a new dianostic setting a WarningAsError flag to be true 
-                        return d.WithWarningAsError(true);
-                    }
-                case ReportDiagnostic.Default:
-                case ReportDiagnostic.Warn:
-                    return d;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reportAction);
-            }
+            return d.WithReportDiagnostic(reportAction);
         }
 
         /// <summary>
@@ -2104,16 +2082,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Take a warning and return the final deposition of the given warning,
         // based on both command line options and pragmas
-        internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, string id, int warningLevel, Location location, CompilationOptions options, string kind)
+        internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, string id, int warningLevel, Location location, CompilationOptions options, string category)
         {
             switch (severity)
             {
                 case InternalDiagnosticSeverity.Void:
                     // If this is a deleted diagnostic, suppress it.
                     return ReportDiagnostic.Suppress;
+                case DiagnosticSeverity.None:
+                    // Compiler diagnostics cannot have severity None, but user generated diagnostics can.
+                    Debug.Assert(category != Diagnostic.CompilerDiagnosticCategory);
+                    break;
                 case DiagnosticSeverity.Info:
-                    // Don't modify Info diagnostics.
-                    return ReportDiagnostic.Default;
+                    if (category == Diagnostic.CompilerDiagnosticCategory)
+                    {
+                        // Don't modify compiler generated Info diagnostics.
+                        return ReportDiagnostic.Default;
+                    }
+                    break;
                 case DiagnosticSeverity.Warning:
                     // Process warnings below.
                     break;

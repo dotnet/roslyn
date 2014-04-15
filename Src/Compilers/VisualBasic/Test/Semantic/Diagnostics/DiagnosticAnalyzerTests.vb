@@ -127,6 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Private Shared Function SameData(d1 As Object(), d2 As Object()) As Boolean
                 Return (d1 Is Nothing) = (d2 Is Nothing) AndAlso (d1 Is Nothing OrElse d1.SequenceEqual(d2))
             End Function
+
+            Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
+                Throw New NotImplementedException()
+            End Function
         End Class
 
         Class ComplainAboutX
@@ -155,5 +159,90 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End If
             End Sub
         End Class
+
+        <Fact>
+        Public Sub TestGetEffectiveDiagnostics()
+            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.None)
+            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info)
+            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning)
+            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error])
+
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+
+            Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
+
+            ' Escalate all diagnostics to error.
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
+            Dim options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(diags.Length, effectiveDiags.Length)
+            For Each effectiveDiag In effectiveDiags
+                Assert.[True](effectiveDiag.Severity = DiagnosticSeverity.[Error] OrElse (effectiveDiag.Severity = DiagnosticSeverity.Warning AndAlso effectiveDiag.IsWarningAsError))
+            Next
+
+            ' Suppress all diagnostics.
+            ' NOTE: Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
+            specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(1, effectiveDiags.Length)
+            Assert.Equal(errorDiagDesciptor.Id, effectiveDiags(0).Id)
+
+            ' Shuffle diagnostic severity.
+            specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info)
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn)
+            options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(diags.Length, effectiveDiags.Length)
+            Dim diagIds = New HashSet(Of String)(diags.[Select](Function(d) d.Id))
+            For Each effectiveDiag In effectiveDiags
+                Assert.[True](diagIds.Remove(effectiveDiag.Id))
+
+                Select Case effectiveDiag.Severity
+                    Case DiagnosticSeverity.Info
+                        Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id)
+                        Exit Select
+
+                    Case DiagnosticSeverity.Warning
+                        If Not effectiveDiag.IsWarningAsError Then
+                            Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id)
+                        Else
+                            Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
+                        End If
+
+                        Exit Select
+
+                    Case DiagnosticSeverity.[Error]
+                        ' Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
+                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
+                        Exit Select
+                    Case Else
+
+                        Throw ExceptionUtilities.Unreachable
+                End Select
+            Next
+
+            Assert.Empty(diagIds)
+
+        End Sub
     End Class
 End Namespace

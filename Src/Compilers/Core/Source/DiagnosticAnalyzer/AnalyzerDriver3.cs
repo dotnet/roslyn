@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new DiagnosticDescriptor(DiagnosticId,
                 CodeAnalysisResources.CompilerAnalyzerFailure,
                 string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, message),
-                category: "Compiler",
+                category: Diagnostic.CompilerDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info);
         }
     }
