@@ -208,11 +208,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        protected override bool CanHaveMultipleMeanings(string name)
-        {
-            // everything can have multiple meanings unless proven otherwise.
-            return true;
-        }
     }
 }

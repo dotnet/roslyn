@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int n = 0; n < names.Length; ++n)
                 {
                     string name = lambda.ParameterName(n);
-                    binder.EnsureLambdaParameterInvariantMeaningInScope(lambda.ParameterLocation(n), name, diagnostics);
+                    binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(n), name, diagnostics);
                 }
             }
 

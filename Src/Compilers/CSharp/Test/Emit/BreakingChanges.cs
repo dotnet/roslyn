@@ -879,14 +879,9 @@ public class Program
     public static void Main() { }
 }";
             // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
-            // variables within the same declaration space. Roslyn on the other hand correctly reports the below error.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (14,22): error CS0135: A local, parameter or range variable named 'count' cannot be declared 
-                // in this scope because that name is used in an enclosing local scope to refer to field 
-                // 'Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count'
-                //             for (int count = 0; count < 10; count++)
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "count")
-                    .WithArguments("Microsoft.Test.XmlGen.Protocols.Saml2.ProxyRestriction.count", "count", "field"));
+            // variables within the same declaration space. According to the old spec the error should be reported.
+            // In Roslyn the single definition rule is relaxed and we do not give an error, but for a different reason.
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530301, "DevDiv")]
@@ -958,11 +953,8 @@ public class c
 ";
             var comp = CreateCompilationWithMscorlib(text);
 
-            comp.VerifyDiagnostics(
-                // fail.cs(9, 15): error CS0135: A local, parameter or range variable named 'a' cannot be 
-                // declared in this scope because that name is used in an enclosing local scope to refer to field 'c.a'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "a").WithArguments("c.a", "a", "field")
-                );
+            // In Roslyn the single definition rule is relaxed and we do not give an error.
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530518, "DevDiv")]

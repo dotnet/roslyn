@@ -749,12 +749,13 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.Property, "E F.Q { get; set; }",
                 SymbolKind.Method, "void E.M(System.Int32 x)",
-                // (19,15): error CS0135: A local, parameter or range variable named 'Q' cannot be declared in this scope because that name is used in an enclosing local scope to refer to property 'F.Q'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "Q").WithArguments("F.Q", "Q", "property"),
-                // (18,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"),
-                // (19,17): warning CS0168: The variable 'Q' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
+    // (18,15): warning CS0168: The variable 'E' is declared but never used
+    //             Q E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(18, 15),
+    // (19,15): warning CS0168: The variable 'Q' is declared but never used
+    //             E Q;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q").WithLocation(19, 15)
+);
         }
 
         [WorkItem(542642, "DevDiv")]
@@ -787,12 +788,13 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.NamedType, "E",
                 SymbolKind.Method, "void E.M(params System.Int32[] a)",
-                // (19,15): error CS0135: A local, parameter or range variable named 'Q' cannot be declared in this scope because that name is used in an enclosing local scope to refer to using alias 'Q'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "Q").WithArguments("Q", "Q", "using alias"),
-                // (18,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"),
-                // (19,17): warning CS0168: The variable 'Q' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
+    // (18,15): warning CS0168: The variable 'E' is declared but never used
+    //             Q E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(18, 15),
+    // (19,15): warning CS0168: The variable 'Q' is declared but never used
+    //             E Q;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q").WithLocation(19, 15)
+);
         }
 
         [WorkItem(542642, "DevDiv")]
@@ -825,12 +827,13 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.Property, "E F.E { get; set; }",
                 SymbolKind.Method, "void E.M(System.Int32 x)",
-                // (18,15): error CS0135: A local, parameter or range variable named 'E' cannot be declared in this scope because that name is used in an enclosing local scope to refer to property 'F.E'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("F.E", "E", "property"),
-                // (18,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"),
-                // (19,17): warning CS0168: The variable 'Q' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
+    // (18,15): warning CS0168: The variable 'E' is declared but never used
+    //             Q E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(18, 15),
+    // (19,15): warning CS0168: The variable 'Q' is declared but never used
+    //             E Q;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q").WithLocation(19, 15)
+);
         }
 
         [WorkItem(542642, "DevDiv")]
@@ -863,12 +866,13 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.NamedType, "E",
                 SymbolKind.Method, "void E.M(params System.Int32[] a)",
-                // (18,15): error CS0135: A local, parameter or range variable named 'E' cannot be declared in this scope because that name is used in an enclosing local scope to refer to type 'E'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("E", "E", "type"),
-                // (18,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"),
-                // (19,17): warning CS0168: The variable 'Q' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q"));
+    // (18,15): warning CS0168: The variable 'E' is declared but never used
+    //             Q E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(18, 15),
+    // (19,15): warning CS0168: The variable 'Q' is declared but never used
+    //             E Q;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Q").WithArguments("Q").WithLocation(19, 15)
+);
         }
 
         [Fact]
@@ -1306,10 +1310,10 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.NamedType, "E",
                 SymbolKind.Method, "void E.M(params System.Int32[] a)",
-                // (16,15): error CS0135: A local, parameter or range variable named 'E' cannot be declared in this scope because that name is used in an enclosing local scope to refer to type 'E'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("E", "E", "type"),
-                // (16,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"));
+    // (16,15): warning CS0168: The variable 'E' is declared but never used
+    //             E E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(16, 15)
+);
         }
 
         [WorkItem(542586, "DevDiv")]
@@ -1335,10 +1339,7 @@ class F
 }";
             CheckExpressionAndParent(text,
                 SymbolKind.NamedType, "E",
-                SymbolKind.Method, "void E.M(params System.Int32[] a)",
-                // (15,18): error CS0135: A local, parameter or range variable named 'E' cannot be declared in this scope because that name is used in an enclosing local scope to refer to type 'E'
-                //         D d = (E E) => null;
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("E", "E", "type"));
+                SymbolKind.Method, "void E.M(params System.Int32[] a)");
         }
 
         [WorkItem(542586, "DevDiv")]
@@ -1368,10 +1369,10 @@ class F
             CheckExpressionAndParent(text,
                 SymbolKind.Property, "E F.E { get; set; }",
                 SymbolKind.Method, "void E.M(System.Int32 x)",
-                // (16,15): error CS0135: A local, parameter or range variable named 'E' cannot be declared in this scope because that name is used in an enclosing local scope to refer to property 'F.E'
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "E").WithArguments("F.E", "E", "property"),
-                // (16,17): warning CS0168: The variable 'E' is declared but never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E"));
+    // (16,15): warning CS0168: The variable 'E' is declared but never used
+    //             E E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "E").WithArguments("E").WithLocation(16, 15)
+);
         }
 
         [WorkItem(542642, "DevDiv")]
@@ -1448,11 +1449,7 @@ class F
         static void Bar(D x) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (11,17): error CS7039: The field 'A.B.Foo' cannot be used in this local scope because that name has been used to refer to method 'A.Foo()'
-                //             Bar(Foo);
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides2, "Foo").WithArguments("field", "A.B.Foo", "method", "A.Foo()")
-                );
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "DevDiv")]
@@ -1476,11 +1473,7 @@ class F
         static void Bar(int x) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (12,17): error CS7039: The type 'A.B.Foo' cannot be used in this local scope because that name has been used to refer to method 'A.Foo(object)'
-                //             Foo(Foo.N);
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides2, "Foo").WithArguments("type", "A.B.Foo", "method", "A.Foo(object)")
-                );
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         #endregion Error cases

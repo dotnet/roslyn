@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Check for variable declaration errors.
-            hasErrors |= this.EnsureDeclarationInvariantMeaningInScope(localSymbol, diagnostics);
+            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             EqualsValueClauseSyntax equalsValueClauseSyntax = declarator.Initializer;
             if (isVar)
@@ -1989,11 +1989,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocal(nameToken);
         }
 
-        protected virtual bool CanHaveMultipleMeanings(string name)
-        {
-            return Next.CanHaveMultipleMeanings(name);
-        }
-
         public BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             var blockBinder = this.GetBinder(node);
@@ -3103,7 +3098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
-                hasError |= this.EnsureDeclarationInvariantMeaningInScope(local, diagnostics);
+                hasError |= this.ValidateDeclarationNameConflictsInScope(local, diagnostics);
 
                 exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.Type);
             }

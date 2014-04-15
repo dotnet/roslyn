@@ -844,7 +844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             lookupResult.Free();
-            EnsureInvariantMeaningInScope(node, expression, diagnostics);
             return expression;
         }
 
@@ -2342,12 +2341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder.BindNamespaceOrType(syntax, diagnostics) :
                         binder.BindValue(syntax, diagnostics, BindValueKind.RValue);
 
-                    if (useType)
-                    {
-                        // Check for CS0135 - would have been done in BindExpression, if we'd called that in the first place.
-                        Debug.Assert(syntax.Kind == SyntaxKind.IdentifierName); //wouldn't be Color Color otherwise
-                        binder.EnsureInvariantMeaningInScope((IdentifierNameSyntax)syntax, receiver, diagnostics, typeOrValue.Variable);
-                    }
                     return receiver;
 
                 case BoundKind.QueryClause:

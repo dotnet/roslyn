@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
-            ImmutableArray<ParameterSymbol> result;
+            ImmutableArray<ParameterSymbol> parameters;
 
-            var parameterBinder = new LocalScopeBinder(binder);
             foreach (var parameterSyntax in syntax.Parameters)
             {
 
@@ -87,9 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ++parameterIndex;
             }
 
-            result = builder.ToImmutableAndFree();
-            parameterBinder.EnterParameters(owner as MethodSymbol, result, diagnostics);
-            return result;
+            parameters = builder.ToImmutableAndFree();
+
+            var methodOwner = owner as MethodSymbol;
+            var typeParameters = (object)methodOwner != null ?
+                methodOwner.TypeParameters :
+                default(ImmutableArray<TypeParameterSymbol>);
+
+            binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
+            return parameters;
         }
 
         private static void ReportParameterErrors(

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
             // binder has a local that matches!
-            hasErrors |= this.EnsureDeclarationInvariantMeaningInScope(IterationVariable, diagnostics);
+            hasErrors |= this.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
             // If the type in syntax is "var", then the type should be set explicitly so that the
             // Type property doesn't fail.

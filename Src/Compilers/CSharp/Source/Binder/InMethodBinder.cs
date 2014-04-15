@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class InMethodBinder : LocalScopeBinder
     {
         private readonly MultiDictionary<string, ParameterSymbol> parameterMap;
+        private SmallDictionary<string, Symbol> definitionMap;
         private IteratorInfo iteratorInfo;
-        private HashSet<string> lazyPossibleMultipleMeanings;
 
         private static readonly HashSet<string> emptySet = new HashSet<string>();
 
@@ -40,48 +41,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(owner, enclosing)
         {
             Debug.Assert((object)owner != null);
-            ForceSingleDefinitions(owner.TypeParameters);
 
             var parameters = owner.Parameters;
             if (!parameters.IsEmpty)
             {
-                ForceSingleDefinitions(owner.Parameters);
-
+                RecordDefinition(parameters);
                 this.parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
                     this.parameterMap.Add(parameter.Name, parameter);
                 }
             }
-        }
 
-        protected override bool CanHaveMultipleMeanings(string name)
-        {
-            var possible = this.lazyPossibleMultipleMeanings ??
-                           (this.lazyPossibleMultipleMeanings = ComputeMultipleMeaningSet());
+            var typeParameters = owner.TypeParameters;
 
-            return possible != emptySet && possible.Contains(name);
-        }
-
-        private HashSet<string> ComputeMultipleMeaningSet()
-        {
-            var ownerSourceSym = this.Owner as SourceMethodSymbol;
-            if ((object)ownerSourceSym != null)
+            if (!typeParameters.IsDefaultOrEmpty)
             {
-                var block = ownerSourceSym.BlockSyntax;
-                if (block != null)
+                RecordDefinition(typeParameters);
+            }
+        }
+
+        private void RecordDefinition<T>(ImmutableArray<T> definitions) where T : Symbol
+        {
+            var declarationMap = this.definitionMap ?? (this.definitionMap = new SmallDictionary<string, Symbol>());
+            foreach (Symbol s in definitions)
+            {
+                if (!declarationMap.ContainsKey(s.Name))
                 {
-                    var collector = new MeaningCollector();
-                    collector.Visit(block.CsGreen);
-                    if (collector.names != null)
-                    {
-                        return collector.names;
-                    }
+                    declarationMap.Add(s.Name, s);
                 }
             }
-
-            Debug.Assert(emptySet.Count == 0);
-            return emptySet;
         }
 
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
@@ -236,125 +225,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Two things can cause a name to have more than one meaning in a scope -
-        // 1) declaration of a variable (local, lambda parameter, query variable etc...)
-        // 2) use of the simple name in an invocation - when looking up "foo" in foo() we can match a 
-        //    different symbol compared to regular use like foo.bar or foo + foo.
-        //
-        // This visitor collects all the names that are used in the above scenarios assuming that
-        // the remaining set of names used in a method is typically larger and knowing that 
-        // they cannot have multiple meaning allows to shorcircuit "single meaning" analysis.
-        //
-        // Since we are not interested in tree positions and parents, we will use green tree here.
-        private sealed class MeaningCollector : Syntax.InternalSyntax.CSharpSyntaxVisitor
+        private bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            internal HashSet<string> names;
+            var oldLocation = parameter.Locations[0];
+            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
+            SymbolKind parameterKind = parameter.Kind;
 
-            private void Add(Syntax.InternalSyntax.SyntaxToken identifier)
+            // Quirk of the way we represent lambda parameters.                
+            SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
+
+            if (newSymbolKind == SymbolKind.ErrorType) return true;
+
+            if (parameterKind == SymbolKind.Parameter)
             {
-                if (identifier != null)
+                if(newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
                 {
-                    var names = this.names ??
-                                (this.names = new HashSet<string>());
+                    // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                    return true;
+                }
 
-                    names.Add(identifier.ValueText);
+                if(newSymbolKind == SymbolKind.RangeVariable)
+                {
+                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                    return true;
                 }
             }
 
-            public override void VisitVariableDeclarator(Syntax.InternalSyntax.VariableDeclaratorSyntax node)
+            if (parameterKind == SymbolKind.TypeParameter)
             {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitCatchDeclaration(Syntax.InternalSyntax.CatchDeclarationSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitParameter(Syntax.InternalSyntax.ParameterSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitFromClause(Syntax.InternalSyntax.FromClauseSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitLetClause(Syntax.InternalSyntax.LetClauseSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitJoinClause(Syntax.InternalSyntax.JoinClauseSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitJoinIntoClause(Syntax.InternalSyntax.JoinIntoClauseSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitQueryContinuation(Syntax.InternalSyntax.QueryContinuationSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitForEachStatement(Syntax.InternalSyntax.ForEachStatementSyntax node)
-            {
-                Add(node.Identifier);
-                VisitChildren(node);
-            }
-
-            public override void VisitInvocationExpression(Syntax.InternalSyntax.InvocationExpressionSyntax node)
-            {
-                var expr = node.Expression;
-                if (expr.Kind == SyntaxKind.IdentifierName)
+                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
                 {
-                    Add(((Syntax.InternalSyntax.IdentifierNameSyntax)expr).Identifier);
+                    // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                    return true;
                 }
-                VisitChildren(node);
-            }
 
-            public override void Visit(Syntax.InternalSyntax.CSharpSyntaxNode node)
-            {
-                VisitChildren(node);
-            }
-
-            public override void DefaultVisit(Syntax.InternalSyntax.CSharpSyntaxNode node)
-            {
-                VisitChildren(node);
-            }
-
-            private void VisitChildren(Syntax.InternalSyntax.CSharpSyntaxNode node)
-            {
-                var childCnt = node.SlotCount;
-
-                for (int i = 0; i < childCnt; i++)
+                if (newSymbolKind == SymbolKind.TypeParameter)
                 {
-                    var child = node.GetSlot(i);
-                    if (child != null && child.SlotCount != 0)
-                    {
-                        if (child.IsList)
-                        {
-                            VisitChildren((Syntax.InternalSyntax.CSharpSyntaxNode)child);
-                        }
-                        else
-                        {
-                            ((Syntax.InternalSyntax.CSharpSyntaxNode)child).Accept(this);
-                        }
-                    }
+                    // Type parameter declaration name conflicts are detected elsewhere
+                    return false;
+                }
+
+                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+                {
+                    // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                    return true;
+                }
+
+                if (newSymbolKind == SymbolKind.RangeVariable)
+                {
+                    // The range variable '{0}' cannot have the same name as a method type parameter
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, newLocation, name);
+                    return true;
                 }
             }
+
+            Debug.Assert(false, "what else could be defined in a method?");
+            return true;
+        }
+
+
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        {
+            Symbol existingDeclaration;
+            var map = this.definitionMap;
+            if (map != null && map.TryGetValue(name, out existingDeclaration))
+            {
+                return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);
+            }
+            
+            return false;
         }
     }
 }

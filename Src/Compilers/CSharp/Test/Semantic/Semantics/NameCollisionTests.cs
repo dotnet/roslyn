@@ -340,15 +340,7 @@ class Class
 class name2
 {
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (18,21): error CS0135: A local, parameter or range variable named 'name1' cannot be declared 
-                // in this scope because that name is used in an enclosing local scope to refer to using alias 'name1'
-                // int name1 = 3, name2 = name1;
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("name1", "name1", "using alias"),
-                // (18,32): error CS0135: A local, parameter or range variable named 'name2' cannot be declared
-                // in this scope because that name is used in an enclosing local scope to refer to using type 'name2'
-                //     int name1 = 3, name2 = name1; 
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("name2", "name2", "type"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -391,17 +383,7 @@ namespace name1
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (22,21): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to refer to property 'name1.Class.name2'
-                //                 int name2 = name2 = 2;        // 0135: conflicts with usage of name2 as the static property below.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("name1.Class.name2", "name2", "property"),
-                // (14,21): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to method 'name1.Class.name1()'
-                //                 int name1 = name1 = 1;           // 0135: Roslyn reports 0135, native reports 0136.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("name1.Class.name1()", "name1", "method"),
-                // (16,26): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to method 'name1.Class.name1()'
-                //             foreach (var name1 in "string") ;  // 0135: Roslyn reports 0135, native reports 0136.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("name1.Class.name1()", "name1", "method")
-                );
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "DevDiv")]
@@ -429,14 +411,7 @@ namespace name1
         static void Bar(D x) { }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (11,17): error CS7039: The field 'A.B.Foo' cannot be used in this local scope because that name has been used to refer to method 'A.Foo()'
-                //             Bar(Foo);
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides2, "Foo").WithArguments("field", "A.B.Foo", "method", "A.Foo()"),
-                // (16,13): error CS7039: The method 'A.Foo()' cannot be used in this local scope because that name has been used to refer to field 'A.B.Foo'
-                //             Foo();
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides2, "Foo").WithArguments("method", "A.Foo()", "field", "A.B.Foo")
-                );
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -546,7 +521,6 @@ class Derived : Base
         {
             int name1 = 3, other = name1, name2 = other;  // 0135 on name1 and name2
                                                           // Native reports 0136 on name1 here and 0135 on name2 below.
-                                                          // Roslyn reports 0135 on both, here.
         }
         do
         {
@@ -558,15 +532,7 @@ class Base
 {
     protected static long name2 = 5;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,17): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in 
-                // this scope because that name is used in an enclosing local scope to refer to field 'Derived.name1'
-                // int name1 = 3, other = name1, name2 = other;  
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"),
-                // (9,43): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in 
-                // this scope because that name is used in an enclosing local scope to refer to field 'Base.name2'
-                // int name1 = 3, other = name1, name2 = other; 
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Base.name2", "name2", "field"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -635,11 +601,7 @@ class Class
     private static int x = 123;
     private static int z = x + ((System.Func<int>)( ()=>{ int x = M(); return x; } ))();
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,63): error CS0135: A local, parameter or range variable named 'x' cannot be declared 
-                // in this scope because that name is used in an enclosing local scope to refer to field 'Class.x'
-                // private static int z = x + ((System.Func<int>)( ()=>{ int x = M(); return x; } ))();
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "x").WithArguments("Class.x", "x", "field"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -653,10 +615,10 @@ partial struct PartialStruct
         if (true)
         {
             {
-                int name = 1, other = name; // 0135: Roslyn reports 0135 here, native compiler reports it below.
+                int name = 1, other = name; 
             }
         }
-        name = 2; // Native compiler reports 0135 here; Roslyn reports it above.
+        name = 2; // Native compiler reports 0135 here; Roslyn no longer reports 0135.
     }
 }
 
@@ -664,11 +626,7 @@ partial struct PartialStruct
 {
     internal long name;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,21): error CS0135: A local, parameter or range variable named 'name' cannot be declared in
-                // this scope because that name is used in an enclosing local scope to refer to field 'PartialStruct.name'
-                // int name = 1, other = name;
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name").WithArguments("PartialStruct.name", "name", "field"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -797,36 +755,40 @@ class Class
     public long name2 = 4;
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,9): error CS0841: Cannot use local variable 'name4' before it is declared
-                //         name4 = name6;             // 0841 on name4; used before declared. 0103 on name6; not defined in this context
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "name4").WithArguments("name4"),
-                // (7,17): error CS0103: The name 'name6' does not exist in the current context
-                //         name4 = name6;             // 0841 on name4; used before declared. 0103 on name6; not defined in this context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "name6").WithArguments("name6"),
-                // (11,33): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 int other1 = 2, name1 = other1, name2 = name1; // 0136 on name1; already used in parent scope to mean something else.
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (16,31): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                     for (long name1 = this.name2; name1 >= --name1; name1++) // 0136 on name1; 
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (18,43): error CS0841: Cannot use local variable 'name5' before it is declared
-                //                         name1.ToString(); name5.ToString(); // 0841: name5 is used before the declaration
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "name5").WithArguments("name5"),
-                // (24,55): error CS0128: A local variable named 'name3' is already defined in this scope
-                //             string @name3 = "string", other2 = name3, name3 = other2; // 0128: name3 is defined twice.
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "name3").WithArguments("name3"),
-                // (11,49): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 int other1 = 2, name1 = other1, name2 = name1; // 0136 on name1; already used in parent scope to mean something else.
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
-                // (29,9): error CS0103: The name 'name6' does not exist in the current context
-                //         name6 = name3; // 0103 on both name6 and name3; not defined in this context.
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "name6").WithArguments("name6"),
-                // (29,17): error CS0103: The name 'name3' does not exist in the current context
-                //         name6 = name3; // 0103 on both name6 and name3; not defined in this context.
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "name3").WithArguments("name3"),
-                // (19,32): warning CS0219: The variable 'name6' is assigned but its value is never used
-                //                         string name6 = "string";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name6").WithArguments("name6")
+    // (7,9): error CS0841: Cannot use local variable 'name4' before it is declared
+    //         name4 = name6;             // 0841 on name4; used before declared. 0103 on name6; not defined in this context
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "name4").WithArguments("name4").WithLocation(7, 9),
+    // (7,17): error CS0103: The name 'name6' does not exist in the current context
+    //         name4 = name6;             // 0841 on name4; used before declared. 0103 on name6; not defined in this context
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "name6").WithArguments("name6").WithLocation(7, 17),
+    // (11,33): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int other1 = 2, name1 = other1, name2 = name1; // 0136 on name1; already used in parent scope to mean something else.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(11, 33),
+    // (11,49): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int other1 = 2, name1 = other1, name2 = name1; // 0136 on name1; already used in parent scope to mean something else.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(11, 49),
+    // (16,31): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                     for (long name1 = this.name2; name1 >= --name1; name1++) // 0136 on name1; 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(16, 31),
+    // (18,43): error CS0841: Cannot use local variable 'name5' before it is declared
+    //                         name1.ToString(); name5.ToString(); // 0841: name5 is used before the declaration
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "name5").WithArguments("name5").WithLocation(18, 43),
+    // (22,30): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 foreach (var name2 in "string") name2.ToString(); // 0136: Native reports this on 'long name2' below; Roslyn reports it here, and above.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(22, 30),
+    // (24,55): error CS0128: A local variable named 'name3' is already defined in this scope
+    //             string @name3 = "string", other2 = name3, name3 = other2; // 0128: name3 is defined twice.
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "name3").WithArguments("name3").WithLocation(24, 55),
+    // (29,9): error CS0103: The name 'name6' does not exist in the current context
+    //         name6 = name3; // 0103 on both name6 and name3; not defined in this context.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "name6").WithArguments("name6").WithLocation(29, 9),
+    // (29,17): error CS0103: The name 'name3' does not exist in the current context
+    //         name6 = name3; // 0103 on both name6 and name3; not defined in this context.
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "name3").WithArguments("name3").WithLocation(29, 17),
+    // (19,32): warning CS0219: The variable 'name6' is assigned but its value is never used
+    //                         string name6 = "string";
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name6").WithArguments("name6").WithLocation(19, 32)
+
                 );
         }
 
@@ -868,30 +830,31 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         foreach (var name1 in "string")            // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (9,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             foreach (var name2 in "string")        // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
-                // (11,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 int name1 = name2.GetHashCode();     // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (17,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             int name1 = 1;                           // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (24,21): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 int name2 = 3;                       // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
-                // (27,25): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                     int name3 = 2;                   // 0136
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3"),
-                // (32,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         return (name1, name2) => name1;              // 0136 on both name1 and name2
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (32,24): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         return (name1, name2) => name1;              // 0136 on both name1 and name2
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"));
+    // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         foreach (var name1 in "string")            // 0136
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(7, 22),
+    // (9,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             foreach (var name2 in "string")        // 0136
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(9, 26),
+    // (11,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int name1 = name2.GetHashCode();     // 0136
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(11, 21),
+    // (17,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             int name1 = 1;                           // 0136
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 17),
+    // (24,21): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int name2 = 3;                       // 0136
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(24, 21),
+    // (27,25): error CS0412: 'name3': a parameter or local variable cannot have the same name as a method type parameter
+    //                     int name3 = 2;                   // 0136
+    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name3").WithArguments("name3").WithLocation(27, 25),
+    // (32,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         return (name1, name2) => name1;              // 0136 on both name1 and name2
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(32, 17),
+    // (32,24): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         return (name1, name2) => name1;              // 0136 on both name1 and name2
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(32, 24)
+);
         }
 
         [Fact]
@@ -912,18 +875,16 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (5,57): error CS0100: The parameter name 'name2' is a duplicate
-                //     public static void Method(int name1, int name2, int name2) // 0100 on name2
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "name2").WithArguments("name2").WithLocation(5, 57),
-                // (9,56): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(9, 56),
-                // (9,70): error CS0100: The parameter name 'name4' is a duplicate
-                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "name4").WithArguments("name4").WithLocation(9, 70),
-                // (9,77): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(9, 77));
+    // (5,57): error CS0100: The parameter name 'name2' is a duplicate
+    //     public static void Method(int name1, int name2, int name2) // 0100 on name2
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "name2").WithArguments("name2").WithLocation(5, 57),
+    // (9,56): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(9, 56),
+    // (9,77): error CS0412: 'name3': a parameter or local variable cannot have the same name as a method type parameter
+    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name3").WithArguments("name3").WithLocation(9, 77)
+    );
         }
 
         [Fact]
@@ -1015,27 +976,16 @@ class Base
     protected static long name2 = 12;
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (11,17): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Derived.name1'
-                // int name1 = 3, other = name1, name2 = other; // 0135: on name1 and name2.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"),
-                // (11,43): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Base.name2'
-                // int name1 = 3, other = name1, name2 = other; // 0135: on name1 and name2.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Base.name2", "name2", "field"),
-                // (24,21): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // int name3 = M(); // 0136: Native compiler says 0135, Roslyn says 0136. The conflict is with the other local.
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3"),
-                // (34,17): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Derived.name1'
-                // int name1 = 9, other = name1, name2 = other;  // 0135: on name1, name2
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"),
-                // (39,26): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // foreach (var name3 in "string") name3.ToString(); // 0136: Native compiler reports 0136 below, Roslyn reports it here.
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3"),
-                // (34,43): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Base.name2'
-                // int name1 = 9, other = name1, name2 = other;  // 0135: on name1, name2
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Base.name2", "name2", "field"),
-                // (6,17): warning CS0414: The field 'Derived.name1' is assigned but its value is never used
-                // static long name1 = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "name1").WithArguments("Derived.name1"));
+    // (24,21): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int name3 = M(); // 0136: Native compiler says 0135, Roslyn says 0136. The conflict is with the other local.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(24, 21),
+    // (39,26): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             foreach (var name3 in "string") name3.ToString(); // 0136: Native compiler reports 0136 below, Roslyn reports it here.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(39, 26),
+    // (6,17): warning CS0414: The field 'Derived.name1' is assigned but its value is never used
+    //     static long name1 = 1;
+    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "name1").WithArguments("Derived.name1").WithLocation(6, 17)
+);
         }
 
         [Fact]
@@ -1148,12 +1098,10 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (10,23): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // const int name1 = @name2; // 0136 on name1 because it conflicts with parameter
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (13,21): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name2'
-                // int name2 = name1; // 0135 because name2 conflicts with usage of name2 as Class.name2 above
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Class.name2", "name2", "field"));
+    // (10,23): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             const int name1 = @name2; // 0136 on name1 because it conflicts with parameter
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(10, 23)
+);
         }
 
         [Fact]
@@ -1277,11 +1225,7 @@ class Class
         //End
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-    // (7,22): error CS0135: A local, parameter or range variable named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.y'
-    //         foreach (var y in new[] {new { y = y }}){ }
-    Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "y").WithArguments("Class.y", "y", "field")
-);
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
 
@@ -1320,27 +1264,22 @@ class Class : System.IDisposable
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (15,24): error CS0135: A local, parameter or range variable named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name3'
-                // using (var name3 = new Class()) // 0135 because name3 above refers to this.name3
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name3").WithArguments("Class.name3", "name3", "field"),
-                // (17,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // int name1 = 2;  // 0136 on name1 
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (20,20): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // using (var name2 = new Class()) // 0136 on name2. 
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors.
-
-                // (17,21): warning CS0219: The variable 'name1' is assigned but its value is never used
-                // int name1 = 2;  // 0136 on name1 
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1"),
-                // (22,17): warning CS0219: The variable 'name1' is assigned but its value is never used
-                // int name1 = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1"),
-                // (27,17): warning CS0219: The variable 'name1' is assigned but its value is never used
-                // int name1 = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1"));
+    // (17,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 int name1 = 2;  // 0136 on name1 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 21),
+    // (20,20): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         using (var name2 = new Class()) // 0136 on name2. 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(20, 20),
+    // (17,21): warning CS0219: The variable 'name1' is assigned but its value is never used
+    //                 int name1 = 2;  // 0136 on name1 
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1").WithLocation(17, 21),
+    // (22,17): warning CS0219: The variable 'name1' is assigned but its value is never used
+    //             int name1 = 2;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1").WithLocation(22, 17),
+    // (27,17): warning CS0219: The variable 'name1' is assigned but its value is never used
+    //             int name1 = 2;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1").WithLocation(27, 17)
+);
         }
 
         [Fact]
@@ -1365,10 +1304,7 @@ class Class
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (14,27): error CS0135: A local, parameter or range variable named 'name' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name'
-                // const int name = 0; // 0135 because name above means 'this.name'.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name").WithArguments("Class.name", "name", "field"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1419,26 +1355,22 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (10,18): error CS0844: Cannot use local variable 'name1' before it is declared. 
-                // The declaration of the local variable hides the field 'Class.name1'.
-                // case name1: break; // 0844
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclarationAndHidesField, "name1").WithArguments("name1", "Class.name1"),
-                // (12,21): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because 
-                // that name is used in an enclosing local scope to refer to field 'Class.name1'
-                // int name1 = 2; // 0135: because 'name1' above means 'this.name1'. Native compiler reports 0136.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Class.name1", "name1", "field"),
-                // (18,21): error CS0128: A local variable named 'name2' is already defined in this scope
-                // var name2 = M(); // 0128
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "name2").WithArguments("name2"),
-                // (31,29): error CS0136: A local or parameter named 'name4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // int name4 = 8, name5 = 9;   // 0136 on name4
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name4").WithArguments("name4"),
-                // (31,40): error CS0136: A local or parameter named 'name5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // int name4 = 8, name5 = 9;   // 0136 on name4, name5
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5"),
-                // (35,26): error CS0136: A local or parameter named 'name6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // for (int name6 = 10; ; ) // 0136 on name6
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name6").WithArguments("name6"));
+    // (10,18): error CS0844: Cannot use local variable 'name1' before it is declared. The declaration of the local variable hides the field 'Class.name1'.
+    //             case name1: break;                      // 0844: use of 'int name1' below before it is declared -- surprising error, but correct. Also notes that local name1 hides field.
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclarationAndHidesField, "name1").WithArguments("name1", "Class.name1").WithLocation(10, 18),
+    // (18,21): error CS0128: A local variable named 'name2' is already defined in this scope
+    //                 var name2 = M();                      // 0128 on name2; switch sections share the same declaration space
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "name2").WithArguments("name2").WithLocation(18, 21),
+    // (31,29): error CS0136: A local or parameter named 'name4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                         int name4 = 8, name5 = 9;   // 0136 on name4, name5
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name4").WithArguments("name4").WithLocation(31, 29),
+    // (31,40): error CS0136: A local or parameter named 'name5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                         int name4 = 8, name5 = 9;   // 0136 on name4, name5
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5").WithLocation(31, 40),
+    // (36,26): error CS0136: A local or parameter named 'name6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 for (int name6 = 10; ; ) // 0136 on name6; Native compiler reports 0136 on name6 below.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name6").WithArguments("name6").WithLocation(36, 26)
+);
         }
 
         [Fact]
@@ -1516,20 +1448,20 @@ class Derived : Base
             {
                 Console.WriteLine(name1);
             }
-            catch (ArgumentException name1)             // 0135: name1 means 'Derived.name1' above. Native compiler reports 0136 here.
+            catch (ArgumentException name1)             
             {
                 Console.WriteLine(name1.Message);
             }
-            catch (Exception name2)                     // 0135: name2 means 'Base.name2' below. Roslyn reports here, native compiler reports below.
+            catch (Exception name2)                     
             {
                 Console.WriteLine(name2.Message);
             }
-            Console.WriteLine(name2);                   // Native compiler reports 0135 here, Roslyn reports it above.
+            Console.WriteLine(name2);                   
         }
         {
             try
             {
-                var name4 = string.Empty;             // 0136: Roslyn reports this here; native reports it below.
+                var name4 = string.Empty;             
                 Console.WriteLine(name1);
 
             }
@@ -1546,7 +1478,7 @@ class Derived : Base
                     System.Console.WriteLine(name1.Message);
                 }
             }
-            var name4 = string.Empty;  // Native reports 0136 here; Roslyn reports it above.
+            var name4 = string.Empty;  // Native reports 0136 here; 
         }
     }
 }
@@ -1555,24 +1487,17 @@ class Base
     protected static long name2 = 2;
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (14,38): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in 
-                // this scope because that name is used in an enclosing local scope to refer to field 'Derived.name1'
-                // catch (ArgumentException name1) // 0135: name1 means 'Derived.name1' above. Native compiler reports 0136 here.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Derived.name1", "name1", "field"),
-                // (18,30): error CS0135: A local, parameter or range variable named 'name2' cannot be declared in
-                // this scope because that name is used in an enclosing local scope to refer to field 'Base.name2'
-                // catch (Exception name2) // 0135: name2 means 'Base.name2' below. Roslyn reports here, native compiler reports below.
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name2").WithArguments("Base.name2", "name2", "field"),
-                // (27,21): error CS0136: A local or parameter named 'name4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // var name4 = string.Empty;             // 0136: Roslyn reports this here; native reports it below.
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name4").WithArguments("name4"),
-                // (38,34): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // catch (Exception name1)         // 0136 on name1
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1"),
-                // (40,25): error CS0136: A local or parameter named 'name5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // var name5 = string.Empty;   // 0136 on name5
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5"));
-        }
+    // (27,21): error CS0136: A local or parameter named 'name4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 var name4 = string.Empty;             // 0136: Roslyn reports this here; native reports it below.
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name4").WithArguments("name4").WithLocation(27, 21),
+    // (38,34): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 catch (Exception name1)         // 0136 on name1
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(38, 34),
+    // (40,25): error CS0136: A local or parameter named 'name5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                     var name5 = string.Empty;   // 0136 on name5
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5").WithLocation(40, 25)
+    );
+    }
 
         [Fact]
         public void DifferentArities()
@@ -1698,24 +1623,12 @@ partial class Class
     }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (13,35): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name1'
-                //                 var query1 = from name1 in "string"   // 1931 -- UNDONE change to 0135 because name1 above refers to Class.name1
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Class.name1", "name1", "field").WithLocation(13, 35),
-                // (16,34): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name1'
-                //                              let name1 = 1              // 1931 -- UNDONE change to 0135 because name1 above refers to Class.name1
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Class.name1", "name1", "field").WithLocation(16, 34),
-                // (19,34): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name1'
-                //                             from name1 in "string"    // 1931 -- UNDONE change to 0135 because name1 above refers to Class.name1   
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Class.name1", "name1", "field").WithLocation(19, 34),
-                // (21,87): error CS0135: A local, parameter or range variable named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Class.name1'
-                //                                                  group other by other.ToString() into name1  // 1931 -- UNDONE change to 0135 because name1 above refers to Class.name1
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "name1").WithArguments("Class.name1", "name1", "field").WithLocation(21, 87),
-                // (26,34): error CS1930: The range variable 'name2' has already been declared
-                //                              let name2 = 2               // 1930
-                Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(26, 34),
-                // (29,34): error CS1930: The range variable 'name2' has already been declared
-                //                             from name2 in name1.ToString()  // 1930
-                Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(29, 34)
+    // (26,34): error CS1930: The range variable 'name2' has already been declared
+    //                              let name2 = 2               // 1930
+    Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(26, 34),
+    // (29,34): error CS1930: The range variable 'name2' has already been declared
+    //                             from name2 in name1.ToString()  // 1930
+    Diagnostic(ErrorCode.ERR_QueryDuplicateRangeVariable, "name2").WithArguments("name2").WithLocation(29, 34)
                 );
         }
 
@@ -1903,21 +1816,7 @@ class Outer
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (17,41): error CS7040: The method 'Outer.M()' cannot be used in this local scope because that name
-                // has been used in an enclosing scope to refer to field 'Outer.Inner.M'
-                //             Action a = () => { int x2 = M(); };
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "M").WithArguments("method", "Outer.M()", "field", "Outer.Inner.M"),
-                // (22,41): error CS7040: The method 'Outer.M()' cannot be used in this local scope because that name has been used in an enclosing scope to refer to field 'Outer.Inner.M'
-                //             Action a = () => { int x2 = M(); };
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "M").WithArguments("method", "Outer.M()", "field", "Outer.Inner.M"),
-                // (29,41): error CS7040: The field 'Outer.Inner.M' cannot be used in this local scope because that name has been used in an enclosing scope to refer to method 'Outer.M()'
-                //             Action a = () => { int x2 = M; };
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "M").WithArguments("field", "Outer.Inner.M", "method", "Outer.M()"),
-                // (34,41): error CS7040: The field 'Outer.Inner.M' cannot be used in this local scope because that name has been used in an enclosing scope to refer to method 'Outer.M()'
-                //             Action a = () => { int x2 = M; };
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "M").WithArguments("field", "Outer.Inner.M", "method", "Outer.M()")
-                );
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [WorkItem(835569, "DevDiv")]
@@ -1937,13 +1836,8 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (9,41): error CS1955: Non-invocable member 'System.Reflection.Assembly' cannot be used like a method.
-    //         Console.WriteLine(string.Join < Assembly(Environment.NewLine, Assembly.GetEntryAssembly().GetReferencedAssemblies()));
-    Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Assembly").WithArguments("System.Reflection.Assembly").WithLocation(9, 41),
-    // (9,71): error CS7039: The type 'System.Reflection.Assembly' cannot be used in this local scope because that name has been used to refer to element 'System.Reflection.Assembly'
-    //         Console.WriteLine(string.Join < Assembly(Environment.NewLine, Assembly.GetEntryAssembly().GetReferencedAssemblies()));
-    Diagnostic(ErrorCode.ERR_NameIllegallyOverrides2, "Assembly").WithArguments("type", "System.Reflection.Assembly", "element", "System.Reflection.Assembly").WithLocation(9, 71)
-);
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Assembly").WithArguments("System.Reflection.Assembly").WithLocation(9, 41)
+                );
         }
     }
 }

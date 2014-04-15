@@ -3611,8 +3611,7 @@ public class MyClass2
       i = 0;   // Native compiler reports the error here
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_NameIllegallyOverrides, Line = 9, Column = 14 } });
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [Fact]
@@ -3631,12 +3630,10 @@ class Test
                 select x;
     }
 }").VerifyDiagnostics(
-                // (10,22): error CS0135: A local, parameter or range variable named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to refer to field 'Test.x'
-                //         var y = from x in Enumerable.Range(1, 100) // CS1931
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "x").WithArguments("Test.x", "x", "field"),
-                // (6,16): warning CS0649: Field 'Test.x' is never assigned to, and will always have its default value 0
-                //     static int x;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Test.x", "0"));
+    // (6,16): warning CS0649: Field 'Test.x' is never assigned to, and will always have its default value 0
+    //     static int x;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Test.x", "0").WithLocation(6, 16)
+);
         }
 
         [Fact]

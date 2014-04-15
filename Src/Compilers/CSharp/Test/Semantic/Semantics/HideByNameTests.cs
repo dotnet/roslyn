@@ -771,8 +771,7 @@ public class M
         x = xs.Length;
     }
 }
-").VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "x").WithArguments("M.x", "x", "field"));
+").VerifyDiagnostics();
 
             CreateCompilationWithMscorlib(@"
 using System;
@@ -793,8 +792,7 @@ public class M
         }
     }
 }
-").VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides, "x").WithArguments("M.x", "x", "field"));
+").VerifyDiagnostics();
 
             CreateCompilationWithMscorlib(@"
 using System;

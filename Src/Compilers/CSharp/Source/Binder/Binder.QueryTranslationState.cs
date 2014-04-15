@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!error)
                 {
                     var collisionDetector = new LocalScopeBinder(binder);
-                    collisionDetector.EnsureDeclarationInvariantMeaningInScope(result, diagnostics);
+                    collisionDetector.ValidateDeclarationNameConflictsInScope(result, diagnostics);
                 }
 
                 allRangeVariables.Add(result, ArrayBuilder<string>.GetInstance());

@@ -1300,15 +1300,21 @@ class C : I
 }
 ";
             var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,31): error CS0100: The parameter name 'b' is a duplicate
-                //         void M1(byte b, sbyte b);
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "b").WithArguments("b"),
-                // (10,45): error CS0100: The parameter name 'p' is a duplicate
-                //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p"),
-                // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
-                //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
-                Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string")
+    // (5,31): error CS0100: The parameter name 'b' is a duplicate
+    //         void M1(byte b, sbyte b);
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "b").WithArguments("b").WithLocation(5, 31),
+    // (10,45): error CS0100: The parameter name 'p' is a duplicate
+    //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 45),
+    // (10,59): error CS0100: The parameter name 'p' is a duplicate
+    //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 59),
+    // (10,77): error CS0100: The parameter name 'p' is a duplicate
+    //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
+    Diagnostic(ErrorCode.ERR_DuplicateParamName, "p").WithArguments("p").WithLocation(10, 77),
+    // (10,82): error CS0229: Ambiguity between 'object' and 'ref string'
+    //         public void M2(object p, ref string p, ref string p, params ulong[] p) { p = null; }
+    Diagnostic(ErrorCode.ERR_AmbigMember, "p").WithArguments("object", "ref string").WithLocation(10, 82)
                 );
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,16 +15,34 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly LambdaSymbol lambdaSymbol;
         protected readonly MultiDictionary<string, ParameterSymbol> parameterMap;
+        private SmallDictionary<string, ParameterSymbol> definitionMap;
 
         public WithLambdaParametersBinder(LambdaSymbol lambdaSymbol, Binder enclosing)
             : base(lambdaSymbol, enclosing)
         {
-            ForceSingleDefinitions(lambdaSymbol.Parameters);
             this.lambdaSymbol = lambdaSymbol;
             this.parameterMap = new MultiDictionary<string, ParameterSymbol>();
-            foreach (var parameter in lambdaSymbol.Parameters)
+
+            var parameters = lambdaSymbol.Parameters;
+            if (!parameters.IsDefaultOrEmpty)
             {
-                this.parameterMap.Add(parameter.Name, parameter);
+                RecordDefinitions(parameters);
+                foreach (var parameter in lambdaSymbol.Parameters)
+                {
+                    this.parameterMap.Add(parameter.Name, parameter);
+                }
+            }
+        }
+
+        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
+        {
+            var declarationMap = this.definitionMap ?? (this.definitionMap = new SmallDictionary<string, ParameterSymbol>());
+            foreach (var s in definitions)
+            {
+                if (!declarationMap.ContainsKey(s.Name))
+                {
+                    declarationMap.Add(s.Name, s);
+                }
             }
         }
 
@@ -91,6 +110,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        {
+            if (parameter.Locations[0] == newLocation)
+            {
+                // a query variable and its corresponding lambda parameter, for example
+                return false;
+            }
+
+            var oldLocation = parameter.Locations[0];
+
+            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
+
+            SymbolKind parameterKind = parameter.Kind;
+            // Quirk of the way we represent lambda parameters.                
+            SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
+
+            if (newSymbolKind == SymbolKind.ErrorType) return true;
+
+            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+            {
+                // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
+                diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                return true;
+            }
+
+            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+            {
+                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                return true;
+            }
+
+            if (newSymbolKind == SymbolKind.RangeVariable)
+            {
+                // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                return true;
+            }
+
+            Debug.Assert(false, "what else could be defined in a lambda?");
+            return false;
+        }
+
+
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        {
+            ParameterSymbol existingDeclaration;
+            var map = this.definitionMap;
+            if (map != null && map.TryGetValue(name, out existingDeclaration))
+            {
+                return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);
+            }
+
+            return false;
         }
     }
 }

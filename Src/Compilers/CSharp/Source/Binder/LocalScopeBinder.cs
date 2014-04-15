@@ -210,24 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.LookupLocal(nameToken);
         }
 
-        protected override bool CanHaveMultipleMeanings(string name)
-        {
-            var singelMeaningTable = this.singleMeaningTable;
-            if (singelMeaningTable != null)
-            {
-                lock (singleMeaningTable)
-                {
-                    if (singleMeaningTable.ContainsKey(name))
-                    {
-                        // we already have reasons for tracking this name
-                        return true;
-                    }
-                }
-            }
-
-            return base.CanHaveMultipleMeanings(name);
-        }
-
         protected override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -283,6 +265,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private bool ReportConflictWithLocal(LocalSymbol local, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        {
+            // Quirk of the way we represent lambda parameters.                
+            SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
+
+            if (newSymbolKind == SymbolKind.ErrorType) return true;
+
+            if (newSymbolKind == SymbolKind.Local)
+            {
+                if (this.Locals.Contains((LocalSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
+                {
+                    // A local variable named '{0}' is already defined in this scope
+                    diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
+                    return true;
+                }
+            }
+
+            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter)
+            { 
+                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                return true;
+            }
+
+            if (newSymbolKind == SymbolKind.RangeVariable)
+            {
+                // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                return true;
+            }
+
+            Debug.Assert(false, "what else can be declared inside a local scope?");
+            return false;
+        }
+
+
+        internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        {
+            LocalSymbol existingLocal;
+            var map = this.LocalsMap;
+            if (map != null && map.TryGetValue(name, out existingLocal))
+            {
+                if (symbol == existingLocal)
+                {
+                    // reference to same symbol, by far the most common case.
+                    return false;
+                }
+
+                return ReportConflictWithLocal(existingLocal, symbol, name, location, diagnostics);
+            }
+
+            return false;
         }
     }
 }

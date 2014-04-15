@@ -3994,15 +3994,13 @@ class C
             Assert.Equal(SpecialType.System_Int32, ((Symbol)info2.Symbol).GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().SpecialType);
 
             comp.VerifyDiagnostics(
-                // (9,34): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         var q = from e in "" let x = 2 select x;
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x"),
-                // (9,47): error CS7040: The variable 'x' cannot be used in this local scope because that name has been used in an enclosing scope to refer to variable 'x'
-                //         var q = from e in "" let x = 2 select x;
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "x").WithArguments("variable", "x", "variable", "x"),
-                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         var x = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+    // (9,34): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+    //         var q = from e in "" let x = 2 select x;
+    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(9, 34),
+    // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+    //         var x = 0;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13)
+);
         }
 
         /// <summary>
@@ -4047,16 +4045,14 @@ class C
             Assert.Equal(SpecialType.System_Int32, ((Symbol)info2.Symbol).GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().SpecialType);
 
             comp.VerifyDiagnostics(
-                // (9,34): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         var q = from e in "" let x = 2 select x;
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x"),
-                // (9,47): error CS7040: The variable 'x' cannot be used in this local scope because that name has been used in an enclosing scope to refer to variable 'x'
-                //         var q = from e in "" let x = 2 select x;
-                Diagnostic(ErrorCode.ERR_NameIllegallyOverrides3, "x").WithArguments("variable", "x", "variable", "x"),
-                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         var x = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
-        }
+    // (9,34): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+    //         var q = from e in "" let x = 2 select x;
+    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(9, 34),
+    // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+    //         var x = 0;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13)
+    );
+       }
 
         [WorkItem(546263, "DevDiv")]
         [Fact]

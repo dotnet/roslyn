@@ -40,12 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override bool CanHaveMultipleMeanings(string name)
-        {
-            // everything can have multiple meanings unless proven otherwise.
-            return true;
-        }
-
         internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
@@ -174,14 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        protected override bool EnsureInvariantMeaningInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics, Symbol colorColorVariable = null)
-        {
-            // This should never happen in the batch compiler, but it may occur as a result of API accesses
-            // (if there's no LocalScopeBinder or other overrider in the chain).  Just indicate that no errors
-            // need to be reported.
-            return false;
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables
