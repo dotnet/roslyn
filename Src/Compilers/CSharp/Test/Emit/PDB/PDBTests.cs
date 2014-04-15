@@ -4,6 +4,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4658,6 +4660,37 @@ public class C
             AssertXmlEqual(expected, actual);
         }
 
+        [Fact]
+        public void SymWriterErrors()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+
+            // Verify full metadata contains expected rows.
+            using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    executableStream: peStream,
+                    outputName: null,
+                    pdbFilePath: null,
+                    pdbStream: pdbStream,
+                    xmlDocStream: null,
+                    cancellationToken: default(CancellationToken),
+                    win32Resources: null,
+                    manifestResources: null,
+                    moduleVersionId: Guid.NewGuid(),
+                    metadataOnly: false,
+                    testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
+            }
+
+        }
     }
 }
 

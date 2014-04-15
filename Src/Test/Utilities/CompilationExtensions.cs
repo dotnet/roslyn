@@ -88,38 +88,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static CompilationDifference EmitDifference(
             this Compilation compilation,
             EmitBaseline baseline,
-            ImmutableArray<SemanticEdit> edits)
+            ImmutableArray<SemanticEdit> edits,
+            CompilationTestData testData = null)
         {
-            Stream pdbStream;
-            CompilationTestData testData = new CompilationTestData();
-
+            testData = testData ?? new CompilationTestData();
             var pdbName = Path.ChangeExtension(compilation.SourceModule.Name, "pdb");
-            pdbStream = new MemoryStream();
-            using (var pdbWriter = new Cci.PdbWriter(pdbName, new ComStreamWrapper(pdbStream)))
+
+            // keep the stream open, it's passed to CompilationDifference
+            var pdbStream = new MemoryStream();
+
+            using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream())
             {
-                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream())
-                {
-                    var updatedMethodTokens = new List<uint>();
-                    var result = compilation.EmitDifference(
-                        baseline,
-                        edits,
-                        mdStream,
-                        ilStream,
-                        pdbStream,
-                        updatedMethodTokens,
-                        testData,
-                        default(CancellationToken));
+                var updatedMethodTokens = new List<uint>();
 
-                    pdbStream.Seek(0, SeekOrigin.Begin);
+                var result = compilation.EmitDifference(
+                    baseline,
+                    edits,
+                    mdStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethodTokens,
+                    testData,
+                    default(CancellationToken));
 
-                    return new CompilationDifference(
-                        mdStream.ToImmutable(),
-                        ilStream.ToImmutable(),
-                        pdbStream,
-                        result.Baseline,
-                        testData,
-                        result);
-                }
+                pdbStream.Seek(0, SeekOrigin.Begin);
+
+                return new CompilationDifference(
+                    mdStream.ToImmutable(),
+                    ilStream.ToImmutable(),
+                    pdbStream,
+                    result.Baseline,
+                    testData,
+                    result);
             }
         }
     }

@@ -126,6 +126,7 @@
     <Compile Include="MetadataReader\TypeAttributesMissing.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
+    <Compile Include="MockSymWriter.cs" />
     <Compile Include="ObjectReference.cs" />
     <Compile Include="PinnedMetadata.cs" />
     <Compile Include="ProcessLauncher.cs" />

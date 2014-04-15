@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,21 +22,8 @@ namespace Microsoft.Cci
     internal sealed class PdbWritingException : Exception
     {
         internal PdbWritingException(Exception inner) :
-            base(null, inner)
+            base(inner.Message, inner)
         {
-        }
-
-        internal PdbWritingException(string message) :
-            base(message)
-        {
-        }
-
-        public override string Message
-        {
-            get
-            {
-                return (InnerException != null ? InnerException.Message : base.Message);
-            }
         }
     }
 
@@ -43,6 +31,7 @@ namespace Microsoft.Cci
     {
         private readonly ComStreamWrapper stream;
         private readonly string fileName;
+        private readonly Func<object> symWriterFactory;
         private ISymUnmanagedWriter2 symWriter;
 
         private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
@@ -54,10 +43,11 @@ namespace Microsoft.Cci
         private uint[] sequencePointEndLines;
         private uint[] sequencePointEndColumns;
 
-        public PdbWriter(string fileName, ComStreamWrapper stream)
+        public PdbWriter(string fileName, Stream stream, Func<object> symWriterFactory = null)
         {
-            this.stream = stream;
+            this.stream = new ComStreamWrapper(stream);
             this.fileName = fileName;
+            this.symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
         }
 
@@ -538,7 +528,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                var instance = (ISymUnmanagedWriter2)Activator.CreateInstance(GetCorSymWriterSxSType());
+                var instance = (ISymUnmanagedWriter2)(symWriterFactory != null ? symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
                 instance.Initialize(new PdbMetadataWrapper(peWriter), this.fileName, this.stream, true);
 
                 this.symWriter = instance;

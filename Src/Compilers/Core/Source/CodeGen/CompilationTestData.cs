@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly ConcurrentDictionary<string, MethodData> Methods = new ConcurrentDictionary<string, MethodData>();
 
         // The emitted module.
-        public Microsoft.Cci.IModule Module;
+        public Cci.IModule Module;
+
+        public Func<object> SymWriterFactory;
     }
 }

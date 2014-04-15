@@ -3619,6 +3619,40 @@ End Module
 
 #End Region
 
+        <Fact>
+        Public Sub SymWriterErrors()
+            Dim source0 = "
+Class C 
+End Class
+"
+
+            Dim source1 = "
+Class C
+    Sub Main
+    End Sub
+End Class
+"
+
+            Dim compilation0 = CreateCompilationWithMscorlib({source0}, compOptions:=Options.UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlib({source1}, compOptions:=Options.UnoptimizedDll)
+
+            ' Verify full metadata contains expected rows.
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+
+                Dim diff1 = compilation1.EmitDifference(
+                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
+                    New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
+
+                diff1.Result.Diagnostics.Verify(
+                    Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("The method or operation is not implemented."))
+
+                Assert.False(diff1.Result.Success)
+            End Using
+        End Sub
+
+
 #Region "Helpers"
         Private Shared ReadOnly EmptyLocalsProvider As LocalVariableNameProvider = Function(token) ImmutableArray(Of String).Empty
 

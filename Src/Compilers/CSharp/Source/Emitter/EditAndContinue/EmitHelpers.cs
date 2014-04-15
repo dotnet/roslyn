@@ -38,75 +38,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var pdbName = PathUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
 
-            using (var pdbWriter = new Cci.PdbWriter(pdbName, new ComStreamWrapper(pdbStream)))
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(diagnostics);
+            var serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);
+            var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
+
+            var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
+                compilation.SourceAssembly,
+                outputName: null,
+                outputKind: compilation.Options.OutputKind,
+                serializationProperties: serializationProperties,
+                manifestResources: manifestResources,
+                assemblySymbolMapper: null,
+                previousGeneration: baseline,
+                edits: edits);
+
+            if (testData != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(diagnostics);
-                var serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);
-                var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
-
-                var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
-                    compilation.SourceAssembly,
-                    outputName: null,
-                    outputKind: compilation.Options.OutputKind,
-                    serializationProperties: serializationProperties,
-                    manifestResources: manifestResources,
-                    assemblySymbolMapper: null,
-                    previousGeneration: baseline,
-                    edits: edits);
-
-                if (testData != null)
-                {
-                    moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                    testData.Module = moduleBeingBuilt;
-                }
-
-                baseline = moduleBeingBuilt.PreviousGeneration;
-
-                var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-                var changes = moduleBeingBuilt.Changes;
-
-                if (compilation.Compile(
-                    moduleBeingBuilt,
-                    outputName: null,
-                    manifestResources: manifestResources,
-                    win32Resources: null,
-                    xmlDocStream: null,
-                    cancellationToken: cancellationToken,
-                    metadataOnly: false,
-                    generateDebugInfo: true,
-                    diagnostics: diagnostics,
-                    filter: changes.HasChanged,
-                    hasDeclarationErrors: false))
-                {
-                    var context = new Context((Cci.IModule)moduleBeingBuilt, null, diagnostics);
-
-                    // Map the definitions from the previous compilation to the current compilation.
-                    // This must be done after compiling above since synthesized definitions
-                    // (generated when compiling method bodies) may be required.
-                    baseline = MapToCompilation(compilation, moduleBeingBuilt);
-
-                    var encId = Guid.NewGuid();
-                    var writer = new DeltaPeWriter(
-                        context,
-                        compilation.MessageProvider,
-                        pdbWriter,
-                        baseline,
-                        encId,
-                        definitionMap,
-                        changes,
-                        cancellationToken);
-                    writer.WriteMetadataAndIL(metadataStream, ilStream);
-                    writer.GetMethodTokens(updatedMethodTokens);
-
-                    return new EmitDifferenceResult(
-                        success: true,
-                        diagnostics: diagnostics.ToReadOnlyAndFree(),
-                        baseline: writer.GetDelta(baseline, compilation, encId));
-                }
-
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+                moduleBeingBuilt.SetMethodTestData(testData.Methods);
+                testData.Module = moduleBeingBuilt;
             }
+
+            baseline = moduleBeingBuilt.PreviousGeneration;
+
+            var definitionMap = moduleBeingBuilt.PreviousDefinitions;
+            var changes = moduleBeingBuilt.Changes;
+
+            if (compilation.Compile(
+                moduleBeingBuilt,
+                outputName: null,
+                manifestResources: manifestResources,
+                win32Resources: null,
+                xmlDocStream: null,
+                cancellationToken: cancellationToken,
+                metadataOnly: false,
+                generateDebugInfo: true,
+                diagnostics: diagnostics,
+                filter: changes.HasChanged,
+                hasDeclarationErrors: false))
+            {
+                // Map the definitions from the previous compilation to the current compilation.
+                // This must be done after compiling above since synthesized definitions
+                // (generated when compiling method bodies) may be required.
+                baseline = MapToCompilation(compilation, moduleBeingBuilt);
+
+                using (var pdbWriter = new Cci.PdbWriter(pdbName, pdbStream, (testData != null) ? testData.SymWriterFactory : null))
+                {
+                    var context = new Context(moduleBeingBuilt, null, diagnostics);
+                    var encId = Guid.NewGuid();
+
+                    try
+                    {
+                        var writer = new DeltaPeWriter(
+                            context,
+                            compilation.MessageProvider,
+                            pdbWriter,
+                            baseline,
+                            encId,
+                            definitionMap,
+                            changes,
+                            cancellationToken);
+                    
+                        writer.WriteMetadataAndIL(metadataStream, ilStream);
+                        writer.GetMethodTokens(updatedMethodTokens);
+
+                        return new EmitDifferenceResult(
+                            success: true,
+                            diagnostics: diagnostics.ToReadOnlyAndFree(),
+                            baseline: writer.GetDelta(baseline, compilation, encId));
+                    }
+                    catch (Cci.PdbWritingException e)
+                    {
+                        diagnostics.Add(ErrorCode.FTL_DebugEmitFailure, Location.None, e.Message);
+                    }
+                    catch (PermissionSetFileReadException e)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message);
+                    }
+                }
+            }
+
+            return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
         }
 
         /// <summary>

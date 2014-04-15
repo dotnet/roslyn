@@ -7141,6 +7141,38 @@ public interface IB
             }
         }
 
+        [Fact]
+        public void SymWriterErrors()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var diff1 = compilation1.EmitDifference(
+                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
+                    new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+
+                diff1.Result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
+
+                Assert.False(diff1.Result.Success);
+            }
+        }
+
         #region Helpers 
 
         private static readonly LocalVariableNameProvider EmptyLocalsProvider = token => ImmutableArray<string>.Empty;

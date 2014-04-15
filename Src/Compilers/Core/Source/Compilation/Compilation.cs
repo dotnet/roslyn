@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1288,8 +1287,10 @@ namespace Microsoft.CodeAnalysis
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
         /// name of the compilation, may not be visible at runtime and vice-versa.
         /// </param>
-        /// <param name="pdbFilePath">The name of the PDB file - embedded in the output.  Null to infer from the stream or the compilation.
-        /// Ignored unless pdbStream is non-null.
+        /// <param name="pdbFilePath">
+        /// The name of the PDB file embedded in the PE image. 
+        /// If not specified, the file name of the source module with an extension changed to "pdb" is used.
+        /// Ignored unless <paramref name="pdbStream"/> is non-null.
         /// </param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
@@ -1351,10 +1352,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("outputPath");
             }
 
-            using (var outputStream = System.IO.File.Create(outputPath))
-            using (var pdbStream = (pdbPath == null ? null : System.IO.File.Create(pdbPath)))
-            using (var xmlDocStream = (xmlDocPath == null ? null : System.IO.File.Create(xmlDocPath)))
-            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : System.IO.File.OpenRead(win32ResourcesPath)))
+            using (var outputStream = File.Create(outputPath))
+            using (var pdbStream = (pdbPath == null ? null : File.Create(pdbPath)))
+            using (var xmlDocStream = (xmlDocPath == null ? null : File.Create(xmlDocPath)))
+            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : File.OpenRead(win32ResourcesPath)))
             {
                 return Emit(
                     outputStream,
@@ -1414,8 +1415,8 @@ namespace Microsoft.CodeAnalysis
         /// subsequent Edit and Continue.
         /// </summary>
         public EmitDifferenceResult EmitDifference(
-            Microsoft.CodeAnalysis.Emit.EmitBaseline baseline,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -1454,8 +1455,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal abstract EmitDifferenceResult EmitDifference(
-            Microsoft.CodeAnalysis.Emit.EmitBaseline baseline,
-            IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit> edits,
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -1525,7 +1526,16 @@ namespace Microsoft.CodeAnalysis
 
                     success =
                         moduleBeingBuilt != null &&
-                        SerializeToPeStream((Cci.IModule)moduleBeingBuilt, executableStream, pdbFilePath, pdbStream, diagnostics, metadataOnly, this.Options.Optimize, cancellationToken);
+                        SerializeToPeStream(
+                            (Cci.IModule)moduleBeingBuilt, 
+                            executableStream, 
+                            pdbFilePath, 
+                            pdbStream, 
+                            (testData != null) ? testData.SymWriterFactory : null,  
+                            diagnostics,
+                            metadataOnly, 
+                            Options.Optimize,
+                            cancellationToken);
                 }
 
                 return MakeEmitResult(success, diagnostics.ToReadOnly());
@@ -1537,6 +1547,7 @@ namespace Microsoft.CodeAnalysis
             Stream executableStream,
             string pdbFileName,
             Stream pdbStream,
+            Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool foldIdenticalMethodBodies,
@@ -1555,17 +1566,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (pdbStream != null)
                     {
-                        if (pdbFileName == null)
-                        {
-                            //try to choose a reasonable pdb file name.
-                            var fileStream = pdbStream as FileStream;
-                            pdbFileName = PathUtilities.ChangeExtension((fileStream != null) ?
-                                PathUtilities.GetFileName(fileStream.Name) :
-                                this.SourceModule.Name,
-                                "pdb");
-                        }
-
-                        pdbWriter = new Cci.PdbWriter(pdbFileName, new ComStreamWrapper(pdbStream));
+                        pdbWriter = new Cci.PdbWriter(pdbFileName ?? PathUtilities.ChangeExtension(SourceModule.Name, "pdb"), pdbStream, testSymWriterFactory);
                     }
 
                     // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
@@ -1587,46 +1588,21 @@ namespace Microsoft.CodeAnalysis
                         outputStream = executableStream;
                     }
 
+                    metadataDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
-                        metadataDiagnostics = DiagnosticBag.GetInstance();
-
-                        try
-                        {
-                            Cci.PeWriter.WritePeToStream(
-                                    new Microsoft.CodeAnalysis.Emit.Context(moduleBeingBuilt, null, metadataDiagnostics),
-                                    this.MessageProvider,
-                                    outputStream,
-                                    pdbWriter,
-                                    metadataOnly,
-                                    foldIdenticalMethodBodies,
-                                    cancellationToken);
-                        }
-                        catch (Microsoft.Cci.PdbWritingException ex)
-                        {
-                            diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
-                        }
-
-                        // translate metadata errors.
-                        if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
-                        {
-                            return false;
-                        }
-
-                        if (signingInputStream != null)
-                        {
-                            Debug.Assert(Options.StrongNameProvider != null);
-
-                            try
-                            {
-                                Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, executableStream);
-                            }
-                            catch (IOException ex)
-                            {
-                                diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
-                                return false;
-                            }
-                        }
+                        Cci.PeWriter.WritePeToStream(
+                                new Context(moduleBeingBuilt, null, metadataDiagnostics),
+                                this.MessageProvider,
+                                outputStream,
+                                pdbWriter,
+                                metadataOnly,
+                                foldIdenticalMethodBodies,
+                                cancellationToken);
+                    }
+                    catch (Cci.PdbWritingException ex)
+                    {
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
                     }
                     catch (ResourceException e)
                     {
@@ -1637,6 +1613,27 @@ namespace Microsoft.CodeAnalysis
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
                         return false;
+                    }
+
+                    // translate metadata errors.
+                    if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
+                    {
+                        return false;
+                    }
+
+                    if (signingInputStream != null)
+                    {
+                        Debug.Assert(Options.StrongNameProvider != null);
+
+                        try
+                        {
+                            Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, executableStream);
+                        }
+                        catch (IOException ex)
+                        {
+                            diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
+                            return false;
+                        }
                     }
                 }
                 finally

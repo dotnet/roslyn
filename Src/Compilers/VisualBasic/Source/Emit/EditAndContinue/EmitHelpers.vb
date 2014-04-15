@@ -31,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim pdbName = PathUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
 
-            Using pdbWriter = New Cci.PdbWriter(pdbName, New ComStreamWrapper(pdbStream))
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
-                Dim serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId)
-                Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
-                Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
+            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId)
+            Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
+
+            Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
                     outputName:=Nothing,
                     outputKind:=compilation.Options.OutputKind,
@@ -47,17 +47,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     previousGeneration:=baseline,
                     edits:=edits)
 
-                If testData IsNot Nothing Then
-                    moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                    testData.Module = moduleBeingBuilt
-                End If
+            If testData IsNot Nothing Then
+                moduleBeingBuilt.SetMethodTestData(testData.Methods)
+                testData.Module = moduleBeingBuilt
+            End If
 
-                baseline = moduleBeingBuilt.PreviousGeneration
+            baseline = moduleBeingBuilt.PreviousGeneration
 
-                Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
-                Dim changes = moduleBeingBuilt.Changes
+            Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
+            Dim changes = moduleBeingBuilt.Changes
 
-                If compilation.Compile(
+            If compilation.Compile(
                     moduleBeingBuilt,
                     outputName:=Nothing,
                     manifestResources:=manifestResources,
@@ -70,34 +70,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     filter:=AddressOf changes.HasChanged,
                     hasDeclarationErrors:=False) Then
 
-                    Dim context = New Context(DirectCast(moduleBeingBuilt, Cci.IModule), Nothing, diagnostics)
+                ' Map the definitions from the previous compilation to the current compilation.
+                ' This must be done after compiling above since synthesized definitions
+                ' (generated when compiling method bodies) may be required.
+                baseline = MapToCompilation(compilation, moduleBeingBuilt)
 
-                    ' Map the definitions from the previous compilation to the current compilation.
-                    ' This must be done after compiling above since synthesized definitions
-                    ' (generated when compiling method bodies) may be required.
-                    baseline = MapToCompilation(compilation, moduleBeingBuilt)
-
+                Using pdbWriter = New Cci.PdbWriter(pdbName, pdbStream, If(testData IsNot Nothing, testData.SymWriterFactory, Nothing))
+                    Dim context = New Context(moduleBeingBuilt, Nothing, diagnostics)
                     Dim encId = Guid.NewGuid()
-                    Dim writer = New DeltaPeWriter(
-                        context,
-                        compilation.MessageProvider,
-                        pdbWriter,
-                        baseline,
-                        encId,
-                        definitionMap,
-                        changes,
-                        cancellationToken)
-                    writer.WriteMetadataAndIL(metadataStream, ilStream)
-                    writer.GetMethodTokens(updatedMethodTokens)
 
-                    Return New EmitDifferenceResult(
-                        success:=True,
-                        diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                        baseline:=writer.GetDelta(baseline, compilation, encId))
-                End If
+                    Try
+                        Dim writer = New DeltaPeWriter(
+                            context,
+                            compilation.MessageProvider,
+                            pdbWriter,
+                            baseline,
+                            encId,
+                            definitionMap,
+                            changes,
+                            cancellationToken)
 
-                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
-            End Using
+                        writer.WriteMetadataAndIL(metadataStream, ilStream)
+                        writer.GetMethodTokens(updatedMethodTokens)
+
+                        Return New EmitDifferenceResult(
+                            success:=True,
+                            diagnostics:=diagnostics.ToReadOnlyAndFree(),
+                            baseline:=writer.GetDelta(baseline, compilation, encId))
+
+                    Catch e As Cci.PdbWritingException
+                        diagnostics.Add(ERRID.ERR_PDBWritingFailed, Location.None, e.Message)
+                    Catch e As PermissionSetFileReadException
+                        diagnostics.Add(ERRID.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message)
+                    End Try
+                End Using
+            End If
+
+            Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
         End Function
 
         Friend Function MapToCompilation(
