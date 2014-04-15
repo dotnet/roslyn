@@ -560,6 +560,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim method = DirectCast(member, MethodSymbol)
                         If Not method.IsSubmissionConstructor Then
 
+                            If method.IsPartial() Then
+                                method = method.PartialImplementationPart
+
+                                If method Is Nothing Then
+                                    Continue For
+                                End If
+                            End If
+
                             ' pass correct processed initializers for the static or instance constructors, 
                             ' otherwise pass nothing
                             Dim processedInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
@@ -1193,7 +1201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagBag.Free()
                 End If
 
-                _moduleBeingBuilt.SetMethodBody(method, methodBody)
+                _moduleBeingBuilt.SetMethodBody(If(method.PartialDefinitionPart, method), methodBody)
             End Sub
 
             Friend Shared Function GenerateMethodBody([module] As PEModuleBuilder,
@@ -1265,7 +1273,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return New MethodBody(builder.RealizedIL,
                                           builder.MaxStack,
-                                          method, builder.LocalSlotManager.LocalsInOrder(),
+                                          If(method.PartialDefinitionPart, method),
+                                          builder.LocalSlotManager.LocalsInOrder(),
                                           builder.RealizedSequencePoints,
                                           debugDocumentProvider,
                                           builder.RealizedExceptionHandlers,

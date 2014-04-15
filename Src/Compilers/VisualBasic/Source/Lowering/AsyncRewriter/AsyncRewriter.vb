@@ -333,14 +333,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns method's async kind
         ''' </summary>
         Friend Shared Function GetAsyncMethodKind(method As MethodSymbol) As AsyncMethodKind
+            Debug.Assert(Not method.IsPartial)
             If Not method.IsAsync Then
-                If method.IsPartial Then
-                    Dim partialDef As MethodSymbol = method.PartialImplementationPart
-                    If partialDef IsNot Nothing Then
-                        Return GetAsyncMethodKind(partialDef)
-                    End If
-                End If
-
                 Return AsyncMethodKind.None
             End If
 

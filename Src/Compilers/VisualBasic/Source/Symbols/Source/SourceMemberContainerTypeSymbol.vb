@@ -338,16 +338,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each member In memberArray
                     If member.Kind = SymbolKind.Method Then
                         Dim sourceMethod = TryCast(member, SourceMemberMethodSymbol)
-                        If sourceMethod IsNot Nothing AndAlso
-                                (sourceMethod.IsAsync OrElse
-                                 sourceMethod.IsPartial AndAlso
-                                    sourceMethod.PartialImplementationPart IsNot Nothing AndAlso
-                                    sourceMethod.PartialImplementationPart.IsAsync) Then
+                        If sourceMethod IsNot Nothing Then
+                            If sourceMethod.IsPartial Then
+                                sourceMethod = TryCast(sourceMethod.PartialImplementationPart, SourceMemberMethodSymbol)
 
-                            If asyncMethods Is Nothing Then
-                                asyncMethods = ArrayBuilder(Of SourceMemberMethodSymbol).GetInstance()
+                                If sourceMethod Is Nothing Then
+                                    Continue For
+                                End If
                             End If
-                            asyncMethods.Add(sourceMethod)
+
+                            If sourceMethod.IsAsync Then
+                                If asyncMethods Is Nothing Then
+                                    asyncMethods = ArrayBuilder(Of SourceMemberMethodSymbol).GetInstance()
+                                End If
+
+                                asyncMethods.Add(sourceMethod)
+                            End If
                         End If
                     End If
                 Next

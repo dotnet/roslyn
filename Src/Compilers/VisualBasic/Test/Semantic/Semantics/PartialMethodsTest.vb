@@ -1136,5 +1136,23 @@ End Class
             Dim methodSym = typeSym.GetMembers("M").Single()
             Assert.NotNull(methodSym)
         End Sub
+
+        <WorkItem(921704, "DevDiv")>
+        <Fact()>
+        Public Sub Bug921704()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Partial Private Sub BeforeInitializeComponent(ByRef isInitialized as Boolean)
+    End Sub
+    Private Sub BeforeInitializeComponent(ByRef isInitialized as Boolean)
+        isInitialized = true
+    End Sub
+End Module
+    </file>
+</compilation>)
+        End Sub
+
     End Class
 End Namespace

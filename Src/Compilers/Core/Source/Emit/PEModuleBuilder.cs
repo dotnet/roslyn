@@ -579,6 +579,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(((IMethodSymbol)methodSymbol).ContainingModule == this.SourceModule &&
                 ((IMethodSymbol)methodSymbol).IsDefinition);
+            Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
 
             methodBodyMap.Add(methodSymbol, body);
         }

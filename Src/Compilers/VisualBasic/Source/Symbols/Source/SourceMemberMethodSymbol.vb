@@ -566,9 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             If Me.IsPartial Then
-                ' If this is a partial method without implementation we shouldn't reach this point
-                Debug.Assert(Me.OtherPartOfPartial IsNot Nothing)
-                Return Me.OtherPartOfPartial.GetBoundMethodBody(diagnostics, methodBodyBinder)
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Return MyBase.GetBoundMethodBody(diagnostics, methodBodyBinder)
