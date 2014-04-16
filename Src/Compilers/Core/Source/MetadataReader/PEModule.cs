@@ -1003,6 +1003,11 @@ namespace Microsoft.CodeAnalysis
             return HasStringValuedAttribute(token, AttributeDescription.AccessedThroughPropertyAttribute, out propertyName);
         }
 
+        internal bool HasRequiredAttributeAttribute(Handle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.RequiredAttributeAttribute).HasValue;
+        }
+
         internal bool HasAttribute(Handle token, AttributeDescription description)
         {
             return FindTargetAttribute(token, description).HasValue;

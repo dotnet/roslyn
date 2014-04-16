@@ -7576,6 +7576,70 @@ class Test
             compilation2.VerifyDiagnostics(expected);
         }
 
+        [Fact, WorkItem(530801, "DevDiv")]
+        public void Bug530801RequiredAttribute()
+        {
+            var vbsource = @"
+Namespace VBClassLibrary
+
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
+    Public Structure RS
+        Public F1 As Integer
+        Public Sub New(ByVal p1 As Integer)
+            F1 = p1
+        End Sub
+    End Structure
+
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RI))>
+    Public Interface RI
+        Function F() As Integer
+    End Interface
+
+    Public Class CRI
+        Implements RI
+        Public Function F() As Integer Implements RI.F
+            F = 0
+        End Function
+        Public Shared Frs As RS = New RS(0)
+    End Class
+
+End Namespace
+";
+
+            var cssource = @"
+using VBClassLibrary;
+
+class Program
+{
+    static int Main()
+    {
+        int result = 0;
+        RI ri = new CRI();
+        result += ri.F();
+        result += CRI.Frs.F1;
+        return result;
+    }
+}
+";
+
+            var vbReference = BasicCompilationUtils.CompileToMetadata(vbsource, references: new[] { MscorlibRef, MsvbRef });
+            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, vbReference }, TestOptions.Exe);
+
+            var expected = new[] {
+                // (9,9): error CS0648: 'VBClassLibrary.RI' is a type not supported by the language
+                //         RI ri = new CRI();
+                Diagnostic(ErrorCode.ERR_BogusType, "RI").WithArguments("VBClassLibrary.RI").WithLocation(9, 9),
+                // (9,17): error CS0648: 'VBClassLibrary.RI' is a type not supported by the language
+                //         RI ri = new CRI();
+                Diagnostic(ErrorCode.ERR_BogusType, "new CRI()").WithArguments("VBClassLibrary.RI").WithLocation(9, 17),
+                // (11,23): error CS0570: 'VBClassLibrary.CRI.Frs' is not supported by the language
+                //         result += CRI.Frs.F1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Frs").WithArguments("VBClassLibrary.CRI.Frs").WithLocation(11, 23)
+                                 };
+
+            cscomp.VerifyDiagnostics(expected);
+        }
+
         #endregion
     }
 }

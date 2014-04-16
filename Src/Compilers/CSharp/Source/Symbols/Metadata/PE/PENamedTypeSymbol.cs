@@ -1758,13 +1758,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (ReferenceEquals(lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
-                lazyUseSiteDiagnostic = CalculateUseSiteDiagnosticInternal();
+                lazyUseSiteDiagnostic = GetUseSiteDiagnosticImpl();
             }
 
             return lazyUseSiteDiagnostic;
         }
 
-        protected abstract DiagnosticInfo CalculateUseSiteDiagnosticInternal();
+        protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
+        {
+            DiagnosticInfo diagnostic = null;
+
+            if (!MergeUseSiteDiagnostics(ref diagnostic, CalculateUseSiteDiagnostic()))
+            {
+                // Check if this type is marked by RequiredAttribute attribute.
+                // If so mark the type as bad, because it relies upon semantics that are not understood by the C# compiler.
+                if (this.ContainingPEModule.Module.HasRequiredAttributeAttribute(this.handle))
+                {
+                    diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                }
+            }
+
+            return diagnostic;
+        }
 
         internal string DefaultMemberName
         {
@@ -2052,11 +2067,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return (object)containingType == null ? 0 : containingType.MetadataArity;
                 }
             }
-
-            protected override DiagnosticInfo CalculateUseSiteDiagnosticInternal()
-            {
-                return CalculateUseSiteDiagnostic();
-            }
         }
 
         /// <summary>
@@ -2154,10 +2164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            protected override DiagnosticInfo CalculateUseSiteDiagnosticInternal()
+            protected override DiagnosticInfo GetUseSiteDiagnosticImpl()
             {
                 DiagnosticInfo diagnostic = null;
-                if (!MergeUseSiteDiagnostics(ref diagnostic, CalculateUseSiteDiagnostic()))
+
+                if (!MergeUseSiteDiagnostics(ref diagnostic, base.GetUseSiteDiagnosticImpl()))
                 {
                     // Verify type parameters for containing types
                     // match those on the containing types.
@@ -2166,6 +2177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
                     }
                 }
+
                 return diagnostic;
             }
 
