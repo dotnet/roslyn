@@ -144,11 +144,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this INamespaceSymbol namespaceSymbol,
             IAssemblySymbol assembly)
         {
-            var namespaceQueue = SharedPools.Default<Queue<INamespaceOrTypeSymbol>>().AllocateAndClear();
-            var result = ContainsAccessibleTypesOrNamespacesWorker(namespaceSymbol, assembly, namespaceQueue);
-            SharedPools.Default<Queue<INamespaceOrTypeSymbol>>().ClearAndFree(namespaceQueue);
-
-            return result;
+            using (var namespaceQueue = SharedPools.Default<Queue<INamespaceOrTypeSymbol>>().GetPooledObject())
+            {
+                return ContainsAccessibleTypesOrNamespacesWorker(namespaceSymbol, assembly, namespaceQueue.Object);
+            }
         }
 
         private static bool ContainsAccessibleTypesOrNamespacesWorker(

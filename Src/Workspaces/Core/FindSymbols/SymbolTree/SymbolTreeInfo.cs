@@ -233,9 +233,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool ShouldCache(Project project)
         {
-            var set = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-            try
+            using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
             {
+                var set = pooledObject.Object;
+
                 var solution = project.Solution;
                 foreach (var documentId in solution.Workspace.GetOpenDocumentIds())
                 {
@@ -267,10 +268,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
                 }
-            }
-            finally
-            {
-                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(set);
             }
 
             return false;
@@ -448,20 +445,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbols = SharedPools.Default<List<ISymbol>>().AllocateAndClear();
-            try
+            using (var symbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
             {
-                Bind(index, rootContainer, symbols, cancellationToken);
+                Bind(index, rootContainer, symbols.Object, cancellationToken);
 
-                foreach (var symbol in symbols)
+                foreach (var symbol in symbols.Object)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     yield return symbol;
                 }
-            }
-            finally
-            {
-                SharedPools.Default<List<ISymbol>>().ClearAndFree(symbols);
             }
         }
 
@@ -478,21 +470,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                var containerSymbols = SharedPools.Default<List<ISymbol>>().AllocateAndClear();
-                try
+                using (var containerSymbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
                 {
-                    Bind(node.ParentIndex, rootContainer, containerSymbols, cancellationToken);
+                    Bind(node.ParentIndex, rootContainer, containerSymbols.Object, cancellationToken);
 
-                    foreach (var containerSymbol in containerSymbols.OfType<INamespaceOrTypeSymbol>())
+                    foreach (var containerSymbol in containerSymbols.Object.OfType<INamespaceOrTypeSymbol>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         results.AddRange(containerSymbol.GetMembers(node.Name));
                     }
-                }
-                finally
-                {
-                    SharedPools.Default<List<ISymbol>>().ClearAndFree(containerSymbols);
                 }
             }
         }

@@ -162,11 +162,13 @@ namespace Microsoft.CodeAnalysis
             ImmutableHashSet<ProjectId> transitiveReferences;
             if (!this.transitiveReferencesMap.TryGetValue(projectId, out transitiveReferences))
             {
-                var results = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                this.ComputeTransitiveReferences(projectId, results);
-                transitiveReferences = results.ToImmutableHashSet();
-                this.transitiveReferencesMap = this.transitiveReferencesMap.Add(projectId, transitiveReferences);
-                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(results);
+                using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                {
+                    var results = pooledObject.Object;
+                    this.ComputeTransitiveReferences(projectId, results);
+                    transitiveReferences = results.ToImmutableHashSet();
+                    this.transitiveReferencesMap = this.transitiveReferencesMap.Add(projectId, transitiveReferences);
+                }
             }
 
             return transitiveReferences;
@@ -217,13 +219,14 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.reverseTransitiveReferencesMap.TryGetValue(projectId, out reverseTransitiveReferences))
             {
-                var results = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                ComputeReverseTransitiveReferences(projectId, results);
+                using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                {
+                    var results = pooledObject.Object;
 
-                reverseTransitiveReferences = results.ToImmutableHashSet();
-                this.reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
-
-                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(results);
+                    ComputeReverseTransitiveReferences(projectId, results);
+                    reverseTransitiveReferences = results.ToImmutableHashSet();
+                    this.reverseTransitiveReferencesMap = this.reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
+                }
             }
 
             return reverseTransitiveReferences;
@@ -263,15 +266,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.lazyTopologicallySortedProjects == null)
             {
-                var seenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                var resultList = SharedPools.Default<List<ProjectId>>().AllocateAndClear();
-
-                this.TopologicalSort(this.projectIds, cancellationToken, seenProjects, resultList);
-
-                this.lazyTopologicallySortedProjects = resultList.ToImmutableList();
-
-                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(seenProjects);
-                SharedPools.Default<List<ProjectId>>().ClearAndFree(resultList);
+                using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
+                {
+                    this.TopologicalSort(this.projectIds, cancellationToken, seenProjects.Object, resultList.Object);
+                    this.lazyTopologicallySortedProjects = resultList.Object.ToImmutableList();
+                }
             }
 
             return this.lazyTopologicallySortedProjects;
@@ -323,15 +323,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.lazyDependencySets == null)
             {
-                var seenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().AllocateAndClear();
-
-                this.ComputeDependencySets(seenProjects, results, cancellationToken);
-
-                this.lazyDependencySets = results.ToImmutableList();
-
-                SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(seenProjects);
-                SharedPools.Default<List<IEnumerable<ProjectId>>>().ClearAndFree(results);
+                using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                using (var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject())
+                {
+                    this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
+                    this.lazyDependencySets = results.Object.ToImmutableList();
+                }
             }
 
             return this.lazyDependencySets;
@@ -345,22 +342,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We've never seen this project before, so we have not yet dealt with any projects
                     // in its dependency set.
-                    var dependencySet = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                    ComputedDependencySet(project, dependencySet);
+                    using (var dependencySet = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                    {
+                        ComputedDependencySet(project, dependencySet.Object);
 
-                    // add all items in the dependency set to seen projects so we don't revisit any of them
-                    seenProjects.UnionWith(dependencySet);
+                        // add all items in the dependency set to seen projects so we don't revisit any of them
+                        seenProjects.UnionWith(dependencySet.Object);
 
-                    // now make sure the items within the sets are topologically sorted.
-                    var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().AllocateAndClear();
-                    var sortedProjects = SharedPools.Default<List<ProjectId>>().AllocateAndClear();
-                    this.TopologicalSort(dependencySet, cancellationToken, topologicallySeenProjects, sortedProjects);
-
-                    results.Add(sortedProjects.ToImmutableList());
-
-                    SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(dependencySet);
-                    SharedPools.Default<HashSet<ProjectId>>().ClearAndFree(topologicallySeenProjects);
-                    SharedPools.Default<List<ProjectId>>().ClearAndFree(sortedProjects);
+                        // now make sure the items within the sets are topologically sorted.
+                        using (var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                        using (var sortedProjects = SharedPools.Default<List<ProjectId>>().GetPooledObject())
+                        {
+                            this.TopologicalSort(dependencySet.Object, cancellationToken, topologicallySeenProjects.Object, sortedProjects.Object);
+                            results.Add(sortedProjects.Object.ToImmutableList());
+                        }
+                    }
                 }
             }
         }

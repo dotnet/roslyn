@@ -96,17 +96,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (text.Length > 0)
             {
-                var positions = SharedPools.BigDefault<List<int>>().AllocateAndClear();
-                try
+                using (var positions = SharedPools.BigDefault<List<int>>().GetPooledObject())
                 {
-                    if (SyntaxTreeIdentifierInfo.TryGetIdentifierLocations(document, version, text, positions, cancellationToken))
+                    if (SyntaxTreeIdentifierInfo.TryGetIdentifierLocations(document, version, text, positions.Object, cancellationToken))
                     {
-                        return GetTokensFromText(root, positions, text, candidate, cancellationToken).ToList();
+                        return GetTokensFromText(root, positions.Object, text, candidate, cancellationToken).ToList();
                     }
-                }
-                finally
-                {
-                    SharedPools.BigDefault<List<int>>().ClearAndFree(positions);
                 }
 
                 return GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken).ToList();

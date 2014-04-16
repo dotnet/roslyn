@@ -92,9 +92,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             //    contains the given "span"
             // 4. move up the spin until it finds one that contains the "span" which should be smallest span that contains the given "span"
             // 5. if it is going up from right side, it make sure to check left side of tree first.
-            var spineNodes = SharedPools.Default<Stack<Node>>().AllocateAndClear();
-            try
+            using (var pooledObject = SharedPools.Default<Stack<Node>>().GetPooledObject())
             {
+                var spineNodes = pooledObject.Object;
+
                 spineNodes.Push(root);
                 while (spineNodes.Count > 0)
                 {
@@ -177,11 +178,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 return result;
-            }
-            finally
-            {
-                // clear parent before putting it back to pool
-                SharedPools.Default<Stack<Node>>().ClearAndFree(spineNodes);
             }
         }
     }

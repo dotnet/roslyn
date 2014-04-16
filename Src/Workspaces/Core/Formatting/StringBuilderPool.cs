@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static string ReturnAndFree(StringBuilder builder)
         {
-            var @return = builder.ToString();
-            Free(builder);
-
-            return @return;
+            SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
+            return builder.ToString();
         }
     }
 }

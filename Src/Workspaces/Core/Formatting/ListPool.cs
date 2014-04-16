@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static List<T> ReturnAndFree(List<T> list)
         {
-            var result = new List<T>(list);
-            Free(list);
-
-            return result;
+            SharedPools.Default<List<T>>().ForgetTrackedObject(list);
+            return list;
         }
     }
 }

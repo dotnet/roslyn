@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var changes = GetChanges(cancellationToken);
 
                 // create a map
-                var map = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().AllocateAndClear();
-                try
+                using (var pooledObject = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().GetPooledObject())
                 {
+                    var map = pooledObject.Object;
                     changes.Do(change => map.Add(change.Item1, change.Item2));
 
                     // no changes, return as it is.
@@ -101,10 +101,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
 
                     return Rewriter(map, cancellationToken);
-                }
-                finally
-                {
-                    SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().ClearAndFree(map);
                 }
             }
         }

@@ -328,30 +328,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             //          reference assembly A (version v2) to assembly B in compilation C2.
             //      (b) Otherwise, if no such named type pairs were encountered, symbols ARE equivalent.
 
-            var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().AllocateAndClear();
-            try
+            using (var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject())
             {
                 // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
-                if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies))
+                if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
                 {
                     // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
                     return false;
                 }
 
                 // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
-                if (equivalentTypesWithDifferingAssemblies.Any())
+                if (equivalentTypesWithDifferingAssemblies.Object.Any())
                 {
                     // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                    return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, searchSymbol, symbolToMatch,
+                    return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
                         solution, ref searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
                 }
 
                 // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
                 return true;
-            }
-            finally
-            {
-                SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().ClearAndFree(equivalentTypesWithDifferingAssemblies);
             }
         }
 
