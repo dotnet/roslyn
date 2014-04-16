@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         None = 0,
         ThisProxy = 4,
         DisplayClassLocal = 8,
+        DisplayClassType = 12,
     }
 
     internal static partial class GeneratedNames
