@@ -1017,18 +1017,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // new int[] { Foo() } 
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<ITypeSymbol> type = GetTypes(arrayCreation);
+                    IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation);
 
-                    // BUG: (vladres) Is it a correct type check? 
-                    // BUG: Is there a type that implements both IEnumerable<ITypeSymbol> and IArrayTypeSymbol?
-                    // BUG: Or it was intended to be:
-                    // BUG:   type.FirstOrDefault() as IArrayTypeSymbol
-                    // BUG: or
-                    // BUG:   type.OfType<IArrayTypeSymbol>().FirstOrDefault() ?
-                    // BUG: (see other similar problems below)
-                    if (type is IArrayTypeSymbol)
+                    if (types.Any(t => t is IArrayTypeSymbol))
                     {
-                        return SpecializedCollections.SingletonEnumerable(((IArrayTypeSymbol)type).ElementType);
+                        return types.OfType<IArrayTypeSymbol>().Select(t => t.ElementType);
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
@@ -1036,11 +1029,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // new List<T> { Foo() } 
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
-                    // BUG: (vladres) Is it a correct type check? 
-                    // BUG: Is there a type that implements both IEnumerable<ITypeSymbol> and INamedTypeSymbol?
-                    // BUG: (see other similar problems below)
-                    var type = GetTypes(objectCreation) as INamedTypeSymbol;
-                    return GetCollectionElementType(type, parameterIndex: 0, parameterCount: 1);
+                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation);
+                    if (types.Any(t => t is INamedTypeSymbol))
+                    {
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t => 
+                            GetCollectionElementType(t, parameterIndex: 0, parameterCount: 1));
+                    }
                 }
                 else if (
                     initializerExpression.IsParentKind(SyntaxKind.ComplexElementInitializerExpression) &&
@@ -1049,35 +1043,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // new Dictionary<K,V> { { Foo(), ... } }
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent.Parent;
 
-                    // BUG: (vladres) Is it a correct type check? 
-                    // BUG: Is there a type that implements both IEnumerable<ITypeSymbol> and INamedTypeSymbol?
-                    // BUG: (see other similar problems below)
-                    var type = GetTypes(objectCreation) as INamedTypeSymbol;
+                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation);
 
-                    var parameterIndex = previousToken.HasValue
-                        ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
-                        : initializerExpression.Expressions.IndexOf(expressionOpt);
+                    if (types.Any(t => t is INamedTypeSymbol))
+                    {
+                        var parameterIndex = previousToken.HasValue
+                            ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
+                            : initializerExpression.Expressions.IndexOf(expressionOpt);
 
-                    return GetCollectionElementType(type,
-                            parameterIndex: parameterIndex,
-                            parameterCount: initializerExpression.Expressions.Count);
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
+                            GetCollectionElementType(t,
+                                parameterIndex: parameterIndex,
+                                parameterCount: initializerExpression.Expressions.Count));
+                    }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // new Foo { a = { Foo() } }
                     var assignExpression = (BinaryExpressionSyntax)initializerExpression.Parent;
+                    IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left);
 
-                    // BUG: (vladres) Is it a correct type check? 
-                    // BUG: Is there a type that implements both IEnumerable<ITypeSymbol> and INamedTypeSymbol?
-                    var type = GetTypes(assignExpression.Left) as INamedTypeSymbol;
+                    if (types.Any(t => t is INamedTypeSymbol))
+                    {
+                        var parameterIndex = previousToken.HasValue
+                            ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
+                            : initializerExpression.Expressions.IndexOf(expressionOpt);
 
-                    var parameterIndex = previousToken.HasValue
-                        ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
-                        : initializerExpression.Expressions.IndexOf(expressionOpt);
-
-                    return GetCollectionElementType(type,
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
+                            GetCollectionElementType(t,
                                 parameterIndex: parameterIndex,
-                                parameterCount: initializerExpression.Expressions.Count);
+                                parameterCount: initializerExpression.Expressions.Count));
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
