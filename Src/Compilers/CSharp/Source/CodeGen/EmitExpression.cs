@@ -448,11 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 switch (elementType.PrimitiveTypeCode)
                 {
-                    case Microsoft.Cci.PrimitiveTypeCode.Boolean:
                     case Microsoft.Cci.PrimitiveTypeCode.Int8:
                         builder.EmitOpCode(ILOpCode.Ldelem_i1);
                         break;
 
+                    case Microsoft.Cci.PrimitiveTypeCode.Boolean:
                     case Microsoft.Cci.PrimitiveTypeCode.UInt8:
                         builder.EmitOpCode(ILOpCode.Ldelem_u1);
                         break;
@@ -825,11 +825,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             switch (type.PrimitiveTypeCode)
             {
-                case Microsoft.Cci.PrimitiveTypeCode.Boolean:
                 case Microsoft.Cci.PrimitiveTypeCode.Int8:
                     builder.EmitOpCode(ILOpCode.Ldind_i1);
                     break;
 
+                case Microsoft.Cci.PrimitiveTypeCode.Boolean:
                 case Microsoft.Cci.PrimitiveTypeCode.UInt8:
                     builder.EmitOpCode(ILOpCode.Ldind_u1);
                     break;

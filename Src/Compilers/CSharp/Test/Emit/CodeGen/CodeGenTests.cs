@@ -6159,7 +6159,8 @@ e
 ");
 
             compilation.VerifyIL("D.Main",
-@"{
+@"
+{
   // Code size      193 (0xc1)
   .maxstack  3
   IL_0000:  ldc.i4.5
@@ -6181,10 +6182,10 @@ e
   IL_002c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0031:  dup
   IL_0032:  ldc.i4.2
-  IL_0033:  ldelem.i1
+  IL_0033:  ldelem.u1
   IL_0034:  call       ""void System.Console.WriteLine(bool)""
   IL_0039:  ldc.i4.3
-  IL_003a:  ldelem.i1
+  IL_003a:  ldelem.u1
   IL_003b:  call       ""void System.Console.WriteLine(bool)""
   IL_0040:  ldc.i4.5
   IL_0041:  newarr     ""byte""
@@ -8893,85 +8894,86 @@ namespace CodeGen
             var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("CodeGen.MyData.M",
-@"{
+@"
+{
   // Code size      114 (0x72)
   .maxstack  6
-  IL_0000:  ldarg.1   
-  IL_0001:  ldc.i4.0  
-  IL_0002:  ldelem.i1 
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.u1
   IL_0003:  brfalse.s  IL_002a
   IL_0005:  ldc.i4.s   99
-  IL_0007:  ldarg.2   
-  IL_0008:  ldc.i4.0  
-  IL_0009:  ldelem.u1 
+  IL_0007:  ldarg.2
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldelem.u1
   IL_000a:  bgt.s      IL_006f
-  IL_000c:  ldarg.2   
-  IL_000d:  ldc.i4.1  
-  IL_000e:  ldarg.2   
-  IL_000f:  ldc.i4.0  
-  IL_0010:  ldelem.u1 
-  IL_0011:  ldarg.2   
-  IL_0012:  ldc.i4.1  
-  IL_0013:  ldelem.u1 
-  IL_0014:  ldarg.2   
-  IL_0015:  ldc.i4.2  
-  IL_0016:  ldelem.u1 
-  IL_0017:  add       
-  IL_0018:  add       
+  IL_000c:  ldarg.2
+  IL_000d:  ldc.i4.1
+  IL_000e:  ldarg.2
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldelem.u1
+  IL_0011:  ldarg.2
+  IL_0012:  ldc.i4.1
+  IL_0013:  ldelem.u1
+  IL_0014:  ldarg.2
+  IL_0015:  ldc.i4.2
+  IL_0016:  ldelem.u1
+  IL_0017:  add
+  IL_0018:  add
   IL_0019:  ldc.i4     0xff
-  IL_001e:  rem       
-  IL_001f:  conv.u1   
-  IL_0020:  stelem.i1 
-  IL_0021:  ldarg.2   
-  IL_0022:  ldc.i4.1  
-  IL_0023:  ldelem.u1 
-  IL_0024:  ldarg.2   
-  IL_0025:  ldc.i4.2  
-  IL_0026:  ldelem.u1 
-  IL_0027:  add       
-  IL_0028:  conv.i8   
-  IL_0029:  ret       
-  IL_002a:  ldarg.1   
-  IL_002b:  ldc.i4.1  
-  IL_002c:  ldelem.i1 
+  IL_001e:  rem
+  IL_001f:  conv.u1
+  IL_0020:  stelem.i1
+  IL_0021:  ldarg.2
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldelem.u1
+  IL_0024:  ldarg.2
+  IL_0025:  ldc.i4.2
+  IL_0026:  ldelem.u1
+  IL_0027:  add
+  IL_0028:  conv.i8
+  IL_0029:  ret
+  IL_002a:  ldarg.1
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldelem.u1
   IL_002d:  brfalse.s  IL_004a
-  IL_002f:  ldarg.3   
-  IL_0030:  ldc.i4.0  
-  IL_0031:  ldelem.r4 
+  IL_002f:  ldarg.3
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldelem.r4
   IL_0032:  ldc.r4     0
   IL_0037:  blt.un.s   IL_006f
-  IL_0039:  ldarg.3   
-  IL_003a:  ldc.i4.0  
-  IL_003b:  ldarg.3   
-  IL_003c:  ldc.i4.0  
-  IL_003d:  ldelem.r4 
+  IL_0039:  ldarg.3
+  IL_003a:  ldc.i4.0
+  IL_003b:  ldarg.3
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldelem.r4
   IL_003e:  ldc.r4     100
-  IL_0043:  mul       
-  IL_0044:  stelem.r4 
-  IL_0045:  ldarg.3   
-  IL_0046:  ldc.i4.0  
-  IL_0047:  ldelem.r4 
-  IL_0048:  conv.u8   
-  IL_0049:  ret       
+  IL_0043:  mul
+  IL_0044:  stelem.r4
+  IL_0045:  ldarg.3
+  IL_0046:  ldc.i4.0
+  IL_0047:  ldelem.r4
+  IL_0048:  conv.u8
+  IL_0049:  ret
   IL_004a:  ldarg.s    V_4
-  IL_004c:  ldc.i4.0  
-  IL_004d:  ldelem.r8 
+  IL_004c:  ldc.i4.0
+  IL_004d:  ldelem.r8
   IL_004e:  ldc.r8     1
   IL_0057:  bgt.un.s   IL_006f
   IL_0059:  ldarg.s    V_4
-  IL_005b:  ldc.i4.1  
+  IL_005b:  ldc.i4.1
   IL_005c:  ldarg.s    V_4
-  IL_005e:  ldc.i4.0  
-  IL_005f:  ldelem.r8 
+  IL_005e:  ldc.i4.0
+  IL_005f:  ldelem.r8
   IL_0060:  ldc.r8     100
-  IL_0069:  add       
-  IL_006a:  stelem.r8 
+  IL_0069:  add
+  IL_006a:  stelem.r8
   IL_006b:  ldc.i4.s   123
-  IL_006d:  conv.i8   
-  IL_006e:  ret       
-  IL_006f:  ldc.i4.0  
-  IL_0070:  conv.i8   
-  IL_0071:  ret       
+  IL_006d:  conv.i8
+  IL_006e:  ret
+  IL_006f:  ldc.i4.0
+  IL_0070:  conv.i8
+  IL_0071:  ret
 }
 ");
         }
@@ -11744,25 +11746,25 @@ TrueFalseTrueFalse");
   IL_001f:  call       ""void System.Buffer.BlockCopy(System.Array, int, System.Array, int, int)""
   IL_0024:  ldloc.1
   IL_0025:  ldc.i4.0
-  IL_0026:  ldelem.i1
+  IL_0026:  ldelem.u1
   IL_0027:  call       ""void System.Console.WriteLine(bool)""
   IL_002c:  ldloc.1
   IL_002d:  ldc.i4.0
-  IL_002e:  ldelem.i1
+  IL_002e:  ldelem.u1
   IL_002f:  call       ""void System.Console.Write(bool)""
   IL_0034:  ldloc.1
   IL_0035:  ldc.i4.0
-  IL_0036:  ldelem.i1
+  IL_0036:  ldelem.u1
   IL_0037:  ldc.i4.0
   IL_0038:  ceq
   IL_003a:  call       ""void System.Console.Write(bool)""
   IL_003f:  ldloc.1
   IL_0040:  ldc.i4.0
-  IL_0041:  ldelem.i1
+  IL_0041:  ldelem.u1
   IL_0042:  call       ""void System.Console.Write(bool)""
   IL_0047:  ldloc.1
   IL_0048:  ldc.i4.0
-  IL_0049:  ldelem.i1
+  IL_0049:  ldelem.u1
   IL_004a:  ldc.i4.0
   IL_004b:  ceq
   IL_004d:  call       ""void System.Console.Write(bool)""
@@ -12701,7 +12703,7 @@ True");
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     ""bool""
   IL_0006:  ldc.i4.0
-  IL_0007:  ldelem.i1
+  IL_0007:  ldelem.u1
   IL_0008:  call       ""void System.Console.WriteLine(bool)""
   IL_000d:  ldc.i4.3
   IL_000e:  newarr     ""System.Exception""
@@ -12715,7 +12717,7 @@ True");
   IL_0022:  ldc.i4.1
   IL_0023:  stelem.i1
   IL_0024:  ldc.i4.1
-  IL_0025:  ldelem.i1
+  IL_0025:  ldelem.u1
   IL_0026:  call       ""void System.Console.WriteLine(bool)""
   IL_002b:  ldc.i4.3
   IL_002c:  newarr     ""System.Exception""
@@ -12732,7 +12734,7 @@ True");
   IL_0047:  ldtoken    ""int <PrivateImplementationDetails>{#MVID#}.$$method0x6000001-0""
   IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0051:  ldc.i4.2
-  IL_0052:  ldelem.i1
+  IL_0052:  ldelem.u1
   IL_0053:  call       ""void System.Console.WriteLine(bool)""
   IL_0058:  ret
 }
@@ -13567,6 +13569,99 @@ static class CExtensions
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             Assert.DoesNotThrow(() => comp.VerifyEmitDiagnostics());
+        }
+
+        [Fact]
+        public void Regress924709()
+        {
+            var source = @"
+using System;
+
+    class Program
+    {
+        static bool[] bb;
+
+        static void Main(string[] args)
+        {
+            bb = AllOnesBool();
+
+            TestArrElement(bb);
+            TestRef(ref bb[0]);
+        }
+
+        static void TestArrElement(bool[] bb)
+        {
+            if (bb[0] ^ GetArrElement<bool>(bb))
+            {
+                System.Console.WriteLine('f');
+            }
+        }
+
+        static T GetArrElement<T>(T[] bb)
+        {
+            return bb[0];
+        }
+
+        static void TestRef(ref bool br)
+        {
+            if (br ^ GetRef<bool>(ref br))
+            {
+                System.Console.WriteLine('f');
+            }
+        }
+
+        static T GetRef<T>(ref T br)
+        {
+            return br;
+        }
+
+        unsafe static bool[] AllOnesBool()
+        {
+            bool[] bb = new bool[1];
+
+            fixed(bool* b = bb)
+            {
+                *(byte*)b = byte.MaxValue;
+            }
+
+            return bb;
+        }
+    }
+";
+
+            CompileAndVerify(source, options: TestOptions.UnsafeExe, expectedOutput: @""
+).VerifyIL("Program.TestArrElement(bool[])",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.u1
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""bool Program.GetArrElement<bool>(bool[])""
+  IL_0009:  xor
+  IL_000a:  brfalse.s  IL_0013
+  IL_000c:  ldc.i4.s   102
+  IL_000e:  call       ""void System.Console.WriteLine(char)""
+  IL_0013:  ret
+}                                                                                         
+").VerifyIL("Program.TestRef(ref bool)",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.u1
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""bool Program.GetRef<bool>(ref bool)""
+  IL_0008:  xor
+  IL_0009:  brfalse.s  IL_0012
+  IL_000b:  ldc.i4.s   102
+  IL_000d:  call       ""void System.Console.WriteLine(char)""
+  IL_0012:  ret
+}                                                                                         
+");
         }
 
     }

@@ -2585,7 +2585,7 @@ End Module
   IL_004f:  bne.un.s   IL_0062
   IL_0051:  ldarg.1
   IL_0052:  dup
-  IL_0053:  ldind.i1
+  IL_0053:  ldind.u1
   IL_0054:  brfalse.s  IL_005f
   IL_0056:  ldarg.0
   IL_0057:  brfalse.s  IL_005c
@@ -2604,7 +2604,7 @@ End Module
   IL_0070:  brfalse.s  IL_0084
   IL_0072:  ldarg.1
   IL_0073:  dup
-  IL_0074:  ldind.i1
+  IL_0074:  ldind.u1
   IL_0075:  brfalse.s  IL_0081
   IL_0077:  ldarg.0
   IL_0078:  ldc.i4.1
@@ -2621,7 +2621,7 @@ End Module
   IL_0087:  bne.un.s   IL_009b
   IL_0089:  ldarg.1
   IL_008a:  dup
-  IL_008b:  ldind.i1
+  IL_008b:  ldind.u1
   IL_008c:  brfalse.s  IL_0098
   IL_008e:  ldarg.0
   IL_008f:  ldc.i4.2
@@ -2638,7 +2638,7 @@ End Module
   IL_009e:  bne.un.s   IL_00b2
   IL_00a0:  ldarg.1
   IL_00a1:  dup
-  IL_00a2:  ldind.i1
+  IL_00a2:  ldind.u1
   IL_00a3:  brfalse.s  IL_00af
   IL_00a5:  ldarg.0
   IL_00a6:  ldc.i4.3
@@ -2655,7 +2655,7 @@ End Module
   IL_00b6:  bne.un.s   IL_00ca
   IL_00b8:  ldarg.1
   IL_00b9:  dup
-  IL_00ba:  ldind.i1
+  IL_00ba:  ldind.u1
   IL_00bb:  brfalse.s  IL_00c7
   IL_00bd:  ldarg.0
   IL_00be:  ldc.i4.4
@@ -2672,7 +2672,7 @@ End Module
   IL_00ce:  bne.un.s   IL_00e2
   IL_00d0:  ldarg.1
   IL_00d1:  dup
-  IL_00d2:  ldind.i1
+  IL_00d2:  ldind.u1
   IL_00d3:  brfalse.s  IL_00df
   IL_00d5:  ldarg.0
   IL_00d6:  ldc.i4.5
@@ -2689,7 +2689,7 @@ End Module
   IL_00e6:  bne.un.s   IL_00fa
   IL_00e8:  ldarg.1
   IL_00e9:  dup
-  IL_00ea:  ldind.i1
+  IL_00ea:  ldind.u1
   IL_00eb:  brfalse.s  IL_00f7
   IL_00ed:  ldarg.0
   IL_00ee:  ldc.i4.6
@@ -2707,7 +2707,7 @@ End Module
   IL_00ff:  bne.un.s   IL_0113
   IL_0101:  ldarg.1
   IL_0102:  dup
-  IL_0103:  ldind.i1
+  IL_0103:  ldind.u1
   IL_0104:  brfalse.s  IL_0110
   IL_0106:  ldarg.0
   IL_0107:  ldc.i4.7
@@ -2725,7 +2725,7 @@ End Module
   IL_0118:  bne.un.s   IL_012c
   IL_011a:  ldarg.1
   IL_011b:  dup
-  IL_011c:  ldind.i1
+  IL_011c:  ldind.u1
   IL_011d:  brfalse.s  IL_0129
   IL_011f:  ldarg.0
   IL_0120:  ldc.i4.8
@@ -2743,7 +2743,7 @@ End Module
   IL_0131:  bne.un.s   IL_0146
   IL_0133:  ldarg.1
   IL_0134:  dup
-  IL_0135:  ldind.i1
+  IL_0135:  ldind.u1
   IL_0136:  brfalse.s  IL_0143
   IL_0138:  ldarg.0
   IL_0139:  ldc.i4.s   9
@@ -2763,7 +2763,7 @@ End Module
   IL_0151:  bne.un.s   IL_0166
   IL_0153:  ldarg.1
   IL_0154:  dup
-  IL_0155:  ldind.i1
+  IL_0155:  ldind.u1
   IL_0156:  brfalse.s  IL_0163
   IL_0158:  ldarg.0
   IL_0159:  ldc.i4.s   10
@@ -2782,7 +2782,7 @@ End Module
   IL_0170:  bne.un.s   IL_0185
   IL_0172:  ldarg.1
   IL_0173:  dup
-  IL_0174:  ldind.i1
+  IL_0174:  ldind.u1
   IL_0175:  brfalse.s  IL_0182
   IL_0177:  ldarg.0
   IL_0178:  ldc.i4.s   11
@@ -2800,7 +2800,7 @@ End Module
   IL_018e:  bne.un.s   IL_01a3
   IL_0190:  ldarg.1
   IL_0191:  dup
-  IL_0192:  ldind.i1
+  IL_0192:  ldind.u1
   IL_0193:  brfalse.s  IL_01a0
   IL_0195:  ldarg.0
   IL_0196:  ldc.i4.s   12
@@ -2818,7 +2818,7 @@ End Module
   IL_01ac:  bne.un.s   IL_01c1
   IL_01ae:  ldarg.1
   IL_01af:  dup
-  IL_01b0:  ldind.i1
+  IL_01b0:  ldind.u1
   IL_01b1:  brfalse.s  IL_01be
   IL_01b3:  ldarg.0
   IL_01b4:  ldc.i4.s   13
@@ -2937,7 +2937,7 @@ End Module
   IL_003c:  br         IL_012e
   IL_0041:  ldarg.1
   IL_0042:  dup
-  IL_0043:  ldind.i1
+  IL_0043:  ldind.u1
   IL_0044:  brfalse.s  IL_004f
   IL_0046:  ldarg.0
   IL_0047:  brfalse.s  IL_004c
@@ -2950,7 +2950,7 @@ End Module
   IL_0051:  ret
   IL_0052:  ldarg.1
   IL_0053:  dup
-  IL_0054:  ldind.i1
+  IL_0054:  ldind.u1
   IL_0055:  brfalse.s  IL_0061
   IL_0057:  ldarg.0
   IL_0058:  ldc.i4.1
@@ -2964,7 +2964,7 @@ End Module
   IL_0063:  ret
   IL_0064:  ldarg.1
   IL_0065:  dup
-  IL_0066:  ldind.i1
+  IL_0066:  ldind.u1
   IL_0067:  brfalse.s  IL_0073
   IL_0069:  ldarg.0
   IL_006a:  ldc.i4.2
@@ -2978,7 +2978,7 @@ End Module
   IL_0075:  ret
   IL_0076:  ldarg.1
   IL_0077:  dup
-  IL_0078:  ldind.i1
+  IL_0078:  ldind.u1
   IL_0079:  brfalse.s  IL_0085
   IL_007b:  ldarg.0
   IL_007c:  ldc.i4.3
@@ -2992,7 +2992,7 @@ End Module
   IL_0087:  ret
   IL_0088:  ldarg.1
   IL_0089:  dup
-  IL_008a:  ldind.i1
+  IL_008a:  ldind.u1
   IL_008b:  brfalse.s  IL_0097
   IL_008d:  ldarg.0
   IL_008e:  ldc.i4.4
@@ -3006,7 +3006,7 @@ End Module
   IL_0099:  ret
   IL_009a:  ldarg.1
   IL_009b:  dup
-  IL_009c:  ldind.i1
+  IL_009c:  ldind.u1
   IL_009d:  brfalse.s  IL_00a9
   IL_009f:  ldarg.0
   IL_00a0:  ldc.i4.5
@@ -3020,7 +3020,7 @@ End Module
   IL_00ab:  ret
   IL_00ac:  ldarg.1
   IL_00ad:  dup
-  IL_00ae:  ldind.i1
+  IL_00ae:  ldind.u1
   IL_00af:  brfalse.s  IL_00bb
   IL_00b1:  ldarg.0
   IL_00b2:  ldc.i4.6
@@ -3034,7 +3034,7 @@ End Module
   IL_00bd:  ret
   IL_00be:  ldarg.1
   IL_00bf:  dup
-  IL_00c0:  ldind.i1
+  IL_00c0:  ldind.u1
   IL_00c1:  brfalse.s  IL_00cd
   IL_00c3:  ldarg.0
   IL_00c4:  ldc.i4.7
@@ -3048,7 +3048,7 @@ End Module
   IL_00cf:  ret
   IL_00d0:  ldarg.1
   IL_00d1:  dup
-  IL_00d2:  ldind.i1
+  IL_00d2:  ldind.u1
   IL_00d3:  brfalse.s  IL_00df
   IL_00d5:  ldarg.0
   IL_00d6:  ldc.i4.8
@@ -3062,7 +3062,7 @@ End Module
   IL_00e1:  ret
   IL_00e2:  ldarg.1
   IL_00e3:  dup
-  IL_00e4:  ldind.i1
+  IL_00e4:  ldind.u1
   IL_00e5:  brfalse.s  IL_00f2
   IL_00e7:  ldarg.0
   IL_00e8:  ldc.i4.s   9
@@ -3076,7 +3076,7 @@ End Module
   IL_00f4:  ret
   IL_00f5:  ldarg.1
   IL_00f6:  dup
-  IL_00f7:  ldind.i1
+  IL_00f7:  ldind.u1
   IL_00f8:  brfalse.s  IL_0105
   IL_00fa:  ldarg.0
   IL_00fb:  ldc.i4.s   10
@@ -3090,7 +3090,7 @@ End Module
   IL_0107:  ret
   IL_0108:  ldarg.1
   IL_0109:  dup
-  IL_010a:  ldind.i1
+  IL_010a:  ldind.u1
   IL_010b:  brfalse.s  IL_0118
   IL_010d:  ldarg.0
   IL_010e:  ldc.i4.s   11
@@ -3104,7 +3104,7 @@ End Module
   IL_011a:  ret
   IL_011b:  ldarg.1
   IL_011c:  dup
-  IL_011d:  ldind.i1
+  IL_011d:  ldind.u1
   IL_011e:  brfalse.s  IL_012b
   IL_0120:  ldarg.0
   IL_0121:  ldc.i4.s   12

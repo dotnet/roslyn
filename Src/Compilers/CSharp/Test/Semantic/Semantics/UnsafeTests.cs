@@ -8087,7 +8087,8 @@ class Program
   IL_0023:  ret
 }
 ");
-            compilation.VerifyIL("Program.Load", @"{
+            compilation.VerifyIL("Program.Load", @"
+{
   // Code size       48 (0x30)
   .maxstack  2
   .locals init (pinned bool& V_0) //buffer
@@ -8097,25 +8098,26 @@ class Program
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
   IL_0011:  conv.i
-  IL_0012:  ldind.i1
+  IL_0012:  ldind.u1
   IL_0013:  call       ""void System.Console.Write(bool)""
   IL_0018:  ldloc.0
   IL_0019:  conv.i
   IL_001a:  ldc.i4.1
   IL_001b:  add
-  IL_001c:  ldind.i1
+  IL_001c:  ldind.u1
   IL_001d:  call       ""void System.Console.Write(bool)""
   IL_0022:  ldloc.0
   IL_0023:  conv.i
   IL_0024:  ldc.i4.2
   IL_0025:  add
-  IL_0026:  ldind.i1
+  IL_0026:  ldind.u1
   IL_0027:  call       ""void System.Console.Write(bool)""
   IL_002c:  ldc.i4.0
   IL_002d:  conv.u
   IL_002e:  stloc.0
   IL_002f:  ret
-}");
+}
+");
         }
 
         [Fact()]
@@ -8174,7 +8176,8 @@ class Program
             // This will compile without warning but runtime behaviour is unporedictable.
 
             var compilation = CompileAndVerify(text, options: TestOptions.UnsafeExe, emitOptions: EmitOptions.RefEmitBug); //, expectedOutput: @"TrueFalseTrue"
-            compilation.VerifyIL("Program.Load", @"{
+            compilation.VerifyIL("Program.Load", @"
+{
   // Code size       49 (0x31)
   .maxstack  2
   .locals init (pinned bool& V_0) //buffer
@@ -8184,19 +8187,19 @@ class Program
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
   IL_0011:  conv.i
-  IL_0012:  ldind.i1
+  IL_0012:  ldind.u1
   IL_0013:  call       ""void System.Console.Write(bool)""
   IL_0018:  ldloc.0
   IL_0019:  conv.i
   IL_001a:  ldc.i4.8
   IL_001b:  add
-  IL_001c:  ldind.i1
+  IL_001c:  ldind.u1
   IL_001d:  call       ""void System.Console.Write(bool)""
   IL_0022:  ldloc.0
   IL_0023:  conv.i
   IL_0024:  ldc.i4.s   10
   IL_0026:  add
-  IL_0027:  ldind.i1
+  IL_0027:  ldind.u1
   IL_0028:  call       ""void System.Console.Write(bool)""
   IL_002d:  ldc.i4.0
   IL_002e:  conv.u

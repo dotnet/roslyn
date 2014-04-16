@@ -1873,28 +1873,29 @@ class Program
 }
 ";
             string expectedOutput = @"False";
-            string expectedIL = @"{
+            string expectedIL = @"
+{
   // Code size       24 (0x18)
   .maxstack  3
   .locals init (bool V_0)
-  IL_0000:  ldarg.0   
-  IL_0001:  ldind.i1  
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.u1
   IL_0002:  brfalse.s  IL_000c
-  IL_0004:  ldarg.0   
-  IL_0005:  ldc.i4.0  
-  IL_0006:  dup       
-  IL_0007:  stloc.0   
-  IL_0008:  stind.i1  
-  IL_0009:  ldloc.0   
+  IL_0004:  ldarg.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  dup
+  IL_0007:  stloc.0
+  IL_0008:  stind.i1
+  IL_0009:  ldloc.0
   IL_000a:  br.s       IL_0012
-  IL_000c:  ldarg.0   
-  IL_000d:  ldc.i4.1  
-  IL_000e:  dup       
-  IL_000f:  stloc.0   
-  IL_0010:  stind.i1  
-  IL_0011:  ldloc.0   
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  dup
+  IL_000f:  stloc.0
+  IL_0010:  stind.i1
+  IL_0011:  ldloc.0
   IL_0012:  call       ""void System.Console.WriteLine(bool)""
-  IL_0017:  ret       
+  IL_0017:  ret
 }";
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
         }

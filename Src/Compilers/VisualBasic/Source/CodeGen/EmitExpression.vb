@@ -292,11 +292,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     elementType = (DirectCast(elementType, NamedTypeSymbol)).EnumUnderlyingType
                 End If
                 Select Case elementType.PrimitiveTypeCode
-                    Case Microsoft.Cci.PrimitiveTypeCode.Boolean,
-                        Microsoft.Cci.PrimitiveTypeCode.Int8
+                    Case Microsoft.Cci.PrimitiveTypeCode.Int8
                         _builder.EmitOpCode(ILOpCode.Ldelem_i1)
 
-                    Case Microsoft.Cci.PrimitiveTypeCode.UInt8
+                    Case Microsoft.Cci.PrimitiveTypeCode.Boolean,
+                         Microsoft.Cci.PrimitiveTypeCode.UInt8
                         _builder.EmitOpCode(ILOpCode.Ldelem_u1)
 
                     Case Microsoft.Cci.PrimitiveTypeCode.Int16
@@ -538,11 +538,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             Select Case type.PrimitiveTypeCode
-                Case Microsoft.Cci.PrimitiveTypeCode.Boolean,
-                    Microsoft.Cci.PrimitiveTypeCode.Int8
+                Case Microsoft.Cci.PrimitiveTypeCode.Int8
                     _builder.EmitOpCode(ILOpCode.Ldind_i1)
 
-                Case Microsoft.Cci.PrimitiveTypeCode.UInt8
+                Case Microsoft.Cci.PrimitiveTypeCode.Boolean,
+                     Microsoft.Cci.PrimitiveTypeCode.UInt8
                     _builder.EmitOpCode(ILOpCode.Ldind_u1)
 
                 Case Microsoft.Cci.PrimitiveTypeCode.Int16
@@ -702,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim tempOpt As LocalDefinition = Nothing
 
             If method.IsShared Then
-                callKind = callKind.Call
+                callKind = CallKind.Call
             Else
                 stackBehavior = stackBehavior - 1
                 Dim receiverType = receiver.Type
@@ -784,7 +784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             ' Devirtualizing of calls to effectively sealed methods.
-            If callKind = callKind.CallVirt AndAlso
+            If callKind = CallKind.CallVirt AndAlso
                 method.ContainingModule Is Me._method.ContainingModule Then
 
                 ' NOTE: we check that we call method in same module just to be sure
@@ -796,24 +796,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If IsMeReceiver(receiver) AndAlso method.ContainingType.IsNotInheritable Then
                     ' special case for target is in a sealed class and "this" receiver.
                     Debug.Assert(receiver.Type.IsVerifierReference())
-                    callKind = callKind.Call
+                    callKind = CallKind.Call
 
                 ElseIf method.IsNotOverridable AndAlso CanUseCallOnRefTypeReceiver(receiver) Then
                     ' special case for calling 'final' virtual method on reference receiver
                     Debug.Assert(receiver.Type.IsVerifierReference())
-                    callKind = callKind.Call
+                    callKind = CallKind.Call
                 End If
             End If
 
             EmitArguments(arguments, method.Parameters)
             Select Case callKind
-                Case callKind.Call
+                Case CallKind.Call
                     _builder.EmitOpCode(ILOpCode.Call, stackBehavior)
 
-                Case callKind.CallVirt
+                Case CallKind.CallVirt
                     _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior)
 
-                Case callKind.ConstrainedCallVirt
+                Case CallKind.ConstrainedCallVirt
                     _builder.EmitOpCode(ILOpCode.Constrained)
                     EmitSymbolToken(receiver.Type, receiver.Syntax)
                     _builder.EmitOpCode(ILOpCode.Callvirt, stackBehavior)

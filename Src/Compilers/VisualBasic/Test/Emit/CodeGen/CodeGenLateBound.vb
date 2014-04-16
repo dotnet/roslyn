@@ -246,7 +246,7 @@ expectedOutput:=<![CDATA[str]]>).
   IL_0036:  pop
   IL_0037:  ldloc.2
   IL_0038:  ldc.i4.0
-  IL_0039:  ldelem.i1
+  IL_0039:  ldelem.u1
   IL_003a:  brfalse.s  IL_0045
   IL_003c:  ldloc.1
   IL_003d:  ldc.i4.0
@@ -1033,7 +1033,7 @@ Get
   IL_003d:  pop
   IL_003e:  ldloc.3
   IL_003f:  ldc.i4.0
-  IL_0040:  ldelem.i1
+  IL_0040:  ldelem.u1
   IL_0041:  brfalse.s  IL_0065
   IL_0043:  ldloc.1
   IL_0044:  ldloc.2
@@ -1217,7 +1217,7 @@ Get
   IL_0047:  pop
   IL_0048:  ldloc.3
   IL_0049:  ldc.i4.0
-  IL_004a:  ldelem.i1
+  IL_004a:  ldelem.u1
   IL_004b:  brfalse.s  IL_0069
   IL_004d:  ldloc.1
   IL_004e:  ldnull
@@ -1338,7 +1338,7 @@ Get
   IL_0047:  pop
   IL_0048:  ldloc.3
   IL_0049:  ldc.i4.0
-  IL_004a:  ldelem.i1
+  IL_004a:  ldelem.u1
   IL_004b:  brfalse.s  IL_0069
   IL_004d:  ldloc.1
   IL_004e:  ldnull
@@ -2315,7 +2315,7 @@ expectedOutput:=<![CDATA[3
   IL_0074:  pop
   IL_0075:  ldloc.s    V_5
   IL_0077:  ldc.i4.0
-  IL_0078:  ldelem.i1
+  IL_0078:  ldelem.u1
   IL_0079:  brfalse.s  IL_00a0
   IL_007b:  ldloc.1
   IL_007c:  ldnull
@@ -2417,7 +2417,7 @@ expectedOutput:=<![CDATA[3]]>).
   IL_003e:  pop
   IL_003f:  ldloc.1
   IL_0040:  ldc.i4.0
-  IL_0041:  ldelem.i1
+  IL_0041:  ldelem.u1
   IL_0042:  brfalse.s  IL_0062
   IL_0044:  ldloc.0
   IL_0045:  ldc.i4.0
@@ -2430,7 +2430,7 @@ expectedOutput:=<![CDATA[3]]>).
   IL_0060:  starg.s    V_1
   IL_0062:  ldloc.1
   IL_0063:  ldc.i4.1
-  IL_0064:  ldelem.i1
+  IL_0064:  ldelem.u1
   IL_0065:  brfalse.s  IL_0085
   IL_0067:  ldloc.0
   IL_0068:  ldc.i4.1
@@ -2600,7 +2600,7 @@ expectedOutput:=<![CDATA[]]>).
   IL_0041:  pop
   IL_0042:  ldloc.1
   IL_0043:  ldc.i4.0
-  IL_0044:  ldelem.i1
+  IL_0044:  ldelem.u1
   IL_0045:  brfalse.s  IL_0068
   IL_0047:  ldloc.0
   IL_0048:  ldc.i4.0
@@ -3800,7 +3800,7 @@ End Module
   IL_0031:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
   IL_0036:  ldloc.3
   IL_0037:  ldc.i4.0
-  IL_0038:  ldelem.i1
+  IL_0038:  ldelem.u1
   IL_0039:  brfalse.s  IL_0044
   IL_003b:  ldloc.2
   IL_003c:  ldc.i4.0

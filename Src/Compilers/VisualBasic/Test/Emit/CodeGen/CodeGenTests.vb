@@ -10478,7 +10478,7 @@ True
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Boolean"
   IL_0006:  ldc.i4.0
-  IL_0007:  ldelem.i1
+  IL_0007:  ldelem.u1
   IL_0008:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_000d:  ldc.i4.3
   IL_000e:  newarr     "System.Exception"
@@ -10492,7 +10492,7 @@ True
   IL_0022:  ldc.i4.1
   IL_0023:  stelem.i1
   IL_0024:  ldc.i4.1
-  IL_0025:  ldelem.i1
+  IL_0025:  ldelem.u1
   IL_0026:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_002b:  ldc.i4.7
   IL_002c:  newarr     "System.Exception"
@@ -10509,7 +10509,7 @@ True
   IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>{#MVID#}.$$method0x6000001-0"
   IL_004c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0051:  ldc.i4.2
-  IL_0052:  ldelem.i1
+  IL_0052:  ldelem.u1
   IL_0053:  call       "Sub System.Console.WriteLine(Boolean)"
   IL_0058:  ret
 }
