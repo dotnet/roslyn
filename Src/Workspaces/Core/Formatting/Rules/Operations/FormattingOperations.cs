@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private static readonly AdjustNewLinesOperation PreserveZeroLine = new AdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
         private static readonly AdjustNewLinesOperation PreserveOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         private static readonly AdjustNewLinesOperation ForceOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+        private static readonly AdjustNewLinesOperation ForceIfSameLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceIfSameLine);
 
         private static readonly AdjustSpacesOperation DefaultOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
         private static readonly AdjustSpacesOperation ForceOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -122,6 +123,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 else if (option == AdjustNewLinesOption.ForceLines)
                 {
                     return ForceOneLine;
+                }
+                else if (option == AdjustNewLinesOption.ForceIfSameLine)
+                {
+                    return ForceIfSameLine;
                 }
             }
 

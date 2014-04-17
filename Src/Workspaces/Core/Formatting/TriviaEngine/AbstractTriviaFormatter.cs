@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return defaultRule.With(lines: lineOperation.Line, lineOperation: LineColumnRule.LineOperations.Force);
 
                     case AdjustNewLinesOption.ForceIfSameLine:
-                        if (this.Context.TokenStream.TwoTokensOriginallyOnSameLine(token1, token2))
+                        if (this.Context.TokenStream.TwoTokensOnSameLine(token1, token2))
                         {
                             return defaultRule.With(lines: lineOperation.Line, lineOperation: LineColumnRule.LineOperations.Force);
                         }

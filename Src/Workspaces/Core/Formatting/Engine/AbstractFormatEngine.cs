@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var tokenPairsToApplyAnchorOperations = this.TaskExecutor.Filter(
                                                             tokenOperations,
-                                                            p => p.LineOperation == null && tokenStream.GetTriviaData(p.PairIndex).SecondTokenIsFirstTokenOnLine,
+                                                            p => AnchorOperationCandidate(p),
                                                             p => p.PairIndex, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -400,6 +400,22 @@ namespace Microsoft.CodeAnalysis.Formatting
                     applier.ApplyBaseTokenIndentationChangesFromTo(FindCorrectBaseTokenOfRelativeIndentBlockOperation(o, tokenStream), o.StartToken, o.EndToken, previousChangesMap, cancellationToken);
                 });
             }
+        }
+
+        private static bool AnchorOperationCandidate(TokenPairWithOperations pair)
+        {
+            if (pair.LineOperation == null)
+            {
+                return pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
+            }
+
+            if (pair.LineOperation.Option == AdjustNewLinesOption.ForceIfSameLine)
+            {
+                return !pair.TokenStream.TwoTokensOriginallyOnSameLine(pair.Token1, pair.Token2) &&
+                        pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
+            }
+
+            return false;
         }
 
         private SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)

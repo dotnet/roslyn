@@ -209,6 +209,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
+            return TwoTokensOnSameLineWorker(token1, token2, getOriginalTriviaData);
+        }
+
+        public bool TwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
+        {
+            return TwoTokensOnSameLineWorker(token1, token2, getTriviaData);
+        }
+
+        private bool TwoTokensOnSameLineWorker(SyntaxToken token1, SyntaxToken token2, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
+        {
             // check easy case
             if (token1 == token2)
             {
@@ -228,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var previousToken = tokenData1;
             for (var current = tokenData1.GetNextTokenData(); current < tokenData2; current = current.GetNextTokenData())
             {
-                if (this.GetTriviaData(previousToken, current).SecondTokenIsFirstTokenOnLine)
+                if (triviaDataGetter(previousToken, current).SecondTokenIsFirstTokenOnLine)
                 {
                     return false;
                 }
@@ -237,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // check last one.
-            return !this.GetTriviaData(previousToken, tokenData2).SecondTokenIsFirstTokenOnLine;
+            return !triviaDataGetter(previousToken, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
         public void ApplyBeginningOfTreeChange(TriviaData data)

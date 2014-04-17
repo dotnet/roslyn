@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // else we leave the tokens as it is (Note: We should not preserve too. If we
                     // we do, then that will be counted as a line operation and the indentation of
                     // the second token will be modified)
-                    if (tokenStream.TwoTokensOriginallyOnSameLine(tokenStream.GetToken(pairIndex),
-                                                                  tokenStream.GetToken(pairIndex + 1)))
+                    if (tokenStream.TwoTokensOnSameLine(tokenStream.GetToken(pairIndex),
+                                                        tokenStream.GetToken(pairIndex + 1)))
                     {
                         return ApplyForceLinesOperation(operation, pairIndex, cancellationToken);
                     }

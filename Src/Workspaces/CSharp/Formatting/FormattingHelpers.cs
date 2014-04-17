@@ -103,6 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                    node.Parent.CSharpKind() == SyntaxKind.ParenthesizedLambdaExpression;
         }
 
+        public static bool IsAnonymousMethodBlock(this SyntaxNode node)
+        {
+            if (node.CSharpKind() != SyntaxKind.Block)
+            {
+                return false;
+            }
+
+            return node.Parent.CSharpKind() == SyntaxKind.AnonymousMethodExpression;
+        }
+
         public static bool IsSemicolonInForStatement(this SyntaxToken token)
         {
             var forStatement = token.Parent as ForStatementSyntax;

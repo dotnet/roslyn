@@ -19,72 +19,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke(list);
 
+            if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            {
+                AddAnchorIndentationOperation(list, node);
+                return;
+            }
+
+            if (node.IsKind(SyntaxKind.AnonymousMethodExpression))
+            {
+                AddAnchorIndentationOperation(list, node);
+                return;
+            }
+
             var block = node as BlockSyntax;
-            if (block != null && block.Parent is BlockSyntax)
+            if (block != null)
             {
                 // if it is not nested block, then its anchor will be first token that this block is
                 // associated with. otherwise, "{" of block is the anchor token its children would follow
-                var startToken = block.GetFirstToken(includeZeroWidth: true);
-                var lastToken = block.GetLastToken(includeZeroWidth: true);
-
-                AddAnchorIndentationOperation(list, startToken, lastToken);
-                return;
+                if (block.Parent == null || block.Parent is BlockSyntax)
+                {
+                    AddAnchorIndentationOperation(list, block);
+                    return;
+                }
+                else
+                {
+                    AddAnchorIndentationOperation(list,
+                        block.Parent.GetFirstToken(includeZeroWidth: true),
+                        block.GetLastToken(includeZeroWidth: true));
+                    return;
+                }
             }
 
             var statement = node as StatementSyntax;
             if (statement != null)
             {
-                var startToken = statement.GetFirstToken(includeZeroWidth: true);
-                var lastToken = statement.GetLastToken(includeZeroWidth: true);
-
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, statement);
                 return;
             }
 
             var usingNode = node as UsingDirectiveSyntax;
             if (usingNode != null)
             {
-                var startToken = usingNode.GetFirstToken(includeZeroWidth: true);
-                var lastToken = usingNode.GetLastToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, usingNode);
                 return;
             }
 
             var namespaceNode = node as NamespaceDeclarationSyntax;
             if (namespaceNode != null)
             {
-                var startToken = namespaceNode.GetFirstToken(includeZeroWidth: true);
-                var lastToken = namespaceNode.GetLastToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, namespaceNode);
                 return;
             }
 
             var typeNode = node as TypeDeclarationSyntax;
             if (typeNode != null)
             {
-                var startToken = typeNode.GetFirstToken(includeZeroWidth: true);
-                var lastToken = typeNode.GetLastToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, typeNode);
                 return;
             }
 
             var memberDeclNode = node as MemberDeclarationSyntax;
             if (memberDeclNode != null)
             {
-                var startToken = memberDeclNode.GetFirstToken(includeZeroWidth: true);
-                var lastToken = memberDeclNode.GetLastToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, memberDeclNode);
                 return;
             }
 
             var accessorDeclNode = node as AccessorDeclarationSyntax;
             if (accessorDeclNode != null)
             {
-                var startToken = accessorDeclNode.GetFirstToken(includeZeroWidth: true);
-                var lastToken = accessorDeclNode.GetLastToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, startToken, lastToken);
+                AddAnchorIndentationOperation(list, accessorDeclNode);
                 return;
             }
+        }
+
+        private void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
+        {
+            AddAnchorIndentationOperation(list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
         }
     }
 }

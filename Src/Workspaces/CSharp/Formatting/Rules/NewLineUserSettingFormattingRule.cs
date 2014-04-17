@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods))
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceIfSameLine);
                 }
                 else
                 {

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             if (syntaxNode.IsLambdaBodyBlock() ||
+                syntaxNode.IsAnonymousMethodBlock() ||
                 node is InitializerExpressionSyntax)
             {
                 AddAlignIndentationOfTokensToFirstTokenOfBaseTokenLineOperation(list, syntaxNode, bracePair.Item1, SpecializedCollections.SingletonEnumerable((SyntaxToken)bracePair.Item2));

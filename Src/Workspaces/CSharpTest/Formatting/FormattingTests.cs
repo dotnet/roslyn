@@ -273,10 +273,10 @@ where           i       >       10          select      i           ;
         System.Func<int, int> ret = x =>
                     {
                         System.Func<int, int> ret2 = y =>
-                    {
-                        y++;
-                        return y;
-                    };
+                                            {
+                                                y++;
+                                                return y;
+                                            };
                         return x + 1;
                     };
     }
@@ -305,9 +305,9 @@ System.Func<int, int> ret2 = y =>
     C()
     {
         timer.Tick += delegate (object sender, EventArgs e)
-        {
-            MessageBox.Show(this, ""Timer ticked"");
-        };
+                        {
+                            MessageBox.Show(this, ""Timer ticked"");
+                        };
     }
 }", @"class C
 {
@@ -874,9 +874,9 @@ i = 2 * i;
     public void nothing()
     {
         nothing_again(() =>
-        {
-            Console.WriteLine(""Nothing"");
-        });
+            {
+                Console.WriteLine(""Nothing"");
+            });
     label1:
         int f = 5;
     label2:
@@ -1031,9 +1031,9 @@ class D
     public void nothing()
         {
     nothing_again(() =>
-            {
-                Console.WriteLine(""Nothing"");
-            });
+        {
+            Console.WriteLine(""Nothing"");
+        });
 label1:
     int f = 5;
 label2:
@@ -1370,9 +1370,9 @@ class foo{int x = 0;}", false, changingOptions);
     void br()
     {
         Func<int, int> ret = x =>
-         {
-             return x + 1;
-         };
+                 {
+                     return x + 1;
+                 };
         var obj = new
         {
             // ...
@@ -1387,9 +1387,9 @@ class foo{int x = 0;}", false, changingOptions);
         timer.Tick += delegate (object sender, EventArgs e)
 
 
-        {
-            MessageBox.Show(this, ""Timer ticked"");
-        };
+{
+    MessageBox.Show(this, ""Timer ticked"");
+};
 
         var obj1 = new foo
         {

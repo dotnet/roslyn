@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal struct TokenPairWithOperations
     {
-        private readonly TokenStream tokenStream;
-
+        public TokenStream TokenStream { get; private set; }
         public AdjustSpacesOperation SpaceOperation { get; private set; }
         public AdjustNewLinesOperation LineOperation { get; private set; }
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             Contract.ThrowIfFalse(0 <= tokenPairIndex && tokenPairIndex < tokenStream.TokenCount - 1);
 
-            this.tokenStream = tokenStream;
+            this.TokenStream = tokenStream;
             this.PairIndex = tokenPairIndex;
 
             SpaceOperation = spaceOperations;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return this.tokenStream.GetToken(this.PairIndex);
+                return this.TokenStream.GetToken(this.PairIndex);
             }
         }
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return this.tokenStream.GetToken(this.PairIndex + 1);
+                return this.TokenStream.GetToken(this.PairIndex + 1);
             }
         }
     }

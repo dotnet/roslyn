@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (IsExpressionWithBraces(node))
             {
                 var option = IndentBlockOption.RelativePosition;
-                if (node.IsLambdaBodyBlock() || node is InitializerExpressionSyntax)
+                if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node is InitializerExpressionSyntax)
                 {
                     option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
                 }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var useBrace = node.IsLambdaBodyBlock() ||
                            node is InitializerExpressionSyntax ||
                            (node is AnonymousObjectCreationExpressionSyntax && optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousType)) ||
-                           (node is AnonymousMethodExpressionSyntax && optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods));
+                           (node.IsAnonymousMethodBlock() && optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods));
 
             if (useBrace)
             {
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private bool IsExpressionWithBraces(SyntaxNode node)
         {
             return node.IsLambdaBodyBlock() ||
+                   node.IsAnonymousMethodBlock() ||
                    node is AnonymousObjectCreationExpressionSyntax ||
-                   node is AnonymousMethodExpressionSyntax ||
                    node is InitializerExpressionSyntax;
         }
 
