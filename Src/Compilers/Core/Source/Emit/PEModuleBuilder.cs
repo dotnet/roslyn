@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference EntryPoint { get; }
         internal abstract bool SupportsPrivateImplClass { get; }
-        internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
+        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
         internal abstract Compilation CommonCompilation { get; }
     }
 
@@ -160,14 +160,14 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(noPiaIndexer, rootModuleType);
             yield return rootModuleType;
 
-            foreach (var type in GetAnonymousTypes())
+            foreach (var type in this.GetAnonymousTypes())
             {
                 AddTopLevelType(names, type);
                 VisitTopLevelType(noPiaIndexer, type);
                 yield return type;
             }
 
-            foreach (var type in GetTopLevelTypesCore(context))
+            foreach (var type in this.GetTopLevelTypesCore(context))
             {
                 AddTopLevelType(names, type);
                 VisitTopLevelType(noPiaIndexer, type);

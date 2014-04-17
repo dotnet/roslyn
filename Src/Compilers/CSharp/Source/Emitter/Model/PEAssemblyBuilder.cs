@@ -43,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            ImmutableArray<NamedTypeSymbol> additionalTypes)
-            : base((SourceModuleSymbol)sourceAssembly.Modules[0], outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper)
+            ImmutableArray<NamedTypeSymbol> additionalTypes,
+            bool metadataOnly)
+            : base((SourceModuleSymbol)sourceAssembly.Modules[0], outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
         {
             Debug.Assert((object)sourceAssembly != null);
 
@@ -219,8 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper = null,
-            ImmutableArray<NamedTypeSymbol> additionalTypes = default(ImmutableArray<NamedTypeSymbol>))
-            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
+            ImmutableArray<NamedTypeSymbol> additionalTypes = default(ImmutableArray<NamedTypeSymbol>),
+            bool metadataOnly = false)
+            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes, metadataOnly)
         {
         }
     }

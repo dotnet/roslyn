@@ -46,13 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SymbolDisplayFormat testDataKeyFormat;
         private SymbolDisplayFormat testDataOperatorKeyFormat;
 
+        private readonly bool metadataOnly;
+
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             string outputName,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper)
+            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
+            bool metadataOnly)
             : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation, sourceModule, serializationProperties, manifestResources, outputKind, assemblySymbolMapper)
         {
             metadataName = outputName ?? sourceModule.MetadataName;
@@ -63,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
+
+            this.metadataOnly = metadataOnly;
         }
 
         internal override string Name
@@ -316,14 +321,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
+
             name = null;
             index = -1;
             return false;
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
-            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
+            if (metadataOnly)
+            {
+                return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
+            }
+
+            return StaticCast<Cci.INamespaceTypeDefinition>.From(Compilation.AnonymousTypeManager.GetAllCreatedTemplates());
         }
 
         /// <summary>

@@ -1214,6 +1214,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
+            bool metadataOnly,
             ref bool hasDeclarationErrors);
 
         internal abstract bool Compile(
@@ -1252,6 +1253,7 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken,
                 testData,
                 diagnostics,
+                metadataOnly,
                 hasDeclarationErrors: ref hasDeclarationErrors);
 
             if (moduleBeingBuilt == null)

@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -91,6 +93,95 @@ expectedOutput:=<![CDATA[
   IL_0014:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousTypeSymbol_Simple_Threadsafety()
+
+            Dim source = <compilation>
+                             <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim at1 = New With {.a = 1, .b = 2}
+        Dim at2 = New With {.a = 1, .b = 2, .c = 3}
+        Dim at3 = New With {.a = 1, .b = 2, .c = 3, .d = 4}
+        Dim at4 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5}
+        Dim at5 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6}
+        Dim at6 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7}
+        Dim at7 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8}
+        Dim at8 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9}
+        Dim at9 = New With {.a = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9, .k = 10}
+
+        Dim at11 = New With {.aa = 1, .b = 2}
+        Dim at12 = New With {.aa = 1, .b = 2, .c = 3}
+        Dim at13 = New With {.aa = 1, .b = 2, .c = 3, .d = 4}
+        Dim at14 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5}
+        Dim at15 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6}
+        Dim at16 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7}
+        Dim at17 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8}
+        Dim at18 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9}
+        Dim at19 = New With {.aa = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9, .k = 10}
+
+        Dim at21 = New With {.ba = 1, .b = 2}
+        Dim at22 = New With {.ba = 1, .b = 2, .c = 3}
+        Dim at23 = New With {.ba = 1, .b = 2, .c = 3, .d = 4}
+        Dim at24 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5}
+        Dim at25 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6}
+        Dim at26 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7}
+        Dim at27 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8}
+        Dim at28 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9}
+        Dim at29 = New With {.ba = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9, .k = 10}
+
+        Dim at31 = New With {.ca = 1, .b = 2}
+        Dim at32 = New With {.ca = 1, .b = 2, .c = 3}
+        Dim at33 = New With {.ca = 1, .b = 2, .c = 3, .d = 4}
+        Dim at34 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5}
+        Dim at35 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6}
+        Dim at36 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7}
+        Dim at37 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8}
+        Dim at38 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9}
+        Dim at39 = New With {.ca = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9, .k = 10}
+
+        Dim at41 = New With {.da = 1, .b = 2}
+        Dim at42 = New With {.da = 1, .b = 2, .c = 3}
+        Dim at43 = New With {.da = 1, .b = 2, .c = 3, .d = 4}
+        Dim at44 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5}
+        Dim at45 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6}
+        Dim at46 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7}
+        Dim at47 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8}
+        Dim at48 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9}
+        Dim at49 = New With {.da = 1, .b = 2, .c = 3, .d = 4, .e = 5, .f = 6, .g = 7, .h = 8, .j = 9, .k = 10}
+
+    End Sub
+
+End Module
+    </file>
+                         </compilation>
+
+            For i = 0 To 100
+                Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+
+                Dim tasks(10) As Task
+                For jj = 0 To tasks.Length - 1
+                    Dim j = jj
+                    tasks(j) = Task.Run(Sub()
+                                            Dim stream = New MemoryStream()
+                                            If (j Mod 2 = 0) Then
+                                                Dim result = compilation.EmitMetadataOnly(stream)
+                                                result.Diagnostics.Verify()
+                                            Else
+                                                Dim result = compilation.Emit(stream)
+                                                result.Diagnostics.Verify()
+                                            End If
+                                        End Sub)
+                Next
+
+                ' this should Not fail. if you ever see a NRE Or some kind of crash here enter a bug.
+                ' it may be reproducing just once in a while, in Release only... 
+                ' it Is still a bug.
+                Task.WaitAll(tasks)
+            Next
         End Sub
 
         <WorkItem(544243, "DevDiv")>

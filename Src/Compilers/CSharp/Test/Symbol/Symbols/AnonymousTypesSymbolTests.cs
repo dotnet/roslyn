@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -444,6 +445,120 @@ class Query
 }"
             );
         }
+
+        [Fact]
+        public void AnonymousTypeSymbol_Simple_Threadsafety()
+        {
+            var source = @"
+using System;
+
+class Query
+{
+    public static void Main(string[] args)
+    {
+        var at1 = new { a = 1, b = 2 };
+        var at2 = new { a = 1, b = 2, c = 3};
+        var at3 = new { a = 1, b = 2, c = 3, d = 4};
+        var at4 = new { a = 1, b = 2, c = 3, d = 4, e = 5};
+        var at5 = new { a = 1, b = 2, c = 3, d = 4, e = 5, f = 6};
+        var at6 = new { a = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7};
+        var at7 = new { a = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8};
+        var at8 = new { a = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9};
+        var at9 = new { a = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9, k = 10};
+
+        var at11 = new { aa = 1, b = 2 };
+        var at12 = new { aa = 1, b = 2, c = 3};
+        var at13 = new { aa = 1, b = 2, c = 3, d = 4};
+        var at14 = new { aa = 1, b = 2, c = 3, d = 4, e = 5};
+        var at15 = new { aa = 1, b = 2, c = 3, d = 4, e = 5, f = 6};
+        var at16 = new { aa = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7};
+        var at17 = new { aa = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8};
+        var at18 = new { aa = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9};
+        var at19 = new { aa = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9, k = 10};
+
+        var at21 = new { ba = 1, b = 2 };
+        var at22 = new { ba = 1, b = 2, c = 3};
+        var at23 = new { ba = 1, b = 2, c = 3, d = 4};
+        var at24 = new { ba = 1, b = 2, c = 3, d = 4, e = 5};
+        var at25 = new { ba = 1, b = 2, c = 3, d = 4, e = 5, f = 6};
+        var at26 = new { ba = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7};
+        var at27 = new { ba = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8};
+        var at28 = new { ba = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9};
+        var at29 = new { ba = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9, k = 10};
+
+        var at31 = new { ca = 1, b = 2 };
+        var at32 = new { ca = 1, b = 2, c = 3};
+        var at33 = new { ca = 1, b = 2, c = 3, d = 4};
+        var at34 = new { ca = 1, b = 2, c = 3, d = 4, e = 5};
+        var at35 = new { ca = 1, b = 2, c = 3, d = 4, e = 5, f = 6};
+        var at36 = new { ca = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7};
+        var at37 = new { ca = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8};
+        var at38 = new { ca = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9};
+        var at39 = new { ca = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9, k = 10};
+
+        var at41 = new { da = 1, b = 2 };
+        var at42 = new { da = 1, b = 2, c = 3};
+        var at43 = new { da = 1, b = 2, c = 3, d = 4};
+        var at44 = new { da = 1, b = 2, c = 3, d = 4, e = 5};
+        var at45 = new { da = 1, b = 2, c = 3, d = 4, e = 5, f = 6};
+        var at46 = new { da = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7};
+        var at47 = new { da = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8};
+        var at48 = new { da = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9};
+        var at49 = new { da = 1, b = 2, c = 3, d = 4, e = 5, f = 6, g = 7, h = 8, j = 9, k = 10};
+
+
+        PrintFields(at1.GetType());
+        PrintFields(at2.GetType());
+        PrintFields(at3.GetType());
+    }
+    
+    static void PrintFields(Type type)
+    {
+        Console.WriteLine(type.Name + "": "");
+        foreach (var field in type.GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic))
+        {
+            Console.Write(""  "");
+            Console.Write(field.Attributes);
+            Console.Write("" "");
+            Console.Write(field.FieldType.Name);
+            Console.Write("" "");
+            Console.Write(field.Name);
+            Console.WriteLine();
+        }
+    }
+}
+";
+            for(int i = 0; i < 100; i++)
+            {
+                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, compOptions: TestOptions.Exe);
+
+                var tasks = new Task[10];
+                for(int jj = 0; jj < tasks.Length; jj++)
+                {
+                    var j = jj;
+                    tasks[j] = Task.Run(() =>
+                    {
+                        var stream = new MemoryStream();
+                        if (j % 2 == 0)
+                        {
+                            var result = compilation.EmitMetadataOnly(stream);
+                            result.Diagnostics.Verify();
+                        }
+                        else
+                        {
+                            var result = compilation.Emit(stream);
+                            result.Diagnostics.Verify();
+                        }
+                    });
+                }
+
+                // this should not fail. if you ever see a NRE or some kind of crash here enter a bug.
+                // it may be reproducing just once in a while, in Release only... 
+                // it is still a bug.
+                Task.WaitAll(tasks);
+            }
+        }
+
 
         [Fact]
         public void AnonymousTypeSymbol_Empty()

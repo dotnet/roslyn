@@ -28,9 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
+                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
+                       metadataOnly As Boolean)
 
-            MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol), outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper)
+            MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol), outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
 
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
@@ -176,9 +177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing)
+                       Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing,
+                       Optional metadataOnly As Boolean = False)
 
-            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper)
+            MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
         End Sub
     End Class
 

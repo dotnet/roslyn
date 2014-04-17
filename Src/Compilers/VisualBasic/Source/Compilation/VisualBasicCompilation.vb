@@ -2223,6 +2223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken,
             testData As CompilationTestData,
             diagnosticBag As DiagnosticBag,
+            metadataOnly As Boolean,
             ByRef hasDeclarationErrors As Boolean) As CommonPEModuleBuilder
 
             Debug.Assert(diagnosticBag.IsEmptyWithoutResolution) ' True, but not required.
@@ -2257,7 +2258,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     DirectCast(Me.SourceModule, SourceModuleSymbol),
                     outputName,
                     moduleSerializationProperties,
-                    manifestResources)
+                    manifestResources,
+                    metadataOnly)
             Else
                 Dim kind = If(Options.OutputKind.IsValid(), Options.OutputKind, OutputKind.DynamicallyLinkedLibrary)
                 moduleBeingBuilt = New PEAssemblyBuilder(
@@ -2266,7 +2268,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         kind,
                         moduleSerializationProperties,
                         manifestResources,
-                        assemblySymbolMapper)
+                        assemblySymbolMapper,
+                        metadataOnly)
             End If
 
             If testData IsNot Nothing Then

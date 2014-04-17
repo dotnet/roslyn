@@ -27,12 +27,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private m_TestDataKeyFormat As SymbolDisplayFormat
         Private m_TestDataOperatorKeyFormat As SymbolDisplayFormat
 
+        Private ReadOnly m_metadataOnly As Boolean
+
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        outputName As String,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
+                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
+                       metadataOnly As Boolean)
 
             MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation, sourceModule, serializationProperties, manifestResources, outputKind, assemblySymbolMapper)
 
@@ -42,6 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If sourceModule.AnyReferencedAssembliesAreLinked Then
                 m_EmbeddedTypesManagerOpt = New NoPia.EmbeddedTypesManager(Me)
             End If
+
+            m_metadataOnly = metadataOnly
         End Sub
 
         Friend Overrides ReadOnly Property Name As String
@@ -286,8 +291,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend Overrides Function GetAnonymousTypes() As IEnumerable(Of INamespaceTypeDefinition)
-            Return SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates
+        Friend Overrides Function GetAnonymousTypes() As ImmutableArray(Of INamespaceTypeDefinition)
+            If m_metadataOnly Then
+                Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
+            End If
+
+            Return StaticCast(Of INamespaceTypeDefinition).
+                From(SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates)
         End Function
 
         Friend Overrides Iterator Function GetTopLevelTypesCore(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of INamespaceTypeDefinition)

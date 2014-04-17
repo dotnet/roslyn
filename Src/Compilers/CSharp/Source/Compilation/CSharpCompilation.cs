@@ -2411,6 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
+            bool metadataOnly,
             ref bool hasDeclarationErrors)
         {
             return this.CreateModuleBuilder(
@@ -2422,7 +2423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken,
                 testData,
                 diagnostics,
-                ref hasDeclarationErrors);
+                ref hasDeclarationErrors,
+                metadataOnly: metadataOnly);
         }
 
         internal CommonPEModuleBuilder CreateModuleBuilder(
@@ -2434,7 +2436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            ref bool hasDeclarationErrors)
+            ref bool hasDeclarationErrors,
+            bool metadataOnly)
         {
             // The diagnostics should include syntax and declaration errors also. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
@@ -2475,7 +2478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (SourceModuleSymbol)SourceModule,
                     outputName,
                     moduleProps,
-                    manifestResources);
+                    manifestResources,
+                    metadataOnly);
             }
             else
             {
@@ -2487,7 +2491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     moduleProps,
                     manifestResources,
                     assemblySymbolMapper,
-                    additionalTypes);
+                    additionalTypes,
+                    metadataOnly);
             }
 
             // testData is only passed when running tests.
