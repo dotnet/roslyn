@@ -8,7 +8,7 @@
     TaskName="Xunit.Runner.MSBuild.xunit" />
 
   <Target Name="RestorePackages">
-    <Exec Command="$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe restore $(MSBuildThisFileDirectory)\Src\Roslyn.sln" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; restore &quot;$(MSBuildThisFileDirectory)\Src\Roslyn.sln&quot;" />
   </Target>
 
   <Target Name="Build"
