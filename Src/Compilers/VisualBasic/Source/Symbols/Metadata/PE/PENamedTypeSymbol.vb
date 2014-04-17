@@ -1212,16 +1212,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
 
             If m_lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                m_lazyUseSiteErrorInfo = CalculateUseSiteErrorInfoInternal()
+                m_lazyUseSiteErrorInfo = CalculateUseSiteErrorInfoImpl()
             End If
 
             Return m_lazyUseSiteErrorInfo
         End Function
 
-        Private Function CalculateUseSiteErrorInfoInternal() As DiagnosticInfo
+        Private Function CalculateUseSiteErrorInfoImpl() As DiagnosticInfo
             Dim diagnostic = CalculateUseSiteErrorInfo()
 
             If diagnostic Is Nothing Then
+
+                ' Check if this type Is marked by RequiredAttribute attribute.
+                ' If so mark the type as bad, because it relies upon semantics that are not understood by the VB compiler.
+                If Me.ContainingPEModule.Module.HasRequiredAttributeAttribute(Me.Handle) Then
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                End If
+
                 ' Verify type parameters for containing types
                 ' match those on the containing types.
                 If Not MatchesContainingTypeParameters() Then

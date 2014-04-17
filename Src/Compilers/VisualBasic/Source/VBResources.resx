@@ -1,7 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
-  <root>
+<root>
   <!-- 
     Microsoft ResX Schema 
     
@@ -4518,5 +4516,8 @@
   </data>
   <data name="ERR_PlatformDoesntSupport" xml:space="preserve">
     <value>{0} is not supported in current project type.</value>
+  </data>
+  <data name="ERR_CantUseRequiredAttribute" xml:space="preserve">
+    <value>The RequiredAttribute attribute is not permitted on Visual Basic types.</value>
   </data>
 </root>

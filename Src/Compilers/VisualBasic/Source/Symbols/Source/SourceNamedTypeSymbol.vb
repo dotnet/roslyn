@@ -2159,6 +2159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         decoded = True
+
                     End If
 
                 Case TYPEKIND.Interface
@@ -2215,7 +2216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.StructLayoutAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
-                    Dim defaultAutoLayoutSize = If(Me.TypeKind = TYPEKIND.Structure, 1, 0)
+                    Dim defaultAutoLayoutSize = If(Me.TypeKind = TypeKind.Structure, 1, 0)
                     AttributeData.DecodeStructLayoutAttribute(Of CommonTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(
                         arguments, Me.DefaultMarshallingCharSet, defaultAutoLayoutSize, MessageProvider.Instance)
 
@@ -2249,6 +2250,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     attrData.IsTargetAttribute(Me, AttributeDescription.TypeIdentifierAttribute) Then
                     m_lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True
 
+                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RequiredAttributeAttribute) Then
+                    Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
+                    arguments.Diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                 End If
             End If
 

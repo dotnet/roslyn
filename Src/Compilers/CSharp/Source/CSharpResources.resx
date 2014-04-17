@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2382,7 +2380,7 @@
     <value>Cannot pass '{0}' as a ref or out argument because it is read-only</value>
   </data>
   <data name="ERR_CantUseRequiredAttribute" xml:space="preserve">
-    <value>The Required attribute is not permitted on C# types</value>
+    <value>The RequiredAttribute attribute is not permitted on C# types</value>
   </data>
   <data name="ERR_NoModifiersOnAccessor" xml:space="preserve">
     <value>Modifiers cannot be placed on event accessor declarations</value>

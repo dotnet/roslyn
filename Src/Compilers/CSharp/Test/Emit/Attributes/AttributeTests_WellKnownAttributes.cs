@@ -7577,65 +7577,171 @@ class Test
         }
 
         [Fact, WorkItem(530801, "DevDiv")]
-        public void Bug530801RequiredAttribute()
+        public void Bug530801DisallowRequiredAttributeCS0648()
         {
-            var vbsource = @"
-Namespace VBClassLibrary
+            var ilsource = @"
+.class public auto ansi beforefieldinit Scenario1
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 59 53 79 73 74 65 6D 2E 49 6E 74 33 32 2C   // ..YSystem.Int32,
+                                                                                                                                     20 6D 73 63 6F 72 6C 69 62 2C 20 56 65 72 73 69   //  mscorlib, Versi
+                                                                                                                                     6F 6E 3D 34 2E 30 2E 30 2E 30 2C 20 43 75 6C 74   // on=4.0.0.0, Cult
+                                                                                                                                     75 72 65 3D 6E 65 75 74 72 61 6C 2C 20 50 75 62   // ure=neutral, Pub
+                                                                                                                                     6C 69 63 4B 65 79 54 6F 6B 65 6E 3D 62 37 37 61   // licKeyToken=b77a
+                                                                                                                                     35 63 35 36 31 39 33 34 65 30 38 39 00 00 )       // 5c561934e089..
+  .field public int32 intVar
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Scenario1::.ctor
 
-    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
-    Public Structure RS
-        Public F1 As Integer
-        Public Sub New(ByVal p1 As Integer)
-            F1 = p1
-        End Sub
-    End Structure
-
-    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RI))>
-    Public Interface RI
-        Function F() As Integer
-    End Interface
-
-    Public Class CRI
-        Implements RI
-        Public Function F() As Integer Implements RI.F
-            F = 0
-        End Function
-        Public Shared Frs As RS = New RS(0)
-    End Class
-
-End Namespace
-";
+} // end of class Scenario1
+";   
 
             var cssource = @"
-using VBClassLibrary;
-
-class Program
+public class C
 {
-    static int Main()
+    static Scenario1 ss;
+    public static int Main()
     {
-        int result = 0;
-        RI ri = new CRI();
-        result += ri.F();
-        result += CRI.Frs.F1;
-        return result;
+        ss = new Scenario1();
+        DoSomething(ss);
+        return 1;
+    }
+
+    static void DoSomething(Scenario1 p)
+    {
+        System.Console.WriteLine(p);
     }
 }
 ";
 
-            var vbReference = BasicCompilationUtils.CompileToMetadata(vbsource, references: new[] { MscorlibRef, MsvbRef });
-            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, vbReference }, TestOptions.Exe);
+            var ilReference = CompileIL(ilsource);
+            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.Exe);
 
             var expected = new[] {
-                // (9,9): error CS0648: 'VBClassLibrary.RI' is a type not supported by the language
-                //         RI ri = new CRI();
-                Diagnostic(ErrorCode.ERR_BogusType, "RI").WithArguments("VBClassLibrary.RI").WithLocation(9, 9),
-                // (9,17): error CS0648: 'VBClassLibrary.RI' is a type not supported by the language
-                //         RI ri = new CRI();
-                Diagnostic(ErrorCode.ERR_BogusType, "new CRI()").WithArguments("VBClassLibrary.RI").WithLocation(9, 17),
-                // (11,23): error CS0570: 'VBClassLibrary.CRI.Frs' is not supported by the language
-                //         result += CRI.Frs.F1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Frs").WithArguments("VBClassLibrary.CRI.Frs").WithLocation(11, 23)
-                                 };
+                // (12,29): error CS0648: 'Scenario1' is a type not supported by the language
+                //     static void DoSomething(Scenario1 p)
+                Diagnostic(ErrorCode.ERR_BogusType, "Scenario1").WithArguments("Scenario1").WithLocation(12, 29),
+                // (4,12): error CS0648: 'Scenario1' is a type not supported by the language
+                //     static Scenario1 ss;
+                Diagnostic(ErrorCode.ERR_BogusType, "Scenario1").WithArguments("Scenario1").WithLocation(4, 12),
+                // (7,18): error CS0648: 'Scenario1' is a type not supported by the language
+                //         ss = new Scenario1();
+                Diagnostic(ErrorCode.ERR_BogusType, "Scenario1").WithArguments("Scenario1").WithLocation(7, 18)                                 };
+
+            cscomp.VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(530801, "DevDiv")]
+        public void Bug530801DisallowRequiredAttributeCS0570()
+        {
+            var ilsource = @"
+.class public auto ansi beforefieldinit RequiredAttr.Scenario1
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 59 53 79 73 74 65 6D 2E 49 6E 74 33 32 2C   // ..YSystem.Int32,
+                                                                                                                                     20 6D 73 63 6F 72 6C 69 62 2C 20 56 65 72 73 69   //  mscorlib, Versi
+                                                                                                                                     6F 6E 3D 34 2E 30 2E 30 2E 30 2C 20 43 75 6C 74   // on=4.0.0.0, Cult
+                                                                                                                                     75 72 65 3D 6E 65 75 74 72 61 6C 2C 20 50 75 62   // ure=neutral, Pub
+                                                                                                                                     6C 69 63 4B 65 79 54 6F 6B 65 6E 3D 62 37 37 61   // licKeyToken=b77a
+                                                                                                                                     35 63 35 36 31 39 33 34 65 30 38 39 00 00 )       // 5c561934e089..
+  .field public int32 intVar
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Scenario1::.ctor
+
+} // end of class RequiredAttr.Scenario1
+
+.class public auto ansi beforefieldinit RequiredAttr.ReqAttrUsage
+       extends [mscorlib]System.Object
+{
+  .field public class RequiredAttr.Scenario1 sc1_field
+  .method public hidebysig newslot specialname virtual 
+          instance class RequiredAttr.Scenario1 
+          get_sc1_prop() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  1
+    .locals (class RequiredAttr.Scenario1 V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::sc1_field
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  ret
+  } // end of method ReqAttrUsage::get_sc1_prop
+
+  .method public hidebysig instance class RequiredAttr.Scenario1 
+          sc1_method() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  1
+    .locals (class RequiredAttr.Scenario1 V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::sc1_field
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  ret
+  } // end of method ReqAttrUsage::sc1_method
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method ReqAttrUsage::.ctor
+
+  .property instance class RequiredAttr.Scenario1
+          sc1_prop()
+  {
+    .get instance class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::get_sc1_prop()
+  } // end of property ReqAttrUsage::sc1_prop
+} // end of class RequiredAttr.ReqAttrUsage
+";
+
+            var cssource = @"
+using RequiredAttr;
+
+public class C
+{
+    public static int Main()
+    {
+        var r = new ReqAttrUsage();
+        r.sc1_field = null;
+        var o = r.sc1_prop;
+        r.sc1_method();
+        return 1;
+    }
+}
+";
+
+            var ilReference = CompileIL(ilsource);
+            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.Exe);
+
+            var expected = new[] {
+                // (9,11): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_field' is not supported by the language
+                //         r.sc1_field = null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "sc1_field").WithArguments("RequiredAttr.ReqAttrUsage.sc1_field").WithLocation(9, 11),
+                // (10,19): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_prop' is not supported by the language
+                //         var o = r.sc1_prop;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "sc1_prop").WithArguments("RequiredAttr.ReqAttrUsage.sc1_prop").WithLocation(10, 19),
+                // (11,11): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_method()' is not supported by the language
+                //         r.sc1_method();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "sc1_method").WithArguments("RequiredAttr.ReqAttrUsage.sc1_method()").WithLocation(11, 11)                                 };
 
             cscomp.VerifyDiagnostics(expected);
         }

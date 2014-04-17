@@ -4467,5 +4467,213 @@ End Class
         End Sub
 #End Region
 
+#Region "RequiredAttributeAttribute"
+
+        <Fact, WorkItem(81)>
+        Public Sub DisallowRequiredAttributeInSource()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace VBClassLibrary
+
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
+    Public Structure RS
+        Public F1 As Integer
+        Public Sub New(ByVal p1 As Integer)
+            F1 = p1
+        End Sub
+    End Structure
+
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RI))>
+    Public Interface RI
+        Function F() As Integer
+    End Interface
+
+    Public Class CRI
+        Implements RI
+        Public Function F() As Integer Implements RI.F
+            F = 0
+        End Function
+        Public Shared Frs As RS = New RS(0)
+    End Class
+
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
+    <System.Runtime.CompilerServices.RequiredAttribute(GetType(RI))>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(81)>
+        Public Sub DisallowRequiredAttributeFromMetadata01()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit RequiredAttrClass
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 59 53 79 73 74 65 6D 2E 49 6E 74 33 32 2C   // ..YSystem.Int32,
+                                                                                                                                     20 6D 73 63 6F 72 6C 69 62 2C 20 56 65 72 73 69   //  mscorlib, Versi
+                                                                                                                                     6F 6E 3D 34 2E 30 2E 30 2E 30 2C 20 43 75 6C 74   // on=4.0.0.0, Cult
+                                                                                                                                     75 72 65 3D 6E 65 75 74 72 61 6C 2C 20 50 75 62   // ure=neutral, Pub
+                                                                                                                                     6C 69 63 4B 65 79 54 6F 6B 65 6E 3D 62 37 37 61   // licKeyToken=b77a
+                                                                                                                                     35 63 35 36 31 39 33 34 65 30 38 39 00 00 )       // 5c561934e089..
+  .field public int32 intVar
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method RequiredAttrClass::.ctor
+
+} // end of class RequiredAttrClass
+                ]]>
+
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Module M
+    Sub Main()
+        Dim r = New RequiredAttrClass()
+        System.Console.WriteLine(r)
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim ilReference = CompileIL(ilSource.Value)
+
+            Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={MsvbRef, ilReference})
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30649: 'RequiredAttrClass' is an unsupported type.
+        Dim r = New RequiredAttrClass()
+                    ~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(81)>
+        Public Sub DisallowRequiredAttributeFromMetadata02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit RequiredAttr.Scenario1
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 59 53 79 73 74 65 6D 2E 49 6E 74 33 32 2C   // ..YSystem.Int32,
+                                                                                                                                     20 6D 73 63 6F 72 6C 69 62 2C 20 56 65 72 73 69   //  mscorlib, Versi
+                                                                                                                                     6F 6E 3D 34 2E 30 2E 30 2E 30 2C 20 43 75 6C 74   // on=4.0.0.0, Cult
+                                                                                                                                     75 72 65 3D 6E 65 75 74 72 61 6C 2C 20 50 75 62   // ure=neutral, Pub
+                                                                                                                                     6C 69 63 4B 65 79 54 6F 6B 65 6E 3D 62 37 37 61   // licKeyToken=b77a
+                                                                                                                                     35 63 35 36 31 39 33 34 65 30 38 39 00 00 )       // 5c561934e089..
+  .field public int32 intVar
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Scenario1::.ctor
+
+} // end of class RequiredAttr.Scenario1
+
+.class public auto ansi beforefieldinit RequiredAttr.ReqAttrUsage
+       extends [mscorlib]System.Object
+{
+  .field public class RequiredAttr.Scenario1 sc1_field
+  .method public hidebysig newslot specialname virtual 
+          instance class RequiredAttr.Scenario1 
+          get_sc1_prop() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  1
+    .locals (class RequiredAttr.Scenario1 V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::sc1_field
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  ret
+  } // end of method ReqAttrUsage::get_sc1_prop
+
+  .method public hidebysig instance class RequiredAttr.Scenario1 
+          sc1_method() cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  1
+    .locals (class RequiredAttr.Scenario1 V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::sc1_field
+    IL_0006:  stloc.0
+    IL_0007:  ldloc.0
+    IL_0008:  ret
+  } // end of method ReqAttrUsage::sc1_method
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method ReqAttrUsage::.ctor
+
+  .property instance class RequiredAttr.Scenario1
+          sc1_prop()
+  {
+    .get instance class RequiredAttr.Scenario1 RequiredAttr.ReqAttrUsage::get_sc1_prop()
+  } // end of property ReqAttrUsage::sc1_prop
+} // end of class RequiredAttr.ReqAttrUsage
+                ]]>
+
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports RequiredAttr
+
+Public Class C
+    Public Shared Function Main() As Integer
+        Dim r = New ReqAttrUsage()
+        r.sc1_field = Nothing
+        Dim o As Object = r.sc1_prop
+        r.sc1_method()
+        Return 1
+    End Function
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim ilReference = CompileIL(ilSource.Value)
+
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ilReference})
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30656: Field 'sc1_field' is of an unsupported type.
+        r.sc1_field = Nothing
+        ~~~~~~~~~~~
+BC30643: Property 'sc1_prop' is of an unsupported type.
+        Dim o As Object = r.sc1_prop
+                            ~~~~~~~~
+BC30657: 'sc1_method' has a return type that is not supported or parameter types that are not supported.
+        r.sc1_method()
+          ~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+#End Region
+
     End Class
 End Namespace
