@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             catch (Exception e)
             {
                 services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.FileAccessFailure, e.Message, documentId));
-                return TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, documentId.DebuggerText);
+                return TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
         }
 

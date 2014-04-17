@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(diagnostic);
             var dd = diagnostic as DocumentDiagnostic;
             Assert.NotNull(dd);
-            Assert.Equal(dd.DebuggerText, string.Format("[{0}] {1}", dd.Kind.ToString(), dd.Message));
+            Assert.Equal(dd.GetDebuggerDisplay(), string.Format("[{0}] {1}", dd.Kind.ToString(), dd.Message));
         }
 
         private bool WaitFor(Func<bool> condition, TimeSpan timeout)

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// A node represents a single unique name in a dotted-name tree.
         /// Uniqueness is always case sensitive.
         /// </summary>
-        [DebuggerDisplay("{Name,nq}, {ParentIndex}")]
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node
         {
             private readonly string name;
@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool IsEquivalent(Node node)
             {
                 return (node.Name == this.Name) && (node.ParentIndex == this.ParentIndex);
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                return name + ", " + parentIndex;
             }
         }
     }

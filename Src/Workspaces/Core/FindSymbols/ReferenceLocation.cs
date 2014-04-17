@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// <summary>
     /// Information about a reference to a symbol.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
     {
         /// <summary>
@@ -113,13 +113,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return 0;
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay
+        private string GetDebuggerDisplay()
         {
-            get
-            {
-                return string.Format("{0}: {1}", this.Document.Name, this.Location);
-            }
+            return string.Format("{0}: {1}", this.Document.Name, this.Location);
         }
     }
 }

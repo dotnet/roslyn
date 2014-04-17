@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a source code document that is part of a project.
     /// It provides access to the source text, parsed syntax tree and the corresponding semantic model.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Document
     {
         private readonly DocumentState state;
@@ -470,13 +470,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay
+        private string GetDebuggerDisplay()
         {
-            get
-            {
-                return this.Name;
-            }
+            return this.Name;
         }
     }
 }

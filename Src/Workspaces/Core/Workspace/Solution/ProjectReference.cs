@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [Serializable]
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class ProjectReference : IEquatable<ProjectReference>
     {
         private readonly ProjectId projectId;
@@ -62,13 +62,9 @@ namespace Microsoft.CodeAnalysis
             return Hash.CombineValues(aliases, Hash.Combine(projectId, embedInteropTypes.GetHashCode()));
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay
+        private string GetDebuggerDisplay()
         {
-            get
-            {
-                return this.projectId.ToString();
-            }
+            return this.projectId.ToString();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// An identifier that can be used to refer to the same Solution across versions. 
     /// </summary>
-    [DebuggerDisplay("{DebuggerText}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [Serializable]
     public class SolutionId : IEquatable<SolutionId>
     {
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis
             return new SolutionId(debugName);
         }
 
-        private string DebuggerText
+        private string GetDebuggerDisplay()
         {
-            get { return string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, this.debugName); }
+            return string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, this.debugName);
         }
 
         public override bool Equals(object obj)

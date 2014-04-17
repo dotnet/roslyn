@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// An identifier that can be used to refer to the same Project across versions.
     /// </summary>
-    [DebuggerDisplay("{DebuggerText}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [Serializable]
     public class ProjectId : IEquatable<ProjectId>
     {
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(debugName);
         }
 
-        private string DebuggerText
+        private string GetDebuggerDisplay()
         {
-            get { return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName); }
+            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
         }
 
         public override string ToString()
         {
-            return DebuggerText;
+            return GetDebuggerDisplay();
         }
 
         public override bool Equals(object obj)

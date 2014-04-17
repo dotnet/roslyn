@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    [DebuggerDisplay("{DebuggerText,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public abstract class WorkspaceDiagnostic
     {
         public WorkspaceDiagnosticKind Kind { get; private set; }
@@ -18,15 +18,13 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return DebuggerText;
+            return GetDebuggerDisplay();
         }
 
-        internal string DebuggerText
+        /// <remarks>Internal for testing purposes</remarks>
+        internal string GetDebuggerDisplay()
         {
-            get
-            {
-                return string.Format("[{0}] {1}", this.Kind.ToString(), this.Message);
-            }
+            return string.Format("[{0}] {1}", this.Kind.ToString(), this.Message);
         }
     }
 }

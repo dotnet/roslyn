@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a project that is part of a solution.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Project
     {
         private readonly Solution solution;
@@ -548,13 +548,9 @@ namespace Microsoft.CodeAnalysis
             return this.Solution.RemoveDocument(documentId).GetProject(this.Id);
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay
+        private string GetDebuggerDisplay()
         {
-            get
-            {
-                return this.Name;
-            }
+            return this.Name;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to retrieve the same Document across versions of the
     /// workspace.
     /// </summary>
-    [DebuggerDisplay("{DebuggerText}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [Serializable]
     public class DocumentId : IEquatable<DocumentId>
     {
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, debugName);
         }
 
-        internal string DebuggerText
+        internal string GetDebuggerDisplay()
         {
-            get { return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName); }
+            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
         }
 
         public override string ToString()
         {
-            return DebuggerText;
+            return GetDebuggerDisplay();
         }
 
         public override bool Equals(object obj)

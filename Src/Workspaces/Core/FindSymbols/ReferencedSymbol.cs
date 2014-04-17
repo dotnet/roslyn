@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// how C# and VB allow a symbol to be both a definition and a reference at the same time (for
     /// example, a method which implements an interface method).
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public class ReferencedSymbol
     {
         /// <summary>
@@ -34,14 +34,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay
+        /// <remarks>Internal for testing purposes</remarks>
+        internal string GetDebuggerDisplay()
         {
-            get
-            {
-                var count = this.Locations.Count();
-                return string.Format("{0}, {1} {2}", this.Definition.Name, count, count == 1 ? "ref" : "refs");
-            }
+            var count = this.Locations.Count();
+            return string.Format("{0}, {1} {2}", this.Definition.Name, count, count == 1 ? "ref" : "refs");
         }
     }
 }

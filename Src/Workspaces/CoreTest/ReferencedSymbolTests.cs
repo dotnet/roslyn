@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 1);
 
-            Assert.Equal("Foo, 1 ref", referencedSymbol.DebuggerDisplay);
+            Assert.Equal("Foo, 1 ref", referencedSymbol.GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 0);
 
-            Assert.Equal("Foo, 0 refs", referencedSymbol.DebuggerDisplay);
+            Assert.Equal("Foo, 0 refs", referencedSymbol.GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Foo", 2);
 
-            Assert.Equal("Foo, 2 refs", referencedSymbol.DebuggerDisplay);
+            Assert.Equal("Foo, 2 refs", referencedSymbol.GetDebuggerDisplay());
         }
 
         private static ReferencedSymbol CreateReferencedSymbol(string symbolName, int referenceCount)
