@@ -372,6 +372,7 @@
     <Compile Include="FindSymbols\FindReferences\Finders\FieldSymbolReferenceFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\IReferenceFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\LabelSymbolReferenceFinder.cs" />
+    <Compile Include="FindSymbols\FindReferences\Finders\LinkedFileReferenceFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\LocalSymbolReferenceFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\MethodTypeParameterSymbolReferenceFinder.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\NamedTypeSymbolReferenceFinder.cs" />

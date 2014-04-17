@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -133,6 +134,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var documentVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             return !documentVersion.Equals(currentDocumentVersion);
+        }
+
+        /// <summary>
+        /// Gets the list of DocumentIds that are linked to the given document in the workspace's
+        /// current solution and also exist in the given document's solution. The DocumentId of the
+        /// given Document is excluded.
+        /// </summary>
+        public static IEnumerable<DocumentId> GetLinkedDocumentIds(this Document document)
+        {
+            return document.Project.Solution.Workspace
+                .GetDocumentIdsWithPath(document.FilePath)
+                .Where(documentId => documentId != document.Id && document.Project.Solution.ContainsDocument(documentId));
         }
     }
 }
