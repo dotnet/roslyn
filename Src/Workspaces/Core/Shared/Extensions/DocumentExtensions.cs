@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static IEnumerable<DocumentId> GetLinkedDocumentIds(this Document document)
         {
-            return document.Project.Solution.Workspace
-                .GetDocumentIdsWithPath(document.FilePath)
-                .Where(documentId => documentId != document.Id && document.Project.Solution.ContainsDocument(documentId));
+            return document.Project.Solution
+                .GetDocumentIdsWithFilePath(document.FilePath)
+                .Where(documentId => documentId != document.Id);
         }
     }
 }

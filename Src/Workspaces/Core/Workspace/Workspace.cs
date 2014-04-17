@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IWorkspaceTaskScheduler taskQueue;
 
-        private ImmutableDictionary<string, ImmutableList<DocumentId>> linkedFilesMap = ImmutableDictionary.Create<string, ImmutableList<DocumentId>>();
-
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
@@ -363,8 +361,6 @@ namespace Microsoft.CodeAnalysis
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(oldSolution.AddProject(projectInfo));
 
-            AddDocumentsToLinkedFilesMap_NoLock(newSolution, projectInfo.Id);
-
             if (!silent)
             {
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectId);
@@ -403,8 +399,6 @@ namespace Microsoft.CodeAnalysis
                 this.CheckProjectCanBeRemoved(projectId);
 
                 var oldSolution = this.CurrentSolution;
-
-                RemoveDocumentsFromLinkedFilesMap_NoLock(oldSolution, projectId);
 
                 this.ClearProjectData(projectId);
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
@@ -601,46 +595,11 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
                 CheckDocumentIsNotInCurrentSolution(documentId);
 
-                AddDocumentToLinkedFilesMap_NoLock(documentInfo.Id, documentInfo.FilePath);
-
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
             }
-        }
-
-        private void AddDocumentsToLinkedFilesMap_NoLock(Solution solution, ProjectId projectId)
-        {
-            var builder = linkedFilesMap.ToBuilder();
-            
-            foreach (var document in solution.GetProject(projectId).Documents)
-            {
-                if (string.IsNullOrWhiteSpace(document.FilePath))
-                {
-                    continue;
-                }
-
-                ImmutableList<DocumentId> documentIds;
-                builder[document.FilePath] = builder.TryGetValue(document.FilePath, out documentIds)
-                    ? documentIds.Add(document.Id)
-                    : ImmutableList.Create(document.Id);
-            }
-
-            linkedFilesMap = builder.ToImmutable();
-        }
-
-        private void AddDocumentToLinkedFilesMap_NoLock(DocumentId documentId, string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return;
-            }
-
-            ImmutableList<DocumentId> documentIds;
-            linkedFilesMap = linkedFilesMap.TryGetValue(filePath, out documentIds)
-                ? linkedFilesMap.SetItem(filePath, documentIds.Add(documentId))
-                : linkedFilesMap.Add(filePath, ImmutableList.Create(documentId));
         }
 
         /// <summary>
@@ -675,8 +634,6 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
 
-                RemoveDocumentFromLinkedFilesMap_NoLock(documentId);
-
                 this.ClearDocumentData(documentId);
 
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
@@ -685,77 +642,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void RemoveDocumentsFromLinkedFilesMap_NoLock(Solution solution, ProjectId projectId)
-        {
-            var builder = linkedFilesMap.ToBuilder();
-
-            foreach (var document in solution.GetProject(projectId).Documents)
-            {
-                if (string.IsNullOrWhiteSpace(document.FilePath))
-                {
-                    continue;
-                }
-
-                ImmutableList<DocumentId> documentIds;
-                if (!builder.TryGetValue(document.FilePath, out documentIds) || !documentIds.Contains(document.Id))
-                {
-                    throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
-                }
-
-                if (documentIds.Count == 1)
-                {
-                    builder.Remove(document.FilePath);
-                }
-                else
-                {
-                    builder[document.FilePath] = documentIds.Remove(document.Id);
-                }
-            }
-
-            linkedFilesMap = builder.ToImmutable();
-        }
-
-        private void RemoveDocumentFromLinkedFilesMap_NoLock(DocumentId documentId)
-        {
-            var path = this.CurrentSolution.GetDocument(documentId).FilePath;
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return;
-            }
-
-            ImmutableList<DocumentId> documentIds;
-            if (!linkedFilesMap.TryGetValue(path, out documentIds) ||  !documentIds.Contains(documentId))
-            {
-                throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
-            }
-
-            linkedFilesMap = documentIds.Count == 1
-                ? linkedFilesMap.Remove(path)
-                : linkedFilesMap.SetItem(path, documentIds.Remove(documentId));
-        }
-
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
             CheckDocumentIsClosed(documentId);
-        }
-
-        /// <summary>
-        /// Gets the set of documents in the current solution with the given file path.
-        /// </summary>
-        internal ImmutableList<DocumentId> GetDocumentIdsWithPath(string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return ImmutableList<DocumentId>.Empty;
-            }
-
-            using (this.serializationLock.DisposableWait())
-            {
-                ImmutableList<DocumentId> documentIds;
-                return linkedFilesMap.TryGetValue(filePath, out documentIds)
-                    ? documentIds
-                    : ImmutableList<DocumentId>.Empty;
-            }
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     {
         public async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var linkedSymbols = new List<ISymbol>();
+            var linkedSymbols = new HashSet<ISymbol>();
 
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var semanticModel = await linkedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
 
-                    if (linkedSymbol != null && 
-                        linkedSymbol != symbol &&
+                    if (linkedSymbol != null &&
                         linkedSymbol.Kind == symbol.Kind &&
-                        linkedSymbol.Name == symbol.Name)
+                        linkedSymbol.Name == symbol.Name &&
+                        !linkedSymbols.Contains(linkedSymbol))
                     {
                         linkedSymbols.Add(linkedSymbol);
                     }

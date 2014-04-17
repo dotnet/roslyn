@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis
         private readonly string filePath;
         private readonly ImmutableList<ProjectId> projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> projectIdToProjectStateMap;
+        private readonly ImmutableDictionary<string, ImmutableList<DocumentId>> linkedFilesMap;
         private readonly VersionStamp version;
         private readonly Lazy<VersionStamp> lazyLatestProjectVersion;
         private readonly ProjectDependencyGraph dependencyGraph;
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableList<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
+            ImmutableDictionary<string, ImmutableList<DocumentId>> linkedFilesMap,
             ProjectDependencyGraph dependencyGraph,
             VersionStamp version,
             Lazy<VersionStamp> lazyLatestProjectVersion)
@@ -63,6 +65,7 @@ namespace Microsoft.CodeAnalysis
             this.projectIds = projectIds;
             this.projectIdToProjectStateMap = idToProjectStateMap;
             this.projectIdToTrackerMap = projectIdToTrackerMap;
+            this.linkedFilesMap = linkedFilesMap;
             this.dependencyGraph = dependencyGraph;
             this.projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
             this.version = version;
@@ -84,6 +87,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds: ImmutableList.Create<ProjectId>(),
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
+                linkedFilesMap: ImmutableDictionary.Create<string, ImmutableList<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyLatestProjectVersion: null)
         {
@@ -201,6 +205,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableList<ProjectId> projectIds = null,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
+            ImmutableDictionary<string, ImmutableList<DocumentId>> linkedFilesMap = null,
             ProjectDependencyGraph dependencyGraph = null,
             VersionStamp? version = default(VersionStamp?),
             Lazy<VersionStamp> lazyLatestProjectVersion = null)
@@ -210,6 +215,7 @@ namespace Microsoft.CodeAnalysis
             projectIds = projectIds ?? this.projectIds;
             idToProjectStateMap = idToProjectStateMap ?? this.projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? this.projectIdToTrackerMap;
+            linkedFilesMap = linkedFilesMap ?? this.linkedFilesMap;
             dependencyGraph = dependencyGraph ?? this.dependencyGraph;
             version = version.HasValue ? version.Value : this.version;
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? this.lazyLatestProjectVersion;
@@ -218,6 +224,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds == this.projectIds &&
                 idToProjectStateMap == this.projectIdToProjectStateMap &&
                 projectIdToTrackerMap == this.projectIdToTrackerMap &&
+                linkedFilesMap == this.linkedFilesMap &&
                 dependencyGraph == this.dependencyGraph &&
                 version == this.version &&
                 lazyLatestProjectVersion == this.lazyLatestProjectVersion)
@@ -234,6 +241,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
+                linkedFilesMap,
                 dependencyGraph,
                 version.Value,
                 lazyLatestProjectVersion);
@@ -260,6 +268,7 @@ namespace Microsoft.CodeAnalysis
                 this.projectIds,
                 this.projectIdToProjectStateMap,
                 this.projectIdToTrackerMap,
+                this.linkedFilesMap,
                 this.dependencyGraph,
                 this.version,
                 this.lazyLatestProjectVersion);
@@ -463,7 +472,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal ProjectState GetProjectState(ProjectId projectId)
-            {
+        {
             ProjectState state;
             this.projectIdToProjectStateMap.TryGetValue(projectId, out state);
             return state;
@@ -497,11 +506,13 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = this.projectIdToProjectStateMap.Add(projectId, projectState);
             var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+            var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
             return this.Branch(
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
+                linkedFilesMap: newLinkedFilesMap,
                 dependencyGraph: newDependencyGraph,
                 version: this.Version.GetNewerVersion(),  // changed project list so, increment version.
                 lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
@@ -562,20 +573,31 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject.Id, newProject);
         }
 
-        private static Exception UnwrapException(Exception e)
+        private ImmutableDictionary<string, ImmutableList<DocumentId>> CreateLinkedFilesMapWithAddedProject(ProjectState projectState)
         {
-            while (true)
+            return CreateLinkedFilesMapWithAddedDocuments(projectState, projectState.DocumentIds);
+        }
+
+        private ImmutableDictionary<string, ImmutableList<DocumentId>> CreateLinkedFilesMapWithAddedDocuments(ProjectState projectState, ImmutableList<DocumentId> documentIds)
+        {
+            var builder = this.linkedFilesMap.ToBuilder();
+
+            foreach (var documentId in documentIds)
             {
-                var agg = e as AggregateException;
-                if (agg == null || agg.InnerExceptions.Count != 1)
+                var filePath = projectState.GetDocumentState(documentId).FilePath;
+
+                if (string.IsNullOrWhiteSpace(filePath))
                 {
-                    return e;
+                    continue;
                 }
-                else
-                {
-                    e = agg.InnerExceptions[0];
-                }
+
+                ImmutableList<DocumentId> documentIdsWithPath;
+                builder[filePath] = builder.TryGetValue(filePath, out documentIdsWithPath)
+                    ? documentIdsWithPath.Add(documentId)
+                    : ImmutableList.Create(documentId);
             }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -594,13 +616,54 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = this.projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+            var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(this.projectIdToProjectStateMap[projectId]);
 
             return this.Branch(
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
+                linkedFilesMap: newLinkedFilesMap,
                 dependencyGraph: newDependencyGraph,
                 version: this.Version.GetNewerVersion()); // changed project list, so increment version
+        }
+
+        private ImmutableDictionary<string, ImmutableList<DocumentId>> CreateLinkedFilesMapWithRemovedProject(ProjectState projectState)
+        {
+            return CreateLinkedFilesMapWithRemovedDocuments(projectState, projectState.DocumentIds);
+        }
+
+        private ImmutableDictionary<string, ImmutableList<DocumentId>> CreateLinkedFilesMapWithRemovedDocuments(
+            ProjectState projectState, 
+            ImmutableList<DocumentId> documentIds)
+        {
+            var builder = this.linkedFilesMap.ToBuilder();
+
+            foreach (var documentId in documentIds)
+            {
+                var filePath = projectState.GetDocumentState(documentId).FilePath;
+
+                if (string.IsNullOrWhiteSpace(filePath))
+                {
+                    continue;
+                }
+
+                ImmutableList<DocumentId> documentIdsWithPath;
+                if (!builder.TryGetValue(filePath, out documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
+                {
+                    throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
+                }
+                
+                if (documentIdsWithPath.Count == 1)
+                {
+                    builder.Remove(filePath);
+                }
+                else
+                {
+                    builder[filePath] = documentIdsWithPath.Remove(documentId);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -1000,7 +1063,7 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(state.Id.ProjectId);
             var newProject = oldProject.AddDocument(state);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.AddDocument(state));
+            return this.ForkProject(newProject, CompilationTranslationAction.AddDocument(state), withDocumentListChange: true);
         }
 
         /// <summary>
@@ -1139,22 +1202,7 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newProject = oldProject.RemoveDocument(documentId);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument));
-        }
-
-        private Solution RemoveAllDocuments(ProjectId projectId)
-        {
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId);
-
-            if (!oldProject.HasDocuments)
-            {
-                return this;
-            }
-
-            var newProject = oldProject.RemoveAllDocuments();
-            return this.ForkProject(newProject, CompilationTranslationAction.RemoveAllDocuments());
+            return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument), withDocumentListChange: true);
         }
 
         /// <summary>
@@ -1299,25 +1347,6 @@ namespace Microsoft.CodeAnalysis
             return WithDocumentState(oldDocument.UpdateTree(root, mode), textChanged: true);
         }
 
-        private Solution WithDocumentState(Document document)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException("document");
-            }
-
-            CheckContainsDocument(document.Id);
-
-            var oldDocumentState = this.GetDocumentState(document.Id);
-            var newDocumentState = document.State;
-            if (oldDocumentState == newDocumentState)
-            {
-                return this;
-            }
-
-            return WithDocumentState(newDocumentState);
-        }
-
         private static async Task<Compilation> UpdateDocumentInCompilationAsync(
             Compilation compilation,
             DocumentState oldDocument,
@@ -1413,7 +1442,8 @@ namespace Microsoft.CodeAnalysis
         private Solution ForkProject(
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
-            bool withProjectReferenceChange = false)
+            bool withProjectReferenceChange = false,
+            bool withDocumentListChange = false)
         {
             // make sure we are getting only known translate actions
             CompilationTranslationAction.CheckKnownActions(translate);
@@ -1423,6 +1453,9 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = this.projectIdToProjectStateMap.SetItem(projectId, newProjectState);
             var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(this.projectIds, newStateMap) : this.dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+            var newLinkedFilesMap = withDocumentListChange 
+                ? CreateLinkedFilesMapWithChangedProject(projectIdToProjectStateMap[projectId], newProjectState) 
+                : this.linkedFilesMap;
 
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
@@ -1439,7 +1472,39 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
+                linkedFilesMap: newLinkedFilesMap,
                 lazyLatestProjectVersion: newLatestProjectVersion);
+        }
+
+        private ImmutableDictionary<string, ImmutableList<DocumentId>> CreateLinkedFilesMapWithChangedProject(ProjectState oldProjectState, ProjectState newProjectState)
+        {
+            var oldDocumentIds = oldProjectState.DocumentIds;
+            var newDocumentIds = newProjectState.DocumentIds;
+            var addedDocumentIds = newDocumentIds.RemoveRange(oldDocumentIds);
+            var removedDocumentIds = oldDocumentIds.RemoveRange(newDocumentIds);
+
+            Debug.Assert(addedDocumentIds.Any() || removedDocumentIds.Any(), "The solution's linkedFilesMap should only be recalculated if its files changed.");
+
+            var linkedFilesMap = this.linkedFilesMap;
+            linkedFilesMap = addedDocumentIds.Any() ? CreateLinkedFilesMapWithAddedDocuments(newProjectState, addedDocumentIds) : linkedFilesMap;
+            linkedFilesMap = removedDocumentIds.Any() ? CreateLinkedFilesMapWithRemovedDocuments(oldProjectState, removedDocumentIds) : linkedFilesMap;
+            return linkedFilesMap;
+        }
+
+        /// <summary>
+        /// Gets the set of documents in the current solution with the given file path.
+        /// </summary>
+        internal ImmutableList<DocumentId> GetDocumentIdsWithFilePath(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return ImmutableList<DocumentId>.Empty;
+            }
+
+            ImmutableList<DocumentId> documentIds;
+            return this.linkedFilesMap.TryGetValue(filePath, out documentIds)
+                ? documentIds
+                : ImmutableList<DocumentId>.Empty;
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
