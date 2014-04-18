@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private struct DependentProject
+        private struct DependentProject : IEquatable<DependentProject>
         {
             public readonly ProjectId ProjectId;
             public readonly bool HasInternalsAccess;
@@ -42,6 +42,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 this.ProjectId = dependentProjectId;
                 this.HasInternalsAccess = hasInternalsAccess;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is DependentProject && this.Equals((DependentProject)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
+            }
+
+            public bool Equals(DependentProject other)
+            {
+                return HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
             }
         }
 
