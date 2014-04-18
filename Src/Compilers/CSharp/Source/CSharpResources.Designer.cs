@@ -5605,33 +5605,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A local, parameter or range variable named &apos;{1}&apos; cannot be declared in this scope because that name is used in an enclosing local scope to refer to {2} &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_NameIllegallyOverrides {
-            get {
-                return ResourceManager.GetString("ERR_NameIllegallyOverrides", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} &apos;{1}&apos; cannot be used in this local scope because that name has been used to refer to {2} &apos;{3}&apos;.
-        /// </summary>
-        internal static string ERR_NameIllegallyOverrides2 {
-            get {
-                return ResourceManager.GetString("ERR_NameIllegallyOverrides2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The {0} &apos;{1}&apos; cannot be used in this local scope because that name has been used in an enclosing scope to refer to {2} &apos;{3}&apos;.
-        /// </summary>
-        internal static string ERR_NameIllegallyOverrides3 {
-            get {
-                return ResourceManager.GetString("ERR_NameIllegallyOverrides3", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context.
         /// </summary>
         internal static string ERR_NameNotInContext {

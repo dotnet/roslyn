@@ -310,9 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_LocalDuplicate:
                 case ErrorCode.ERR_LocalIllegallyOverrides:
                 case ErrorCode.ERR_LocalSameNameAsTypeParam:
-                case ErrorCode.ERR_NameIllegallyOverrides:
-                case ErrorCode.ERR_NameIllegallyOverrides2:
-                case ErrorCode.ERR_NameIllegallyOverrides3:
                 case ErrorCode.ERR_QueryRangeVariableOverrides:
                 case ErrorCode.ERR_QueryRangeVariableSameAsTypeParam:
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:

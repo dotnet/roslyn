@@ -657,9 +657,6 @@
   <data name="ERR_NotNullConstRefField" xml:space="preserve">
     <value>'{0}' is of type '{1}'. A const field of a reference type other than string can only be initialized with null.</value>
   </data>
-  <data name="ERR_NameIllegallyOverrides" xml:space="preserve">
-    <value>A local, parameter or range variable named '{1}' cannot be declared in this scope because that name is used in an enclosing local scope to refer to {2} '{0}'</value>
-  </data>
   <data name="ERR_LocalIllegallyOverrides" xml:space="preserve">
     <value>A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter</value>
   </data>
@@ -3311,12 +3308,6 @@
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}'.</value>
-  </data>
-  <data name="ERR_NameIllegallyOverrides2" xml:space="preserve">
-    <value>The {0} '{1}' cannot be used in this local scope because that name has been used to refer to {2} '{3}'</value>
-  </data>
-  <data name="ERR_NameIllegallyOverrides3" xml:space="preserve">
-    <value>The {0} '{1}' cannot be used in this local scope because that name has been used in an enclosing scope to refer to {2} '{3}'</value>
   </data>
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>

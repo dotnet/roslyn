@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticConstParam = 132,
         ERR_NotConstantExpression = 133,
         ERR_NotNullConstRefField = 134,
-        ERR_NameIllegallyOverrides = 135,
+        // ERR_NameIllegallyOverrides = 135, // Not used in Roslyn anymore due to 'Single Meaning' relaxation changes
         ERR_LocalIllegallyOverrides = 136,
         ERR_BadUsingNamespace = 138,
         ERR_NoBreakOrCont = 139,
@@ -1156,8 +1156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCorrespondingArgument = 7036,
         // Moot: WRN_DestructorIsNotFinalizer = 7037,
         ERR_ModuleEmitFailure = 7038,
-        ERR_NameIllegallyOverrides2 = 7039,
-        ERR_NameIllegallyOverrides3 = 7040,
+        // ERR_NameIllegallyOverrides2 = 7039, // Not used anymore due to 'Single Meaning' relaxation changes
+        // ERR_NameIllegallyOverrides3 = 7040, // Not used anymore due to 'Single Meaning' relaxation changes
         ERR_ResourceFileNameNotUnique = 7041,
         ERR_DllImportOnGenericMethod = 7042,
         ERR_LibraryMethodNotFound = 7043,
