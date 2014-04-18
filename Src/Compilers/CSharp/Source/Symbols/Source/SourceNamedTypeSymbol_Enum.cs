@@ -54,23 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeSyntax = types[0];
 
-                    var discardedDiagnostics = DiagnosticBag.GetInstance();
                     var baseBinder = compilation.GetBinder(bases);
-                    var type = baseBinder.BindType(typeSyntax, discardedDiagnostics);
-
-                    // We don't want to report diagnostics about types that don't belong in the position
-                    // because the parser should already have reported them.  We'll handle use site
-                    // diagnostics below.
-                    discardedDiagnostics.Free();
+                    var type = baseBinder.BindType(typeSyntax, diagnostics);
 
                     // Error types are not exposed to the caller. In those
                     // cases, the underlying type is treated as int.
                     if (!type.SpecialType.IsValidEnumUnderlyingType())
                     {
+                        diagnostics.Add(ErrorCode.ERR_IntegralTypeExpected, typeSyntax.Location);
                         type = compilation.GetSpecialType(SpecialType.System_Int32);
                     }
 
-                    Binder.ReportUseSiteDiagnostics(type, diagnostics, typeSyntax);
                     return (NamedTypeSymbol)type;
                 }
             }

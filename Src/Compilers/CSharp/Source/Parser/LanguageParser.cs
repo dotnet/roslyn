@@ -4611,24 +4611,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static bool IsValidEnumBaseType(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.ByteKeyword:
-                case SyntaxKind.ShortKeyword:
-                case SyntaxKind.IntKeyword:
-                case SyntaxKind.LongKeyword:
-                case SyntaxKind.SByteKeyword:
-                case SyntaxKind.UShortKeyword:
-                case SyntaxKind.UIntKeyword:
-                case SyntaxKind.ULongKeyword:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private EnumDeclarationSyntax ParseEnumDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EnumKeyword);
@@ -4650,11 +4632,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 var type = this.ParseType(false);
-                if (type == null || type.Kind != SyntaxKind.PredefinedType || !IsValidEnumBaseType(((PredefinedTypeSyntax)type).Keyword.Kind))
-                {
-                    type = this.AddError(type, ErrorCode.ERR_IntegralTypeExpected);
-                }
-
                 var tmpList = this.pool.AllocateSeparated<TypeSyntax>();
                 tmpList.Add(type);
                 baseList = syntaxFactory.BaseList(colon, tmpList);

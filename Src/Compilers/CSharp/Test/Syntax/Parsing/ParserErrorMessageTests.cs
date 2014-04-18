@@ -1407,9 +1407,11 @@ public class Container
     }
 }
 ")
-                .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "char"),
-                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "System.Int16"));
+            .VerifyDiagnostics(
+                // (6,18): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                //         enum F : char { x, y, z } // CS1008, char not valid type for enums
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "char").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -1437,10 +1439,10 @@ enum N : decimal { A }
                     Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "decimal").WithLocation(10, 10));
         }
 
-        [Fact]
+        [Fact, WorkItem(667303)]
         public void CS1008ERR_IntegralTypeExpected03()
         {
-            ParseAndValidate(@"enum E : byt { A, B }", Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "byt"));
+            ParseAndValidate(@"enum E : byt { A, B }"); // no *parser* errors. This is a semantic error now.
         }
 
         [Fact, WorkItem(540117, "DevDiv")]
