@@ -3763,6 +3763,49 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(923172, "DevDiv")>
+        Sub TestMemberAccessAfterOpenParen()
+            Dim expected =
+<Code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        With args
+            If .IsNew = True Then
+                Return Nothing
+            Else
+                Return CTypeDynamic(Of T)(.Value, .Hello)
+            End If
+        End With
+    End Sub
+End Module
+]]></Code>
+
+            Dim code =
+<Code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        With args
+            If .IsNew = True Then
+                Return Nothing
+            Else
+                Return CTypeDynamic(Of T)(  .Value,              .Hello)
+            End If
+        End With
+    End Sub
+End Module
+]]></Code>
+            AssertFormatLf2CrLf(code.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(530601, "DevDiv")>
         Sub TestElasticFormattingPropertySetter()
             Dim parameterList = SyntaxFactory.ParseParameterList(String.Format("(value As {0})", "Integer"))

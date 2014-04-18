@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' * [member access dot without expression]
-            If FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
+            If previousToken.VisualBasicKind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
