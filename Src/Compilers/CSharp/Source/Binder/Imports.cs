@@ -516,15 +516,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var usingAlias in this.UsingAliases.Values)
                 {
-                    var usingAliasSymbol = usingAlias.Alias.GetAliasTarget(basesBeingResolved: null);
-                    if (binder.CanAddLookupSymbolInfo(usingAliasSymbol, options, null))
+                    var usingAliasSymbol = usingAlias.Alias;
+                    var usingAliasTargetSymbol = usingAliasSymbol.GetAliasTarget(basesBeingResolved: null);
+                    if (binder.CanAddLookupSymbolInfo(usingAliasTargetSymbol, options, null))
                     {
-                        result.AddSymbol(usingAlias.Alias, usingAlias.Alias.Name, 0);
+                        result.AddSymbol(usingAliasSymbol, usingAliasSymbol.Name, 0);
                     }
                 }
             }
 
-            // TODO (tomat): extern aliases?
+            if (this.ExternAliases != null)
+            {
+                foreach (var externAlias in this.ExternAliases)
+                {
+                    var externAliasSymbol = externAlias.Alias;
+                    var externAliasTargetSymbol = externAliasSymbol.GetAliasTarget(basesBeingResolved: null);
+                    if (binder.CanAddLookupSymbolInfo(externAliasTargetSymbol, options, null))
+                    {
+                        result.AddSymbol(externAliasSymbol, externAliasSymbol.Name, 0);
+                    }
+                }
+            }
         }
 
         internal static void AddLookupSymbolsInfoInUsings(

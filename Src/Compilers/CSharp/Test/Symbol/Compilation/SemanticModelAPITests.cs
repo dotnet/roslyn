@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2998,6 +2999,38 @@ static class Extensions
 
             var memberGroup = model.GetMemberGroup(callSyntax.Expression);
             Assert.Contains(extensionMethod.ReduceExtensionMethod(), memberGroup);
+        }
+
+        [WorkItem(849698, "DevDiv")]
+        [Fact]
+        public void LookupExternAlias()
+        {
+            var source = @"
+extern alias Alias;
+
+class C
+{
+    static void Main()
+    {
+        Alias::C.M(); 
+    }
+
+";
+
+            var libBytes = CreateCompilationWithMscorlib("", assemblyName: "lib").EmitToArray();
+            var comp = CreateCompilationWithMscorlib(source, new[] { new MetadataImageReference(libBytes, aliases: ImmutableArray.Create("Alias")) });
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = tree.GetRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
+
+            var symbol = model.LookupSymbols(syntax.SpanStart, name: "Alias").Single();
+            Assert.Equal("Alias", symbol.Name);
+            Assert.Equal(SymbolKind.Alias, symbol.Kind);
+
+            var target = (NamespaceSymbol)((AliasSymbol)symbol).Target;
+            Assert.True(target.IsGlobalNamespace);
+            Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
         [Fact]
