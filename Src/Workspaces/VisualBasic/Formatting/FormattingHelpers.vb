@@ -322,11 +322,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim memberAccess = TryCast(token.Parent, MemberAccessExpressionSyntax)
-            If memberAccess Is Nothing Then
-                Return False
+            If memberAccess IsNot Nothing Then
+                Return memberAccess.Expression Is Nothing AndAlso memberAccess.OperatorToken = token
             End If
 
-            Return memberAccess.Expression Is Nothing AndAlso memberAccess.OperatorToken = token
+            Dim xmlMemberAccess = TryCast(token.Parent, XmlMemberAccessExpressionSyntax)
+            If xmlMemberAccess IsNot Nothing Then
+                Return xmlMemberAccess.Base Is Nothing AndAlso xmlMemberAccess.Token1 = token
+            End If
+
+            Return False
         End Function
 
         Public Function IsNamedFieldInitializerDot(token As SyntaxToken) As Boolean

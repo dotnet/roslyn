@@ -400,58 +400,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                            .Any(Function(t) kinds.Contains(t.VisualBasicKind))
             End Function
 
-            Private Function TryGetStringLiteralText(token As SyntaxToken, ByRef literalText As String) As Boolean
-                ' define local const value
-                Const QuotationCharacter As Char = """"c
-
-                ' get actual text in the buffer and check whether it is quotation
-                Dim actualText = token.ToString()
-                Dim firstCharacter = actualText.FirstOrDefault()
-
-                ' there must be actual quotation before text (it might not if the token is generated)
-                If firstCharacter = Nothing Or firstCharacter <> QuotationCharacter Then
-                    Return False
-                End If
-
-                ' now check special cases
-                ' contains only the first quotation
-                If actualText.Length = 1 Then
-                    literalText = """"""
-                    Return True
-                End If
-
-                If actualText.Length = 2 Then
-                    If actualText(actualText.Length - 1) = QuotationCharacter Then
-                        ' already in good shape
-                        Return False
-                    Else
-                        ' missing closing quotation
-                        literalText = actualText + QuotationCharacter
-                        Return True
-                    End If
-                End If
-
-                ' now, normal case
-                ' backward count number of quotation
-                Dim quotationCount = 0
-                For i = actualText.Length - 1 To 1 Step -1
-                    If actualText(i) = QuotationCharacter Then
-                        quotationCount += 1
-                    Else
-                        Exit For
-                    End If
-                Next
-
-                ' if quotation is even number, then we need closing quotation
-                If quotationCount Mod 2 = 0 Then
-                    literalText = actualText + QuotationCharacter
-                    Return True
-                End If
-
-                ' already in good shape
-                Return False
-            End Function
-
             Public Overrides Function VisitIfStatement(node As IfStatementSyntax) As SyntaxNode
                 Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitIfStatement(node), Function(n) n.ThenKeyword, SyntaxKind.ThenKeyword)
             End Function
@@ -477,31 +425,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return If(newNode.CaseKeyword.VisualBasicKind = SyntaxKind.None,
                            newNode.WithCaseKeyword(SyntaxFactory.Token(SyntaxKind.CaseKeyword)),
                            newNode)
-            End Function
-
-            Public Overrides Function VisitToken(originalToken As SyntaxToken) As SyntaxToken
-                ' we need to override VisitToken for string literal token since things like "Region"
-                ' uses StringLiteralToken for its title rather than LiteralExpressionSyntax
-                ' otherwise we don't use VisitToken directly to insert or replace missing/omitted tokens
-                ' since we would need to touch outside of token boundary for re-attaching trivia
-                Dim token = MyBase.VisitToken(originalToken)
-                If token.VisualBasicKind <> SyntaxKind.StringLiteralToken Then
-                    Return token
-                End If
-
-                Dim span = originalToken.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
-                    Return token
-                End If
-
-                Dim literalText As String = Nothing
-                Dim stringLiteralToken = token
-                If Not TryGetStringLiteralText(stringLiteralToken, literalText) Then
-                    Return token
-                End If
-
-                ' create new token with good pair of quotation
-                Return SyntaxFactory.StringLiteralToken(stringLiteralToken.LeadingTrivia, literalText, stringLiteralToken.ValueText, stringLiteralToken.TrailingTrivia)
             End Function
 
             Private Function AddMissingOrOmittedTokenTransform(Of T As SyntaxNode)(

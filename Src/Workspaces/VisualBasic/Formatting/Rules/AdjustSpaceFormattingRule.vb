@@ -212,8 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Case SyntaxKind.DotToken
                     Dim space = If(previousToken.VisualBasicKind = SyntaxKind.CallKeyword OrElse
-                                   previousToken.VisualBasicKind = SyntaxKind.KeyKeyword OrElse
-                                   (previousToken.VisualBasicKind = SyntaxKind.EqualsToken AndAlso TypeOf currentToken.Parent Is XmlMemberAccessExpressionSyntax), 1, 0)
+                                   previousToken.VisualBasicKind = SyntaxKind.KeyKeyword, 1, 0)
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End Select
 
