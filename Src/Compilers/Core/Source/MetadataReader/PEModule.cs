@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (lazyMetadataReader == null)
                 {
-                    // PEModule is either craeted with metadata reader or PE reader.
+                    // PEModule is either created with metadata reader or PE reader.
                     Debug.Assert(peReaderOpt != null);
                     if (!peReaderOpt.HasMetadata)
                     {
