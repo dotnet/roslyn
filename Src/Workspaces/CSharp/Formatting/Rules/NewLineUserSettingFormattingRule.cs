@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods))
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceIfSameLine);
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
                 }
                 else
                 {
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForLambda))
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceIfSameLine);
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
                 }
                 else
                 {

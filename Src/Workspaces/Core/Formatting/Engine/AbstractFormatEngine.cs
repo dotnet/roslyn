@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
             }
 
-            if (pair.LineOperation.Option == AdjustNewLinesOption.ForceIfSameLine)
+            if (pair.LineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 return !pair.TokenStream.TwoTokensOriginallyOnSameLine(pair.Token1, pair.Token2) &&
                         pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;

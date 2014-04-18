@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
                 else
                 {
-                    Debug.Assert(operation.Option == AdjustNewLinesOption.ForceIfSameLine);
+                    Debug.Assert(operation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine);
 
                     // We force the tokens to the different line only they are on the same line
                     // else we leave the tokens as it is (Note: We should not preserve too. If we
