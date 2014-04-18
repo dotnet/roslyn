@@ -3405,7 +3405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundBadExpression(
                             syntax: initializerSyntaxOpt,
                             resultKind: LookupResultKind.Empty,
-                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType, but that seems silly
+                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: analyzedArguments.Arguments.ToImmutable().Cast<BoundExpression, BoundNode>(),
                             type: constructorReturnType);
                     }
@@ -3421,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundBadExpression(
                             syntax: initializerSyntaxOpt,
                             resultKind: LookupResultKind.Empty,
-                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType, but that seems silly
+                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: analyzedArguments.Arguments.ToImmutable().Cast<BoundExpression, BoundNode>(),
                             type: constructorReturnType);
                 }

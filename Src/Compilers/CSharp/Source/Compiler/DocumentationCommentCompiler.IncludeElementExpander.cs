@@ -651,8 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (Diagnostic diagnostic in bindingDiagnostics.AsEnumerable())
                     {
-                        // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name,
-                        // but that just seems silly.
+                        // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name
                         diagnostics.Add(diagnostic.WithLocation(sourceLocation));
                     }
                 }

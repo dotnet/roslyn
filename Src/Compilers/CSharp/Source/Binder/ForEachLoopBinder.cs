@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The null literal was caught above, so anything else with a null type is a method group or anonymous function
                 diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, syntax.Expression.Location, collectionExpr.Display);
-                // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match), which seems silly.
+                // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
 
                 return false;
             }

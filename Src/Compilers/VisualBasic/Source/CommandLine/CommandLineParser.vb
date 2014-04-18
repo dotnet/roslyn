@@ -1678,7 +1678,7 @@ lVbRuntimePlus:
         End Function
 
         ''' <summary>
-        ''' NOTE: implicit line continuation will not be handled here and an eror will be generated, 
+        ''' NOTE: implicit line continuation will not be handled here and an error will be generated, 
         ''' but explicit one (like ".... _\r\n ....") should work fine
         ''' </summary>
         Private Shared Function ParseConditionalCompilationExpression(symbolList As String, offset As Integer) As ExpressionSyntax

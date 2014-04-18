@@ -2998,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC ERROR: "A null coalescing expression of the form a??b requires 'a' to be of 
             // SPEC ERROR: nullable type or reference type."
             // SPEC ERROR:
-            // SPEC ERROR: This is an error because it disallows the silly-but-legal expression
+            // SPEC ERROR: This is an error because it disallows the pointless-but-legal expression
             // SPEC ERROR: null??whatever. We'll strike that from the specification.
 
             // SPEC: The type of the expression a ?? b depends on which implicit conversions are available 
