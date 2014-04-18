@@ -3098,7 +3098,7 @@ class Program
         }
 
         [WorkItem(529420, "DevDiv")]
-        [Fact(Skip = "529420")]
+        [Fact]
         public void HalfLiftedLeftShift()
         {
             string source =
@@ -3115,7 +3115,7 @@ class Program
         Console.WriteLine(e.Dump());
     }
 }";
-            string expectedOutput = @"LeftShift(Parameter(x Type:System.Nullable`1[System.Int64]) Convert(Parameter(y Type:System.Int16) Type:System.Int32) Lifted LiftedToNull Type:System.Nullable`1[System.Int64])";
+            string expectedOutput = @"LeftShift(Parameter(x Type:System.Nullable`1[System.Int64]) Convert(Convert(Parameter(y Type:System.Int16) Type:System.Int32) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Type:System.Nullable`1[System.Int64])";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
