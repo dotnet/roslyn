@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
-        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(string targetRuntimeVersion, Guid moduleVersionId)
+        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(string targetRuntimeVersion, Guid moduleVersionId = default(Guid))
         {
             CompilationOptions options = this.Options;
 
@@ -1208,7 +1208,6 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
-            Guid moduleVersionId,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
@@ -1232,7 +1231,6 @@ namespace Microsoft.CodeAnalysis
 
         internal CommonPEModuleBuilder Compile(
             string outputName,
-            Guid moduleVersionId,
             IEnumerable<ResourceDescription> manifestResources,
             Stream win32Resources,
             Stream xmlDocStream,
@@ -1247,7 +1245,6 @@ namespace Microsoft.CodeAnalysis
             bool hasDeclarationErrors = false;
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 outputName,
-                moduleVersionId,
                 manifestResources,
                 assemblySymbolMapper,
                 cancellationToken,
@@ -1325,7 +1322,6 @@ namespace Microsoft.CodeAnalysis
                 win32Resources,
                 manifestResources,
                 metadataOnly: false,
-                moduleVersionId: Guid.NewGuid(),
                 testData: null);
         }
 
@@ -1404,7 +1400,6 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken: cancellationToken,
                 win32Resources: null,
                 manifestResources: null,
-                moduleVersionId: Guid.NewGuid(),
                 metadataOnly: true,
                 testData: null);
         }
@@ -1480,7 +1475,6 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
-            Guid moduleVersionId,
             bool metadataOnly,
             CompilationTestData testData)
         {
@@ -1515,7 +1509,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     CommonPEModuleBuilder moduleBeingBuilt = Compile(
                         outputName,
-                        moduleVersionId,
                         manifestResources,
                         win32Resources,
                         xmlDocStream,

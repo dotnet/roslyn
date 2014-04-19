@@ -2510,7 +2510,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0, mvid: Guid.Parse("a2f225f6-b5b9-40f6-bb78-4479a0c55a9b"));
+            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
 
             methodData0.VerifyIL(
@@ -2522,7 +2522,7 @@ class C
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""int""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>{a2f225f6-b5b9-40f6-bb78-4479a0c55a9b}.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>{a2f225f6-b5b9-40f6-bb78-4479a0c55a9b}.$$method0x6000001-0""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-0""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -2659,7 +2659,7 @@ class C
             var compilation2 = CreateCompilationWithMscorlib(source2, compOptions: TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full));
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0, mvid: Guid.Parse("a2f225f6-b5b9-40f6-bb78-4479a0c55a9c"));
+            var bytes0 = compilation0.EmitToArray(debug: true, testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(

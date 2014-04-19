@@ -2406,7 +2406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
                     Compile(
                         outputName: null,
-                        moduleVersionId: Guid.NewGuid(),
                         xmlDocStream: null,
                         assemblySymbolMapper: null,
                         cancellationToken: cancellationToken,
@@ -2450,7 +2449,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
-            Guid moduleVersionId,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
@@ -2461,7 +2459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.CreateModuleBuilder(
                 outputName,
-                moduleVersionId,
                 manifestResources,
                 assemblySymbolMapper,
                 ImmutableArray<NamedTypeSymbol>.Empty,
@@ -2474,7 +2471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
-            Guid moduleVersionId,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
@@ -2507,7 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var moduleProps = ConstructModuleSerializationProperties(runtimeMDVersion, moduleVersionId);
+            var moduleProps = ConstructModuleSerializationProperties(runtimeMDVersion);
 
             if (manifestResources == null)
             {

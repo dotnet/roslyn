@@ -167,6 +167,8 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(localNames != null);
             Debug.Assert(typeToEventMap != null);
             Debug.Assert(typeToPropertyMap != null);
+            Debug.Assert(moduleVersionId != default(Guid));
+            Debug.Assert(moduleVersionId == module.GetModuleVersionId());
 
             Debug.Assert(tableEntriesAdded.Length == MetadataTokens.TableCount);
 

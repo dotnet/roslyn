@@ -525,6 +525,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 result = new PrivateImplementationDetails(
                         this,
+                        this.compilation.GetSubmissionSlotIndex(),
                         this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Byte, syntaxNodeOpt, diagnostics),

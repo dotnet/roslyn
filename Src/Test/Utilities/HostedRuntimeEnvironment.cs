@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         cancellationToken: default(CancellationToken),
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        moduleVersionId: Guid.NewGuid(),
                         metadataOnly: false,
                         testData: testData);
                 }

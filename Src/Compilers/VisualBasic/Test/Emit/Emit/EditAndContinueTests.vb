@@ -178,7 +178,7 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, UnoptimizedDll)
 
             Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0, mvid:=Guid.Parse("a2f225f6-b5b9-40f6-bb78-4479a0c55a9c"))
+            Dim bytes0 = compilation0.EmitToArray(debug:=True, testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.M")
             methodData0.VerifyIL(<![CDATA[
 {
@@ -189,7 +189,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     "Integer"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>{a2f225f6-b5b9-40f6-bb78-4479a0c55a9c}.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>{a2f225f6-b5b9-40f6-bb78-4479a0c55a9c}.$$method0x6000001-0"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-0"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  stloc.0
   IL_0013:  ldloc.0

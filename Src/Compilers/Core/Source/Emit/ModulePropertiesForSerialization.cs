@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit
             bool configureToExecuteInAppContainer,
             SubsystemVersion subsystemVersion)
         {
-            this.PersistentIdentifier = (persistentIdentifier == default(Guid)) ? Guid.NewGuid() : persistentIdentifier;
+            this.PersistentIdentifier = persistentIdentifier;
             this.FileAlignment = fileAlignment;
             this.TargetRuntimeVersion = targetRuntimeVersion;
             this.Platform = platform;

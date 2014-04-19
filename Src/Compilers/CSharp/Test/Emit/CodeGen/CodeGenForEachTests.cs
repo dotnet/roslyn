@@ -121,7 +121,7 @@ class C
   IL_0001:  ldc.i4.4
   IL_0002:  newobj     ""double[*,*]..ctor""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>{#MVID#}.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>{#MVID#}.$$method0x6000001-0""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.$$method0x6000001-0""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0

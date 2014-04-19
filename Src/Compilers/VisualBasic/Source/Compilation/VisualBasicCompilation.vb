@@ -2171,7 +2171,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim discardedDiagnostics = DiagnosticBag.GetInstance()
                     Compile(outputName:=Nothing,
-                            moduleVersionId:=Guid.NewGuid,
                             manifestResources:=Nothing,
                             win32Resources:=Nothing,
                             xmlDocStream:=Nothing,
@@ -2217,7 +2216,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function CreateModuleBuilder(
             outputName As String,
-            moduleVersionId As Guid,
             manifestResources As IEnumerable(Of ResourceDescription),
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             cancellationToken As CancellationToken,
@@ -2246,7 +2244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
 
-            Dim moduleSerializationProperties = ConstructModuleSerializationProperties(runtimeMetadataVersion, moduleVersionId)
+            Dim moduleSerializationProperties = ConstructModuleSerializationProperties(runtimeMetadataVersion)
             If manifestResources Is Nothing Then
                 manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
             End If

@@ -4681,7 +4681,6 @@ public class C
                     cancellationToken: default(CancellationToken),
                     win32Resources: null,
                     manifestResources: null,
-                    moduleVersionId: Guid.NewGuid(),
                     metadataOnly: false,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 

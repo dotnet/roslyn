@@ -23,15 +23,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool metadataOnly = false,
             bool debug = false,
             CompilationTestData testData = null, 
-            Guid mvid = default(Guid),
             DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
-
-            if (mvid == default(Guid))
-            {
-                mvid = Guid.NewGuid();
-            }
 
             var emitResult = compilation.Emit(
                 executableStream: stream,
@@ -42,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 cancellationToken: default(CancellationToken),
                 win32Resources: null,
                 manifestResources: null,
-                moduleVersionId: mvid,
                 metadataOnly: metadataOnly,
                 testData: testData);
 

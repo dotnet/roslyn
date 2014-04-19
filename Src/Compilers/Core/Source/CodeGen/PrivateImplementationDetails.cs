@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal PrivateImplementationDetails(
             Microsoft.Cci.IModule module,
+            int submissionSlotIndex,
             Microsoft.Cci.ITypeReference systemObject,
             Microsoft.Cci.ITypeReference systemValueType,
             Microsoft.Cci.ITypeReference systemInt8Type,
@@ -73,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.systemInt64Type = systemInt64Type;
 
             this.compilerGeneratedAttribute = compilerGeneratedAttribute;
-            this.name = GetClassName(module.PersistentIdentifier);
+            this.name = GetClassName(submissionSlotIndex);
         }
 
-        internal static string GetClassName(Guid persistentIdentifier)
+        internal static string GetClassName(int submissionSlotIndex)
         {
-            return "<PrivateImplementationDetails>" + persistentIdentifier.ToString("B");
+            return "<PrivateImplementationDetails>" + (submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : "");
         }
 
         internal void Freeze()

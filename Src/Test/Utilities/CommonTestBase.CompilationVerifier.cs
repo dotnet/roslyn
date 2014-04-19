@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 get { return diagnostics; }
             }
 
-            public string MVID
-            {
-                get { return testData.Module.PersistentIdentifier.ToString("B"); }
-            }
-
             internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
             {
                 if (EmittedAssemblyData == null)
@@ -142,8 +137,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public CompilationVerifier VerifyIL(string qualifiedMethodName, string expectedIL, bool realIL = false)
             {
                 bool escapeQuotes = compilation is Microsoft.CodeAnalysis.CSharp.CSharpCompilation;
-
-                expectedIL = expectedIL.Replace("{#MVID#}", MVID);
 
                 var methodData = testData.GetMethodData(qualifiedMethodName);
 

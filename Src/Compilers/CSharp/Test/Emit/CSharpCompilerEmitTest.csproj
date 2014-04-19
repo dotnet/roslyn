@@ -148,6 +148,7 @@
     <Compile Include="CodeGen\WinMdEventTests.cs" />
     <Compile Include="CodeGen\WinRTCollectionTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
+    <Compile Include="Emit\DeterministicTests.cs" />
     <Compile Include="Emit\EditAndContinueTests.AssemblyReferences.cs" />
     <Compile Include="Emit\EditAndContinueTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />

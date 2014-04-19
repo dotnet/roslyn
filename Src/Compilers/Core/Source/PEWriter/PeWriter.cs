@@ -717,8 +717,14 @@ namespace Microsoft.Cci
         {
             PopulateTablesAndSerializeMethodBodies(separateMethodIL: false);
 
+            // Since we are producing a full assembly, we should not have a module version ID
+            // imposed ahead-of time. Instead we will compute a deterministic module version ID
+            // based on the contents of the generated stream.
+            Debug.Assert(this.ModuleVersionId == default(Guid));
+
             var metadataStream = new MemoryStream(16 * 1024);
-            SerializeMetadata(metadataStream, separateMethodIL: false);
+            uint moduleVersionIdOffsetInMetadataStream;
+            SerializeMetadata(metadataStream, separateMethodIL: false, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
 
             // fill in header fields.
             FillInNtHeader();
@@ -726,21 +732,82 @@ namespace Microsoft.Cci
 
             // write to pe stream.
             WriteHeaders(stream);
-            WriteTextSection(stream, metadataStream);
+            long startOfMetadataStream;
+            WriteTextSection(stream, metadataStream, out startOfMetadataStream);
             WriteRdataSection(stream);
             WriteSdataSection(stream);
             WriteCoverSection(stream);
             WriteTlsSection(stream);
             WriteResourceSection(stream);
             WriteRelocSection(stream);
+            var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
+            WriteDeterministicGuid(stream, positionOfModuleVersionId);
+        }
+
+        /// <summary>
+        /// Compute a deterministic Guid based on the contents of the stream, and replace
+        /// the 16 zero bytes at the given position with that computed Guid.
+        /// </summary>
+        /// <param name="stream">Stream of data</param>
+        /// <param name="positionOfModuleVersionId">Position of the stream of 16 zero bytes to be replaced by a Guid</param>
+        private static void WriteDeterministicGuid(Stream stream, long positionOfModuleVersionId)
+        {
+            var previousPosition = stream.Position;
+#if DEBUG
+            // The existing Guid in the data should be empty, as we are about to compute it.
+            // Check to be sure.
+            {
+                stream.Position = positionOfModuleVersionId;
+                byte[] guidBytes = new byte[16];
+                stream.Read(guidBytes, 0, 16);
+                var existingGuid = new Guid(guidBytes);
+                Debug.Assert(existingGuid == default(Guid));
+            }
+#endif
+
+            // Compute and write deterministic guid data over the relevant portion of the stream
+            var guidData = ComputeSerializedGuidFromData(stream);
+            stream.Position = positionOfModuleVersionId;
+            stream.Write(guidData, 0, 16);
+            stream.Position = previousPosition;
+        }
+
+        /// <summary>
+        /// Compute a random-looking but deterministic Guid from a hash of the stream's data
+        /// </summary>
+        private static byte[] ComputeSerializedGuidFromData(Stream stream)
+        {
+            stream.Position = 0; // rewind the stream
+            var sha1 = System.Security.Cryptography.SHA1CryptoServiceProvider.Create();
+            var hashData = sha1.ComputeHash(stream);
+            sha1.Dispose();
+            var guidData = new byte[16];
+            Array.Copy(hashData, guidData, 16);
+
+            // modify the guid data so it decodes to the form of a "random" guid ala rfc4122
+            var t = guidData[7];
+            t = (byte)((t & 0xf) | (4 << 4));
+            guidData[7] = t;
+            t = guidData[8];
+            t = (byte)((t & 0x3f) | (2 << 6));
+            guidData[8] = t;
+
+            return guidData;
         }
 
         internal void WriteMetadataAndIL(Stream metadataStream, Stream ilStream)
         {
             PopulateTablesAndSerializeMethodBodies(separateMethodIL: true);
 
+            // this is used to handle edit-and-continue emit, so we should have a module
+            // version ID that is imposed by the caller (the same as the previous module version ID).
+            // Therefore we do not have to fill in a new module version ID in the generated metadata
+            // stream.
+            Debug.Assert(this.ModuleVersionId != default(Guid));
+
             var stream = new MemoryStream(16 * 1024);
-            SerializeMetadata(stream, separateMethodIL: true);
+            uint moduleVersionIdOffset;
+            SerializeMetadata(stream, separateMethodIL: true, moduleVersionIdOffset: out moduleVersionIdOffset);
 
             this.methodStream.WriteTo(ilStream);
             stream.WriteTo(metadataStream);
@@ -1232,7 +1299,13 @@ namespace Microsoft.Cci
             ntHeader.SizeOfHeaders = Aligned(this.ComputeSizeOfPeHeaders(), this.module.FileAlignment);
             ntHeader.SizeOfImage = Aligned(this.relocSection.RelativeVirtualAddress + this.relocSection.VirtualSize, 0x2000);
             ntHeader.SizeOfUninitializedData = 0;
-            ntHeader.TimeDateStamp = (uint)(DateTime.UtcNow - NineteenSeventy).TotalSeconds;
+
+            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
+            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
+            // We would like compilation to be deterministic (that is, when the same inputs are provided
+            // we get the same output).  We can make this part deterministic by taking advantage of
+            // the "or 0" part of the specification.
+            ntHeader.TimeDateStamp = (uint)0;
 
             ntHeader.ImportAddressTable.RelativeVirtualAddress = (this.emitRuntimeStartupStub) ? this.textSection.RelativeVirtualAddress : 0;
             ntHeader.ImportAddressTable.Size = this.sizeOfImportAddressTable;
@@ -1427,6 +1500,20 @@ namespace Microsoft.Cci
             this.guidWriter.WriteBytes(guid.ToByteArray());
 
             return result;
+        }
+
+        private uint MakeModuleVersionIdGuidIndex()
+        {
+            if (this.ModuleVersionId == default(Guid))
+            {
+                uint result = (this.guidWriter.BaseStream.Length >> 4) + 1;
+                this.guidWriter.WriteBytes(0, 16);
+                return result;
+            }
+            else
+            {
+                return GetGuidIndex(this.ModuleVersionId);
+            }
         }
 
         private uint GetBlobIndex(byte[] blob)
@@ -3058,7 +3145,7 @@ namespace Microsoft.Cci
             return this.localDefSignatureToken = 0x11000000 | signatureIndex;
         }
 
-        private void SerializeMetadata(MemoryStream metadataStream, bool separateMethodIL)
+        private void SerializeMetadata(MemoryStream metadataStream, bool separateMethodIL, out uint moduleVersionIdOffset)
         {
             MemoryStream tableStream = new MemoryStream(16 * 1024);
 
@@ -3074,6 +3161,21 @@ namespace Microsoft.Cci
             tableStream.WriteTo(metadataStream);
             this.stringWriter.BaseStream.WriteTo(metadataStream);
             this.userStringWriter.BaseStream.WriteTo(metadataStream);
+
+            // compute the offset into the metadataStream of the module version ID
+            {
+                uint guidTableOffset = metadataStream.Position;
+
+                // index of module version ID in the guidWriter stream
+                uint moduleVersionIdIndex = this.moduleRow.ModuleVersionId;
+
+                // offset into the guidWriter stream of the module version ID
+                uint moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
+
+                // finally, the stream index of the module version ID
+                moduleVersionIdOffset = guidTableOffset + moduleVersionOffsetInGuidTable;
+            }
+
             this.guidWriter.BaseStream.WriteTo(metadataStream);
             this.blobWriter.BaseStream.WriteTo(metadataStream);
         }
@@ -4365,7 +4467,7 @@ namespace Microsoft.Cci
             var r = new ModuleRow();
             r.Generation = this.Generation;
             r.Name = this.GetStringIndexForPathAndCheckLength(this.module.ModuleName);
-            r.ModuleVersionId = this.GetGuidIndex(this.ModuleVersionId);
+            r.ModuleVersionId = this.MakeModuleVersionIdGuidIndex();
             r.EncId = this.GetGuidIndex(this.EncId);
             r.EncBaseId = this.GetGuidIndex(this.EncBaseId);
             this.moduleRow = r;
@@ -7194,8 +7296,6 @@ namespace Microsoft.Cci
         //#define IMAGE_FILE_UP_SYSTEM_ONLY            0x4000  // File should only be run on a UP machine
         //#define IMAGE_FILE_BYTES_REVERSED_HI         0x8000  // Bytes of machine word are reversed.
 
-        private static readonly DateTime NineteenSeventy = new DateTime(1970, 1, 1);
-
         private void WriteHeaders(System.IO.Stream peStream)
         {
             IModule module = this.module;
@@ -7384,12 +7484,13 @@ namespace Microsoft.Cci
             writer.WriteUint(sectionHeader.Characteristics);
         }
 
-        private void WriteTextSection(System.IO.Stream peStream, MemoryStream metadataStream)
+        private void WriteTextSection(System.IO.Stream peStream, MemoryStream metadataStream, out long startOfMetadata)
         {
             peStream.Position = this.textSection.PointerToRawData;
             if (this.emitRuntimeStartupStub) this.WriteImportAddressTable(peStream);
             this.WriteClrHeader(peStream);
             this.WriteIL(peStream);
+            startOfMetadata = peStream.Position;
             this.WriteMetadata(peStream, metadataStream);
             this.WriteManagedResources(peStream);
             this.WriteSpaceForHash(peStream);
