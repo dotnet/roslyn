@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke(list);
 
+            AddAlignmentBlockOperation(list, node, optionSet);
+
             AddBlockIndentationOperation(list, node, optionSet);
 
             AddLabelIndentationOperation(list, node, optionSet);
@@ -103,6 +105,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
+        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        {
+            var simpleLambda = node as SimpleLambdaExpressionSyntax;
+            if (simpleLambda != null)
+            {
+                SetAlignmentBlockOperation(list, simpleLambda, simpleLambda.Body);
+                return;
+            }
+
+            var parenthesizedLambda = node as ParenthesizedLambdaExpressionSyntax;
+            if (parenthesizedLambda != null)
+            {
+                SetAlignmentBlockOperation(list, parenthesizedLambda, parenthesizedLambda.Body);
+                return;
+            }
+
+            var anonymousMethod = node as AnonymousMethodExpressionSyntax;
+            if (anonymousMethod != null)
+            {
+                SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
+                return;
+            }
+
+            var objectCreation = node as ObjectCreationExpressionSyntax;
+            if (objectCreation != null && objectCreation.Initializer != null)
+            {
+                SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
+                return;
+            }
+
+            var anonymousObjectCreation = node as AnonymousObjectCreationExpressionSyntax;
+            if (anonymousObjectCreation != null)
+            {
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+                SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, option);
+                return;
+            }
+        }
+
+        private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
+        {
+            var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
+            var baseToken = baseNode.GetFirstToken(includeZeroWidth: true);
+            var firstToken = body.GetFirstToken(includeZeroWidth: true);
+            var lastToken = body.GetLastToken(includeZeroWidth: true);
+
+            SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
+        }
+
         private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
             var bracePair = node.GetBracePair();
@@ -113,18 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (IsExpressionWithBraces(node))
+            // for lambda, set alignment around braces so that users can put brace wherever they want
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
             {
-                var option = IndentBlockOption.RelativePosition;
-                if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node is InitializerExpressionSyntax)
-                {
-                    option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-                }
-
-                AddIndentBlockOperation(list, GetBaseTokenForRelativeIndentation(node, bracePair.Item1, optionSet),
-                    bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true), option);
-
-                return;
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+                SetAlignmentBlockOperation(list, bracePair.Item1, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2, option);
             }
 
             if (node is BlockSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentBlock))
@@ -140,52 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             AddIndentBlockOperation(list, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true));
-        }
-
-        private SyntaxToken GetBaseTokenForRelativeIndentation(SyntaxNode node, SyntaxToken openingBrace, OptionSet optionSet)
-        {
-            var useBrace = node.IsLambdaBodyBlock() ||
-                           node is InitializerExpressionSyntax ||
-                           (node is AnonymousObjectCreationExpressionSyntax && optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousType)) ||
-                           (node.IsAnonymousMethodBlock() && optionSet.GetOption(CSharpFormattingOptions.OpenBracesInNewLineForAnonymousMethods));
-
-            if (useBrace)
-            {
-                return openingBrace;
-            }
-
-            return GetFirstTokenFromContainingStatement(openingBrace);
-        }
-
-        private bool IsExpressionWithBraces(SyntaxNode node)
-        {
-            return node.IsLambdaBodyBlock() ||
-                   node.IsAnonymousMethodBlock() ||
-                   node is AnonymousObjectCreationExpressionSyntax ||
-                   node is InitializerExpressionSyntax;
-        }
-
-        private SyntaxToken GetFirstTokenFromContainingStatement(SyntaxToken oldBase)
-        {
-            var currentParent = oldBase.Parent;
-            while (currentParent != null)
-            {
-                if (currentParent is StatementSyntax && !(currentParent is BlockSyntax))
-                {
-                    break;
-                }
-                else
-                {
-                    currentParent = currentParent.Parent;
-                }
-            }
-
-            if (currentParent != null)
-            {
-                return currentParent.GetFirstToken(includeZeroWidth: true);
-            }
-
-            return oldBase;
         }
 
         private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)

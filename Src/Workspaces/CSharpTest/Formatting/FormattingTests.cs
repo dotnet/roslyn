@@ -1002,7 +1002,7 @@ class D
     public void nothing()
         {
     nothing_again(() => {
-        Console.WriteLine(""Nothing"");
+    Console.WriteLine(""Nothing"");
     });
         }
     }", @"class Class2
@@ -1032,7 +1032,7 @@ class D
         {
     nothing_again(() =>
         {
-            Console.WriteLine(""Nothing"");
+        Console.WriteLine(""Nothing"");
         });
 label1:
     int f = 5;

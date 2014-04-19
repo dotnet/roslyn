@@ -170,7 +170,6 @@
     <Compile Include="Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" />
     <Compile Include="Formatting\Engine\Trivia\TriviaRewriter.cs" />
     <Compile Include="Formatting\FormattingHelpers.cs" />
-    <Compile Include="Formatting\Rules\AlignTokensFormattingRule.cs" />
     <Compile Include="Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="Formatting\Rules\BaseFormattingRule.cs" />
     <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs" />
