@@ -288,7 +288,7 @@ class C
             try
             {
                 ConsList<Imports> unused;
-                var boundInitializers = Compiler.BindFieldInitializers(
+                var boundInitializers = Binder.BindFieldInitializers(
                     containingType: typeSymbol,
                     scriptCtor: null,
                     initializers: initializers,

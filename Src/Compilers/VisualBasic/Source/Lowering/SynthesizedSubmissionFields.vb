@@ -82,12 +82,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub AddToType(containingType As NamedTypeSymbol, moduleBeingBuilt As PEModuleBuilder)
             For Each field In FieldSymbols
-                moduleBeingBuilt.AddCompilerGeneratedDefinition(containingType, field)
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field)
             Next
 
             Dim hostObjectField As FieldSymbol = GetHostObjectField()
             If hostObjectField IsNot Nothing Then
-                moduleBeingBuilt.AddCompilerGeneratedDefinition(containingType, hostObjectField)
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField)
             End If
         End Sub
     End Class

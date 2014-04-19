@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var field in FieldSymbols)
             {
-                moduleBeingBuilt.AddCompilerGeneratedDefinition(containingType, field);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field);
             }
 
             FieldSymbol hostObjectField = GetHostObjectField();
             if ((object)hostObjectField != null)
             {
-                moduleBeingBuilt.AddCompilerGeneratedDefinition(containingType, hostObjectField);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField);
             }
         }
     }

@@ -219,7 +219,16 @@ public class Test : Class2
 
             // Don't attempt to emit if there were any syntax, declaration, semantic, or emitted errors previously.
             DiagnosticBag diagnostics = new DiagnosticBag();
-            Compiler.CompileMethodBodies(compilation, assembly, false, false, null, null, null, diagnostics, default(CancellationToken));
+
+            MethodCompiler.CompileMethodBodies(
+                compilation: compilation, 
+                moduleBeingBuiltOpt: assembly, 
+                generateDebugInfo: false, 
+                hasDeclarationErrors: false, 
+                diagnostics: diagnostics,
+                filterOpt: null, 
+                cancellationToken: default(CancellationToken));
+
             diagnostics.Verify();
             var context = new CodeAnalysis.Emit.Context(assembly, null, new DiagnosticBag());
             ImmutableArray<byte> image;

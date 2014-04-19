@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
             if (type.SpecialType != SpecialType.None) return false; // int, etc
-            CSharpCompilation Compilation = this.CompilationState.ModuleBuilder.Compilation;
+            CSharpCompilation Compilation = this.CompilationState.ModuleBuilderOpt.Compilation;
             if (type.DeclaringCompilation != Compilation) return true; // perhaps from ref assembly
             if (emptyStructTypeCache.IsEmptyStructType(type)) return false;
             foreach (var f in type.GetMembers())

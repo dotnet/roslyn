@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PEModuleBuilder EmitModule
         {
-            get { return this.factory.CompilationState.ModuleBuilder; }
+            get { return this.factory.CompilationState.ModuleBuilderOpt; }
         }
 
         private BoundStatement AddSequencePoint(BoundStatement node)

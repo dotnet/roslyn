@@ -32,7 +32,7 @@ class C
 
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("F").Single();    
             var diagnostics = new DiagnosticBag();
-            var block = Compiler.BindMethodBody(method, diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, diagnostics);
 
             var locDecl =(BoundLocalDeclaration)block.Statements.Single();
             var localA = (ArrayTypeSymbol)locDecl.DeclaredType.Display;

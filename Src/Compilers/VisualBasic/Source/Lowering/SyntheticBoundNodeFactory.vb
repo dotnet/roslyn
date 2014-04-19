@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddNestedType(nestedType As NamedTypeSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddCompilerGeneratedDefinition(_currentClass, nestedType)
+                [module].AddSynthesizedDefinition(_currentClass, nestedType)
             End If
         End Sub
 
@@ -89,21 +89,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddField(containingType As NamedTypeSymbol, field As FieldSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddCompilerGeneratedDefinition(containingType, field)
+                [module].AddSynthesizedDefinition(containingType, field)
             End If
         End Sub
 
         Public Sub AddMethod(containingType As NamedTypeSymbol, method As MethodSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddCompilerGeneratedDefinition(containingType, method)
+                [module].AddSynthesizedDefinition(containingType, method)
             End If
         End Sub
 
         Public Sub AddProperty(containingType As NamedTypeSymbol, prop As PropertySymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddCompilerGeneratedDefinition(containingType, prop)
+                [module].AddSynthesizedDefinition(containingType, prop)
             End If
         End Sub
 
@@ -983,7 +983,7 @@ nextm:
             If body.Kind <> BoundKind.Block Then
                 body = Me.Block(body)
             End If
-            CompilationState.AddMethod(Me.CurrentMethod, body)
+            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
             Me.CurrentMethod = Nothing
         End Sub
 

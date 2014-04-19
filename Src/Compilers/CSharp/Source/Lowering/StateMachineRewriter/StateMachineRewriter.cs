@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeMap TypeMap = stateMachineClass.TypeMap;
             F.OpenNestedType(stateMachineClass);
-            F.CompilationState.StateMachineImplementationClass[method] = stateMachineClass;
+            F.CompilationState.SetStateMachineType(method, stateMachineClass);
 
             // Add a field: int _state
             var intType = F.SpecialType(SpecialType.System_Int32);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // add fields for the captured variables of the method
-            var dictionary = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilder.Compilation, method, body);
+            var dictionary = IteratorAndAsyncCaptureWalker.Analyze(compilationState.ModuleBuilderOpt.Compilation, method, body);
             IOrderedEnumerable<Symbol> captured =
                 from local in dictionary.Keys
                 orderby local.Name, local.Locations.Length == 0 ? 0 : local.Locations[0].SourceSpan.Start

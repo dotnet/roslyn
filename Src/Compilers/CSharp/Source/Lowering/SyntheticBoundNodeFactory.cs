@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public Diagnostic Diagnostic { get; private set; }
         }
 
-        public readonly CSharpCompilation Compilation;
+        public CSharpCompilation Compilation { get { return CompilationState.Compilation; } }
         public CSharpSyntaxNode Syntax { get; set; }
-        public PEModuleBuilder EmitModule { get { return CompilationState != null ? CompilationState.ModuleBuilder : null; } }
+        public PEModuleBuilder ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public DiagnosticBag Diagnostics { get; private set; }
         public TypeCompilationState CompilationState { get; private set; }
 
-        // current enclosing class
+        // Current enclosing type, or null if not available.
         private NamedTypeSymbol currentClass;
         public NamedTypeSymbol CurrentClass
         {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // current method, possibly a lambda
+        // current method, possibly a lambda, or null if not available
         private MethodSymbol currentMethod;
         public MethodSymbol CurrentMethod
         {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // the nearest enclosing non-lambda method
+        // The nearest enclosing non-lambda method, or null if not available
         private MethodSymbol topLevelMethod;
         public MethodSymbol TopLevelMethod
         {
@@ -84,45 +84,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Create a bound node factory. Note that the use of the factory to get special or well-known members
-        /// that do not exist will result in an exception of type MissingPredefinedMember being thrown.
+        /// that do not exist will result in an exception of type <see cref="MissingPredefinedMember"/> being thrown.
         /// </summary>
         /// <param name="topLevelMethod">The top-level method that will contain the code</param>
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
         public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
-            : this(topLevelMethod, ((object)topLevelMethod != null) ? topLevelMethod.ContainingType : null, node, compilationState, diagnostics)
+            : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics)
         {
         }
 
-        /// <summary>
-        /// Create a bound node factory. Note that the use of the factory to get special or well-known members
-        /// that do not exist will result in an exception of type MissingPredefinedMember being thrown.
-        /// </summary>
-        /// <param name="currentClass">The enclosing class</param>
+        /// <param name="topLevelMethodOpt">The top-level method that will contain the code</param>
+        /// <param name="currentClassOpt">The enclosing class</param>
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(NamedTypeSymbol currentClass, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
-            : this(null, currentClass, node, compilationState, diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-        }
+            Debug.Assert(node != null);
+            Debug.Assert(compilationState != null);
+            Debug.Assert(diagnostics != null);
 
-        /// <summary>
-        /// Create a bound node factory. Note that the use of the factory to get special or well-known members
-        /// that do not exist will result in an exception of type MissingPredefinedMember being thrown.
-        /// </summary>
-        /// <param name="topLevelMethod">The top-level method that will contain the code</param>
-        /// <param name="currentClass">The enclosing class</param>
-        /// <param name="node">The syntax node to which generated code should be attributed</param>
-        /// <param name="compilationState">The state of compilation of the enclosing type</param>
-        /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, NamedTypeSymbol currentClass, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
-        {
             this.CompilationState = compilationState;
-            this.Compilation = EmitModule != null ? compilationState.ModuleBuilder.Compilation : null;
-            this.TopLevelMethod = topLevelMethod;
-            this.CurrentClass = currentClass;
+            this.TopLevelMethod = topLevelMethodOpt;
+            this.CurrentClass = currentClassOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
         }
@@ -139,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void AddNestedType(NamedTypeSymbol nestedType)
         {
-            EmitModule.AddCompilerGeneratedDefinition(CurrentClass, nestedType);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, nestedType);
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -158,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public SynthesizedFieldSymbolBase SynthesizeField(TypeSymbol fieldType, String name, int? iteratorLocalIndex = null, bool isPublic = false)
+        public SynthesizedFieldSymbolBase SynthesizeField(TypeSymbol fieldType, string name, int? iteratorLocalIndex = null, bool isPublic = false)
         {
             SynthesizedFieldSymbolBase result = iteratorLocalIndex.HasValue
                 ? (SynthesizedFieldSymbolBase)new SynthesizedIteratorLocalFieldSymbol(CurrentClass, fieldType, name, iteratorLocalIndex.GetValueOrDefault(), isPublic: isPublic, isStatic: false)
@@ -169,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void AddField(NamedTypeSymbol containingType, FieldSymbol field)
         {
-            EmitModule.AddCompilerGeneratedDefinition(containingType, field);
+            ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field);
         }
 
         public GeneratedLabelSymbol GenerateLabel(string prefix)
@@ -358,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)CurrentMethod != null);
             if (body.Kind != BoundKind.Block) body = Block(body);
-            CompilationState.AddGeneratedMethod(CurrentMethod, body);
+            CompilationState.AddSynthesizedMethod(CurrentMethod, body);
             CurrentMethod = null;
         }
 
@@ -383,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SynthesizedImplementationMethod OpenMethodImplementation(MethodSymbol methodToImplement, string methodName, bool debuggerHidden, MethodSymbol asyncKickoffMethod = null)
         {
             var result = new SynthesizedImplementationMethod(methodToImplement, CurrentClass, methodName, debuggerHidden: debuggerHidden, asyncKickoffMethod: asyncKickoffMethod);
-            EmitModule.AddCompilerGeneratedDefinition(CurrentClass, result);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, result);
             CurrentMethod = result;
             return result;
         }
@@ -403,10 +389,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol OpenPropertyImplementation(MethodSymbol methodToImplement, bool debuggerHidden)
         {
             var prop = new SynthesizedImplementationReadOnlyProperty(methodToImplement, CurrentClass, debuggerHidden);
-            EmitModule.AddCompilerGeneratedDefinition(CurrentClass, prop);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, prop);
 
             var getter = prop.GetMethod;
-            EmitModule.AddCompilerGeneratedDefinition(CurrentClass, getter);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, getter);
 
             CurrentMethod = getter;
             return getter;

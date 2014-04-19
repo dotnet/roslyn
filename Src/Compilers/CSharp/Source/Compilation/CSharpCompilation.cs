@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
+        internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
+
         private readonly CSharpCompilationOptions options;
         private readonly ImmutableArray<SyntaxTree> syntaxTrees; // In ordinal order.
         private readonly ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces;
@@ -1947,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var parallelOptions = cancellationToken.CanBeCanceled
                                             ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                            : Compiler.defaultParallelOptions;
+                                            : DefaultParallelOptions;
 
                         Parallel.For(0, this.SyntaxTrees.Length, parallelOptions,
                             i => builder.AddRange(this.SyntaxTrees[i].GetDiagnostics(cancellationToken)));
@@ -1980,8 +1982,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    builder.AddRange(Compiler.GetAllMethodBodyDiagnostics(this, cancellationToken: cancellationToken));
+                    var methodBodyDiagnostics = DiagnosticBag.GetInstance();
+                    GetDiagnosticsForAllMethodBodies(cancellationToken, methodBodyDiagnostics);
+                    builder.AddRangeAndFree(methodBodyDiagnostics);
                 }
 
                 // Before returning diagnostics, we filter warnings
@@ -1990,6 +1993,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 FilterAndAppendAndFreeDiagnostics(result, ref builder);
                 return result.ToReadOnlyAndFree<Diagnostic>();
             }
+        }
+
+        // Do the steps in compilation to get the method body diagnostics, but don't actually generate
+        // IL or emit an assembly.
+        private void GetDiagnosticsForAllMethodBodies(CancellationToken cancellationToken, DiagnosticBag diagnostics)
+        {
+            MethodCompiler.CompileMethodBodies(
+                compilation: this,
+                moduleBeingBuiltOpt: null,
+                generateDebugInfo: false,
+                hasDeclarationErrors: false,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: cancellationToken);
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken);
+            this.ReportUnusedImports(diagnostics, cancellationToken);
+        }
+
+        private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
+        {
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+
+            MethodCompiler.CompileMethodBodies(
+                compilation: this,
+                moduleBeingBuiltOpt: null,
+                generateDebugInfo: false,
+                hasDeclarationErrors: false,
+                diagnostics: diagnostics,
+                filterOpt: s => s.IsDefinedInSourceTree(tree, span),
+                cancellationToken: cancellationToken);
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);
+
+            // Report unused directives only if computing diagnostics for the entire tree.
+            // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
+            if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
+            {
+                ReportUnusedImports(diagnostics, cancellationToken, tree);
+            }
+
+            return diagnostics.ToReadOnlyAndFree();
         }
 
         /// <summary>
@@ -2232,10 +2277,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //initializers which can result in 'field is never initialized' warnings for fields in partial 
                 //types when the field is in a different source file than the one for which we're getting diagnostics. 
                 //For that reason the bag must be also filtered by tree.
-                IEnumerable<Diagnostic> methodBodyDiagnostics = Compiler.GetMethodBodyDiagnosticsForTree(this, syntaxTree, filterSpanWithinTree, cancellationToken);
+                IEnumerable<Diagnostic> methodBodyDiagnostics = GetDiagnosticsForMethodBodiesInTree(syntaxTree, filterSpanWithinTree, cancellationToken);
 
                 // TODO: Enable the below commented assert and remove the filtering code in the next line.
-                //       GetMethodBodyDiagnosticsForTree seems to be returning diagnostics with locations that don't satisfy the filter tree/span, this must be fixed.
+                //       GetDiagnosticsForMethodBodiesInTree seems to be returning diagnostics with locations that don't satisfy the filter tree/span, this must be fixed.
                 // Debug.Assert(methodBodyDiagnostics.All(d => DiagnosticContainsLocation(d, syntaxTree, filterSpanWithinTree)));
                 methodBodyDiagnostics = FilterDiagnosticsByLocation(methodBodyDiagnostics, syntaxTree, filterSpanWithinTree);
 
@@ -2530,7 +2575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                Compiler.CompileSynthesizedMethodMetadata(this, moduleBeingBuilt, cancellationToken);
+                SynthesizedMetadataCompiler.ProcessSynthesizedMembers(this, moduleBeingBuilt, cancellationToken);
             }
             else
             {
@@ -2569,16 +2614,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
                 DiagnosticBag methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
 
-                Compiler.CompileMethodBodies(
+                MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
                     generateDebugInfo,
                     hasDeclarationErrors,
-                    filter: filter,
-                    filterTree: null,
-                    filterSpanWithinTree: null,
                     diagnostics: methodBodyDiagnosticBag,
+                    filterOpt: filter,
                     cancellationToken: cancellationToken);
+
                 SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
 
                 ReportManifestResourceDuplicates(

@@ -18,10 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// need to be revised if emit phase is changed to support multithreading when
     /// translating a particular type.
     /// </remarks>
-    internal class TypeCompilationState
+    internal sealed class TypeCompilationState
     {
+        /// <summary> Synthesized method info </summary>
+        internal struct MethodWithBody
+        {
+            public readonly MethodSymbol Method;
+            public readonly BoundStatement Body;
+            public readonly ConsList<Imports> DebugImports;
+
+            internal MethodWithBody(MethodSymbol method, BoundStatement body, ConsList<Imports> debugImports)
+            {
+                this.Method = method;
+                this.Body = body;
+                this.DebugImports = debugImports;
+            }
+        }
+
         /// <summary> Flat array of created methods, non-empty if not-null </summary>
-        private ArrayBuilder<MethodWithBody> generatedMethods;
+        private ArrayBuilder<MethodWithBody> synthesizedMethods;
 
         /// <summary> 
         /// Map of wrapper methods created for base access of base type virtual methods from 
@@ -35,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly NamedTypeSymbol type;
 
         /// <summary>
-        /// The builder for generating code.
+        /// The builder for generating code, or null if not in emit phase.
         /// </summary>
-        public PEModuleBuilder ModuleBuilder { get; private set; }
+        public readonly PEModuleBuilder ModuleBuilderOpt;
 
         /// <summary>
         /// Any generated methods that don't suppress debug info will use this
@@ -46,14 +61,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ConsList<Imports> CurrentDebugImports { get; set; }
 
         /// <summary>
-        /// A mapping from (source) iterator or async methods to the compiler-generated classes that implement them.
+        /// A mapping from a (source) iterator or async method to the compiler-generated type that implements it.
         /// </summary>
-        public readonly Dictionary<MethodSymbol, NamedTypeSymbol> StateMachineImplementationClass = new Dictionary<MethodSymbol, NamedTypeSymbol>();
+        private Dictionary<MethodSymbol, NamedTypeSymbol> lazyStateMachineType;
 
-        public TypeCompilationState(NamedTypeSymbol type, PEModuleBuilder moduleBuilder)
+        public readonly CSharpCompilation Compilation;
+
+        public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
+            this.Compilation = compilation;
             this.type = type;
-            this.ModuleBuilder = moduleBuilder;
+            this.ModuleBuilderOpt = moduleBuilderOpt;
         }
 
         /// <summary>
@@ -72,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Emitting
         {
-            get { return ModuleBuilder != null; }
+            get { return ModuleBuilderOpt != null; }
         }
 
         public int GenerateTempNumber()
@@ -80,40 +98,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nextTempNumber++;
         }
 
-        /// <summary> Synthesized method info </summary>
-        internal struct MethodWithBody
+        /// <summary> 
+        /// Add a 'regular' synthesized method.
+        /// </summary>
+        public bool HasSynthesizedMethods
         {
-            public readonly MethodSymbol Method;
-            public readonly BoundStatement Body;
-            public readonly ConsList<Imports> DebugImports;
-
-            internal MethodWithBody(MethodSymbol method, BoundStatement body, ConsList<Imports> debugImports)
-            {
-                this.Method = method;
-                this.Body = body;
-                this.DebugImports = debugImports;
-            }
+            get { return this.synthesizedMethods != null; }
         }
 
-        /// <summary> Any methods? </summary>
-        public bool AnyGeneratedMethods
+        public ArrayBuilder<MethodWithBody> SynthesizedMethods
         {
-            get { return this.generatedMethods != null; }
+            get { return this.synthesizedMethods; }
         }
 
-        /// <summary> Add a 'regular' generated method </summary>
-        public void AddGeneratedMethod(MethodSymbol method, BoundStatement body)
+        public void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
-            if (this.generatedMethods == null)
+            if (this.synthesizedMethods == null)
             {
-                this.generatedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
+                this.synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
             }
 
-            generatedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
+            synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
         }
 
         /// <summary> 
-        /// Add a 'wrapper' method and map it to the original one so it can be reused. 
+        /// Add a 'wrapper' synthesized method and map it to the original one so it can be reused. 
         /// </summary>
         /// <remarks>
         /// Wrapper methods are created for base access of base type virtual methods from 
@@ -121,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public void AddMethodWrapper(MethodSymbol method, MethodSymbol wrapper, BoundStatement body)
         {
-            this.AddGeneratedMethod(wrapper, body);
+            this.AddSynthesizedMethod(wrapper, body);
 
             if (this.wrappers == null)
             {
@@ -150,28 +159,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.wrappers != null && this.wrappers.TryGetValue(method, out wrapper) ? wrapper : null;
         }
 
-        /// <summary> Method/body collection </summary>
-        public IEnumerable<MethodWithBody> GeneratedMethods
-        {
-            get { return this.generatedMethods == null ? Enumerable.Empty<MethodWithBody>() : this.generatedMethods; }
-        }
-
         /// <summary> Free resources allocated for this method collection </summary>
         public void Free()
         {
-            if (this.generatedMethods != null)
+            if (this.synthesizedMethods != null)
             {
-                this.generatedMethods.Free();
-                this.generatedMethods = null;
+                this.synthesizedMethods.Free();
+                this.synthesizedMethods = null;
             }
 
             this.wrappers = null;
         }
 
-        internal NamedTypeSymbol GetIteratorOrAsyncImplementationClass(MethodSymbol method)
+        internal void SetStateMachineType(MethodSymbol method, NamedTypeSymbol stateMatchineClass)
+        {
+            if (lazyStateMachineType == null)
+            {
+                // TODO: do we need dictionary? use pool?
+                lazyStateMachineType = new Dictionary<MethodSymbol, NamedTypeSymbol>();
+            }
+
+            lazyStateMachineType.Add(method, stateMatchineClass);
+        }
+
+        internal NamedTypeSymbol TryGetStateMachineType(MethodSymbol method)
         {
             NamedTypeSymbol result;
-            return StateMachineImplementationClass.TryGetValue(method, out result) ? result : null;
+            return lazyStateMachineType != null && lazyStateMachineType.TryGetValue(method, out result) ? result : null;
         }
     }
 }

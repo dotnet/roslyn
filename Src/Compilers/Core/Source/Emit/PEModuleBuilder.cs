@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit
             new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
         private TMethodSymbol entryPoint;
-        private PrivateImplementationDetails compilerGeneratedPrivateImpl;
+        private PrivateImplementationDetails privateImplementationDetails;
         private ArrayMethods lazyArrayMethods;
         private HashSet<string> namesOfTopLevelTypes;
 
@@ -280,17 +280,17 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (noPiaIndexer != null)
             {
-                noPiaIndexer.Visit((Microsoft.Cci.ITypeDefinition)type);
+                noPiaIndexer.Visit((Cci.ITypeDefinition)type);
             }
         }
 
-        #region Compiler Generated Members
+        #region Synthesized Members
 
         /// <summary>
-        /// Captures the set of compiler generated definitions that should be added to a type
+        /// Captures the set of synthesized definitions that should be added to a type
         /// during emit process.
         /// </summary>
-        private sealed class CompilerGeneratedDefinitions
+        private sealed class SynthesizedDefinitions
         {
             public ConcurrentQueue<Cci.INestedTypeDefinition> NestedTypes;
             public ConcurrentQueue<Cci.IMethodDefinition> Methods;
@@ -298,14 +298,14 @@ namespace Microsoft.CodeAnalysis.Emit
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
         }
 
-        private readonly ConcurrentDictionary<TNamedTypeSymbol, CompilerGeneratedDefinitions> compilerGeneratedDefs =
-            new ConcurrentDictionary<TNamedTypeSymbol, CompilerGeneratedDefinitions>();
+        private readonly ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions> synthesizedDefs =
+            new ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions>();
 
-        public void AddCompilerGeneratedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
         {
             Debug.Assert(nestedType != null);
 
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container);
             if (defs.NestedTypes == null)
             {
                 Interlocked.CompareExchange(ref defs.NestedTypes, new ConcurrentQueue<Cci.INestedTypeDefinition>(), null);
@@ -319,12 +319,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Returns null if there are no compiler generated types.
         /// </summary>
-        public IEnumerable<Cci.INestedTypeDefinition> GetCompilerGeneratedTypes(TNamedTypeSymbol container)
+        public IEnumerable<Cci.INestedTypeDefinition> GetSynthesizedTypes(TNamedTypeSymbol container)
         {
             IEnumerable<Cci.INestedTypeDefinition> declareTypes = GetSynthesizedNestedTypes(container);
             IEnumerable<Cci.INestedTypeDefinition> compileEmitTypes = null;
 
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container, addIfNotFound: false);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
             if (defs != null)
             {
                 compileEmitTypes = defs.NestedTypes;
@@ -343,17 +343,17 @@ namespace Microsoft.CodeAnalysis.Emit
             return compileEmitTypes;
         }
 
-        private CompilerGeneratedDefinitions GetCacheOfCompilerGeneratedDefinitions(TNamedTypeSymbol container, bool addIfNotFound = true)
+        private SynthesizedDefinitions GetCacheOfSynthesizedDefinitions(TNamedTypeSymbol container, bool addIfNotFound = true)
         {
             Debug.Assert(((INamedTypeSymbol)container).IsDefinition);
             if (addIfNotFound)
             {
-                return compilerGeneratedDefs.GetOrAdd(container, _ => new CompilerGeneratedDefinitions());
+                return synthesizedDefs.GetOrAdd(container, _ => new SynthesizedDefinitions());
             }
             else
             {
-                CompilerGeneratedDefinitions defs;
-                if (!compilerGeneratedDefs.TryGetValue(container, out defs))
+                SynthesizedDefinitions defs;
+                if (!synthesizedDefs.TryGetValue(container, out defs))
                 {
                     defs = null;
                 }
@@ -362,11 +362,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public void AddCompilerGeneratedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
+        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
         {
             Debug.Assert(method != null);
 
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container);
             if (defs.Methods == null)
             {
                 Interlocked.CompareExchange(ref defs.Methods, new ConcurrentQueue<Cci.IMethodDefinition>(), null);
@@ -376,13 +376,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns null if there are no compiler generated methods.
+        /// Returns null if there are no synthesized methods.
         /// </summary>
-        /// <param name="container"></param>
-        /// <returns></returns>
-        public IEnumerable<Cci.IMethodDefinition> GetCompilerGeneratedMethods(TNamedTypeSymbol container)
+        public IEnumerable<Cci.IMethodDefinition> GetSynthesizedMethods(TNamedTypeSymbol container)
         {
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container, addIfNotFound: false);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
 
             if (defs != null)
             {
@@ -392,11 +390,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        public void AddCompilerGeneratedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
+        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
         {
             Debug.Assert(property != null);
 
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container);
             if (defs.Properties == null)
             {
                 Interlocked.CompareExchange(ref defs.Properties, new ConcurrentQueue<Cci.IPropertyDefinition>(), null);
@@ -406,13 +404,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns null if there are no compiler generated properties.
+        /// Returns null if there are no synthesized properties.
         /// </summary>
-        /// <param name="container"></param>
-        /// <returns></returns>
-        public IEnumerable<Cci.IPropertyDefinition> GetCompilerGeneratedProperties(TNamedTypeSymbol container)
+        public IEnumerable<Cci.IPropertyDefinition> GetSynthesizedProperties(TNamedTypeSymbol container)
         {
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container, addIfNotFound: false);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
 
             if (defs != null)
             {
@@ -422,11 +418,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        public void AddCompilerGeneratedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
+        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
         {
             Debug.Assert(field != null);
 
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container);
             if (defs.Fields == null)
             {
                 Interlocked.CompareExchange(ref defs.Fields, new ConcurrentQueue<Cci.IFieldDefinition>(), null);
@@ -436,11 +432,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns null if there are no compiler generated fields.
+        /// Returns null if there are no synthesized fields.
         /// </summary>
-        public IEnumerable<Cci.IFieldDefinition> GetCompilerGeneratedFields(TNamedTypeSymbol container)
+        public IEnumerable<Cci.IFieldDefinition> GetSynthesizedFields(TNamedTypeSymbol container)
         {
-            CompilerGeneratedDefinitions defs = GetCacheOfCompilerGeneratedDefinitions(container, addIfNotFound: false);
+            SynthesizedDefinitions defs = GetCacheOfSynthesizedDefinitions(container, addIfNotFound: false);
 
             if (defs != null)
             {
@@ -464,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateDataField(data);
         }
 
-        public abstract Microsoft.Cci.IMethodReference GetInitArrayHelper();
+        public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public ArrayMethods ArrayMethods
         {
@@ -523,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var result = this.compilerGeneratedPrivateImpl;
+            var result = this.privateImplementationDetails;
 
             if ((result == null) && this.SupportsPrivateImplClass)
             {
@@ -537,9 +533,9 @@ namespace Microsoft.CodeAnalysis.Emit
                         this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-                if (Interlocked.CompareExchange(ref this.compilerGeneratedPrivateImpl, result, null) != null)
+                if (Interlocked.CompareExchange(ref this.privateImplementationDetails, result, null) != null)
                 {
-                    result = this.compilerGeneratedPrivateImpl;
+                    result = this.privateImplementationDetails;
                 }
             }
 
@@ -548,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal PrivateImplementationDetails PrivateImplClass
         {
-            get { return compilerGeneratedPrivateImpl; }
+            get { return privateImplementationDetails; }
         }
 
         internal override bool SupportsPrivateImplClass

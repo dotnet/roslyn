@@ -16,73 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         /// The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         /// </summary>
-        internal class Analysis : BoundTreeWalker
+        internal sealed class Analysis : BoundTreeWalker
         {
             private readonly MethodSymbol topLevelMethod;
+
             private MethodSymbol currentParent;
             private BoundNode currentBlock;
-
-            /// <summary>
-            /// Set to true of any lambda expressions were seen in the analyzed method body.
-            /// </summary>
-            private bool seenLambda = false;
-
-            /// <summary>
-            /// For each statement that defines variables, identifies the nearest enclosing statement that defines variables.
-            /// </summary>
-            internal readonly Dictionary<BoundNode, BoundNode> blockParent = new Dictionary<BoundNode, BoundNode>();
-
-            /// <summary>
-            /// For each captured variable, identifies the statement in which it will be moved to a frame class.  This is
-            /// normally the block where the variable is introduced, but method parameters are moved
-            /// to a frame class within the body of the method.
-            /// </summary>
-            internal readonly Dictionary<Symbol, BoundNode> variableBlock = new Dictionary<Symbol, BoundNode>();
-
-            /// <summary>
-            /// Blocks that are positioned between a block declaring some lifted variables
-            /// and a block that contains the lambda that lifts said variables.
-            /// If such block itself requires a closure, then it must lift parent frame pointer into the closure
-            /// in addition to whatever else needs to be lifted.
-            /// 
-            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
-            /// If someone only needs diagnostics or information about captures, this information is not necessary.
-            /// ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
-            /// </summary>
-            internal HashSet<BoundNode> needsParentFrame;
-
-            /// <summary>
-            /// Optimized locations of lambdas. 
-            /// 
-            /// Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
-            /// It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
-            /// Doing so reduces indirections needed when captured local are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
-            /// 
-            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
-            /// If someone only needs diagnostics or information about captures, this information is not necessary.
-            /// ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
-            /// </summary>
-            internal Dictionary<LambdaSymbol, BoundNode> lambdaScopes;
-
-            /// <summary>
-            /// The set of captured variables seen in the method body.
-            /// </summary>
-            internal readonly HashSet<Symbol> variablesCaptured = new HashSet<Symbol>();
-
-            /// <summary>
-            /// The syntax nodes associated with each captured variable.
-            /// </summary>
-            internal readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedSyntax = new MultiDictionary<Symbol, CSharpSyntaxNode>();
-
-            /// <summary>
-            /// The set of variables that were declared anywhere inside an expression lambda.
-            /// </summary>
-            internal readonly HashSet<Symbol> declaredInsideExpressionLambda = new HashSet<Symbol>();
-
-            /// <summary>
-            /// For each lambda in the code, the set of variables that it captures.
-            /// </summary>
-            internal readonly MultiDictionary<LambdaSymbol, Symbol> captures = new MultiDictionary<LambdaSymbol, Symbol>();
 
             // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
             // syntax.  That way, in case we need to report an error about the receiver, we can use this
@@ -94,16 +33,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private bool inExpressionLambda;
 
+            /// <summary>
+            /// Set to true of any lambda expressions were seen in the analyzed method body.
+            /// </summary>
+            public bool SeenLambda { get; private set; }
+
+            /// <summary>
+            /// For each statement that defines variables, identifies the nearest enclosing statement that defines variables.
+            /// </summary>
+            public readonly Dictionary<BoundNode, BoundNode> blockParent = new Dictionary<BoundNode, BoundNode>();
+
+            /// <summary>
+            /// For each captured variable, identifies the statement in which it will be moved to a frame class.  This is
+            /// normally the block where the variable is introduced, but method parameters are moved
+            /// to a frame class within the body of the method.
+            /// </summary>
+            public readonly Dictionary<Symbol, BoundNode> variableBlock = new Dictionary<Symbol, BoundNode>();
+
+            /// <summary>
+            /// The set of captured variables seen in the method body.
+            /// </summary>
+            public readonly HashSet<Symbol> variablesCaptured = new HashSet<Symbol>();
+
+            /// <summary>
+            /// The syntax nodes associated with each captured variable.
+            /// </summary>
+            public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedSyntax = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+
+            /// <summary>
+            /// The set of variables that were declared anywhere inside an expression lambda.
+            /// </summary>
+            public readonly HashSet<Symbol> declaredInsideExpressionLambda = new HashSet<Symbol>();
+
+            /// <summary>
+            /// For each lambda in the code, the set of variables that it captures.
+            /// </summary>
+            public readonly MultiDictionary<LambdaSymbol, Symbol> captures = new MultiDictionary<LambdaSymbol, Symbol>();
+
+            /// <summary>
+            /// Blocks that are positioned between a block declaring some lifted variables
+            /// and a block that contains the lambda that lifts said variables.
+            /// If such block itself requires a closure, then it must lift parent frame pointer into the closure
+            /// in addition to whatever else needs to be lifted.
+            /// 
+            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
+            /// If someone only needs diagnostics or information about captures, this information is not necessary.
+            /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
+            /// </summary>
+            public HashSet<BoundNode> needsParentFrame;
+
+            /// <summary>
+            /// Optimized locations of lambdas. 
+            /// 
+            /// Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
+            /// It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
+            /// Doing so reduces indirections needed when captured locals are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
+            /// 
+            /// NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
+            /// If someone only needs diagnostics or information about captures, this information is not necessary.
+            /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
+            /// </summary>
+            public Dictionary<LambdaSymbol, BoundNode> lambdaScopes;
+
             private Analysis(MethodSymbol method)
             {
                 this.currentParent = this.topLevelMethod = method;
             }
 
-            public static Analysis Analyze(BoundNode node, MethodSymbol method, out bool seenLambdas)
+            public static Analysis Analyze(BoundNode node, MethodSymbol method)
             {
                 var analysis = new Analysis(method);
                 analysis.Analyze(node);
-                seenLambdas = analysis.seenLambda;
                 return analysis;
             }
 
@@ -133,15 +133,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.SequencePoint:
                             node = ((BoundSequencePoint)node).StatementOpt;
                             break;
+
                         case BoundKind.SequencePointWithSpan:
                             node = ((BoundSequencePointWithSpan)node).StatementOpt;
                             break;
+
                         case BoundKind.Block:
                         case BoundKind.StatementList:
                         case BoundKind.FieldInitializer:
                             return node;
+
                         case BoundKind.GlobalStatementInitializer:
                             return ((BoundGlobalStatementInitializer)node).Statement;
+
                         default:
                             // Other node types should not appear at the top level
                             throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -221,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Compute the nesting depth of a given block.
-            /// Topmost block (where method locals and parameters are defined) are at the depth 0.
+            /// Top-most block (where method locals and parameters are defined) are at the depth 0.
             /// </summary>
             private int BlockDepth(BoundNode node)
             {
@@ -332,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitLambda(BoundLambda node)
             {
                 Debug.Assert((object)node.Symbol != null);
-                seenLambda = true;
+                SeenLambda = true;
                 var oldParent = currentParent;
                 var oldBlock = currentBlock;
                 currentParent = node.Symbol;
@@ -364,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            void ReferenceVariable(CSharpSyntaxNode syntax, Symbol symbol)
+            private void ReferenceVariable(CSharpSyntaxNode syntax, Symbol symbol)
             {
                 var localSymbol = symbol as LocalSymbol;
                 if ((object)localSymbol != null && localSymbol.IsConst)

@@ -28,14 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var compilation = method.DeclaringCompilation;
 
-            SourceMethodSymbol sourceMethod = method as SourceMethodSymbol;
-
             if (method.ReturnsVoid || (object)method.IteratorElementType != null
                 || (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
                 if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
                 {
                     // we don't analyze synthesized void methods.
+                    var sourceMethod = method as SourceMethodSymbol;
                     block = AppendImplicitReturn(block, method, (object)sourceMethod != null ? sourceMethod.BlockSyntax : null);
                 }
             }
@@ -86,12 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.Block:
-                    {
-                        var block = (BoundBlock)node;
-                        return block.Update(block.LocalsOpt, block.Statements.Add(ret));
-                    }
+                    var block = (BoundBlock)node;
+                    return block.Update(block.LocalsOpt, block.Statements.Add(ret));
+
                 default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundStatement>(ret, node));
+                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, node));
             }
         }
 

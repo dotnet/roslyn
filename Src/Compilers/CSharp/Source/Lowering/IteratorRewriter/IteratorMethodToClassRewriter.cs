@@ -472,13 +472,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = "<>m__Finally" + Math.Abs(state + 2);
 
             var containingType = F.CurrentClass;
+            Debug.Assert(containingType != null);
+
             var finallyMethod = new IteratorFinally(containingType, name);
 
-            F.EmitModule.AddCompilerGeneratedDefinition(containingType, finallyMethod);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, finallyMethod);
 
             return finallyMethod;
         }
 
-        #endregion Visitors
+        #endregion
     }
 }

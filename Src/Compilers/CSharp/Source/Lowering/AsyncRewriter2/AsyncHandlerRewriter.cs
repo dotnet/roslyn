@@ -119,8 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(containingSymbol != null);
+            Debug.Assert(containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
+            Debug.Assert(diagnostics != null);
 
             var analysis = new AwaitInFinallyAnalysis(statement);
             if (!analysis.ContainsAwaitInHandlers())

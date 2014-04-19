@@ -290,7 +290,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             // in the same way.
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)class1.ContainingAssembly, null,
                 OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            Compiler.CompileSynthesizedMethodMetadata(libComp, module, default(CancellationToken));
+            SynthesizedMetadataCompiler.ProcessSynthesizedMembers(libComp, module, default(CancellationToken));
 
             var class1TypeDef = (Cci.ITypeDefinition)class1;
 

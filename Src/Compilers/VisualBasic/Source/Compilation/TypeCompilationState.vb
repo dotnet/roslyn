@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly EmitModule As PEModuleBuilder
 
         ''' <summary> Flat array of created methods, non-empty if not-nothing </summary>
-        Private _methods As ArrayBuilder(Of MethodWithBody) = Nothing
+        Private _synthesizedMethods As ArrayBuilder(Of MethodWithBody) = Nothing
 
         Public ReadOnly InitializeComponent As MethodSymbol
 
@@ -67,17 +67,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Is there any content in the methods collection.
         ''' </summary>
-        Public ReadOnly Property HasAnyMethods As Boolean
+        Public ReadOnly Property HasSynthesizedMethods As Boolean
             Get
-                Return Not (Me._methods Is Nothing)
+                Return _synthesizedMethods IsNot Nothing
             End Get
         End Property
 
-        Public Sub AddMethod(method As MethodSymbol, body As BoundStatement)
-            If _methods Is Nothing Then
-                _methods = ArrayBuilder(Of MethodWithBody).GetInstance()
+        ''' <summary> Method created with their bodies </summary>
+        Public ReadOnly Property SynthesizedMethods As ArrayBuilder(Of MethodWithBody)
+            Get
+                Return _synthesizedMethods
+            End Get
+        End Property
+
+        Public Sub AddSynthesizedMethod(method As MethodSymbol, body As BoundStatement)
+            If _synthesizedMethods Is Nothing Then
+                _synthesizedMethods = ArrayBuilder(Of MethodWithBody).GetInstance()
             End If
-            _methods.Add(New MethodWithBody(method, body))
+
+            _synthesizedMethods.Add(New MethodWithBody(method, body))
         End Sub
 
         Public Function HasMethodWrapper(method As MethodSymbol) As Boolean
@@ -90,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             _methodWrappers(method) = wrapper
-            AddMethod(wrapper, body)
+            AddSynthesizedMethod(wrapper, body)
         End Sub
 
         Public Function GetMethodWrapper(method As MethodSymbol) As MethodSymbol
@@ -98,18 +106,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(_methodWrappers IsNot Nothing AndAlso _methodWrappers.TryGetValue(method, wrapper), wrapper, Nothing)
         End Function
 
-        ''' <summary> Method created with their bodies </summary>
-        Public ReadOnly Property Methods As IEnumerable(Of MethodWithBody)
-            Get
-                Return If(Me._methods Is Nothing, Enumerable.Empty(Of MethodWithBody), Me._methods)
-            End Get
-        End Property
-
         ''' <summary> Free resources </summary>
         Public Sub Free()
-            If Me._methods IsNot Nothing Then
-                Me._methods.Free()
-                Me._methods = Nothing
+            If Me._synthesizedMethods IsNot Nothing Then
+                Me._synthesizedMethods.Free()
+                Me._synthesizedMethods = Nothing
             End If
 
             If _methodWrappers IsNot Nothing Then

@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Resets numbering in anonymous type names and compiles the
         ''' anonymous type methods. Also seals the collection of templates.
         ''' </summary>
-        Public Sub AssignTemplatesNamesAndCompile(compiler As VisualBasicCompilation.MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As DiagnosticBag)
+        Public Sub AssignTemplatesNamesAndCompile(compiler As MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As DiagnosticBag)
 
             ' Ensure all previous anonymous type templates are included so the
             ' types are available for subsequent edit and continue generations.

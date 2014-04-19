@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override bool IsENCDelta
+        internal override bool IsEncDelta
         {
             get { return true; }
         }

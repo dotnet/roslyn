@@ -1309,7 +1309,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll);
             var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = Compiler.BindMethodBody(method, diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())

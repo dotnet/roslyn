@@ -160,10 +160,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 If(hasInitializer, New SynthesizedStaticLocalBackingField(localSymbol, isValueField:=False, reportErrorForLongNames:=True), Nothing))
 
             If emitModule IsNot Nothing Then
-                emitModule.AddCompilerGeneratedDefinition(Me.topMethod.ContainingType, result.Key)
+                emitModule.AddSynthesizedDefinition(Me.topMethod.ContainingType, result.Key)
 
                 If result.Value IsNot Nothing Then
-                    emitModule.AddCompilerGeneratedDefinition(Me.topMethod.ContainingType, result.Value)
+                    emitModule.AddSynthesizedDefinition(Me.topMethod.ContainingType, result.Value)
                 End If
             End If
 

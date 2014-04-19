@@ -4,8 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Instrumentation;
 
 #if DEBUG
 using Roslyn.Utilities;
@@ -14,22 +13,40 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// When compiling in metadata-only mode, MethodBodyCompiler is not run.  This is problematic
-    /// because MethodBody compiler adds synthesized explicit implementations to the list of
-    /// compiler generated definitions.  In lieu of running MethodBodyCompiler, this class performs
-    /// a quick traversal of the symbol table and calls Module.AddCompilerGeneratedDefinition on each
-    /// synthesized explicit implementation.
+    /// When compiling in metadata-only mode, <see cref="MethodCompiler"/> is not run. This is problematic because 
+    /// <see cref="MethodCompiler"/> adds synthesized explicit implementations to the list of synthesized definitions.
+    /// In lieu of running <see cref="MethodCompiler"/>, this class performs a quick 
+    /// traversal of the symbol table and performs processing of synthesized symbols if necessary
     /// </summary>
-    internal class SynthesizedMethodMetadataCompiler : CSharpSymbolVisitor
+    internal sealed class SynthesizedMetadataCompiler : CSharpSymbolVisitor
     {
         private readonly PEModuleBuilder moduleBeingBuilt;
         private readonly CancellationToken cancellationToken;
 
-        public SynthesizedMethodMetadataCompiler(PEModuleBuilder moduleBeingBuilt, CancellationToken cancellationToken)
+        private SynthesizedMetadataCompiler(PEModuleBuilder moduleBeingBuilt, CancellationToken cancellationToken)
         {
             Debug.Assert(moduleBeingBuilt != null);
             this.moduleBeingBuilt = moduleBeingBuilt;
             this.cancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Traverse the symbol table and call Module.AddSynthesizedDefinition for each
+        /// synthesized explicit implementation stub that has been generated (e.g. when the real
+        /// implementation doesn't have the appropriate custom modifiers).
+        /// </summary>
+        public static void ProcessSynthesizedMembers(
+            CSharpCompilation compilation,
+            PEModuleBuilder moduleBeingBuilt,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(moduleBeingBuilt != null);
+           
+            using (Logger.LogBlock(FunctionId.CSharp_Compiler_CompileSynthesizedMethodMetadata, message: compilation.AssemblyName, cancellationToken: cancellationToken))
+            {
+                var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
+                compiler.Visit(compilation.SourceModule.GlobalNamespace);
+            }
         }
 
         public override void VisitNamespace(NamespaceSymbol symbol)
@@ -57,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // generate MethodDef entries for them.
                     foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(cancellationToken))
                     {
-                        moduleBeingBuilt.AddCompilerGeneratedDefinition(symbol, synthesizedExplicitImpl);
+                        moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
                     }
                 }
             }
@@ -82,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
-                    moduleBeingBuilt.AddCompilerGeneratedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                    moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
                 }
             }
         }

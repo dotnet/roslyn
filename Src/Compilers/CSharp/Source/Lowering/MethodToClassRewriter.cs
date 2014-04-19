@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected MethodToClassRewriter(TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo)
         {
             Debug.Assert(compilationState != null);
+            Debug.Assert(diagnostics != null);
+
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.globalGenerateDebugInfo = generateDebugInfo;
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  add the method to module
             if (this.CompilationState.Emitting)
             {
-                this.CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(containingType, wrapper);
+                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper);
             }
 
             Debug.Assert(wrapper.SynthesizesLoweredBoundBody);

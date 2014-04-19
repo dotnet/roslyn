@@ -12226,7 +12226,15 @@ expectedOutput: "-100");
                 GetDefaultModulePropertiesForSerialization(),
                 new ResourceDescription[0],
                 null);
-            var methodBodyCompiler = new MethodBodyCompiler(compilation, module, false, false, diagnostics, null, CancellationToken.None);
+
+            var methodBodyCompiler = new MethodCompiler(
+                compilation: compilation, 
+                moduleBeingBuiltOpt: module, 
+                generateDebugInfo: false, 
+                hasDeclarationErrors: false, 
+                diagnostics: diagnostics, 
+                filterOpt: null, 
+                cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if
             // code gen for an earlier method had generated an errror.

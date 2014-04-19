@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var po = cancellationToken.CanBeCanceled
                                     ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                    : Compiler.defaultParallelOptions;
+                                    : CSharpCompilation.DefaultParallelOptions;
 
                                 Parallel.For(0, members.Length, po, i =>
                                 {

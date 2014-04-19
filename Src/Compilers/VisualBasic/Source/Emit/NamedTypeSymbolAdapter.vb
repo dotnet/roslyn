@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            Dim syntheticMethods = moduleBeingBuilt.GetCompilerGeneratedMethods(Me)
+            Dim syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(Me)
             If syntheticMethods IsNot Nothing Then
                 For Each synthetic In syntheticMethods
                     Dim method = TryCast(synthetic, MethodSymbol)
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Yield field
             Next
 
-            Dim syntheticFields = DirectCast(context.Module, PEModuleBuilder).GetCompilerGeneratedFields(Me)
+            Dim syntheticFields = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedFields(Me)
             If syntheticFields IsNot Nothing Then
                 For Each field In syntheticFields
                     Yield field
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Yield method
             Next
 
-            Dim syntheticMethods = DirectCast(context.Module, PEModuleBuilder).GetCompilerGeneratedMethods(Me)
+            Dim syntheticMethods = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedMethods(Me)
             If syntheticMethods IsNot Nothing Then
                 For Each method In syntheticMethods
                     Yield method
@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 result = nestedTypes
             End If
 
-            Dim syntheticNested = containingModule.GetCompilerGeneratedTypes(Me)
+            Dim syntheticNested = containingModule.GetSynthesizedTypes(Me)
             If syntheticNested IsNot Nothing Then
                 result = result.Concat(syntheticNested)
             End If
@@ -729,7 +729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Yield [property]
             Next
 
-            Dim syntheticProperties = DirectCast(context.Module, PEModuleBuilder).GetCompilerGeneratedProperties(Me)
+            Dim syntheticProperties = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedProperties(Me)
             If syntheticProperties IsNot Nothing Then
                 For Each prop In syntheticProperties
                     Yield prop

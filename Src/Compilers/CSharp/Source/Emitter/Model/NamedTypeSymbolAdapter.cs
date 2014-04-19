@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var syntheticMethods = moduleBeingBuilt.GetCompilerGeneratedMethods(this);
+            var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
             if (syntheticMethods != null)
             {
                 foreach (var m in syntheticMethods)
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return f;
             }
 
-            IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetCompilerGeneratedFields(this);
+            IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedFields(this);
 
             if (generated != null)
             {
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return method;
             }
 
-            IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetCompilerGeneratedMethods(this);
+            IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedMethods(this);
 
             if (generated != null)
             {
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return type;
             }
 
-            IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetCompilerGeneratedTypes(this);
+            IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedTypes(this);
 
             if (generated != null)
             {
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 yield return property;
             }
 
-            IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetCompilerGeneratedProperties(this);
+            IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedProperties(this);
 
             if (generated != null)
             {

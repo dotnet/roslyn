@@ -90,6 +90,7 @@
     <Compile Include="Binder\Binder_Crefs.cs" />
     <Compile Include="Binder\Binder_Expressions.cs" />
     <Compile Include="Binder\Binder_Flags.cs" />
+    <Compile Include="Binder\Binder_Initializers.cs" />
     <Compile Include="Binder\Binder_Lambda.cs" />
     <Compile Include="Binder\Binder_Lookup.cs" />
     <Compile Include="Binder\Binder_NameConflicts.cs" />
@@ -241,16 +242,15 @@
     <Compile Include="Compilation\TypeInfo.cs" />
     <Compile Include="Compiler\AnonymousTypeMethodBodySynthesizer.cs" />
     <Compile Include="Compiler\ClsComplianceChecker.cs" />
-    <Compile Include="Compiler\Compiler.cs" />
     <Compile Include="Compiler\DocumentationCommentCompiler.cs" />
     <Compile Include="Compiler\DocumentationCommentCompiler.DocumentationCommentWalker.cs" />
     <Compile Include="Compiler\DocumentationCommentCompiler.IncludeElementExpander.cs" />
     <Compile Include="Compiler\EntryPointCandidateFinder.cs" />
-    <Compile Include="Compiler\MethodBodyCompiler.cs" />
+    <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
     <Compile Include="Compiler\NamespaceScopeBuilder.cs" />
-    <Compile Include="Compiler\SynthesizedMethodMetadataCompiler.cs" />
+    <Compile Include="Compiler\SynthesizedMetadataCompiler.cs" />
     <Compile Include="Compiler\TypeCompilationState.cs" />
     <Compile Include="Compiler\UnprocessedDocumentationCommentFinder.cs" />
     <Compile Include="CSharpCompilationOptions.cs" />

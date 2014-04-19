@@ -348,8 +348,8 @@
     <Compile Include="Compilation\SyntaxTreeSemanticModel.vb" />
     <Compile Include="Compilation\TypeCompilationState.vb" />
     <Compile Include="Compilation\TypeInfo.vb" />
-    <Compile Include="Compilation\VisualBasicCompilation.MethodCompiler.vb" />
-    <Compile Include="Compilation\VisualBasicCompilation.SynthesizedMetadataCompiler.vb" />
+    <Compile Include="Compilation\MethodCompiler.vb" />
+    <Compile Include="Compilation\SynthesizedMetadataCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.vb" />
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
     <Compile Include="Declarations\Declaration.vb" />

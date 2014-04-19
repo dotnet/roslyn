@@ -1804,7 +1804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Note: this phase does not need to be parallelized because 
                     '       it is already implemented in method compiler
                     Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
-                    GetDiagnosticForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                    GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
                     builder.AddRangeAndFree(methodBodyDiagnostics)
                 End If
 
@@ -1872,7 +1872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add method body declaring errors.
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
                 Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
-                GetDiagnosticForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
 
                 ' This diagnostics can include diagnostics for initializers that do not belong to the tree.
                 ' Let's filter them out.
@@ -1891,14 +1891,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Get diagnostics by compiling all method bodies.
-        Private Sub GetDiagnosticForAllMethodBodies(hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
+        Private Sub GetDiagnosticsForAllMethodBodies(hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
             MethodCompiler.GetCompileDiagnostics(Me, SourceModule.GlobalNamespace, Nothing, Nothing, hasDeclarationErrors, diagnostics, stage >= CompilationStage.Emit, cancellationToken)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, Nothing, Nothing, diagnostics, cancellationToken)
             Me.ReportUnusedImports(Nothing, diagnostics, cancellationToken)
         End Sub
 
         ' Get diagnostics by compiling all method bodies in the given tree.
-        Private Sub GetDiagnosticForMethodBodiesInTree(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
+        Private Sub GetDiagnosticsForMethodBodiesInTree(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
             Dim sourceMod = DirectCast(SourceModule, SourceModuleSymbol)
 
             MethodCompiler.GetCompileDiagnostics(Me,
@@ -2343,6 +2343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     filter,
                     methodBodyDiagnosticBag,
                     cancellationToken)
+
                 DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, outputName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
                 Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
 

@@ -6512,15 +6512,13 @@ public class C
   {
   }
 }";
-            CreateCompilationWithMscorlib(source).Emit(new System.IO.MemoryStream()).Diagnostics
-                .Verify(
+            CreateCompilationWithMscorlib(source).VerifyEmitDiagnostics(
                 // (10,34): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"),
                 // (11,43): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //       ArgIterator args1 = new ArgIterator(h); // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle")
-                );
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"));
         }
 
         [Fact]

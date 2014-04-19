@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// True if this module is an ENC update.
         /// </summary>
-        internal virtual bool IsENCDelta
+        internal virtual bool IsEncDelta
         {
             get { return false; }
         }
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 result = new FixedFieldImplementationType(field);
                 fixedImplementationTypes.Add(field, result);
-                AddCompilerGeneratedDefinition(result.ContainingType, result);
+                AddSynthesizedDefinition(result.ContainingType, result);
                 return result;
             }
         }

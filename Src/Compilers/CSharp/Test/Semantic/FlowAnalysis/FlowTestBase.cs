@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                var boundBody = Compiler.BindMethodBody(sourceSymbol, new DiagnosticBag());
+                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, new DiagnosticBag());
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, flowDiagnostics);

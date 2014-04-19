@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Resets numbering in anonymous type names and compiles the
         /// anonymous type methods. Also seals the collection of templates.
         /// </summary>
-        public void AssignTemplatesNamesAndCompile(MethodBodyCompiler compiler, PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
+        public void AssignTemplatesNamesAndCompile(MethodCompiler compiler, PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
         {
             // Ensure all previous anonymous type templates are included so the
             // types are available for subsequent edit and continue generations.
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var method in template.SpecialMembers)
                     {
-                        moduleBeingBuilt.AddCompilerGeneratedDefinition(template, method);
+                        moduleBeingBuilt.AddSynthesizedDefinition(template, method);
                     }
 
                     compiler.Visit(template, null);

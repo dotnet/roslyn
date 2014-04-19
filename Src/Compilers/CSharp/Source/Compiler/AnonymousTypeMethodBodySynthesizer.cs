@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int statementIndex = 0;
 
                 //  explicit base constructor call
-                BoundExpression call = Compiler.GenerateObjectConstructorInitializer(this, diagnostics);
+                BoundExpression call = MethodCompiler.GenerateObjectConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
                     // This may happen if Object..ctor is not found or is unaccessible

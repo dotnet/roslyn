@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var diagnostics = DiagnosticBag.GetInstance();
             try
             {
-                var block = Compiler.BindMethodBody(method, diagnostics);
+                var block = MethodCompiler.BindMethodBody(method, diagnostics);
                 if ((block == null) || !lower)
                 {
                     return block;
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Enumerable.Empty<ResourceDescription>(),
                     assemblySymbolMapper: null);
 
-                TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, module);
+                TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
-                var body = Compiler.LowerStatement(
+                var body = MethodCompiler.LowerBodyOrInitializer(
                     generateDebugInfo: true,
                     method: method,
                     body: block,

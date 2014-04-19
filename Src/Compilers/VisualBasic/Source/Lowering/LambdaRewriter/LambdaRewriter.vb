@@ -196,8 +196,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     frame = New Frame(node.Syntax, containingType, _topLevelMethod, copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured), CompilationState.GenerateTempNumber())
                     frames(node) = frame
                     If CompilationState.EmitModule IsNot Nothing Then
-                        CompilationState.EmitModule.AddCompilerGeneratedDefinition(containingType, frame)
-                        CompilationState.EmitModule.AddCompilerGeneratedDefinition(frame, frame.Constructor)
+                        CompilationState.EmitModule.AddSynthesizedDefinition(containingType, frame)
+                        CompilationState.EmitModule.AddSynthesizedDefinition(frame, frame.Constructor)
                     End If
                 End If
 
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
 
             Dim builder = ArrayBuilder(Of BoundStatement).GetInstance
-            builder.Add(VisualBasicCompilation.MethodCompiler.BindDefaultConstructorInitializer(constructor, diagnostics))
+            builder.Add(MethodCompiler.BindDefaultConstructorInitializer(constructor, diagnostics))
 
             ' add copy logic if ctor has parameters - 
             '
@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  LocalSymbol.LocalDeclarationKind.CompilerGenerated,
                                                                  frameType)
 
-            CompilationState.AddMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
+            CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
             Debug.Assert(frameType = constructor.ContainingType)
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If CompilationState.EmitModule IsNot Nothing Then
-                        CompilationState.EmitModule.AddCompilerGeneratedDefinition(frame, capturedFrame)
+                        CompilationState.EmitModule.AddSynthesizedDefinition(frame, capturedFrame)
                     End If
 
                     Proxies(innermostFramePointer) = capturedFrame
@@ -848,7 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim generatedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, _topLevelMethod, node, lambdaIsStatic, CompilationState.GenerateTempNumber(), Me.Diagnostics)
 
             If CompilationState.EmitModule IsNot Nothing Then
-                CompilationState.EmitModule.AddCompilerGeneratedDefinition(translatedLambdaContainer, generatedMethod)
+                CompilationState.EmitModule.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
             End If
 
             Dim oldMethod = _currentMethod
@@ -880,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim body = DirectCast(RewriteLambdaAsMethod(generatedMethod, node), BoundStatement)
-            CompilationState.AddMethod(generatedMethod, body)
+            CompilationState.AddSynthesizedMethod(generatedMethod, body)
 
             ' return to old method
 
@@ -934,7 +934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             accessibility:=If(Not lambdaIsStatic, Accessibility.Public, Accessibility.Private),
                                                             isShared:=lambdaIsStatic)
                 If CompilationState.EmitModule IsNot Nothing Then
-                    CompilationState.EmitModule.AddCompilerGeneratedDefinition(translatedLambdaContainer, cacheField)
+                    CompilationState.EmitModule.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
                 End If
 
                 Dim F = New SyntheticBoundNodeFactory(Me._topLevelMethod, Me._currentMethod, node.Syntax, CompilationState, Diagnostics)

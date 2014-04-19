@@ -18,21 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// as containers for captured variables along the lines of the example in section 6.5.3 of the
     /// C# language specification.
     /// 
-    /// The entry point is the public method Rewrite.  It operates as follows:
+    /// The entry point is the public method <see cref="Rewrite"/>.  It operates as follows:
     /// 
     /// First, an analysis of the whole method body is performed that determines which variables are
     /// captured, what their scopes are, and what the nesting relationship is between scopes that
-    /// have captured variables.  The result of this analysis is left in LambdaRewriter.analysis.
+    /// have captured variables.  The result of this analysis is left in <see cref="analysis"/>.
     /// 
     /// Then we make a frame, or compiler-generated class, represented by an instance of
-    /// LambdaRewriter.Frame for each scope with captured variables.  The generated frames are kept
-    /// in LambdaRewriter.frames.  Each frame is given a single field for each captured
-    /// variable in the corresponding scope.  These are are maintained in LambdaRewriter.proxies.
+    /// <see cref="LambdaFrame"/> for each scope with captured variables.  The generated frames are kept
+    /// in <see cref="frames"/>.  Each frame is given a single field for each captured
+    /// variable in the corresponding scope.  These are are maintained in <see cref="MethodToClassRewriter.proxies"/>.
     /// 
     /// Finally, we walk and rewrite the input bound tree, keeping track of the following:
-    /// (1) The current set of active frame pointers, in LambdaRewriter.framePointers
-    /// (2) The current method being processed (this changes within a lambda's body), in LambdaRewriter.currentMethod
-    /// (3) The "this" symbol for the current method in LambdaRewriter.currentFrameThis, and
+    /// (1) The current set of active frame pointers, in <see cref="framePointers"/>
+    /// (2) The current method being processed (this changes within a lambda's body), in <see cref="currentMethod"/>
+    /// (3) The "this" symbol for the current method in <see cref="currentFrameThis"/>, and
     /// (4) The symbol that is used to access the innermost frame pointer (it could be a local variable or "this" parameter)
     /// 
     /// There are a few key transformations done in the rewriting.
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// (2) On entry to a scope with captured variables, we create a frame object and store it in a local variable.
     /// (3) References to captured variables are transformed into references to fields of a frame class.
     /// 
-    /// In addition, the rewriting deposits into the field LambdaRewriter.generatedMethods a (MethodSymbol, BoundStatement)
+    /// In addition, the rewriting deposits into <see cref="TypeCompilationState.SynthesizedMethods"/> a (<see cref="MethodSymbol"/>, <see cref="BoundStatement"/>)
     /// pair for each generated method.
     /// 
-    /// LambdaRewriter.Rewrite produces its output in two forms.  First, it returns a new bound statement
+    /// <see cref="Rewrite"/> produces its output in two forms.  First, it returns a new bound statement
     /// for the caller to use for the body of the original method.  Second, it returns a collection of
-    /// (MethodSymbol, BoundStatement) pairs for additional method that the lambda rewriter produced.
+    /// (<see cref="MethodSymbol"/>, <see cref="BoundStatement"/>) pairs for additional methods that the lambda rewriter produced.
     /// These additional methods contain the bodies of the lambdas moved into ordinary methods of their
     /// respective frame classes, and the caller is responsible for processing them just as it does with
     /// the returned bound node.  For example, the caller will typically perform iterator method and
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // the current set of frame pointers in scope.  Each is either a local variable (where introduced),
         // or the "this" parameter when at the top level.  Keys in this map are never constructed types.
-        readonly Dictionary<NamedTypeSymbol, Symbol> framePointers = new Dictionary<NamedTypeSymbol, Symbol>();
+        private readonly Dictionary<NamedTypeSymbol, Symbol> framePointers = new Dictionary<NamedTypeSymbol, Symbol>();
 
         // The current method or lambda being processed.
         private MethodSymbol currentMethod;
@@ -101,20 +101,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LambdaRewriter(
             Analysis analysis,
             NamedTypeSymbol thisType,
-            ParameterSymbol thisParameter,
+            ParameterSymbol thisParameterOpt,
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             bool generateDebugInfo)
             : base(compilationState, diagnostics, generateDebugInfo)
         {
+            Debug.Assert(analysis != null);
+            Debug.Assert(thisType != null);
+            Debug.Assert(method != null);
+            Debug.Assert(compilationState != null);
+            Debug.Assert(diagnostics != null);
+
             this.topLevelMethod = method;
             this.currentMethod = method;
             this.analysis = analysis;
             this.currentTypeParameters = method.TypeParameters;
             this.currentLambdaBodyTypeMap = TypeMap.Empty;
-            innermostFramePointer = currentFrameThis = thisParameter;
-            framePointers[thisType] = thisParameter;
+            innermostFramePointer = currentFrameThis = thisParameterOpt;
+            framePointers[thisType] = thisParameterOpt;
             seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
         }
 
@@ -222,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (CompilationState.Emitting)
                     {
-                        CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(containingType, frame);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, frame);
                     }
                 }
 
@@ -230,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies.Add(captured, new CapturedToFrameSymbolReplacement(proxy));
                 if (CompilationState.Emitting)
                 {
-                    CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(frame, proxy);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, proxy);
                 }
 
                 if (proxy.Type.IsRestrictedType())
@@ -315,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax = node.Syntax;
 
             // assign new frame to the frame variable
-            CompilationState.AddGeneratedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(Compiler.BindMethodBody(frame.Constructor, null), frame.Constructor));
+            CompilationState.AddSynthesizedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, null), frame.Constructor));
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -358,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (CompilationState.Emitting)
                     {
-                        CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(frame, capturedFrame);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
                     }
 
                     proxies[innermostFramePointer] = new CapturedToFrameSymbolReplacement(capturedFrame);
@@ -780,15 +786,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
             bool lambdaIsStatic = analysis.captures[node.Symbol].IsEmpty();
-            SynthesizedLambdaMethod generatedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, topLevelMethod, node, lambdaIsStatic, CompilationState);
+            var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, topLevelMethod, node, lambdaIsStatic, CompilationState);
             if (CompilationState.Emitting)
             {
-                CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(translatedLambdaContainer, generatedMethod);
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
             }
 
             for (int i = 0; i < node.Symbol.ParameterCount; i++)
             {
-                parameterMap.Add(node.Symbol.Parameters[i], generatedMethod.Parameters[i]);
+                parameterMap.Add(node.Symbol.Parameters[i], synthesizedMethod.Parameters[i]);
             }
 
             // rewrite the lambda body as the generated method's body
@@ -804,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // switch to the generated method
 
-            currentMethod = generatedMethod;
+            currentMethod = synthesizedMethod;
             if (lambdaIsStatic)
             {
                 // no link from a static lambda to its container
@@ -812,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                currentFrameThis = generatedMethod.ThisParameter;
+                currentFrameThis = synthesizedMethod.ThisParameter;
                 innermostFramePointer = null;
                 framePointers.TryGetValue(translatedLambdaContainer, out innermostFramePointer);
             }
@@ -824,13 +830,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                currentTypeParameters = generatedMethod.TypeParameters;
+                currentTypeParameters = synthesizedMethod.TypeParameters;
                 currentLambdaBodyTypeMap = new TypeMap(topLevelMethod.TypeParameters, currentTypeParameters);
             }
 
             var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
             CheckLocalsDefined(body);
-            CompilationState.AddGeneratedMethod(generatedMethod, body);
+            CompilationState.AddSynthesizedMethod(synthesizedMethod, body);
 
             // return to the old method
 
@@ -845,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
             NamedTypeSymbol constructedFrame = (translatedLambdaContainer is LambdaFrame) ? translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters)) : translatedLambdaContainer;
             BoundExpression receiver = lambdaIsStatic ? new BoundTypeExpression(node.Syntax, null, constructedFrame) : FrameOfType(node.Syntax, constructedFrame);
-            MethodSymbol referencedMethod = generatedMethod.AsMember(constructedFrame);
+            MethodSymbol referencedMethod = synthesizedMethod.AsMember(constructedFrame);
             if (referencedMethod.IsGenericMethod) referencedMethod = referencedMethod.Construct(StaticCast<TypeSymbol>.From(currentTypeParameters));
             TypeSymbol type = this.VisitType(node.Type);
             BoundExpression result = new BoundDelegateCreationExpression(
@@ -881,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var cacheVariableType = lambdaIsStatic ? type : (translatedLambdaContainer as LambdaFrame).TypeMap.SubstituteType(type);
                         var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: !lambdaIsStatic, isStatic: lambdaIsStatic);
-                        CompilationState.ModuleBuilder.AddCompilerGeneratedDefinition(translatedLambdaContainer, cacheField);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
                         cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }
                     else

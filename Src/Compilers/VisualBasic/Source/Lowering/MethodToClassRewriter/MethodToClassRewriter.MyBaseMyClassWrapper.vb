@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' register a new method
             If Me.CompilationState.EmitModule IsNot Nothing Then
-                Me.CompilationState.EmitModule.AddCompilerGeneratedDefinition(containingType, wrapperMethod)
+                Me.CompilationState.EmitModule.AddSynthesizedDefinition(containingType, wrapperMethod)
             End If
 
             ' generate method body

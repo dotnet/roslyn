@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var options = this.cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = this.cancellationToken }
-                    : Compiler.defaultParallelOptions; // i.e. new ParallelOptions()
+                    : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
             }
             else
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var options = this.cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = this.cancellationToken }
-                    : Compiler.defaultParallelOptions; //i.e. new ParallelOptions()
+                    : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
             }
             else
