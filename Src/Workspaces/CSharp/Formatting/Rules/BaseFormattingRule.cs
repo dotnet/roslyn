@@ -145,16 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken));
         }
 
-        protected void AddAlignIndentationOfTokensToFirstTokenOfBaseTokenLineOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, IEnumerable<SyntaxToken> tokens)
-        {
-            if (containingNode == null || tokens == null)
-            {
-                return;
-            }
-
-            list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, AlignTokensOption.AlignToFirstTokenOnBaseTokenLine));
-        }
-
         protected AdjustNewLinesOperation CreateAdjustNewLinesOperation(int line, AdjustNewLinesOption option)
         {
             return FormattingOperations.CreateAdjustNewLinesOperation(line, option);

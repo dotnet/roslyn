@@ -254,16 +254,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                             break;
                         }
 
-                    case AlignTokensOption.AlignToFirstTokenOnBaseTokenLine:
-                        {
-                            if (!ApplyAlignment(tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken), operation.Tokens, previousChangesMap, out tokenData, cancellationToken))
-                            {
-                                return false;
-                            }
-
-                            break;
-                        }
-
                     default:
                         {
                             return Contract.FailWithReturn<bool>("Unknown option");

@@ -10,10 +10,5 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     {
         AlignIndentationOfTokensToBaseToken,
         AlignPositionOfTokensToIndentation,
-
-        /// <summary>
-        /// Alignment will made to the first token in which the base token is present
-        /// </summary>
-        AlignToFirstTokenOnBaseTokenLine
     }
 }
