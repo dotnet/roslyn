@@ -88,9 +88,8 @@ public class Maine
             Assert.Equal(expected, versionData);
 
             expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
-<ManifestResource Size=""681"">
+<ManifestResource Size=""490"">
   <Contents><![CDATA[<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">
   <assemblyIdentity version=""1.0.0.0"" name=""MyApplication.app""/>

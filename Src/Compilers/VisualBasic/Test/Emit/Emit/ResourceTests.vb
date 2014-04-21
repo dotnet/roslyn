@@ -81,9 +81,9 @@ End Class
 
             expected =
 "<?xml version=""1.0"" encoding=""utf-16""?>" & vbCrLf &
-"<ManifestResource Size=""681"">" & vbCrLf &
+"<ManifestResource Size=""490"">" & vbCrLf &
 "  <Contents><![CDATA[<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>" & vbCrLf &
-"<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->" & vbCrLf & "" & vbCrLf &
+"" & vbCrLf &
 "<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">" & vbCrLf &
 "  <assemblyIdentity version=""1.0.0.0"" name=""MyApplication.app""/>" & vbCrLf &
 "  <trustInfo xmlns=""urn:schemas-microsoft-com:asm.v2"">" & vbCrLf &
