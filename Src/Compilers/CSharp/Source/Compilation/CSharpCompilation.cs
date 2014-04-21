@@ -2134,8 +2134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case InternalDiagnosticSeverity.Void:
                     // If this is a deleted diagnostic, suppress it.
                     return ReportDiagnostic.Suppress;
-                case DiagnosticSeverity.None:
-                    // Compiler diagnostics cannot have severity None, but user generated diagnostics can.
+                case DiagnosticSeverity.Hidden:
+                    // Compiler diagnostics cannot have severity Hidden, but user generated diagnostics can.
                     Debug.Assert(category != Diagnostic.CompilerDiagnosticCategory);
                     break;
                 case DiagnosticSeverity.Info:

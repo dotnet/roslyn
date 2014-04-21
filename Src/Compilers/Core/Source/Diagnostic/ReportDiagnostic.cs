@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis
         Info,
 
         /// <summary>
+        /// Report a diagnostic as hidden.
+        /// </summary>
+        Hidden,
+
+        /// <summary>
         /// Suppress a diagnostic.
         /// </summary>
         Suppress

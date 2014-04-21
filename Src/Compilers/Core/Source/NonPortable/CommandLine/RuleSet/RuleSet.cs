@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis
                 case ReportDiagnostic.Error:
                 case ReportDiagnostic.Warn:
                 case ReportDiagnostic.Info:
+                case ReportDiagnostic.Hidden:
                     var generalOption = generalDiagnosticOption == ReportDiagnostic.Default ? ReportDiagnostic.Default : action;
                     var specificOptions = specificDiagnosticOptions.ToBuilder();
                     foreach (var item in specificDiagnosticOptions)
@@ -213,6 +214,8 @@ namespace Microsoft.CodeAnalysis
                 case ReportDiagnostic.Suppress:
                     return true;
                 case ReportDiagnostic.Default:
+                    return action1 == ReportDiagnostic.Warn || action1 == ReportDiagnostic.Error || action1 == ReportDiagnostic.Info || action1 == ReportDiagnostic.Hidden;
+                case ReportDiagnostic.Hidden:
                     return action1 == ReportDiagnostic.Warn || action1 == ReportDiagnostic.Error || action1 == ReportDiagnostic.Info;
                 case ReportDiagnostic.Info:
                     return action1 == ReportDiagnostic.Warn || action1 == ReportDiagnostic.Error;

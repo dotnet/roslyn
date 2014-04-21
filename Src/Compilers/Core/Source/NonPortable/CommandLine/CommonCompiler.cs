@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 break;
 
-                            case DiagnosticSeverity.None:
+                            case DiagnosticSeverity.Hidden:
                             case DiagnosticSeverity.Info:
                                 break;
 

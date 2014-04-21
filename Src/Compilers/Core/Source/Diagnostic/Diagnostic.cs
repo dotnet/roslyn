@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis
                     return this.WithSeverity(DiagnosticSeverity.Warning);
                 case ReportDiagnostic.Info:
                     return this.WithSeverity(DiagnosticSeverity.Info);
+                case ReportDiagnostic.Hidden:
+                    return this.WithSeverity(DiagnosticSeverity.Hidden);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reportAction);
             }

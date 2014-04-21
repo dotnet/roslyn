@@ -84,6 +84,8 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="Error"/>
       <xs:enumeration value="Warning"/>
+      <xs:enumeration value="Info"/>
+      <xs:enumeration value="Hidden"/>
       <xs:enumeration value="None"/>
     </xs:restriction>
   </xs:simpleType>
@@ -92,6 +94,8 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="Error"/>
       <xs:enumeration value="Warning"/>
+      <xs:enumeration value="Info"/>
+      <xs:enumeration value="Hidden"/>
       <xs:enumeration value="None"/>
       <xs:enumeration value="Default"/>
     </xs:restriction>
@@ -101,6 +105,8 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="Error"/>
       <xs:enumeration value="Warning"/>
+      <xs:enumeration value="Info"/>
+      <xs:enumeration value="Hidden"/>
     </xs:restriction>
   </xs:simpleType>
 

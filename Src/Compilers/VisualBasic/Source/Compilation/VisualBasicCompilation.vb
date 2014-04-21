@@ -1996,8 +1996,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case (severity)
                 Case InternalDiagnosticSeverity.Void
                     Return ReportDiagnostic.Suppress
-                Case DiagnosticSeverity.None
-                    ' Compiler diagnostics cannot have severity None, but user generated diagnostics can.
+                Case DiagnosticSeverity.Hidden
+                    ' Compiler diagnostics cannot have severity Hidden, but user generated diagnostics can.
                     Debug.Assert(category <> Diagnostic.CompilerDiagnosticCategory)
                     ' Leave Select
                 Case DiagnosticSeverity.Info

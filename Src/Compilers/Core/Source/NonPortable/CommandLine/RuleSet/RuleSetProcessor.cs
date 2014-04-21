@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis
         // Strings for the Action attribute and its values
         private const string RuleActionAttributeName = "Action";
         private const string RuleActionNoneValue = "None";
+        private const string RuleActionHiddenValue = "Hidden";
+        private const string RuleActionInfoValue = "Info";
         private const string RuleActionWarningValue = "Warning";
         private const string RuleActionErrorValue = "Error";
         private const string RuleActionDefaultValue = "Default";
@@ -233,6 +235,14 @@ namespace Microsoft.CodeAnalysis
             else if (string.Equals(action, RuleActionErrorValue))
             {
                 return ReportDiagnostic.Error;
+            }
+            else if (string.Equals(action, RuleActionInfoValue))
+            {
+                return ReportDiagnostic.Info;
+            }
+            else if (string.Equals(action, RuleActionHiddenValue))
+            {
+                return ReportDiagnostic.Hidden;
             }
             else if (string.Equals(action, RuleActionNoneValue))
             {

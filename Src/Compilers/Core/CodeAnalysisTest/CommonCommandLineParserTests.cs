@@ -282,6 +282,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
     <Rule Id=""CA1012"" Action=""Error"" />
     <Rule Id=""CA1013"" Action=""Warning"" />
     <Rule Id=""CA1014"" Action=""None"" />
+    <Rule Id=""CA1015"" Action=""Info"" />
+    <Rule Id=""CA1016"" Action=""Hidden"" />
   </Rules>
 </RuleSet>
 ";
@@ -292,6 +294,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1013"], ReportDiagnostic.Warn);
             Assert.Contains("CA1014", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1014"], ReportDiagnostic.Suppress);
+            Assert.Contains("CA1015", ruleSet.SpecificDiagnosticOptions.Keys);
+            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1015"], ReportDiagnostic.Info);
+            Assert.Contains("CA1016", ruleSet.SpecificDiagnosticOptions.Keys);
+            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1016"], ReportDiagnostic.Hidden);
         }
 
         [Fact]
@@ -383,14 +389,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string source1 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset2"" Description=""Test"" ToolsVersion=""12.0"" >
-  <IncludeAll Action=""Warning"" />
+  <IncludeAll Action=""Hidden"" />
   <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
     <Rule Id=""CA1013"" Action=""Warning"" />
   </Rules>
 </RuleSet>
 ";
             var ruleSet = ParseRuleSet(source, source1);
-            Assert.Equal(ReportDiagnostic.Warn, ruleSet.GeneralDiagnosticOption);
+            Assert.Equal(ReportDiagnostic.Hidden, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -402,7 +408,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"" >
-  <IncludeAll Action=""Warning"" />
+  <IncludeAll Action=""Info"" />
   <Include Path=""file1.ruleset"" Action=""Default"" />
   <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
     <Rule Id=""CA1012"" Action=""Warning"" />
@@ -418,7 +424,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
             var ruleSet = ParseRuleSet(source, source1);
-            Assert.Equal(ReportDiagnostic.Warn, ruleSet.GeneralDiagnosticOption);
+            Assert.Equal(ReportDiagnostic.Info, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);

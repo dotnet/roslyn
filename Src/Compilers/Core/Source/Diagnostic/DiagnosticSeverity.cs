@@ -8,10 +8,11 @@ namespace Microsoft.CodeAnalysis
     public enum DiagnosticSeverity
     {
         /// <summary>
-        /// Severity is not applicable. No <see cref="Diagnostic"/> should
-        /// ever have this severity.
+        /// Something that is an issue, as determined by some authority,
+        /// but is not surfaced through normal means.
+        /// There may be different mechanisms that act on these issues.
         /// </summary>
-        None = 0,
+        Hidden = 0,
 
         /// <summary>
         /// Information that does not indicate a problem (i.e. not proscriptive).

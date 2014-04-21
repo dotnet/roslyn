@@ -448,7 +448,7 @@ public class C { }";
         [Fact]
         void TestGetEffectiveDiagnostics()
         {
-            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.None);
+            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden);
             var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info);
             var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning);
             var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error);
@@ -493,7 +493,7 @@ public class C { }";
             // Shuffle diagnostic severity.
             specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
             specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info);
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Warn);
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Hidden);
             specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Error);
             specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn);
             options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
@@ -508,6 +508,10 @@ public class C { }";
 
                 switch (effectiveDiag.Severity)
                 {
+                    case DiagnosticSeverity.Hidden:
+                        Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id);
+                        break;
+
                     case DiagnosticSeverity.Info:
                         Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id);
                         break;

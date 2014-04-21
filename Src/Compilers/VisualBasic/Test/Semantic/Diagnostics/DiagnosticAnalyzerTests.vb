@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub TestGetEffectiveDiagnostics()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.None)
+            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden)
             Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info)
             Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning)
             Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error])
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             ' Shuffle diagnostic severity.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
             specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info)
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Hidden)
             specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
             specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn)
             options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
@@ -218,6 +218,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Assert.[True](diagIds.Remove(effectiveDiag.Id))
 
                 Select Case effectiveDiag.Severity
+                    Case DiagnosticSeverity.Hidden
+                        Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id)
+
                     Case DiagnosticSeverity.Info
                         Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id)
                         Exit Select
