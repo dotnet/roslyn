@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static int GetColumnFromLineOffset(this string line, int lineOffset, int tabSize)
+        public static int GetColumnFromLineOffset(this string line, int endPosition, int tabSize)
         {
             Contract.ThrowIfNull(line);
-            Contract.ThrowIfFalse(0 <= lineOffset && lineOffset <= line.Length);
+            Contract.ThrowIfFalse(0 <= endPosition && endPosition <= line.Length);
             Contract.ThrowIfFalse(tabSize > 0);
 
-            return ConvertTabToSpace(line, tabSize, 0, lineOffset);
+            return ConvertTabToSpace(line, tabSize, 0, endPosition);
         }
 
         public static int GetLineOffsetFromColumn(this string line, int column, int tabSize)

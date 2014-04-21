@@ -131,8 +131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         ' return 1 space for every token pairs as a default operation
         Public Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation Implements IFormattingRule.GetAdjustSpacesOperation
-            Dim space As Integer = If(currentToken.VisualBasicKind = SyntaxKind.EndOfFileToken, 0, 1)
+            If previousToken.VisualBasicKind = SyntaxKind.ColonToken AndAlso
+               TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
+               currentToken.VisualBasicKind <> SyntaxKind.EndOfFileToken Then
+                Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamticSpaceToIndentationIfOnSingleLine)
+            End If
 
+            Dim space As Integer = If(currentToken.VisualBasicKind = SyntaxKind.EndOfFileToken, 0, 1)
             Return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
         End Function
     End Class

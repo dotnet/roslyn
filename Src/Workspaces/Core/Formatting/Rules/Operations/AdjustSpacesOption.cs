@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// ForceSpaces means forcing the specified spaces regardless of positions of two tokens.
         /// </summary>
-        ForceSpaces
+        ForceSpaces,
+
+        /// <summary>
+        /// If two tokens are on a single line, second token will be placed at current indentation if possible
+        /// </summary>
+        DynamticSpaceToIndentationIfOnSingleLine
     }
 }

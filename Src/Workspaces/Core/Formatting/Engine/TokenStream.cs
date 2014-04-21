@@ -341,30 +341,49 @@ namespace Microsoft.CodeAnalysis.Formatting
                 spaces += triviaInfo.Spaces;
 
                 // here, we can't just add token's length since there is token that span multiple lines.
-                var text = previousToken.Token.ToString();
-                if (text.GetNumberOfLineBreaks() > 0)
+                int tokenLength;
+                bool multipleLines;
+                GetTokenLength(previousToken.Token, out tokenLength, out multipleLines);
+
+                if (multipleLines)
                 {
-                    // add up spaces so far and text indentation
-                    return spaces + text.GetTextColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn: 0);
+                    return spaces + tokenLength;
                 }
 
-                // add spaces so far
-                if (text.ContainsTab())
-                {
-                    // do expansive calculation
-                    var initialColumn = this.treeData.GetOriginalColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), previousToken.Token);
-                    spaces += text.ConvertTabToSpace(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn, text.Length);
-                }
-                else
-                {
-                    spaces += text.Length;
-                }
-
+                spaces += tokenLength;
                 tokenData = previousToken;
             }
 
             // we reached beginning of the tree, add spaces at the beginning of the tree
             return spaces + triviaDataGetter(previousToken, tokenData).Spaces;
+        }
+
+        public void GetTokenLength(SyntaxToken token, out int length, out bool onMultipleLines)
+        {
+            // here, we can't just add token's length since there is token that span multiple lines.
+            var text = token.ToString();
+
+            // multiple lines
+            if (text.GetNumberOfLineBreaks() > 0)
+            {
+                // get indentation from last line of the text
+                onMultipleLines = true;
+                length = text.GetTextColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn: 0);
+                return;
+            }
+
+            onMultipleLines = false;
+
+            // add spaces so far
+            if (text.ContainsTab())
+            {
+                // do expansive calculation
+                var initialColumn = this.treeData.GetOriginalColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), token);
+                length = text.ConvertTabToSpace(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn, text.Length);
+                return;
+            }
+
+            length = text.Length;
         }
 
         public IEnumerable<ValueTuple<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>> GetTriviaDataWithTokenPair(CancellationToken cancellationToken)

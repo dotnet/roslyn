@@ -40,12 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 AddAlignIndentationOfTokensToBaseTokenOperation(operations, multiLineLambda, baseToken, SpecializedCollections.SingletonEnumerable(tokenToAlign))
                 Return
             End If
-
-            Dim labelStatement = TryCast(node, LabelStatementSyntax)
-            If labelStatement IsNot Nothing Then
-                Dim nextToken = labelStatement.ColonToken.GetNextToken(includeZeroWidth:=True)
-                AddAlignPositionOfTokensToIndentationOperation(operations, labelStatement, SpecializedCollections.SingletonEnumerable(nextToken))
-            End If
         End Sub
     End Class
 End Namespace

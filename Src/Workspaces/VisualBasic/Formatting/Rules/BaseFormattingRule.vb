@@ -90,14 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateAlignTokensOperation(baseToken, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
-        Protected Sub AddAlignPositionOfTokensToIndentationOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, tokens As IEnumerable(Of SyntaxToken))
-            If containingNode Is Nothing OrElse tokens Is Nothing Then
-                Return
-            End If
-
-            operations.Add(FormattingOperations.CreateAlignTokensOperation(tokens.First(), tokens, AlignTokensOption.AlignPositionOfTokensToIndentation))
-        End Sub
-
         Protected Function CreateAdjustNewLinesOperation(line As Integer, [option] As AdjustNewLinesOption) As AdjustNewLinesOperation
             Return FormattingOperations.CreateAdjustNewLinesOperation(line, [option])
         End Function

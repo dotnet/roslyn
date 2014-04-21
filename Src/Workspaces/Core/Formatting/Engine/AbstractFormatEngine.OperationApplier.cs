@@ -42,6 +42,44 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return ApplyForceSpacesOperation(operation, pairIndex);
                 }
 
+                if (operation.Option == AdjustSpacesOption.DynamticSpaceToIndentationIfOnSingleLine)
+                {
+                    return ApplyDynamticSpacesOperation(operation, pairIndex);
+                }
+
+                return ApplySpaceIfSingleLine(operation, pairIndex);
+            }
+
+            private bool ApplyDynamticSpacesOperation(AdjustSpacesOperation operation, int pairIndex)
+            {
+                var triviaInfo = this.tokenStream.GetTriviaData(pairIndex);
+
+                if (triviaInfo.SecondTokenIsFirstTokenOnLine)
+                {
+                    return false;
+                }
+
+                Contract.ThrowIfFalse(triviaInfo.LineBreaks == 0);
+
+                var indentation = this.context.GetBaseIndentation(this.tokenStream.GetToken(pairIndex + 1));
+
+                var previousToken = this.tokenStream.GetToken(pairIndex);
+
+                bool multipleLines;
+                int tokenLength;
+                this.tokenStream.GetTokenLength(previousToken, out tokenLength, out multipleLines);
+
+                // get end column of previous token
+                var endColumnOfPreviousToken = multipleLines ? tokenLength : this.tokenStream.GetCurrentColumn(previousToken) + tokenLength;
+
+                // check whether current position is less than indentation
+                if (endColumnOfPreviousToken < indentation)
+                {
+                    this.tokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(indentation - endColumnOfPreviousToken, context, formattingRules));
+                    return true;
+                }
+
+                // delegate to normal singleline space applier
                 return ApplySpaceIfSingleLine(operation, pairIndex);
             }
 
@@ -233,27 +271,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                             break;
                         }
 
-                    case AlignTokensOption.AlignPositionOfTokensToIndentation:
-                        {
-                            // token will be align to current indentation. for this operation, we don't care
-                            // about base token
-                            if (operation.Tokens.IsEmpty())
-                            {
-                                return false;
-                            }
-
-                            tokenData = GetTokenWithIndices(operation.Tokens);
-
-                            // no valid tokens. do nothing and return
-                            if (tokenData.Count == 0)
-                            {
-                                return false;
-                            }
-
-                            ApplySpacesToAlignWithCurrentIndentation(tokenData, previousChangesMap, cancellationToken);
-                            break;
-                        }
-
                     default:
                         {
                             return Contract.FailWithReturn<bool>("Unknown option");
@@ -263,65 +280,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 ApplyIndentationChangesToDependentTokens(tokenData, previousChangesMap, cancellationToken);
 
                 return true;
-            }
-
-            private void ApplySpacesToAlignWithCurrentIndentation(
-                IList<TokenData> list, Dictionary<SyntaxToken, int> previousChangesMap, CancellationToken cancellationToken)
-            {
-                for (int i = 0; i < list.Count; i++)
-                {
-                    var currentToken = list[i];
-
-                    // get indentation this token will align to
-                    var indentation = this.context.GetBaseIndentation(currentToken.Token);
-
-                    // get previous token
-                    var previousToken = this.tokenStream.GetPreviousTokenData(currentToken);
-
-                    // golden, current token is the first token on line
-                    var triviaInfo = this.tokenStream.GetTriviaData(previousToken, currentToken);
-                    if (triviaInfo.SecondTokenIsFirstTokenOnLine)
-                    {
-                        ApplyIndentationToGivenPosition(previousToken, currentToken, triviaInfo, indentation, previousChangesMap, cancellationToken);
-                        continue;
-                    }
-
-                    // okay, we are not the first token on line. do little bit expensive one
-
-                    // get previous token's column
-                    var previousTokenColumn = this.tokenStream.GetCurrentColumn(previousToken) + previousToken.Token.Width();
-
-                    // now check whether we can move current token
-                    var spacesBetweenTwoTokens = indentation - previousTokenColumn;
-                    if (spacesBetweenTwoTokens <= 0)
-                    {
-                        // nope, we can't move. the previous token position is passed the desired position.
-                        continue;
-                    }
-
-                    // yes, now we can move.
-                    // if there was a existing value, overwrite it. this could happen if a token is moved multiple times
-                    // due to different alignment operations
-                    previousChangesMap[currentToken.Token] = triviaInfo.Spaces;
-
-                    // the position we are trying to move is either out of scope or already in right shape.
-                    // we just pretent that we applied a change here by inserting information to the map, without
-                    // actually doing anything.
-                    if (previousToken.IndexInStream < 0 || triviaInfo.Spaces == spacesBetweenTwoTokens)
-                    {
-                        continue;
-                    }
-
-                    // before make any change, check whether spacing is allowed
-                    var spanBetweenTokens = TextSpan.FromBounds(previousToken.Token.Span.End, currentToken.Token.SpanStart);
-                    if (this.context.IsSpacingSuppressed(spanBetweenTokens))
-                    {
-                        continue;
-                    }
-
-                    // okay, update indentation
-                    this.tokenStream.ApplyChange(previousToken.IndexInStream, triviaInfo.WithSpace(spacesBetweenTwoTokens, context, formattingRules));
-                }
             }
 
             private void ApplyIndentationToAlignWithGivenToken(
