@@ -873,6 +873,46 @@ class C : I
             }
         }
 
+        [Fact(Skip = "930065"), WorkItem(930065)]
+        public void ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void M();
+}
+partial class C : I
+{
+    void I.M() { }
+}
+partial class C 
+{
+    public C()
+    {
+        int a = 1;
+    }
+}
+";
+            var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+
+                var method0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+                var method1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                // TODO: verify emitted metadata
+            }
+        }
+
         [Fact]
         public void AddAttributeReferences()
         {
@@ -7141,7 +7181,7 @@ public interface IB
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(923492)]
         public void SymWriterErrors()
         {
             var source0 =
