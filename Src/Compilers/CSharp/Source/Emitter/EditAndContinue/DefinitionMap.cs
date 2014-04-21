@@ -195,11 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 try
                 {
                     Debug.Assert(this.module.HasIL);
-                    var methodIL = this.module.GetMethodILOrThrow(handle);
+                    var methodBody = this.module.GetMethodBodyOrThrow(handle);
 
-                    if (!methodIL.LocalSignature.IsNil)
+                    if (!methodBody.LocalSignature.IsNil)
                     {
-                        var signature = this.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature);
+                        var signature = this.module.MetadataReader.GetLocalSignature(methodBody.LocalSignature);
                         localInfo = this.metadataDecoder.DecodeLocalSignatureOrThrow(signature);
                     }
                     else

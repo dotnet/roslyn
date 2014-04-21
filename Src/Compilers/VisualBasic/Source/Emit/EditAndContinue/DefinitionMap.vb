@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim localInfo As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
                 Try
                     Debug.Assert(Me.module.HasIL)
-                    Dim methodIL As MethodBodyBlock = Me.module.GetMethodILOrThrow(handle)
+                    Dim methodIL As MethodBodyBlock = Me.module.GetMethodBodyOrThrow(handle)
                     If Not methodIL.LocalSignature.IsNil Then
                         Dim signature = Me.module.MetadataReader.GetLocalSignature(methodIL.LocalSignature)
                         localInfo = Me.metadataDecoder.DecodeLocalSignatureOrThrow(signature)

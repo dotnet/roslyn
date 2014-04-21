@@ -2878,7 +2878,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">Invalid metadata.</exception>
-        internal MethodBodyBlock GetMethodILOrThrow(MethodHandle methodHandle)
+        internal MethodBodyBlock GetMethodBodyOrThrow(MethodHandle methodHandle)
         {
             // we shouldn't ask for method IL if we don't have PE image
             Debug.Assert(peReaderOpt != null);

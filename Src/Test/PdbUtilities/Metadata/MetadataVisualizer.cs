@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -14,7 +16,10 @@ namespace Roslyn.Test.MetadataUtilities
     {
         private readonly TextWriter writer;
         private readonly IReadOnlyList<MetadataReader> readers;
-        private readonly MetadataAggregator aggregateReader;
+        private readonly MetadataAggregator aggregator;
+
+        // enc map for each delta reader
+        private readonly ImmutableArray<ImmutableArray<Handle>> encMaps;
 
         private MetadataReader reader;
         private readonly List<string[]> pendingRows = new List<string[]>();
@@ -26,9 +31,10 @@ namespace Roslyn.Test.MetadataUtilities
 
             if (readers.Count > 1)
             {
-                this.aggregateReader = new MetadataAggregator(
-                    readers[0],
-                    new List<MetadataReader>(readers.Skip(1)));
+                var deltaReaders = new List<MetadataReader>(readers.Skip(1));
+                this.aggregator = new MetadataAggregator(readers[0], deltaReaders);
+
+                this.encMaps = ImmutableArray.CreateRange(deltaReaders.Select(reader => ImmutableArray.CreateRange(reader.GetEditAndContinueMapEntries())));
             }
         }
 
@@ -180,6 +186,66 @@ namespace Roslyn.Test.MetadataUtilities
             pendingRows.Clear();
         }
 
+        private Handle GetAggregateHandle(Handle generationHandle, int generation)
+        {
+            var encMap = encMaps[generation - 1];
+
+            int start, count;
+            if (!TryGetHandleRange(encMap, generationHandle.HandleType, out start, out count))
+            {
+                throw new BadImageFormatException(string.Format("EncMap is missing record for {0:8X}.", MetadataTokens.GetToken(generationHandle)));
+            }
+
+            return encMap[start + MetadataTokens.GetRowNumber(generationHandle) - 1];
+        }
+
+        private static bool TryGetHandleRange(ImmutableArray<Handle> handles, HandleType handleType, out int start, out int count)
+        {
+            TableIndex tableIndex;
+            MetadataTokens.TryGetTableIndex(handleType, out tableIndex);
+
+            int mapIndex = handles.BinarySearch(MetadataTokens.Handle(tableIndex, 0), TokenTypeComparer.Instance);
+            if (mapIndex < 0)
+            {
+                start = 0;
+                count = 0;
+                return false;
+            }
+
+            int s = mapIndex;
+            while (s >= 0 && handles[s].HandleType == handleType)
+            {
+                s--;
+            }
+
+            int e = mapIndex;
+            while (e < handles.Length && handles[e].HandleType == handleType)
+            {
+                e++;
+            }
+
+            start = s + 1;
+            count = e - start;
+            return true;
+        }
+
+        private Method GetMethod(MethodHandle handle)
+        {
+            return Get(handle, (reader, h) => reader.GetMethod((MethodHandle)h));
+        }
+
+        private BlobHandle GetLocalSignature(LocalSignatureHandle handle)
+        {
+            return Get(handle, (reader, h) => reader.GetLocalSignature((LocalSignatureHandle)h));
+        }
+
+        private TEntity Get<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
+        {
+            int generation;
+            var generationHandle = aggregator.GetGenerationHandle(handle, out generation);
+            return getter(readers[generation], generationHandle);
+        }
+
         private string Literal(StringHandle handle)
         {
             return Literal(handle, (r, h) => "'" + r.GetString((StringHandle)h) + "'");
@@ -207,10 +273,10 @@ namespace Roslyn.Test.MetadataUtilities
                 return "nil";
             }
 
-            if (aggregateReader != null)
+            if (aggregator != null)
             {
                 int generation;
-                Handle generationHandle = aggregateReader.GetGenerationHandle(handle, out generation);
+                Handle generationHandle = aggregator.GetGenerationHandle(handle, out generation);
 
                 var generationReader = readers[generation];
                 string value = getValue(generationReader, generationHandle);
@@ -219,21 +285,21 @@ namespace Roslyn.Test.MetadataUtilities
 
                 if (offset == generationOffset)
                 {
-                    return string.Format("{0} (#{1})", value, offset);
+                    return string.Format("{0} (#{1:x})", value, offset);
                 }
                 else
                 {
-                    return string.Format("{0} (#{1}/{2})", value, offset, generationOffset);
+                    return string.Format("{0} (#{1:x}/{2:x})", value, offset, generationOffset);
                 }
             }
 
             if (IsDelta)
             {
                 // we can't resolve the literal without aggregate reader
-                return string.Format("#{0}", reader.GetHeapOffset(handle));
+                return string.Format("#{0:x}", reader.GetHeapOffset(handle));
             }
 
-            return string.Format("{1} (#{0})", reader.GetHeapOffset(handle), getValue(reader, handle));
+            return string.Format("{1:x} (#{0:x})", reader.GetHeapOffset(handle), getValue(reader, handle));
         }
 
         private string Hex(ushort value)
@@ -246,16 +312,17 @@ namespace Roslyn.Test.MetadataUtilities
             return "0x" + value.ToString("X8");
         }
 
-        private string Token(Handle handle, bool displayTable = true)
+        public string Token(Handle handle, bool displayTable = true)
         {
             if (handle.IsNil)
             {
                 return "nil";
             }
 
-            if (displayTable)
+            TableIndex table;
+            if (displayTable && MetadataTokens.TryGetTableIndex(handle.HandleType, out table))
             {
-                return string.Format("0x{0:x8} ({1})", reader.GetToken(handle), MetadataTokens.GetTableIndex(handle));
+                return string.Format("0x{0:x8} ({1})", reader.GetToken(handle), table);
             }
             else
             {
@@ -281,7 +348,7 @@ namespace Roslyn.Test.MetadataUtilities
             return (handles.Count == 0) ? "nil" : Token(genericHandles.First(), displayTable: false) + "-" + Token(genericHandles.Last(), displayTable: false);
         }
 
-        private string TokenList(IReadOnlyCollection<Handle> handles, bool displayTable = false)
+        public string TokenList(IReadOnlyCollection<Handle> handles, bool displayTable = false)
         {
             if (handles.Count == 0)
             {
@@ -629,7 +696,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             for (int i = 1, count = reader.GetTableRowCount(TableIndex.MethodImpl); i <= count; i++)
             {
-                var entry = reader.GetMethodImplementation(MetadataTokens.MethodImplHandle(i));
+                var entry = reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(i));
 
                 AddRow(
                     Token(entry.Type),
@@ -685,7 +752,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteEnCMap()
         {
-            if (aggregateReader != null)
+            if (aggregator != null)
             {
                 AddHeader("Entity", "Gen", "Row", "Edit");
             }
@@ -697,10 +764,10 @@ namespace Roslyn.Test.MetadataUtilities
 
             foreach (var entry in reader.GetEditAndContinueMapEntries())
             {
-                if (aggregateReader != null)
+                if (aggregator != null)
                 {
                     int generation;
-                    Handle primary = aggregateReader.GetGenerationHandle(entry, out generation);
+                    Handle primary = aggregator.GetGenerationHandle(entry, out generation);
                     bool isUpdate = readers[generation] != reader;
 
                     var primaryModule = readers[generation].GetModuleDefinition();
@@ -991,6 +1058,50 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             writer.WriteLine();
+        }
+
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle generationHandle, int generation)
+        {
+            VisualizeMethodBody(body, (MethodHandle)GetAggregateHandle(generationHandle, generation));
+        }
+
+        public void VisualizeMethodBody(MethodBodyBlock body, MethodHandle methodHandle)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            // TODO: Inspect EncLog to find a containing type and display qualified name.
+            var method = GetMethod(methodHandle);
+            builder.AppendFormat("Method {0} (0x{1:X8})", Literal(method.Name), MetadataTokens.GetToken(methodHandle));
+            builder.AppendLine();
+
+            // TODO: decode signature
+            if (!body.LocalSignature.IsNil)
+            {
+                var localSignature = GetLocalSignature(body.LocalSignature);
+                builder.AppendFormat("  Locals: {0}", Literal(localSignature));
+                builder.AppendLine();
+            }
+
+            ILVisualizerAsTokens.Instance.DumpMethod(
+                builder,
+                body.MaxStack,
+                body.GetILBytes(),
+                ImmutableArray.Create<ILVisualizer.LocalInfo>(),     // TODO
+                ImmutableArray.Create<ILVisualizer.HandlerSpan>());  // TOOD: ILVisualizer.GetHandlerSpans(body.ExceptionRegions)
+
+            builder.AppendLine();
+
+            writer.Write(builder.ToString());
+        }
+
+        private sealed class TokenTypeComparer : IComparer<Handle>
+        {
+            public static readonly TokenTypeComparer Instance = new TokenTypeComparer();
+
+            public int Compare(Handle x, Handle y)
+            {
+                return x.HandleType.CompareTo(y.HandleType);
+            }
         }
     }
 }

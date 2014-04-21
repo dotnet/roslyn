@@ -7326,29 +7326,39 @@ public interface IB
 
         private static string EncLogRowToString(EditAndContinueLogEntry row)
         {
+            TableIndex tableIndex;
+            MetadataTokens.TryGetTableIndex(row.Handle.HandleType, out tableIndex);
+
             return string.Format(
                 "Row({0}, TableIndices.{1}, EditAndContinueOperation.{2})",
                 MetadataTokens.GetRowNumber(row.Handle),
-                MetadataTokens.GetTableIndex(row.Handle),
+                tableIndex,
                 row.Operation);
         }
 
         private static string EncMapRowToString(Handle handle)
         {
+            TableIndex tableIndex;
+            MetadataTokens.TryGetTableIndex(handle.HandleType, out tableIndex);
+
             return string.Format(
                 "Handle({0}, TableIndices.{1})",
                 MetadataTokens.GetRowNumber(handle),
-                MetadataTokens.GetTableIndex(handle));
+                tableIndex);
         }
 
         private static string AttributeRowToString(CustomAttributeRow row)
         {
+            TableIndex parentTableIndex, constructorTableIndex;
+            MetadataTokens.TryGetTableIndex(row.ParentToken.HandleType, out parentTableIndex);
+            MetadataTokens.TryGetTableIndex(row.ConstructorToken.HandleType, out constructorTableIndex);
+
             return string.Format(
                 "new CustomAttributeRow(Handle({0}, TableIndices.{1}), Handle({2}, TableIndices.{3}))",
                 MetadataTokens.GetRowNumber(row.ParentToken),
-                MetadataTokens.GetTableIndex(row.ParentToken),
+                parentTableIndex,
                 MetadataTokens.GetRowNumber(row.ConstructorToken),
-                MetadataTokens.GetTableIndex(row.ConstructorToken));
+                constructorTableIndex);
         }
 
         #endregion

@@ -9,6 +9,8 @@ using System.Globalization;
 using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -16,7 +18,7 @@ namespace Roslyn.Test.MetadataUtilities
     {
         private static readonly OpCode[] OneByteOpCodes;
         private static readonly OpCode[] TwoByteOpCodes;
-
+         
         static ILVisualizer()
         {
             OneByteOpCodes = new OpCode[0x100];
@@ -467,6 +469,60 @@ namespace Roslyn.Test.MetadataUtilities
                 spanIndex < spans.Count &&
                 spans[spanIndex].Kind == HandlerKind.Filter &&
                 spans[spanIndex].FilterHandlerStart == (uint)curIndex;
+        }
+
+        public static IReadOnlyList<HandlerSpan> GetHandlerSpans(ImmutableArray<ExceptionRegion> entries)
+        {
+            if (entries.Length == 0)
+            {
+                return new HandlerSpan[0];
+            }
+
+            var result = new List<HandlerSpan>();
+            foreach (ExceptionRegion entry in entries)
+            {
+                int tryStartOffset = entry.TryOffset;
+                int tryEndOffset = entry.TryOffset + entry.TryLength;
+                var span = new HandlerSpan(HandlerKind.Try, null, (uint)tryStartOffset, (uint)tryEndOffset);
+
+                if (result.Count == 0 || span.CompareTo(result[result.Count - 1]) != 0)
+                {
+                    result.Add(span);
+                }
+            }
+
+            foreach (ExceptionRegion entry in entries)
+            {
+                int handlerStartOffset = entry.HandlerOffset;
+                int handlerEndOffset = entry.HandlerOffset + entry.HandlerLength;
+
+                HandlerSpan span;
+                switch (entry.Kind)
+                {
+                    case ExceptionRegionKind.Catch:
+                        span = new HandlerSpan(HandlerKind.Catch, MetadataTokens.GetToken(entry.CatchType), (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        break;
+
+                    case ExceptionRegionKind.Fault:
+                        span = new HandlerSpan(HandlerKind.Fault, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        break;
+
+                    case ExceptionRegionKind.Filter:
+                        span = new HandlerSpan(HandlerKind.Filter, null, (uint)handlerStartOffset, (uint)handlerEndOffset, (uint)entry.FilterOffset);
+                        break;
+
+                    case ExceptionRegionKind.Finally:
+                        span = new HandlerSpan(HandlerKind.Finally, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
+                }
+
+                result.Add(span);
+            }
+
+            return result;
         }
     }
 }

@@ -828,23 +828,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // TODO (tomat): overloaded methods
             var method = (PEMethodSymbol)type.GetMembers(methodData.Method.MetadataName).Single();
 
-            var methodIL = peModule.Module.GetMethodILOrThrow(method.Handle);
-            Assert.NotNull(methodIL);
+            var bodyBlock = peModule.Module.GetMethodBodyOrThrow(method.Handle);
+            Assert.NotNull(bodyBlock);
 
             var moduleDecoder = new MetadataDecoder(peModule);
             var peMethod = (PEMethodSymbol)moduleDecoder.GetSymbolForILToken(method.Handle);
 
             StringBuilder sb = new StringBuilder();
-            var ilBytes = methodIL.GetILBytes();
+            var ilBytes = bodyBlock.GetILBytes();
 
-            var ehHandlerRegions = ToHandlerSpans(moduleDecoder, methodIL.ExceptionRegions);
+            var ehHandlerRegions = Visualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 
             var methodDecoder = new MetadataDecoder(peModule, peMethod);
 
             ImmutableArray<ILVisualizer.LocalInfo> localDefinitions;
-            if (!methodIL.LocalSignature.IsNil)
+            if (!bodyBlock.LocalSignature.IsNil)
             {
-                var signature = peModule.Module.MetadataReader.GetLocalSignature(methodIL.LocalSignature);
+                var signature = peModule.Module.MetadataReader.GetLocalSignature(bodyBlock.LocalSignature);
                 var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(signature);
                 localDefinitions = ToLocalDefinitions(localInfos, methodData.ILBuilder);
             }
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             // TODO (tomat): the .maxstack in IL can't be less than 8, but many tests expect .maxstack < 8
-            int maxStack = (methodIL.MaxStack == 8 && methodData.ILBuilder.MaxStack < 8) ? methodData.ILBuilder.MaxStack : methodIL.MaxStack;
+            int maxStack = (bodyBlock.MaxStack == 8 && methodData.ILBuilder.MaxStack < 8) ? methodData.ILBuilder.MaxStack : bodyBlock.MaxStack;
 
             var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
 
@@ -900,66 +900,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return result.AsImmutableOrNull();
         }
 
-        private static IReadOnlyList<ILVisualizer.HandlerSpan> ToHandlerSpans(MetadataDecoder decoder, ImmutableArray<ExceptionRegion> entries)
-        {
-            if (entries.Length == 0)
-            {
-                return SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>();
-            }
-
-            var result = new List<ILVisualizer.HandlerSpan>();
-            foreach (ExceptionRegion entry in entries)
-            {
-                int tryStartOffset = entry.TryOffset;
-                int tryEndOffset = entry.TryOffset + entry.TryLength;
-                var span = new ILVisualizer.HandlerSpan(ILVisualizer.HandlerKind.Try, null, (uint)tryStartOffset, (uint)tryEndOffset);
-
-                if (result.Count == 0 || span.CompareTo(result[result.Count - 1]) != 0)
-                {
-                    result.Add(span);
-                }
-            }
-
-            foreach (ExceptionRegion entry in entries)
-            {
-                int handlerStartOffset = entry.HandlerOffset;
-                int handlerEndOffset = entry.HandlerOffset + entry.HandlerLength;
-
-                ILVisualizer.HandlerSpan span;
-                switch (entry.Kind)
-                {
-                    case ExceptionRegionKind.Catch:
-                        var exceptionType = (Cci.ITypeReference)decoder.GetSymbolForILToken(entry.CatchType);
-                        if (exceptionType == null)
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-                        span = new ILVisualizer.HandlerSpan(ILVisualizer.HandlerKind.Catch, exceptionType, (uint)handlerStartOffset, (uint)handlerEndOffset);
-                        break;
-
-                    case ExceptionRegionKind.Fault:
-                        span = new ILVisualizer.HandlerSpan(ILVisualizer.HandlerKind.Fault, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
-                        break;
-
-                    case ExceptionRegionKind.Filter:
-                        span = new ILVisualizer.HandlerSpan(ILVisualizer.HandlerKind.Filter, null, (uint)handlerStartOffset, (uint)handlerEndOffset, (uint)entry.FilterOffset);
-                        break;
-
-                    case ExceptionRegionKind.Finally:
-                        span = new ILVisualizer.HandlerSpan(ILVisualizer.HandlerKind.Finally, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
-                        break;
-
-                    default:
-                        throw new InvalidOperationException();
-                }
-
-                result.Add(span);
-            }
-
-            return result;
-        }
-
         private sealed class Visualizer : ILVisualizer
         {
             private readonly MetadataDecoder decoder;
@@ -984,6 +924,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             public override string VisualizeLocalType(object type)
             {
+                if (type is int)
+                {
+                    type = decoder.GetSymbolForILToken(MetadataTokens.Handle((int)type));
+                }
+
                 ISymbol symbol = type as ISymbol;
                 return symbol == null ? type.ToString() : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
