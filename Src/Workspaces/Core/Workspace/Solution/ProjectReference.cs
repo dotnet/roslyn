@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     [Serializable]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class ProjectReference : IEquatable<ProjectReference>
+    public sealed class ProjectReference : IEquatable<ProjectReference>, ISerializable
     {
         private readonly ProjectId projectId;
         private readonly ImmutableArray<string> aliases;
@@ -23,6 +24,20 @@ namespace Microsoft.CodeAnalysis
             this.projectId = projectId;
             this.aliases = aliases;
             this.embedInteropTypes = embedInteropTypes;
+        }
+
+        private ProjectReference(SerializationInfo info, StreamingContext context)
+        {
+            this.projectId = (ProjectId)info.GetValue("projectId", typeof(ProjectId));
+            this.aliases = ImmutableArray.Create((string[])info.GetValue("aliases", typeof(string[])));
+            this.embedInteropTypes = info.GetBoolean("embedInteropTypes");
+        }
+
+        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("projectId", projectId);
+            info.AddValue("aliases", aliases.IsDefault ? null : aliases.ToArray(), typeof(string[]));
+            info.AddValue("embedInteropTypes", embedInteropTypes);
         }
 
         public ProjectId ProjectId { get { return projectId; } }
