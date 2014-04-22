@@ -6956,7 +6956,7 @@ Unify Enum declarations with other block type declarations.
 
     <node-structure name="XmlDocumentSyntax" parent="XmlNodeSyntax">
       <description>
-        Represents and XML Document literal expression.
+        Represents an XML Document literal expression.
       </description>
       <node-kind name="XmlDocument">
       </node-kind>
@@ -7182,7 +7182,7 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <node-structure name="XmlPrefixSyntax" parent="VisualBasicSyntaxNode">
-      <description>Represents and XML namespace prefix of the form 'prefix:' as in xml:ns="".</description>
+      <description>Represents an XML namespace prefix of the form 'prefix:' as in xml:ns="".</description>
 
       <node-kind name="XmlPrefix" />
 
