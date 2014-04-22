@@ -22,13 +22,29 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
-        /// and from a function that maps from a method to an array of local names. Only the
-        /// initial baseline is created using this method; subsequent baselines are created
-        /// automatically when emitting the differences in subsequent compilations.
+        /// and from a function that maps from a method to an array of local names. 
         /// </summary>
         /// <param name="module">The metadata of the module before editing.</param>
-        /// <param name="localNames">A function that returns the array of local names given a method index from the module metadata.</param>
-        /// <returns>An EmitBaseline for the module.</returns>
+        /// <param name="localNames">
+        /// A function that returns the array of local names given a method index from the module metadata.
+        /// </param>
+        /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
+        /// <remarks>
+        /// Only the initial baseline is created using this method; subsequent baselines are created
+        /// automatically when emitting the differences in subsequent compilations.
+        /// 
+        /// When an active method (one for which a frame is allocated on a stack) is updated the values of its local variables need to be preserved.
+        /// The mapping of local variable names to their slots in the frame is not included in the metadata and thus needs to be provided by 
+        /// <paramref name="localNames"/>.
+        /// 
+        /// The <see cref="LocalVariableNameProvider"/> is only needed for the initial generation. The mapping for the subsequent generations
+        /// is carried over through <see cref="EmitBaseline"/>. The compiler assigns slots to named local variables (including named temporary variables)
+        /// it the order in which they appear in the source code. This property allows the compiler to reconstruct the local variable mapping 
+        /// for the initial generation. A subsequent generation may add a new variable in between two variables of the previous generation. 
+        /// Since the slots of the previous generation variables need to be preserved the only option is to add these new variables to the end.
+        /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
+        /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
+        /// </remarks>
         public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, LocalVariableNameProvider localNames)
         {
             if (module == null)
