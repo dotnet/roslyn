@@ -15,6 +15,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <StyleCopEnabled>false</StyleCopEnabled>
+    <ToolsetVariables>CSharpSyntaxGeneratorToolPath</ToolsetVariables>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>

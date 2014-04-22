@@ -11,6 +11,7 @@
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
+    <ToolsetVariables>VBSyntaxGeneratorToolPath,BoundTreeGeneratorToolPath</ToolsetVariables>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
