@@ -1952,11 +1952,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
                     options.SpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
+                                                        diagnostic.IsEnabledByDefault,
                                                         VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
                                                         options,
                                                         diagnostic.Category)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.Id, options, diagnostic.Category)
+                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, options, diagnostic.Category)
             End If
 
             Return diagnostic.WithReportDiagnostic(report)
@@ -1992,7 +1993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, id As String, options As CompilationOptions, category As String) As ReportDiagnostic
+        Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, options As CompilationOptions, category As String) As ReportDiagnostic
             Select Case (severity)
                 Case InternalDiagnosticSeverity.Void
                     Return ReportDiagnostic.Suppress
@@ -2013,7 +2014,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Read options (e.g., /nowarn or /warnaserror)
             Dim report As ReportDiagnostic = ReportDiagnostic.Default
-            options.SpecificDiagnosticOptions.TryGetValue(id, report)
+            If Not options.SpecificDiagnosticOptions.TryGetValue(id, report) Then
+                report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
+            End If
 
             ' Compute if the reporting should be suppressed.
             If report = ReportDiagnostic.Suppress OrElse options.GeneralDiagnosticOption = ReportDiagnostic.Suppress Then

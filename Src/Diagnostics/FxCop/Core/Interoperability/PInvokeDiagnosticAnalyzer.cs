@@ -21,12 +21,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                                                                          FxCopRulesResources.PInvokesShouldNotBeVisible,
                                                                          FxCopRulesResources.PInvokeMethodShouldNotBeVisible,
                                                                          FxCopDiagnosticCategory.Interoperability,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
         internal static DiagnosticDescriptor RuleCA2101 = new DiagnosticDescriptor(CA2101,
                                                                          FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
                                                                          FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
                                                                          FxCopDiagnosticCategory.Globalization,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

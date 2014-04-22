@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
                                                                          FxCopRulesResources.DoNotLockOnObjectsWithWeakIdentity,
                                                                          FxCopRulesResources.DoNotLockOnWeakIdentity,
                                                                          FxCopDiagnosticCategory.Reliability,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

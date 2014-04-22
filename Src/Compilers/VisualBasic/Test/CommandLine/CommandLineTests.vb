@@ -5798,8 +5798,8 @@ Class MockDiagnosticAnalyzer
     Inherits MockAbstractDiagnosticAnalyzer
     Implements ISymbolAnalyzer
 
-    Friend Shared Test01 As DiagnosticDescriptor = New DiagnosticDescriptor("Test01", "", "Throwing a test1 diagnostic for types declared", "", DiagnosticSeverity.Warning)
-    Friend Shared Test03 As DiagnosticDescriptor = New DiagnosticDescriptor("Test03", "", "Throwing a test3 diagnostic for types declared", "", DiagnosticSeverity.Warning)
+    Friend Shared Test01 As DiagnosticDescriptor = New DiagnosticDescriptor("Test01", "", "Throwing a test1 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+    Friend Shared Test03 As DiagnosticDescriptor = New DiagnosticDescriptor("Test03", "", "Throwing a test3 diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
     Public Overrides Function OnCompilationStarted(compilation As Compilation, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) As ICompilationEndedAnalyzer
         Return Nothing

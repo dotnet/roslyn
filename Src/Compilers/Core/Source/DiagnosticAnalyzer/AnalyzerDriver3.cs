@@ -558,7 +558,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CodeAnalysisResources.CompilerAnalyzerFailure,
                 string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, message),
                 category: Diagnostic.CompilerDiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info);
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true);
         }
     }
 }

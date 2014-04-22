@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.DisposableFieldsShouldBeDisposed,
                                                                          FxCopRulesResources.DisposableFieldsShouldBeDisposed,
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

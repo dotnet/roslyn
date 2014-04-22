@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis
             private readonly string category;
             private readonly string message;
             private readonly DiagnosticSeverity severity;
+            private readonly bool isEnabledByDefault;
             private readonly int warningLevel;
             private readonly bool isWarningAsError;
             private readonly Location location;
             private readonly ImmutableList<Location> additionalLocations;
 
-            internal SimpleDiagnostic(string id, string category, string message, DiagnosticSeverity severity,
+            internal SimpleDiagnostic(string id, string category, string message, DiagnosticSeverity severity, bool isEnabledByDefault,
                                       int warningLevel, bool isWarningAsError, Location location,
                                       IEnumerable<Location> additionalLocations)
             {
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis
                 this.category = category;
                 this.message = message;
                 this.severity = severity;
+                this.isEnabledByDefault = isEnabledByDefault;
                 this.warningLevel = warningLevel;
                 this.isWarningAsError = isWarningAsError;
                 this.location = location;
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis
                 this.category = info.GetString("category");
                 this.message = info.GetString("message");
                 this.severity = (DiagnosticSeverity)info.GetInt32("severity");
+                this.isEnabledByDefault = info.GetBoolean("isEnabledByDefault");
                 this.warningLevel = info.GetInt32("warningLevel");
                 this.isWarningAsError = info.GetBoolean("isWarningAsError");
                 this.location = (Location)info.GetValue("location", typeof(Location));
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis
                 info.AddValue("category", this.category);
                 info.AddValue("message", this.message);
                 info.AddValue("severity", (int)this.severity);
+                info.AddValue("isEnabledByDefault", this.isEnabledByDefault);
                 info.AddValue("warningLevel", this.warningLevel);
                 info.AddValue("isWarningAsError", this.isWarningAsError);
                 info.AddValue("location", this.location, typeof(Location));
@@ -95,6 +99,11 @@ namespace Microsoft.CodeAnalysis
             public override DiagnosticSeverity Severity
             {
                 get { return this.severity; }
+            }
+
+            public override bool IsEnabledByDefault
+            {
+                get { return isEnabledByDefault; }
             }
 
             public override int WarningLevel
@@ -151,7 +160,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != this.location)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.warningLevel, this.isWarningAsError, location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, this.isWarningAsError, location, this.additionalLocations);
                 }
 
                 return this;
@@ -161,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.isWarningAsError != isWarningAsError)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
                 }
 
                 return this;
@@ -173,7 +182,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.Severity != severity)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, severity, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, severity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations);
                 }
 
                 return this;

@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                     FxCopRulesResources.CustomAttrShouldHaveAttributeUsage,
                                                                     FxCopRulesResources.MarkAttributesWithAttributeUsage,
                                                                     FxCopDiagnosticCategory.Design,
-                                                                    DiagnosticSeverity.Warning);
+                                                                    DiagnosticSeverity.Warning,
+                                                                    isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

@@ -2086,6 +2086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options.SpecificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
             {
                 reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
+                                                    d.IsEnabledByDefault,
                                                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                                                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
                                                     d.Location as Location,
@@ -2094,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                reportAction = GetDiagnosticReport(d.Severity, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
+                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location, options, d.Category);
             }
 
             return d.WithReportDiagnostic(reportAction);
@@ -2127,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Take a warning and return the final deposition of the given warning,
         // based on both command line options and pragmas
-        internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, string id, int warningLevel, Location location, CompilationOptions options, string category)
+        internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, bool isEnabledByDefault, string id, int warningLevel, Location location, CompilationOptions options, string category)
         {
             switch (severity)
             {
@@ -2154,7 +2155,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Read options (e.g., /nowarn or /warnaserror)
             ReportDiagnostic report = ReportDiagnostic.Default;
-            options.SpecificDiagnosticOptions.TryGetValue(id, out report);
+            if (!options.SpecificDiagnosticOptions.TryGetValue(id, out report))
+            {
+                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+            }
 
             // Compute if the reporting should be suppressed.
             if (warningLevel > options.WarningLevel  // honor the warning level

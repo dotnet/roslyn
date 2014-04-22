@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          FxCopRulesResources.AvoidUnsealedAttributes,
                                                                          FxCopRulesResources.SealAttributeTypesForImprovedPerf,
                                                                          FxCopDiagnosticCategory.Performance,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

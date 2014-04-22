@@ -23,14 +23,16 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticsResources.UseEmptyEnumerableDescription,
             RoslynDiagnosticsResources.UseEmptyEnumerableMessage,
             "Performance",
-            DiagnosticSeverity.Warning);
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
             "RS0002",
             RoslynDiagnosticsResources.UseSingletonEnumerableDescription,
             RoslynDiagnosticsResources.UseSingletonEnumerableMessage,
             "Performance",
-            DiagnosticSeverity.Warning);
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.Severity; }
         }
 
+        public sealed override bool IsEnabledByDefault
+        {
+            // All compiler errors and warnings are enabled by default.
+            get { return true; }
+        }
+
         public sealed override int WarningLevel
         {
             get { return this.Info.WarningLevel; }

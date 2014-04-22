@@ -33,9 +33,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The default severity of the diagnostic.
         /// </summary>
-        /// <returns></returns>
         public DiagnosticSeverity DefaultSeverity { get; private set; }
 
+        /// <summary>
+        /// Returns true if the rule is enabled by default.
+        /// </summary>
+        public bool IsEnabledByDefault { get; private set; }
+        
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// </summary>
@@ -45,13 +49,15 @@ namespace Microsoft.CodeAnalysis
         /// For example, for CA1001: "Implement IDisposable on '{0}' because it creates members of the following IDisposable types: '{1}'."</param>
         /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
-        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity)
+        /// <param name="isEnabledByDefault">true if the diagnostic is enabled by default</param>
+        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
         {
             this.Id = id;
             this.Description = description;
             this.Category = category;
             this.MessageFormat = messageFormat;
             this.DefaultSeverity = defaultSeverity;
+            this.IsEnabledByDefault = isEnabledByDefault;
         }
     }
 }

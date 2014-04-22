@@ -270,7 +270,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 id,
                 TestDiagnosticMessageTemplate,
                 TestDiagnosticCategory,
-                DiagnosticSeverity.Warning);
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
         }
     }
 }

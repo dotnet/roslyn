@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.TypesThatOwnDisposableFieldsShouldBeDisposable,
                                                                          FxCopRulesResources.TypeOwnsDisposableFieldButIsNotDisposable,
                                                                          FxCopDiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

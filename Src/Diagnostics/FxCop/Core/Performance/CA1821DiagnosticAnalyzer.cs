@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          FxCopRulesResources.RemoveEmptyFinalizers,
                                                                          FxCopRulesResources.RemoveEmptyFinalizers,
                                                                          FxCopDiagnosticCategory.Performance,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

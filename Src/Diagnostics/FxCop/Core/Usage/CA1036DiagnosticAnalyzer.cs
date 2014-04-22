@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                                   FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
                                                                                   FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
                                                                                   FxCopDiagnosticCategory.Usage,
-                                                                                  DiagnosticSeverity.Warning);
+                                                                                  DiagnosticSeverity.Warning,
+                                                                                  isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

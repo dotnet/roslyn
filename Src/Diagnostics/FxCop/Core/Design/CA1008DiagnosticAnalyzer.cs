@@ -38,17 +38,20 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                        FxCopRulesResources.EnumsShouldZeroValueFlagsRename,
                                                                        FxCopDiagnosticCategory.Design,
-                                                                       DiagnosticSeverity.Warning);
+                                                                       DiagnosticSeverity.Warning,
+                                                                       isEnabledByDefault: true);
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero,
                                                                FxCopDiagnosticCategory.Design,
-                                                               DiagnosticSeverity.Warning);
+                                                               DiagnosticSeverity.Warning,
+                                                               isEnabledByDefault: true);
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
                                                                FxCopRulesResources.EnumsShouldHaveZeroValue,
                                                                FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue,
                                                                FxCopDiagnosticCategory.Design,
-                                                               DiagnosticSeverity.Warning);
+                                                               DiagnosticSeverity.Warning,
+                                                               isEnabledByDefault: true);
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(RuleRename, RuleMultipleZero, RuleNoZero);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

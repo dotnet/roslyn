@@ -37,13 +37,15 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                              FxCopRulesResources.MarkEnumsWithFlags,
                                                                              FxCopRulesResources.MarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Design,
-                                                                             DiagnosticSeverity.Warning);
+                                                                             DiagnosticSeverity.Warning,
+                                                                             isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlags,
                                                                              FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage,
                                                                              FxCopDiagnosticCategory.Design,
-                                                                             DiagnosticSeverity.Warning);
+                                                                             DiagnosticSeverity.Warning,
+                                                                             isEnabledByDefault: true);
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(Rule1027, Rule2217);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

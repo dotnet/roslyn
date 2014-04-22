@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.DoNotCallOverridableMethodsInConstructors,
                                                                          FxCopRulesResources.DoNotCallOverridableMethodsInConstructors,
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

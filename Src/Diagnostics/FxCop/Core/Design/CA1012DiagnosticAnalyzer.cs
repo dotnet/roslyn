@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.AbstractTypesShouldNotHavePublicConstructors,
                                                                          FxCopRulesResources.TypeIsAbstractButHasPublicConstructors,
                                                                          FxCopDiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                                       FxCopRulesResources.MarkAllAssembliesWithComVisible,
                                                                                       "{0}",
                                                                                       FxCopDiagnosticCategory.Design,
-                                                                                      DiagnosticSeverity.Warning);        
+                                                                                      DiagnosticSeverity.Warning,
+                                                                                      isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

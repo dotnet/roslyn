@@ -53,12 +53,14 @@ internal const string RuleId = "CA1715_Test";
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopRulesResources.InterfaceNamesShouldStartWithI,
                                                                                       FxCopDiagnosticCategory.Naming,
-                                                                                      DiagnosticSeverity.Warning);
+                                                                                      DiagnosticSeverity.Warning,
+                                                                                      isEnabledByDefault: true);
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopRulesResources.TypeParameterNamesShouldStartWithT,
                                                                                       FxCopDiagnosticCategory.Naming,
-                                                                                      DiagnosticSeverity.Warning);
+                                                                                      DiagnosticSeverity.Warning,
+                                                                                      isEnabledByDefault: true);
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
         [DiagnosticAnalyzer]

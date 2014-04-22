@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override DiagnosticSeverity Severity { get { return severity; } }
 
+            public override bool IsEnabledByDefault { get { return true; } }
+
             public override int WarningLevel { get { return 2; } }
 
             public override bool IsWarningAsError { get { return isWarningAsError; } }
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         class ComplainAboutX : ISyntaxNodeAnalyzer<SyntaxKind>
         {
             private static readonly DiagnosticDescriptor CA9999_UseOfVariableThatStartsWithX =
-                new DiagnosticDescriptor(id: "CA9999", description: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning);
+                new DiagnosticDescriptor(id: "CA9999", description: "CA9999_UseOfVariableThatStartsWithX", messageFormat: "Use of variable whose name starts with 'x': '{0}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -362,7 +364,7 @@ public class C : NotFound
 
         class SyntaxAndSymbolAnalyzer : ISyntaxNodeAnalyzer<SyntaxKind>, ISymbolAnalyzer
         {
-            private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor("XX0001", "My Syntax/Symbol Diagnostic", "My Syntax/Symbol Diagnostic for '{0}'", "Compiler", DiagnosticSeverity.Warning);
+            private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor("XX0001", "My Syntax/Symbol Diagnostic", "My Syntax/Symbol Diagnostic for '{0}'", "Compiler", DiagnosticSeverity.Warning, isEnabledByDefault: true);
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
@@ -448,16 +450,16 @@ public class C { }";
         [Fact]
         void TestGetEffectiveDiagnostics()
         {
-            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden);
-            var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info);
-            var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning);
-            var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error);
-
-            var noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None);
-            var infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None);
-            var warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
-            var errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
-
+            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+            var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            
+            var noneDiag = CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None);
+            var infoDiag = CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None);
+            var warningDiag = CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
+            var errorDiag = CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
+            
             var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
             // Escalate all diagnostics to error.
@@ -538,6 +540,77 @@ public class C { }";
             }
 
             Assert.Empty(diagIds);
+        }
+
+        [Fact]
+        void TestDisabledDiagnostics()
+        {
+            var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            var enabledDiagDescriptor = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            var disabledDiag = CodeAnalysis.Diagnostic.Create(disabledDiagDescriptor, Location.None);
+            var enabledDiag = CodeAnalysis.Diagnostic.Create(enabledDiagDescriptor, Location.None);
+
+            var diags = new[] { disabledDiag, enabledDiag };
+
+            // Verify that only the enabled diag shows up after filtering.
+            var options = TestOptions.Dll;
+            var comp = CreateCompilationWithMscorlib45("", compOptions: options);
+            var effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(1, effectiveDiags.Length);
+            Assert.Contains(enabledDiag, effectiveDiags);
+
+            // If the disabled diag was enabled through options, then it should show up.
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(disabledDiagDescriptor.Id, ReportDiagnostic.Warn);
+            specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress);
+
+            options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            comp = CreateCompilationWithMscorlib45("", compOptions: options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(1, effectiveDiags.Length);
+            Assert.Contains(disabledDiag, effectiveDiags);
+        }
+
+        internal class FullyDisabledAnalyzer : IDiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+
+            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(desc1, desc2); }
+            }
+        }
+
+        internal class PartiallyDisabledAnalyzer : IDiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor desc1 = new DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            public static DiagnosticDescriptor desc2 = new DiagnosticDescriptor("XX004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(desc1, desc2); }
+            }
+        }
+
+        [Fact]
+        void TestDisabledAnalyzers()
+        {
+            var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
+            var partiallyDisabledAnalyzer = new PartiallyDisabledAnalyzer();
+
+            var options = TestOptions.Dll;
+            Assert.True(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(fullyDisabledAnalyzer, options));
+            Assert.False(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(partiallyDisabledAnalyzer, options));
+
+            var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn);
+            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress);
+
+            options = TestOptions.Dll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            Assert.False(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(fullyDisabledAnalyzer, options));
+            Assert.True(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(partiallyDisabledAnalyzer, options));
         }
     }
 }

@@ -6183,7 +6183,7 @@ using System.Diagnostics; // Unused.
     [DiagnosticAnalyzer]
     class MockDiagnosticAnalyzer : CompilationStartedAnalyzer, ISymbolAnalyzer
     {
-        internal static DiagnosticDescriptor Test01 = new DiagnosticDescriptor("Test01", "", "Throwing a test diagnostic for types declared", "", DiagnosticSeverity.Warning);
+        internal static DiagnosticDescriptor Test01 = new DiagnosticDescriptor("Test01", "", "Throwing a test diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public ImmutableArray<SymbolKind> SymbolKindsOfInterest
         {

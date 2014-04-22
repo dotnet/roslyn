@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             FxCopRulesResources.UseGenericEventHandlerInstances,
             FxCopRulesResources.UseGenericEventHandlerInstances,
             FxCopDiagnosticCategory.Design,
-            DiagnosticSeverity.Warning);
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
         protected abstract AnalyzerBase GetAnalyzer(
             Compilation compilation,

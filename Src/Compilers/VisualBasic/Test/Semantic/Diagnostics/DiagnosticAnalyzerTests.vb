@@ -82,6 +82,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property IsEnabledByDefault As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property WarningLevel As Integer
                 Get
                     Return 2
@@ -144,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", description:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning)
+            Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", description:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
             Private ReadOnly Property IDiagnosticAnalyzer_SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
                 Get
@@ -162,10 +168,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub TestGetEffectiveDiagnostics()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden)
-            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info)
-            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error])
+            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
             Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
             Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
@@ -246,6 +252,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Assert.Empty(diagIds)
 
+        End Sub
+
+        <Fact>
+        Sub TestDisabledDiagnostics()
+            Dim disabledDiagDescriptor = New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
+            Dim enabledDiagDescriptor = New DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Dim disabledDiag = CodeAnalysis.Diagnostic.Create(disabledDiagDescriptor, Location.None)
+            Dim enabledDiag = CodeAnalysis.Diagnostic.Create(enabledDiagDescriptor, Location.None)
+
+            Dim diags = {disabledDiag, enabledDiag}
+
+            ' Verify that only the enabled diag shows up after filtering.
+            Dim options = OptionsDll
+            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(1, effectiveDiags.Length)
+            Assert.Contains(enabledDiag, effectiveDiags)
+
+            ' If the disabled diag was enabled through options, then it should show up.
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(disabledDiagDescriptor.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress)
+
+            options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(1, effectiveDiags.Length)
+            Assert.Contains(disabledDiag, effectiveDiags)
+        End Sub
+
+        Class FullyDisabledAnalyzer
+            Implements IDiagnosticAnalyzer
+            Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
+            Public Shared desc2 As New DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
+
+            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+                Get
+                    Return ImmutableArray.Create(desc1, desc2)
+                End Get
+            End Property
+
+        End Class
+
+        Class PartiallyDisabledAnalyzer
+            Implements IDiagnosticAnalyzer
+            Public Shared desc1 As New DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
+            Public Shared desc2 As New DiagnosticDescriptor("XX004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzer.SupportedDiagnostics
+                Get
+                    Return ImmutableArray.Create(desc1, desc2)
+                End Get
+            End Property
+
+        End Class
+
+        <Fact>
+        Sub TestDisabledAnalyzers()
+            Dim FullyDisabledAnalyzer = New FullyDisabledAnalyzer()
+            Dim PartiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
+
+            Dim options = OptionsDll
+            Assert.True(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(FullyDisabledAnalyzer, options))
+            Assert.False(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(PartiallyDisabledAnalyzer, options))
+
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
+            specificDiagOptions.Add(FullyDisabledAnalyzer.desc1.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(PartiallyDisabledAnalyzer.desc2.Id, ReportDiagnostic.Suppress)
+
+            options = OptionsDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+            Assert.False(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(FullyDisabledAnalyzer, options))
+            Assert.True(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(PartiallyDisabledAnalyzer, options))
         End Sub
     End Class
 End Namespace

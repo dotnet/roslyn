@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.ImplementSerializationConstructor,
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.MarkISerializableTypesWithAttribute,
                                                                          FxCopRulesResources.AddSerializableAttributeToType,
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
@@ -37,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.MarkAllNonSerializableFields,
                                                                          FxCopRulesResources.FieldIsOfNonSerializableType,
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);
 

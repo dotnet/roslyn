@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
                                                                          FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
                                                                          FxCopDiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleName,
                                                                          FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
                                                                          FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
                                                                          FxCopDiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(CA1016Rule, CA1014Rule);
 

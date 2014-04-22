@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopRulesResources.MovePInvokesToNativeMethodsClass,
                                                                          FxCopRulesResources.MovePInvokesToNativeMethodsClass,
                                                                          FxCopDiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         private const string NativeMethodsText = "NativeMethods";
         private const string SafeNativeMethodsText = "SafeNativeMethods";

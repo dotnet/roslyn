@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsDiagnosticAnalyzerSuppressed(IDiagnosticAnalyzer analyzer, CompilationOptions options, Action<Diagnostic> addDiagnostic, bool continueOnError, CancellationToken cancellationToken)
         {
             var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
-
+            
             // Catch Exception from analyzer.SupportedDiagnostics
             ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnError, cancellationToken, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
@@ -125,7 +125,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var diag in supportedDiagnostics)
             {
-                if (diagnosticOptions.ContainsKey(diag.Id) && diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress)
+                // Is this diagnostic suppressed by default (as written by the rule author)
+                var isSuppressed = !diag.IsEnabledByDefault;
+
+                // If the user said something about it, that overrides the author.
+                if (diagnosticOptions.ContainsKey(diag.Id))
+                {
+                    isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
+                }
+
+                if (isSuppressed)
                 {
                     continue;
                 }
@@ -431,7 +440,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CodeAnalysisResources.CompilerAnalyzerFailure,
                 string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, message),
                 category: Diagnostic.CompilerDiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info);
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true);
         }
     }
 }

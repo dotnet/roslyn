@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                                                          FxCopRulesResources.RethrowToPreserveStackDetails,
                                                                          FxCopRulesResources.RethrowException,
                                                                          FxCopDiagnosticCategory.Usage,
-                                                                         DiagnosticSeverity.Warning);
+                                                                         DiagnosticSeverity.Warning,
+                                                                         isEnabledByDefault: true);
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
