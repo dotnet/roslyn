@@ -1938,6 +1938,23 @@ a.vb
     End Sub
 
     <Fact>
+    Public Sub RuleSetSwitchQuoted()
+        Dim source = <?xml version="1.0" encoding="utf-8"?>
+                     <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                         <IncludeAll Action="Warning"/>
+                         <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                             <Rule Id="CA1012" Action="Error"/>
+                             <Rule Id="CA1013" Action="Warning"/>
+                             <Rule Id="CA1014" Action="None"/>
+                         </Rules>
+                     </RuleSet>
+
+        Dim file = CreateRuleSetFile(source)
+        Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
+        parsedArgs.Errors.Verify()
+    End Sub
+
+    <Fact>
     Public Sub RulesetSwitchParseErrors()
         Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
         parsedArgs.Errors.Verify(

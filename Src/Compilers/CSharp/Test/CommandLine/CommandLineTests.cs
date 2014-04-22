@@ -1624,6 +1624,24 @@ class C
         }
 
         [Fact]
+        public void RuleSetSwitchQuoted()
+        {
+            string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""CA1012"" Action=""Error"" />
+    <Rule Id=""CA1013"" Action=""Warning"" />
+    <Rule Id=""CA1014"" Action=""None"" />
+  </Rules>
+</RuleSet>
+";
+            var file = CreateRuleSetFile(source);
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/ruleset:" + "\"" + file.Path + "\"", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+        }
+
+        [Fact]
         public void RuleSetSwitchParseErrors()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { @"/ruleset", "a.cs" }, baseDirectory);

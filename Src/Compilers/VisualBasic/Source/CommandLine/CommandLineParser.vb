@@ -917,7 +917,7 @@ lVbRuntimePlus:
                                     Continue For
                                 End If
 
-                                generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, value, baseDirectory)
+                                generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, unquoted, baseDirectory)
                                 Continue For
                         End Select
                     End If
