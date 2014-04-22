@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             get
             {
-                if(applicationDirectory == null)
+                if (applicationDirectory == null)
                 {
                     applicationDirectory = Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location);
                 }
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var retval = Path.Combine(BinariesDirectory, fileName);
 
-            foreach(var dir in directoryList)
+            foreach (var dir in directoryList)
             {
                 if (string.IsNullOrEmpty(dir))
                     continue;
                 var filePathCandidate = Path.Combine(dir, fileName);
-                if(File.Exists(filePathCandidate))
+                if (File.Exists(filePathCandidate))
                 {
                     retval = filePathCandidate;
                     break;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 var targetFilePath = Path.Combine(BinariesDirectory, fileName);
 
                 if (!File.Exists(targetFilePath))
-                {                  
+                {
                     var originalDirectory = Environment.CurrentDirectory;
                     if (originalDirectory != null)
                     {
@@ -1533,12 +1533,13 @@ End Module
 
         [WorkItem(545446, "DevDiv")]
         [Fact()]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_rcsc2()
         {
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", "/C rcsc2.exe /nologo /t:library " + srcFile + " > " + tempOut.Path);
+            var result = ProcessLauncher.Run("cmd", string.Format("/C rcsc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
@@ -1548,12 +1549,13 @@ End Module
 
         [WorkItem(545446, "DevDiv")]
         [Fact()]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_rvbc2()
         {
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", "/C rvbc2.exe /nologo /t:library " + srcFile + " > " + tempOut.Path);
+            var result = ProcessLauncher.Run("cmd", string.Format("/C rvbc2.exe /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1567,12 +1569,13 @@ End Module
 
         [WorkItem(545446, "DevDiv")]
         [Fact()]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_rcsc2()
         {
             var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", "/C rcsc2.exe /utf8output /nologo /t:library " + srcFile + " > " + tempOut.Path);
+            var result = ProcessLauncher.Run("cmd", string.Format("/C rcsc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -1582,12 +1585,13 @@ End Module
 
         [WorkItem(545446, "DevDiv")]
         [Fact()]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_rvbc2()
         {
             var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", "/C rvbc2.exe /utf8output /nologo /t:library " + srcFile + " > " + tempOut.Path);
+            var result = ProcessLauncher.Run("cmd", string.Format("/C rvbc2.exe /utf8output /nologo /t:library {0} > {1}", srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
