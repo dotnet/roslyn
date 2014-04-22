@@ -1013,6 +1013,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause))
+                {
+                    // = { Foo() }
+                    var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
+                    IEnumerable<ITypeSymbol> types = InferTypeInEqualsValueClause(equalsValueClause);
+
+                    if (types.Any(t => t is IArrayTypeSymbol))
+                    {
+                        return types.OfType<IArrayTypeSymbol>().Select(t => t.ElementType);
+                    }
+                }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Foo() } 
