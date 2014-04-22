@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if this reference is an unresolved reference.
         /// </summary>
-        internal virtual bool IsUnresolved
+        public virtual bool IsUnresolved
         {
             get { return false; }
         }

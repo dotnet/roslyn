@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly string unresolvedPath;
 
-        internal UnresolvedAnalyzerReference(string unresolvedPath)
+        public UnresolvedAnalyzerReference(string unresolvedPath)
         {
             this.unresolvedPath = unresolvedPath;
         }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal override bool IsUnresolved
+        public override bool IsUnresolved
         {
             get { return true; }
         }
