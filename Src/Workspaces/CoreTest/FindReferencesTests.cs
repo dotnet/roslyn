@@ -78,6 +78,137 @@ public class C {
             Assert.Equal(1, typeSymbol.Locations.Count());
         }
 
+        [Fact]
+        public void PinvokeMethodReferences_VB()
+        {  
+            var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
+                @"
+Module Module1
+        Declare Function CreateDirectory Lib ""kernel32"" Alias ""CreateDirectoryA"" (ByVal lpPathName As String) As Integer
+ 
+        Private prop As Integer
+        Property Prop1 As Integer
+            Get
+                Return prop
+            End Get
+            Set(value As Integer)
+                CreateDirectory(""T"")  ' Method Call 1
+                prop = value
+                prop = Nothing
+            End Set
+        End Property
+
+        Sub Main()
+          CreateDirectory(""T"") 'Method Call 2            
+          NormalMethod() ' Method Call 1
+          NormalMethod() ' Method Call 2
+       End Sub
+
+       Sub NormalMethod()
+       End Sub
+ End Module
+            ");
+
+            ProjectId prj1Id = ProjectId.CreateNewId();
+            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+
+            Microsoft.CodeAnalysis.Solution sln = new CustomWorkspace().CurrentSolution
+                .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
+                .AddMetadataReference(prj1Id, MscorlibRef)                
+                .AddDocument(docId, "testFile", tree.GetText());
+
+            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
+            Compilation comp = prj.GetCompilationAsync().Result;
+            
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+
+            SyntaxNode declareMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.DeclareStatementSyntax>().FirstOrDefault();
+            SyntaxNode normalMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodStatementSyntax>().ToList()[1];
+
+            // declared method calls
+            var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
+            var references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
+
+            // normal method calls
+            symbol = semanticModel.GetDeclaredSymbol(normalMethod);
+            references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
+        }
+
+        [Fact]
+        public void PinvokeMethodReferences_CS()
+        {
+            var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
+                @"
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+static class Module1
+{
+	[DllImport(""kernel32"", EntryPoint = ""CreateDirectoryA"", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+    public static extern int CreateDirectory(string lpPathName);
+
+        private static int prop;
+        public static int Prop1
+        {
+            get { return prop; }
+            set
+            {
+                CreateDirectory(""T"");
+                // Method Call 1
+                prop = value;
+                prop = null;
+            }
+        }
+
+        public static void Main()
+        {
+            CreateDirectory(""T""); // Method Call 2            
+            NormalMethod(); // Method Call 1
+            NormalMethod(); // Method Call 2
+        }
+
+        public static void NormalMethod()
+        {
+        }
+    }
+                ");
+
+            ProjectId prj1Id = ProjectId.CreateNewId();
+            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+
+            var sln = new CustomWorkspace().CurrentSolution
+                .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.CSharp)
+                .AddMetadataReference(prj1Id, MscorlibRef)
+                .AddDocument(docId, "testFile", tree.GetText());
+
+            Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
+            Compilation comp = prj.GetCompilationAsync().Result;
+
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+
+            List<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax> methodlist = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().ToList();
+            SyntaxNode declareMethod = methodlist.ElementAt(0);
+            SyntaxNode normalMethod = methodlist.ElementAt(2);
+
+            // pinvoke method calls
+            var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
+            var references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            Assert.Equal(2, references.ElementAt(0).Locations.Count());
+
+            // normal method calls
+            symbol = semanticModel.GetDeclaredSymbol(normalMethod);
+            references = SymbolFinder.FindReferencesAsync(symbol, prj.Solution).Result;
+            Assert.Equal(2, references.ElementAt(0).Locations.Count());
+        }
+
         [Fact, WorkItem(537936, "DevDiv")]
         public void FindReferences_InterfaceMapping()
         {

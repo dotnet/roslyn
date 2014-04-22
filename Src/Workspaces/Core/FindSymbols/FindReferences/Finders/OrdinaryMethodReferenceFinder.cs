@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return
                 symbol.MethodKind == MethodKind.Ordinary ||
                 symbol.MethodKind == MethodKind.DelegateInvoke ||
+                symbol.MethodKind == MethodKind.DeclareMethod ||
                 symbol.MethodKind == MethodKind.ReducedExtension;
         }
 
