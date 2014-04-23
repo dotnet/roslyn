@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis
 
         private const string XsdResourceName = "Microsoft.CodeAnalysis.RuleSet.xsd";
 
-        private const string ManagedCodeAnalysisAnalyzer = "Microsoft.Analyzers.ManagedCodeAnalysis";
-
         private static XmlSchema ruleSetSchema = CreateRuleSetSchema();
 
         /// <summary>
@@ -168,11 +166,6 @@ namespace Microsoft.CodeAnalysis
             string ruleNamespace = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
 
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
-
-            if (analyzerId != ManagedCodeAnalysisAnalyzer)
-            {
-                return rules;
-            }
 
             // Loop through each rule node
             foreach (XmlNode ruleNode in rulesNode.ChildNodes)
