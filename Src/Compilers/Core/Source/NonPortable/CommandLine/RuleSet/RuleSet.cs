@@ -311,18 +311,28 @@ namespace Microsoft.CodeAnalysis
                     diagnosticOptions.Add(rule.Key, rule.Value);
                 }
             }
-            catch (FileNotFoundException)
-            {
-                if (diagnosticsOpt != null && messageProviderOpt != null)
-                {
-                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, CodeAnalysisResources.FileNotFound));
-                }
-            }
             catch (InvalidRuleSetException e)
             {
                 if (diagnosticsOpt != null && messageProviderOpt != null)
                 {
                     diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, e.Message));
+                }
+            }
+            catch (IOException e)
+            {
+                if (e is FileNotFoundException || e is DirectoryNotFoundException)
+                {
+                    if (diagnosticsOpt != null && messageProviderOpt != null)
+                    {
+                        diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, CodeAnalysisResources.FileNotFound));
+                    }
+                }
+                else
+                {
+                    if (diagnosticsOpt != null && messageProviderOpt != null)
+                    {
+                        diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, e.Message));
+                    }
                 }
             }
 

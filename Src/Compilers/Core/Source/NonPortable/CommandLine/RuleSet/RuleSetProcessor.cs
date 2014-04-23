@@ -68,13 +68,14 @@ namespace Microsoft.CodeAnalysis
         public static RuleSet LoadFromFile(string filePath)
         {
             // First read the file without doing any validation
-            filePath = Path.GetFullPath(filePath);
+            filePath = FileUtilities.NormalizeAbsolutePath(filePath);
             XmlReaderSettings settings = GetDefaultXmlReaderSettings();
 
             XmlDocument ruleSetDocument = new XmlDocument();
             XmlNode ruleSetNode = null;
 
-            using (XmlReader xmlReader = XmlReader.Create(filePath, settings))
+            using (FileStream stream = FileUtilities.OpenRead(filePath))
+            using (XmlReader xmlReader = XmlReader.Create(stream, settings))
             {
                 try
                 {
