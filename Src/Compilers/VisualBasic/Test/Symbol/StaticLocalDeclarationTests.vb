@@ -67,9 +67,8 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-
+        <Fact>
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <Fact(Skip:="530446")>
         Sub Error_StaticLocal_DuplicationDeclarations_InSameScopes()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
@@ -95,9 +94,7 @@ End Module
             'This should present a single error BC31401: Static local variable 'x' is already declared.
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
-            'TODO: Expected error when implemented - verify against 2012 error
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateLocals1, "x").WithArguments("x"),
-        Diagnostic(ERRID.ERR_DuplicateLocalStatic1, "x").WithArguments("x"))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateLocalStatic1, "x").WithArguments("x").WithLocation(12, 16))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>

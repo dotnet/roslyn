@@ -1711,18 +1711,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If lookupSymbol.IdentifierToken.FullSpan <> identifier.FullSpan Then
                     If lookupSymbol.CanBeReferencedByName Then
-                        ' If location does not match then this is a duplicate local, unless it has an invalid name (the syntax was bad)
-                        ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_DuplicateLocals1, name)
+                        ' Static Locals have there own diagnostic. ERR_DuplicateLocalStatic1
+                        If Not lookupSymbol.IsStatic Then
+                            ' If location does not match then this is a duplicate local, unless it has an invalid name (the syntax was bad)
+                            ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_DuplicateLocals1, name)
 
-                        ' Difference to Dev10:
-                        ' For r as Integer in New Integer() {}
-                        '     Dim r as Integer = 23
-                        ' next
-                        ' Does not give a BC30288 "Local variable 'r' is already declared in the current block.", but a
-                        ' BC30616 "Variable 'r' hides a variable in an enclosing block." with the same location.
-                        ' The reason is the binder hierarchy, where the ForBlockBinder and the StatementListBinder both have
-                        ' r in their locals set. When looking up the symbol one gets the inner symbol and then the FullSpans match
-                        ' which then does not trigger the condition above.
+                            ' Difference to Dev10:
+                            ' For r as Integer in New Integer() {}
+                            '     Dim r as Integer = 23
+                            ' next
+                            ' Does not give a BC30288 "Local variable 'r' is already declared in the current block.", but a
+                            ' BC30616 "Variable 'r' hides a variable in an enclosing block." with the same location.
+                            ' The reason is the binder hierarchy, where the ForBlockBinder and the StatementListBinder both have
+                            ' r in their locals set. When looking up the symbol one gets the inner symbol and then the FullSpans match
+                            ' which then does not trigger the condition above.
+                        End If
                     End If
                 Else
                     ' Look up in container binders for name clashes with other locals, parameters and type parameters.
