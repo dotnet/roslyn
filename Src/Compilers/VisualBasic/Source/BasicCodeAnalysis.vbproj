@@ -11,18 +11,21 @@
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
-    <ToolsetVariables>VBSyntaxGeneratorToolPath,BoundTreeGeneratorToolPath</ToolsetVariables>
+    <VBSyntaxGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
+    <BoundTreeGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
-    <VBSyntaxGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
-    <BoundTreeGeneratorToolPath>..\..\..\..\Binaries\$(Configuration)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
   </PropertyGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.Metadata.1.0.11-alpha\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Source\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
       <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
       <Name>VisualBasicSyntaxGenerator</Name>
@@ -33,14 +36,10 @@
       <Name>CompilersBoundTreeGenerator</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.Metadata.1.0.11-alpha\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\Core\Source\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
