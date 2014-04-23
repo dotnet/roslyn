@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// If two tokens are on a single line, second token will be placed at current indentation if possible
         /// </summary>
-        DynamticSpaceToIndentationIfOnSingleLine
+        DynamicSpaceToIndentationIfOnSingleLine
     }
 }

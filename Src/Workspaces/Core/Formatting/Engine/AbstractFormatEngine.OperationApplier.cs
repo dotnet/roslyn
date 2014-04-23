@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return ApplyForceSpacesOperation(operation, pairIndex);
                 }
 
-                if (operation.Option == AdjustSpacesOption.DynamticSpaceToIndentationIfOnSingleLine)
+                if (operation.Option == AdjustSpacesOption.DynamicSpaceToIndentationIfOnSingleLine)
                 {
-                    return ApplyDynamticSpacesOperation(operation, pairIndex);
+                    return ApplyDynamicSpacesOperation(operation, pairIndex);
                 }
 
                 return ApplySpaceIfSingleLine(operation, pairIndex);
             }
 
-            private bool ApplyDynamticSpacesOperation(AdjustSpacesOperation operation, int pairIndex)
+            private bool ApplyDynamicSpacesOperation(AdjustSpacesOperation operation, int pairIndex)
             {
                 var triviaInfo = this.tokenStream.GetTriviaData(pairIndex);
 

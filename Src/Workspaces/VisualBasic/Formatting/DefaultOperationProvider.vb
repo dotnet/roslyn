@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If previousToken.VisualBasicKind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.VisualBasicKind <> SyntaxKind.EndOfFileToken Then
-                Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamticSpaceToIndentationIfOnSingleLine)
+                Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamicSpaceToIndentationIfOnSingleLine)
             End If
 
             Dim space As Integer = If(currentToken.VisualBasicKind = SyntaxKind.EndOfFileToken, 0, 1)
