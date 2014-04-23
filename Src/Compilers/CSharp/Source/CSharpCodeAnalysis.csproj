@@ -229,7 +229,6 @@
     <Compile Include="Compilation\ForEachStatementInfo.cs" />
     <Compile Include="Compilation\InitializerSemanticModel.cs" />
     <Compile Include="Compilation\LexicalOrderSymbolComparer.cs" />
-    <Compile Include="Compilation\LocalVariableDeclaratorsVisitor.cs" />
     <Compile Include="Compilation\MemberSemanticModel.cs" />
     <Compile Include="Compilation\MemberSemanticModel.NodeMapBuilder.cs" />
     <Compile Include="Compilation\MemberSemanticModel.SpeculativeMemberSemanticModel.cs" />
@@ -279,8 +278,9 @@
     <Compile Include="DocumentationComments\DocumentationCommentIDVisitor.PartVisitor.cs" />
     <Compile Include="DocumentationComments\PEDocumentationCommentUtils.cs" />
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.cs" />
-    <Compile Include="Emitter\EditAndContinue\DefinitionMap.cs" />
+    <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.cs" />
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
+    <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.LocalVisitors.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />

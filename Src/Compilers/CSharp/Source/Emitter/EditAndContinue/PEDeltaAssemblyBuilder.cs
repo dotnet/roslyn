@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
         private readonly EmitBaseline previousGeneration;
-        private readonly DefinitionMap previousDefinitions;
+        private readonly CSharpDefinitionMap previousDefinitions;
         private readonly SymbolChanges changes;
 
         public PEDeltaAssemblyBuilder(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 matchToPrevious = new SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
             }
 
-            this.previousDefinitions = new DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits));
+            this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
             this.previousGeneration = previousGeneration;
             this.changes = new SymbolChanges(this.previousDefinitions, edits);
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return this.previousGeneration; }
         }
 
-        internal DefinitionMap PreviousDefinitions
+        internal CSharpDefinitionMap PreviousDefinitions
         {
             get { return this.previousDefinitions; }
         }
@@ -219,26 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override bool IsEncDelta
         {
             get { return true; }
-        }
-
-        private static IReadOnlyDictionary<MethodSymbol, MethodDefinitionEntry> GenerateMethodMap(IEnumerable<SemanticEdit> edits)
-        {
-            var methodMap = new Dictionary<MethodSymbol, MethodDefinitionEntry>();
-            foreach (var edit in edits)
-            {
-                if (edit.Kind == CodeAnalysis.Emit.SemanticEditKind.Update)
-                {
-                    var method = edit.NewSymbol as MethodSymbol;
-                    if ((object)method != null)
-                    {
-                        methodMap.Add(method, new MethodDefinitionEntry(
-                            (MethodSymbol)edit.OldSymbol,
-                            edit.PreserveLocalVariables,
-                            edit.SyntaxMap));
-                    }
-                }
-            }
-            return methodMap;
         }
     }
 }

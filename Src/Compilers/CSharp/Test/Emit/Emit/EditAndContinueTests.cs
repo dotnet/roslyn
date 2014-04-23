@@ -7219,7 +7219,7 @@ public interface IB
 
         private static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
-            return GetLocalVariableDeclaratorsVisitor.GetDeclarators(method);
+            return CSharpDefinitionMap.LocalVariableDeclaratorsCollector.GetDeclarators(method);
         }
 
         private static ImmutableArray<string> GetLocalNames(MethodSymbol method)

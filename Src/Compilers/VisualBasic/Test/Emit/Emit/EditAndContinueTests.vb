@@ -3679,7 +3679,7 @@ End Class
         End Function
 
         Private Shared Function GetAllLocals(method As MethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
-            Dim names = From name In GetLocalVariableDeclaratorsVisitor.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
+            Dim names = From name In VisualBasicDefinitionMap.LocalVariableDeclaratorsCollector.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
                         Select DirectCast(name, VisualBasicSyntaxNode)
 
             Return names.AsImmutableOrEmpty

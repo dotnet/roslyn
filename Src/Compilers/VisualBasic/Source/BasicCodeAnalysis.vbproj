@@ -374,7 +374,8 @@
     <Compile Include="Emit\AssemblyReference.vb" />
     <Compile Include="Emit\AttributeDataAdapter.vb" />
     <Compile Include="Emit\CustomModifierAdapter.vb" />
-    <Compile Include="Emit\EditAndContinue\DefinitionMap.vb" />
+    <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.LocalVisitors.vb" />
+    <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.vb" />
     <Compile Include="Emit\EditAndContinue\EmitHelpers.vb" />
     <Compile Include="Emit\EditAndContinue\PEDeltaAssemblyBuilder.vb" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.vb" />

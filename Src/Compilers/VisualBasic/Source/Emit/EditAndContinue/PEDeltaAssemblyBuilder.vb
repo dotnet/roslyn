@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Implements IPEDeltaAssemblyBuilder
 
         Private ReadOnly m_PreviousGeneration As EmitBaseline
-        Private ReadOnly m_PreviousDefinitions As DefinitionMap
+        Private ReadOnly m_PreviousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly m_Changes As SymbolChanges
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 matchToPrevious = New SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
             End If
 
-            Me.m_PreviousDefinitions = New DefinitionMap(previousGeneration.OriginalMetadata.Module, metadataDecoder, matchToMetadata, matchToPrevious, GenerateMethodMap(edits))
+            Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
             Me.m_PreviousGeneration = previousGeneration
             Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits)
         End Sub
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend ReadOnly Property PreviousDefinitions As DefinitionMap
+        Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
                 Return m_PreviousDefinitions
             End Get
@@ -224,22 +224,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Next
             End If
         End Sub
-
-        Private Shared Function GenerateMethodMap(edits As IEnumerable(Of SemanticEdit)) As IReadOnlyDictionary(Of MethodSymbol, MethodDefinitionEntry)
-            Dim methodMap = New Dictionary(Of MethodSymbol, MethodDefinitionEntry)
-            For Each edit In edits
-                If edit.Kind = CodeAnalysis.Emit.SemanticEditKind.Update Then
-                    Dim method = TryCast(edit.NewSymbol, MethodSymbol)
-                    If method IsNot Nothing Then
-                        methodMap.Add(method, New MethodDefinitionEntry(
-                                      DirectCast(edit.OldSymbol, MethodSymbol),
-                                      edit.PreserveLocalVariables,
-                                      edit.SyntaxMap))
-                    End If
-                End If
-            Next
-            Return methodMap
-        End Function
     End Class
-
 End Namespace
