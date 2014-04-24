@@ -21,7 +21,7 @@
     <StartArguments>/rootsuffix Roslyn /log</StartArguments>
     <VSSDKTargetPlatformRegRootSuffix>Roslyn</VSSDKTargetPlatformRegRootSuffix>
     <DeployExtension>False</DeployExtension>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <StyleCopEnabled>false</StyleCopEnabled>
     <GeneratePkgDefFile>False</GeneratePkgDefFile>
