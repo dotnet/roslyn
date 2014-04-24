@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis
 
         private const string XsdResourceName = "Microsoft.CodeAnalysis.RuleSet.xsd";
 
-        private static XmlSchema ruleSetSchema = CreateRuleSetSchema();
-
         /// <summary>
         /// Static constructor for initializing the schema object to be used for schema validation
         /// </summary>
@@ -97,6 +95,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Validate against the current schema
+            var ruleSetSchema = CreateRuleSetSchema();
             ruleSetDocument.Schemas.Add(ruleSetSchema);
             ruleSetDocument.Schemas.Compile();
             try
