@@ -1895,19 +1895,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CoClassType As TypeSymbol
             Get
-                Debug.Assert(Me.TypeKind = TYPEKIND.Interface)
-
                 If m_lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
-                    Dim dummy As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
-                    If m_lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
-                        ' if this is still ErrorTypeSymbol.UnknownResultType, interface 
-                        ' does not have the attribute applied
-                        Interlocked.CompareExchange(m_lazyCoClassType, Nothing,
-                                                    DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
+                    If Not Me.IsInterface Then
+                        Interlocked.CompareExchange(m_lazyCoClassType, Nothing, DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
+                    Else
+                        Dim dummy As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
+                        If m_lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
+                            ' if this is still ErrorTypeSymbol.UnknownResultType, interface 
+                            ' does not have the attribute applied
+                            Interlocked.CompareExchange(m_lazyCoClassType, Nothing,
+                                                        DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
+                        End If
                     End If
                 End If
 
                 Debug.Assert(m_lazyCoClassType IsNot ErrorTypeSymbol.UnknownResultType)
+                Debug.Assert(Me.IsInterface OrElse m_lazyCoClassType Is Nothing)
                 Return m_lazyCoClassType
             End Get
         End Property

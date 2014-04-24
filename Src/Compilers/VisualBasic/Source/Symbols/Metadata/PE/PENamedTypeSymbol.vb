@@ -1013,8 +1013,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property CoClassType As TypeSymbol
             Get
-                Debug.Assert(Me.IsInterfaceType())  ' Should never be called on non-interface types
-
                 If m_lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
                     Interlocked.CompareExchange(m_lazyCoClassType,
                                                 MakeComImportCoClassType(),
@@ -1026,7 +1024,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Private Function MakeComImportCoClassType() As TypeSymbol
-            Debug.Assert(Me.IsInterfaceType())  ' Should never be called on non-interface types
+            If Not Me.IsInterface Then
+                Return Nothing
+            End If
 
             Dim coClassTypeName As String = Nothing
             If Not Me.ContainingPEModule.Module.HasCoClassAttribute(Me.m_Handle, coClassTypeName) Then

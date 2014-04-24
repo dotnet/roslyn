@@ -1786,7 +1786,11 @@ End Class
                         </file>
                     </compilation>, OptionsDll)
 
-            CompileAndVerify(compilation)
+            Dim validator = Sub(m As ModuleSymbol)
+                                Assert.Null(m.GlobalNamespace.GetTypeMember("C").CoClassType)
+                            End Sub
+
+            CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact()>
