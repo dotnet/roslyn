@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 return GetSymbolsForTypeArgumentOfConstraintClause(context, cancellationToken);
             }
+            else if (context.IsDestructorTypeContext)
+            {
+                return SpecializedCollections.SingletonEnumerable(context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration));
+            }
 
             return SpecializedCollections.EmptyEnumerable<ISymbol>();
         }

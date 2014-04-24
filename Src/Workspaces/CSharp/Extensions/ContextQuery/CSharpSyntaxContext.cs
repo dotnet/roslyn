@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsInstanceContext;
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
+        public readonly bool IsDestructorTypeContext;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -91,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             ISet<SyntaxKind> precedingModifiers,
             bool isInstanceContext,
             bool isCrefContext,
-            bool isCatchFilterContext)
+            bool isCatchFilterContext,
+            bool isDestructorTypeContext)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext,
                    isPreProcessorDirectiveContext,
@@ -128,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsInstanceContext = isInstanceContext;
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
+            this.IsDestructorTypeContext = isDestructorTypeContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -176,6 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
             var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
+            var isDestructorTypeContext = targetToken.MatchesKind(SyntaxKind.TildeToken) &&
+                                            targetToken.Parent.MatchesKind(SyntaxKind.DestructorDeclaration) &&
+                                            targetToken.Parent.Parent.MatchesKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
+
             return new CSharpSyntaxContext(
                 workspace,
                 semanticModel,
@@ -220,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken),
                 syntaxTree.IsInstanceContext(position, leftToken, cancellationToken),
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.MatchesKind(SyntaxKind.DotToken),
-                syntaxTree.IsCatchFilterContext(position, leftToken));
+                syntaxTree.IsCatchFilterContext(position, leftToken),
+                isDestructorTypeContext);
         }
 
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
