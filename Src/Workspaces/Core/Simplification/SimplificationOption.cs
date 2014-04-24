@@ -9,7 +9,8 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// </summary>
     public class SimplificationOptions
     {
-        internal const string FeatureName = "Simplification";
+        internal const string NonPerLanguageFeatureName = "Simplification";
+        internal const string PerLanguageFeatureName = "SimplificationPerLanguage";
 
         /// <summary>
         /// This option tells the simplification engine if the Qualified Name should be replaced by Alias
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> PreferAliasToQualification = new Option<bool>(FeatureName, "PreferAliasToQualification", true);
+        public static readonly Option<bool> PreferAliasToQualification = new Option<bool>(NonPerLanguageFeatureName, "PreferAliasToQualification", true);
 
         /// <summary>
         /// This option influences the name reduction of members of a module in VB. If set to true, the 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> PreferOmittingModuleNamesInQualification = new Option<bool>(FeatureName, "PreferOmittingModuleNamesInQualification", true);
+        public static readonly Option<bool> PreferOmittingModuleNamesInQualification = new Option<bool>(NonPerLanguageFeatureName, "PreferOmittingModuleNamesInQualification", true);
 
         /// <summary>
         /// This option says that if we should simplify the Generic Name which has the type argument inferred
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> PreferImplicitTypeInference = new Option<bool>(FeatureName, "PreferImplicitTypeInference", true);
+        public static readonly Option<bool> PreferImplicitTypeInference = new Option<bool>(NonPerLanguageFeatureName, "PreferImplicitTypeInference", true);
 
         /// <summary>
         /// This option says if we should simplify the Explicit Type in Local Declarations
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> PreferImplicitTypeInLocalDeclaration = new Option<bool>(FeatureName, "PreferImplicitTypeInLocalDeclaration", false);
+        public static readonly Option<bool> PreferImplicitTypeInLocalDeclaration = new Option<bool>(NonPerLanguageFeatureName, "PreferImplicitTypeInLocalDeclaration", false);
 
         /// <summary>
         /// This option says if we should simplify to NonGeneric Name rather than GenericName
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> AllowSimplificationToGenericType = new Option<bool>(FeatureName, "AllowSimplificationToGenericType", false);
+        public static readonly Option<bool> AllowSimplificationToGenericType = new Option<bool>(NonPerLanguageFeatureName, "AllowSimplificationToGenericType", false);
 
         /// <summary>
         /// This option says if we should simplify from Derived types to Base types in Static Member Accesses
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly Option<bool> AllowSimplificationToBaseType = new Option<bool>(FeatureName, "AllowSimplificationToBaseType", true);
+        public static readonly Option<bool> AllowSimplificationToBaseType = new Option<bool>(NonPerLanguageFeatureName, "AllowSimplificationToBaseType", true);
 
         /// <summary>
         /// This option says if we should simplify away the this. or Me. in member access expression
@@ -67,6 +68,6 @@ namespace Microsoft.CodeAnalysis.Simplification
 #if MEF
         [ExportOption]
 #endif
-        public static readonly PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe = new PerLanguageOption<bool>(FeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
+        public static readonly PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
     }
 }
