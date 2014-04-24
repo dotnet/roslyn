@@ -1587,17 +1587,18 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         Cci.PeWriter.WritePeToStream(
-                                new Context(moduleBeingBuilt, null, metadataDiagnostics),
-                                this.MessageProvider,
-                                outputStream,
-                                pdbWriter,
-                                metadataOnly,
-                                foldIdenticalMethodBodies,
-                                cancellationToken);
+                            new Context(moduleBeingBuilt, null, metadataDiagnostics),
+                            this.MessageProvider,
+                            outputStream,
+                            pdbWriter,
+                            metadataOnly,
+                            foldIdenticalMethodBodies,
+                            cancellationToken);
                     }
                     catch (Cci.PdbWritingException ex)
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
+                        return false;
                     }
                     catch (ResourceException e)
                     {

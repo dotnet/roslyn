@@ -4687,8 +4687,9 @@ public class C
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'
                     Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("The method or operation is not implemented."));
-            }
 
+                Assert.False(result.Success);
+            }
         }
     }
 }
