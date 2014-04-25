@@ -2019,21 +2019,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Compute if the reporting should be suppressed.
-            If report = ReportDiagnostic.Suppress OrElse options.GeneralDiagnosticOption = ReportDiagnostic.Suppress Then
-                ' check options (/nowarn)
+            If report = ReportDiagnostic.Suppress Then
+                Return ReportDiagnostic.Suppress
+            End If
+
+            ' check options (/nowarn)
+            ' When doing suppress-all-warnings, don't lower severity for anything other than warning and info.
+            If options.GeneralDiagnosticOption = ReportDiagnostic.Suppress AndAlso
+                (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
                 Return ReportDiagnostic.Suppress
             End If
 
             ' check the AllWarningsAsErrors flag and the specific lists from /warnaserror[+|-] option.
-            If (options.GeneralDiagnosticOption = ReportDiagnostic.Error) Then
+            ' If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
+            If (options.GeneralDiagnosticOption = ReportDiagnostic.Error AndAlso severity = DiagnosticSeverity.Warning) Then
                 ' In the case for both /warnaserror and /warnaserror-:<n> at the same time,
                 ' do not report it as an error.
-                If (report <> ReportDiagnostic.Warn) Then
-                    Return ReportDiagnostic.Error
-                End If
-            Else
-                ' In the case for /warnaserror:<n>, report it as an error.
-                If (report = ReportDiagnostic.Error) Then
+                ' If there has been no specific action for this warning, then turn it into an error.
+                If (report = ReportDiagnostic.Default) Then
                     Return ReportDiagnostic.Error
                 End If
             End If

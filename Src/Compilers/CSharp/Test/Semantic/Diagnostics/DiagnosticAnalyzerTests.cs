@@ -543,6 +543,61 @@ public class C { }";
         }
 
         [Fact]
+        void TestGetEffectiveDiagnosticsGlobal()
+        {
+            var noneDiagDesciptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+            var infoDiagDesciptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            var warningDiagDesciptor = new DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            var errorDiagDesciptor = new DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+            var noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None);
+            var infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None);
+            var warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None);
+            var errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None);
+
+            var diags = new [] { noneDiag, infoDiag, warningDiag, errorDiag };
+
+            var options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default);
+            var comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            var effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(4, effectiveDiags.Length);
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(4, effectiveDiags.Length);
+            Assert.Equal(1, effectiveDiags.Count(d => d.IsWarningAsError));
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn);
+            comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(4, effectiveDiags.Length);
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Warning));
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info);
+            comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(4, effectiveDiags.Length);
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Info));
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden);
+            comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(4, effectiveDiags.Length);
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Hidden));
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress);
+            comp = CreateCompilationWithMscorlib45("", compOptions:options);
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray();
+            Assert.Equal(2, effectiveDiags.Length);
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
+            Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Hidden));
+        }
+
+        [Fact]
         void TestDisabledDiagnostics()
         {
             var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);

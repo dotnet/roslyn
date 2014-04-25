@@ -2179,7 +2179,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
             {
-                report = options.GeneralDiagnosticOption;
+                // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
+                // When doing suppress-all-warnings, don't lower severity for anything other than warning and info
+                switch (options.GeneralDiagnosticOption)
+                {
+                    case ReportDiagnostic.Error:
+                        if (severity == DiagnosticSeverity.Warning)
+                        {
+                            return ReportDiagnostic.Error;
+                        }
+                        break;
+                    case ReportDiagnostic.Suppress:
+                        if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
+                        {
+                            return ReportDiagnostic.Suppress;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return report;

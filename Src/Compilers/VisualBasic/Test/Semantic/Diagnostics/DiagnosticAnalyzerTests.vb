@@ -255,6 +255,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         <Fact>
+        Sub TestGetEffectiveDiagnosticsGlobal()
+            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+
+            Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
+
+            Dim options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default)
+            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(4, effectiveDiags.Length)
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(4, effectiveDiags.Length)
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.IsWarningAsError))
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(4, effectiveDiags.Length)
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Warning))
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(4, effectiveDiags.Length)
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Info))
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(4, effectiveDiags.Length)
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Hidden))
+
+            options = OptionsDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            effectiveDiags = AnalyzerDriver.GetEffectiveDiagnostics(diags, comp).ToArray()
+            Assert.Equal(2, effectiveDiags.Length)
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
+            Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Hidden))
+
+        End Sub
+
+        <Fact>
         Sub TestDisabledDiagnostics()
             Dim disabledDiagDescriptor = New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
             Dim enabledDiagDescriptor = New DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -326,5 +381,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Assert.False(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(FullyDisabledAnalyzer, options))
             Assert.True(AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(PartiallyDisabledAnalyzer, options))
         End Sub
+
     End Class
 End Namespace
