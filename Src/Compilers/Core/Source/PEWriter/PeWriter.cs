@@ -1346,7 +1346,7 @@ namespace Microsoft.Cci
             ntHeader.LoadConfigTable.Size = 0;
             ntHeader.Reserved.RelativeVirtualAddress = 0;
             ntHeader.Reserved.Size = 0;
-            ntHeader.ResourceTable.RelativeVirtualAddress = this.resourceSection.RelativeVirtualAddress;
+            ntHeader.ResourceTable.RelativeVirtualAddress = this.resourceSection.SizeOfRawData == 0 ? 0u : this.resourceSection.RelativeVirtualAddress;
             ntHeader.ResourceTable.Size = this.resourceSection.VirtualSize;
             ntHeader.ThreadLocalStorageTable.RelativeVirtualAddress = this.tlsSection.SizeOfRawData == 0 ? 0u : this.tlsSection.RelativeVirtualAddress;
             ntHeader.ThreadLocalStorageTable.Size = this.tlsSection.SizeOfRawData;

@@ -75,7 +75,7 @@ public class M
 public class N : D.K<M>
 {}
 ";
-   
+
             CompileAndVerify(source, symbolValidator: module =>
             {
                 var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
@@ -221,12 +221,12 @@ public class Test : Class2
             DiagnosticBag diagnostics = new DiagnosticBag();
 
             MethodCompiler.CompileMethodBodies(
-                compilation: compilation, 
-                moduleBeingBuiltOpt: assembly, 
-                generateDebugInfo: false, 
-                hasDeclarationErrors: false, 
+                compilation: compilation,
+                moduleBeingBuiltOpt: assembly,
+                generateDebugInfo: false,
+                hasDeclarationErrors: false,
                 diagnostics: diagnostics,
-                filterOpt: null, 
+                filterOpt: null,
                 cancellationToken: default(CancellationToken));
 
             diagnostics.Verify();
@@ -1625,7 +1625,7 @@ public class E
 }
 ", emitOptions: EmitOptions.RefEmitUnsupported_646042);
         }
-        
+
         // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1_EP()
@@ -1721,7 +1721,7 @@ class A<T>
 
             CompileAndVerify(source);
         }
-        
+
         [Fact]
         public void RefEmit_Cycle()
         {
@@ -2055,6 +2055,37 @@ public class Methods
                 Assert.NotNull(member);
             else
                 Assert.Null(member);
+        }
+
+        [Fact, WorkItem(90)]
+        public void EmitWithNoResourcesAllPlatforms()
+        {
+            var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
+
+            VerifyEmitWithNoResources(comp, Platform.AnyCpu);
+            VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred);
+            VerifyEmitWithNoResources(comp, Platform.Arm);     // broken before fix
+            VerifyEmitWithNoResources(comp, Platform.Itanium); // broken before fix
+            VerifyEmitWithNoResources(comp, Platform.X64);     // broken before fix
+            VerifyEmitWithNoResources(comp, Platform.X86);
+        }
+
+        private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
+        {
+            var options = new CSharpCompilationOptions(
+                OutputKind.ConsoleApplication,
+                optimize: true,
+                platform: platform,
+                debugInformationKind: DebugInformationKind.None);
+
+            using (var outputStream = new MemoryStream())
+            {
+                var success = comp.WithOptions(options).Emit(outputStream).Success;
+                Assert.True(success);
+
+                var peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine);
+                Assert.Equal(string.Empty, peVerifyOutput);
+            }
         }
     }
 }

@@ -902,5 +902,41 @@ End Class
             End If
 
         End Sub
+
+        <Fact, WorkItem(90)>
+        Public Sub EmitWithNoResourcesAllPlatforms()
+            Dim comp = CreateCompilationWithMscorlib(
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main()
+    End Sub
+End Class
+                    </file>
+                </compilation>)
+
+            VerifyEmitWithNoResources(comp, Platform.AnyCpu)
+            VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred)
+            VerifyEmitWithNoResources(comp, Platform.Arm)     ' broken before fix
+            VerifyEmitWithNoResources(comp, Platform.Itanium) ' broken before fix
+            VerifyEmitWithNoResources(comp, Platform.X64)     ' broken before fix
+            VerifyEmitWithNoResources(comp, Platform.X86)
+        End Sub
+
+        Private Shared Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
+            Dim options As New VisualBasicCompilationOptions(
+                OutputKind.ConsoleApplication,
+                optimize:=True,
+                platform:=platform,
+                debugInformationKind:=DebugInformationKind.None)
+
+            Using outputStream As New MemoryStream()
+                Dim success = comp.WithOptions(options).Emit(outputStream).Success
+                Assert.True(success)
+
+                Dim peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine)
+                Assert.Equal(String.Empty, peVerifyOutput)
+            End Using
+        End Sub
     End Class
 End Namespace
