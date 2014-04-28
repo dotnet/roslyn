@@ -1876,7 +1876,7 @@
     <value>{0} '{1}' conflicts with a member implicitly declared for {2} '{3}' in {4} '{5}'.</value>
   </data>
   <data name="ERR_TypeClashesWithVbCoreType4" xml:space="preserve">
-    <value>{0} '{1}' conflicts with a VB Core Runtime {2} '{3}'.</value>
+    <value>{0} '{1}' conflicts with a Visual Basic Runtime {2} '{3}'.</value>
   </data>
   <data name="ERR_SecurityAttributeMissingAction" xml:space="preserve">
     <value>First argument to a security attribute must be a valid SecurityAction.</value>

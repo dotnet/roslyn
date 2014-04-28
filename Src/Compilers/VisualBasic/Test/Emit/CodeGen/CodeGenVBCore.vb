@@ -50,7 +50,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
         End Sub
 
         ' The Embedded attribute should only be available for 
-        ' user-define code if vb core runtime is included.
+        ' user-define code if vb runtime is included.
         <WorkItem(546059, "DevDiv")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode2()
@@ -75,7 +75,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
         End Sub
 
         ' The Embedded attribute should only be available for 
-        ' user-define code if vb core runtime is included.
+        ' user-define code if vb runtime is included.
         <WorkItem(546059, "DevDiv")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode3()
@@ -2612,7 +2612,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
-BC31210: class 'HideModuleNameAttribute' conflicts with a VB Core Runtime class 'HideModuleNameAttribute'.
+BC31210: class 'HideModuleNameAttribute' conflicts with a Visual Basic Runtime class 'HideModuleNameAttribute'.
     Partial Friend Class HideModuleNameAttribute
                          ~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -2638,7 +2638,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
-BC31210: class 'HideModuleNameAttribute' conflicts with a VB Core Runtime class 'HideModuleNameAttribute'.
+BC31210: class 'HideModuleNameAttribute' conflicts with a Visual Basic Runtime class 'HideModuleNameAttribute'.
     Friend Class HideModuleNameAttribute
                  ~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -2664,7 +2664,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
-BC31210: class 'VisualBasic' conflicts with a VB Core Runtime namespace 'VisualBasic'.
+BC31210: class 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'VisualBasic'.
     Friend Class VisualBasic
                  ~~~~~~~~~~~
 </errors>)
@@ -2690,7 +2690,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
-BC31210: namespace 'Strings' conflicts with a VB Core Runtime module 'Strings'.
+BC31210: namespace 'Strings' conflicts with a Visual Basic Runtime module 'Strings'.
 Namespace Global.Microsoft.VisualBasic.Strings
                                        ~~~~~~~
 </errors>)
@@ -2725,7 +2725,7 @@ End Namespace
 BC30560: 'Strings' is ambiguous in the namespace 'Microsoft.VisualBasic'.
         Call Console.WriteLine(GetType(Strings).ToString())
                                        ~~~~~~~
-BC31210: namespace 'Strings' conflicts with a VB Core Runtime module 'Strings'.
+BC31210: namespace 'Strings' conflicts with a Visual Basic Runtime module 'Strings'.
 Namespace Global.Microsoft.VisualBasic.Strings
                                        ~~~~~~~
 </errors>)
@@ -2767,11 +2767,84 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors>
-BC31210: namespace 'Strings' conflicts with a VB Core Runtime module 'Strings'.
+BC31210: namespace 'Strings' conflicts with a Visual Basic Runtime module 'Strings'.
 Namespace Global.Microsoft.VisualBasic.Strings
                                        ~~~~~~~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub VbRuntimeTypeAndUserNamespaceConflictOutsideOfVBCore()
+            ' This verifies the diagnostic BC31210 scenario outsides of using VB Core which
+            ' is triggered by the Embedded Attribute.  This occurs on the command line compilers
+            ' when the reference to system.xml.linq is added
+
+            Dim compilationOptions = DefaultCompilationOptions.WithOutputKind(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse({"System", "Microsoft.VisualBasic"}))
+
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="testa.vb">
+Imports Microsoft.VisualBasic
+Module Module1
+    Sub Main()
+        Dim x1 = Microsoft.VisualBasic.InStr("abcd", 1) 
+        Dim x2 = &lt;test/&gt;
+   End Sub
+End Module
+ 
+Namespace global.Microsoft
+    Public Module VisualBasic  
+    End Module
+End Namespace
+    </file>
+</compilation>,
+            options:=compilationOptions,
+additionalRefs:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+            <errors>BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+Imports Microsoft.VisualBasic
+        ~~~~~~~~~~~~~~~~~~~~~
+BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+        Dim x1 = Microsoft.VisualBasic.InStr("abcd", 1) 
+                 ~~~~~~~~~~~~~~~~~~~~~
+BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'VisualBasic'.
+    Public Module VisualBasic  
+                  ~~~~~~~~~~~
+
+</errors>)
+
+            ' Remove the reference to System.XML.Linq and verify compilation behaviour that the 
+            ' diagnostic is not produced.
+            compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="testa.vb">
+                        Imports Microsoft.VisualBasic
+                        Module Module1
+                            Sub Main()
+                                Dim x1 = Microsoft.VisualBasic.InStr("abcd", 1) 
+                           End Sub
+                        End Module
+
+                        Namespace global.Microsoft
+                            Public Module VisualBasic  
+                            End Module
+                        End Namespace
+                            </file>
+</compilation>,
+  options:=compilationOptions)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+            <errors>BC30456: 'InStr' is not a member of 'Microsoft.VisualBasic'.
+                                Dim x1 = Microsoft.VisualBasic.InStr("abcd", 1) 
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                        </errors>)
+        End Sub
+
 
         <Fact>
         Public Sub VbCore_IsImplicitlyDeclaredSymbols()
