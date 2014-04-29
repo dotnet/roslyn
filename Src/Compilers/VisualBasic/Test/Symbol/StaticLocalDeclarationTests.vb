@@ -92,9 +92,83 @@ End Module
     </compilation>
 
             'This should present a single error BC31401: Static local variable 'x' is already declared.
+
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateLocalStatic1, "x").WithArguments("x").WithLocation(12, 16))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC31401: Static local variable 'x' is already declared.
+        Static x As Integer = 2   'Err
+               ~
+
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(15925, "DevDiv_Projects/Roslyn")>
+        Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal1()
+            Dim compilationDef =
+    <compilation name="StaticLocaltest">
+        <file name="a.vb">
+Imports System
+
+Module Module1
+    Sub Main()
+        StaticLocal_ConflictDeclarations()
+        StaticLocal_ConflictDeclarations()
+    End Sub
+
+    Sub StaticLocal_ConflictDeclarations()
+        Static x As Integer = 1 'Err
+        Console.WriteLine(x)
+        Dim x As Integer = 2   
+        Console.WriteLine(x)
+    End Sub    
+End Module 
+</file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30288: Local variable 'x' is already declared in the current block.
+        Dim x As Integer = 2   
+            ~ 
+
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(15925, "DevDiv_Projects/Roslyn")>
+        Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal2()
+            Dim compilationDef =
+    <compilation name="StaticLocaltest">
+        <file name="a.vb">
+            Imports System
+
+            Module Module1
+                Sub Main()
+                    StaticLocal_ConflictDeclarations()
+                    StaticLocal_ConflictDeclarations()
+                End Sub
+
+                Sub StaticLocal_ConflictDeclarations()
+                    Dim x As Integer = 1 
+                    Console.WriteLine(x)
+                    Static x As Integer = 2 'Err  
+                    Console.WriteLine(x)
+                End Sub    
+            End Module 
+</file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30288: Local variable 'x' is already declared in the current block.
+                    Static x As Integer = 2 'Err  
+                           ~  
+</expected>)
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>

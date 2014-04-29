@@ -1712,7 +1712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If lookupSymbol.IdentifierToken.FullSpan <> identifier.FullSpan Then
                     If lookupSymbol.CanBeReferencedByName Then
                         ' Static Locals have there own diagnostic. ERR_DuplicateLocalStatic1
-                        If Not lookupSymbol.IsStatic Then
+                        If Not lookupSymbol.IsStatic OrElse Not local.IsStatic Then
                             ' If location does not match then this is a duplicate local, unless it has an invalid name (the syntax was bad)
                             ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_DuplicateLocals1, name)
 
