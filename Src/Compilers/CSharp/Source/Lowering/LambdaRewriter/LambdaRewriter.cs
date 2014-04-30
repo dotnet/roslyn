@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // or the "this" parameter when at the top level.  Keys in this map are never constructed types.
         private readonly Dictionary<NamedTypeSymbol, Symbol> framePointers = new Dictionary<NamedTypeSymbol, Symbol>();
 
+        // True if the rewritten tree should include assignments of the
+        // original locals to the lifted proxies. This is only useful for the
+        // expression evaluator where the original locals are left as is.
+        private readonly bool assignLocals;
+
         // The current method or lambda being processed.
         private MethodSymbol currentMethod;
 
@@ -105,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo)
+            bool generateDebugInfo,
+            bool assignLocals)
             : base(compilationState, diagnostics, generateDebugInfo)
         {
             Debug.Assert(analysis != null);
@@ -117,11 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.topLevelMethod = method;
             this.currentMethod = method;
             this.analysis = analysis;
+            this.assignLocals = assignLocals;
             this.currentTypeParameters = method.TypeParameters;
             this.currentLambdaBodyTypeMap = TypeMap.Empty;
-            innermostFramePointer = currentFrameThis = thisParameterOpt;
-            framePointers[thisType] = thisParameterOpt;
-            seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
+            this.innermostFramePointer = currentFrameThis = thisParameterOpt;
+            this.framePointers[thisType] = thisParameterOpt;
+            this.seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
         }
 
         /// <summary>
@@ -138,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Diagnostic bag for diagnostics</param>
         /// <param name="analysis">A caller-provided analysis of the node's lambdas</param>
         /// <param name="generateDebugInfo"></param>
+        /// <param name="assignLocals">The rewritten tree should include assignments of the original locals to the lifted proxies</param>
         public static BoundStatement Rewrite(
             BoundStatement node,
             NamedTypeSymbol thisType,
@@ -146,13 +154,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             Analysis analysis,
-            bool generateDebugInfo)
+            bool generateDebugInfo,
+            bool assignLocals = false)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (thisParameter.Type == thisType));
 
             CheckLocalsDefined(node);
-            var rewriter = new LambdaRewriter(analysis, thisType, thisParameter, method, compilationState, diagnostics, generateDebugInfo);
+            var rewriter = new LambdaRewriter(
+                analysis,
+                thisType,
+                thisParameter,
+                method,
+                compilationState,
+                diagnostics,
+                generateDebugInfo,
+                assignLocals);
             analysis.ComputeLambdaScopesAndFrameCaptures();
             rewriter.MakeFrames();
             var body = rewriter.AddStatementsIfNeeded((BoundStatement)rewriter.Visit(node));
@@ -374,22 +391,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
-            foreach (var p in analysis.variablesCaptured)
+            foreach (var v in analysis.variablesCaptured)
             {
-                if (p.Kind != SymbolKind.Parameter)
-                {
-                    continue;
-                }
-
                 BoundNode varNode;
-                if (!analysis.variableBlock.TryGetValue(p, out varNode) ||
+                if (!analysis.variableBlock.TryGetValue(v, out varNode) ||
                     varNode != node ||
-                    analysis.declaredInsideExpressionLambda.Contains(p))
+                    analysis.declaredInsideExpressionLambda.Contains(v))
                 {
                     continue;
                 }
 
-                InitParameterProxy(syntax, (ParameterSymbol)p, framePointer, prologue);
+                InitVariableProxy(syntax, v, framePointer, prologue);
             }
 
             Symbol oldInnermostFramePointer = innermostFramePointer;
@@ -419,19 +431,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void InitParameterProxy(CSharpSyntaxNode syntax, ParameterSymbol parameter, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
+        private void InitVariableProxy(CSharpSyntaxNode syntax, Symbol symbol, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
         {
             CapturedSymbolReplacement proxy;
-            if (proxies.TryGetValue(parameter, out proxy))
+            if (proxies.TryGetValue(symbol, out proxy))
             {
-                ParameterSymbol parameterToUse;
-                if (!parameterMap.TryGetValue(parameter, out parameterToUse)) parameterToUse = parameter;
+                BoundExpression value;
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Parameter:
+                        {
+                            var parameter = (ParameterSymbol)symbol;
+                            ParameterSymbol parameterToUse;
+                            if (!parameterMap.TryGetValue(parameter, out parameterToUse))
+                            {
+                                parameterToUse = parameter;
+                            }
+                            value = new BoundParameter(syntax, parameterToUse);
+                        }
+                        break;
+                    case SymbolKind.Local:
+                        if (!this.assignLocals)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            var local = (LocalSymbol)symbol;
+                            LocalSymbol localToUse;
+                            if (!localMap.TryGetValue(local, out localToUse))
+                            {
+                                localToUse = local;
+                            }
+                            value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                }
 
                 var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
-                var assignToProxy = new BoundAssignmentOperator(syntax,
-                    left,
-                    new BoundParameter(syntax, parameterToUse),
-                    parameter.Type);
+                var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 prologue.Add(assignToProxy);
             }
         }
@@ -451,8 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       why do we have it in the lowered tree at all?
 
             return (currentMethod == topLevelMethod || topLevelMethod.ThisParameter == null ?
-                node :
-                FramePointer(node.Syntax, (NamedTypeSymbol)node.Type));
+                    node :
+                    FramePointer(node.Syntax, (NamedTypeSymbol)node.Type));
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
