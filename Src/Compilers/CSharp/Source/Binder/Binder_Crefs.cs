@@ -331,32 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CONSIDER: Dev11 also checks for a constructor in the event of an ambiguous result.
                 if (result.IsMultiViable)
                 {
+                    // Dev11 doesn't consider members from System.Object when the container is an interface.
+                    // Lookup should already have dropped such members.
                     builder = ArrayBuilder<Symbol>.GetInstance();
-
-                    // Dev11 doesn't consider members from System.Object when the container is an interface.  Since returning
-                    // extra candidates might result in new ambiguities, we drop them as well.
-                    if ((object)containerOpt != null && containerOpt.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)containerOpt).IsInterface)
-                    {
-                        foreach (Symbol symbol in result.Symbols)
-                        {
-                            if (symbol.ContainingType.IsInterface)
-                            {
-                                builder.Add(symbol);
-                            }
-                            else
-                            {
-                                Debug.Assert(symbol.ContainingType.SpecialType == SpecialType.System_Object, "Member from non-interface other than object?");
-                            }
-                        }
-
-                        // NOTE: This might result in an empty builder, but it's not interesting to fall back on the
-                        // else case below because interfaces don't have instance constructors.
-                    }
-                    else
-                    {
-                        builder.AddRange(result.Symbols);
-                    }
-
+                    builder.AddRange(result.Symbols);
                     result.Free();
                 }
                 else

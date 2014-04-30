@@ -908,11 +908,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupMembersInInterfaceOnly(current, type, name, arity, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
 
-            var tmp = LookupResult.GetInstance();
-            // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.
-            this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
-            MergeHidingLookupResults(current, tmp, ref useSiteDiagnostics);
-            tmp.Free();
+            if (!originalBinder.InCrefButNotParameterOrReturnType)
+            {
+                var tmp = LookupResult.GetInstance();
+                // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.
+                this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                MergeHidingLookupResults(current, tmp, ref useSiteDiagnostics);
+                tmp.Free();
+            }
         }
 
         // Lookup member in type parameter
@@ -1507,12 +1510,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType);
 
-            foreach (var baseInterface in type.AllInterfacesNoUseSiteDiagnostics)
+            if (!originalBinder.InCrefButNotParameterOrReturnType)
             {
-                AddMemberLookupSymbolsInfoWithoutInheritance(result, baseInterface, options, originalBinder, accessThroughType);
-            }
+                foreach (var baseInterface in type.AllInterfacesNoUseSiteDiagnostics)
+                {
+                    AddMemberLookupSymbolsInfoWithoutInheritance(result, baseInterface, options, originalBinder, accessThroughType);
+                }
 
-            this.AddMemberLookupSymbolsInfoInClass(result, Compilation.GetSpecialType(SpecialType.System_Object), options, originalBinder, accessThroughType);
+                this.AddMemberLookupSymbolsInfoInClass(result, Compilation.GetSpecialType(SpecialType.System_Object), options, originalBinder, accessThroughType);
+            }
         }
 
         private void AddMemberLookupSymbolsInfoInTypeParameter(LookupSymbolsInfo result, TypeParameterSymbol type, LookupOptions options, Binder originalBinder)

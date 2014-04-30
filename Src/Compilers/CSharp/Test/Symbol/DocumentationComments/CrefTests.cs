@@ -6342,6 +6342,87 @@ delegate void D< T > (T t);
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "ToString").WithArguments("ToString"));
         }
 
+        [WorkItem(924473, "DevDiv")]
+        [Fact]
+        public void InterfaceInheritedMembersInSemanticModelLookup()
+        {
+            var source = @"
+interface IBase
+{
+    int P { get; set; }
+}
+
+interface IDerived : IBase
+{
+}
+
+/// <see cref='IDerived.P'/>
+class C
+{
+}
+";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+
+            // Not expected to bind, since we don't consider inherited members.
+            comp.VerifyDiagnostics(
+                // (11,16): warning CS1574: XML comment has cref attribute 'IDerived.P' that could not be resolved
+                // /// <see cref='IDerived.P'/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "IDerived.P").WithArguments("IDerived.P").WithLocation(11, 16));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = GetCrefSyntaxes(comp).Single();
+
+            // No info, since it doesn't bind.
+            var info = model.GetSymbolInfo(syntax);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+            Assert.Equal(0, info.CandidateSymbols.Length);
+
+            // No lookup results.
+            var derivedInterface = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IDerived");
+            Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, derivedInterface).Length);
+        }
+
+        [WorkItem(924473, "DevDiv")]
+        [Fact]
+        public void InterfaceObjectMembers()
+        {
+            var source = @"
+interface I
+{
+}
+
+/// <see cref='I.ToString'/>
+class C
+{
+}
+";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+
+            // Not expected to bind, since we don't consider inherited members.
+            comp.VerifyDiagnostics(
+                // (6,16): warning CS1574: XML comment has cref attribute 'I.ToString' that could not be resolved
+                // /// <see cref='I.ToString'/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "I.ToString").WithArguments("I.ToString").WithLocation(6, 16));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var syntax = GetCrefSyntaxes(comp).Single();
+
+            // No info, since it doesn't bind.
+            var info = model.GetSymbolInfo(syntax);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+            Assert.Equal(0, info.CandidateSymbols.Length);
+
+            // No lookup results.
+            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
+            Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, symbol).Length);
+        }
+
         #region Dev10 bugs from KevinH
 
         [Fact]
