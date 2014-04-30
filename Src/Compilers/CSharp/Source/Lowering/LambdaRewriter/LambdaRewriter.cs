@@ -372,10 +372,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Capture any parameters of this block.  This would typically occur
-            // at the top level of a method or lambda with captured parameters, or in a catch block.
+            // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
             foreach (var p in analysis.variablesCaptured)
             {
+                if (p.Kind != SymbolKind.Parameter)
+                {
+                    continue;
+                }
+
                 BoundNode varNode;
                 if (!analysis.variableBlock.TryGetValue(p, out varNode) ||
                     varNode != node ||
@@ -384,11 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (p is ParameterSymbol)
-                {
-                    InitParameterProxy(syntax, p, framePointer, prologue);
-                    continue;
-                }
+                InitParameterProxy(syntax, (ParameterSymbol)p, framePointer, prologue);
             }
 
             Symbol oldInnermostFramePointer = innermostFramePointer;
@@ -418,36 +419,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void InitParameterProxy(CSharpSyntaxNode syntax, Symbol p, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
+        private void InitParameterProxy(CSharpSyntaxNode syntax, ParameterSymbol parameter, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
         {
             CapturedSymbolReplacement proxy;
-            if (proxies.TryGetValue(p, out proxy))
+            if (proxies.TryGetValue(parameter, out proxy))
             {
-                BoundExpression assignToProxy;
+                ParameterSymbol parameterToUse;
+                if (!parameterMap.TryGetValue(parameter, out parameterToUse)) parameterToUse = parameter;
+
                 var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
-
-                var parameter = p as ParameterSymbol;
-                if ((object)parameter != null)
-                {
-                    ParameterSymbol parameterToUse;
-                    if (!parameterMap.TryGetValue(parameter, out parameterToUse)) parameterToUse = parameter;
-                    assignToProxy = new BoundAssignmentOperator(syntax,
-                        left,
-                        new BoundParameter(syntax, parameterToUse),
-                        parameter.Type);
-                }
-                else
-                {
-                    var local = (LocalSymbol)p; // catch parameter
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.Catch);
-                    LocalSymbol localToUse;
-                    if (!localMap.TryGetValue(local, out localToUse)) localToUse = local;
-                    assignToProxy = new BoundAssignmentOperator(syntax,
-                        left,
-                        new BoundLocal(syntax, localToUse, null, localToUse.Type),
-                        localToUse.Type);
-                }
-
+                var assignToProxy = new BoundAssignmentOperator(syntax,
+                    left,
+                    new BoundParameter(syntax, parameterToUse),
+                    parameter.Type);
                 prologue.Add(assignToProxy);
             }
         }
