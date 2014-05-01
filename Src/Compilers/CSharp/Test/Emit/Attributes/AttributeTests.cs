@@ -3395,6 +3395,31 @@ class C
             });
         }
 
+        [Fact]
+        public void Bug_AttributeOnWrongGenericParameter()
+        {
+            var source = @"
+using System;
+class XAttribute : Attribute { }
+class C<T>
+{
+    public void M<[X]U>() { }
+}
+";
+            CompileAndVerify(source, symbolValidator: module =>
+            {
+                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var classTypeParameter = @class.TypeParameters.Single();
+                var method = @class.GetMember<MethodSymbol>("M");
+                var methodTypeParameter = method.TypeParameters.Single();
+
+                Assert.Empty(classTypeParameter.GetAttributes());
+
+                var attribute = methodTypeParameter.GetAttributes().Single();
+                Assert.Equal("XAttribute", attribute.AttributeClass.Name);
+            });
+        }
+
         #endregion
 
         #region Error Tests
