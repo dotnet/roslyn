@@ -3181,7 +3181,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 error = true;
             }
 
-            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: error) { WasCompilerGenerated = !hasCreationSyntax };
+            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: error) { WasCompilerGenerated = !hasCreationSyntax && 
+                                                                                                       (initSyntax.Parent == null || 
+                                                                                                        initSyntax.Parent.Kind != SyntaxKind.EqualsValueClause ||
+                                                                                                        ((EqualsValueClauseSyntax)initSyntax.Parent).Value != initSyntax)};
         }
 
         private BoundExpression BindStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)

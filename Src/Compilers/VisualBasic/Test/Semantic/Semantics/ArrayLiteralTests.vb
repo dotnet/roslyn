@@ -1939,6 +1939,39 @@ End Module
             CompileAndVerify(compilation, <![CDATA[System.String[]]]>)
         End Sub
 
+        <WorkItem(116)>
+        <Fact()>
+        Public Sub TestArrayLiteralSemanticModelImplicitConversion()
+            Dim compilation = CreateCompilationWithMscorlib(
+ <compilation>
+     <file name="a.vb"><![CDATA[
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer() = {1, 2, 3} 'BIND:"{1, 2, 3}"
+    End Sub
+End Module
+    ]]></file>
+ </compilation>)
+
+            Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
+
+            Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("System.Int32()", semanticSummary.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
+
+            Assert.Null(semanticSummary.Symbol)
+            Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
+            Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
+
+            Assert.Null(semanticSummary.Alias)
+
+            Assert.Equal(0, semanticSummary.MemberGroup.Length)
+
+            Assert.False(semanticSummary.ConstantValue.HasValue)
+        End Sub
+
     End Class
 End Namespace
 

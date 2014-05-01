@@ -7358,6 +7358,61 @@ class MyClass
             Assert.Equal(4L, semanticInfo.ConstantValue);
         }
 
+        [WorkItem(116)]
+        [Fact]
+        public void ImplicitConversionArrayInitializer_01()
+        {
+
+            string sourceCode = @"
+class MyClass 
+{
+    int[] arr = /*<bind>*/{ 1, 2, 3 }/*</bind>*/;
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [WorkItem(116)]
+        [Fact]
+        public void ImplicitConversionArrayInitializer_02()
+        {
+
+            string sourceCode = @"
+class MyClass 
+{
+    void Test()
+    {
+        int[] arr = /*<bind>*/{ 1, 2, 3 }/*</bind>*/;
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
         [WorkItem(541595, "DevDiv")]
         [Fact]
         public void ImplicitConversionExprReturnedByLambda()
