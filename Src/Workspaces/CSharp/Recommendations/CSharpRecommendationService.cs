@@ -198,9 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var symbols = context.SemanticModel.LookupLabels(context.LeftToken.SpanStart);
+            var allLabels = context.SemanticModel.LookupLabels(context.LeftToken.SpanStart);
 
-            return symbols;
+            // Exclude labels (other than 'default') that come from case switch statements
+
+            return allLabels
+                .Where(label => label.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken)
+                    .MatchesKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel))
+                .AsImmutableOrEmpty();
         }
 
         private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(
