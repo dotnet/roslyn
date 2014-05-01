@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis
             this.OutputFilePath = outputFilePath;
             this.CompilationOptions = compilationOptions;
             this.ParseOptions = parseOptions;
-            this.Documents = documents.ToImmutableListOrEmpty();
-            this.ProjectReferences = projectReferences.ToImmutableListOrEmpty();
-            this.MetadataReferences = metadataReferences.ToImmutableListOrEmpty();
-            this.AnalyzerReferences = analyzerReferences.ToImmutableListOrEmpty();
+            this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
+            this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
+            this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
             this.IsSubmission = isSubmission;
             this.HostObjectType = hostObjectType;
         }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
         {
-            return this.With(documents: documents);
+            return this.With(documents: documents.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithVersion(VersionStamp version)
@@ -283,17 +283,17 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
         {
-            return this.With(projectReferences: projectReferences);
+            return this.With(projectReferences: projectReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
-            return this.With(metadataReferences: metadataReferences);
+            return this.With(metadataReferences: metadataReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            return this.With(analyzerReferences: analyzerReferences);
+            return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
         }
     }
 }

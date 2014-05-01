@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
             using (this.guard.DisposableWait())
             {
                 var handlers = GetEvents_NoLock<TEventHandler>(eventName);
-                var newHandlers = (handlers ?? ImmutableList.Create<TEventHandler>()).Add(eventHandler);
+                var newHandlers = handlers.Add(eventHandler);
                 SetEvents_NoLock(eventName, newHandlers);
             }
         }
@@ -32,18 +32,15 @@ namespace Roslyn.Utilities
             using (this.guard.DisposableWait())
             {
                 var handlers = GetEvents_NoLock<TEventHandler>(eventName);
-                if (handlers != null)
+                var newHandlers = handlers.Remove(eventHandler);
+                if (newHandlers != handlers)
                 {
-                    var newHandlers = handlers.Remove(eventHandler);
-                    if (newHandlers != handlers)
-                    {
-                        SetEvents_NoLock(eventName, newHandlers);
-                    }
+                    SetEvents_NoLock(eventName, newHandlers);
                 }
             }
         }
 
-        public IEnumerable<TEventHandler> GetEventHandlers<TEventHandler>(string eventName)
+        public ImmutableArray<TEventHandler> GetEventHandlers<TEventHandler>(string eventName)
         {
             using (this.guard.DisposableWait())
             {
@@ -64,20 +61,20 @@ namespace Roslyn.Utilities
             }
         }
 
-        private ImmutableList<TEventHandler> GetEvents_NoLock<TEventHandler>(string eventName)
+        private ImmutableArray<TEventHandler> GetEvents_NoLock<TEventHandler>(string eventName)
         {
             this.guard.AssertHasLock();
 
             object handlers;
             if (this.eventNameToHandlers.TryGetValue(eventName, out handlers))
             {
-                return (ImmutableList<TEventHandler>)handlers;
+                return (ImmutableArray<TEventHandler>)handlers;
             }
 
-            return null;
+            return ImmutableArray.Create<TEventHandler>();
         }
 
-        private void SetEvents_NoLock<TEventHandler>(string name, ImmutableList<TEventHandler> events)
+        private void SetEvents_NoLock<TEventHandler>(string name, ImmutableArray<TEventHandler> events)
         {
             this.guard.AssertHasLock();
 

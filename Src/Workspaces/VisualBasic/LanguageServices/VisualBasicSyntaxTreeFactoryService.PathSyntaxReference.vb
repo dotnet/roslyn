@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private ReadOnly _span As TextSpan
 
-                Private ReadOnly pathFromRoot As ImmutableList(Of Integer)
+                Private ReadOnly pathFromRoot As ImmutableArray(Of Integer)
 
                 Public Sub New(tree As SyntaxTree, node As SyntaxNode)
                     Me.tree = tree
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Private Function ComputePathFromRoot(node As SyntaxNode) As ImmutableList(Of Integer)
+                Private Function ComputePathFromRoot(node As SyntaxNode) As ImmutableArray(Of Integer)
                     Dim path = New List(Of Integer)()
                     Dim root = tree.GetRoot()
                     While node IsNot root
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End While
 
                     path.Reverse()
-                    Return path.ToImmutableList()
+                    Return path.ToImmutableArray()
                 End Function
 
                 Private Function GetChildIndex(child As SyntaxNodeOrToken) As Integer

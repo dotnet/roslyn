@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var finders = ReferenceFinders.DefaultReferenceFinders;
                 progress = progress ?? FindReferencesProgress.Instance;
-                var engine = new FindReferencesSearchEngine(solution, documents, finders.ToImmutableListOrEmpty(), progress, cancellationToken);
+                var engine = new FindReferencesSearchEngine(solution, documents, finders, progress, cancellationToken);
                 return await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
             }
         }

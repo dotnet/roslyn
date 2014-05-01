@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SyntaxTree tree;
                 private readonly SyntaxKind kind;
                 private readonly TextSpan textSpan;
-                private readonly ImmutableList<int> pathFromRoot;
+                private readonly ImmutableArray<int> pathFromRoot;
 
                 public PathSyntaxReference(SyntaxNode node)
                 {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                private ImmutableList<int> ComputePathFromRoot(SyntaxNode node)
+                private ImmutableArray<int> ComputePathFromRoot(SyntaxNode node)
                 {
                     var path = new List<int>();
                     var root = tree.GetRoot();
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     path.Reverse();
-                    return path.ToImmutableList();
+                    return path.ToImmutableArray();
                 }
 
                 private int GetChildIndex(SyntaxNodeOrToken child)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private SyntaxNode GetNode(SyntaxNode root)
                 {
                     var node = root;
-                    for (int i = 0, n = this.pathFromRoot.Count; i < n; i++)
+                    for (int i = 0, n = this.pathFromRoot.Length; i < n; i++)
                     {
                         var child = node.ChildNodesAndTokens()[this.pathFromRoot[i]];
 

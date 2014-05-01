@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                return ImmutableList.Create(new TextChangeRange(new TextSpan(0, oldText.Length), newText.Length));
+                return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), newText.Length));
             }
         }
     }

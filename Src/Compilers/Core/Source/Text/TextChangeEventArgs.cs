@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             this.OldText = oldText;
             this.NewText = newText;
-            this.Changes = changes.ToImmutableList();
+            this.Changes = changes.ToImmutableArray();
         }
 
         /// <summary>

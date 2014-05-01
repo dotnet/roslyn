@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class ProjectDependencyGraph
     {
-        private readonly ImmutableList<ProjectId> projectIds;
+        private readonly ImmutableArray<ProjectId> projectIds;
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap;
 
         // guards lazy computed data
@@ -24,19 +24,19 @@ namespace Microsoft.CodeAnalysis
 
         // these are computed fully on demand
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> lazyReverseReferencesMap;
-        private ImmutableList<ProjectId> lazyTopologicallySortedProjects;
-        private ImmutableList<IEnumerable<ProjectId>> lazyDependencySets;
+        private ImmutableArray<ProjectId> lazyTopologicallySortedProjects;
+        private ImmutableArray<IEnumerable<ProjectId>> lazyDependencySets;
 
         // these accumulate results on demand
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseTransitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
 
         internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
-            ImmutableList<ProjectId>.Empty,
+            ImmutableArray.Create<ProjectId>(),
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty);
 
         internal ProjectDependencyGraph(
-            ImmutableList<ProjectId> projectIds,
+            ImmutableArray<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap)
         {
             this.projectIds = projectIds;
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis
                 using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
                 {
                     this.TopologicalSort(this.projectIds, cancellationToken, seenProjects.Object, resultList.Object);
-                    this.lazyTopologicallySortedProjects = resultList.Object.ToImmutableList();
+                    this.lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
                 }
             }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
                 using (var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject())
                 {
                     this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
-                    this.lazyDependencySets = results.Object.ToImmutableList();
+                    this.lazyDependencySets = results.Object.ToImmutableArray();
                 }
             }
 
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                         using (var sortedProjects = SharedPools.Default<List<ProjectId>>().GetPooledObject())
                         {
                             this.TopologicalSort(dependencySet.Object, cancellationToken, topologicallySeenProjects.Object, sortedProjects.Object);
-                            results.Add(sortedProjects.Object.ToImmutableList());
+                            results.Add(sortedProjects.Object.ToImmutableArrayOrEmpty());
                         }
                     }
                 }

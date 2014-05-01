@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.languageServices,
                 this.solutionServices,
-                this.info.WithFolders(folders.ToImmutableListOrEmpty()),
+                this.info.WithFolders(folders),
                 this.options,
                 this.textSource,
                 this.treeSource);

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Friend Module SyntaxClassifier
         Public ReadOnly DefaultSyntaxClassifiers As IEnumerable(Of ISyntaxClassifier) =
-            ImmutableList.Create(Of ISyntaxClassifier)(
+            ImmutableArray.Create(Of ISyntaxClassifier)(
                 New NameSyntaxClassifier(),
                 New AliasImportsClauseSyntaxClassifier()
             )

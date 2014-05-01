@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             this.Id = id;
             this.Version = version;
             this.FilePath = filePath;
-            this.Projects = projects.ToImmutableListOrEmpty();
+            this.Projects = projects.ToImmutableReadOnlyListOrEmpty();
         }
 
         /// <summary>

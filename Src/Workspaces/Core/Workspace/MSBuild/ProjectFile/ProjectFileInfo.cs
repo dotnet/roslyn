@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.AssemblyName = assemblyName;
             this.CompilationOptions = compilationOptions;
             this.ParseOptions = parseOptions;
-            this.Documents = documents.ToImmutableListOrEmpty();
-            this.ProjectReferences = projectReferences.ToImmutableListOrEmpty();
-            this.MetadataReferences = metadataReferences.ToImmutableListOrEmpty();
-            this.AnalyzerReferences = analyzerReferences.ToImmutableListOrEmpty();
+            this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
+            this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
+            this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
             this.AppConfigPath = appConfigPath;
         }
     }

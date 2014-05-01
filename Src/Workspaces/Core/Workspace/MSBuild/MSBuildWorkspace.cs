@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
 
                 // Documents
-                var docFileInfos = projectFileInfo.Documents.ToImmutableListOrEmpty();
+                var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
                 CheckDocuments(docFileInfos, projectFilePath, projectId);
 
                 var docs = new List<DocumentInfo>();
@@ -449,9 +449,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         outputFilePath,
                         projectFileInfo.CompilationOptions,
                         projectFileInfo.ParseOptions,
-                        docs.ToImmutableListOrEmpty(),
-                        resolvedReferences.ProjectReferences.ToImmutableListOrEmpty(),
-                        metadataReferences.ToImmutableListOrEmpty(),
+                        docs,
+                        resolvedReferences.ProjectReferences,
+                        metadataReferences,
                         analyzerReferences: projectFileInfo.AnalyzerReferences,
                         isSubmission: false,
                         hostObjectType: null));
@@ -468,16 +468,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static readonly char[] DirectorySplitChars = new char[] { Path.DirectorySeparatorChar };
 
-        private static ImmutableList<string> GetDocumentFolders(string logicalPath)
+        private static ImmutableArray<string> GetDocumentFolders(string logicalPath)
         {
             var logicalDirectory = Path.GetDirectoryName(logicalPath);
 
             if (!string.IsNullOrEmpty(logicalDirectory))
             {
-                return logicalDirectory.Split(DirectorySplitChars, StringSplitOptions.None).ToImmutableList();
+                return logicalDirectory.Split(DirectorySplitChars, StringSplitOptions.None).ToImmutableArray();
             }
 
-            return ImmutableList.Create<string>();
+            return ImmutableArray.Create<string>();
         }
 
         private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Options
     internal class OptionService : IOptionService
     {
         private readonly Lazy<HashSet<IOption>> options;
-        private readonly ImmutableDictionary<string, ImmutableList<Lazy<IOptionSerializer, OptionSerializerMetadata>>> featureNameToOptionSerializers =
-            ImmutableDictionary.Create<string, ImmutableList<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> featureNameToOptionSerializers =
+            ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
 
         private readonly object gate = new object();
         private ImmutableDictionary<OptionKey, object> currentValues;
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 foreach (var featureName in optionSerializerAndMetadata.Metadata.Features)
                 {
-                    ImmutableList<Lazy<IOptionSerializer, OptionSerializerMetadata>> existingSerializers;
+                    ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> existingSerializers;
                     if (!featureNameToOptionSerializers.TryGetValue(featureName, out existingSerializers))
                     {
-                        existingSerializers = ImmutableList.Create<Lazy<IOptionSerializer, OptionSerializerMetadata>>();
+                        existingSerializers = ImmutableArray.Create<Lazy<IOptionSerializer, OptionSerializerMetadata>>();
                     }
 
                     this.featureNameToOptionSerializers = this.featureNameToOptionSerializers.SetItem(featureName, existingSerializers.Add(optionSerializerAndMetadata));
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             lock (gate)
             {
-                ImmutableList<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
+                ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
                 if (featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
                 {
                     foreach (var serializer in optionSerializers)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     currentValues = currentValues.SetItem(optionKey, setValue);
 
-                    ImmutableList<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
+                    ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers;
                     if (featureNameToOptionSerializers.TryGetValue(optionKey.Option.Feature, out optionSerializers))
                     {
                         foreach (var serializer in optionSerializers)

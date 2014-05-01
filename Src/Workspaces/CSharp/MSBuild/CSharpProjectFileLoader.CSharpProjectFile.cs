@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var docs = compilerInputs.Sources
                        .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_"))
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                       .ToImmutableList();
+                       .ToImmutableArray();
 
                 var metadataRefs = compilerInputs.References.SelectMany(r => MakeMetadataInfo(r));
 

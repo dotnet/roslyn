@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Sub New(<ImportMany> rules As IEnumerable(Of Lazy(Of IFormattingRule, OrderableLanguageMetadata)))
             Me.lazyExportedRules = New Lazy(Of IEnumerable(Of IFormattingRule))(
                 Function()
-                    Return ExtensionOrderer.Order(rules).Where(Function(x) x.Metadata.Language = LanguageNames.VisualBasic).Select(Function(x) x.Value).Concat(New DefaultOperationProvider()).ToImmutableList()
+                    Return ExtensionOrderer.Order(rules).Where(Function(x) x.Metadata.Language = LanguageNames.VisualBasic).Select(Function(x) x.Value).Concat(New DefaultOperationProvider()).ToImmutableArray()
                 End Function)
         End Sub
 

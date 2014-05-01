@@ -58,15 +58,15 @@ namespace Microsoft.CodeAnalysis
 
                 public static State Create(
                     ValueSource<Compilation> compilationSource,
-                    ImmutableList<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
+                    ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfNull(compilationSource);
                     Contract.ThrowIfNull(compilationSource.GetValue());
-                    Contract.ThrowIfNull(intermediateProjects);
+                    Contract.ThrowIfTrue(intermediateProjects.IsDefault);
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now.
-                    return intermediateProjects.Count == 0
+                    return intermediateProjects.Length == 0
                         ? (State)new FullDeclarationState(compilationSource)
                         : (State)new InProgressState(compilationSource, intermediateProjects);
                 }
@@ -76,17 +76,17 @@ namespace Microsoft.CodeAnalysis
             // DeclarationCompilation from by iteratively processing IntermediateProjects
             private sealed class InProgressState : State
             {
-                public ImmutableList<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; private set; }
+                public ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; private set; }
 
                 public InProgressState(
                     ValueSource<Compilation> inProgressCompilationSource,
-                    ImmutableList<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
+                    ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
                     : base(inProgressCompilationSource)
                 {
                     Contract.ThrowIfNull(inProgressCompilationSource);
                     Contract.ThrowIfNull(inProgressCompilationSource.GetValue());
-                    Contract.ThrowIfNull(intermediateProjects);
-                    Contract.ThrowIfFalse(intermediateProjects.Count > 0);
+                    Contract.ThrowIfTrue(intermediateProjects.IsDefault);
+                    Contract.ThrowIfFalse(intermediateProjects.Length > 0);
 
                     this.IntermediateProjects = intermediateProjects;
                 }

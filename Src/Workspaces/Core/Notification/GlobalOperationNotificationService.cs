@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Notification
         protected virtual Task RaiseGlobalOperationStarted()
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.eventQueue.ScheduleTask(() =>
                 {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Notification
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 var args = new GlobalOperationEventArgs(operations, cancelled);
 

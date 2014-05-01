@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         // text buffer maps
         private readonly Dictionary<SourceTextContainer, DocumentId> bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, DocumentId>();
-        private readonly Dictionary<SourceTextContainer, ImmutableList<DocumentId>> bufferToDocumentIdMap = new Dictionary<SourceTextContainer, ImmutableList<DocumentId>>();
+        private readonly Dictionary<SourceTextContainer, ImmutableArray<DocumentId>> bufferToDocumentIdMap = new Dictionary<SourceTextContainer, ImmutableArray<DocumentId>>();
         private readonly Dictionary<DocumentId, TextTracker> textTrackers = new Dictionary<DocumentId, TextTracker>();
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
                     return SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
 
-                return this.projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableList();
+                return this.projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
             }
         }
 
@@ -221,16 +221,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
+        private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
         {
-            ImmutableList<DocumentId> docIds;
+            ImmutableArray<DocumentId> docIds;
             if (this.bufferToDocumentIdMap.TryGetValue(container, out docIds))
             {
                 return docIds;
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<DocumentId>();
+                return ImmutableArray.Create<DocumentId>();
             }
         }
 
@@ -438,14 +438,14 @@ namespace Microsoft.CodeAnalysis
 
         private void AddTextToDocumentIdMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
-            ImmutableList<DocumentId> docIds;
+            ImmutableArray<DocumentId> docIds;
             if (this.bufferToDocumentIdMap.TryGetValue(textContainer, out docIds))
             {
                 this.bufferToDocumentIdMap[textContainer] = docIds.Add(id);
             }
             else
             {
-                this.bufferToDocumentIdMap[textContainer] = ImmutableList.Create(id);
+                this.bufferToDocumentIdMap[textContainer] = ImmutableArray.Create(id);
             }
 
             if (isCurrentContext || !bufferToDocumentInCurrentContextMap.ContainsKey(textContainer))
@@ -457,11 +457,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The DocumentId of the current context document attached to the textContainer, if any.</returns>
         private DocumentId RemoveTextToDocumentIdMapping_NoLock(SourceTextContainer textContainer, DocumentId id)
         {
-            ImmutableList<DocumentId> docIds;
+            ImmutableArray<DocumentId> docIds;
             if (this.bufferToDocumentIdMap.TryGetValue(textContainer, out docIds))
             {
                 docIds = docIds.Remove(id);
-                if (docIds.Count > 0)
+                if (docIds.Length > 0)
                 {
                     this.bufferToDocumentIdMap[textContainer] = docIds;
 

@@ -61,16 +61,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return new MefWorkspaceServices(this, workspace);
         }
 
-        private ImmutableList<string> languages;
+        private IEnumerable<string> languages;
 
-        private ImmutableList<string> GetSupportedLanguages()
+        private IEnumerable<string> GetSupportedLanguages()
         {
             if (this.languages == null)
             {
                 var list = this.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
                            this.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
                            .Distinct()
-                           .ToImmutableList();
+                           .ToImmutableArray();
 
                 Interlocked.CompareExchange(ref this.languages, list, null);
             }
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             private readonly MefWorkspaceServices workspaceServices;
             private readonly string language;
-            private readonly ImmutableList<Lazy<ILanguageService, LanguageServiceMetadata>> services;
-            private readonly ImmutableList<Lazy<ILanguageServiceFactory, LanguageServiceMetadata>> factories;
+            private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services;
+            private readonly ImmutableArray<Lazy<ILanguageServiceFactory, LanguageServiceMetadata>> factories;
 
             private ImmutableDictionary<string, ILanguageService> serviceMap = ImmutableDictionary<string, ILanguageService>.Empty;
 
@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 this.workspaceServices = workspaceServices;
                 this.language = language;
                 var hostServices = (MefHostServices)workspaceServices.HostServices;
-                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableList();
-                this.factories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableList();
+                this.services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+                this.factories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Where(lz => lz.Metadata.Language == language).ToImmutableArray();
             }
 
             public override HostWorkspaceServices WorkspaceServices
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             public bool HasServices
             {
-                get { return this.services.Count > 0 || this.factories.Count > 0; }
+                get { return this.services.Length > 0 || this.factories.Length > 0; }
             }
 
             public override TLanguageService GetService<TLanguageService>()
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             if (!this.exportsMap.TryGetValue(key, out exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref this.exportsMap, key, _ =>
-                    this.exportProvider.GetExports<TExtension, TMetadata>().ToImmutableList());
+                    this.exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray());
             }
 
             return (IEnumerable<Lazy<TExtension, TMetadata>>)exports;
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             if (!this.exportsMap.TryGetValue(key, out exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref this.exportsMap, key, _ =>
-                    this.exportProvider.GetExports<TExtension>().ToImmutableList());
+                    this.exportProvider.GetExports<TExtension>().ToImmutableArray());
             }
 
             return (IEnumerable<Lazy<TExtension>>)exports;
@@ -393,21 +393,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        private static ImmutableList<Assembly> defaultAssemblies;
-        public static ImmutableList<Assembly> DefaultAssemblies
+        private static ImmutableArray<Assembly> defaultAssemblies;
+        public static ImmutableArray<Assembly> DefaultAssemblies
         {
             get
             {
-                if (defaultAssemblies == null)
+                if (defaultAssemblies.IsDefault)
                 {
-                    Interlocked.CompareExchange(ref defaultAssemblies, LoadDefaultAssemblies(), null);
+                    ImmutableInterlocked.InterlockedInitialize(ref defaultAssemblies, LoadDefaultAssemblies());
                 }
 
                 return defaultAssemblies;
             }
         }
 
-        private static ImmutableList<Assembly> LoadDefaultAssemblies()
+        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
         {
             // build a MEF composition using this assembly and the known VisualBasic/CSharp workspace assemblies.
             var assemblies = new List<Assembly>();
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             LoadAssembly(assemblies,
                 string.Format("Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version={0}, Culture=neutral, PublicKeyToken={1}", assemblyVersion, publicKeyToken));
 
-            return assemblies.ToImmutableList();
+            return assemblies.ToImmutableArray();
         }
 
         private static void LoadAssembly(List<Assembly> assemblies, string assemblyName)

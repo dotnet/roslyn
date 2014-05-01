@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var handlers = this.eventMap.GetEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         private Task RaiseWorkspaceFailedEventAsync(WorkspaceDiagnostic diagnostic)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentOpenedEventAsync(Document document)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentClosedEventAsync(Document document)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         {
             var handlers = this.eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
-            if (handlers != null)
+            if (handlers.Length > 0)
             {
                 return this.ScheduleTask(() =>
                 {

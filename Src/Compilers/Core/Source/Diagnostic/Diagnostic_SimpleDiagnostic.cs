@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             private readonly int warningLevel;
             private readonly bool isWarningAsError;
             private readonly Location location;
-            private readonly ImmutableList<Location> additionalLocations;
+            private readonly IReadOnlyList<Location> additionalLocations;
 
             internal SimpleDiagnostic(string id, string category, string message, DiagnosticSeverity severity, bool isEnabledByDefault,
                                       int warningLevel, bool isWarningAsError, Location location,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
                 this.warningLevel = warningLevel;
                 this.isWarningAsError = isWarningAsError;
                 this.location = location;
-                this.additionalLocations = additionalLocations.ToImmutableListOrEmpty();
+                this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
             }
 
             private SimpleDiagnostic(SerializationInfo info, StreamingContext context)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                 this.warningLevel = info.GetInt32("warningLevel");
                 this.isWarningAsError = info.GetBoolean("isWarningAsError");
                 this.location = (Location)info.GetValue("location", typeof(Location));
-                this.additionalLocations = ((Location[])info.GetValue("additionalLocations", typeof(Location[]))).ToImmutableListOrEmpty();
+                this.additionalLocations = ((Location[])info.GetValue("additionalLocations", typeof(Location[]))).ToImmutableArrayOrEmpty();
             }
 
             void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)

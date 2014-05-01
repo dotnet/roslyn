@@ -485,6 +485,7 @@
     <Compile Include="GeneratedCodeRecognition\GeneratedCodeRecognitionServiceFactory.cs" />
     <Compile Include="GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
     <Compile Include="IOrderableMetadata.cs" />
+    <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />

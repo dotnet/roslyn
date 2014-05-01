@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
             this.Id = id;
             this.Name = name;
-            this.Folders = folders.ToImmutableListOrEmpty();
+            this.Folders = folders.ToImmutableReadOnlyListOrEmpty();
             this.SourceCodeKind = sourceCodeKind;
             this.TextLoader = loader;
             this.FilePath = filePath;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentInfo With(
             DocumentId id = null,
             string name = null,
-            Optional<IEnumerable<string>> folders = default(Optional<IEnumerable<string>>),
+            IEnumerable<string> folders = null,
             Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
             Optional<TextAndVersion> textAndVersion = default(Optional<TextAndVersion>),
             Optional<TextLoader> loader = default(Optional<TextLoader>),
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         {
             var newId = id ?? this.Id;
             var newName = name ?? this.Name;
-            var newFolders = folders.HasValue ? folders.Value : this.Folders;
+            var newFolders = folders ?? this.Folders;
             var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : this.SourceCodeKind;
             var newLoader = loader.HasValue ? loader.Value : this.TextLoader;
             var newFilePath = filePath.HasValue ? filePath.Value : this.FilePath;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentInfo WithFolders(IEnumerable<string> folders)
         {
-            return this.With(folders: new Optional<IEnumerable<string>>(folders));
+            return this.With(folders: folders.ToImmutableReadOnlyListOrEmpty());
         }
 
         public DocumentInfo WithSourceCodeKind(SourceCodeKind kind)

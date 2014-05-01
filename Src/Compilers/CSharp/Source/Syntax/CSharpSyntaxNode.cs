@@ -306,8 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defaultObjectReaderData;
         }
 
-        private static ImmutableList<object> serializationData;
-        private static ImmutableList<object> GetSerializationData()
+        private static IEnumerable<object> serializationData;
+
+        private static IEnumerable<object> GetSerializationData()
         {
             if (serializationData == null)
             {
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             "offset",
                             "width",
                         })
-                    .ToImmutableList();
+                    .ToImmutableArray();
 
                 System.Threading.Interlocked.CompareExchange(ref serializationData, data, null);
             }

@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis
             var directory = Path.GetDirectoryName(path);
             if (string.IsNullOrEmpty(directory))
             {
-                return ImmutableList.Create<string>();
+                return ImmutableArray.Create<string>();
             }
             else
             {
-                return directory.Split(folderSplitters, StringSplitOptions.RemoveEmptyEntries).ToImmutableList();
+                return directory.Split(folderSplitters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
             }
         }
 

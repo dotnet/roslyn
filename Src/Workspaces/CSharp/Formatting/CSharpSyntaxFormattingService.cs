@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                 .Where(x => x.Metadata.Language == LanguageNames.CSharp)
                                 .Select(x => x.Value)
                                 .Concat(new DefaultOperationProvider())
-                                .ToImmutableList());
+                                .ToImmutableArray());
         }
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     new IndentUserSettingsFormattingRule()
                 };
 
-            return spaceFormattingRules.Concat(rules).ToImmutableList();
+            return spaceFormattingRules.Concat(rules).ToImmutableArray();
         }
 
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null)

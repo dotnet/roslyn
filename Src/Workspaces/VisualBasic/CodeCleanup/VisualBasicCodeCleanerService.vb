@@ -8,10 +8,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     Partial Friend Class VisualBasicCodeCleanerService
         Inherits AbstractCodeCleanerService
 
-        Private Shared ReadOnly defaultProviders As IList(Of ICodeCleanupProvider)
+        Private Shared ReadOnly defaultProviders As IEnumerable(Of ICodeCleanupProvider)
 
         Shared Sub New()
-            defaultProviders = ImmutableList.Create(Of ICodeCleanupProvider)(
+            defaultProviders = ImmutableArray.Create(Of ICodeCleanupProvider)(
                 New AddMissingTokensCodeCleanupProvider(),
                 New FixIncorrectTokensCodeCleanupProvider(),
                 New ReduceTokensCodeCleanupProvider(),

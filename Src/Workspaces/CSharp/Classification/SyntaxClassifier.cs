@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal static class SyntaxClassifier
     {
         public static readonly IEnumerable<ISyntaxClassifier> DefaultSyntaxClassifiers =
-            ImmutableList.Create<ISyntaxClassifier>(
+            ImmutableArray.Create<ISyntaxClassifier>(
                 new NameSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
                 new UsingDirectiveSyntaxClassifier());

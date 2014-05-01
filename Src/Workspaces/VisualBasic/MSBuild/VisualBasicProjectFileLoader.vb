@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return compilerInputs.Sources _
                          .Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_")) _
-                         .Select(Function(s) New DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableList()
+                         .Select(Function(s) New DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableArray()
             End Function
 
             Private Function GetMetadataReferences(compilerInputs As VisualBasicCompilerInputs) As IEnumerable(Of MetadataInfo)
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     refs.Add(New MetadataInfo(systemPath))
                 End If
 
-                Return refs.ToImmutableList()
+                Return refs.ToImmutableArray()
             End Function
 
             Private Function GetAnalyzerReferences(compilerInputs As VisualBasicCompilerInputs) As IEnumerable(Of AnalyzerReference)

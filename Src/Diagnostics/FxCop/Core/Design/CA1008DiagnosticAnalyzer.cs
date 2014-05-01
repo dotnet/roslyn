@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 return;
             }
 
-            IImmutableList<IFieldSymbol> zeroValuedFields = GetZeroValuedFields(symbol).ToImmutableList();
+            var zeroValuedFields = GetZeroValuedFields(symbol).ToImmutableArray();
 
             bool hasFlagsAttribute = symbol.GetAttributes().Any(a => a.AttributeClass == flagsAttribute);
             if (hasFlagsAttribute)
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        private void CheckFlags(INamedTypeSymbol namedType, IImmutableList<IFieldSymbol> zeroValuedFields, Action<Diagnostic> addDiagnostic)
+        private void CheckFlags(INamedTypeSymbol namedType, ImmutableArray<IFieldSymbol> zeroValuedFields, Action<Diagnostic> addDiagnostic)
         {
-            switch (zeroValuedFields.Count)
+            switch (zeroValuedFields.Length)
             {
                 case 0:
                     break;
@@ -114,9 +114,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        private void CheckNonFlags(INamedTypeSymbol namedType, IImmutableList<IFieldSymbol> zeroValuedFields, Action<Diagnostic> addDiagnostic)
+        private void CheckNonFlags(INamedTypeSymbol namedType, ImmutableArray<IFieldSymbol> zeroValuedFields, Action<Diagnostic> addDiagnostic)
         {
-            if (zeroValuedFields.Count == 0)
+            if (zeroValuedFields.Length == 0)
             {
                 // Add a member to {0} that has a value of zero with a suggested name of 'None'.
                 addDiagnostic(namedType.CreateDiagnostic(RuleNoZero, namedType.Name));

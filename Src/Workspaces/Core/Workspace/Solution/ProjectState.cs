@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         private readonly HostLanguageServices languageServices;
         private readonly SolutionServices solutionServices;
         private readonly ImmutableDictionary<DocumentId, DocumentState> documentStates;
-        private readonly ImmutableList<DocumentId> documentIds;
+        private readonly IReadOnlyList<DocumentId> documentIds;
         private readonly AsyncLazy<VersionStamp> lazyLatestDocumentVersion;
         private readonly AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
-            ImmutableList<DocumentId> documentIds,
+            IEnumerable<DocumentId> documentIds,
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             this.projectInfo = projectInfo;
             this.solutionServices = solutionServices;
             this.languageServices = languageServices;
-            this.documentIds = documentIds;
+            this.documentIds = documentIds.ToImmutableReadOnlyListOrEmpty();
             this.documentStates = documentStates;
             this.lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             this.lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
             this.projectInfo = FixProjectInfo(projectInfo);
 
-            this.documentIds = this.projectInfo.Documents.Select(d => d.Id).ToImmutableList();
+            this.documentIds = this.projectInfo.Documents.Select(d => d.Id).ToImmutableArray();
 
             var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
                 this.projectInfo.Documents.Select(d =>
@@ -235,21 +235,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableList<MetadataReference> MetadataReferences
+        public IReadOnlyList<MetadataReference> MetadataReferences
         {
-            get { return (ImmutableList<MetadataReference>)this.ProjectInfo.MetadataReferences; }
+            get { return this.ProjectInfo.MetadataReferences; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableList<AnalyzerReference> AnalyzerReferences
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences
         {
-            get { return (ImmutableList<AnalyzerReference>)this.ProjectInfo.AnalyzerReferences; }
+            get { return this.ProjectInfo.AnalyzerReferences; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableList<ProjectReference> ProjectReferences
+        public IReadOnlyList<ProjectReference> ProjectReferences
         {
-            get { return (ImmutableList<ProjectReference>)this.ProjectInfo.ProjectReferences; }
+            get { return this.ProjectInfo.ProjectReferences; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableList<DocumentId> DocumentIds
+        public IReadOnlyList<DocumentId> DocumentIds
         {
             get { return this.documentIds; }
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState With(
             ProjectInfo projectInfo = null,
-            ImmutableList<DocumentId> documentIds = null,
+            ImmutableArray<DocumentId> documentIds = default(ImmutableArray<DocumentId>),
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
             AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis
                 projectInfo ?? this.projectInfo,
                 this.languageServices,
                 this.solutionServices,
-                documentIds ?? this.documentIds,
+                documentIds.IsDefault ? this.documentIds : documentIds,
                 documentStates ?? this.documentStates,
                 latestDocumentVersion ?? this.lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? this.lazyLatestDocumentTopLevelChangeVersion);
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(!this.ProjectReferences.Contains(projectReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(this.ProjectReferences.Contains(projectReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.Remove(projectReference)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Remove(projectReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddProjectReferences(IEnumerable<ProjectReference> projectReferences)
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var projectReference in projectReferences)
             {
                 Contract.Requires(!newProjectRefs.Contains(projectReference));
-                newProjectRefs = newProjectRefs.Add(projectReference);
+                newProjectRefs = newProjectRefs.ToImmutableArray().Add(projectReference);
             }
 
             return this.With(
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis
         public ProjectState WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(projectReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithProjectReferences(projectReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddMetadataReference(MetadataReference toMetadata)
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(!this.MetadataReferences.Contains(toMetadata));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveMetadataReference(MetadataReference toMetadata)
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(this.MetadataReferences.Contains(toMetadata));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.Remove(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Remove(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var metadataReference in metadataReferences)
             {
                 Contract.Requires(!newMetaRefs.Contains(metadataReference));
-                newMetaRefs = newMetaRefs.Add(metadataReference);
+                newMetaRefs = newMetaRefs.ToImmutableArray().Add(metadataReference);
             }
 
             return this.With(
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis
         public ProjectState WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(!this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis
             Contract.Requires(this.AnalyzerReferences.Contains(analyzerReference));
 
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.Remove(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Remove(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var analyzerReference in analyzerReferences)
             {
                 Contract.Requires(!newAnalyzerReferences.Contains(analyzerReference));
-                newAnalyzerReferences = newAnalyzerReferences.Add(analyzerReference);
+                newAnalyzerReferences = newAnalyzerReferences.ToImmutableArray().Add(analyzerReference);
             }
 
             return this.With(
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis
         public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
             return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences.ToImmutableListOrEmpty()).WithVersion(this.Version.GetNewerVersion()));
+                projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState AddDocument(DocumentState document)
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(this.ProjectInfo.Documents.Concat(document.Info)),
-                documentIds: this.DocumentIds.Add(document.Id),
+                documentIds: this.DocumentIds.ToImmutableArray().Add(document.Id),
                 documentStates: this.DocumentStates.Add(document.Id, document));
         }
 
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(this.ProjectInfo.Documents.Where(info => info.Id != documentId)),
-                documentIds: this.DocumentIds.Remove(documentId),
+                documentIds: this.DocumentIds.ToImmutableArray().Remove(documentId),
                 documentStates: this.DocumentStates.Remove(documentId));
         }
 
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
         {
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(SpecializedCollections.EmptyEnumerable<DocumentInfo>()),
-                documentIds: ImmutableList<DocumentId>.Empty,
+                documentIds: ImmutableArray.Create<DocumentId>(),
                 documentStates: ImmutableDictionary<DocumentId, DocumentState>.Empty);
         }
 

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state is InProgressState
                         ? ((InProgressState)state).IntermediateProjects
-                        : ImmutableList.Create<ValueTuple<ProjectState, CompilationTranslationAction>>();
+                        : ImmutableArray.Create<ValueTuple<ProjectState, CompilationTranslationAction>>();
 
                     var newIntermediateProjects = translate == null
                          ? intermediateProjects
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
                             : (ValueSource<Compilation>)new ConstantValueSource<Compilation>(declarationOnlyCompilation);
 
                         var intermediateProjects =
-                            ImmutableList.Create<ValueTuple<ProjectState, CompilationTranslationAction>>(ValueTuple.Create(this.ProjectState, translate));
+                            ImmutableArray.Create<ValueTuple<ProjectState, CompilationTranslationAction>>(ValueTuple.Create(this.ProjectState, translate));
 
                         return new CompilationTracker(newProject, new InProgressState(compilationSource, intermediateProjects));
                     }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // first remove all project from the project and compilation.
-                inProgressProject = inProgressProject.WithProjectReferences(ImmutableList.Create<ProjectReference>());
+                inProgressProject = inProgressProject.WithProjectReferences(ImmutableArray.Create<ProjectReference>());
 
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.Requires(inProgressCompilation != null);
                 var intermediateProjects = state.IntermediateProjects;
 
-                while (intermediateProjects.Count > 0)
+                while (intermediateProjects.Length > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

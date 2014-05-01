@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                return ImmutableList.Create(new TextChangeRange(new TextSpan(0, oldText.Length), this.Length));
+                return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), this.Length));
             }
         }
 
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Text
                 newPosDelta += range.NewLength - range.Span.Length;
             }
 
-            return textChanges.ToImmutableListOrEmpty();
+            return textChanges.ToImmutableArrayOrEmpty();
         }
 
         #endregion

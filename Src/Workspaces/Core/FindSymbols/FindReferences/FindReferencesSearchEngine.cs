@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly Solution solution;
         private readonly IImmutableSet<Document> documents;
-        private readonly ImmutableList<IReferenceFinder> finders;
+        private readonly ImmutableArray<IReferenceFinder> finders;
         private readonly IFindReferencesProgress progress;
         private readonly CancellationToken cancellationToken;
         private readonly ProjectDependencyGraph dependencyGraph;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,
-            ImmutableList<IReferenceFinder> finders,
+            ImmutableArray<IReferenceFinder> finders,
             IFindReferencesProgress progress,
             CancellationToken cancellationToken)
         {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 progress.OnCompleted();
             }
 
-            return this.foundReferences.Select(kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableList())).ToImmutableList();
+            return this.foundReferences.Select(kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray())).ToImmutableArray();
         }
 
         private async Task ProcessAsync(

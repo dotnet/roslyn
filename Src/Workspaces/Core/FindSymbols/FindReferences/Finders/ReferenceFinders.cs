@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// <summary>
         /// The list of common reference finders.
         /// </summary>
-        public static readonly IEnumerable<IReferenceFinder> DefaultReferenceFinders;
+        public static readonly ImmutableArray<IReferenceFinder> DefaultReferenceFinders;
 
         // Rename does not need to include base/this constructor initializer calls
-        internal static readonly ImmutableList<IReferenceFinder> DefaultRenameReferenceFinders;
+        internal static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders;
 
         static ReferenceFinders()
         {
-            DefaultRenameReferenceFinders = ImmutableList.Create(
+            DefaultRenameReferenceFinders = ImmutableArray.Create(
                 Constructor,
                 Destructor,
                 Event,

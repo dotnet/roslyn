@@ -209,9 +209,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _defaultObjectWriterData
         End Function
 
-        Private Shared ReadOnly _serializationData As ImmutableList(Of Object)
-        Private Shared Function GetSerializationData() As ImmutableList(Of Object)
-            Return New Object() {
+        Private Shared ReadOnly _serializationData As IEnumerable(Of Object)
+        Private Shared Function GetSerializationData() As IEnumerable(Of Object)
+            Dim data = New Object() {
                 GetType(Object).Assembly.FullName,
                 GetType(Microsoft.CodeAnalysis.DiagnosticInfo).Assembly.FullName,
                 GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly.FullName,
@@ -238,7 +238,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 } _
             .Concat(InternalSyntax.SyntaxFactory.NodeTypes) _
             .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
-            .ToImmutableList()
+            .ToImmutableArray()
+
+            Interlocked.CompareExchange(_serializationData, data, Nothing)
+
+            Return _serializationData
         End Function
 #End Region
 
