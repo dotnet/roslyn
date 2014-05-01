@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             }
 
             protected abstract bool HasDefaultValue { get; }
-            protected abstract Cci.IMetadataConstant GetDefaultValue(Context context);
+            protected abstract Cci.IMetadataConstant GetDefaultValue(EmitContext context);
             protected abstract bool IsIn { get; }
             protected abstract bool IsOut { get; }
             protected abstract bool IsOptional { get; }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(Context context)
+            Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
             {
                 return GetDefaultValue(context);
             }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
                 if (this.lazyAttributes.IsDefault)
                 {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 throw ExceptionUtilities.Unreachable;
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.IParameterTypeInformation.GetType(Context context)
+            Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
             {
                 return UnderlyingParameterTypeInformation.GetType(context);
             }

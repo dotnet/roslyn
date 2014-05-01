@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Cci = Microsoft.Cci;
-
-// ^ using Microsoft.Contracts;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -22,7 +20,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A collection of metadata custom attributes that are associated with this definition.
         /// </summary>
-        IEnumerable<ICustomAttribute> GetAttributes(Microsoft.CodeAnalysis.Emit.Context context); // TODO: consider moving this to IDefinition, we shouldn't need to examine attributes on references.
+        IEnumerable<ICustomAttribute> GetAttributes(EmitContext context); // TODO: consider moving this to IDefinition, we shouldn't need to examine attributes on references.
 
         /// <summary>
         /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
@@ -35,7 +33,7 @@ namespace Microsoft.Cci
         /// Gets the definition object corresponding to this reference within the given context, 
         /// or null if the referenced entity isn't defined in the context.
         /// </summary>
-        IDefinition AsDefinition(Microsoft.CodeAnalysis.Emit.Context context);
+        IDefinition AsDefinition(EmitContext context);
     }
 
     /// <summary>

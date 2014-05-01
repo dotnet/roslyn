@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingParameter.GetCustomAttributesToEmit();
         }
 
-        protected override Cci.IMetadataConstant GetDefaultValue(Context context)
+        protected override Cci.IMetadataConstant GetDefaultValue(EmitContext context)
         {
             return UnderlyingParameter.GetMetadataConstantValue(context);
         }

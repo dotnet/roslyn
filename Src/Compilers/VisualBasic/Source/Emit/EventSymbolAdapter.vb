@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Cci = Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -82,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Property
 
-        Private Overloads Function IEventDefinitionGetType(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.ITypeReference Implements Cci.IEventDefinition.GetType
+        Private Overloads Function IEventDefinitionGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IEventDefinition.GetType
             Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
@@ -102,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Property
 
-        Private Function ITypeMemberReferenceGetContainingType(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
+        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
             CheckDefinitionInvariant()
             Return Me.ContainingType
         End Function
@@ -112,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             visitor.Visit(DirectCast(Me, Cci.IEventDefinition))
         End Sub
 
-        Friend Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IDefinition 'Implements Cci.IReference.AsDefinition
+        Friend Overrides Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition 'Implements Cci.IReference.AsDefinition
             CheckDefinitionInvariant()
             Return Me
         End Function

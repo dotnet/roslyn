@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -209,7 +210,7 @@ partial class C
 
         private static void VerifyDefaultValueAttribute(ParameterSymbol parameter, string expectedAttributeName, object expectedDefault, bool hasDefault)
         {
-            var context = default(Microsoft.CodeAnalysis.Emit.Context);
+            var context = default(EmitContext);
             var attributes = ((Cci.IParameterDefinition)parameter).GetAttributes(context).ToArray();
             if (expectedAttributeName == null)
             {

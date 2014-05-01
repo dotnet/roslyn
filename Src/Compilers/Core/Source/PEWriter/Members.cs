@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -103,7 +104,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The (delegate) type of the handlers that will handle the event.
         /// </summary>
-        ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetType(EmitContext context);
     }
 
     /// <summary>
@@ -116,7 +117,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        IMetadataConstant GetCompileTimeValue(Microsoft.CodeAnalysis.Emit.Context context);
+        IMetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Information of the location where this field is mapped to
@@ -214,12 +215,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of value that is stored in this field.
         /// </summary>
-        ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetType(EmitContext context);
 
         /// <summary>
         /// The Field being referred to.
         /// </summary>
-        IFieldDefinition GetResolvedField(Microsoft.CodeAnalysis.Emit.Context context);
+        IFieldDefinition GetResolvedField(EmitContext context);
 
 
         ISpecializedFieldReference AsSpecializedFieldReference { get; }
@@ -473,7 +474,7 @@ namespace Microsoft.Cci
         /// <remarks>
         /// When emitting metadata-only assemblies this returns null even if <see cref="M:Cci.Extensions.HasBody"/> returns true.
         /// </remarks>
-        IMethodBody GetBody(Microsoft.CodeAnalysis.Emit.Context context);
+        IMethodBody GetBody(EmitContext context);
 
         /// <summary>
         /// If the method is generic then this list contains the type parameters.
@@ -562,7 +563,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Implementation flags.
         /// </summary>
-        MethodImplAttributes GetImplementationAttributes(Microsoft.CodeAnalysis.Emit.Context context);
+        MethodImplAttributes GetImplementationAttributes(EmitContext context);
 
         /// <summary>
         /// The parameters forming part of this signature.
@@ -630,7 +631,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        IMetadataConstant GetDefaultValue(Microsoft.CodeAnalysis.Emit.Context context);
+        IMetadataConstant GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -754,7 +755,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The parameters forming part of this signature.
         /// </summary>
-        ImmutableArray<IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
         /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
@@ -779,7 +780,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The return type of the method or type of the property.
         /// </summary>
-        ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetType(EmitContext context);
     }
 
     /// <summary>
@@ -808,7 +809,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A reference to the containing type of the referenced type member.
         /// </summary>
-        ITypeReference GetContainingType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetContainingType(EmitContext context);
     }
 
     /// <summary>
@@ -900,7 +901,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method being referred to.
         /// </summary>
-        IMethodDefinition GetResolvedMethod(Microsoft.CodeAnalysis.Emit.Context context);
+        IMethodDefinition GetResolvedMethod(EmitContext context);
         // ^ ensures this is IMethodDefinition ==> result == this;
 
         /// <summary>
@@ -920,13 +921,13 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type arguments that were used to instantiate this.GenericMethod in order to create this method.
         /// </summary>
-        IEnumerable<ITypeReference> GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        IEnumerable<ITypeReference> GetGenericArguments(EmitContext context);
         // ^ ensures result.GetEnumerator().MoveNext(); // The collection is always non empty.
 
         /// <summary>
         /// Returns the generic method of which this method is an instance.
         /// </summary>
-        IMethodReference GetGenericMethod(Microsoft.CodeAnalysis.Emit.Context context);
+        IMethodReference GetGenericMethod(EmitContext context);
         // ^ ensures result.ResolvedMethod.IsGeneric;
     }
 

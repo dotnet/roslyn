@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit
             visitor.Visit(this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Context m)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext m)
         {
             return this;
         }

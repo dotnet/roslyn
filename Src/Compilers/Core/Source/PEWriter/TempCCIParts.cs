@@ -4,20 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
     internal enum PlatformType
     {
-        SystemObject = Microsoft.CodeAnalysis.SpecialType.System_Object,
-        SystemDecimal = Microsoft.CodeAnalysis.SpecialType.System_Decimal,
-        SystemTypedReference = Microsoft.CodeAnalysis.SpecialType.System_TypedReference,
-        SystemType = Microsoft.CodeAnalysis.WellKnownType.System_Type,
-        SystemInt32 = Microsoft.CodeAnalysis.SpecialType.System_Int32,
-        SystemVoid = Microsoft.CodeAnalysis.SpecialType.System_Void,
-        SystemString = Microsoft.CodeAnalysis.SpecialType.System_String,
+        SystemObject = CodeAnalysis.SpecialType.System_Object,
+        SystemDecimal = CodeAnalysis.SpecialType.System_Decimal,
+        SystemTypedReference = CodeAnalysis.SpecialType.System_TypedReference,
+        SystemType = CodeAnalysis.WellKnownType.System_Type,
+        SystemInt32 = CodeAnalysis.SpecialType.System_Int32,
+        SystemVoid = CodeAnalysis.SpecialType.System_Void,
+        SystemString = CodeAnalysis.SpecialType.System_String,
     }
 
     /// <summary>
@@ -134,7 +133,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns zero or more local constant definitions that are local to the given scope.
         /// </summary>
-        IEnumerable<Microsoft.Cci.ILocalDefinition> Constants
+        IEnumerable<ILocalDefinition> Constants
         {
             get;
         }
@@ -142,7 +141,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns zero or more local variable definitions that are local to the given scope.
         /// </summary>
-        IEnumerable<Microsoft.Cci.ILocalDefinition> Variables
+        IEnumerable<ILocalDefinition> Variables
         {
             get;
         }
@@ -154,7 +153,7 @@ namespace Microsoft.Cci
         /// Returns a reference to the unit that defines the given referenced type. If the referenced type is a structural type, such as a pointer or a generic type instance,
         /// then the result is null.
         /// </summary>
-        public static IUnitReference/*?*/ GetDefiningUnitReference(ITypeReference typeReference, Microsoft.CodeAnalysis.Emit.Context context)
+        public static IUnitReference/*?*/ GetDefiningUnitReference(ITypeReference typeReference, EmitContext context)
         {
             INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
             while (nestedTypeReference != null)

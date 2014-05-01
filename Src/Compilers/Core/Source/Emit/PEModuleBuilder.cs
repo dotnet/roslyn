@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.namesOfTopLevelTypes.Contains(fullEmittedName);
         }
 
-        internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(Microsoft.CodeAnalysis.Emit.Context context);
+        internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context);
 
-        private IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(Microsoft.CodeAnalysis.Emit.Context context)
+        private IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
-            Microsoft.Cci.NoPiaReferenceIndexer noPiaIndexer = null;
+            Cci.NoPiaReferenceIndexer noPiaIndexer = null;
             HashSet<string> names;
 
             // First time through, we need to collect emitted names of all top level types.
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // to make sure we collect all to be embedded NoPia types and members.
             if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
             {
-                noPiaIndexer = new Microsoft.Cci.NoPiaReferenceIndexer(context);
+                noPiaIndexer = new Cci.NoPiaReferenceIndexer(context);
                 Debug.Assert(names != null);
                 this.Dispatch(noPiaIndexer);
             }
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = referencesInILMap.GetOrAddTokenFor(symbol, out added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new Microsoft.CodeAnalysis.Emit.Context(this, syntaxNode, diagnostics));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics));
             }
             return token;
         }
@@ -616,14 +616,14 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context)
         {
             return GetTopLevelTypes(context);
         }
 
-        public abstract IEnumerable<Microsoft.Cci.ITypeExport> GetExportedTypes(Microsoft.CodeAnalysis.Emit.Context context);
+        public abstract IEnumerable<Microsoft.Cci.ITypeExport> GetExportedTypes(EmitContext context);
 
-        Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
             Debug.Assert((object)this == context.Module);
 
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(Microsoft.CodeAnalysis.Emit.Context context);
+        protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
 
         /// <summary>
         /// Builds symbol definition to location map used for emitting token -> location info
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return GetSymbolToLocationMap();
         }
 
-        IEnumerable<Cci.IAssemblyReference> Cci.IModule.GetAssemblyReferences(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.IAssemblyReference> Cci.IModule.GetAssemblyReferences(EmitContext context)
         {
             Cci.IAssemblyReference corLibrary = GetCorLibraryReferenceToEmit(context);
 
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private IEnumerable<Cci.ManagedResource> lazyManagedResources;
 
-        IEnumerable<Cci.ManagedResource> Cci.IModule.GetResources(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
         {
             if (lazyManagedResources == null)
             {
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return this as Cci.IAssembly; }
         }
 
-        Cci.IAssemblyReference Cci.IModule.GetCorLibrary(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IAssemblyReference Cci.IModule.GetCorLibrary(EmitContext context)
         {
             return Translate(CorLibrary, context.Diagnostics);
         }
@@ -783,12 +783,12 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return serializationProperties.BaseAddress; }
         }
 
-        Cci.IAssembly Cci.IModule.GetContainingAssembly(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IAssembly Cci.IModule.GetContainingAssembly(EmitContext context)
         {
             return this.OutputKind.IsNetModule() ? null : (Cci.IAssembly)this;
         }
 
-        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
         {
             return this.OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
         }
@@ -974,12 +974,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region IReference
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             Debug.Assert(ReferenceEquals(context.Module, this));
             return this;

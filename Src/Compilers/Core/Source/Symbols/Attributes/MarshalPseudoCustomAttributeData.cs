@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Emit;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -108,13 +109,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        object Cci.IMarshallingInformation.GetCustomMarshaller(Emit.Context context)
+        object Cci.IMarshallingInformation.GetCustomMarshaller(EmitContext context)
         {
             Debug.Assert(marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
             var typeSymbol = marshalTypeNameOrSymbol as ITypeSymbol;
             if (typeSymbol != null)
             {
-                return ((Emit.CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNodeOpt, context.Diagnostics);
+                return ((CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNodeOpt, context.Diagnostics);
             }
             else
             {
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(Emit.Context context)
+        Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(EmitContext context)
         {
             Debug.Assert(marshalType == UnmanagedType.SafeArray);
 
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ((Emit.CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
+            return ((CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
         }
 
         /// <summary>

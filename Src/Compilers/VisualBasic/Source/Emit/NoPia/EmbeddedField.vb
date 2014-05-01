@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return UnderlyingField.GetCustomAttributesToEmit()
         End Function
 
-        Protected Overrides Function GetCompileTimeValue(context As Context) As Cci.IMetadataConstant
+        Protected Overrides Function GetCompileTimeValue(context As EmitContext) As Cci.IMetadataConstant
             Return UnderlyingField.GetMetadataConstantValue(context)
         End Function
 

@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
         protected readonly HashSet<IReference> alreadySeen = new HashSet<IReference>();
@@ -16,7 +15,7 @@ namespace Microsoft.Cci
         protected bool typeReferenceNeedsToken;
         protected IModule/*?*/ module;
 
-        internal ReferenceIndexerBase(Microsoft.CodeAnalysis.Emit.Context context)
+        internal ReferenceIndexerBase(EmitContext context)
             : base(context)
         {
         }
@@ -635,7 +634,7 @@ namespace Microsoft.Cci
     /// </summary>
     internal sealed class NoPiaReferenceIndexer : ReferenceIndexerBase
     {
-        internal NoPiaReferenceIndexer(Microsoft.CodeAnalysis.Emit.Context context)
+        internal NoPiaReferenceIndexer(EmitContext context)
             : base(context)
         {
             this.module = context.Module;

@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 baseline = MapToCompilation(compilation, moduleBeingBuilt)
 
                 Using pdbWriter = New Cci.PdbWriter(pdbName, pdbStream, If(testData IsNot Nothing, testData.SymWriterFactory, Nothing))
-                    Dim context = New Context(moduleBeingBuilt, Nothing, diagnostics)
+                    Dim context = New EmitContext(moduleBeingBuilt, Nothing, diagnostics)
                     Dim encId = Guid.NewGuid()
 
                     Try
@@ -126,9 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim map = New SymbolMatcher(
                 moduleBeingBuilt.GetAnonymousTypeMap(),
                 (DirectCast(previousGeneration.Compilation, VisualBasicCompilation)).SourceAssembly,
-                New Context(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
+                New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
                 compilation.SourceAssembly,
-                New Context(DirectCast(moduleBeingBuilt, Cci.IModule), Nothing, New DiagnosticBag()))
+                New EmitContext(DirectCast(moduleBeingBuilt, Cci.IModule), Nothing, New DiagnosticBag()))
 
             ' Map all definitions to this compilation.
             Dim typesAdded = MapDefinitions(map, previousGeneration.TypesAdded)

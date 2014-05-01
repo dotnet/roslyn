@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         Cci.PeWriter.WritePeToStream(
-                            new Context(moduleBeingBuilt, null, metadataDiagnostics),
+                            new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                             this.MessageProvider,
                             outputStream,
                             pdbWriter,

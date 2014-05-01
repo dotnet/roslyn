@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal sealed class ParameterTypeInformation : Microsoft.Cci.IParameterTypeInformation
+    internal sealed class ParameterTypeInformation : Cci.IParameterTypeInformation
     {
         private readonly ParameterSymbol UnderlyingParameter;
 
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.UnderlyingParameter = underlyingParameter;
         }
 
-        IEnumerable<Microsoft.Cci.ICustomModifier> Microsoft.Cci.IParameterTypeInformation.CustomModifiers
+        IEnumerable<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.IsByReference
+        bool Cci.IParameterTypeInformation.IsByReference
         {
             get
             {
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.IsModified
+        bool Cci.IParameterTypeInformation.IsModified
         {
             get
             {
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
         {
             get
             {
@@ -53,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.ITypeReference Microsoft.Cci.IParameterTypeInformation.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(UnderlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
-        ushort Microsoft.Cci.IParameterListEntry.Index
+        ushort Cci.IParameterListEntry.Index
         {
             get
             {
@@ -72,45 +70,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
     }
 
-    internal sealed class ArgListParameterTypeInformation : Microsoft.Cci.IParameterTypeInformation
+    internal sealed class ArgListParameterTypeInformation : Cci.IParameterTypeInformation
     {
         private readonly ushort ordinal;
         private readonly bool isByRef;
-        private readonly Microsoft.Cci.ITypeReference type;
+        private readonly Cci.ITypeReference type;
 
-        public ArgListParameterTypeInformation(int ordinal, bool isByRef, Microsoft.Cci.ITypeReference type)
+        public ArgListParameterTypeInformation(int ordinal, bool isByRef, Cci.ITypeReference type)
         {
             this.ordinal = (ushort)ordinal;
             this.isByRef = isByRef;
             this.type = type;
         }
 
-        IEnumerable<Microsoft.Cci.ICustomModifier> Microsoft.Cci.IParameterTypeInformation.CustomModifiers
+        IEnumerable<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ICustomModifier>(); }
+            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomModifier>(); }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.IsByReference
+        bool Cci.IParameterTypeInformation.IsByReference
         {
             get { return isByRef; }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.IsModified
+        bool Cci.IParameterTypeInformation.IsModified
         {
             get { return false; }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
         {
             get { return false; }
         }
 
-        Microsoft.Cci.ITypeReference Microsoft.Cci.IParameterTypeInformation.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
             return type;
         }
 
-        ushort Microsoft.Cci.IParameterListEntry.Index
+        ushort Cci.IParameterListEntry.Index
         {
             get { return ordinal; }
         }

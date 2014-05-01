@@ -1,33 +1,26 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Cci = Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Class VisualBasicAttributeData
         Implements Cci.ICustomAttribute
 
-        Private Function GetArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Cci.IMetadataExpression) Implements Cci.ICustomAttribute.GetArguments
+        Private Function GetArguments1(context As EmitContext) As ImmutableArray(Of Cci.IMetadataExpression) Implements Cci.ICustomAttribute.GetArguments
             Return CommonConstructorArguments.SelectAsArray(Function(arg) CreateMetadataExpression(arg, context))
         End Function
 
-        Private Function Constructor1(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IMethodReference Implements Cci.ICustomAttribute.Constructor
+        Private Function Constructor1(context As EmitContext) As Cci.IMethodReference Implements Cci.ICustomAttribute.Constructor
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.Translate(AttributeConstructor, needDeclaration:=False,
-                                              syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), Diagnostics:=context.Diagnostics)
+                                              syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function GetNamedArguments1(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Cci.IMetadataNamedArgument) Implements Cci.ICustomAttribute.GetNamedArguments
+        Private Function GetNamedArguments1(context As EmitContext) As ImmutableArray(Of Cci.IMetadataNamedArgument) Implements Cci.ICustomAttribute.GetNamedArguments
             Return CommonNamedArguments.SelectAsArray(Function(namedArgument) CreateMetadataNamedArgument(namedArgument.Key, namedArgument.Value, context))
         End Function
 
@@ -43,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function GetType1(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.ITypeReference Implements Cci.ICustomAttribute.GetType
+        Private Function GetType1(context As EmitContext) As Cci.ITypeReference Implements Cci.ICustomAttribute.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.Translate(AttributeClass, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), Diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(AttributeClass, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property AllowMultiple1 As Boolean Implements Cci.ICustomAttribute.AllowMultiple
@@ -54,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function CreateMetadataExpression(argument As TypedConstant, context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IMetadataExpression
+        Private Function CreateMetadataExpression(argument As TypedConstant, context As EmitContext) As Cci.IMetadataExpression
             If argument.IsNull Then
                 Return CreateMetadataConstant(argument.Type, Nothing, context)
             End If
@@ -70,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
 
-        Private Function CreateMetadataArray(argument As TypedConstant, context As Microsoft.CodeAnalysis.Emit.Context) As MetadataCreateArray
+        Private Function CreateMetadataArray(argument As TypedConstant, context As EmitContext) As MetadataCreateArray
             Debug.Assert(Not argument.Values.IsDefault)
 
             Dim values = argument.Values
@@ -93,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            metadataExprs.AsImmutableOrNull)
         End Function
 
-        Private Function CreateType(argument As TypedConstant, context As Microsoft.CodeAnalysis.Emit.Context) As MetadataTypeOf
+        Private Function CreateType(argument As TypedConstant, context As EmitContext) As MetadataTypeOf
             Debug.Assert(argument.Value IsNot Nothing)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
@@ -103,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       moduleBeingBuilt.Translate(DirectCast(argument.Type, TypeSymbol), syntaxNodeOpt, diagnostics))
         End Function
 
-        Private Function CreateMetadataConstant(type As ITypeSymbol, value As Object, context As Microsoft.CodeAnalysis.Emit.Context) As MetadataConstant
+        Private Function CreateMetadataConstant(type As ITypeSymbol, value As Object, context As EmitContext) As MetadataConstant
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
 
-        Private Function CreateMetadataNamedArgument(name As String, argument As TypedConstant, context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IMetadataNamedArgument
+        Private Function CreateMetadataNamedArgument(name As String, argument As TypedConstant, context As EmitContext) As Cci.IMetadataNamedArgument
             Dim sym = LookupName(name)
             Dim value = CreateMetadataExpression(argument, context)
             Dim type As TypeSymbol

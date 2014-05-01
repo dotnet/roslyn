@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return builder.ToImmutableAndFree();
             }
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
                 if (this.lazyAttributes.IsDefault)
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 throw ExceptionUtilities.Unreachable;
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             visitor.Visit(DirectCast(Me, Cci.IAssembly))
         End Sub
 
-        Private Function IAssemblyGetFiles(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
+        Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
             If m_LazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try

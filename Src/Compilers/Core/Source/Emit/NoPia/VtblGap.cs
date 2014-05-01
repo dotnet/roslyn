@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             this.name = name;
         }
 
-        Cci.IMethodBody Cci.IMethodDefinition.GetBody(Context context)
+        Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             return null;
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(Context context)
+        System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             return System.Reflection.MethodImplAttributes.Managed | System.Reflection.MethodImplAttributes.Runtime;
         }
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return Cci.TypeMemberVisibility.Public; }
         }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             return ContainingType;
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             visitor.Visit((Cci.IMethodDefinition)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return this;
         }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(Context context)
+        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return this;
         }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return 0; }
         }
 
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
             return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
         }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        Cci.ITypeReference Cci.ISignature.GetType(Context context)
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
         }

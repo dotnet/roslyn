@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.IEventDefinition.GetType(Context context)
+            Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
             {
                 return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Context context)
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
             {
                 return ContainingType;
             }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 visitor.Visit((Cci.IEventDefinition)this);
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }

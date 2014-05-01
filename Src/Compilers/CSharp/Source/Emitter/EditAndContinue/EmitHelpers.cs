@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 using (var pdbWriter = new Cci.PdbWriter(pdbName, pdbStream, (testData != null) ? testData.SymWriterFactory : null))
                 {
-                    var context = new Context(moduleBeingBuilt, null, diagnostics);
+                    var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                     var encId = Guid.NewGuid();
 
                     try
@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var map = new SymbolMatcher(
                 moduleBeingBuilt.GetAnonymousTypeMap(),
                 ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
-                new Context((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
+                new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
                 compilation.SourceAssembly,
-                new Context((Cci.IModule)moduleBeingBuilt, null, new DiagnosticBag()));
+                new EmitContext((Cci.IModule)moduleBeingBuilt, null, new DiagnosticBag()));
 
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(map, previousGeneration.TypesAdded);

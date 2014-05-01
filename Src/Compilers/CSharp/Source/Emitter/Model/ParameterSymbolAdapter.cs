@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -34,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Microsoft.Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
         {
             get
             {
@@ -50,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(this.Type,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
@@ -68,13 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets constant value to be stored in metadata Constant table.
         /// </summary>
-        Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.GetMetadataConstantValue(context);
         }
 
-        internal Cci.IMetadataConstant GetMetadataConstantValue(Microsoft.CodeAnalysis.Emit.Context context)
+        internal Cci.IMetadataConstant GetMetadataConstantValue(EmitContext context)
         {
             if (!HasMetadataConstantValue)
             {
@@ -218,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 

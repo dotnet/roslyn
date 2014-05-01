@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             Debug.Assert(underlyingTypeParameter.IsDefinition);
         }
 
-        protected override IEnumerable<Cci.ITypeReference> GetConstraints(Context context)
+        protected override IEnumerable<Cci.ITypeReference> GetConstraints(EmitContext context)
         {
             return ((Cci.IGenericParameter)UnderlyingTypeParameter).GetConstraints(context);
         }

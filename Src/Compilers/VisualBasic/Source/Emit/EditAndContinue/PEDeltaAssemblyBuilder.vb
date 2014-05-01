@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             MyBase.New(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly:=False)
 
-            Dim context = New Context(Me, Nothing, New DiagnosticBag())
+            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
             Dim [module] = previousGeneration.OriginalMetadata
             Dim compilation = sourceAssembly.DeclaringCompilation
             Dim metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create([module]), MetadataImportOptions.All)
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim matchToPrevious As SymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New Context(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
+                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
                 matchToPrevious = New SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext)
             End If
 
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetTopLevelTypesCore(context As Context) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+        Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             Return m_Changes.GetTopLevelTypes(context)
         End Function
 

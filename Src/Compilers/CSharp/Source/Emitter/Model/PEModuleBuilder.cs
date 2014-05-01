@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return false; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.Context context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.EmitContext context)
         {
             foreach (var type in GetAdditionalTopLevelTypes())
             {
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override IEnumerable<Cci.ITypeExport> GetExportedTypes(CodeAnalysis.Emit.Context context)
+        public override IEnumerable<Cci.ITypeExport> GetExportedTypes(CodeAnalysis.Emit.EmitContext context)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        protected sealed override Cci.IAssemblyReference GetCorLibraryReferenceToEmit(CodeAnalysis.Emit.Context context)
+        protected sealed override Cci.IAssemblyReference GetCorLibraryReferenceToEmit(CodeAnalysis.Emit.EmitContext context)
         {
             AssemblySymbol corLibrary = CorLibrary;
 

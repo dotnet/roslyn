@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return (ushort)parameters.Length; }
             }
 
-            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
             {
                 return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ISignature.GetType(Context context)
+            Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
             {
                 return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Context context)
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
             {
                 return ContainingType;
             }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 visitor.Visit((Cci.IPropertyDefinition)this);
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            protected abstract Cci.IMetadataConstant GetCompileTimeValue(Context context);
+            protected abstract Cci.IMetadataConstant GetCompileTimeValue(EmitContext context);
             protected abstract bool IsCompileTimeConstant { get; }
             protected abstract bool IsNotSerialized { get; }
             protected abstract bool IsReadOnly { get; }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
 
-            Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(Context context)
+            Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
             {
                 return GetCompileTimeValue(context);
             }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Context context)
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
             {
                 return ContainingType;
             }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 visitor.Visit((Cci.IFieldDefinition)this);
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }
@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.IFieldReference.GetType(Context context)
+            Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
             {
                 return UnderlyingField.GetType(context);
             }
 
-            Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(Context context)
+            Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
             {
                 return this;
             }

@@ -2,17 +2,18 @@
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class CSharpCustomModifier : Microsoft.Cci.ICustomModifier
+    partial class CSharpCustomModifier : Cci.ICustomModifier
     {
-        bool Microsoft.Cci.ICustomModifier.IsOptional
+        bool Cci.ICustomModifier.IsOptional
         {
             get { return this.IsOptional; }
         }
 
-        Microsoft.Cci.ITypeReference Microsoft.Cci.ICustomModifier.GetModifier(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
         {
             Debug.Assert(this.Modifier.IsDefinition);
             return ((PEModuleBuilder)context.Module).Translate(this.Modifier, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);

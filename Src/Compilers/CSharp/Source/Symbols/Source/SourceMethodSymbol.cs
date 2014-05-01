@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -12,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -483,20 +480,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override Microsoft.Cci.CallingConvention CallingConvention
+        internal sealed override Cci.CallingConvention CallingConvention
         {
             get
             {
-                var cc = IsVararg ? Microsoft.Cci.CallingConvention.ExtraArguments : Microsoft.Cci.CallingConvention.Default;
+                var cc = IsVararg ? Cci.CallingConvention.ExtraArguments : Cci.CallingConvention.Default;
 
                 if (IsGenericMethod)
                 {
-                    cc |= Microsoft.Cci.CallingConvention.Generic;
+                    cc |= Cci.CallingConvention.Generic;
                 }
 
                 if (!IsStatic)
                 {
-                    cc |= Microsoft.Cci.CallingConvention.HasThis;
+                    cc |= Cci.CallingConvention.HasThis;
                 }
 
                 return cc;

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -2117,7 +2118,7 @@ class Program
             Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
             // Not emitted.
-            Assert.Equal(0, ((Microsoft.Cci.IReference)indexer).GetAttributes(new Microsoft.CodeAnalysis.Emit.Context()).Count());
+            Assert.Equal(0, ((Microsoft.Cci.IReference)indexer).GetAttributes(new EmitContext()).Count());
         }
 
         [WorkItem(545884, "DevDiv")]

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public SymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             SourceAssemblySymbol sourceAssembly,
-            Context sourceContext,
+            EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
-            Context otherContext)
+            EmitContext otherContext)
         {
             this.defs = new MatchDefsToSource(sourceContext, otherContext);
             this.symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, this.defs);
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public SymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             SourceAssemblySymbol sourceAssembly,
-            Context sourceContext,
+            EmitContext sourceContext,
             Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly)
         {
             this.defs = new MatchDefsToMetadata(sourceContext, otherAssembly);
@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private abstract class MatchDefs
         {
-            private readonly Context sourceContext;
+            private readonly EmitContext sourceContext;
             private readonly ConcurrentDictionary<IDefinition, IDefinition> matches;
             private IReadOnlyDictionary<string, INamespaceTypeDefinition> lazyTopLevelTypes;
 
-            public MatchDefs(Context sourceContext)
+            public MatchDefs(EmitContext sourceContext)
             {
                 this.sourceContext = sourceContext;
                 this.matches = new ConcurrentDictionary<IDefinition, IDefinition>();
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             private readonly Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly;
 
-            public MatchDefsToMetadata(Context sourceContext, Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly) :
+            public MatchDefsToMetadata(EmitContext sourceContext, Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol otherAssembly) :
                 base(sourceContext)
             {
                 this.otherAssembly = otherAssembly;
@@ -227,11 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private sealed class MatchDefsToSource : MatchDefs
         {
-            private readonly Context otherContext;
+            private readonly EmitContext otherContext;
 
             public MatchDefsToSource(
-                Context sourceContext,
-                Context otherContext) :
+                EmitContext sourceContext,
+                EmitContext otherContext) :
                 base(sourceContext)
             {
                 this.otherContext = otherContext;

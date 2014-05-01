@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -21,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ISpecializedFieldReference
     {
 
-        Cci.ITypeReference Cci.IFieldReference.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -42,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
             return ResolvedFieldImpl((PEModuleBuilder)context.Module);
         }
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -109,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -132,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
         {
             CheckDefinitionInvariant();
 
             return GetMetadataConstantValue(context);
         }
 
-        internal Cci.IMetadataConstant GetMetadataConstantValue(Microsoft.CodeAnalysis.Emit.Context context)
+        internal Cci.IMetadataConstant GetMetadataConstantValue(EmitContext context)
         {
             // A constant field of type decimal is not treated as a compile time value in CLR,
             // so check if it is a metadata constant, not just a constant to exclude decimals.

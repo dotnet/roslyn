@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class MethodReference : TypeMemberReference, Microsoft.Cci.IMethodReference
+    internal abstract class MethodReference : TypeMemberReference, Cci.IMethodReference
     {
         protected readonly MethodSymbol UnderlyingMethod;
 
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IMethodReference.AcceptsExtraArguments
+        bool Cci.IMethodReference.AcceptsExtraArguments
         {
             get
             {
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        ushort Microsoft.Cci.IMethodReference.GenericParameterCount
+        ushort Cci.IMethodReference.GenericParameterCount
         {
             get
             {
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IMethodReference.IsGeneric
+        bool Cci.IMethodReference.IsGeneric
         {
             get
             {
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        ushort Microsoft.Cci.ISignature.ParameterCount
+        ushort Cci.ISignature.ParameterCount
         {
             get
             {
@@ -61,20 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.IMethodDefinition Microsoft.Cci.IMethodReference.GetResolvedMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return null;
         }
 
-        ImmutableArray<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.IMethodReference.ExtraParameters
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
             get
             {
-                return ImmutableArray<Microsoft.Cci.IParameterTypeInformation>.Empty;
+                return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
             }
         }
 
-        Microsoft.Cci.CallingConvention Microsoft.Cci.ISignature.CallingConvention
+        Cci.CallingConvention Cci.ISignature.CallingConvention
         {
             get
             {
@@ -82,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        ImmutableArray<Microsoft.Cci.IParameterTypeInformation> Microsoft.Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
         }
 
-        IEnumerable<Microsoft.Cci.ICustomModifier> Microsoft.Cci.ISignature.ReturnValueCustomModifiers
+        IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get
             {
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.ISignature.ReturnValueIsByRef
+        bool Cci.ISignature.ReturnValueIsByRef
         {
             get
             {
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.ISignature.ReturnValueIsModified
+        bool Cci.ISignature.ReturnValueIsModified
         {
             get
             {
@@ -112,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.ITypeReference Microsoft.Cci.ISignature.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
-        public virtual Microsoft.Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
+        public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
         {
             get
             {
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public virtual Microsoft.Cci.ISpecializedMethodReference AsSpecializedMethodReference
+        public virtual Cci.ISpecializedMethodReference AsSpecializedMethodReference
         {
             get
             {

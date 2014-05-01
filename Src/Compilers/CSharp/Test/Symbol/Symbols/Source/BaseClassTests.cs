@@ -13,6 +13,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Retargeting = Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1443,7 +1444,7 @@ class C : I2 { }
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var cciInterfaces = typeDef.Interfaces(context).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
             context.Diagnostics.Verify();

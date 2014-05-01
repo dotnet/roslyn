@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IParameterTypeInformationGetType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements IParameterTypeInformation.GetType
+        Private Function IParameterTypeInformationGetType(context As EmitContext) As ITypeReference Implements IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim paramType As TypeSymbol = Me.Type
             Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
@@ -54,12 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IParameterDefinition_GetDefaultValue(context As Microsoft.CodeAnalysis.Emit.Context) As IMetadataConstant Implements IParameterDefinition.GetDefaultValue
+        Private Function IParameterDefinition_GetDefaultValue(context As EmitContext) As IMetadataConstant Implements IParameterDefinition.GetDefaultValue
             CheckDefinitionInvariant()
             Return Me.GetMetadataConstantValue(context)
         End Function
 
-        Friend Function GetMetadataConstantValue(context As Microsoft.CodeAnalysis.Emit.Context) As IMetadataConstant
+        Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
             If Me.HasMetadataConstantValue Then
                 Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Else
@@ -162,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)

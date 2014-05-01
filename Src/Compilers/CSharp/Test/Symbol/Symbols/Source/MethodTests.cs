@@ -6,10 +6,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1515,7 +1515,7 @@ class C : I
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1559,7 +1559,7 @@ class F : System.IFormattable
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1613,7 +1613,7 @@ class IC : Namespace.I<int>
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1754,7 +1754,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);
@@ -1798,7 +1798,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);

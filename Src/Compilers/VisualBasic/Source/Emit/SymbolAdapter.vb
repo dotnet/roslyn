@@ -3,6 +3,7 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -11,16 +12,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class Symbol
-        Implements Microsoft.Cci.IReference
+        Implements Cci.IReference
 
-        Friend Overridable Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As Microsoft.Cci.IDefinition _
-            Implements Microsoft.Cci.IReference.AsDefinition
+        Friend Overridable Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition _
+            Implements Cci.IReference.AsDefinition
 
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overridable Sub IReferenceDispatch(visitor As Microsoft.Cci.MetadataVisitor) _
-            Implements Microsoft.Cci.IReference.Dispatch
+        Friend Overridable Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) _
+            Implements Cci.IReference.Dispatch
 
             Throw ExceptionUtilities.Unreachable
         End Sub
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.IsDefinition OrElse Not Me.Equals(Me.OriginalDefinition)
         End Function
 
-        Private Function IReferenceGetAttributes(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Microsoft.Cci.ICustomAttribute) Implements Microsoft.Cci.IReference.GetAttributes
+        Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
             Return GetCustomAttributesToEmit()
         End Function
 

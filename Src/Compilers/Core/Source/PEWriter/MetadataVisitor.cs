@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
-using EmitContext = Microsoft.CodeAnalysis.Emit.Context;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {

@@ -1,16 +1,14 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Zero or more positional arguments for the attribute constructor.
         /// </summary>
-        public ImmutableArray<Cci.IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IMetadataExpression> GetArguments(EmitContext context)
         {
             return this.sourceAttribute.GetArguments(context);
         }
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        public Cci.IMethodReference Constructor(Microsoft.CodeAnalysis.Emit.Context context)
+        public Cci.IMethodReference Constructor(EmitContext context)
         {
             return this.sourceAttribute.Constructor(context);
         }
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
         /// </summary>
-        public ImmutableArray<Cci.IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IMetadataNamedArgument> GetNamedArguments(EmitContext context)
         {
             // Perform fixup 
             Cci.ITypeReference stringType = context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The type of the attribute. For example System.AttributeUsageAttribute.
         /// </summary>
-        public Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        public Cci.ITypeReference GetType(EmitContext context)
         {
             return this.sourceAttribute.GetType(context);
         }

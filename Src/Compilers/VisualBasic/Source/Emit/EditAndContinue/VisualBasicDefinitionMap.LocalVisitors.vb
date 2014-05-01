@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -376,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' previous version of the local if it had custom modifiers.
                 If info.CustomModifiers.IsDefaultOrEmpty Then
                     Dim constraints = GetConstraints(info)
-                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, ITypeReference), constraints, CInt(tempKind))
+                    Dim local As EncLocalInfo = New EncLocalInfo(Me.offset, CType(info.Type, Cci.ITypeReference), constraints, CInt(tempKind))
                     Me.locals.Add(local, slot)
                     If name IsNot Nothing Then
                         Me.knownDeclaredLocals.Add(name)

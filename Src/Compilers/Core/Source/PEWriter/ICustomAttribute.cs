@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -13,17 +14,17 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more positional arguments for the attribute constructor.
         /// </summary>
-        ImmutableArray<IMetadataExpression> GetArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IMetadataExpression> GetArguments(EmitContext context);
 
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        IMethodReference Constructor(Microsoft.CodeAnalysis.Emit.Context context);
+        IMethodReference Constructor(EmitContext context);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
         /// </summary>
-        ImmutableArray<IMetadataNamedArgument> GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context);
+        ImmutableArray<IMetadataNamedArgument> GetNamedArguments(EmitContext context);
 
         /// <summary>
         /// The number of positional arguments.
@@ -44,7 +45,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type of the attribute. For example System.AttributeUsageAttribute.
         /// </summary>
-        ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        ITypeReference GetType(EmitContext context);
 
         /// <summary>
         /// Whether attribute allows multiple.

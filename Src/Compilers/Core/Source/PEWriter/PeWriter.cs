@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -60,7 +61,7 @@ namespace Microsoft.Cci
         private static readonly Encoding Utf8Encoding = Encoding.UTF8;
 
         protected PeWriter(
-            Microsoft.CodeAnalysis.Emit.Context context,
+            EmitContext context,
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
@@ -448,7 +449,7 @@ namespace Microsoft.Cci
         internal readonly bool allowMissingMethodBodies;
         private readonly CancellationToken cancellationToken;
         protected readonly IModule module;
-        public readonly Microsoft.CodeAnalysis.Emit.Context Context;
+        public readonly EmitContext Context;
         private readonly CommonMessageProvider messageProvider;
 
         // progress:
@@ -668,7 +669,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public static void WritePeToStream(Microsoft.CodeAnalysis.Emit.Context context, CommonMessageProvider messageProvider, System.IO.Stream stream, CancellationToken cancellationToken)
+        public static void WritePeToStream(EmitContext context, CommonMessageProvider messageProvider, Stream stream, CancellationToken cancellationToken)
         {
             WritePeToStream(
                 context,
@@ -681,9 +682,9 @@ namespace Microsoft.Cci
         }
 
         public static void WritePeToStream(
-            Microsoft.CodeAnalysis.Emit.Context context,
+            EmitContext context,
             CommonMessageProvider messageProvider,
-            System.IO.Stream stream,
+            Stream stream,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldDuplicateMethodBodies,
@@ -2630,7 +2631,7 @@ namespace Microsoft.Cci
             return GetTypeDefFlags(typeDef, Context);
         }
 
-        public static uint GetTypeDefFlags(ITypeDefinition typeDef, Microsoft.CodeAnalysis.Emit.Context context)
+        public static uint GetTypeDefFlags(ITypeDefinition typeDef, EmitContext context)
         {
             TypeAttributes result = default(TypeAttributes);
 

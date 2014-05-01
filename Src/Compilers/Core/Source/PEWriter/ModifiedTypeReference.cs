@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -49,12 +50,12 @@ namespace Microsoft.Cci
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        ITypeDefinition ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
         {
             return PrimitiveTypeCode.NotPrimitive;
         }
@@ -64,7 +65,7 @@ namespace Microsoft.Cci
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        IEnumerable<ICustomAttribute> IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         }
@@ -98,7 +99,7 @@ namespace Microsoft.Cci
             }
         }
 
-        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -111,7 +112,7 @@ namespace Microsoft.Cci
             }
         }
 
-        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -132,12 +133,12 @@ namespace Microsoft.Cci
             }
         }
 
-        ITypeDefinition ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        IDefinition IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        IDefinition IReference.AsDefinition(EmitContext context)
         {
             return null;
         }

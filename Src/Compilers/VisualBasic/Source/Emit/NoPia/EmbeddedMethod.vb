@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides Function GetImplementationAttributes(context As Context) As Reflection.MethodImplAttributes
+        Protected Overrides Function GetImplementationAttributes(context As EmitContext) As Reflection.MethodImplAttributes
             Return UnderlyingMethod.ImplementationAttributes
         End Function
 

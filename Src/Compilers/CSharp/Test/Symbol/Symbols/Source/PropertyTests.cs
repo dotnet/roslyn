@@ -10,7 +10,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-    
+using Microsoft.CodeAnalysis.Emit;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public class PropertyTests : CSharpTestBase
@@ -2135,7 +2136,7 @@ End Class";
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-            var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag());
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));

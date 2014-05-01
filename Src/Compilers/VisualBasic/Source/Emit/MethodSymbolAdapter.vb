@@ -1,14 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class MethodSymbol
@@ -46,11 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
             Return ResolvedMethodImpl(DirectCast(context.Module, PEModuleBuilder))
         End Function
 
-        Private Function ITypeMemberReferenceGetContainingType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ITypeMemberReference.GetContainingType
+        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
@@ -118,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IMethodReferenceGetResolvedMethod(context As Microsoft.CodeAnalysis.Emit.Context) As IMethodDefinition Implements IMethodReference.GetResolvedMethod
+        Private Function IMethodReferenceGetResolvedMethod(context As EmitContext) As IMethodDefinition Implements IMethodReference.GetResolvedMethod
             Return ResolvedMethodImpl(DirectCast(context.Module, PEModuleBuilder))
         End Function
 
@@ -147,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As EmitContext) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -188,14 +184,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ISignature.GetType
+        Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Dim returnType As TypeSymbol = Me.ReturnType
             Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of ITypeReference) Implements IGenericMethodInstanceReference.GetGenericArguments
+        Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As EmitContext) As IEnumerable(Of ITypeReference) Implements IGenericMethodInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert((DirectCast(Me, IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
@@ -204,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                    Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As Microsoft.CodeAnalysis.Emit.Context) As IMethodReference Implements IGenericMethodInstanceReference.GetGenericMethod
+        Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As IMethodReference Implements IGenericMethodInstanceReference.GetGenericMethod
             Debug.Assert((DirectCast(Me, IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
             If Me.OriginalDefinition IsNot Me.ConstructedFrom Then
@@ -254,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IMethodDefinitionGetBody(context As Microsoft.CodeAnalysis.Emit.Context) As IMethodBody Implements IMethodDefinition.GetBody
+        Private Function IMethodDefinitionGetBody(context As EmitContext) As IMethodBody Implements IMethodDefinition.GetBody
             CheckDefinitionInvariant()
             Return (DirectCast(context.Module, PEModuleBuilder)).GetMethodBody(Me)
         End Function
@@ -316,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IMethodDefinitionGetImplementationOptions(context As Microsoft.CodeAnalysis.Emit.Context) As System.Reflection.MethodImplAttributes Implements IMethodDefinition.GetImplementationAttributes
+        Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As System.Reflection.MethodImplAttributes Implements IMethodDefinition.GetImplementationAttributes
             CheckDefinitionInvariant()
             Return Me.ImplementationAttributes Or
                    If(DirectCast(context.Module, PEModuleBuilder).JITOptimizationIsDisabled(Me), DisableJITOptimizationFlags, Nothing)

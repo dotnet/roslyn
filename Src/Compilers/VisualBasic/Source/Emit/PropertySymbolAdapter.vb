@@ -1,13 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -100,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As EmitContext) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
             CheckDefinitionInvariant()
             Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
         End Function
@@ -126,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ISignatureGetType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ISignature.GetType
+        Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
             CheckDefinitionInvariant()
             Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
@@ -145,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeMemberReferenceGetContainingType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ITypeMemberReference.GetContainingType
+        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             CheckDefinitionInvariant()
             Return Me.ContainingType
         End Function
@@ -155,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             visitor.Visit(DirectCast(Me, IPropertyDefinition))
         End Sub
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
             CheckDefinitionInvariant()
             Return Me
         End Function

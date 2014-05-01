@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -33,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceGetResolvedType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeDefinition Implements ITypeReference.GetResolvedType
+        Private Function ITypeReferenceGetResolvedType(context As EmitContext) As ITypeDefinition Implements ITypeReference.GetResolvedType
             Return Nothing
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As Microsoft.CodeAnalysis.Emit.Context) As PrimitiveTypeCode Implements ITypeReference.TypeCode
+        Private Function ITypeReferenceTypeCode(context As EmitContext) As PrimitiveTypeCode Implements ITypeReference.TypeCode
             Return PrimitiveTypeCode.NotPrimitive
         End Function
 
@@ -100,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsNamespaceTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As INamespaceTypeDefinition Implements ITypeReference.AsNamespaceTypeDefinition
+        Private Function ITypeReferenceAsNamespaceTypeDefinition(context As EmitContext) As INamespaceTypeDefinition Implements ITypeReference.AsNamespaceTypeDefinition
             Return Nothing
         End Function
 
@@ -110,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsNestedTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
+        Private Function ITypeReferenceAsNestedTypeDefinition(context As EmitContext) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
             Return Nothing
         End Function
 
@@ -126,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeDefinition Implements ITypeReference.AsTypeDefinition
+        Private Function ITypeReferenceAsTypeDefinition(context As EmitContext) As ITypeDefinition Implements ITypeReference.AsTypeDefinition
             Return Nothing
         End Function
 
@@ -157,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
             Debug.Assert(Me.IsDefinition)
             Return Nothing
         End Function
@@ -188,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Iterator Function IGenericParameterGetConstraints(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of ITypeReference) Implements IGenericParameter.GetConstraints
+        Private Iterator Function IGenericParameterGetConstraints(context As EmitContext) As IEnumerable(Of ITypeReference) Implements IGenericParameter.GetConstraints
             Dim _module = DirectCast(context.Module, PEModuleBuilder)
             Dim seenValueType = False
             For Each t In Me.ConstraintTypesNoUseSiteDiagnostics

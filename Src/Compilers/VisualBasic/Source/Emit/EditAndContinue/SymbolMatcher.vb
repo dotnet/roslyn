@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.Emit
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class SymbolMatcher
@@ -21,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(
                       anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                       sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As Context,
+                      sourceContext As EmitContext,
                       otherAssembly As SourceAssemblySymbol,
-                      otherContext As Context)
+                      otherContext As EmitContext)
             Me.defs = New MatchDefsToSource(sourceContext, otherContext)
             Me.symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly)
         End Sub
@@ -31,24 +28,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(
                       anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                       sourceAssembly As SourceAssemblySymbol,
-                      sourceContext As Context,
-                      otherAssembly As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol)
+                      sourceContext As EmitContext,
+                      otherAssembly As PEAssemblySymbol)
             Me.defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
             Me.symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly)
         End Sub
 
-        Friend Function MapDefinition(def As IDefinition) As IDefinition
+        Friend Function MapDefinition(def As Cci.IDefinition) As Cci.IDefinition
             Dim symbol As Symbol = TryCast(def, Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(Me.symbols.Visit(symbol), IDefinition)
+                Return DirectCast(Me.symbols.Visit(symbol), Cci.IDefinition)
             End If
             Return Me.defs.VisitDef(def)
         End Function
 
-        Friend Function MapReference(reference As ITypeReference) As ITypeReference
+        Friend Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
             Dim symbol As Symbol = TryCast(reference, Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(Me.symbols.Visit(symbol), ITypeReference)
+                Return DirectCast(Me.symbols.Visit(symbol), Cci.ITypeReference)
             End If
             Return Nothing
         End Function
@@ -58,31 +55,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private MustInherit Class MatchDefs
-            Private ReadOnly sourceContext As Context
-            Private ReadOnly matches As ConcurrentDictionary(Of IDefinition, IDefinition)
-            Private lazyTopLevelTypes As IReadOnlyDictionary(Of String, INamespaceTypeDefinition)
+            Private ReadOnly sourceContext As EmitContext
+            Private ReadOnly matches As ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)
+            Private lazyTopLevelTypes As IReadOnlyDictionary(Of String, Cci.INamespaceTypeDefinition)
 
-            Public Sub New(sourceContext As Context)
+            Public Sub New(sourceContext As EmitContext)
                 Me.sourceContext = sourceContext
-                Me.matches = New ConcurrentDictionary(Of IDefinition, IDefinition)()
+                Me.matches = New ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)()
             End Sub
 
-            Public Function VisitDef(def As IDefinition) As IDefinition
+            Public Function VisitDef(def As Cci.IDefinition) As Cci.IDefinition
                 Return Me.matches.GetOrAdd(def, AddressOf Me.VisitDefInternal)
             End Function
 
-            Private Function VisitDefInternal(def As IDefinition) As IDefinition
-                Dim type = TryCast(def, ITypeDefinition)
+            Private Function VisitDefInternal(def As Cci.IDefinition) As Cci.IDefinition
+                Dim type = TryCast(def, Cci.ITypeDefinition)
                 If type IsNot Nothing Then
-                    Dim namespaceType As INamespaceTypeDefinition = type.AsNamespaceTypeDefinition(Me.sourceContext)
+                    Dim namespaceType As Cci.INamespaceTypeDefinition = type.AsNamespaceTypeDefinition(Me.sourceContext)
                     If namespaceType IsNot Nothing Then
                         Return Me.VisitNamespaceType(namespaceType)
                     End If
 
-                    Dim nestedType As INestedTypeDefinition = type.AsNestedTypeDefinition(Me.sourceContext)
+                    Dim nestedType As Cci.INestedTypeDefinition = type.AsNestedTypeDefinition(Me.sourceContext)
                     Debug.Assert(nestedType IsNot Nothing)
 
-                    Dim otherContainer = DirectCast(Me.VisitDef(nestedType.ContainingTypeDefinition), ITypeDefinition)
+                    Dim otherContainer = DirectCast(Me.VisitDef(nestedType.ContainingTypeDefinition), Cci.ITypeDefinition)
                     If otherContainer Is Nothing Then
                         Return Nothing
                     End If
@@ -90,14 +87,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return Me.VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) NameComparer.Equals(a.Name, b.Name))
                 End If
 
-                Dim member = TryCast(def, ITypeDefinitionMember)
+                Dim member = TryCast(def, Cci.ITypeDefinitionMember)
                 If member IsNot Nothing Then
-                    Dim otherContainer = DirectCast(Me.VisitDef(member.ContainingTypeDefinition), ITypeDefinition)
+                    Dim otherContainer = DirectCast(Me.VisitDef(member.ContainingTypeDefinition), Cci.ITypeDefinition)
                     If otherContainer Is Nothing Then
                         Return Nothing
                     End If
 
-                    Dim field = TryCast(def, IFieldDefinition)
+                    Dim field = TryCast(def, Cci.IFieldDefinition)
                     If field IsNot Nothing Then
                         Return Me.VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) NameComparer.Equals(a.Name, b.Name))
                     End If
@@ -107,11 +104,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Throw ExceptionUtilities.UnexpectedValue(def)
             End Function
 
-            Protected MustOverride Function GetTopLevelTypes() As IEnumerable(Of INamespaceTypeDefinition)
-            Protected MustOverride Function GetNestedTypes(def As ITypeDefinition) As IEnumerable(Of INestedTypeDefinition)
-            Protected MustOverride Function GetFields(def As ITypeDefinition) As IEnumerable(Of IFieldDefinition)
+            Protected MustOverride Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Protected MustOverride Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
+            Protected MustOverride Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
 
-            Private Function VisitNamespaceType(def As INamespaceTypeDefinition) As INamespaceTypeDefinition
+            Private Function VisitNamespaceType(def As Cci.INamespaceTypeDefinition) As Cci.INamespaceTypeDefinition
                 ' All generated top-level types are assumed to be in the global namespace.
                 ' However, this may be an embedded NoPIA type within a namespace.
                 ' Since we do not support edits that include references to NoPIA types
@@ -120,29 +117,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return Nothing
                 End If
 
-                Dim otherDef As INamespaceTypeDefinition = Nothing
+                Dim otherDef As Cci.INamespaceTypeDefinition = Nothing
                 Me.GetTopLevelTypesByName().TryGetValue(def.Name, otherDef)
                 Return otherDef
             End Function
 
-            Private Function GetTopLevelTypesByName() As IReadOnlyDictionary(Of String, INamespaceTypeDefinition)
+            Private Function GetTopLevelTypesByName() As IReadOnlyDictionary(Of String, Cci.INamespaceTypeDefinition)
                 If Me.lazyTopLevelTypes Is Nothing Then
-                    Dim typesByName As Dictionary(Of String, INamespaceTypeDefinition) = New Dictionary(Of String, INamespaceTypeDefinition)(NameComparer)
-                    For Each type As INamespaceTypeDefinition In Me.GetTopLevelTypes()
+                    Dim typesByName As Dictionary(Of String, Cci.INamespaceTypeDefinition) = New Dictionary(Of String, Cci.INamespaceTypeDefinition)(NameComparer)
+                    For Each type As Cci.INamespaceTypeDefinition In Me.GetTopLevelTypes()
                         ' All generated top-level types are assumed to be in the global namespace.
                         If String.IsNullOrEmpty(type.NamespaceName) Then
                             typesByName.Add(type.Name, type)
                         End If
                     Next
-                    Interlocked.CompareExchange(Of IReadOnlyDictionary(Of String, INamespaceTypeDefinition))(Me.lazyTopLevelTypes, typesByName, Nothing)
+                    Interlocked.CompareExchange(Me.lazyTopLevelTypes, typesByName, Nothing)
                 End If
                 Return Me.lazyTopLevelTypes
             End Function
 
-            Private Function VisitTypeMembers(Of T As {Class, ITypeDefinitionMember})(
-                otherContainer As ITypeDefinition,
+            Private Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
+                otherContainer As Cci.ITypeDefinition,
                 member As T,
-                getMembers As Func(Of ITypeDefinition, IEnumerable(Of T)),
+                getMembers As Func(Of Cci.ITypeDefinition, IEnumerable(Of T)),
                 predicate As Func(Of T, T, Boolean)) As T
 
                 ' We could cache the members by name (see Matcher.VisitNamedTypeMembers)
@@ -155,33 +152,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private NotInheritable Class MatchDefsToMetadata
             Inherits MatchDefs
 
-            Private ReadOnly otherAssembly As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol
+            Private ReadOnly otherAssembly As PEAssemblySymbol
 
-            Public Sub New(sourceContext As Context, otherAssembly As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol)
+            Public Sub New(sourceContext As EmitContext, otherAssembly As PEAssemblySymbol)
                 MyBase.New(sourceContext)
                 Me.otherAssembly = otherAssembly
             End Sub
 
-            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of INamespaceTypeDefinition)
-                Dim builder As ArrayBuilder(Of INamespaceTypeDefinition) = ArrayBuilder(Of INamespaceTypeDefinition).GetInstance()
+            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
+                Dim builder As ArrayBuilder(Of Cci.INamespaceTypeDefinition) = ArrayBuilder(Of Cci.INamespaceTypeDefinition).GetInstance()
                 GetTopLevelTypes(builder, Me.otherAssembly.GlobalNamespace)
                 Return builder.ToArrayAndFree()
             End Function
 
-            Protected Overrides Function GetNestedTypes(def As ITypeDefinition) As IEnumerable(Of INestedTypeDefinition)
-                Return (DirectCast(def, Symbols.Metadata.PE.PENamedTypeSymbol)).GetTypeMembers().Cast(Of INestedTypeDefinition)()
+            Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
+                Return (DirectCast(def, PENamedTypeSymbol)).GetTypeMembers().Cast(Of Cci.INestedTypeDefinition)()
             End Function
 
-            Protected Overrides Function GetFields(def As ITypeDefinition) As IEnumerable(Of IFieldDefinition)
-                Return (DirectCast(def, Symbols.Metadata.PE.PENamedTypeSymbol)).GetFieldsToEmit().Cast(Of IFieldDefinition)()
+            Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
+                Return (DirectCast(def, PENamedTypeSymbol)).GetFieldsToEmit().Cast(Of Cci.IFieldDefinition)()
             End Function
 
-            Private Overloads Shared Sub GetTopLevelTypes(builder As ArrayBuilder(Of INamespaceTypeDefinition), [namespace] As NamespaceSymbol)
+            Private Overloads Shared Sub GetTopLevelTypes(builder As ArrayBuilder(Of Cci.INamespaceTypeDefinition), [namespace] As NamespaceSymbol)
                 For Each member In [namespace].GetMembers()
                     If member.Kind = SymbolKind.Namespace Then
                         GetTopLevelTypes(builder, DirectCast(member, NamespaceSymbol))
                     Else
-                        builder.Add(DirectCast(member, INamespaceTypeDefinition))
+                        builder.Add(DirectCast(member, Cci.INamespaceTypeDefinition))
                     End If
                 Next
             End Sub
@@ -190,22 +187,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private NotInheritable Class MatchDefsToSource
             Inherits MatchDefs
 
-            Private ReadOnly otherContext As Context
+            Private ReadOnly otherContext As EmitContext
 
-            Public Sub New(sourceContext As Context, otherContext As Context)
+            Public Sub New(sourceContext As EmitContext, otherContext As EmitContext)
                 MyBase.New(sourceContext)
                 Me.otherContext = otherContext
             End Sub
 
-            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of INamespaceTypeDefinition)
+            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
                 Return Me.otherContext.Module.GetTopLevelTypes(Me.otherContext)
             End Function
 
-            Protected Overrides Function GetNestedTypes(def As ITypeDefinition) As IEnumerable(Of INestedTypeDefinition)
+            Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
                 Return def.GetNestedTypes(Me.otherContext)
             End Function
 
-            Protected Overrides Function GetFields(def As ITypeDefinition) As IEnumerable(Of IFieldDefinition)
+            Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
                 Return def.GetFields(Me.otherContext)
             End Function
         End Class

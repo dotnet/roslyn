@@ -3,6 +3,7 @@
 using System;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -22,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             // dynamic can't be used in mscorlib, so the containing module is never the module being built
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             // dynamic can't be used in mscorlib, so the containing module is never the module being built
             return null;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             // dynamic can't be used in mscorlib, so the containing module is never the module being built
             return null;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             // dynamic can't be used in mscorlib, so the containing module is never the module being built
             return null;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return "Object"; }
         }
 
-        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
             var obj = ((PEModuleBuilder)context.Module).GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object,
                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,

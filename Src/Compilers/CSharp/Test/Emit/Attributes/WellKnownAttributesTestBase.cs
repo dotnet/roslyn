@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var paramArrayAttributeCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ParamArrayAttribute__ctor);
             bool found = false;
 
-            var context = new Microsoft.CodeAnalysis.Emit.Context(emitModule, null, new DiagnosticBag());
+            var context = new EmitContext(emitModule, null, new DiagnosticBag());
 
             foreach (Microsoft.Cci.ICustomAttribute attr in parameter.GetSynthesizedAttributes())
             {

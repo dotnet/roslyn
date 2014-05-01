@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsPublic { get; }
             protected abstract bool IsAbstract { get; }
             protected abstract Cci.ITypeReference GetBaseClass(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-            protected abstract IEnumerable<Cci.ITypeReference> GetInterfaces(Context context);
+            protected abstract IEnumerable<Cci.ITypeReference> GetInterfaces(EmitContext context);
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(Context context)
+            Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(EmitContext context)
             {
                 return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
@@ -258,12 +258,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(Context context)
+            IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
             {
                 return SpecializedCollections.EmptyEnumerable<Cci.IMethodImplementation>();
             }
 
-            IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(Context context)
+            IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(EmitContext context)
             {
                 if (lazyFields.IsDefault)
                 {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(Context context)
+            IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(EmitContext context)
             {
                 return GetInterfaces(context);
             }
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(Context context)
+            IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
             {
                 if (lazyMethods.IsDefault)
                 {
@@ -469,12 +469,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return lazyMethods;
             }
 
-            IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(Context context)
+            IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
             {
                 return SpecializedCollections.EmptyEnumerable<Cci.INestedTypeDefinition>();
             }
 
-            IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(Context context)
+            IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
             {
                 if (lazyProperties.IsDefault)
                 {
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
                 if (this.lazyAttributes.IsDefault)
                 {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 throw ExceptionUtilities.Unreachable;
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }
@@ -560,12 +560,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Context context)
+            Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
             {
                 return this;
             }
 
-            Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Context context)
+            Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
             {
                 return Cci.PrimitiveTypeCode.NotPrimitive;
             }
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Context context)
+            Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
             {
                 return this;
             }
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Context context)
+            Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
             {
                 return null;
             }
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Context context)
+            Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
             {
                 return this;
             }
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(Context context)
+            Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
             {
                 return TypeManager.ModuleBeingBuilt;
             }

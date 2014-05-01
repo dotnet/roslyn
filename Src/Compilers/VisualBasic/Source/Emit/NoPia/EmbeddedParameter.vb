@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides Function GetDefaultValue(context As Context) As Cci.IMetadataConstant
+        Protected Overrides Function GetDefaultValue(context As EmitContext) As Cci.IMetadataConstant
             Return UnderlyingParameter.GetMetadataConstantValue(context)
         End Function
 

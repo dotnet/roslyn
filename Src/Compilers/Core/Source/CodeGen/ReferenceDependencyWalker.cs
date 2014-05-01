@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -21,23 +16,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal static class ReferenceDependencyWalker
     {
-        public static void VisitReference(Microsoft.Cci.IReference reference, Microsoft.CodeAnalysis.Emit.Context context)
+        public static void VisitReference(Cci.IReference reference, EmitContext context)
         {
-            var typeReference = reference as Microsoft.Cci.ITypeReference;
+            var typeReference = reference as Cci.ITypeReference;
             if (typeReference != null)
             {
                 VisitTypeReference(typeReference, context);
                 return;
             }
 
-            var methodReference = reference as Microsoft.Cci.IMethodReference;
+            var methodReference = reference as Cci.IMethodReference;
             if (methodReference != null)
             {
                 VisitMethodReference(methodReference, context);
                 return;
             }
 
-            var fieldReference = reference as Microsoft.Cci.IFieldReference;
+            var fieldReference = reference as Cci.IFieldReference;
             if (fieldReference != null)
             {
                 VisitFieldReference(fieldReference, context);
@@ -45,33 +40,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private static void VisitTypeReference(Microsoft.Cci.ITypeReference typeReference, Microsoft.CodeAnalysis.Emit.Context context)
+        private static void VisitTypeReference(Cci.ITypeReference typeReference, EmitContext context)
         {
             Debug.Assert(typeReference != null);
 
-            Microsoft.Cci.IArrayTypeReference arrayType = typeReference as Microsoft.Cci.IArrayTypeReference;
+            Cci.IArrayTypeReference arrayType = typeReference as Cci.IArrayTypeReference;
             if (arrayType != null)
             {
                 VisitTypeReference(arrayType.GetElementType(context), context);
                 return;
             }
 
-            Microsoft.Cci.IPointerTypeReference pointerType = typeReference as Microsoft.Cci.IPointerTypeReference;
+            Cci.IPointerTypeReference pointerType = typeReference as Cci.IPointerTypeReference;
             if (pointerType != null)
             {
                 VisitTypeReference(pointerType.GetTargetType(context), context);
                 return;
             }
 
-            Debug.Assert(!(typeReference is Microsoft.Cci.IManagedPointerTypeReference));
-            //Microsoft.Cci.IManagedPointerTypeReference managedPointerType = typeReference as Microsoft.Cci.IManagedPointerTypeReference;
+            Debug.Assert(!(typeReference is Cci.IManagedPointerTypeReference));
+            //Cci.IManagedPointerTypeReference managedPointerType = typeReference as Cci.IManagedPointerTypeReference;
             //if (managedPointerType != null)
             //{
             //    VisitTypeReference(managedPointerType.GetTargetType(this.context));
             //    return;
             //}
 
-            Microsoft.Cci.IModifiedTypeReference modifiedType = typeReference as Microsoft.Cci.IModifiedTypeReference;
+            Cci.IModifiedTypeReference modifiedType = typeReference as Cci.IModifiedTypeReference;
             if (modifiedType != null)
             {
                 foreach (var custModifier in modifiedType.CustomModifiers)
@@ -83,14 +78,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Visit containing type
-            Microsoft.Cci.INestedTypeReference nestedType = typeReference.AsNestedTypeReference;
+            Cci.INestedTypeReference nestedType = typeReference.AsNestedTypeReference;
             if (nestedType != null)
             {
                 VisitTypeReference(nestedType.GetContainingType(context), context);
             }
 
             // Visit generic arguments
-            Microsoft.Cci.IGenericTypeInstanceReference genericInstance = typeReference.AsGenericTypeInstanceReference;
+            Cci.IGenericTypeInstanceReference genericInstance = typeReference.AsGenericTypeInstanceReference;
             if (genericInstance != null)
             {
                 foreach (var arg in genericInstance.GetGenericArguments(context))
@@ -100,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private static void VisitMethodReference(Microsoft.Cci.IMethodReference methodReference, Microsoft.CodeAnalysis.Emit.Context context)
+        private static void VisitMethodReference(Cci.IMethodReference methodReference, EmitContext context)
         {
             Debug.Assert(methodReference != null);
 
@@ -108,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             VisitTypeReference(methodReference.GetContainingType(context), context);
 
             // Visit generic arguments if any
-            Microsoft.Cci.IGenericMethodInstanceReference genericInstance = methodReference.AsGenericMethodInstanceReference;
+            Cci.IGenericMethodInstanceReference genericInstance = methodReference.AsGenericMethodInstanceReference;
             if (genericInstance != null)
             {
                 foreach (var arg in genericInstance.GetGenericArguments(context))
@@ -119,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Translate substituted method to original definition
-            Microsoft.Cci.ISpecializedMethodReference specializedMethod = methodReference.AsSpecializedMethodReference;
+            Cci.ISpecializedMethodReference specializedMethod = methodReference.AsSpecializedMethodReference;
             if (specializedMethod != null)
             {
                 methodReference = specializedMethod.UnspecializedVersion;
@@ -144,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private static void VisitParameters(ImmutableArray<Microsoft.Cci.IParameterTypeInformation> parameters, Microsoft.CodeAnalysis.Emit.Context context)
+        private static void VisitParameters(ImmutableArray<Cci.IParameterTypeInformation> parameters, EmitContext context)
         {
             foreach (var param in parameters)
             {
@@ -160,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private static void VisitFieldReference(Microsoft.Cci.IFieldReference fieldReference, Microsoft.CodeAnalysis.Emit.Context context)
+        private static void VisitFieldReference(Cci.IFieldReference fieldReference, EmitContext context)
         {
             Debug.Assert(fieldReference != null);
 
@@ -168,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             VisitTypeReference(fieldReference.GetContainingType(context), context);
 
             // Translate substituted field to original definition
-            Microsoft.Cci.ISpecializedFieldReference specializedField = fieldReference.AsSpecializedFieldReference;
+            Cci.ISpecializedFieldReference specializedField = fieldReference.AsSpecializedFieldReference;
             if (specializedField != null)
             {
                 fieldReference = specializedField.UnspecializedVersion;

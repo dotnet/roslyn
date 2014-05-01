@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private uint unalignedStringStreamLength;
 
         public DeltaPeWriter(
-            Microsoft.CodeAnalysis.Emit.Context context,
+            EmitContext context,
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             EmitBaseline previousGeneration,

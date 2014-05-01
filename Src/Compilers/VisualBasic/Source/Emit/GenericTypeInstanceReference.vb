@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,17 +19,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     ''' </summary>
     Friend MustInherit Class GenericTypeInstanceReference
         Inherits NamedTypeReference
-        Implements Microsoft.Cci.IGenericTypeInstanceReference
+        Implements Cci.IGenericTypeInstanceReference
 
         Public Sub New(underlyingNamedType As NamedTypeSymbol)
             MyBase.New(underlyingNamedType)
         End Sub
 
-        Public NotOverridable Overrides Sub Dispatch(visitor As Microsoft.Cci.MetadataVisitor)
-            visitor.Visit(DirectCast(Me, Microsoft.Cci.IGenericTypeInstanceReference))
+        Public NotOverridable Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)
+            visitor.Visit(DirectCast(Me, Cci.IGenericTypeInstanceReference))
         End Sub
 
-        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of Microsoft.Cci.ITypeReference) Implements Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments
+        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As EmitContext) As ImmutableArray(Of Cci.ITypeReference) Implements Cci.IGenericTypeInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return builder.ToImmutableAndFree
         End Function
 
-        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As Microsoft.Cci.INamedTypeReference Implements Microsoft.Cci.IGenericTypeInstanceReference.GenericType
+        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GenericType
             Get
                 Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
                 Return m_UnderlyingNamedType.OriginalDefinition

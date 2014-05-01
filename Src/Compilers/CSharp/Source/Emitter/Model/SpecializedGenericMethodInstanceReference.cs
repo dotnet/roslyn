@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Emit;
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     /// <summary>
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// A{T}.M{S}()
     /// A.B{T}.C.M{S}()
     /// </summary>
-    internal sealed class SpecializedGenericMethodInstanceReference : SpecializedMethodReference, Microsoft.Cci.IGenericMethodInstanceReference
+    internal sealed class SpecializedGenericMethodInstanceReference : SpecializedMethodReference, Cci.IGenericMethodInstanceReference
     {
         private readonly SpecializedMethodReference genericMethod;
 
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             genericMethod = new SpecializedMethodReference(underlyingMethod);
         }
 
-        System.Collections.Generic.IEnumerable<Microsoft.Cci.ITypeReference> Microsoft.Cci.IGenericMethodInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        System.Collections.Generic.IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -35,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.IMethodReference Microsoft.Cci.IGenericMethodInstanceReference.GetGenericMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
         {
             return genericMethod;
         }
 
-        public override Microsoft.Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
+        public override Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
         {
             get
             {
@@ -48,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override void Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Microsoft.Cci.IGenericMethodInstanceReference)this);
+            visitor.Visit((Cci.IGenericMethodInstanceReference)this);
         }
 
     }

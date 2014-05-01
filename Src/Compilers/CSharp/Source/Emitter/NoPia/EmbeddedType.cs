@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingNamedType.GetPropertiesToEmit();
         }
 
-        protected override IEnumerable<Cci.ITypeReference> GetInterfaces(Microsoft.CodeAnalysis.Emit.Context context)
+        protected override IEnumerable<Cci.ITypeReference> GetInterfaces(EmitContext context)
         {
             Debug.Assert((object)TypeManager.ModuleBeingBuilt == context.Module);
 

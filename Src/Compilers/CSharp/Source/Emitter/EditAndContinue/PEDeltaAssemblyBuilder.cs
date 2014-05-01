@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<SemanticEdit> edits)
             : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty, metadataOnly:false)
         {
-            var context = new Context(this, null, new DiagnosticBag());
+            var context = new EmitContext(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;
             var compilation = sourceAssembly.DeclaringCompilation;
             var metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(module), MetadataImportOptions.All);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (previousGeneration.Ordinal > 0)
             {
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-                var previousContext = new Context((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
+                var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
                 matchToPrevious = new SymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, previousAssembly, previousContext);
             }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return this.changes; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(Context context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
             return this.changes.GetTopLevelTypes(context);
         }

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(Context context)
+        protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context)
         {
             return UnderlyingMethod.ImplementationAttributes;
         }

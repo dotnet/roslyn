@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     partial class PointerTypeSymbol :
         Cci.IPointerTypeReference
     {
-        Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)
         {
             var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
@@ -32,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
             return Cci.PrimitiveTypeCode.Pointer;
         }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.Visit((Cci.IPointerTypeReference)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }

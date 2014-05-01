@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -14,22 +12,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// A{int}.B{string}
     /// A.B{int}.C.D{string}
     /// </summary>
-    internal sealed class SpecializedGenericNestedTypeInstanceReference : SpecializedNestedTypeReference, Microsoft.Cci.IGenericTypeInstanceReference
+    internal sealed class SpecializedGenericNestedTypeInstanceReference : SpecializedNestedTypeReference, Cci.IGenericTypeInstanceReference
     {
         public SpecializedGenericNestedTypeInstanceReference(NamedTypeSymbol underlyingNamedType)
             : base(underlyingNamedType)
         {
         }
 
-        public sealed override void Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        public sealed override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Microsoft.Cci.IGenericTypeInstanceReference)this);
+            visitor.Visit((Cci.IGenericTypeInstanceReference)this);
         }
 
-        ImmutableArray<Microsoft.Cci.ITypeReference> Microsoft.Cci.IGenericTypeInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.ITypeReference> Cci.IGenericTypeInstanceReference.GetGenericArguments(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
+            var builder = ArrayBuilder<Cci.ITypeReference>.GetInstance();
             foreach (TypeSymbol type in UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics)
             {
                 builder.Add(moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         }
 
-        Microsoft.Cci.INamedTypeReference Microsoft.Cci.IGenericTypeInstanceReference.GenericType
+        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType
         {
             get
             {
@@ -48,22 +46,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override Microsoft.Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
+        public override Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
         {
             get { return this; }
         }
 
-        public override Microsoft.Cci.INamespaceTypeReference AsNamespaceTypeReference
+        public override Cci.INamespaceTypeReference AsNamespaceTypeReference
         {
             get { return null; }
         }
 
-        public override Microsoft.Cci.INestedTypeReference AsNestedTypeReference
+        public override Cci.INestedTypeReference AsNestedTypeReference
         {
             get { return this; }
         }
 
-        public override Microsoft.Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
+        public override Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
         {
             get { return null; }
         }

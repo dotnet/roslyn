@@ -1,21 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract partial class CSharpAttributeData : Cci.ICustomAttribute
     {
-        ImmutableArray<Cci.IMetadataExpression> Cci.ICustomAttribute.GetArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IMetadataExpression> Cci.ICustomAttribute.GetArguments(EmitContext context)
         {
             var commonArgs = this.CommonConstructorArguments;
             if(commonArgs.IsEmpty)
@@ -32,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        Cci.IMethodReference Cci.ICustomAttribute.Constructor(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodReference Cci.ICustomAttribute.Constructor(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return (Cci.IMethodReference)moduleBeingBuilt.Translate(this.AttributeConstructor, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
         }
 
-        ImmutableArray<Cci.IMetadataNamedArgument> Cci.ICustomAttribute.GetNamedArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IMetadataNamedArgument> Cci.ICustomAttribute.GetNamedArguments(EmitContext context)
         {
             var commonArgs = this.CommonNamedArguments;
             if (commonArgs.IsEmpty)
@@ -70,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.ICustomAttribute.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ICustomAttribute.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.AttributeClass.GetAttributeUsageInfo().AllowMultiple; }
         }
 
-        private Cci.IMetadataExpression CreateMetadataExpression(TypedConstant argument, Microsoft.CodeAnalysis.Emit.Context context)
+        private Cci.IMetadataExpression CreateMetadataExpression(TypedConstant argument, EmitContext context)
         {
             if (argument.IsNull)
             {
@@ -101,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MetadataCreateArray CreateMetadataArray(TypedConstant argument, Microsoft.CodeAnalysis.Emit.Context context)
+        private MetadataCreateArray CreateMetadataArray(TypedConstant argument, EmitContext context)
         {
             Debug.Assert(!argument.Values.IsDefault);
             var values = argument.Values;
@@ -125,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                            metadataExprs.AsImmutableOrNull());
         }
 
-        private static MetadataTypeOf CreateType(TypedConstant argument, Microsoft.CodeAnalysis.Emit.Context context)
+        private static MetadataTypeOf CreateType(TypedConstant argument, EmitContext context)
         {
             Debug.Assert(argument.Value != null);
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -135,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                       moduleBeingBuilt.Translate((TypeSymbol)argument.Type, syntaxNodeOpt, diagnostics));
         }
 
-        private static MetadataConstant CreateMetadataConstant(ITypeSymbol type, object value, Microsoft.CodeAnalysis.Emit.Context context)
+        private static MetadataConstant CreateMetadataConstant(ITypeSymbol type, object value, EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             return moduleBeingBuilt.CreateConstant((TypeSymbol)type, value, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
-        private Cci.IMetadataNamedArgument CreateMetadataNamedArgument(string name, TypedConstant argument, Microsoft.CodeAnalysis.Emit.Context context)
+        private Cci.IMetadataNamedArgument CreateMetadataNamedArgument(string name, TypedConstant argument, EmitContext context)
         {
             var symbol = LookupName(name);
             var value = CreateMetadataExpression(argument, context);

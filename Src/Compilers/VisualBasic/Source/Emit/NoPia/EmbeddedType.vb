@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return UnderlyingNamedType.GetPropertiesToEmit()
         End Function
 
-        Protected Overrides Iterator Function GetInterfaces(context As Context) As IEnumerable(Of Cci.ITypeReference)
+        Protected Overrides Iterator Function GetInterfaces(context As EmitContext) As IEnumerable(Of Cci.ITypeReference)
             Debug.Assert(TypeManager.ModuleBeingBuilt Is context.Module)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)

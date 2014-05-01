@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal sealed class ModuleReference : Microsoft.Cci.IModuleReference, Microsoft.Cci.IFileReference
+    internal sealed class ModuleReference : Cci.IModuleReference, Cci.IFileReference
     {
         private readonly PEModuleBuilder moduleBeingBuilt;
         private readonly ModuleSymbol underlyingModule;
@@ -26,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.underlyingModule = underlyingModule;
         }
 
-        void Microsoft.Cci.IReference.Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Microsoft.Cci.IModuleReference)this);
+            visitor.Visit((Cci.IModuleReference)this);
         }
 
-        string Microsoft.Cci.INamedEntity.Name
+        string Cci.INamedEntity.Name
         {
             get
             {
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.IFileReference.HasMetadata
+        bool Cci.IFileReference.HasMetadata
         {
             get
             {
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        string Microsoft.Cci.IFileReference.FileName
+        string Cci.IFileReference.FileName
         {
             get
             {
@@ -55,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        ImmutableArray<byte> Microsoft.Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)
+        ImmutableArray<byte> Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)
         {
             return underlyingModule.GetHash(algorithmId);
         }
 
-        Microsoft.Cci.IAssemblyReference Microsoft.Cci.IModuleReference.GetContainingAssembly(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
         {
             if (this.moduleBeingBuilt.OutputKind.IsNetModule() &&
                 ReferenceEquals(moduleBeingBuilt.SourceModule.ContainingAssembly, underlyingModule.ContainingAssembly))
@@ -76,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return underlyingModule.ToString();
         }
 
-        IEnumerable<Microsoft.Cci.ICustomAttribute> Microsoft.Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ICustomAttribute>();
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
-        Microsoft.Cci.IDefinition Microsoft.Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }

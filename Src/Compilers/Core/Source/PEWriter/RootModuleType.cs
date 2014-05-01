@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -23,7 +24,7 @@ namespace Microsoft.Cci
             get { return this; }
         }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         }
@@ -43,7 +44,7 @@ namespace Microsoft.Cci
             get { return 0; }
         }
 
-        public ITypeReference GetBaseClass(Microsoft.CodeAnalysis.Emit.Context context)
+        public ITypeReference GetBaseClass(EmitContext context)
         {
             return null;
         }
@@ -53,12 +54,12 @@ namespace Microsoft.Cci
             get { return SpecializedCollections.EmptyEnumerable<IEventDefinition>(); }
         }
 
-        public IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<IMethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<IMethodImplementation>();
         }
 
-        public IEnumerable<IFieldDefinition> GetFields(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<IFieldDefinition> GetFields(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
         }
@@ -68,7 +69,7 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public IEnumerable<ITypeReference> Interfaces(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<ITypeReference> Interfaces(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<ITypeReference>();
         }
@@ -128,17 +129,17 @@ namespace Microsoft.Cci
             get { return LayoutKind.Auto; }
         }
 
-        public IEnumerable<IMethodDefinition> GetMethods(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
         }
 
-        public IEnumerable<INestedTypeDefinition> GetNestedTypes(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
         }
 
-        public IEnumerable<IPropertyDefinition> GetProperties(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
         }
@@ -196,12 +197,12 @@ namespace Microsoft.Cci
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        ITypeDefinition ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
         {
             return this;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -211,7 +212,7 @@ namespace Microsoft.Cci
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        IUnitReference INamespaceTypeReference.GetUnit(Microsoft.CodeAnalysis.Emit.Context context)
+        IUnitReference INamespaceTypeReference.GetUnit(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -248,7 +249,7 @@ namespace Microsoft.Cci
             }
         }
 
-        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return this;
         }
@@ -261,7 +262,7 @@ namespace Microsoft.Cci
             }
         }
 
-        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -282,12 +283,12 @@ namespace Microsoft.Cci
             }
         }
 
-        ITypeDefinition ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return this;
         }
 
-        IDefinition IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        IDefinition IReference.AsDefinition(EmitContext context)
         {
             return this;
         }

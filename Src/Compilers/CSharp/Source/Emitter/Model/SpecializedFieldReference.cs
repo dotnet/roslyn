@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// A{int}.Field
     /// A{int}.B{string}.C.Field
     /// </summary>
-    internal sealed class SpecializedFieldReference : TypeMemberReference, Microsoft.Cci.ISpecializedFieldReference
+    internal sealed class SpecializedFieldReference : TypeMemberReference, Cci.ISpecializedFieldReference
     {
         private readonly FieldSymbol underlyingField;
 
@@ -33,21 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override void Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Microsoft.Cci.ISpecializedFieldReference)this);
+            visitor.Visit((Cci.ISpecializedFieldReference)this);
         }
 
-        Microsoft.Cci.IFieldReference Microsoft.Cci.ISpecializedFieldReference.UnspecializedVersion
+        Cci.IFieldReference Cci.ISpecializedFieldReference.UnspecializedVersion
         {
             get
             {
-                System.Diagnostics.Debug.Assert(underlyingField.OriginalDefinition.IsDefinition);
-                return (FieldSymbol)underlyingField.OriginalDefinition;
+                Debug.Assert(underlyingField.OriginalDefinition.IsDefinition);
+                return underlyingField.OriginalDefinition;
             }
         }
 
-        Microsoft.Cci.ISpecializedFieldReference Microsoft.Cci.IFieldReference.AsSpecializedFieldReference
+        Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
         {
             get
             {
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.ITypeReference Microsoft.Cci.IFieldReference.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             var customModifiers = underlyingField.CustomModifiers;
             var type = ((PEModuleBuilder)context.Module).Translate(underlyingField.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
@@ -66,16 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                return new Microsoft.Cci.ModifiedTypeReference(type, customModifiers);
+                return new Cci.ModifiedTypeReference(type, customModifiers);
             }
         }
 
-        Microsoft.Cci.IFieldDefinition Microsoft.Cci.IFieldReference.GetResolvedField(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
             return null;
         }
 
-        bool Microsoft.Cci.IFieldReference.IsContextualNamedEntity
+        bool Cci.IFieldReference.IsContextualNamedEntity
         {
             get
             {

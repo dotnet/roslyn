@@ -1,18 +1,13 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata
+Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class NamedTypeSymbol
@@ -41,13 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceGetResolvedType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeDefinition Implements ITypeReference.GetResolvedType
+        Private Function ITypeReferenceGetResolvedType(context As EmitContext) As ITypeDefinition Implements ITypeReference.GetResolvedType
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As Microsoft.CodeAnalysis.Emit.Context) As PrimitiveTypeCode Implements ITypeReference.TypeCode
+        Private Function ITypeReferenceTypeCode(context As EmitContext) As PrimitiveTypeCode Implements ITypeReference.TypeCode
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert(Me.IsDefinitionOrDistinct())
             If Me.IsDefinition Then
@@ -104,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsNamespaceTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As INamespaceTypeDefinition Implements ITypeReference.AsNamespaceTypeDefinition
+        Private Function ITypeReferenceAsNamespaceTypeDefinition(context As EmitContext) As INamespaceTypeDefinition Implements ITypeReference.AsNamespaceTypeDefinition
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -124,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsNestedTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
+        Private Function ITypeReferenceAsNestedTypeDefinition(context As EmitContext) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsNestedTypeDefinitionImpl(moduleBeingBuilt)
@@ -150,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeReferenceAsTypeDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeDefinition Implements ITypeReference.AsTypeDefinition
+        Private Function ITypeReferenceAsTypeDefinition(context As EmitContext) As ITypeDefinition Implements ITypeReference.AsTypeDefinition
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
@@ -202,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As Microsoft.CodeAnalysis.Emit.Context) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
@@ -215,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeDefinitionGetBaseClass(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ITypeDefinition.GetBaseClass
+        Private Function ITypeDefinitionGetBaseClass(context As EmitContext) As ITypeReference Implements ITypeDefinition.GetBaseClass
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
@@ -258,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IMethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
+        Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As EmitContext) As IEnumerable(Of IMethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
             Debug.Assert(Not Me.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
@@ -293,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return explicitImplements.ToImmutableAndFree()
         End Function
 
-        Private Sub AddExplicitImplementations(context As Microsoft.CodeAnalysis.Emit.Context,
+        Private Sub AddExplicitImplementations(context As EmitContext,
                                                implementingMethod As MethodSymbol,
                                                explicitImplements As ArrayBuilder(Of IMethodImplementation),
                                                sourceNamedType As SourceNamedTypeSymbol,
@@ -322,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Iterator Function ITypeDefinitionGetFields(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IFieldDefinition) Implements ITypeDefinition.GetFields
+        Private Iterator Function ITypeDefinitionGetFields(context As EmitContext) As IEnumerable(Of IFieldDefinition) Implements ITypeDefinition.GetFields
             Debug.Assert(Not Me.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
@@ -395,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Iterator Function ITypeDefinitionInterfaces(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
+        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
@@ -651,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me.GetMembers()
         End Function
 
-        Private Iterator Function ITypeDefinitionGetMethods(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IMethodDefinition) Implements ITypeDefinition.GetMethods
+        Private Iterator Function ITypeDefinitionGetMethods(context As EmitContext) As IEnumerable(Of IMethodDefinition) Implements ITypeDefinition.GetMethods
             Debug.Assert(Not Me.IsAnonymousType)
             ' Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
@@ -687,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Private Function ITypeDefinitionGetNestedTypes(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of INestedTypeDefinition) Implements ITypeDefinition.GetNestedTypes
+        Private Function ITypeDefinitionGetNestedTypes(context As EmitContext) As IEnumerable(Of INestedTypeDefinition) Implements ITypeDefinition.GetNestedTypes
             Debug.Assert(Not Me.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
@@ -716,7 +711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Iterator Function ITypeDefinitionGetProperties(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of IPropertyDefinition) Implements ITypeDefinition.GetProperties
+        Private Iterator Function ITypeDefinitionGetProperties(context As EmitContext) As IEnumerable(Of IPropertyDefinition) Implements ITypeDefinition.GetProperties
             Debug.Assert(Not Me.IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
@@ -800,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function INamespaceTypeReferenceGetUnit(context As Microsoft.CodeAnalysis.Emit.Context) As IUnitReference Implements INamespaceTypeReference.GetUnit
+        Private Function INamespaceTypeReferenceGetUnit(context As EmitContext) As IUnitReference Implements INamespaceTypeReference.GetUnit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
             Return moduleBeingBuilt.Translate(Me.ContainingModule, context.Diagnostics)
@@ -821,7 +816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ITypeMemberReferenceGetContainingType(context As Microsoft.CodeAnalysis.Emit.Context) As ITypeReference Implements ITypeMemberReference.GetContainingType
+        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
@@ -855,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As Microsoft.CodeAnalysis.Emit.Context) As ImmutableArray(Of ITypeReference) Implements IGenericTypeInstanceReference.GetGenericArguments
+        Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As EmitContext) As ImmutableArray(Of ITypeReference) Implements IGenericTypeInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
 

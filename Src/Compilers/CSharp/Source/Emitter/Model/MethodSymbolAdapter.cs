@@ -5,11 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -55,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return ResolvedMethodImpl(context);
         }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -152,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return ResolvedMethodImpl(context);
         }
 
-        private Cci.IMethodDefinition ResolvedMethodImpl(Microsoft.CodeAnalysis.Emit.Context context)
+        private Cci.IMethodDefinition ResolvedMethodImpl(EmitContext context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -187,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
@@ -233,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.ISignature.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             ByRefReturnErrorTypeSymbol byRefType = this.ReturnType as ByRefReturnErrorTypeSymbol;
             return ((PEModuleBuilder)context.Module).Translate(
@@ -242,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: context.Diagnostics);
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -256,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
         {
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
@@ -311,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMethodBody Cci.IMethodDefinition.GetBody(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             CheckDefinitionInvariant();
             return ((PEModuleBuilder)context.Module).GetMethodBody(this);
@@ -469,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.ImplementationAttributes;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -30,7 +31,7 @@ namespace Microsoft.Cci
         private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
 
         public FullPeWriter(
-            Microsoft.CodeAnalysis.Emit.Context context,
+            EmitContext context,
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,

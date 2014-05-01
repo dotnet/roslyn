@@ -8200,7 +8200,7 @@ End Class
             Dim typeDef = DirectCast([class], Microsoft.Cci.ITypeDefinition)
             Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), Nothing, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
-            Dim context = New Microsoft.CodeAnalysis.Emit.Context([module], Nothing, New DiagnosticBag())
+            Dim context = New EmitContext([module], Nothing, New DiagnosticBag())
             Dim explicitOverrides = typeDef.GetExplicitImplementationOverrides(context)
             Assert.Equal(2, explicitOverrides.Count())
             Assert.True(explicitOverrides.All(Function(override) [class] Is override.ContainingType))

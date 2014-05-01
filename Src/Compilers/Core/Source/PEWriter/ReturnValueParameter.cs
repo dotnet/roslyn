@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -14,7 +13,7 @@ namespace Microsoft.Cci
             this.containingMethod = containingMethod;
         }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return this.containingMethod.ReturnValueAttributes;
         }
@@ -36,7 +35,7 @@ namespace Microsoft.Cci
             get { return this.containingMethod.ReturnValueCustomModifiers; }
         }
 
-        public IMetadataConstant GetDefaultValue(Microsoft.CodeAnalysis.Emit.Context context)
+        public IMetadataConstant GetDefaultValue(EmitContext context)
         {
             return null;
         }
@@ -105,12 +104,12 @@ namespace Microsoft.Cci
             get { return string.Empty; }
         }
 
-        public ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        public ITypeReference GetType(EmitContext context)
         {
             return this.containingMethod.GetType(context);
         }
 
-        public IDefinition AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public IDefinition AsDefinition(EmitContext context)
         {
             return this as IDefinition;
         }

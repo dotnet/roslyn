@@ -1,16 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -46,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return underlyingMethod.IsGeneric; }
         }
 
-        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return underlyingMethod.GetResolvedMethod(context);
         }
@@ -97,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return underlyingMethod.ParameterCount; }
         }
 
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
             return underlyingMethod.GetParameters(context);
         }
@@ -117,17 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return underlyingMethod.ReturnValueIsModified; }
         }
 
-        Cci.ITypeReference Cci.ISignature.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return underlyingMethod.GetType(context);
         }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             return underlyingMethod.GetContainingType(context);
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return underlyingMethod.GetAttributes(context);
         }
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }
@@ -158,12 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return underlyingMethod.Name; }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
         {
             return underlyingMethod.AsGenericMethodInstanceReference.GetGenericArguments(context);
         }
 
-        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
         {
             return new ExpandedVarargsMethodReference(underlyingMethod.AsGenericMethodInstanceReference.GetGenericMethod(context), argListParams);
         }
@@ -201,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     result.Builder.Append("ref ");
                 }
 
-                Append(result, p.GetType(new Microsoft.CodeAnalysis.Emit.Context()));
+                Append(result, p.GetType(new EmitContext()));
             }
 
             result.Builder.Append(")");

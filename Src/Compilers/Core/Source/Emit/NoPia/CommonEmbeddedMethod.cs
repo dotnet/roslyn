@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsSealed { get; }
             protected abstract bool IsStatic { get; }
             protected abstract bool IsVirtual { get; }
-            protected abstract System.Reflection.MethodImplAttributes GetImplementationAttributes(Context context);
+            protected abstract System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context);
             protected abstract bool ReturnValueIsMarshalledExplicitly { get; }
             protected abstract Cci.IMarshallingInformation ReturnValueMarshallingInformation { get; }
             protected abstract ImmutableArray<byte> ReturnValueMarshallingDescriptor { get; }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return null;
             }
 
-            Cci.IMethodBody Cci.IMethodDefinition.GetBody(Context context)
+            Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
             {
                 if (Microsoft.Cci.Extensions.HasBody(this))
                 {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(Context context)
+            System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
             {
                 return GetImplementationAttributes(context);
             }
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Context context)
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
             {
                 return ContainingType;
             }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 visitor.Visit((Cci.IMethodDefinition)this);
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return this;
             }
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(Context context)
+            Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
             {
                 return this;
             }
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Context context)
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
             {
                 return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.ITypeReference Cci.ISignature.GetType(Context context)
+            Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
             {
                 return UnderlyingMethodSignature.GetType(context);
             }

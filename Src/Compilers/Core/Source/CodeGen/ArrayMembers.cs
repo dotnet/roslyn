@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 using System.Collections.Immutable;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 
 // Contains support for pseudo-methods on multidimensional arrays.
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get { return ".ctor"; }
             }
 
-            public override Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+            public override Cci.ITypeReference GetType(EmitContext context)
             {
                 return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
             }
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get { return "Get"; }
             }
 
-            public override Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+            public override Cci.ITypeReference GetType(EmitContext context)
             {
                 return arrayType.GetElementType(context);
             }
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get { return true; }
             }
 
-            public override Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+            public override Cci.ITypeReference GetType(EmitContext context)
             {
                 return arrayType.GetElementType(context);
             }
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get { return "Set"; }
             }
 
-            public override Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+            public override Cci.ITypeReference GetType(EmitContext context)
             {
                 return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
             }
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return false; }
         }
 
-        public virtual Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        public virtual Cci.ITypeReference GetType(EmitContext context)
         {
             return context.Module.GetPlatformType(Cci.PlatformType.SystemInt32, context);
         }
@@ -322,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.arrayType = arrayType;
         }
 
-        public override Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        public override Cci.ITypeReference GetType(EmitContext context)
         {
             return arrayType.GetElementType(context);
         }
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public abstract string Name { get; }
-        public abstract Cci.ITypeReference GetType(Microsoft.CodeAnalysis.Emit.Context context);
+        public abstract Cci.ITypeReference GetType(EmitContext context);
 
         // Address overrides this to "true"
         public virtual bool ReturnValueIsByRef
@@ -365,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return parameters.ToImmutableAndFree();
         }
 
-        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context)
         {
             return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
         }
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return false; }
         }
 
-        public Cci.IMethodDefinition GetResolvedMethod(Microsoft.CodeAnalysis.Emit.Context context)
+        public Cci.IMethodDefinition GetResolvedMethod(EmitContext context)
         {
             return null;
         }
@@ -425,14 +424,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return false; }
         }
 
-        public Cci.ITypeReference GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        public Cci.ITypeReference GetContainingType(EmitContext context)
         {
             // We are not translating arrayType. 
             // It is an array type and it is never generic or contained in a generic.
             return this.arrayType;
         }
 
-        public IEnumerable<Cci.ICustomAttribute> GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
@@ -442,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             visitor.Visit((Cci.IMethodReference)this);
         }
 
-        public Cci.IDefinition AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public Cci.IDefinition AsDefinition(EmitContext context)
         {
             return null;
         }

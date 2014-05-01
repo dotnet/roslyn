@@ -3,10 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.IEventDefinition.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(this.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
@@ -120,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeMemberReference Members
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.ContainingType;
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.Visit((Cci.IEventDefinition)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this;

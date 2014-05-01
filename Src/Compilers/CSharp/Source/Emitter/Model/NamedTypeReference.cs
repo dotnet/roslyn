@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class NamedTypeReference : Microsoft.Cci.INamedTypeReference
+    internal abstract class NamedTypeReference : Cci.INamedTypeReference
     {
         protected readonly NamedTypeSymbol UnderlyingNamedType;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.UnderlyingNamedType = underlyingNamedType;
         }
 
-        ushort Microsoft.Cci.INamedTypeReference.GenericParameterCount
+        ushort Cci.INamedTypeReference.GenericParameterCount
         {
             get
             {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.INamedTypeReference.MangleName
+        bool Cci.INamedTypeReference.MangleName
         {
             get
             {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        string Microsoft.Cci.INamedEntity.Name
+        string Cci.INamedEntity.Name
         {
             get
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.ITypeReference.IsEnum
+        bool Cci.ITypeReference.IsEnum
         {
             get
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Microsoft.Cci.ITypeReference.IsValueType
+        bool Cci.ITypeReference.IsValueType
         {
             get
             {
@@ -60,17 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.ITypeDefinition Microsoft.Cci.ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
 
-        Microsoft.Cci.PrimitiveTypeCode Microsoft.Cci.ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
-            return Microsoft.Cci.PrimitiveTypeCode.NotPrimitive;
+            return Cci.PrimitiveTypeCode.NotPrimitive;
         }
 
-        TypeHandle Microsoft.Cci.ITypeReference.TypeDef
+        TypeHandle Cci.ITypeReference.TypeDef
         {
             get
             {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.IGenericMethodParameterReference Microsoft.Cci.ITypeReference.AsGenericMethodParameterReference
+        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
         {
             get
             {
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public abstract Microsoft.Cci.IGenericTypeInstanceReference /*Microsoft.Cci.ITypeReference.*/ AsGenericTypeInstanceReference
+        public abstract Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
         {
             get;
         }
 
-        Microsoft.Cci.IGenericTypeParameterReference Microsoft.Cci.ITypeReference.AsGenericTypeParameterReference
+        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
         {
             get
             {
@@ -99,32 +99,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        Microsoft.Cci.INamespaceTypeDefinition Microsoft.Cci.ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        public abstract Microsoft.Cci.INamespaceTypeReference /*Microsoft.Cci.ITypeReference.*/ AsNamespaceTypeReference
+        public abstract Cci.INamespaceTypeReference AsNamespaceTypeReference
         {
             get;
         }
 
-        Microsoft.Cci.INestedTypeDefinition Microsoft.Cci.ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        public abstract Microsoft.Cci.INestedTypeReference /*Microsoft.Cci.ITypeReference.*/ AsNestedTypeReference
+        public abstract Cci.INestedTypeReference AsNestedTypeReference
         {
             get;
         }
 
-        public abstract Microsoft.Cci.ISpecializedNestedTypeReference /*Microsoft.Cci.ITypeReference.*/ AsSpecializedNestedTypeReference
+        public abstract Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
         {
             get;
         }
 
-        Microsoft.Cci.ITypeDefinition Microsoft.Cci.ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -134,16 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return UnderlyingNamedType.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
         }
 
-        IEnumerable<Microsoft.Cci.ICustomAttribute> Microsoft.Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ICustomAttribute>();
-
-            // foreach (var a in GetAttributes()) yield return a; // this throws today.
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
-        public abstract void /*Microsoft.Cci.IReference*/ Dispatch(Microsoft.Cci.MetadataVisitor visitor);
+        public abstract void Dispatch(Cci.MetadataVisitor visitor);
 
-        Microsoft.Cci.IDefinition Microsoft.Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }

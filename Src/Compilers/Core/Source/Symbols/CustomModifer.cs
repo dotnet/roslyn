@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        ITypeReference ICustomModifier.GetModifier(Context context)
+        ITypeReference ICustomModifier.GetModifier(EmitContext context)
         {
             throw new NotImplementedException();
         }

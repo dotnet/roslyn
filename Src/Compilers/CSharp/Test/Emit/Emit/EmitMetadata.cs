@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -230,7 +231,7 @@ public class Test : Class2
                 cancellationToken: default(CancellationToken));
 
             diagnostics.Verify();
-            var context = new CodeAnalysis.Emit.Context(assembly, null, new DiagnosticBag());
+            var context = new CodeAnalysis.Emit.EmitContext(assembly, null, new DiagnosticBag());
             ImmutableArray<byte> image;
             using (var stream = new MemoryStream())
             {
@@ -1288,7 +1289,7 @@ class C : B<string>
                 var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, null, OutputKind.DynamicallyLinkedLibrary,
                     GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-                var context = new Microsoft.CodeAnalysis.Emit.Context(module, null, new DiagnosticBag());
+                var context = new EmitContext(module, null, new DiagnosticBag());
 
                 var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
                 var fieldDefinition = typeDefinition.GetFields(context).First();

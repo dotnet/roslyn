@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2529,7 +2530,7 @@ internal static class C
 
                 var extensionAttrCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                 Assert.NotNull(extensionAttrCtor);
-                var context = new Microsoft.CodeAnalysis.Emit.Context(emitModule, null, new DiagnosticBag());
+                var context = new EmitContext(emitModule, null, new DiagnosticBag());
                 Assert.Equal(extensionAttrCtor, attr.Constructor(context));
                 Assert.NotNull(extensionAttrCtor.ContainingType);
                 Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));

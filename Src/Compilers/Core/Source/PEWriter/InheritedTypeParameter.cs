@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -31,7 +32,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<ITypeReference> GetConstraints(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<ITypeReference> GetConstraints(EmitContext context)
         {
             return this.parentParameter.GetConstraints(context);
         }
@@ -131,7 +132,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public INamespaceTypeDefinition AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context)
         {
             return this as INamespaceTypeDefinition;
         }
@@ -144,7 +145,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public INestedTypeDefinition AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public INestedTypeDefinition AsNestedTypeDefinition(EmitContext context)
         {
             return this as INestedTypeDefinition;
         }
@@ -189,12 +190,12 @@ namespace Microsoft.Cci
             }
         }
 
-        public ITypeDefinition AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public ITypeDefinition AsTypeDefinition(EmitContext context)
         {
             return this as ITypeDefinition;
         }
 
-        public IDefinition AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        public IDefinition AsDefinition(EmitContext context)
         {
             return this as IDefinition;
         }
@@ -203,7 +204,7 @@ namespace Microsoft.Cci
 
         #region IReference Members
 
-        public IEnumerable<ICustomAttribute> GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return this.parentParameter.GetAttributes(context);
         }
@@ -234,12 +235,12 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public ITypeDefinition GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        public ITypeDefinition GetResolvedType(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public PrimitiveTypeCode TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        public PrimitiveTypeCode TypeCode(EmitContext context)
         {
             return PrimitiveTypeCode.NotPrimitive;
         }

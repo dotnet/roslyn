@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(Context context)
+        public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             var module = (CommonPEModuleBuilder)context.Module;
             foreach (var type in module.GetAnonymousTypes())

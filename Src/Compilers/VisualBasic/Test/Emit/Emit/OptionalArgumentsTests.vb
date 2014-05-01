@@ -5,6 +5,7 @@ Imports System.Linq
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -992,7 +993,7 @@ End Class
         End Sub
 
         Private Shared Sub VerifyDefaultValueAttribute(parameter As ParameterSymbol, expectedAttributeName As String, expectedDefault As Object, hasDefault As Boolean)
-            Dim context As Microsoft.CodeAnalysis.Emit.Context = Nothing
+            Dim context As EmitContext = Nothing
             Dim attributes = DirectCast(parameter, Cci.IParameterDefinition).GetAttributes(context).ToArray()
             If expectedAttributeName Is Nothing Then
                 Assert.Equal(attributes.Length, 0)

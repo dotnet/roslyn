@@ -3,7 +3,6 @@
 using System;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private static readonly string name = "Error" + Guid.NewGuid().ToString("B");
 
-        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(Context context)
+        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
             return ErrorAssembly.Singleton;
         }
@@ -65,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -141,12 +140,12 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+        System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
             visitor.Visit((Cci.INamespaceTypeReference)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }
@@ -220,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(Context context)
+            Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
             {
                 return this;
             }
 
-            System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(Context context)
+            System.Collections.Generic.IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
                 return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
             }
@@ -235,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 visitor.Visit((Cci.IAssemblyReference)this);
             }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(Context context)
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 return null;
             }

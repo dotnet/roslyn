@@ -6,6 +6,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
             return Cci.PrimitiveTypeCode.NotPrimitive;
         }
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             Debug.Assert(this.IsDefinition);
             return null;
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.IGenericParameter.GetConstraints(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ITypeReference> Cci.IGenericParameter.GetConstraints(EmitContext context)
         {
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var seenValueType = false;

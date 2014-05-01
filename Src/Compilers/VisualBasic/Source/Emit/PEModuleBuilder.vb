@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 From(SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates)
         End Function
 
-        Friend Overrides Iterator Function GetTopLevelTypesCore(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of INamespaceTypeDefinition)
+        Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
             Dim embeddedSymbolManager As EmbeddedSymbolManager = SourceModule.ContainingSourceAssembly.DeclaringCompilation.EmbeddedSymbolManager
             Dim stack As New Stack(Of NamespaceOrTypeSymbol)()
 
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         End Function
 
-        Public Overrides Function GetExportedTypes(context As Microsoft.CodeAnalysis.Emit.Context) As IEnumerable(Of Cci.ITypeExport)
+        Public Overrides Function GetExportedTypes(context As EmitContext) As IEnumerable(Of Cci.ITypeExport)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If m_LazyExportedTypes.IsDefault Then
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Protected Overrides Function GetCorLibraryReferenceToEmit(context As Microsoft.CodeAnalysis.Emit.Context) As Cci.IAssemblyReference
+        Protected Overrides Function GetCorLibraryReferenceToEmit(context As EmitContext) As Cci.IAssemblyReference
             Dim corLib = CorLibrary
 
             If Not corLib.IsMissing AndAlso

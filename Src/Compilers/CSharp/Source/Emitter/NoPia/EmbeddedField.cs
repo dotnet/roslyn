@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingField.GetCustomAttributesToEmit();
         }
 
-        protected override Cci.IMetadataConstant GetCompileTimeValue(Context context)
+        protected override Cci.IMetadataConstant GetCompileTimeValue(EmitContext context)
         {
             return UnderlyingField.GetMetadataConstantValue(context);
         }

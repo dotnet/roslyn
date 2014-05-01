@@ -6,12 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class Symbol : Microsoft.Cci.IReference
+    partial class Symbol : Cci.IReference
     {
         /// <summary>
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (this.Kind == SymbolKind.NetModule && this is SourceModuleSymbol));
         }
 
-        Microsoft.Cci.IDefinition Microsoft.Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        void Microsoft.Cci.IReference.Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.IsDefinition || !this.Equals(this.OriginalDefinition);
         }
 
-        IEnumerable<Microsoft.Cci.ICustomAttribute> Microsoft.Cci.IReference.GetAttributes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
             return GetCustomAttributesToEmit();
         }

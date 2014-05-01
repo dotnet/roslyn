@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using EmitContext = Microsoft.CodeAnalysis.Emit.Context;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {

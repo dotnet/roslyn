@@ -7,13 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit.NoPia;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypesManager :
-        Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager<PEModuleBuilder, EmbeddedTypesManager, CSharpSyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
+        EmbeddedTypesManager<PEModuleBuilder, EmbeddedTypesManager, CSharpSyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
     {
         private readonly ConcurrentDictionary<AssemblySymbol, string> assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentDictionary<Symbol, bool> reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Therefore, the following check can be as simple as:
             Debug.Assert(!IsFrozen, "Set of embedded types is frozen.");
 
-            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new Microsoft.CodeAnalysis.Emit.Context(ModuleBeingBuilt, syntaxNodeOpt, diagnostics));
+            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics));
 
             // Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded);

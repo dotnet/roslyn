@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,6 +7,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.IsValueType; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return AsTypeDefinitionImpl(moduleBeingBuilt);
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -257,14 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return AsTypeDefinitionImpl(moduleBeingBuilt);
         }
 
-        Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.IMethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (ushort)this.Arity; }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(EmitContext context)
         {
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
 
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(Microsoft.CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
         {
             CheckDefinitionInvariant();
 
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Cci.ITypeReference> Cci.IGenericTypeInstanceReference.GetGenericArguments(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.ITypeReference> Cci.IGenericTypeInstanceReference.GetGenericArguments(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();

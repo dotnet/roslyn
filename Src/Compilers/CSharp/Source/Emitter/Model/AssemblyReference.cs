@@ -77,17 +77,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return MetadataIdentity.Name; }
         }
 
-        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(CodeAnalysis.Emit.Context context)
+        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(CodeAnalysis.Emit.EmitContext context)
         {
             return this;
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(CodeAnalysis.Emit.Context context)
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(CodeAnalysis.Emit.EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(CodeAnalysis.Emit.EmitContext context)
         {
             return null;
         }

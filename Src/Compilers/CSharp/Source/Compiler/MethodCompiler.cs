@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,10 +12,10 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
-using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -534,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, DiagnosticBag diagnostics)
         {
             TypeCompilationState compilationState = new TypeCompilationState(null, compilation, moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in privateImplClass.GetMethods(new Microsoft.CodeAnalysis.Emit.Context(moduleBeingBuiltOpt, null, diagnostics)))
+            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(moduleBeingBuiltOpt, null, diagnostics)))
             {
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);

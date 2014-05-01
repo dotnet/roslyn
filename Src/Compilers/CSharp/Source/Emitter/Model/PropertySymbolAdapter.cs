@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -153,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(Microsoft.CodeAnalysis.Emit.Context context)
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
             CheckDefinitionInvariant();
             return StaticCast<Cci.IParameterTypeInformation>.From(this.Parameters);
@@ -186,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.ITypeReference Cci.ISignature.GetType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             CheckDefinitionInvariant();
             return ((PEModuleBuilder)context.Module).Translate(this.Type,
@@ -220,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeMemberReference Members
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.ContainingType;
@@ -236,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.Visit((Cci.IPropertyDefinition)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(Microsoft.CodeAnalysis.Emit.Context context)
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this;
