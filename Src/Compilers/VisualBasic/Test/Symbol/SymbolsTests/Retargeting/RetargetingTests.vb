@@ -151,6 +151,16 @@ End Class
             Dim a = DirectCast(source, FieldSymbol)
             Dim b = DirectCast(retargeting, RetargetingFieldSymbol)
 
+            Dim aAssociated As Symbol = a.AssociatedSymbol
+            Dim bAssociated As Symbol = b.AssociatedSymbol
+            If aAssociated Is Nothing Then
+                Assert.Null(bAssociated)
+            ElseIf aAssociated.Kind = SymbolKind.Property Then
+                CheckProperties(aAssociated, bAssociated)
+            Else
+                CheckEvent(aAssociated, bAssociated)
+            End If
+
             Assert.Equal(a.Name, b.Name)
             CheckUnderlyingMember(a, b.UnderlyingField)
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation)

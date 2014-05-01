@@ -176,7 +176,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return m_UnderlyingField.AssociatedSymbol
+                Dim associated As Symbol = m_UnderlyingField.AssociatedSymbol
+                Return If(associated Is Nothing, Nothing, Me.RetargetingTranslator.Retarget(associated))
             End Get
         End Property
 

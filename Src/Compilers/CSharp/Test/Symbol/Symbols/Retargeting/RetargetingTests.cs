@@ -780,6 +780,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             CheckSymbols(a.Type, b.Type, recurse: false);
+            CheckSymbols(a.AssociatedSymbol, b.AssociatedSymbol, recurse: false);
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation);
         }
 
