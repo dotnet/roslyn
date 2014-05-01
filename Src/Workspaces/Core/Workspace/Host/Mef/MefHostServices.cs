@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private readonly ExportProvider exportProvider;
 
         // accumulated cache for exports
-        private ImmutableDictionary<ExportKey, IEnumerable> exportsMap 
+        private ImmutableDictionary<ExportKey, IEnumerable> exportsMap
             = ImmutableDictionary<ExportKey, IEnumerable>.Empty;
 
         private MefHostServices(ExportProvider exportProvider)
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             private readonly Workspace workspace;
 
             // map of type name to workspace service
-            private ImmutableDictionary<string, IWorkspaceService> serviceMap
-                = ImmutableDictionary<string, IWorkspaceService>.Empty;
+            private ImmutableDictionary<Type, IWorkspaceService> serviceMap
+                = ImmutableDictionary<Type, IWorkspaceService>.Empty;
 
             // accumulated cache for language services
             private ImmutableDictionary<string, MefLanguageServices> languageServicesMap
@@ -113,19 +113,20 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 IWorkspaceService service;
 
                 var currentMap = this.serviceMap;
-                var key = typeof(TWorkspaceService).AssemblyQualifiedName;
+                var key = typeof(TWorkspaceService);
                 if (!currentMap.TryGetValue(key, out service))
                 {
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, key, _ =>
                     {
                         // pick from list of exported factories and instances
+                        var serviceType = key.AssemblyQualifiedName;
                         return PickWorkspaceService(
                             this.host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                                .Where(lz => lz.Metadata.ServiceType == key)
+                                .Where(lz => lz.Metadata.ServiceType == serviceType)
                                 .Select(lz => new KeyValuePair<string, Func<MefWorkspaceServices, IWorkspaceService>>(lz.Metadata.Layer, ws => lz.Value.CreateService(ws)))
                                 .Concat(
                             this.host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-                                .Where(lz => lz.Metadata.ServiceType == key)
+                                .Where(lz => lz.Metadata.ServiceType == serviceType)
                                 .Select(lz => new KeyValuePair<string, Func<MefWorkspaceServices, IWorkspaceService>>(lz.Metadata.Layer, ws => lz.Value))));
                     });
                 }
@@ -215,10 +216,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services;
             private readonly ImmutableArray<Lazy<ILanguageServiceFactory, LanguageServiceMetadata>> factories;
 
-            private ImmutableDictionary<string, ILanguageService> serviceMap = ImmutableDictionary<string, ILanguageService>.Empty;
+            private ImmutableDictionary<Type, ILanguageService> serviceMap = ImmutableDictionary<Type, ILanguageService>.Empty;
 
             public MefLanguageServices(
-                MefWorkspaceServices workspaceServices, 
+                MefWorkspaceServices workspaceServices,
                 string language)
             {
                 this.workspaceServices = workspaceServices;
@@ -248,24 +249,25 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 ILanguageService service;
 
                 var currentMap = this.serviceMap;
-                var key = typeof(TLanguageService).AssemblyQualifiedName;
+                var key = typeof(TLanguageService);
 
                 if (!currentMap.TryGetValue(key, out service))
                 {
                     service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, key, _ =>
                     {
                         // pick from list of exported factories and instances
+                        var serviceType = key.AssemblyQualifiedName;
                         return PickLanguageService(
                             this.factories
-                                .Where(lz => lz.Metadata.ServiceType == key)
+                                .Where(lz => lz.Metadata.ServiceType == serviceType)
                                 .Select(lz => new KeyValuePair<string, Func<MefLanguageServices, ILanguageService>>(lz.Metadata.Layer, ls => lz.Value.CreateLanguageService(ls)))
                                 .Concat(
                             this.services
-                                .Where(lz => lz.Metadata.ServiceType == key)
+                                .Where(lz => lz.Metadata.ServiceType == serviceType)
                                 .Select(lz => new KeyValuePair<string, Func<MefLanguageServices, ILanguageService>>(lz.Metadata.Layer, ls => lz.Value))));
                     });
                 }
-               
+
                 return (TLanguageService)service;
             }
 
