@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///    non-source method, we introduce an explicit implementation that delegates
     ///    to it instead.
     /// </summary>
-    internal sealed partial class SynthesizedExplicitImplementationMethod : SynthesizedImplementationMethod
+    internal sealed partial class SynthesizedExplicitImplementationForwardingMethod : SynthesizedImplementationMethod
     {
         private readonly MethodSymbol implementingMethod;
 
-        public SynthesizedExplicitImplementationMethod(
+        public SynthesizedExplicitImplementationForwardingMethod(
             MethodSymbol interfaceMethod,
             MethodSymbol implementingMethod,
             NamedTypeSymbol implementingType) : base(interfaceMethod, implementingType)

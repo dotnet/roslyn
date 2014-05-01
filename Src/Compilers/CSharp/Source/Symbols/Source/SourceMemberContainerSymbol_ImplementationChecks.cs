@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// some interface methods.  They don't go in the symbol table, but if we are emitting, then we should
         /// generate code for them.
         /// </summary>
-        internal ImmutableArray<SynthesizedExplicitImplementationMethod> GetSynthesizedExplicitImplementations(
+        internal ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> GetSynthesizedExplicitImplementations(
             CancellationToken cancellationToken)
         {
             if (this.lazySynthesizedExplicitImplementations.IsDefault)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (ImmutableInterlocked.InterlockedCompareExchange(
                             ref this.lazySynthesizedExplicitImplementations,
                             ComputeInterfaceImplementations(diagnostics, cancellationToken),
-                            default(ImmutableArray<SynthesizedExplicitImplementationMethod>)).IsDefault)
+                            default(ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>)).IsDefault)
                     {
                         // Do not cancel from this point on.  We've assigned the member, so we must add
                         // the diagnostics.
@@ -87,16 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<SynthesizedExplicitImplementationMethod> ComputeInterfaceImplementations(
+        private ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> ComputeInterfaceImplementations(
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
             if (this.IsInterface)
             {
-                return ImmutableArray<SynthesizedExplicitImplementationMethod>.Empty;
+                return ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>.Empty;
             }
 
-            var synthesizedImplementations = ArrayBuilder<SynthesizedExplicitImplementationMethod>.GetInstance();
+            var synthesizedImplementations = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
 
             // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we 
             // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is 
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="implementingMemberAndDiagnostics">Returned from FindImplementationForInterfaceMemberWithDiagnostics.</param>
         /// <param name="interfaceMember">The interface method or property that is being implemented.</param>
         /// <returns>Synthesized implementation or null if not needed.</returns>
-        private SynthesizedExplicitImplementationMethod SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
+        private SynthesizedExplicitImplementationForwardingMethod SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
         {
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics)
             {
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return new SynthesizedExplicitImplementationMethod(interfaceMethod, implementingMethod, this);
+            return new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this);
         }
 
         /// <summary>

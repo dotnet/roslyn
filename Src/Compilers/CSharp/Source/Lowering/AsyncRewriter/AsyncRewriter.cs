@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class AsyncRewriter2 : StateMachineRewriter
+    internal partial class AsyncRewriter : StateMachineRewriter
     {
         /// <summary>
         /// Rewrite an async method into a state machine class.
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bodyWithAwaitLifted = AwaitLiftingRewriter.Rewrite(body, method, compilationState, diagnostics);
-            var rewriter = new AsyncRewriter2(bodyWithAwaitLifted, method, ((SourceMethodSymbol)method).AsyncStateMachineType, compilationState, diagnostics, generateDebugInfo);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, ((SourceMethodSymbol)method).AsyncStateMachineType, compilationState, diagnostics, generateDebugInfo);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FieldSymbol builderField;
 
-        private AsyncRewriter2(
+        private AsyncRewriter(
             BoundStatement body,
             MethodSymbol method,
-            AsyncStruct stateMachineClass,
+            AsyncStateMachine stateMachineClass,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
             bool generateDebugInfo)
@@ -70,20 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void GenerateFields()
         {
-            builderField = F.SynthesizeField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderName(), isPublic: true);
+            builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderName(), isPublic: true);
         }
 
         protected override void GenerateMethodImplementations()
         {
+            var IAsyncStateMachine_MoveNext = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext);
+            var IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
+
             // Add IAsyncStateMachine.MoveNext()
             {
-                var moveNextMethod = F.OpenMethodImplementation(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method);
+                var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
                 GenerateMoveNext(moveNextMethod);
             }
 
             // Add IAsyncStateMachine.SetStateMachine()
             {
-                F.OpenMethodImplementation(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true);
+                OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
                 F.CloseMethod(
                     F.Block(
                         // this.builderField.SetStateMachine(sm)
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), builderField.AsMember(frameType)), "Task")));
 
                 return F.Block(
-                    ImmutableArray.Create<LocalSymbol>(builderVariable),
+                    ImmutableArray.Create(builderVariable),
                     bodyBuilder.ToImmutableAndFree());
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
         {
-            var rewriter = new AsyncMethodToClassRewriter(
+            var rewriter = new AsyncMethodToStateMachineRewriter(
                 method: method,
                 asyncMethodBuilderMemberCollection: asyncMethodBuilderMemberCollection,
                 F: F,

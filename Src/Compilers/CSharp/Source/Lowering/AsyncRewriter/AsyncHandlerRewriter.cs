@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -412,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // conservative rethrow 
             BoundStatement rethrow = F.Throw(F.Local(obj));
 
-            var exceptionDispatchInfoCapture = (MethodSymbol)F.WellKnownMember(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture, isOptional: true);
-            var exceptionDispatchInfoThrow = (MethodSymbol)F.WellKnownMember(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw, isOptional: true);
+            var exceptionDispatchInfoCapture = F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture, isOptional: true);
+            var exceptionDispatchInfoThrow = F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw, isOptional: true);
 
             // if these helpers are available, we can rethrow with original stack info
             // as long as it derives from Exception

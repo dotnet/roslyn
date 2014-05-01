@@ -195,6 +195,7 @@
     <Compile Include="Emit\EditAndContinue\EncLocalInfo.cs" />
     <Compile Include="Emit\EditAndContinue\EncLocalSlotManager.cs" />
     <Compile Include="Emit\EditAndContinue\IPEDeltaAssemblyBuilder.cs" />
+    <Compile Include="Emit\EditAndContinue\SymbolChange.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolChanges.cs" />
     <Compile Include="Emit\ErrorType.cs" />
     <Compile Include="Emit\ModulePropertiesForSerialization.cs" />
@@ -502,6 +503,7 @@
     <Compile Include="Symbols\IRangeVariableSymbol.cs" />
     <Compile Include="Symbols\ISymbol.cs" />
     <Compile Include="Symbols\ISymbolExtensions.cs" />
+    <Compile Include="Symbols\ISynthesizedMethodBodyImplementationSymbol.cs" />
     <Compile Include="Symbols\ITypeParameterSymbol.cs" />
     <Compile Include="Symbols\ITypeSymbol.cs" />
     <Compile Include="Symbols\LanguageNames.cs" />

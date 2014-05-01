@@ -4,17 +4,10 @@ using Microsoft.Cci;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal enum SymbolChange
-    {
-        None = 0, // no change to symbol or members
-        ContainsChanges, // no change to symbol but may contain changed symbols
-        Changed, // symbol changed
-        Added, // symbol added
-    }
-
     internal sealed class SymbolChanges
     {
         private readonly DefinitionMap definitionMap;
@@ -29,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns true if the symbol or some child symbol has changed.
+        /// Returns true if the symbol or some child symbol has changed and needs to be compiled.
         /// </summary>
-        public bool HasChanged(ISymbol symbol)
+        public bool RequiresCompilation(ISymbol symbol)
         {
             return this.GetChange(symbol) != SymbolChange.None;
         }
@@ -73,9 +66,12 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 case SymbolChange.Added:
                     return SymbolChange.Added;
+
                 case SymbolChange.None:
                     return SymbolChange.None;
-                default:
+
+                case SymbolChange.Updated:
+                case SymbolChange.ContainsChanges:
                     var definition = symbol as IDefinition;
 
                     if (definition != null && !this.definitionMap.DefinitionExists(definition))
@@ -85,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
 
                     return SymbolChange.None;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -114,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Calculate the set of changes up to top-level types. The result
         /// will be used as a filter when traversing the module.
         /// </summary>
-        private static IReadOnlyDictionary<ISymbol, SymbolChange> CalculateChanges(
-            IEnumerable<SemanticEdit> edits)
+        private static IReadOnlyDictionary<ISymbol, SymbolChange> CalculateChanges(IEnumerable<SemanticEdit> edits)
         {
             var changes = new Dictionary<ISymbol, SymbolChange>();
 
@@ -126,14 +124,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 switch (edit.Kind)
                 {
                     case SemanticEditKind.Update:
-                        change = SymbolChange.Changed;
+                        change = SymbolChange.Updated;
                         break;
+
                     case SemanticEditKind.Insert:
                         change = SymbolChange.Added;
                         break;
+
                     case SemanticEditKind.Delete:
                         // No work to do.
                         continue;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(edit.Kind);
                 }
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     return;
                 }
+
                 if (changes.ContainsKey(symbol))
                 {
                     return;
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var kind = symbol.Kind;
                 if (kind == SymbolKind.Property || kind == SymbolKind.Event)
                 {
-                    changes.Add(symbol, SymbolChange.Changed);
+                    changes.Add(symbol, SymbolChange.Updated);
                 }
                 else
                 {

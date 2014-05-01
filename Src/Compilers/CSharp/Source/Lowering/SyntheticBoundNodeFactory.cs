@@ -144,11 +144,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public SynthesizedFieldSymbolBase SynthesizeField(TypeSymbol fieldType, string name, int? iteratorLocalIndex = null, bool isPublic = false)
+        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string name, bool isPublic)
         {
-            SynthesizedFieldSymbolBase result = iteratorLocalIndex.HasValue
-                ? (SynthesizedFieldSymbolBase)new SynthesizedIteratorLocalFieldSymbol(CurrentClass, fieldType, name, iteratorLocalIndex.GetValueOrDefault(), isPublic: isPublic, isStatic: false)
-                : new SynthesizedFieldSymbol(CurrentClass, fieldType, name, isPublic: isPublic, isStatic: false);
+            var result = new StateMachineFieldSymbol(CurrentClass, fieldType, name, isPublic);
+            AddField(CurrentClass, result);
+            return result;
+        }
+
+        public SynthesizedFieldSymbolBase StateMachineField(TypeSymbol fieldType, string name, int iteratorLocalIndex)
+        {
+            var result = new StateMachineHoistedLocalSymbol(CurrentClass, fieldType, name, iteratorLocalIndex);
             AddField(CurrentClass, result);
             return result;
         }
@@ -264,6 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return wellKnownMember;
         }
 
+        public MethodSymbol WellKnownMethod(WellKnownMember wm, bool isOptional = false)
+        {
+            return (MethodSymbol)WellKnownMember(wm, isOptional);
+        }
+
         /// <summary>
         /// Get the symbol for a special member. The use of this method to get a special member
         /// that does not exist will result in an exception of type MissingPredefinedMember being thrown
@@ -284,6 +294,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder.ReportUseSiteDiagnostics(specialMember, Diagnostics, Syntax);
             return specialMember;
+        }
+
+        public MethodSymbol SpecialMethod(SpecialMember sm)
+        {
+            return (MethodSymbol)SpecialMember(sm);
+        }
+
+        public PropertySymbol SpecialProperty(SpecialMember sm)
+        {
+            return (PropertySymbol)SpecialMember(sm);
         }
 
         public BoundExpressionStatement Assignment(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
@@ -346,56 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (body.Kind != BoundKind.Block) body = Block(body);
             CompilationState.AddSynthesizedMethod(CurrentMethod, body);
             CurrentMethod = null;
-        }
-
-        public SynthesizedImplementationMethod OpenMethodImplementation(SpecialMember interfaceMethod, string methodName = null, bool debuggerHidden = false)
-        {
-            var methodToImplement = (MethodSymbol)this.SpecialMember(interfaceMethod);
-            return OpenMethodImplementation(methodToImplement, methodName, debuggerHidden);
-        }
-
-        public SynthesizedImplementationMethod OpenMethodImplementation(NamedTypeSymbol interfaceType, SpecialMember interfaceMethod, string methodName = null, bool debuggerHidden = false)
-        {
-            var methodToImplement = ((MethodSymbol)this.SpecialMember(interfaceMethod)).AsMember(interfaceType);
-            return OpenMethodImplementation(methodToImplement, methodName, debuggerHidden);
-        }
-
-        public SynthesizedImplementationMethod OpenMethodImplementation(WellKnownMember interfaceMethod, string methodName = null, bool debuggerHidden = false, MethodSymbol asyncKickoffMethod = null)
-        {
-            var methodToImplement = (MethodSymbol)this.WellKnownMember(interfaceMethod);
-            return OpenMethodImplementation(methodToImplement, methodName, debuggerHidden, asyncKickoffMethod: asyncKickoffMethod);
-        }
-
-        private SynthesizedImplementationMethod OpenMethodImplementation(MethodSymbol methodToImplement, string methodName, bool debuggerHidden, MethodSymbol asyncKickoffMethod = null)
-        {
-            var result = new SynthesizedImplementationMethod(methodToImplement, CurrentClass, methodName, debuggerHidden: debuggerHidden, asyncKickoffMethod: asyncKickoffMethod);
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, result);
-            CurrentMethod = result;
-            return result;
-        }
-
-        public MethodSymbol OpenPropertyImplementation(SpecialMember interfaceProperty, bool debuggerHidden = false)
-        {
-            var methodToImplement = ((PropertySymbol)SpecialMember(interfaceProperty)).GetMethod;
-            return OpenPropertyImplementation(methodToImplement, debuggerHidden);
-        }
-
-        public MethodSymbol OpenPropertyImplementation(NamedTypeSymbol interfaceType, SpecialMember interfaceProperty, bool debuggerHidden = false)
-        {
-            var methodToImplement = (((PropertySymbol)SpecialMember(interfaceProperty)).GetMethod).AsMember(interfaceType);
-            return OpenPropertyImplementation(methodToImplement, debuggerHidden);
-        }
-
-        private MethodSymbol OpenPropertyImplementation(MethodSymbol methodToImplement, bool debuggerHidden)
-        {
-            var prop = new SynthesizedImplementationReadOnlyProperty(methodToImplement, CurrentClass, debuggerHidden);
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, prop);
-
-            var getter = prop.GetMethod;
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, getter);
-
-            CurrentMethod = getter;
-            return getter;
         }
 
         public LocalSymbol SynthesizedLocal(TypeSymbol type, string name = null, CSharpSyntaxNode syntax = null, bool isPinned = false, RefKind refKind = RefKind.None, TempKind tempKind = TempKind.None)
@@ -872,25 +842,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeOfOperator(
                 Syntax,
                 Type(type),
-                (MethodSymbol)WellKnownMember(Microsoft.CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Type)) { WasCompilerGenerated = true };
+                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type)) { WasCompilerGenerated = true };
         }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
-            var result = new BoundExpression[typeArguments.Length];
-            for (int i = 0; i < typeArguments.Length; i++)
-            {
-                result[i] = Typeof(typeArguments[i]);
-            }
-
-            return result.AsImmutableOrNull();
+            return typeArguments.SelectAsArray(Typeof);
         }
 
-        public BoundExpression MethodInfo(WellKnownMember meth)
+        public BoundExpression MethodInfo(WellKnownMember method)
         {
-            var method = (MethodSymbol)WellKnownMember(meth);
-            return MethodInfo(method);
+            return MethodInfo(WellKnownMethod(method));
         }
 
         public BoundExpression Sizeof(TypeSymbol type)
@@ -928,18 +891,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol GetMethodFromHandleMethod(NamedTypeSymbol methodContainer)
         {
-            return (MethodSymbol)WellKnownMember(
+            return WellKnownMethod(
                 (methodContainer.AllTypeArgumentCount() == 0 && !methodContainer.IsAnonymousType) ?
-                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle :
-                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2);
+                CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle :
+                CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2);
         }
 
         private MethodSymbol GetFieldFromHandleMethod(NamedTypeSymbol fieldContainer)
         {
-            return (MethodSymbol)WellKnownMember(
+            return WellKnownMethod(
                 (fieldContainer.AllTypeArgumentCount() == 0) ?
-                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle :
-                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
+                CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle :
+                CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
         }
 
         public BoundExpression Convert(TypeSymbol type, BoundExpression arg)

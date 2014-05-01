@@ -1,39 +1,40 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SynthesizedImplementationReadOnlyProperty : PropertySymbol
+    /// <summary>
+    /// State machine interface property implementation.
+    /// </summary>
+    internal class SynthesizedStateMachineProperty : PropertySymbol, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly SynthesizedImplementationMethod getter;
-        private readonly string propName;
+        private readonly SynthesizedStateMachineMethod getter;
+        private readonly string name;
 
-        internal SynthesizedImplementationReadOnlyProperty(
-            MethodSymbol interfaceMethod,
+        internal SynthesizedStateMachineProperty(
+            MethodSymbol interfacePropertyGetter,
             NamedTypeSymbol implementingType,
-            bool debuggerHidden = false)
+            bool debuggerHidden,
+            bool hasMethodBodyDependency)
         {
-            this.propName = ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.AssociatedSymbol.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
+            this.name = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.AssociatedSymbol.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
+            var getterName = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
 
-            var getterName = ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
-            getter = new SynthesizedImplementationMethod(interfaceMethod,
-                                                        implementingType,
-                                                        getterName,
-                                                        debuggerHidden,
-                                                        associatedProperty: this);
+            getter = new SynthesizedStateMachineMethod(
+                getterName,
+                interfacePropertyGetter,
+                implementingType,
+                asyncKickoffMethod: null,
+                associatedProperty: this,
+                debuggerHidden: debuggerHidden,
+                hasMethodBodyDependency: hasMethodBodyDependency);
         }
 
         public override string Name
         {
-            get { return propName; }
+            get { return name; }
         }
 
         public override TypeSymbol Type
@@ -147,6 +148,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
+        }
+
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get { return getter.HasMethodBodyDependency; }
+        }
+
+        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
         }
     }
 }

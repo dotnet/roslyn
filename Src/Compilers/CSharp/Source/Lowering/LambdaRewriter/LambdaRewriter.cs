@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (translatedLambdaContainer.OriginalDefinition is LambdaFrame)
             {
                 currentTypeParameters = translatedLambdaContainer.TypeParameters;
-                currentLambdaBodyTypeMap = (translatedLambdaContainer as LambdaFrame).TypeMap;
+                currentLambdaBodyTypeMap = ((LambdaFrame)translatedLambdaContainer).TypeMap;
             }
             else
             {

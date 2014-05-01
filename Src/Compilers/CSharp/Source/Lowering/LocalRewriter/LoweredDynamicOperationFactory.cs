@@ -4,8 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -509,12 +507,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol GetArgumentInfoFactory()
         {
-            return (MethodSymbol)factory.WellKnownMember(WellKnownMember.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo__Create, isOptional: false);
+            return factory.WellKnownMethod(WellKnownMember.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo__Create, isOptional: false);
         }
 
         private BoundExpression MakeBinderConstruction(WellKnownMember factoryMethod, BoundExpression[] args)
         {
-            var binderFactory = factory.WellKnownMember(factoryMethod, isOptional: false);
+            var binderFactory = factory.WellKnownMember(factoryMethod);
             if ((object)binderFactory == null)
             {
                 return null;
@@ -616,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // get well-known types and members we need:
             NamedTypeSymbol delegateTypeOverMethodTypeParameters = GetDelegateType(loweredReceiver, receiverRefKind, loweredArguments, refKinds, loweredRight, resultType);
             NamedTypeSymbol callSiteTypeGeneric = factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
-            MethodSymbol callSiteFactoryGeneric = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Create);
+            MethodSymbol callSiteFactoryGeneric = factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Create);
             FieldSymbol callSiteTargetFieldGeneric = (FieldSymbol)factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Target);
             MethodSymbol delegateInvoke;
 
@@ -674,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(
                 factory.TopLevelMethod.IsExplicitInterfaceImplementation ? "" : factory.TopLevelMethod.Name, factory.CompilationState.GenerateTempNumber());
 
-            var synthesizedContainer = new SynthesizedContainer(factory.TopLevelMethod, containerName, TypeKind.Class);
+            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
             factory.AddNestedType(synthesizedContainer);
 
             if (factory.TopLevelMethod.IsGenericMethod)

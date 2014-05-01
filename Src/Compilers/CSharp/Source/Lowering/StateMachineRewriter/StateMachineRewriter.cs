@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add a field: int _state
             var intType = F.SpecialType(SpecialType.System_Int32);
-            stateField = F.SynthesizeField(intType, GeneratedNames.MakeStateMachineStateName(), isPublic: IsStateFieldPublic);
+            stateField = F.StateMachineField(intType, GeneratedNames.MakeStateMachineStateName(), IsStateFieldPublic);
 
             GenerateFields();
 
@@ -128,24 +128,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameter.IsThis)
                     {
-                        var proxyField = F.SynthesizeField(method.ContainingType, GeneratedNames.IteratorThisProxyName(), isPublic: true);
+                        var proxyField = F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyName(), isPublic: true);
                         variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
                         if (PreserveInitialLocals)
                         {
-                            var initialThis = method.ContainingType.IsStructType() ? F.SynthesizeField(method.ContainingType, GeneratedNames.IteratorThisProxyProxyName(), isPublic: true) : proxyField;
+                            var initialThis = method.ContainingType.IsStructType() ? 
+                                F.StateMachineField(method.ContainingType, GeneratedNames.IteratorThisProxyProxyName(), isPublic: true) : proxyField;
+
                             initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(initialThis));
                         }
                     }
                     else
                     {
-                        var proxyField = F.SynthesizeField(TypeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
+                        var proxyField = F.StateMachineField(TypeMap.SubstituteType(parameter.Type), parameter.Name, isPublic: true);
                         variableProxies.Add(parameter, new CapturedToFrameSymbolReplacement(proxyField));
 
                         if (PreserveInitialLocals)
                         {
                             string proxyName = GeneratedNames.IteratorParameterProxyName(parameter.Name);
-                            initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(F.SynthesizeField(TypeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
+                            initialParameters.Add(parameter, new CapturedToFrameSymbolReplacement(
+                                F.StateMachineField(TypeMap.SubstituteType(parameter.Type), proxyName, isPublic: true)));
                         }
                         if (parameter.Type.IsRestrictedType())
                         {
@@ -187,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string fieldName = local.DeclarationKind == LocalDeclarationKind.CompilerGeneratedLambdaDisplayClassLocal
                 ? local.Name
                 : GeneratedNames.MakeIteratorLocalName(local.Name, index);
-            return F.SynthesizeField(TypeMap.SubstituteType(type), fieldName, index, isPublic: true);
+
+            return F.StateMachineField(TypeMap.SubstituteType(type), fieldName, index);
         }
 
         private BoundStatement ReplaceOriginalMethod()
@@ -225,5 +229,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.ToImmutableAndFree());
         }
 
+        protected SynthesizedImplementationMethod OpenMethodImplementation(
+            MethodSymbol methodToImplement,
+            string methodName = null,
+            bool debuggerHidden = false, 
+            bool hasMethodBodyDependency = false,
+            MethodSymbol asyncKickoffMethod = null)
+        {
+            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, F.CurrentClass, asyncKickoffMethod, null, debuggerHidden, hasMethodBodyDependency);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, result);
+            F.CurrentMethod = result;
+            return result;
+        }
+
+        protected MethodSymbol OpenPropertyImplementation(
+            MethodSymbol getterToImplement, 
+            bool debuggerHidden = false, 
+            bool hasMethodBodyDependency = false)
+        {
+            var prop = new SynthesizedStateMachineProperty(getterToImplement, F.CurrentClass, debuggerHidden, hasMethodBodyDependency);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, prop);
+
+            var getter = prop.GetMethod;
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, getter);
+
+            F.CurrentMethod = getter;
+            return getter;
+        }
     }
 }

@@ -1,66 +1,70 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Debug = System.Diagnostics.Debug;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A container synthesized for a lambda, iterator method, async method, or dynamic-sites.
     /// </summary>
-    internal class SynthesizedContainer : NamedTypeSymbol
+    internal abstract class SynthesizedContainer : NamedTypeSymbol
     {
-        protected readonly NamespaceOrTypeSymbol containingSymbol;
-        protected readonly string name;
-        internal readonly TypeMap TypeMap;
-        protected readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-        private readonly TypeKind typeKind;
+        private readonly string name;
+        private readonly TypeMap typeMap;
+        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
 
-        internal SynthesizedContainer(MethodSymbol topLevelMethod, string name, TypeKind typeKind)
+        protected SynthesizedContainer(string name, int parameterCount, bool returnsVoid)
         {
-            this.typeKind = typeKind;
-            this.containingSymbol = topLevelMethod.ContainingType;
+            Debug.Assert(name != null);
             this.name = name;
-            this.TypeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out this.typeParameters);
+            this.typeMap = TypeMap.Empty;
+            this.typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
         }
 
-        internal SynthesizedContainer(NamedTypeSymbol containingType, string name, TypeKind typeKind)
+        protected SynthesizedContainer(string name, MethodSymbol topLevelMethod)
         {
-            this.typeKind = typeKind;
-            this.containingSymbol = containingType;
+            Debug.Assert(name != null);
+            Debug.Assert(topLevelMethod != null);
+
             this.name = name;
-            this.TypeMap = TypeMap.Empty;
-            this.typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            this.typeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out this.typeParameters);
         }
 
-        /// <summary>
-        /// Used for <see cref="SynthesizedDelegateSymbol"/> construction.
-        /// </summary>
-        protected SynthesizedContainer(NamespaceOrTypeSymbol containingSymbol, string name, int parameterCount, bool returnsVoid)
+        protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParameters, TypeMap typeMap)
         {
-            var typeParameters = new TypeParameterSymbol[parameterCount + (returnsVoid ? 0 : 1)];
+            Debug.Assert(name != null);
+            Debug.Assert(!typeParameters.IsDefault);
+            Debug.Assert(typeMap != null);
+
+            this.name = name;
+            this.typeParameters = typeParameters;
+            this.typeMap = typeMap;
+        }
+
+        private ImmutableArray<TypeParameterSymbol> CreateTypeParameters(int parameterCount, bool returnsVoid)
+        {
+            var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
             for (int i = 0; i < parameterCount; i++)
             {
-                typeParameters[i] = new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, i, "T" + (i + 1));
+                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
             }
 
             if (!returnsVoid)
             {
-                typeParameters[parameterCount] = new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, parameterCount, "TResult");
+                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, parameterCount, "TResult"));
             }
 
-            this.containingSymbol = containingSymbol;
-            this.name = name;
-            this.TypeMap = TypeMap.Empty;
-            this.typeParameters = typeParameters.AsImmutableOrNull();
+            return typeParameters.ToImmutableAndFree();
+        }
+
+        internal TypeMap TypeMap
+        {
+            get { return typeMap; }
         }
 
         internal virtual MethodSymbol Constructor
@@ -68,12 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override TypeKind TypeKind
-        {
-            get { return this.typeKind; }
-        }
-
-        internal override bool IsInterface
+        internal sealed override bool IsInterface
         {
             get { return this.TypeKind == TypeKind.Interface; }
         }
@@ -82,12 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(ref attributes);
 
-            if (containingSymbol.Kind == SymbolKind.NamedType && containingSymbol.IsImplicitlyDeclared)
+            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
             {
                 return;
             }
 
-            var compilation = containingSymbol.DeclaringCompilation;
+            var compilation = ContainingSymbol.DeclaringCompilation;
 
             // this can only happen if frame is not nested in a source type/namespace (so far we do not do this)
             // if this happens for whatever reason, we do not need "CompilerGenerated" anyways
@@ -97,17 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return typeParameters; }
         }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return this.containingSymbol; }
-        }
-
-        public override string Name
+        public sealed override string Name
         {
             get { return name; }
         }
@@ -149,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            Symbol constructor = (Symbol)this.Constructor;
-            return (object)constructor == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create<Symbol>(constructor);
+            Symbol constructor = this.Constructor;
+            return (object)constructor == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(constructor);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
@@ -219,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
-            get { return ContainingAssembly.GetSpecialType(this.typeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object); }
+            get { return ContainingAssembly.GetSpecialType(this.TypeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object); }
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
@@ -292,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
         }

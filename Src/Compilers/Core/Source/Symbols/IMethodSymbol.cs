@@ -158,13 +158,16 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
 
         /// <summary>
-        /// If this method has MethodKind of MethodKind.PropertyGet or MethodKind.PropertySet,
+        /// Returns a symbol (e.g. property, event, etc.) associated with the method.
+        /// </summary>
+        /// <remarks>
+        /// If this method has <see cref="MethodKind"/> of <see cref="MethodKind.PropertyGet"/> or <see cref="MethodKind.PropertySet"/>,
         /// returns the property that this method is the getter or setter for.
-        /// If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
+        /// If this method has <see cref="MethodKind"/> of <see cref="MethodKind.EventAdd"/> or <see cref="MethodKind.EventRemove"/>,
         /// returns the event that this method is the adder or remover for.
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
-        /// </summary>
+        /// </remarks>
         ISymbol AssociatedSymbol { get; }
 
         /// <summary>

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the method is async, returns the type of the synthesized state machine class.
         /// Used to construct the AsyncStateMachineAttribute for pdb emit.
         /// </summary>
-        private AsyncRewriter2.AsyncStruct asyncStateMachineType;
+        private AsyncStateMachine asyncStateMachineType;
 
         protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference blockSyntaxReference, Location location)
             : this(containingType, syntaxReference, blockSyntaxReference, ImmutableArray.Create(location))
@@ -1474,12 +1474,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal AsyncRewriter2.AsyncStruct AsyncStateMachineType
+        internal AsyncStateMachine AsyncStateMachineType
         {
             get
             {
                 if (!IsAsync) return null;
-                if ((object)this.asyncStateMachineType == null) Interlocked.CompareExchange(ref this.asyncStateMachineType, new AsyncRewriter2.AsyncStruct(this), null);
+                if ((object)this.asyncStateMachineType == null) Interlocked.CompareExchange(ref this.asyncStateMachineType, new AsyncStateMachine(this), null);
                 return this.asyncStateMachineType;
             }
         }

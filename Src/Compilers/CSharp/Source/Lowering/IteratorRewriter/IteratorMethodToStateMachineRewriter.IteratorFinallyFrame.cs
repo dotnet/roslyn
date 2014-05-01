@@ -6,10 +6,10 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class IteratorMethodToClassRewriter
+    partial class IteratorMethodToStateMachineRewriter
     {
         // storage of various information about a given try/finally frame
-        private class IteratorFinallyFrame
+        private sealed class IteratorFinallyFrame
         {
             // finalize state of this frame. This is the state we shoudl be in when we are "between real states"
             public readonly int finalizeState;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly IteratorFinallyFrame parent;
 
             // Finally handler function. We must run this when logically leaving the frame. Root does not have a handler.
-            public readonly IteratorFinally handler;
+            public readonly IteratorFinallyMethodSymbol handler;
 
             // All states encountered in nested frames mapped to corresponding finally frames.
             // This is enough information to restore Try/Finally tree structure in Dispose and dispatch any valid state
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IteratorFinallyFrame(
                 IteratorFinallyFrame parent,
                 int finalizeState,
-                IteratorFinally handler,
+                IteratorFinallyMethodSymbol handler,
                 HashSet<LabelSymbol> labels)
             {
                 Debug.Assert(parent != null, "non root frame must have a parent");

@@ -5,17 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    abstract class StateMachineMethodToClassRewriter : MethodToClassRewriter
+    internal abstract class MethodToStateMachineRewriter : MethodToClassRewriter
     {
         private readonly HashSet<Symbol> variablesCaptured;
         protected override HashSet<Symbol> VariablesCaptured
@@ -23,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.variablesCaptured; }
         }
 
-        public StateMachineMethodToClassRewriter(
+        public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
@@ -286,8 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// fields allocated to temporaries should be cleared when the underlying variable goes out of scope, so
         /// that they do not cause unnecessary object retention.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         private bool MightContainReferences(TypeSymbol type)
         {
             if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
@@ -344,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)result == null)
             {
                 var fieldName = GeneratedNames.SpillTempName(nextTempNumber++);
-                result = F.SynthesizeField(type, fieldName, isPublic: true);
+                result = F.StateMachineField(type, fieldName, isPublic: true);
             }
 
             return result;
@@ -622,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(proxy != null);
             return proxy.Replacement(F.Syntax, frameType => F.This());
         }
+
         #endregion
     }
 }

@@ -285,12 +285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             factory.Syntax = node.Syntax;
 
 
-            var ctor = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
+            var ctor = factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
 
             if ((object)ctor != null)
             {
-                var addRemove = (MethodSymbol)factory.WellKnownMember(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
-                                                                                        WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler);
+                var addRemove = factory.WellKnownMethod(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
+                                                                          WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler);
 
                 if ((object)addRemove != null)
                 {

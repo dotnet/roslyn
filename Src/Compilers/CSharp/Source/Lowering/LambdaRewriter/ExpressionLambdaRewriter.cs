@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nullObject = Bound.Null(ObjectType);
             receiver = staticMember ? nullObject : receiver.Type.IsReferenceType ? receiver : Bound.Convert(ObjectType, receiver);
 
-            var createDelegate = (MethodSymbol)Bound.WellKnownMember(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
+            var createDelegate = Bound.WellKnownMethod(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
             BoundExpression unquoted;
             if ((object)createDelegate != null)
             {
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ExprFactory(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
         {
-            var m0 = (MethodSymbol)Bound.WellKnownMember(method);
+            var m0 = Bound.WellKnownMethod(method);
             Debug.Assert((object)m0 != null);
             Debug.Assert(m0.ParameterCount == arguments.Length);
             var m1 = m0.Construct(typeArgs);

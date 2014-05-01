@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             F.Convert(hashCode.Type,
                                                 F.Call(
                                                     F.Parameter(text),
-                                                    (MethodSymbol)F.SpecialMember(SpecialMember.System_String__Chars),
+                                                    F.SpecialMethod(SpecialMember.System_String__Chars),
                                                     F.Local(i)),
                                                 ConversionKind.ImplicitNumeric),
                                             F.Local(hashCode)),
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.If(
                                     F.Binary(BinaryOperatorKind.LessThan, F.SpecialType(SpecialType.System_Boolean),
                                         F.Local(i),
-                                        F.Call(F.Parameter(text), (MethodSymbol)F.SpecialMember(SpecialMember.System_String__Length))),
+                                        F.Call(F.Parameter(text), F.SpecialMethod(SpecialMember.System_String__Length))),
                                     F.Goto(again)))),
                         F.Return(F.Local(hashCode))
                     );
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed partial class SynthesizedExplicitImplementationMethod : SynthesizedImplementationMethod
+    internal sealed partial class SynthesizedExplicitImplementationForwardingMethod : SynthesizedImplementationMethod
     {
         internal override bool SynthesizesLoweredBoundBody
         {

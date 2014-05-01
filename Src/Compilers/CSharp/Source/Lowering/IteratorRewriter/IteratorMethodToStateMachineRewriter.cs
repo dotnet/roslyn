@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    sealed internal partial class IteratorMethodToClassRewriter : StateMachineMethodToClassRewriter
+    internal sealed partial class IteratorMethodToStateMachineRewriter : MethodToStateMachineRewriter
     {
         /// <summary>
         /// The field of the generated iterator class that underlies the Current property.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int nextFinalizeState = StateMachineStates.FinishedStateMachine - 1;  // -3
 
-        internal IteratorMethodToClassRewriter(
+        internal IteratorMethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // [[rewritten body]]
             newBody = F.Block(
                     F.Block(
-                        ImmutableArray.Create<LocalSymbol>(cachedState),
+                        ImmutableArray.Create(cachedState),
                         F.HiddenSequencePoint(),
                         F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField))
                     ),
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression caseExpressionOpt = (BoundExpression)this.Visit(node.CaseExpressionOpt);
             BoundLabel labelExpressionOpt = (BoundLabel)this.Visit(node.LabelExpressionOpt);
             var proxyLabel = currentFinallyFrame.ProxyLabelIfNeeded(node.Label);
-            Debug.Assert(node.Label == proxyLabel || !(F.CurrentMethod is IteratorFinally), "should not be proxying branches in finally");
+            Debug.Assert(node.Label == proxyLabel || !(F.CurrentMethod is IteratorFinallyMethodSymbol), "should not be proxying branches in finally");
             return node.Update(proxyLabel, caseExpressionOpt, labelExpressionOpt);
         }
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        private IteratorFinally MakeSynthesizedFinally(int state)
+        private IteratorFinallyMethodSymbol MakeSynthesizedFinally(int state)
         {
             // we can pick any name, but we will try to do
             // <>m__Finally1
@@ -471,12 +471,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that will roughly match native naming scheme and may also be easier when need to debug.
             string name = "<>m__Finally" + Math.Abs(state + 2);
 
-            var containingType = F.CurrentClass;
-            Debug.Assert(containingType != null);
+            var stateMachineType = (IteratorStateMachine)F.CurrentClass;
+            Debug.Assert(stateMachineType != null);
 
-            var finallyMethod = new IteratorFinally(containingType, name);
+            var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, name);
 
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, finallyMethod);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod);
 
             return finallyMethod;
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -7,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -151,14 +151,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly FieldSymbol internalField;
 
         public FixedFieldImplementationType(SourceMemberFieldSymbol field)
-            : base(field.ContainingType, GeneratedNames.MakeFixedFieldImplementationName(field.Name), TypeKind.Class)
+            : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name), typeParameters: ImmutableArray<TypeParameterSymbol>.Empty, typeMap: TypeMap.Empty)
         {
             this.field = field;
             this.constructor = new SynthesizedInstanceConstructor(this);
             this.internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
         }
 
-        internal override MethodSymbol Constructor { get { return constructor; } }
+        public override Symbol ContainingSymbol
+        {
+            get { return field.ContainingType; }
+        }
+
+        public override TypeKind TypeKind
+        {
+            get { return TypeKind.Struct; }
+        }
+                
+        internal override MethodSymbol Constructor
+        {
+            get { return constructor; }
+        }
 
         internal override TypeLayout Layout
         {
@@ -176,22 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FieldSymbol FixedElementField
         {
-            get
-            {
-                return internalField;
-            }
+            get { return internalField; }
         }
 
         internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(ref attributes);
-            var compilation = containingSymbol.DeclaringCompilation;
+            var compilation = ContainingSymbol.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
-        }
-
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Struct; }
         }
 
         public override IEnumerable<string> MemberNames
@@ -219,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
-            get { return ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_ValueType); }
+            get { return ContainingAssembly.GetSpecialType(SpecialType.System_ValueType); }
         }
     }
 }

@@ -2578,7 +2578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool metadataOnly,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filter,
+            Predicate<ISymbol> filterOpt,
             bool hasDeclarationErrors)
         {
             // TODO (tomat): NoPIA:
@@ -2638,7 +2638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     generateDebugInfo,
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
-                    filterOpt: filter,
+                    filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
                 SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);

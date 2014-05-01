@@ -3,19 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedDelegateSymbol : SynthesizedContainer
     {
+        private readonly NamespaceOrTypeSymbol containingSymbol;
         private readonly MethodSymbol constructor;
         private readonly MethodSymbol invoke;
 
@@ -28,10 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol voidReturnTypeOpt,
             int parameterCount,
             BitArray byRefParameters)
-            : base(containingSymbol, name, parameterCount, returnsVoid: (object)voidReturnTypeOpt != null)
+            : base(name, parameterCount, returnsVoid: (object)voidReturnTypeOpt != null)
         {
+            this.containingSymbol = containingSymbol;
             this.constructor = new DelegateConstructor(this, objectType, intPtrType);
             this.invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt);
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get { return containingSymbol; }
         }
 
         public override TypeKind TypeKind
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
-            get { return ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_MulticastDelegate); }
+            get { return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate); }
         }
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor

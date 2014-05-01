@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     metadataOnly:=False,
                     generateDebugInfo:=True,
                     diagnosticBag:=diagnostics,
-                    filter:=AddressOf changes.HasChanged,
+                    filter:=AddressOf changes.RequiresCompilation,
                     hasDeclarationErrors:=False) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.

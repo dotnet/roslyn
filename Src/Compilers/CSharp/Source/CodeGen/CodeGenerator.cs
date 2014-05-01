@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // return a ref local (which the return local will be in such cases).
             if (this.noOptimizations && method.ReturnType is ByRefReturnErrorTypeSymbol)
             {
-                Debug.Assert(method is SynthesizedExplicitImplementationMethod);
+                Debug.Assert(method is SynthesizedExplicitImplementationForwardingMethod);
                 this.noOptimizations = false;
             }
 

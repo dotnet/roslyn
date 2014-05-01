@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// a bound node rewriter that rewrites types properly (which in some cases the automatically-generated
     /// base class does not).  This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     /// </summary>
-    abstract partial class MethodToClassRewriter : BoundTreeRewriter
+    internal abstract partial class MethodToClassRewriter : BoundTreeRewriter
     {
         // A mapping from every lambda parameter to its corresponding method's parameter.  This map remains
         // empty if we are performing something other than a lambda transformation (e.g. async or iterator).

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             factory.Syntax = node.Syntax;
 
 
-            var ctor = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Guid__ctor);
+            var ctor = factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
             BoundExpression newGuid;
 
             if ((object)ctor != null)
@@ -243,11 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var getTypeFromCLSID = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
+            var getTypeFromCLSID = factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
 
             if ((object)getTypeFromCLSID == null)
             {
-                getTypeFromCLSID = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Type__GetTypeFromCLSID);
+                getTypeFromCLSID = factory.WellKnownMethod(WellKnownMember.System_Type__GetTypeFromCLSID);
             }
 
             BoundExpression callGetTypeFromCLSID;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var createInstance = (MethodSymbol)factory.WellKnownMember(WellKnownMember.System_Activator__CreateInstance);
+            var createInstance = factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
             BoundExpression rewrittenObjectCreation;
 
             if ((object)createInstance != null)

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
                     break;
-                case SymbolChange.Changed:
+                case SymbolChange.Updated:
                     this.typeDefs.AddUpdated(typeDef);
                     break;
                 case SymbolChange.None:
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 case SymbolChange.Added:
                     defIndex.Add(def);
                     return true;
-                case SymbolChange.Changed:
+                case SymbolChange.Updated:
                     defIndex.AddUpdated(def);
                     return false;
                 case SymbolChange.ContainsChanges:

@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    class AwaitLiftingRewriter : BoundTreeRewriter
+    internal sealed class AwaitLiftingRewriter : BoundTreeRewriter
     {
         private readonly SyntheticBoundNodeFactory F;
         private readonly HashSet<LocalSymbol> writeOnceTemps = new HashSet<LocalSymbol>();

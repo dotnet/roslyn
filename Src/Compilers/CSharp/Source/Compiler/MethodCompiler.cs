@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
                 var method = methodWithBody.Method;
-                BoundStatement bodyWithoutAsync = AsyncRewriter2.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, generateDebugInfo);
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, generateDebugInfo);
 
                 MethodBody emittedBody = null;
 
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithoutIterators;
             }
 
-            BoundStatement bodyWithoutAsync = AsyncRewriter2.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, generateDebugInfo);
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, generateDebugInfo);
 
             return bodyWithoutAsync;
         }

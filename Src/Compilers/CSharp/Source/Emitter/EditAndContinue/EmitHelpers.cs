@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 metadataOnly: false,
                 generateDebugInfo: true,
                 diagnostics: diagnostics,
-                filter: changes.HasChanged,
+                filterOpt: changes.RequiresCompilation,
                 hasDeclarationErrors: false))
             {
                 // Map the definitions from the previous compilation to the current compilation.

@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis
             bool metadataOnly,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filter = null)
+            Predicate<ISymbol> filterOpt = null)
         {
             bool hasDeclarationErrors = false;
             var moduleBeingBuilt = this.CreateModuleBuilder(
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly,
                 generateDebugInfo,
                 diagnostics,
-                filter,
+                filterOpt,
                 hasDeclarationErrors))
             {
                 return null;
