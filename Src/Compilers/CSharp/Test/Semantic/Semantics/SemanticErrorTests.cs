@@ -9470,7 +9470,7 @@ class B<T1, T2, T3, T4, T5, T6, T7>
 
         [WorkItem(539901, "DevDiv")]
         [Fact]
-        public void CS0407ERR_BadRetType()
+        public void CS0407ERR_BadRetType_01()
         {
             var text = @"
 public delegate int MyDelegate();
@@ -9505,9 +9505,37 @@ class C
                 Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void"));
         }
 
+        [WorkItem(925899, "DevDiv")]
+        [Fact]
+        public void CS0407ERR_BadRetType_02()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        var oo = new Func<object, object>(x => 1);
+ 
+        var os = new Func<object, string>(oo);
+        var ss = new Func<string, string>(oo);
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (10,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
+    //         var os = new Func<object, string>(oo);
+    Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),
+    // (11,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
+    //         var ss = new Func<string, string>(oo);
+    Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
+                );
+        }
+
         [WorkItem(539924, "DevDiv")]
         [Fact]
-        public void CS0407ERR_BadRetType_01()
+        public void CS0407ERR_BadRetType_03()
         {
             var text = @"
 delegate DerivedClass MyDerivedDelegate(DerivedClass x);

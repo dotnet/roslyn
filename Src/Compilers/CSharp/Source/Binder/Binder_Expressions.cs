@@ -3697,8 +3697,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(!conv.IsExtensionMethod);
                             Debug.Assert(conv.IsValid); // i.e. if it exists, then it is valid.
-                            // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
-                            return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, type: type);
+
+                            if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, type, diagnostics))
+                            {
+                                // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
+                                return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, type: type);
+                            }
                         }
                     }
                     finally
