@@ -211,36 +211,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly _serializationData As IEnumerable(Of Object)
         Private Shared Function GetSerializationData() As IEnumerable(Of Object)
-            Dim data = New Object() {
-                GetType(Object).Assembly.FullName,
-                GetType(Microsoft.CodeAnalysis.DiagnosticInfo).Assembly.FullName,
-                GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly.FullName,
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithTwoChildren),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithLotsOfChildren),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int32)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int16)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int64)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt32)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt16)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt64)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Byte)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of SByte)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Single)),
-                GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Double)),
-                GetType(Microsoft.CodeAnalysis.DiagnosticInfo),
-                GetType(Microsoft.CodeAnalysis.SyntaxAnnotation)
+            If _serializationData Is Nothing Then
+                Dim data = New Object() {
+                    GetType(Object).Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo).Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).Assembly.FullName,
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithTwoChildren),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithLotsOfChildren),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int32)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int16)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int64)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt32)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt16)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt64)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Byte)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of SByte)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Single)),
+                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Double)),
+                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo),
+                    GetType(Microsoft.CodeAnalysis.SyntaxAnnotation)
                 } _
-            .Concat(InternalSyntax.SyntaxFactory.NodeTypes) _
-            .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
-            .ToImmutableArray()
+                .Concat(InternalSyntax.SyntaxFactory.NodeTypes) _
+                .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
+                .ToImmutableArray()
 
-            Interlocked.CompareExchange(_serializationData, data, Nothing)
+                Interlocked.CompareExchange(_serializationData, data, Nothing)
+            End If
 
             Return _serializationData
         End Function

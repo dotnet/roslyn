@@ -52,12 +52,9 @@ namespace Roslyn.Utilities
             where TEventArgs : EventArgs
         {
             var handlers = GetEventHandlers<EventHandler<TEventArgs>>(eventName);
-            if (handlers != null)
+            foreach (var handler in handlers)
             {
-                foreach (var handler in handlers)
-                {
-                    handler(sender, args);
-                }
+                handler(sender, args);
             }
         }
 
