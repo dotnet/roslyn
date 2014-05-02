@@ -7,10 +7,44 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.Cci;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     public delegate ImmutableArray<string> LocalVariableNameProvider(uint methodIndex);
+
+    // A MethodImpl entry is a pair of implementing method and implemented
+    // method. However, the implemented method is a MemberRef rather
+    // than a MethodDef (e.g.: I<int>.M) and currently we are not mapping
+    // MemberRefs between generations so it's not possible to track the
+    // implemented method. Instead, recognizing that we do not support
+    // changes to the set of implemented methods for a particular MethodDef,
+    // and that we do not use the implementing methods anywhere, it's
+    // sufficient to track a pair of implementing method and index.
+    internal struct MethodImplKey : IEquatable<MethodImplKey>
+    {
+        internal MethodImplKey(uint implementingMethod, int index)
+        {
+            Debug.Assert(implementingMethod > 0);
+            Debug.Assert(index > 0);
+            this.ImplementingMethod = implementingMethod;
+            this.Index = index;
+        }
+
+        internal readonly uint ImplementingMethod;
+        internal readonly int Index;
+
+        public bool Equals(MethodImplKey other)
+        {
+            return this.ImplementingMethod == other.ImplementingMethod &&
+                this.Index == other.Index;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine((int)this.ImplementingMethod, this.Index);
+        }
+    }
 
     /// <summary>
     /// Represents a module from a previous compilation. Used in Edit and Continue
@@ -62,14 +96,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentNullException("localNames");
             }
 
-            return CreateInitialBaselineWithoutChecks(module, localNames);
-        }
-
-        /// <summary>
-        /// Entrypoint for the <see cref="T:Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpExpressionCompiler"/>.
-        /// </summary>
-        internal static EmitBaseline CreateInitialBaselineWithoutChecks(ModuleMetadata module, LocalVariableNameProvider localNames)
-        {
             var reader = module.MetadataReader;
             var moduleVersionId = module.GetModuleVersionId();
 
@@ -87,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 propertiesAdded: new Dictionary<IPropertyDefinition, uint>(),
                 eventMapAdded: new Dictionary<uint, uint>(),
                 propertyMapAdded: new Dictionary<uint, uint>(),
+                methodImplsAdded: new Dictionary<MethodImplKey, uint>(),
                 tableEntriesAdded: EmptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
@@ -96,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 localsForMethodsAddedOrChanged: new Dictionary<uint, ImmutableArray<EncLocalInfo>>(),
                 localNames: localNames,
                 typeToEventMap: reader.CalculateTypeEventMap(),
-                typeToPropertyMap: reader.CalculateTypePropertyMap());
+                typeToPropertyMap: reader.CalculateTypePropertyMap(),
+                methodImpls: CalculateMethodImpls(reader));
         }
 
         /// <summary>
@@ -127,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<IPropertyDefinition, uint> PropertiesAdded;
         internal readonly IReadOnlyDictionary<uint, uint> EventMapAdded;
         internal readonly IReadOnlyDictionary<uint, uint> PropertyMapAdded;
+        internal readonly IReadOnlyDictionary<MethodImplKey, uint> MethodImplsAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
 
@@ -150,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly ImmutableArray<int> TableSizes;
         internal readonly IReadOnlyDictionary<uint, uint> TypeToEventMap;
         internal readonly IReadOnlyDictionary<uint, uint> TypeToPropertyMap;
+        internal readonly IReadOnlyDictionary<MethodImplKey, uint> MethodImpls;
         internal readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap;
 
         private EmitBaseline(
@@ -166,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<IPropertyDefinition, uint> propertiesAdded,
             IReadOnlyDictionary<uint, uint> eventMapAdded,
             IReadOnlyDictionary<uint, uint> propertyMapAdded,
+            IReadOnlyDictionary<MethodImplKey, uint> methodImplsAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -175,7 +206,8 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<uint, ImmutableArray<EncLocalInfo>> localsForMethodsAddedOrChanged,
             LocalVariableNameProvider localNames,
             IReadOnlyDictionary<uint, uint> typeToEventMap,
-            IReadOnlyDictionary<uint, uint> typeToPropertyMap)
+            IReadOnlyDictionary<uint, uint> typeToPropertyMap,
+            IReadOnlyDictionary<MethodImplKey, uint> methodImpls)
         {
             Debug.Assert(module != null);
             Debug.Assert((ordinal == 0) == (encId == default(Guid)));
@@ -216,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.PropertiesAdded = propertiesAdded;
             this.EventMapAdded = eventMapAdded;
             this.PropertyMapAdded = propertyMapAdded;
+            this.MethodImplsAdded = methodImplsAdded;
             this.TableEntriesAdded = tableEntriesAdded;
             this.BlobStreamLengthAdded = blobStreamLengthAdded;
             this.StringStreamLengthAdded = stringStreamLengthAdded;
@@ -228,6 +261,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.TableSizes = CalculateTableSizes(reader, this.TableEntriesAdded);
             this.TypeToEventMap = typeToEventMap;
             this.TypeToPropertyMap = typeToPropertyMap;
+            this.MethodImpls = methodImpls;
         }
 
         internal EmitBaseline With(
@@ -242,6 +276,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<IPropertyDefinition, uint> propertiesAdded,
             IReadOnlyDictionary<uint, uint> eventMapAdded,
             IReadOnlyDictionary<uint, uint> propertyMapAdded,
+            IReadOnlyDictionary<MethodImplKey, uint> methodImplsAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -268,6 +303,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 propertiesAdded,
                 eventMapAdded,
                 propertyMapAdded,
+                methodImplsAdded,
                 tableEntriesAdded,
                 blobStreamLengthAdded: blobStreamLengthAdded,
                 stringStreamLengthAdded: stringStreamLengthAdded,
@@ -277,7 +313,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 localsForMethodsAddedOrChanged: localsForMethodsAddedOrChanged,
                 localNames: localNames,
                 typeToEventMap: this.TypeToEventMap,
-                typeToPropertyMap: this.TypeToPropertyMap);
+                typeToPropertyMap: this.TypeToPropertyMap,
+                methodImpls: this.MethodImpls);
         }
 
         internal MetadataReader MetadataReader
@@ -315,6 +352,34 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return ImmutableArray.Create(sizes);
+        }
+
+        private static Dictionary<MethodImplKey, uint> CalculateMethodImpls(MetadataReader reader)
+        {
+            var result = new Dictionary<MethodImplKey, uint>();
+            int n = reader.GetTableRowCount(TableIndex.MethodImpl);
+            for (int row = 1; row <= n; row++)
+            {
+                var methodImpl = reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(row));
+                // Hold on to the implementing method def but use a simple
+                // index for the implemented method ref token. (We do not map
+                // member refs currently, and since we don't allow changes to
+                // the set of methods a method def implements, the actual
+                // tokens of the implemented methods are not needed.)
+                var methodDefRow = (uint)MetadataTokens.GetRowNumber(methodImpl.MethodBody);
+                int index = 1;
+                while (true)
+                {
+                    var key = new MethodImplKey(methodDefRow, index);
+                    if (!result.ContainsKey(key))
+                    {
+                        result.Add(key, (uint)row);
+                        break;
+                    }
+                    index++;
+                }
+            }
+            return result;
         }
 
         internal int GetNextAnonymousTypeIndex(bool fromDelegates = false)

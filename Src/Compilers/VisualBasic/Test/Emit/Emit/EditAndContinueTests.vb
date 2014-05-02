@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -16,6 +17,221 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueTests
         Inherits BasicTestBase
+
+        <Fact>
+        Public Sub AddThenModifyExplicitImplementation()
+            Dim source0 =
+<compilation>
+    <file name="a.vb">
+Interface I(Of T)
+    Sub M()
+End Interface
+</file>
+</compilation>
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Interface I(Of T)
+    Sub M()
+End Interface
+Class A
+    Implements I(Of Integer), I(Of Object)
+    Public Sub New()
+    End Sub
+    Sub M() Implements I(Of Integer).M, I(Of Object).M
+    End Sub
+End Class
+</file>
+</compilation>
+            Dim source2 = source1
+            Dim source3 =
+<compilation>
+    <file name="a.vb">
+Interface I(Of T)
+    Sub M()
+End Interface
+Class A
+    Implements I(Of Integer), I(Of Object)
+    Public Sub New()
+    End Sub
+    Sub M() Implements I(Of Integer).M, I(Of Object).M
+    End Sub
+End Class
+Class B
+    Implements I(Of Object)
+    Public Sub New()
+    End Sub
+    Sub M() Implements I(Of Object).M
+    End Sub
+End Class
+</file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, UnoptimizedDll)
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, UnoptimizedDll)
+            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntime(source3, UnoptimizedDll)
+
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+
+                Dim type1 = compilation1.GetMember(Of NamedTypeSymbol)("A")
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("A.M")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, type1)))
+
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    CheckNames(readers, reader1.GetMethodDefNames(), ".ctor", "M")
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.InterfaceImpl, EditAndContinueOperation.Default))
+                    CheckEncMap(reader1,
+                        Handle(3, TableIndex.TypeRef),
+                        Handle(3, TableIndex.TypeDef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(1, TableIndex.InterfaceImpl),
+                        Handle(2, TableIndex.InterfaceImpl),
+                        Handle(3, TableIndex.MemberRef),
+                        Handle(4, TableIndex.MemberRef),
+                        Handle(5, TableIndex.MemberRef),
+                        Handle(1, TableIndex.MethodImpl),
+                        Handle(2, TableIndex.MethodImpl),
+                        Handle(1, TableIndex.TypeSpec),
+                        Handle(2, TableIndex.TypeSpec),
+                        Handle(2, TableIndex.AssemblyRef))
+
+                    Dim generation1 = diff1.NextGeneration
+                    Dim method2 = compilation2.GetMember(Of MethodSymbol)("A.M")
+                    Dim diff2 = compilation2.EmitDifference(
+                        generation1,
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2)))
+
+                    Using md2 = diff2.GetMetadata()
+                        Dim reader2 = md2.Reader
+                        readers = {reader0, reader1, reader2}
+                        CheckNames(readers, reader2.GetMethodDefNames(), "M")
+                        CheckEncLog(reader2,
+                            Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                        CheckEncMap(reader2,
+                            Handle(4, TableIndex.TypeRef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(3, TableIndex.TypeSpec),
+                            Handle(4, TableIndex.TypeSpec),
+                            Handle(3, TableIndex.AssemblyRef))
+
+                        Dim generation2 = diff2.NextGeneration
+                        Dim type3 = compilation3.GetMember(Of NamedTypeSymbol)("B")
+                        Dim diff3 = compilation3.EmitDifference(
+                            generation1,
+                            ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, type3)))
+
+                        Using md3 = diff3.GetMetadata()
+                            Dim reader3 = md3.Reader
+                            readers = {reader0, reader1, reader3}
+                            CheckNames(readers, reader3.GetMethodDefNames(), ".ctor", "M")
+                            CheckEncLog(reader3,
+                                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.InterfaceImpl, EditAndContinueOperation.Default))
+                            CheckEncMap(reader3,
+                                Handle(4, TableIndex.TypeRef),
+                                Handle(4, TableIndex.TypeDef),
+                                Handle(4, TableIndex.MethodDef),
+                                Handle(5, TableIndex.MethodDef),
+                                Handle(3, TableIndex.InterfaceImpl),
+                                Handle(6, TableIndex.MemberRef),
+                                Handle(7, TableIndex.MemberRef),
+                                Handle(3, TableIndex.MethodImpl),
+                                Handle(3, TableIndex.TypeSpec),
+                                Handle(3, TableIndex.AssemblyRef))
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        <Fact, WorkItem(930065)>
+        Public Sub ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Interface I
+    Sub M1()
+    Sub M2()
+End Interface
+Class C
+    Implements I
+    Public Sub New()
+    End Sub
+    Sub M() Implements I.M1, I.M2
+    End Sub
+End Class
+</file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, UnoptimizedDll)
+
+            Dim bytes0 = compilation0.EmitToArray(debug:=True)
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+
+                Dim method0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
+                Dim method1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), ".ctor")
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                    CheckEncMap(reader1,
+                        Handle(4, TableIndex.TypeRef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(4, TableIndex.MemberRef),
+                        Handle(2, TableIndex.AssemblyRef))
+                End Using
+            End Using
+        End Sub
 
         <Fact>
         Public Sub NamespacesAndOverloads()
@@ -759,11 +975,9 @@ End Module</file>
 
                 Dim prop0 = compilation0.GetMember(Of PropertySymbol)("Module1.GetName")
                 Dim prop1 = compilation1.GetMember(Of PropertySymbol)("Module1.GetName")
-
                 Dim method1 = prop1.SetMethod
 
-                Dim getLocalNamesFunc As LocalVariableNameProvider = Function(m) ImmutableArray(Of String).Empty
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), getLocalNamesFunc)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -3559,7 +3773,7 @@ End Module
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray(Of String).Empty)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
             compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -3595,13 +3809,13 @@ End Module
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), Function(m) ImmutableArray(Of String).Empty)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
             Dim diff0 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
 
-            diff0.VerifyIL("
+            diff0.VerifyIL(<![CDATA[
 {
   // Code size       13 (0xd)
   .maxstack  3
@@ -3614,33 +3828,38 @@ End Module
   IL_000a:  ldc.i4.3
   IL_000b:  stelem.i4
   IL_000c:  ret
-}")
+}
+]]>.Value)
         End Sub
 
 #End Region
 
         <Fact>
         Public Sub SymWriterErrors()
-            Dim source0 = "
-Class C 
-End Class
-"
-
-            Dim source1 = "
-Class C
-    Sub Main
-    End Sub
-End Class
-"
-
-            Dim compilation0 = CreateCompilationWithMscorlib({source0}, compOptions:=Options.UnoptimizedDll)
-            Dim compilation1 = CreateCompilationWithMscorlib({source1}, compOptions:=Options.UnoptimizedDll)
+            Dim source0 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Class C
+        End Class
+]]></file>
+</compilation>
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+        Class C
+            Sub Main()
+            End Sub
+        End Class
+]]></file>
+</compilation>
+            Dim compilation0 = CreateCompilationWithMscorlib(source0, Options.UnoptimizedDll)
+            Dim compilation1 = CreateCompilationWithMscorlib(source1, Options.UnoptimizedDll)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray(debug:=True)
-            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+        Using md0 = ModuleMetadata.CreateFromImage(bytes0)
 
-                Dim diff1 = compilation1.EmitDifference(
+        Dim diff1 = compilation1.EmitDifference(
                     EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
                     New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
@@ -3651,7 +3870,6 @@ End Class
                 Assert.False(diff1.Result.Success)
             End Using
         End Sub
-
 
 #Region "Helpers"
         Private Shared ReadOnly EmptyLocalsProvider As LocalVariableNameProvider = Function(token) ImmutableArray(Of String).Empty
@@ -3739,6 +3957,22 @@ End Class
             Return Nothing
         End Function
 
+        Private Shared Function Row(rowNumber As Integer, table As TableIndex, operation As EditAndContinueOperation) As EditAndContinueLogEntry
+            Return New EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation)
+        End Function
+
+        Private Shared Function Handle(rowNumber As Integer, table As TableIndex) As Handle
+            Return MetadataTokens.Handle(table, rowNumber)
+        End Function
+
+        Private Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
+        End Sub
+
+        Private Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As Handle())
+            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
+        End Sub
+
         Private Shared Sub CheckNames(reader As MetadataReader, [handles] As StringHandle(), ParamArray expectedNames As String())
             CheckNames({reader}, [handles], expectedNames)
         End Sub
@@ -3754,6 +3988,25 @@ End Class
             Array.Sort(expectedNames)
             AssertEx.Equal(actualNames, expectedNames)
         End Sub
+
+        Private Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
+            Dim index As TableIndex = 0
+            MetadataTokens.TryGetTableIndex(row.Handle.HandleType, index)
+            Return String.Format(
+                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
+                MetadataTokens.GetRowNumber(row.Handle),
+                index,
+                row.Operation)
+        End Function
+
+        Private Shared Function EncMapRowToString(handle As Handle) As String
+            Dim index As TableIndex = 0
+            MetadataTokens.TryGetTableIndex(handle.HandleType, index)
+            Return String.Format(
+                "Handle({0}, TableIndex.{1})",
+                MetadataTokens.GetRowNumber(handle),
+                index)
+        End Function
 
 #End Region
     End Class

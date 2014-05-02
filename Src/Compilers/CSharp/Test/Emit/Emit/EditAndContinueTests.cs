@@ -863,18 +863,104 @@ class C : I
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default));
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
                     CheckEncMap(reader1,
                         Handle(4, TableIndex.TypeRef),
                         Handle(2, TableIndex.MethodDef),
-                        Handle(2, TableIndex.MethodImpl),
                         Handle(2, TableIndex.AssemblyRef));
                 }
             }
         }
 
-        [Fact(Skip = "930065"), WorkItem(930065)]
+        [Fact]
+        public void AddThenModifyExplicitImplementation()
+        {
+            var source0 =
+@"interface I
+{
+    void M();
+}
+class A : I
+{
+    void I.M() { }
+}
+class B : I
+{
+    public void M() { }
+}";
+            var source1 =
+@"interface I
+{
+    void M();
+}
+class A : I
+{
+    void I.M() { }
+}
+class B : I
+{
+    public void M() { }
+    void I.M() { }
+}";
+            var source2 = source1;
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+            var compilation2 = CreateCompilationWithMscorlib(source2, compOptions: TestOptions.UnoptimizedDll);
+
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+                var method1 = compilation1.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("I.M");
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, method1)));
+
+                using (var block1 = diff1.GetMetadata())
+                {
+                    var reader1 = block1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1);
+                    CheckNames(readers, reader1.GetMethodDefNames(), "I.M");
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default));
+                    CheckEncMap(reader1,
+                        Handle(4, TableIndex.TypeRef),
+                        Handle(6, TableIndex.MethodDef),
+                        Handle(2, TableIndex.MethodImpl),
+                        Handle(2, TableIndex.AssemblyRef));
+
+                    var generation1 = diff1.NextGeneration;
+                    var method2 = compilation2.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("I.M");
+                    var diff2 = compilation2.EmitDifference(
+                        generation1,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2)));
+
+                    using (var md2 = diff2.GetMetadata())
+                    {
+                        var reader2 = md2.Reader;
+                        readers = new[] { reader0, reader1, reader2 };
+                        EncValidation.VerifyModuleMvid(2, reader1, reader2);
+                        CheckNames(readers, reader2.GetMethodDefNames(), "I.M");
+                        CheckEncLog(reader2,
+                            Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                        CheckEncMap(reader2,
+                            Handle(5, TableIndex.TypeRef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(3, TableIndex.AssemblyRef));
+                    }
+                }
+            }
+        }
+
+        [Fact, WorkItem(930065)]
         public void ModifyConstructorBodyInPresenceOfExplicitInterfaceImplementation()
         {
             var source = @"
@@ -882,22 +968,17 @@ interface I
 {
     void M();
 }
-partial class C : I
-{
-    void I.M() { }
-}
-partial class C 
+class C : I
 {
     public C()
     {
-        int a = 1;
     }
+    void I.M() { }
 }
 ";
             var compilation0 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
             var compilation1 = CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnoptimizedDll);
 
-            // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray(debug: true);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
@@ -910,7 +991,24 @@ partial class C
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
-                // TODO: verify emitted metadata
+                using (var block1 = diff1.GetMetadata())
+                {
+                    var reader1 = block1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1);
+                    CheckNames(readers, reader1.GetTypeDefNames());
+                    CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
+                    CheckEncLog(reader1,
+                        Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                    CheckEncMap(reader1,
+                        Handle(4, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(4, TableIndex.MemberRef),
+                        Handle(2, TableIndex.AssemblyRef));
+                }
             }
         }
 
@@ -7331,7 +7429,7 @@ public interface IB
             MetadataTokens.TryGetTableIndex(row.Handle.HandleType, out tableIndex);
 
             return string.Format(
-                "Row({0}, TableIndices.{1}, EditAndContinueOperation.{2})",
+                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
                 MetadataTokens.GetRowNumber(row.Handle),
                 tableIndex,
                 row.Operation);
@@ -7343,7 +7441,7 @@ public interface IB
             MetadataTokens.TryGetTableIndex(handle.HandleType, out tableIndex);
 
             return string.Format(
-                "Handle({0}, TableIndices.{1})",
+                "Handle({0}, TableIndex.{1})",
                 MetadataTokens.GetRowNumber(handle),
                 tableIndex);
         }
@@ -7355,7 +7453,7 @@ public interface IB
             MetadataTokens.TryGetTableIndex(row.ConstructorToken.HandleType, out constructorTableIndex);
 
             return string.Format(
-                "new CustomAttributeRow(Handle({0}, TableIndices.{1}), Handle({2}, TableIndices.{3}))",
+                "new CustomAttributeRow(Handle({0}, TableIndex.{1}), Handle({2}, TableIndex.{3}))",
                 MetadataTokens.GetRowNumber(row.ParentToken),
                 parentTableIndex,
                 MetadataTokens.GetRowNumber(row.ConstructorToken),

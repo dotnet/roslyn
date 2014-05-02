@@ -347,12 +347,37 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override void CreateIndicesForModule()
         {
-            return module.GetTopLevelTypes(this.Context);
+            var nestedTypes = new Queue<ITypeDefinition>();
+
+            foreach (INamespaceTypeDefinition typeDef in this.module.GetTopLevelTypes(this.Context))
+            {
+                this.CreateIndicesFor(typeDef, nestedTypes);
+            }
+
+            while (nestedTypes.Count > 0)
+            {
+                this.CreateIndicesFor(nestedTypes.Dequeue(), nestedTypes);
+            }
         }
 
-        protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
+        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<ITypeDefinition> nestedTypes)
+        {
+            this.cancellationToken.ThrowIfCancellationRequested();
+
+            this.CreateIndicesForNonTypeMembers(typeDef);
+
+            // Metadata spec:
+            // The TypeDef table has a special ordering constraint:
+            // the definition of an enclosing class shall precede the definition of all classes it encloses.
+            foreach (var nestedType in typeDef.GetNestedTypes(this.Context))
+            {
+                nestedTypes.Enqueue(nestedType);
+            }
+        }
+
+        private void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
             this.typeDefs.Add(typeDef);
 

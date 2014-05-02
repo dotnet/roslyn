@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly GenericParameterIndex genericParameters;
         private readonly EventOrPropertyMapIndex eventMap;
         private readonly EventOrPropertyMapIndex propertyMap;
+        private readonly MethodImplIndex methodImpls;
 
         private readonly HeapOrReferenceIndex<IAssemblyReference> assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> moduleRefIndex;
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.genericParameters = new GenericParameterIndex((uint)sizes[(int)TableIndex.GenericParam]);
             this.eventMap = new EventOrPropertyMapIndex(this.TryGetExistingEventMapIndex, (uint)sizes[(int)TableIndex.EventMap]);
             this.propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, (uint)sizes[(int)TableIndex.PropertyMap]);
+            this.methodImpls = new MethodImplIndex(this, (uint)sizes[(int)TableIndex.MethodImpl]);
 
             this.assemblyRefIndex = new HeapOrReferenceIndex<IAssemblyReference>(this, AssemblyReferenceComparer.Instance, lastRowId: (uint)sizes[(int)TableIndex.AssemblyRef]);
             this.moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: (uint)sizes[(int)TableIndex.ModuleRef]);
@@ -106,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Emit
             sizes[(int)TableIndex.Event] = this.eventDefs.GetAdded().Count;
             sizes[(int)TableIndex.PropertyMap] = this.propertyMap.GetAdded().Count;
             sizes[(int)TableIndex.Property] = this.propertyDefs.GetAdded().Count;
+            sizes[(int)TableIndex.MethodImpl] = this.methodImpls.GetAdded().Count;
             sizes[(int)TableIndex.ModuleRef] = this.moduleRefIndex.Rows.Count;
             sizes[(int)TableIndex.TypeSpec] = this.typeSpecIndex.Rows.Count;
             sizes[(int)TableIndex.AssemblyRef] = this.assemblyRefIndex.Rows.Count;
@@ -153,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 propertiesAdded: AddRange(this.previousGeneration.PropertiesAdded, this.propertyDefs.GetAdded()),
                 eventMapAdded: AddRange(this.previousGeneration.EventMapAdded, this.eventMap.GetAdded()),
                 propertyMapAdded: AddRange(this.previousGeneration.PropertyMapAdded, this.propertyMap.GetAdded()),
+                methodImplsAdded: AddRange(this.previousGeneration.MethodImplsAdded, this.methodImpls.GetAdded()),
                 tableEntriesAdded: ImmutableArray.Create(tableSizes),
                 // Blob stream is concatenated aligned.
                 blobStreamLengthAdded: (int)this.blobWriter.BaseStream.Length + this.previousGeneration.BlobStreamLengthAdded,
@@ -410,19 +414,38 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.standAloneSignatureIndex.Rows;
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        private IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes()
         {
             return this.changes.GetTopLevelTypes(this.Context);
         }
 
         protected override void CreateIndicesForModule()
         {
-            base.CreateIndicesForModule();
+            var typeDefs = ArrayBuilder<ITypeDefinition>.GetInstance();
+            this.GetTypesAndNestedTypes(typeDefs, this.GetTopLevelTypes());
+            foreach (var typeDef in typeDefs)
+            {
+                this.CreateIndicesForNonTypeMembers(typeDef);
+            }
+            typeDefs.Free();
+
             var module = (IPEDeltaAssemblyBuilder)this.module;
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
 
-        protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
+        /// <summary>
+        /// Get the set of types and nested types, enclosing types first.
+        /// </summary>
+        private void GetTypesAndNestedTypes(ArrayBuilder<ITypeDefinition> builder, IEnumerable<ITypeDefinition> typeDefs)
+        {
+            foreach (var typeDef in typeDefs)
+            {
+                builder.Add(typeDef);
+                GetTypesAndNestedTypes(builder, typeDef.GetNestedTypes(this.Context));
+            }
+        }
+
+        private void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
             switch (this.changes.GetChange(typeDef))
             {
@@ -448,11 +471,6 @@ namespace Microsoft.CodeAnalysis.Emit
             uint typeIndex;
             var ok = this.typeDefs.TryGetValue(typeDef, out typeIndex);
             Debug.Assert(ok);
-
-            foreach (var methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
-            {
-                this.methodImplList.Add(methodImpl);
-            }
 
             foreach (var eventDef in typeDef.Events)
             {
@@ -500,6 +518,46 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 this.AddDefIfNecessary(this.propertyDefs, propertyDef);
             }
+
+            var implementingMethods = ArrayBuilder<uint>.GetInstance();
+
+            // First, visit all IMethodImplementations and add to this.methodImplList.
+            foreach (var methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
+            {
+                var methodDef = (IMethodDefinition)methodImpl.ImplementingMethod.AsDefinition(this.Context);
+                uint methodDefIndex;
+                ok = this.methodDefs.TryGetValue(methodDef, out methodDefIndex);
+                Debug.Assert(ok);
+
+                // If there are N existing MethodImpl entries for this MethodDef,
+                // those will be index:1, ..., index:N, so it's sufficient to check for index:1.
+                uint methodImplIndex;
+                var key = new MethodImplKey(methodDefIndex, index: 1);
+                if (!this.methodImpls.TryGetValue(key, out methodImplIndex))
+                {
+                    implementingMethods.Add(methodDefIndex);
+                    this.methodImplList.Add(methodImpl);
+                }
+            }
+
+            // Next, add placeholders to this.methodImpls for items added above.
+            foreach (var methodDefIndex in implementingMethods)
+            {
+                int index = 1;
+                while (true)
+                {
+                    uint methodImplIndex;
+                    var key = new MethodImplKey(methodDefIndex, index);
+                    if (!this.methodImpls.TryGetValue(key, out methodImplIndex))
+                    {
+                        this.methodImpls.Add(key);
+                        break;
+                    }
+                    index++;
+                }
+            }
+
+            implementingMethods.Free();
         }
 
         private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def)
@@ -777,7 +835,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // for <PrivateImplementationDetails> and that class is not used in ENC.
                 // If we need FieldRva in the future, we'll need a corresponding test.
                 // (See EditAndContinueTests.FieldRva that was deleted in this change.)
-                //TableIndices.FieldRva,
+                //TableIndex.FieldRva,
                 TableIndex.EncLog,
                 TableIndex.EncMap,
                 TableIndex.Assembly,
@@ -1108,6 +1166,48 @@ namespace Microsoft.CodeAnalysis.Emit
             return false;
         }
 
+        private bool TryGetExistingEventMapIndex(uint item, out uint index)
+        {
+            if (this.previousGeneration.EventMapAdded.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            if (this.previousGeneration.TypeToEventMap.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            index = 0;
+            return false;
+        }
+
+        private bool TryGetExistingPropertyMapIndex(uint item, out uint index)
+        {
+            if (this.previousGeneration.PropertyMapAdded.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            if (this.previousGeneration.TypeToPropertyMap.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            index = 0;
+            return false;
+        }
+
+        private bool TryGetExistingMethodImplIndex(MethodImplKey item, out uint index)
+        {
+            if (this.previousGeneration.MethodImplsAdded.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            if (this.previousGeneration.MethodImpls.TryGetValue(item, out index))
+            {
+                return true;
+            }
+            index = 0;
+            return false;
+        }
+
         private sealed class ParameterDefinitionIndex : DefinitionIndexBase<IParameterDefinition>
         {
             public ParameterDefinitionIndex(uint lastRowId) :
@@ -1188,32 +1288,38 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        private bool TryGetExistingEventMapIndex(uint item, out uint index)
+        private sealed class MethodImplIndex : DefinitionIndexBase<MethodImplKey>
         {
-            if (this.previousGeneration.EventMapAdded.TryGetValue(item, out index))
-            {
-                return true;
-            }
-            if (this.previousGeneration.TypeToEventMap.TryGetValue(item, out index))
-            {
-                return true;
-            }
-            index = 0;
-            return false;
-        }
+            private readonly DeltaPeWriter writer;
 
-        private bool TryGetExistingPropertyMapIndex(uint item, out uint index)
-        {
-            if (this.previousGeneration.PropertyMapAdded.TryGetValue(item, out index))
+            public MethodImplIndex(DeltaPeWriter writer, uint lastRowId) :
+                base(lastRowId)
             {
-                return true;
+                this.writer = writer;
             }
-            if (this.previousGeneration.TypeToPropertyMap.TryGetValue(item, out index))
+
+            public override bool TryGetValue(MethodImplKey item, out uint index)
             {
-                return true;
+                if (this.added.TryGetValue(item, out index))
+                {
+                    return true;
+                }
+                if (this.writer.TryGetExistingMethodImplIndex(item, out index))
+                {
+                    return true;
+                }
+                index = 0;
+                return false;
             }
-            index = 0;
-            return false;
+
+            public void Add(MethodImplKey item)
+            {
+                Debug.Assert(!this.IsFrozen);
+
+                uint index = this.NextRowId;
+                this.added.Add(item, index);
+                this.rows.Add(item);
+            }
         }
 
         private sealed class DeltaReferenceIndexer : ReferenceIndexer
@@ -1234,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public override void Visit(IModule module)
             {
                 this.module = module;
-                this.Visit(((DeltaPeWriter)this.peWriter).GetTopLevelTypes(module));
+                this.Visit(((DeltaPeWriter)this.peWriter).GetTopLevelTypes());
             }
 
             public override void Visit(IEventDefinition eventDefinition)
@@ -1257,8 +1363,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public override void Visit(IMethodImplementation methodImplementation)
             {
-                Debug.Assert(this.ShouldVisit((IMethodDefinition)methodImplementation.ImplementingMethod));
-                base.Visit(methodImplementation);
+                // Unless the implementing method was added,
+                // the method implementation already exists.
+                var methodDef = (IMethodDefinition)methodImplementation.ImplementingMethod.AsDefinition(this.Context);
+                if (this.changes.GetChange(methodDef) == SymbolChange.Added)
+                {
+                    base.Visit(methodImplementation);
+                }
             }
 
             public override void Visit(INamespaceTypeDefinition namespaceTypeDefinition)

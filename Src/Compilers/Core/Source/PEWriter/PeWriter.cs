@@ -386,10 +386,6 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract IReadOnlyList<uint> GetStandAloneSignatures();
 
-        protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module);
-
-        protected abstract void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef);
-
         /// <summary>
         /// Offset into full metadata blob stream.
         /// </summary>
@@ -447,7 +443,7 @@ namespace Microsoft.Cci
         // If true, it is allowed to have methods not have bodies (for emitting metadata-only
         // assembly)
         internal readonly bool allowMissingMethodBodies;
-        private readonly CancellationToken cancellationToken;
+        protected readonly CancellationToken cancellationToken;
         protected readonly IModule module;
         public readonly EmitContext Context;
         private readonly CommonMessageProvider messageProvider;
@@ -1093,35 +1089,7 @@ namespace Microsoft.Cci
             }
         }
 
-        protected virtual void CreateIndicesForModule()
-        {
-            var nestedTypes = new Queue<ITypeDefinition>();
-
-            foreach (INamespaceTypeDefinition typeDef in this.GetTopLevelTypes(this.module))
-            {
-                this.CreateIndicesFor(typeDef, nestedTypes);
-            }
-
-            while (nestedTypes.Count > 0)
-            {
-                this.CreateIndicesFor(nestedTypes.Dequeue(), nestedTypes);
-            }
-        }
-
-        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<ITypeDefinition> nestedTypes)
-        {
-            this.cancellationToken.ThrowIfCancellationRequested();
-
-            this.CreateIndicesForNonTypeMembers(typeDef);
-
-            // Metadata spec:
-            // The TypeDef table has a special ordering constraint:
-            // the definition of an enclosing class shall precede the definition of all classes it encloses.
-            foreach (var nestedType in typeDef.GetNestedTypes(Context))
-            {
-                nestedTypes.Enqueue(nestedType);
-            }
-        }
+        protected abstract void CreateIndicesForModule();
 
         protected IEnumerable<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef)
         {
