@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp6 = 6,
 
         /// <summary>
-        /// C# language version 6.0 + experimentatl features. 
+        /// C# language version 6.0 + experimental features. 
         /// </summary>
         Experimental = 7,
     }
