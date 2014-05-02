@@ -522,7 +522,9 @@
     <Compile Include="Log\ITelemetry.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Log\Telemetry.Parameters.cs" />
+    <Compile Include="Log\Telemetry.Parameters.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Log\TelemetryWorkspaceServiceFactory.cs" />
     <Compile Include="Log\TraceLogger.cs" />
     <Compile Include="Notification\AbstractGlobalOperationNotificationService.cs" />

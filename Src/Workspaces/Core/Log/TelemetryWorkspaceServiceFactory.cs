@@ -19,12 +19,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             void ITelemetryService.EndCurrentSession()
             {
             }
-
+            
             void ITelemetryService.LogLightBulbSession(Telemetry.LightBulbSessionInfo lightBulbSession)
             {
             }
 
             void ITelemetryService.LogRenameSession(Telemetry.RenameSessionInfo renameSession)
+            {
+            }
+
+            void ITelemetryService.LogEncDebugSession(Telemetry.EncDebuggingSessionInfo session)
             {
             }
         }

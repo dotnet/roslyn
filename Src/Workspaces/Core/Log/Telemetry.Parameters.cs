@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
 {
@@ -84,6 +83,44 @@ namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
             this.IndexOfSelectedItem = indexOfSelectedItem;
             this.UniqueIdOfSelectedItem = uniqueIdOfSelectedItem;
             this.ExtendedFlagsOfSelectedItem = extendedFlagsOfSelectedItem;
+        }
+    }
+
+    internal class EncDebuggingSessionInfo
+    {
+        public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
+        public int EmptyEditSessions = 0;
+
+        internal void EndEditSession(EncEditSessionInfo encEditSessionInfo)
+        {
+            if (encEditSessionInfo.IsEmpty())
+            {
+                EmptyEditSessions++;
+            }
+            else
+            {
+                EditSessions.Add(encEditSessionInfo);
+            }
+        }
+    }
+
+    internal class EncEditSessionInfo
+    {
+        public readonly HashSet<ValueTuple<ushort, ushort>> RudeEdits = new HashSet<ValueTuple<ushort, ushort>>();
+        public IEnumerable<string> EmitDeltaErrorIds;
+        public bool HadCompilationErrors;
+        public bool HadRudeEdits;
+        public bool HadValidChanges;
+        public bool HadValidInsignificantChanges;
+
+        internal void LogRudeEdit(ushort kind, ushort syntaxKind)
+        {
+            RudeEdits.Add(ValueTuple.Create(kind, syntaxKind));
+        }
+
+        internal bool IsEmpty()
+        {
+            return !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
     }
 }
