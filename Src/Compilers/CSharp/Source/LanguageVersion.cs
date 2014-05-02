@@ -52,13 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Exception filters.
         /// </remarks>
         CSharp6 = 6,
+
+        /// <summary>
+        /// C# language version 6.0 + experimentatl features. 
+        /// </summary>
+        Experimental = 7,
     }
 
     internal static partial class LanguageVersionExtensions
     {
         internal static bool IsValid(this LanguageVersion value)
         {
-            return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp6;
+            return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.Experimental;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)

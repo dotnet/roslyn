@@ -1093,6 +1093,10 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:experimental", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion);
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:iso-1", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp1, parsedArgs.ParseOptions.LanguageVersion);
@@ -1139,10 +1143,10 @@ d.cs
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso1"));
             Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, baseDirectory);
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:0", string.Format("/langversion:{0}", (int)LanguageVersion.Experimental + 1), "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("7"));
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(((int)LanguageVersion.Experimental + 1).ToString()));
             Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion", "a.cs" }, baseDirectory);
