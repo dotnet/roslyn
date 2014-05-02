@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -136,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim prefixLen As Integer = StringConstants.StateMachineLocalNamePrefix.Length
             localName = proxyName.Substring(prefixLen, separator - prefixLen)
-            Return Integer.TryParse(proxyName.Substring(separator + 1), index)
+            Return Integer.TryParse(proxyName.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, index)
         End Function
 
         ''' <summary>
@@ -167,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' No callers require anonymous types from net modules,
             ' so names with module id are ignored.
             If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
-                Integer.TryParse(name.Substring(prefix.Length), index) Then
+                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
                 Return True
             End If
             index = -1

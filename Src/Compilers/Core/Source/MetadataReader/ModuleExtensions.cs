@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
 
@@ -173,7 +174,8 @@ namespace Microsoft.CodeAnalysis
 
                 int countOfSlots;
 
-                if (int.TryParse(emittedMethodName.Substring(index + 1), out countOfSlots) && countOfSlots > 0)
+                if (int.TryParse(emittedMethodName.Substring(index + 1), NumberStyles.None, CultureInfo.InvariantCulture, out countOfSlots)
+                    && countOfSlots > 0)
                 {
                     return countOfSlots;
                 }

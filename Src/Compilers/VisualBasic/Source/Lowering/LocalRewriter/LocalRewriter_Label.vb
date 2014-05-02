@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
+Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim lineNumber As Integer = 0
 
-                    Integer.TryParse(labelSyntax.LabelToken.ValueText, lineNumber)
+                    Integer.TryParse(labelSyntax.LabelToken.ValueText, NumberStyles.None, CultureInfo.InvariantCulture, lineNumber)
                     Dim trackLineNumber As BoundStatement = New BoundAssignmentOperator(node.Syntax,
                                                                                         New BoundLocal(node.Syntax, currentLineTemporary, currentLineTemporary.Type),
                                                                                         New BoundLiteral(node.Syntax, ConstantValue.Create(lineNumber), currentLineTemporary.Type),

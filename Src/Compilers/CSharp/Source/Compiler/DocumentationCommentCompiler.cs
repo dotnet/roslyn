@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ResourceManager manager = new ResourceManager("System.Xml", typeof(XmlException).GetTypeInfo().Assembly);
                 string locationTemplate = manager.GetString("Xml_MessageWithErrorPosition");
                 string locationString = string.Format(locationTemplate, "", e.LineNumber, e.LinePosition); // first arg is where the problem description goes
-                int position = message.IndexOf(locationString);
+                int position = message.IndexOf(locationString, StringComparison.Ordinal); // Expect exact match
                 return position < 0
                     ? message
                     : message.Remove(position, locationString.Length);

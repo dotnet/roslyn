@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // so names with module id are ignored.
             if (name.StartsWith(AnonymousNamePrefix, StringComparison.Ordinal))
             {
-                if (int.TryParse(name.Substring(AnonymousNamePrefix.Length), out index))
+                if (int.TryParse(name.Substring(AnonymousNamePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out index))
                 {
                     return true;
                 }
@@ -134,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     int k;
                     int n;
-                    if (int.TryParse(name.Substring(0, separator), out k) && int.TryParse(name.Substring(separator + 1), out n))
+                    if (int.TryParse(name.Substring(0, separator), NumberStyles.None, CultureInfo.InvariantCulture, out k) &&
+                        int.TryParse(name.Substring(separator + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out n))
                     {
                         kind = (TempKind)k;
                         uniqueId = n;

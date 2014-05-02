@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -652,7 +653,9 @@ namespace Microsoft.CodeAnalysis
         internal Encoding ParseCodepage(string arg)
         {
             long codepage;
-            if (!string.IsNullOrWhiteSpace(arg) && Int64.TryParse(arg, out codepage) && (codepage > 0))
+            if (!string.IsNullOrWhiteSpace(arg)
+                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out codepage) 
+                && (codepage > 0))
             {
                 try
                 {

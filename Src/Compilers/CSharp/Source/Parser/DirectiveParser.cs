@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -401,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     {
                                         // For diagnostic IDs of the form "CS[0-9]*", verify the error code is that of a warning
                                         int compilerWarningNumber;
-                                        if (int.TryParse(value.Substring(messageProvider.CodePrefix.Length), out compilerWarningNumber) &&
+                                        if (int.TryParse(value.Substring(messageProvider.CodePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out compilerWarningNumber) &&
                                             (messageProvider.GetIdForErrorCode(compilerWarningNumber) != value ||
                                             ErrorFacts.GetSeverity((ErrorCode)compilerWarningNumber) != DiagnosticSeverity.Warning))
                                         {

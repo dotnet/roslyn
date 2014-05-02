@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim locationString As String =
                         String.Format(locationTemplate, "", e.LineNumber, e.LinePosition) ' first arg is where the problem description goes
 
-                    Dim position As Integer = message.IndexOf(locationString)
+                    Dim position As Integer = message.IndexOf(locationString, StringComparison.Ordinal) ' Expect exact match
                     Return If(position < 0, message, message.Remove(position, locationString.Length))
                 Catch ex As Exception
                     Debug.Assert(False, "If we hit this, then we might need to think about a different workaround " +

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis
             string stringRepresentingArity = emittedTypeName.Substring(indexOfManglingChar);
 
             int arity;
-            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, out arity);
+            bool nonNumericCharFound = !int.TryParse(stringRepresentingArity, NumberStyles.None, CultureInfo.InvariantCulture, out arity);
 
             if (nonNumericCharFound || arity < 0 || arity > short.MaxValue ||
                 stringRepresentingArity != arity.ToString())

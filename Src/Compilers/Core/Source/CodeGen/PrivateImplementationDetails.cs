@@ -231,19 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static string GenerateDataFieldName(int offset)
         {
             return MemberNamePrefix + offset;
-        }
-
-        internal static bool TryParseDataFieldName(string name, out int offset)
-        {
-            if (name.StartsWith(MemberNamePrefix, StringComparison.Ordinal) &&
-                int.TryParse(name.Substring(MemberNamePrefix.Length), out offset))
-            {
-                return true;
-            }
-
-            offset = 0;
-            return false;
-        }
+        } 
     }
 
     /// <summary>
