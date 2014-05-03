@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Cci = Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
     internal abstract partial class EmbeddedTypesManager<
         TPEModuleBuilder,
+        TModuleCompilationState,
         TEmbeddedTypesManager,
         TSyntaxNode,
         TAttributeData,
@@ -46,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingSymbol = underlyingSymbol;
             }
 
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit();
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
 
             protected virtual TAttributeData PortAttributeIfNeedTo(TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 return null;
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit())
+                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
                 {
                     if (TypeManager.IsTargetAttribute(UnderlyingSymbol, attrData, AttributeDescription.DispIdAttribute))
                     {
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (this.lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyAttributes, attributes))
                     {

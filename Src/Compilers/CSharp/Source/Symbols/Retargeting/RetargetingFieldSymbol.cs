@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -112,9 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.GetRetargetedAttributes(this.underlyingField.GetAttributes(), ref this.lazyCustomAttributes);
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingField.GetCustomAttributesToEmit());
+            return this.RetargetingTranslator.RetargetAttributes(this.underlyingField.GetCustomAttributesToEmit(compilationState));
         }
 
         public override AssemblySymbol ContainingAssembly

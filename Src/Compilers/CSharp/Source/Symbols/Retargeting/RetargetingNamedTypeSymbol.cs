@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -375,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.GetRetargetedAttributes(this.underlyingType.GetAttributes(), ref this.lazyCustomAttributes);
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingType.GetCustomAttributesToEmit());
+            return this.RetargetingTranslator.RetargetAttributes(this.underlyingType.GetCustomAttributesToEmit(compilationState));
         }
 
         public override AssemblySymbol ContainingAssembly

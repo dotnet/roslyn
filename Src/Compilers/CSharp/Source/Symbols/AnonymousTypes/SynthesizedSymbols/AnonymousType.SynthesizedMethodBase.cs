@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -158,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
-                base.AddSynthesizedAttributes(ref attributes);
+                base.AddSynthesizedAttributes(compilationState, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, Manager.Compilation.SynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));

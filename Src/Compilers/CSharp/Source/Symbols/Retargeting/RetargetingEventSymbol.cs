@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -277,9 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.underlyingEvent.GetAttributes();
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingEvent.GetCustomAttributesToEmit());
+            return this.RetargetingTranslator.RetargetAttributes(this.underlyingEvent.GetCustomAttributesToEmit(compilationState));
         }
 
         internal override bool MustCallMethodsDirectly

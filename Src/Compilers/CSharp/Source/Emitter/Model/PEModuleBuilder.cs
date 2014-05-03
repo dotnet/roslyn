@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager>
+    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
     {
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SymbolDisplayFormat testDataKeyFormat;
         private SymbolDisplayFormat testDataOperatorKeyFormat;
 
-        private readonly bool metadataOnly;
-
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             string outputName,
@@ -56,7 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<ResourceDescription> manifestResources,
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             bool metadataOnly)
-            : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation, sourceModule, serializationProperties, manifestResources, outputKind, assemblySymbolMapper)
+            : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
+                   sourceModule, 
+                   serializationProperties, 
+                   manifestResources,
+                   outputKind,
+                   assemblySymbolMapper, 
+                   metadataOnly,
+                   new ModuleCompilationState())
         {
             metadataName = outputName ?? sourceModule.MetadataName;
 
@@ -66,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
-
-            this.metadataOnly = metadataOnly;
         }
 
         internal override string Name
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
-            return SourceModule.GetCustomAttributesToEmit();
+            return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
         }
 
         internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
@@ -308,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new FullLocalSlotManager();
         }
 
-        internal virtual ImmutableArray<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey> GetPreviousAnonymousTypes()
+        internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
-            return ImmutableArray<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey>.Empty;
+            return ImmutableArray<AnonymousTypeKey>.Empty;
         }
 
         internal virtual int GetNextAnonymousTypeIndex()
@@ -329,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
-            if (metadataOnly)
+            if (MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }
@@ -405,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override IEnumerable<Cci.ITypeExport> GetExportedTypes(CodeAnalysis.Emit.EmitContext context)
+        public override IEnumerable<Cci.ITypeExport> GetExportedTypes(EmitContext context)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 

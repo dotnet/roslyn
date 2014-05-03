@@ -60,11 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public ConsList<Imports> CurrentDebugImports { get; set; }
 
-        /// <summary>
-        /// A mapping from a (source) iterator or async method to the compiler-generated type that implements it.
-        /// </summary>
-        private Dictionary<MethodSymbol, NamedTypeSymbol> lazyStateMachineType;
-
         public readonly CSharpCompilation Compilation;
 
         public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
@@ -169,23 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.wrappers = null;
-        }
-
-        internal void SetStateMachineType(MethodSymbol method, NamedTypeSymbol stateMatchineClass)
-        {
-            if (lazyStateMachineType == null)
-            {
-                // TODO: do we need dictionary? use pool?
-                lazyStateMachineType = new Dictionary<MethodSymbol, NamedTypeSymbol>();
-            }
-
-            lazyStateMachineType.Add(method, stateMatchineClass);
-        }
-
-        internal NamedTypeSymbol TryGetStateMachineType(MethodSymbol method)
-        {
-            NamedTypeSymbol result;
-            return lazyStateMachineType != null && lazyStateMachineType.TryGetValue(method, out result) ? result : null;
         }
     }
 }

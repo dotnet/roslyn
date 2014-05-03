@@ -232,8 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilationState,
                     scriptEntryPoint,
                     body,
-                    diagnostics,
-                    compilation.Options.Optimize,
+                    stateMachineTypeOpt: null,
+                    diagnostics: diagnostics,
+                    optimize: compilation.Options.Optimize,
                     debugDocumentProvider: null,
                     namespaceScopes: default(ImmutableArray<NamespaceScope>));
 
@@ -579,7 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
                 var method = methodWithBody.Method;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, generateDebugInfo);
+                AsyncStateMachine stateMachineType;
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, compilationState, diagnosticsThisMethod, generateDebugInfo, out stateMachineType);
 
                 MethodBody emittedBody = null;
 
@@ -589,6 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilationState,
                         method,
                         bodyWithoutAsync,
+                        stateMachineType,
                         diagnosticsThisMethod,
                         compilation.Options.Optimize,
                         debugDocumentProvider,
@@ -684,6 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilationState,
                         accessor,
                         boundBody,
+                        default(NamedTypeSymbol),
                         diagnosticsThisMethod,
                         compilation.Options.Optimize,
                         debugDocumentProvider,
@@ -892,8 +896,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
+                NamedTypeSymbol stateMachineType = null;
                 BoundStatement loweredBody = (flowAnalyzedBody == null) ? null :
-                    LowerBodyOrInitializer(this.generateDebugInfo, methodSymbol, flowAnalyzedBody, previousSubmissionFields, compilationState, diagsForCurrentMethod);
+                    LowerBodyOrInitializer(this.generateDebugInfo, methodSymbol, flowAnalyzedBody, previousSubmissionFields, compilationState, diagsForCurrentMethod, out stateMachineType);
 
                 bool hasBody = loweredBody != null;
 
@@ -925,7 +930,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 analyzedInitializers,
                                 previousSubmissionFields,
                                 compilationState,
-                                diagsForCurrentMethod);
+                                diagsForCurrentMethod,
+                                out stateMachineType);
+
+                            // initializers can't produce state machines
+                            Debug.Assert(stateMachineType == null);
 
                             Debug.Assert(!hasErrors);
                             hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
@@ -996,6 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilationState,
                         methodSymbol,
                         boundBody,
+                        stateMachineType,
                         diagsForCurrentMethod,
                         compilation.Options.Optimize,
                         debugDocumentProvider,
@@ -1020,9 +1030,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            out NamedTypeSymbol stateMachineType)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
+            stateMachineType = null;
 
             if (body.HasErrors)
             {
@@ -1095,20 +1107,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithoutLambdas;
             }
 
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics, generateDebugInfo);
+            IteratorStateMachine iteratorStateMachine;
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, compilationState, diagnostics, generateDebugInfo, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {
                 return bodyWithoutIterators;
             }
 
-            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, generateDebugInfo);
+            AsyncStateMachine asyncStateMachine;
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics, generateDebugInfo, out asyncStateMachine);
+
+            Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+            stateMachineType = (NamedTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
             return bodyWithoutAsync;
         }
 
-        private static MethodBody GenerateMethodBody(TypeCompilationState compilationState, MethodSymbol method, BoundStatement block, DiagnosticBag diagnostics,
-            bool optimize, DebugDocumentProvider debugDocumentProvider, ImmutableArray<NamespaceScope> namespaceScopes)
+        private static MethodBody GenerateMethodBody(
+            TypeCompilationState compilationState,
+            MethodSymbol method,
+            BoundStatement block, 
+            NamedTypeSymbol stateMachineTypeOpt,
+            DiagnosticBag diagnostics,
+            bool optimize, 
+            DebugDocumentProvider debugDocumentProvider,
+            ImmutableArray<NamespaceScope> namespaceScopes)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1166,8 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var iteratorScopes = hasIteratorScopes ? builder.GetIteratorScopes() : ImmutableArray<LocalScope>.Empty;
 
-                var iteratorOrAsyncImplementation = compilationState.TryGetStateMachineType(method);
-
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
@@ -1180,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Cci.CustomDebugInfoKind.CSharpStyle,
                     builder.HasDynamicLocal,
                     namespaceScopes,
-                    (object)iteratorOrAsyncImplementation == null ? null : iteratorOrAsyncImplementation.MetadataName,
+                    (stateMachineTypeOpt != null) ? stateMachineTypeOpt.Name : null,
                     iteratorScopes,
                     asyncMethodDebugInfo: asyncDebugInfo
                 );

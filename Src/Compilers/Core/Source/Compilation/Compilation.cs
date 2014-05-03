@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -736,6 +737,8 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamespaceSymbol CommonGetCompilationNamespace(INamespaceSymbol namespaceSymbol);
 
+        internal abstract CommonAnonymousTypeManager CommonAnonymousTypeManager { get; }
+
         /// <summary>
         /// Returns the Main method that will serves as the entry point of the assembly, if it is
         /// executable (and not a script).
@@ -1204,7 +1207,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool IsDelaySign { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
         internal abstract FunctionId EmitFunctionId { get; }
-        internal abstract EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics);
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
@@ -1213,68 +1215,86 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
-            ref bool hasDeclarationErrors);
+            bool metadataOnly);
 
-        internal abstract bool Compile(
+        // TODO: private protected
+        internal abstract bool CompileImpl(
             CommonPEModuleBuilder moduleBuilder,
             string outputName,
-            IEnumerable<ResourceDescription> manifestResources,
             Stream win32Resources,
             Stream xmlDocStream,
             CancellationToken cancellationToken,
-            bool metadataOnly,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filter,
-            bool hasDeclarationErrors);
+            Predicate<ISymbol> filterOpt);
 
-        internal CommonPEModuleBuilder Compile(
+        internal bool Compile(
+            CommonPEModuleBuilder moduleBuilder,
             string outputName,
-            IEnumerable<ResourceDescription> manifestResources,
             Stream win32Resources,
             Stream xmlDocStream,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CancellationToken cancellationToken,
-            CompilationTestData testData,
-            bool metadataOnly,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt = null)
+            Predicate<ISymbol> filterOpt)
         {
-            bool hasDeclarationErrors = false;
-            var moduleBeingBuilt = this.CreateModuleBuilder(
-                outputName,
-                manifestResources,
-                assemblySymbolMapper,
-                cancellationToken,
-                testData,
-                diagnostics,
-                metadataOnly,
-                hasDeclarationErrors: ref hasDeclarationErrors);
-
-            if (moduleBeingBuilt == null)
+            try
             {
-                return null;
+                return CompileImpl(
+                    moduleBuilder,
+                    outputName,
+                    win32Resources,
+                    xmlDocStream,
+                    cancellationToken,
+                    generateDebugInfo,
+                    diagnostics,
+                    filterOpt);
             }
-
-            if (!this.Compile(
-                moduleBeingBuilt,
-                outputName,
-                manifestResources,
-                win32Resources,
-                xmlDocStream,
-                cancellationToken,
-                metadataOnly,
-                generateDebugInfo,
-                diagnostics,
-                filterOpt,
-                hasDeclarationErrors))
+            finally
             {
-                return null;
+                moduleBuilder.CompilationFinished();
             }
+        }
 
-            return moduleBeingBuilt;
+        internal void EnsureAnonymousTypeTemplates(CancellationToken cancellationToken)
+        {
+            if (this.GetSubmissionSlotIndex() >= 0 && HasCodeToEmit())
+            {
+                if (!this.CommonAnonymousTypeManager.AreTemplatesSealed)
+                {
+                    var discardedDiagnostics = DiagnosticBag.GetInstance();
+
+                    var moduleBeingBuilt = this.CreateModuleBuilder(
+                        outputName: null,
+                        manifestResources: null,
+                        assemblySymbolMapper: null,
+                        cancellationToken: cancellationToken,
+                        testData: null,
+                        diagnostics: discardedDiagnostics,
+                        metadataOnly: false);
+
+                    if (moduleBeingBuilt != null)
+                    {
+                        Compile(
+                            moduleBeingBuilt,
+                            outputName: null,
+                            win32Resources: null,
+                            xmlDocStream: null,
+                            cancellationToken: cancellationToken,
+                            generateDebugInfo: false,
+                            diagnostics: discardedDiagnostics,
+                            filterOpt: null);
+                    }
+
+                    discardedDiagnostics.Free();
+                }
+
+                Debug.Assert(this.CommonAnonymousTypeManager.AreTemplatesSealed);
+            }
+            else if (this.PreviousSubmission != null)
+            {
+                this.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
+            }
         }
 
         /// <summary>
@@ -1488,9 +1508,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 DiagnosticBag diagnostics = new DiagnosticBag();
-
-                bool success = true;
-
                 if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
                 {
                     foreach (ResourceDescription res in manifestResources)
@@ -1499,42 +1516,57 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Modules can have only embedded resources, not linked ones.
                             diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_ResourceInModule, Location.None));
-                            success = false;
-                            break;
+
+                            return ToEmitResultAndFree(diagnostics, success: false);
                         }
                     }
                 }
 
-                if (success)
-                {
-                    CommonPEModuleBuilder moduleBeingBuilt = Compile(
-                        outputName,
-                        manifestResources,
-                        win32Resources,
-                        xmlDocStream,
-                        null,
-                        cancellationToken,
-                        testData,
-                        metadataOnly,
-                        generateDebugInfo: pdbStream != null,
-                        diagnostics: diagnostics);
+                var moduleBeingBuilt = this.CreateModuleBuilder(
+                    outputName,
+                    manifestResources,
+                    null,
+                    cancellationToken,
+                    testData,
+                    diagnostics,
+                    metadataOnly);
 
-                    success =
-                        moduleBeingBuilt != null &&
-                        SerializeToPeStream(
-                            (Cci.IModule)moduleBeingBuilt, 
-                            executableStream, 
-                            pdbFilePath, 
-                            pdbStream, 
-                            (testData != null) ? testData.SymWriterFactory : null,  
-                            diagnostics,
-                            metadataOnly, 
-                            Options.Optimize,
-                            cancellationToken);
+                if (moduleBeingBuilt == null)
+                {
+                    return ToEmitResultAndFree(diagnostics, success: false);
                 }
 
-                return MakeEmitResult(success, diagnostics.ToReadOnly());
+                if (!this.Compile(
+                    moduleBeingBuilt,
+                    outputName,
+                    win32Resources,
+                    xmlDocStream,
+                    cancellationToken,
+                    generateDebugInfo: pdbStream != null,
+                    diagnostics: diagnostics,
+                    filterOpt: null))
+                {
+                    return ToEmitResultAndFree(diagnostics, success: false);
+                }
+
+                bool success = SerializeToPeStream(
+                    (Cci.IModule)moduleBeingBuilt,
+                    executableStream,
+                    pdbFilePath,
+                    pdbStream,
+                    (testData != null) ? testData.SymWriterFactory : null,
+                    diagnostics,
+                    metadataOnly,
+                    Options.Optimize,
+                    cancellationToken);
+
+                return ToEmitResultAndFree(diagnostics, success);
             }
+        }
+
+        private EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
+        {
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
         internal bool SerializeToPeStream(

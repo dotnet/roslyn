@@ -49,13 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
+                NamedTypeSymbol stateMachineType;
                 var body = MethodCompiler.LowerBodyOrInitializer(
                     generateDebugInfo: true,
                     method: method,
                     body: block,
                     previousSubmissionFields: null,
                     compilationState: compilationState,
-                    diagnostics: diagnostics);
+                    diagnostics: diagnostics,
+                    stateMachineType: out stateMachineType);
 
                 return body;
             }

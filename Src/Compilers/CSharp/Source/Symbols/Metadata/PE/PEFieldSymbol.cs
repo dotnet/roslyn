@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                    value.Discriminator == ConstantValueTypeDiscriminator.Decimal;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
             foreach (CSharpAttributeData attribute in GetAttributes())
             {

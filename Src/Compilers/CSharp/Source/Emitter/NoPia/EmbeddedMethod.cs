@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return UnderlyingMethod.GetCustomAttributesToEmit();
+            return UnderlyingMethod.GetCustomAttributesToEmit(compilationState);
         }
 
         protected override ImmutableArray<EmbeddedParameter> GetParameters()

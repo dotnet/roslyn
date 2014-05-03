@@ -106,12 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return cachedDiagnostics;
         }
 
-        /// <summary>
-        /// If the method is async, returns the type of the synthesized state machine class.
-        /// Used to construct the AsyncStateMachineAttribute for pdb emit.
-        /// </summary>
-        private AsyncStateMachine asyncStateMachineType;
-
         protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReference, SyntaxReference blockSyntaxReference, Location location)
             : this(containingType, syntaxReference, blockSyntaxReference, ImmutableArray.Create(location))
         {
@@ -1471,19 +1465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal AsyncStateMachine AsyncStateMachineType
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            get
-            {
-                if (!IsAsync) return null;
-                if ((object)this.asyncStateMachineType == null) Interlocked.CompareExchange(ref this.asyncStateMachineType, new AsyncStateMachine(this), null);
-                return this.asyncStateMachineType;
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (this.IsAsync)
             {
@@ -1495,11 +1479,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The async state machine type is not synthesized until the async method body is rewritten. If we are
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the AsyncStateMachineAttribute.
-                if ((object)asyncStateMachineType != null)
+                NamedTypeSymbol asyncStateMachineType;
+                if (compilationState.TryGetStateMachineType(this, out asyncStateMachineType))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                       ImmutableArray.Create<TypedConstant>(
+                       ImmutableArray.Create(
                            new TypedConstant(
                                compilation.GetWellKnownType(WellKnownType.System_Type),
                                TypedConstantKind.Type,

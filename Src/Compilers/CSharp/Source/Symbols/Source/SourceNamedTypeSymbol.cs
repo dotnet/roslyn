@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,12 +7,10 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -977,9 +974,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 

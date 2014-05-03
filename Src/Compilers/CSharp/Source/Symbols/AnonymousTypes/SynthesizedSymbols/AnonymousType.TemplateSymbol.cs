@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -433,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
-            internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
-                base.AddSynthesizedAttributes(ref attributes);
+                base.AddSynthesizedAttributes(compilationState, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, Manager.Compilation.SynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));

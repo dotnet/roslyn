@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             // do not emit Dynamic or CompilerGenerated attributes for fields inside compiler generated types:
             if (containingType.IsImplicitlyDeclared)

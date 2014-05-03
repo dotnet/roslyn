@@ -16,21 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary> Cache of created anonymous delegates </summary>
         Private _concurrentDelegatesCache As ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol) = Nothing
 
-        ''' <summary> 
-        ''' We should not see new anonymous types from source after we finished emit phase. 
-        ''' If this field is true, the collection is sealed; in DEBUG it also is used to check the assertion.
-        ''' </summary>
-        Private _anonymousTypeTemplatesIsSealed As Integer = ThreeState.False
-
-        ''' <summary>
-        ''' Collection of anonymous type templates is sealed 
-        ''' </summary>
-        Friend ReadOnly Property AreTemplatesSealed As Boolean
-            Get
-                Return _anonymousTypeTemplatesIsSealed = ThreeState.True
-            End Get
-        End Property
-
 #If DEBUG Then
         ''' <summary>
         ''' Holds a collection of all the locations of anonymous types and delegates from source
@@ -43,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
             Dim location As Location = anonymous.Locations(0)
             If location.IsInSource Then
-                If Me._anonymousTypeTemplatesIsSealed = ThreeState.True Then
+                If Me.AreTemplatesSealed Then
                     Debug.Assert(Me._sourceLocationsSeen.ContainsKey(location))
                 Else
                     Me._sourceLocationsSeen.TryAdd(location, True)
@@ -200,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' If the collection is not sealed yet we should assign new indexes 
             ' to the created anonymous type and delegate templates
-            If _anonymousTypeTemplatesIsSealed <> ThreeState.True Then
+            If Not Me.AreTemplatesSealed Then
 
                 ' Sort types and delegates using smallest location
                 builder.Sort(New AnonymousTypeComparer(Me.Compilation))
@@ -247,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     template.NameAndIndex = New NameAndIndex(name, index)
                 Next
 
-                _anonymousTypeTemplatesIsSealed = ThreeState.True
+                Me.SealTemplates()
             End If
 
             If builder.Count > 0 AndAlso Not Me.CheckAndReportMissingSymbols(builder, diagnostics) Then

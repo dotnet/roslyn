@@ -19,12 +19,14 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
         internal abstract Compilation CommonCompilation { get; }
+        internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
+        internal abstract void CompilationFinished();
     }
 
     /// <summary>
     /// Common base class for C# and VB PE module builder.
     /// </summary>
-    internal abstract class PEModuleBuilder<TCompilation, TSymbol, TSourceModuleSymbol, TModuleSymbol, TAssemblySymbol, TNamespaceSymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
+    internal abstract class PEModuleBuilder<TCompilation, TSymbol, TSourceModuleSymbol, TModuleSymbol, TAssemblySymbol, TNamespaceSymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, Cci.IModule, ITokenDeferral
         where TCompilation : Compilation
         where TSymbol : class
         where TSourceModuleSymbol : class, TModuleSymbol
@@ -35,16 +37,17 @@ namespace Microsoft.CodeAnalysis.Emit
         where TNamedTypeSymbol : class, TTypeSymbol, Cci.INamespaceTypeDefinition
         where TMethodSymbol : class, TSymbol, Cci.IMethodDefinition
         where TSyntaxNode : SyntaxNode
-        where TEmbeddedTypesManager : Emit.NoPia.CommonEmbeddedTypesManager
+        where TEmbeddedTypesManager : NoPia.CommonEmbeddedTypesManager
+        where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
     {
-        private readonly Microsoft.Cci.RootModuleType rootModuleType = new Microsoft.Cci.RootModuleType();
+        private readonly Cci.RootModuleType rootModuleType = new Cci.RootModuleType();
 
         private readonly TSourceModuleSymbol sourceModule;
         private readonly TCompilation compilation;
         private readonly OutputKind outputKind;
         private readonly ModulePropertiesForSerialization serializationProperties;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
-
+        
         /// <summary>
         /// Used to translate assembly symbols to assembly references in scenarios when the physical assemblies 
         /// being emitted don't correspond to the assembly symbols 1:1. This happens, for example, in interactive sessions where
@@ -62,10 +65,12 @@ namespace Microsoft.CodeAnalysis.Emit
         private PrivateImplementationDetails privateImplementationDetails;
         private ArrayMethods lazyArrayMethods;
         private HashSet<string> namesOfTopLevelTypes;
-
         internal IEnumerable<Cci.IWin32Resource> Win32Resources { set; private get; }
         internal Cci.ResourceSection Win32ResourceSection { set; private get; }
-        protected readonly IEnumerable<ResourceDescription> ManifestResources;
+
+        internal readonly IEnumerable<ResourceDescription> ManifestResources;
+        internal readonly bool MetadataOnly;
+        internal readonly TModuleCompilationState CompilationState;
 
         // this is a map from the document "name" to the document.
         // document "name" is typically a file path like "C:\Abc\Def.cs" however that is not guaranteed.
@@ -83,7 +88,9 @@ namespace Microsoft.CodeAnalysis.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
-            Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper)
+            Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
+            bool metadataOnly,
+            TModuleCompilationState compilationState)
         {
             Debug.Assert(sourceModule != null);
             Debug.Assert(serializationProperties != null);
@@ -94,6 +101,8 @@ namespace Microsoft.CodeAnalysis.Emit
             this.ManifestResources = manifestResources;
             this.outputKind = outputKind;
             this.assemblySymbolMapper = assemblySymbolMapper;
+            this.MetadataOnly = metadataOnly;
+            this.CompilationState = compilationState;
 
             if (compilation.IsCaseSensitive)
             {
@@ -103,6 +112,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 this.debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(StringComparer.OrdinalIgnoreCase);
             }
+        }
+
+        internal sealed override void CompilationFinished()
+        {
+            this.CompilationState.Freeze();
         }
 
         internal abstract string ModuleName { get; }
@@ -243,6 +257,14 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        internal override CommonModuleCompilationState CommonModuleCompilationState
+        {
+            get
+            {
+                return this.CompilationState;
+            }
+        }
+
         // General entry point method. May be a PE entry point or a submission entry point.
         internal sealed override Cci.IMethodReference EntryPoint
         {
@@ -300,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private readonly ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions> synthesizedDefs =
             new ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions>();
-
+        
         public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
         {
             Debug.Assert(nestedType != null);
@@ -621,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return GetTopLevelTypes(context);
         }
 
-        public abstract IEnumerable<Microsoft.Cci.ITypeExport> GetExportedTypes(EmitContext context);
+        public abstract IEnumerable<Cci.ITypeExport> GetExportedTypes(EmitContext context);
 
         Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {

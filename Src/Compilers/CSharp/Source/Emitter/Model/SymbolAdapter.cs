@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
@@ -51,25 +52,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return GetCustomAttributesToEmit();
+            return GetCustomAttributesToEmit(((PEModuleBuilder)context.Module).CompilationState);
         }
 
-        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
             CheckDefinitionInvariant();
 
             Debug.Assert(this.Kind != SymbolKind.Assembly);
-            return GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule: false);
+            return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule: false);
         }
 
-        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(bool emittingAssemblyAttributesInNetModule)
+        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState, bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined;
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
-            this.AddSynthesizedAttributes(ref synthesized);
+            this.AddSynthesizedAttributes(compilationState, ref synthesized);
 
             if (userDefined.IsEmpty && synthesized == null)
             {

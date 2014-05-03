@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -77,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeKind == TypeKind.Interface; }
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
             {

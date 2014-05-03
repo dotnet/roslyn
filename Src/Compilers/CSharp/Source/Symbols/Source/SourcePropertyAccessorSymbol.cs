@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -412,9 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.ToImmutableAndFree();
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (isAutoPropertyAccessor)
             {

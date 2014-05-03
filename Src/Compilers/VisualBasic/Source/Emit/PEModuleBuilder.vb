@@ -3,7 +3,6 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -11,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Partial Friend MustInherit Class PEModuleBuilder
-        Inherits PEModuleBuilder(Of VisualBasicCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VisualBasicSyntaxNode, NoPia.EmbeddedTypesManager)
+        Inherits PEModuleBuilder(Of VisualBasicCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VisualBasicSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
 
         ' Not many methods should end up here.
         Private ReadOnly m_DisableJITOptimization As ConcurrentDictionary(Of MethodSymbol, Boolean) = New ConcurrentDictionary(Of MethodSymbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -27,8 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private m_TestDataKeyFormat As SymbolDisplayFormat
         Private m_TestDataOperatorKeyFormat As SymbolDisplayFormat
 
-        Private ReadOnly m_metadataOnly As Boolean
-
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        outputName As String,
                        outputKind As OutputKind,
@@ -37,7 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
                        metadataOnly As Boolean)
 
-            MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation, sourceModule, serializationProperties, manifestResources, outputKind, assemblySymbolMapper)
+            MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
+                       sourceModule,
+                       serializationProperties,
+                       manifestResources,
+                       outputKind,
+                       assemblySymbolMapper,
+                       metadataOnly,
+                       New ModuleCompilationState())
 
             m_MetadataName = If(outputName, sourceModule.MetadataName)
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, Me)
@@ -45,8 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If sourceModule.AnyReferencedAssembliesAreLinked Then
                 m_EmbeddedTypesManagerOpt = New NoPia.EmbeddedTypesManager(Me)
             End If
-
-            m_metadataOnly = metadataOnly
         End Sub
 
         Friend Overrides ReadOnly Property Name As String
@@ -67,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides Iterator Function GetAssemblyReferencesFromAddedModules(diagnostics As DiagnosticBag) As IEnumerable(Of IAssemblyReference)
+        Protected Overrides Iterator Function GetAssemblyReferencesFromAddedModules(diagnostics As DiagnosticBag) As IEnumerable(Of Cci.IAssemblyReference)
             Dim modules As ImmutableArray(Of ModuleSymbol) = SourceModule.ContainingAssembly.Modules
 
             For i As Integer = 1 To modules.Length - 1
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim refIdentity As AssemblyIdentity = asmRef.MetadataIdentity
 
             If asmIdentity.IsStrongName AndAlso Not refIdentity.IsStrongName AndAlso
-               DirectCast(asmRef, Microsoft.Cci.IAssemblyReference).ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
+               DirectCast(asmRef, Cci.IAssemblyReference).ContentType <> Reflection.AssemblyContentType.WindowsRuntime Then
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ReferencedAssemblyDoesNotHaveStrongName, assembly), NoLocation.Singleton)
             End If
 
@@ -115,16 +117,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Sub
 
-        Friend NotOverridable Overrides Function SynthesizeAttribute(attributeConstructor As WellKnownMember) As ICustomAttribute
+        Friend NotOverridable Overrides Function SynthesizeAttribute(attributeConstructor As WellKnownMember) As Cci.ICustomAttribute
             Return Me.Compilation.SynthesizeAttribute(attributeConstructor)
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of ICustomAttribute)
+        Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of SecurityAttribute)
-            Dim sourceSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = Nothing
+        Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
+            Dim sourceSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
             Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = SourceModule.ContainingSourceAssembly.GetSourceAttributesBag()
             Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
             If wellKnownAttributeData IsNot Nothing Then
@@ -134,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            Dim netmoduleSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = Nothing
+            Dim netmoduleSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
             attributesBag = SourceModule.ContainingSourceAssembly.GetNetModuleAttributesBag()
             wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol))
             If wellKnownAttributeData IsNot Nothing Then
@@ -144,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            Dim securityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = Nothing
+            Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Nothing
             If sourceSecurityAttributes IsNot Nothing Then
                 If netmoduleSecurityAttributes IsNot Nothing Then
                     securityAttributes = sourceSecurityAttributes.Concat(netmoduleSecurityAttributes)
@@ -155,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If netmoduleSecurityAttributes IsNot Nothing Then
                     securityAttributes = netmoduleSecurityAttributes
                 Else
-                    securityAttributes = SpecializedCollections.EmptyEnumerable(Of Microsoft.Cci.SecurityAttribute)()
+                    securityAttributes = SpecializedCollections.EmptyEnumerable(Of Cci.SecurityAttribute)()
                 End If
             End If
 
@@ -163,11 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return securityAttributes
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of ICustomAttribute)
+        Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.GetCustomAttributesToEmit()
         End Function
 
-        Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of DebugSourceDocument, DefinitionWithLocation)
+        Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
             Dim result As New MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)()
 
             Dim namespacesAndTypesToProcess As New Stack(Of NamespaceOrTypeSymbol)()
@@ -291,16 +293,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend Overrides Function GetAnonymousTypes() As ImmutableArray(Of INamespaceTypeDefinition)
-            If m_metadataOnly Then
+        Friend Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+            If MetadataOnly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
 
-            Return StaticCast(Of INamespaceTypeDefinition).
+            Return StaticCast(Of Cci.INamespaceTypeDefinition).
                 From(SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates)
         End Function
 
-        Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
+        Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             Dim embeddedSymbolManager As EmbeddedSymbolManager = SourceModule.ContainingSourceAssembly.DeclaringCompilation.EmbeddedSymbolManager
             Dim stack As New Stack(Of NamespaceOrTypeSymbol)()
 
@@ -367,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Debug.Assert(aliasedType.IsDefinition)
 
                         If aliasedType.ContainingType Is Nothing Then
-                            Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(aliasedType, Microsoft.Cci.INamespaceTypeReference)).NamespaceName,
+                            Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(aliasedType, Cci.INamespaceTypeReference)).NamespaceName,
                                                                                         Cci.PeWriter.GetMangledName(aliasedType))
 
                             ' First check against types declared in the primary module
@@ -514,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As INamedTypeReference
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
 
             Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
@@ -527,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
         End Function
 
-        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As INamedTypeReference
+        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)

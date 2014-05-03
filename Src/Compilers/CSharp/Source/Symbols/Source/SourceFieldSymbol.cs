@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -420,9 +421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (this.Type.ContainsDynamic())
             {

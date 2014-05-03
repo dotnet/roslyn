@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -602,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build and add synthesized attributes for this symbol.
         /// </summary>
-        internal virtual void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
         }
 

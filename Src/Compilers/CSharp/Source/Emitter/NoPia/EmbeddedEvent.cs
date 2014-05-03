@@ -2,8 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
@@ -14,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
         }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return UnderlyingEvent.GetCustomAttributesToEmit();
+            return UnderlyingEvent.GetCustomAttributesToEmit(compilationState);
         }
 
         protected override bool IsRuntimeSpecial

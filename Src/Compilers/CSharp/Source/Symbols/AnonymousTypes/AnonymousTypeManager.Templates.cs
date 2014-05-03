@@ -26,20 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ConcurrentDictionary<string, AnonymousTypeTemplateSymbol> lazyAnonymousTypeTemplates;
 
         /// <summary>
-        /// We should not see new anonymous types from source after we finished emit phase. 
-        /// If this field is true, the collection is sealed; in DEBUG it also is used to check the assertion.
-        /// </summary>
-        private ThreeState anonymousTypeTemplatesIsSealed = ThreeState.False;
-
-        /// <summary>
-        /// Collection of anonymous type templates is sealed 
-        /// </summary>
-        internal bool AreTemplatesSealed
-        {
-            get { return anonymousTypeTemplatesIsSealed == ThreeState.True; }
-        }
-
-        /// <summary>
         /// Maps delegate signature shape (number of parameters and their ref-ness) to a synthesized generic delegate symbol.
         /// Unlike anonymous types synthesized delegates are not available thru symbol APIs. They are only used in lowered bound trees.
         /// Currently used for dynamic call-site sites whose signature doesn't match any of the well-known Func or Action types.
@@ -138,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location = anonymous.Locations[0];
             if (location.IsInSource)
             {
-                if (this.anonymousTypeTemplatesIsSealed == ThreeState.True)
+                if (this.AreTemplatesSealed)
                 {
                     Debug.Assert(this._sourceLocationsSeen.ContainsKey(location));
                 }
@@ -302,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the collection is not sealed yet we should assign 
             // new indexes to the created anonymous type templates
-            if (this.anonymousTypeTemplatesIsSealed != ThreeState.True)
+            if (!this.AreTemplatesSealed)
             {
                 // Sort type templates using smallest location
                 builder.Sort(new AnonymousTypeComparer(this.Compilation));
@@ -345,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     template.NameAndIndex = new NameAndIndex(name, index);
                 }
 
-                this.anonymousTypeTemplatesIsSealed = ThreeState.True;
+                this.SealTemplates();
             }
 
             if (builder.Count > 0 && !ReportMissingOrErroneousSymbols(diagnostics))

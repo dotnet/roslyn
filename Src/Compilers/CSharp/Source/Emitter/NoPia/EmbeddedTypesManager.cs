@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Emit.NoPia;
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypesManager :
-        EmbeddedTypesManager<PEModuleBuilder, EmbeddedTypesManager, CSharpSyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
+        EmbeddedTypesManager<PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, CSharpSyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
     {
         private readonly ConcurrentDictionary<AssemblySymbol, string> assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentDictionary<Symbol, bool> reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);

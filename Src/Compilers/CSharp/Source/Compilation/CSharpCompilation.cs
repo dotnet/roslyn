@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Instrumentation;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -147,6 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return anonymousTypeManager;
+            }
+        }
+
+        internal override CommonAnonymousTypeManager CommonAnonymousTypeManager
+        {
+            get
+            {
+                return AnonymousTypeManager;
             }
         }
 
@@ -2044,7 +2053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True when there is no error or warning treated as an error.</returns>
         internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), this.options);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
             incoming.Free();
             incoming = null;
             return result;
@@ -2105,13 +2114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True when there is no error or warning treated as an error.</returns>
-        private static bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, CSharpCompilationOptions options)
+        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
         {
             bool hasErrorOrWarningAsError = false;
 
             foreach (Diagnostic d in incoming)
             {
-                var filtered = FilterDiagnostic(d, options);
+                var filtered = FilterDiagnostic(d, this.options);
                 if (filtered == null)
                 {
                     continue;
@@ -2120,6 +2129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     hasErrorOrWarningAsError = true;
                 }
+
                 accumulator.Add(filtered);
             }
 
@@ -2360,11 +2370,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return FunctionId.CSharp_Compilation_Emit; }
         }
 
-        internal override EmitResult MakeEmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
-        {
-            return new EmitResult(success, diagnostics.Cast<Diagnostic>().AsImmutable());
-        }
-
         /// <summary>
         /// Emit the IL for the compilation into the specified stream.
         /// </summary>
@@ -2419,35 +2424,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Emit(outputPath, pdbPath, xmlDocPath, cancellationToken, win32ResourcesPath, manifestResources);
         }
 
-        internal void EnsureAnonymousTypeTemplates(CancellationToken cancellationToken)
-        {
-            if (this.GetSubmissionSlotIndex() >= 0 && HasCodeToEmit())
-            {
-                if (!this.AnonymousTypeManager.AreTemplatesSealed)
-                {
-                    DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
-                    Compile(
-                        outputName: null,
-                        xmlDocStream: null,
-                        assemblySymbolMapper: null,
-                        cancellationToken: cancellationToken,
-                        manifestResources: null,
-                        win32Resources: null,
-                        testData: null,
-                        metadataOnly: false,
-                        generateDebugInfo: false,
-                        diagnostics: discardedDiagnostics);
-                    discardedDiagnostics.Free();
-                }
-
-                Debug.Assert(this.AnonymousTypeManager.AreTemplatesSealed);
-            }
-            else if (this.PreviousSubmission != null)
-            {
-                this.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
-            }
-        }
-
         /// <summary>
         /// Emits the IL for the symbol declarations into the specified stream.  Useful for emitting information for
         /// cross-language modeling of code.  This emits what it can even if there are errors.
@@ -2476,42 +2452,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
-            ref bool hasDeclarationErrors)
+            bool metadataOnly)
         {
             return this.CreateModuleBuilder(
                 outputName,
                 manifestResources,
                 assemblySymbolMapper,
-                ImmutableArray<NamedTypeSymbol>.Empty,
                 cancellationToken,
                 testData,
                 diagnostics,
-                ref hasDeclarationErrors,
-                metadataOnly: metadataOnly);
+                metadataOnly, 
+                ImmutableArray<NamedTypeSymbol>.Empty);
         }
 
         internal CommonPEModuleBuilder CreateModuleBuilder(
             string outputName,
             IEnumerable<ResourceDescription> manifestResources,
             Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            ImmutableArray<NamedTypeSymbol> additionalTypes,
             CancellationToken cancellationToken,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            ref bool hasDeclarationErrors,
-            bool metadataOnly)
+            bool metadataOnly,
+            ImmutableArray<NamedTypeSymbol> additionalTypes)
         {
-            // The diagnostics should include syntax and declaration errors also. We insert these before calling Emitter.Emit, so that the emitter
-            // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            if (!FilterAndAppendDiagnostics(
-                diagnostics,
-                GetDiagnostics(CompilationStage.Declare, true, cancellationToken),
-                this.options))
-            {
-                hasDeclarationErrors = true;
-            }
-
             // Do not waste a slot in the submission chain for submissions that contain no executable code
             // (they may only contain #r directives, usings, etc.)
             if (IsSubmission && !HasCodeToEmit())
@@ -2568,25 +2531,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return moduleBeingBuilt;
         }
 
-        internal override bool Compile(
+        internal override bool CompileImpl(
             CommonPEModuleBuilder moduleBuilder,
             string outputName,
-            IEnumerable<ResourceDescription> manifestResources,
             Stream win32Resources,
             Stream xmlDocStream,
             CancellationToken cancellationToken,
-            bool metadataOnly,
             bool generateDebugInfo,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt,
-            bool hasDeclarationErrors)
+            Predicate<ISymbol> filterOpt)
         {
+            // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
+            // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken));
+
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
 
-            if (metadataOnly)
+            if (moduleBeingBuilt.MetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2644,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
 
                 ReportManifestResourceDuplicates(
-                    manifestResources,
+                    moduleBeingBuilt.ManifestResources,
                     SourceAssembly.Modules.Skip(1).Select((m) => m.Name),   //all modules except the first one
                     AddedModulesResourceNames(methodBodyDiagnosticBag),
                     methodBodyDiagnosticBag);

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -16,16 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
         /// <param name="generateDebugInfo"></param>
+        /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo)
+            bool generateDebugInfo,
+            out IteratorStateMachine stateMachineType)
         {
             TypeSymbol elementType = method.IteratorElementType;
             if ((object)elementType == null)
             {
+                stateMachineType = null;
                 return body;
             }
 
@@ -47,8 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
             }
 
-            var iteratorClass = new IteratorStateMachine(method, isEnumerable, elementType, compilationState);
-            return new IteratorRewriter(body, method, isEnumerable, iteratorClass, compilationState, diagnostics, generateDebugInfo).Rewrite();
+            stateMachineType = new IteratorStateMachine(method, isEnumerable, elementType, compilationState);
+            compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
+            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, compilationState, diagnostics, generateDebugInfo).Rewrite();
         }
 
         private readonly TypeSymbol elementType;

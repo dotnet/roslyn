@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -909,9 +910,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (PropertyEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (this.Type.ContainsDynamic())
             {

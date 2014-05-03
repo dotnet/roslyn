@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeMap TypeMap = stateMachineClass.TypeMap;
             F.OpenNestedType(stateMachineClass);
-            F.CompilationState.SetStateMachineType(method, stateMachineClass);
 
             // Add a field: int _state
             var intType = F.SpecialType(SpecialType.System_Int32);

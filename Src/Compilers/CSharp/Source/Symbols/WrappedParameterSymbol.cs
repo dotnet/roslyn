@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -88,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            underlyingParameter.AddSynthesizedAttributes(ref attributes);
+            underlyingParameter.AddSynthesizedAttributes(compilationState, ref attributes);
         }
 
         internal sealed override ConstantValue ExplicitDefaultConstantValue

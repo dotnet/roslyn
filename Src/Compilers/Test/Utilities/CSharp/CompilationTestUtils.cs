@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ArrayBuilder<SynthesizedAttributeData> attributes = null;
             if (!forReturnType)
             {
-                ((Symbol)symbol).AddSynthesizedAttributes(ref attributes);
+                ((Symbol)symbol).AddSynthesizedAttributes(null, ref attributes);
             }
             else
             {

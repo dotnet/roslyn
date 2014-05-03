@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -80,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingModule.RetargetingTranslator.GetRetargetedAttributes(this.underlyingParameter.GetAttributes(), ref this.lazyCustomAttributes);
         }
 
-        internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(this.underlyingParameter.GetCustomAttributesToEmit());
+            return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(this.underlyingParameter.GetCustomAttributesToEmit(compilationState));
         }
 
         public sealed override AssemblySymbol ContainingAssembly
@@ -170,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return underlyingParameter.DeclaringSyntaxReferences; }
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            underlyingParameter.AddSynthesizedAttributes(ref attributes);
+            underlyingParameter.AddSynthesizedAttributes(compilationState, ref attributes);
         }
 
         public override int Ordinal

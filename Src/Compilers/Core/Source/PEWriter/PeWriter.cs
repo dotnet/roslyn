@@ -684,7 +684,6 @@ namespace Microsoft.Cci
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldDuplicateMethodBodies,
-
             CancellationToken cancellationToken)
         {
             var writer = new FullPeWriter(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldDuplicateMethodBodies, cancellationToken);
@@ -710,7 +709,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal void WritePeToStream(System.IO.Stream stream)
+        internal void WritePeToStream(Stream stream)
         {
             PopulateTablesAndSerializeMethodBodies(separateMethodIL: false);
 

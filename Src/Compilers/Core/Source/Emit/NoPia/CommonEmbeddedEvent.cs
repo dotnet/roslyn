@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
     internal abstract partial class EmbeddedTypesManager<
         TPEModuleBuilder,
+        TModuleCompilationState,
         TEmbeddedTypesManager,
         TSyntaxNode,
         TAttributeData,

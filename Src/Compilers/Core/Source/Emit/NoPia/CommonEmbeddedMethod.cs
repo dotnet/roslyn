@@ -2,14 +2,13 @@
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
     internal abstract partial class EmbeddedTypesManager<
         TPEModuleBuilder,
+        TModuleCompilationState,
         TEmbeddedTypesManager,
         TSyntaxNode,
         TAttributeData,

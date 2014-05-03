@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
     internal abstract partial class EmbeddedTypesManager<
         TPEModuleBuilder,
+        TModuleCompilationState,
         TEmbeddedTypesManager,
         TSyntaxNode,
         TAttributeData,
@@ -62,14 +63,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract string Name { get; }
             protected abstract Cci.IParameterTypeInformation UnderlyingParameterTypeInformation { get; }
             protected abstract ushort Index { get; }
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit();
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
             {
                 return TypeManager.IsTargetAttribute(UnderlyingParameter, attrData, description);
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // will ensure that we report appropriate errors.
                 int signatureIndex;
 
-                foreach (var attrData in GetCustomAttributesToEmit())
+                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute))
                     {
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (this.lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyAttributes, attributes))
                     {

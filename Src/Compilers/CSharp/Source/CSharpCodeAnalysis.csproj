@@ -248,6 +248,7 @@
     <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
+    <Compile Include="Compiler\ModuleCompilationState.cs" />
     <Compile Include="Compiler\NamespaceScopeBuilder.cs" />
     <Compile Include="Compiler\SynthesizedMetadataCompiler.cs" />
     <Compile Include="Compiler\TypeCompilationState.cs" />

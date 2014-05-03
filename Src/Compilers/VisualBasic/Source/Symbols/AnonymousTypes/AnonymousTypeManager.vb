@@ -1,14 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -20,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' emit phase to substitute anonymous type/delegate public symbols.
     ''' </summary>
     Partial Friend NotInheritable Class AnonymousTypeManager
+        Inherits CommonAnonymousTypeManager
 
         ''' <summary> Source module </summary>
         Public ReadOnly Property ContainingModule As SourceModuleSymbol

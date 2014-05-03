@@ -31,7 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
                        metadataOnly As Boolean)
 
-            MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol), outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, metadataOnly)
+            MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
+                       outputName,
+                       outputKind,
+                       serializationProperties,
+                       manifestResources,
+                       assemblySymbolMapper,
+                       metadataOnly)
 
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)

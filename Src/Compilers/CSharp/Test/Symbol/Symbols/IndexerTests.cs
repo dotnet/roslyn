@@ -2118,7 +2118,7 @@ class Program
             Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
             // Not emitted.
-            Assert.Equal(0, ((Microsoft.Cci.IReference)indexer).GetAttributes(new EmitContext()).Count());
+            Assert.Equal(0, indexer.GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
         }
 
         [WorkItem(545884, "DevDiv")]

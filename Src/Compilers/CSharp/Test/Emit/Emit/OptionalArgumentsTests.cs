@@ -210,8 +210,7 @@ partial class C
 
         private static void VerifyDefaultValueAttribute(ParameterSymbol parameter, string expectedAttributeName, object expectedDefault, bool hasDefault)
         {
-            var context = default(EmitContext);
-            var attributes = ((Cci.IParameterDefinition)parameter).GetAttributes(context).ToArray();
+            var attributes = parameter.GetCustomAttributesToEmit(new ModuleCompilationState()).ToArray();
             if (expectedAttributeName == null)
             {
                 Assert.Equal(attributes.Length, 0);
@@ -219,7 +218,7 @@ partial class C
             else
             {
                 Assert.Equal(attributes.Length, 1);
-                var attribute = (CSharpAttributeData)attributes[0];
+                var attribute = attributes[0];
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);
                 Assert.Equal(expectedDefault, argument.Value);
@@ -423,7 +422,7 @@ Diagnostic(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, "DecimalConstan
                 );
 
             var c = comp.GetTypeByMetadataName("C");
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit().Count());
+            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
         }
 
     }

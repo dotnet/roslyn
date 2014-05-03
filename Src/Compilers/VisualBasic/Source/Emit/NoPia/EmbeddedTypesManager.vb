@@ -9,7 +9,7 @@ Imports System.Threading
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedTypesManager
-        Inherits Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager(Of PEModuleBuilder, EmbeddedTypesManager, VisualBasicSyntaxNode, VisualBasicAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter)
+        Inherits Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager(Of PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, VisualBasicSyntaxNode, VisualBasicAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter)
 
         Private ReadOnly _assemblyGuidMap As New ConcurrentDictionary(Of AssemblySymbol, String)(ReferenceEqualityComparer.Instance)
         Private ReadOnly _reportedSymbolsMap As New ConcurrentDictionary(Of Symbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Next
 
             For Each a In ModuleBeingBuilt.GetReferencedAssembliesUsedSoFar()
-                ReportIndirectReferencesToLinkedAssemblies(a, Diagnostics)
+                ReportIndirectReferencesToLinkedAssemblies(a, diagnostics)
             Next
         End Sub
 

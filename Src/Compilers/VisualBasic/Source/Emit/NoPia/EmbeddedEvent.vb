@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             MyBase.New(underlyingEvent, adder, remover, caller)
         End Sub
 
-        Protected Overrides Function GetCustomAttributesToEmit() As IEnumerable(Of VisualBasicAttributeData)
+        Protected Overrides Function GetCustomAttributesToEmit(compilationSatte As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Return UnderlyingEvent.GetCustomAttributesToEmit()
         End Function
 

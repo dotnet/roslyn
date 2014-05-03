@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -351,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.GetRetargetedAttributes(this.underlyingProperty.GetAttributes(), ref this.lazyCustomAttributes);
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingProperty.GetCustomAttributesToEmit());
+            return this.RetargetingTranslator.RetargetAttributes(this.underlyingProperty.GetCustomAttributesToEmit(compilationState));
         }
 
         internal override bool MustCallMethodsDirectly

@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -587,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return uncommon.lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit()
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
             return GetAttributes();
         }

@@ -68,15 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (compilation.Compile(
                 moduleBeingBuilt,
                 outputName: null,
-                manifestResources: manifestResources,
                 win32Resources: null,
                 xmlDocStream: null,
                 cancellationToken: cancellationToken,
-                metadataOnly: false,
                 generateDebugInfo: true,
                 diagnostics: diagnostics,
-                filterOpt: changes.RequiresCompilation,
-                hasDeclarationErrors: false))
+                filterOpt: changes.RequiresCompilation))
             {
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling above since synthesized definitions

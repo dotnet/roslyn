@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Debug.Assert(underlyingParameter.IsDefinition)
         End Sub
 
-        Protected Overrides Function GetCustomAttributesToEmit() As IEnumerable(Of VisualBasicAttributeData)
+        Protected Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Return UnderlyingParameter.GetCustomAttributesToEmit()
         End Function
 

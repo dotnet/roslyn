@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -80,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal sealed override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal sealed override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             if (debuggerHidden)
             {

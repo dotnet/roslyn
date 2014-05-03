@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,27 +16,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="compilationState">The collection of generated methods that result from this transformation and which must be emitted</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics.</param>
         /// <param name="generateDebugInfo"></param>
+        /// <param name="stateMachineType"></param>
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo)
+            bool generateDebugInfo,
+            out AsyncStateMachine stateMachineType)
         {
             if (!method.IsAsync)
             {
+                stateMachineType = null;
                 return body;
             }
 
             var bodyWithAwaitLifted = AwaitLiftingRewriter.Rewrite(body, method, compilationState, diagnostics);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, ((SourceMethodSymbol)method).AsyncStateMachineType, compilationState, diagnostics, generateDebugInfo);
+
+            stateMachineType = new AsyncStateMachine(method);
+            compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics, generateDebugInfo);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
             }
 
-            var bodyReplacement = rewriter.Rewrite();
-            return bodyReplacement;
+            return rewriter.Rewrite();
         }
 
         private readonly AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection;

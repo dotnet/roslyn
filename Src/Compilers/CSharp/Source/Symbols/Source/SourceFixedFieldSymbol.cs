@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsFixed);
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return internalField; }
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
             var compilation = ContainingSymbol.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
         }

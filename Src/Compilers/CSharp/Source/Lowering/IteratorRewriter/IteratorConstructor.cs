@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new SynthesizedParameterSymbol(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateName()));
         }
 
-        internal override void AddSynthesizedAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(ref attributes);
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));

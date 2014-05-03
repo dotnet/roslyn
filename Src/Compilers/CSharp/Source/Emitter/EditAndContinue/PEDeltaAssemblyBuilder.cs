@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits)
-            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty, metadataOnly:false)
+            : base(sourceAssembly, outputName, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty, metadataOnly: false)
         {
             var context = new EmitContext(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;

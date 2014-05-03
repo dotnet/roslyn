@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             string outputName, 
             ModulePropertiesForSerialization serializationProperties, 
             IEnumerable<ResourceDescription> manifestResources,
-            bool metadataOnly = false)
+            bool metadataOnly)
             : base(sourceModule, outputName, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper: null, metadataOnly: metadataOnly)
         {
         }

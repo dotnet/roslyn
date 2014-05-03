@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.InternalUtilities
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -190,6 +191,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend ReadOnly Property AnonymousTypeManager As AnonymousTypeManager
+            Get
+                Return Me.m_anonymousTypeManager
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CommonAnonymousTypeManager As CommonAnonymousTypeManager
             Get
                 Return Me.m_anonymousTypeManager
             End Get
@@ -1920,7 +1927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function FilterAndAppendAndFreeDiagnostics(accumulator As DiagnosticBag, ByRef incoming As DiagnosticBag) As Boolean
-            Dim result As Boolean = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), Me.Options)
+            Dim result As Boolean = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution())
             incoming.Free()
             incoming = Nothing
             Return result
@@ -1968,12 +1975,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
-        Friend Overloads Shared Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic), options As CompilationOptions) As Boolean
+        Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
             Dim hasWarnAsError As Boolean = False
 
             For Each diagnostic As Diagnostic In incoming
-                Dim filtered = FilterDiagnostic(diagnostic, options)
+                Dim filtered = FilterDiagnostic(diagnostic, Me.m_Options)
                 If (filtered Is Nothing) Then
                     Continue For
                 End If
@@ -2088,10 +2095,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function MakeEmitResult(success As Boolean, diagnostics As ImmutableArray(Of Diagnostic)) As EmitResult
-            Return New EmitResult(success, diagnostics)
-        End Function
-
         ''' <summary>
         ''' Attempts to emit the assembly to the given stream. If there are 
         ''' compilation errors, false is returned. In this case, some bytes 
@@ -2162,38 +2165,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing
         ) As EmitResult
 
-            Return DirectCast(MyBase.Emit(
+            Return MyBase.Emit(
                     outputPath,
                     pdbPath,
                     xmlDocPath,
                     cancellationToken,
                     win32ResourcesPath,
-                    manifestResources), EmitResult)
+                    manifestResources)
         End Function
-
-        Friend Sub EnsureAnonymousTypeTemplates(cancellationToken As CancellationToken)
-            If Me.GetSubmissionSlotIndex() >= 0 AndAlso HasCodeToEmit() Then
-                If Not Me.AnonymousTypeManager.AreTemplatesSealed Then
-
-                    Dim discardedDiagnostics = DiagnosticBag.GetInstance()
-                    Compile(outputName:=Nothing,
-                            manifestResources:=Nothing,
-                            win32Resources:=Nothing,
-                            xmlDocStream:=Nothing,
-                            assemblySymbolMapper:=Nothing,
-                            cancellationToken:=cancellationToken,
-                            testData:=Nothing,
-                            metadataOnly:=False,
-                            generateDebugInfo:=False,
-                            diagnostics:=discardedDiagnostics)
-                    discardedDiagnostics.Free()
-                End If
-
-                Debug.Assert(Me.AnonymousTypeManager.AreTemplatesSealed)
-            ElseIf Me.PreviousSubmission IsNot Nothing Then
-                Me.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken)
-            End If
-        End Sub
 
         ''' <summary>
         ''' Attempts to emit just the metadata parts of the compilation, without compiling any executable code 
@@ -2213,11 +2192,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional xmlDocStream As Stream = Nothing,
             Optional cancellationToken As CancellationToken = Nothing
         ) As EmitResult
-            Return DirectCast(MyBase.EmitMetadataOnly(
+            Return MyBase.EmitMetadataOnly(
                     metadataStream,
                     outputName,
                     xmlDocStream,
-                    cancellationToken), EmitResult)
+                    cancellationToken)
         End Function
 
         Friend Overrides Function CreateModuleBuilder(
@@ -2226,20 +2205,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             cancellationToken As CancellationToken,
             testData As CompilationTestData,
-            diagnosticBag As DiagnosticBag,
-            metadataOnly As Boolean,
-            ByRef hasDeclarationErrors As Boolean) As CommonPEModuleBuilder
+            diagnostics As DiagnosticBag,
+            metadataOnly As Boolean) As CommonPEModuleBuilder
 
-            Debug.Assert(diagnosticBag.IsEmptyWithoutResolution) ' True, but not required.
-
-            ' The diagnostics should include syntax and declaration errors also. We insert these before calling Emitter.Emit, so that we don't emit
-            ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            If Not FilterAndAppendDiagnostics(
-                diagnosticBag,
-                GetDiagnostics(CompilationStage.Declare, True, cancellationToken),
-                Me.Options) Then
-                hasDeclarationErrors = True
-            End If
+            Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
 
             ' Do not waste a slot in the submission chain for submissions that contain no executable code
             ' (they may only contain #r directives, usings, etc.)
@@ -2284,24 +2253,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return moduleBeingBuilt
         End Function
 
-        Friend Overrides Function Compile(
+        Friend Overrides Function CompileImpl(
             moduleBuilder As CommonPEModuleBuilder,
             outputName As String,
-            manifestResources As IEnumerable(Of ResourceDescription),
             win32Resources As Stream,
             xmlDocStream As Stream,
             cancellationToken As CancellationToken,
-            metadataOnly As Boolean,
             generateDebugInfo As Boolean,
-            diagnosticBag As DiagnosticBag,
-            filter As Predicate(Of ISymbol),
-            hasDeclarationErrors As Boolean) As Boolean
+            diagnostics As DiagnosticBag,
+            filterOpt As Predicate(Of ISymbol)) As Boolean
+
+            ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
+            ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken))
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
 
-            If metadataOnly Then
+            If moduleBeingBuilt.MetadataOnly Then
                 If hasDeclarationErrors Then
                     Return False
                 End If
@@ -2329,7 +2299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If there are clashes with already processed directives, report warnings.
                     ' If there are clashes with debug documents that came from actual trees, ignore the directive.
                     For Each tree In Me.SyntaxTrees
-                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnosticBag)
+                        AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics)
                     Next
                 End If
 
@@ -2344,7 +2314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     moduleBeingBuilt,
                     generateDebugInfo,
                     hasDeclarationErrors,
-                    filter,
+                    filterOpt,
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
@@ -2355,12 +2325,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' give the name of any added modules, but not the name of the primary module.
                 ReportManifestResourceDuplicates(
-                    manifestResources,
+                    moduleBeingBuilt.ManifestResources,
                     SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
                     AddedModulesResourceNames(methodBodyDiagnosticBag),
                     methodBodyDiagnosticBag)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnosticBag, methodBodyDiagnosticBag)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
 
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
@@ -2370,7 +2340,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken.ThrowIfCancellationRequested()
 
             ' TODO (tomat): XML doc comments diagnostics
-
             Return True
         End Function
 
