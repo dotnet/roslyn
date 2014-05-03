@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -75,17 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private RetargetingTypeParameterSymbol CreateRetargetingTypeParameter(Symbol symbol)
         {
-            var typeParameter = (TypeParameterSymbol)symbol;
-            Symbol container = typeParameter.ContainingSymbol;
-
-            var containingType = container.Kind == SymbolKind.Method
-                ? container.ContainingType
-                : (NamedTypeSymbol)container;
-
-            Debug.Assert(ReferenceEquals(containingType.ContainingModule, this.underlyingModule));
-            return new RetargetingTypeParameterSymbol(this, typeParameter);
+            Debug.Assert(ReferenceEquals(symbol.ContainingModule, this.underlyingModule));
+            return new RetargetingTypeParameterSymbol(this, (TypeParameterSymbol)symbol);
         }
-
 
         internal class RetargetingSymbolTranslator
             : CSharpSymbolVisitor<RetargetOptions, Symbol>
@@ -656,6 +648,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
+            }
+
+            public ParameterSymbol Retarget(ParameterSymbol parameter)
+            {
+                Debug.Assert(ReferenceEquals(parameter.ContainingModule, retargetingModule.UnderlyingModule));
+                // At the moment only Primary Constructor parameters can be retargeted.
+                return Retarget((MethodSymbol)parameter.ContainingSymbol).Parameters[parameter.Ordinal];
             }
 
             public virtual TypeParameterSymbol Retarget(TypeParameterSymbol typeParameter)
@@ -1252,6 +1251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             public override Symbol VisitMethod(MethodSymbol symbol, RetargetOptions options)
+            {
+                return Retarget(symbol);
+            }
+
+            public override Symbol VisitParameter(ParameterSymbol symbol, RetargetOptions options)
             {
                 return Retarget(symbol);
             }

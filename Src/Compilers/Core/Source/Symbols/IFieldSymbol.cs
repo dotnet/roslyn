@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
-        /// property or a field-like event, returns that property/event. Otherwise returns null.
+        /// property or a field-like event or a Primary Constructor parameter, returns that 
+        /// property/event/parameter. Otherwise returns null.
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>

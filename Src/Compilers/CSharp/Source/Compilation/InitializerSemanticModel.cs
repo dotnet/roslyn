@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -42,6 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a SemanticModel for a constructor initializer (": base-class(...)").
+        /// </summary>
+        internal static InitializerSemanticModel Create(CSharpCompilation compilation, ArgumentListSyntax syntax, MethodSymbol methodSymbol, Binder rootBinder)
+        {
+            return new InitializerSemanticModel(compilation, syntax, methodSymbol, rootBinder);
+        }
+
+        /// <summary>
         /// Creates a SemanticModel for a a parameter default value.
         /// </summary>
         internal static InitializerSemanticModel Create(CSharpCompilation compilation, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
@@ -57,7 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) || syntax.IsKind(SyntaxKind.ThisConstructorInitializer) || syntax.IsKind(SyntaxKind.BaseConstructorInitializer));
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) || 
+                syntax.IsKind(SyntaxKind.ThisConstructorInitializer) || 
+                syntax.IsKind(SyntaxKind.BaseConstructorInitializer) || 
+                syntax.IsKind(SyntaxKind.ArgumentList));
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
@@ -93,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ArgumentList:
                     break;
 
                 default:
@@ -126,13 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
-                    ConstructorInitializerSyntax constructorInitializer = node as ConstructorInitializerSyntax;
-                    if (constructorInitializer != null)
-                    {
-                        return binder.BindConstructorInitializer(constructorInitializer,
-                            (MethodSymbol)MemberSymbol, diagnostics);
-                    }
-                    break;
+                    return binder.BindConstructorInitializer(((ConstructorInitializerSyntax)node).ArgumentList, (MethodSymbol)MemberSymbol, diagnostics);
+
+                case SyntaxKind.ArgumentList:
+                    return binder.BindConstructorInitializer((ArgumentListSyntax)node, (MethodSymbol)MemberSymbol, diagnostics);
             }
 
             if (equalsValue != null)
@@ -184,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (node.Kind == SyntaxKind.EqualsValueClause &&
                 (/*enum or parameter initializer*/ this.Root == node || /*field initializer*/ this.Root == node.Parent)) ||
-                    ((node.Kind == SyntaxKind.BaseConstructorInitializer || node.Kind == SyntaxKind.ThisConstructorInitializer) && this.Root == node);
+                    ((node.Kind == SyntaxKind.BaseConstructorInitializer || node.Kind == SyntaxKind.ThisConstructorInitializer || node.Kind == SyntaxKind.ArgumentList) && this.Root == node);
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)

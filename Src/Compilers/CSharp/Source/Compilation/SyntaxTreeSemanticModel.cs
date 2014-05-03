@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -746,6 +746,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 GetOrAddModelIfContains(constructorDecl.Body, span);
                         }
 
+                    case SyntaxKind.ClassDeclaration:
+                        {
+                            var classDecl = (ClassDeclarationSyntax)memberDecl;
+
+                            if (classDecl.ParameterList != null)
+                            {
+                                var result = GetOrAddModelForParameterDefaultValue(classDecl.ParameterList.Parameters, span);
+
+                                if (result == null &&
+                                    classDecl.BaseList != null &&
+                                    classDecl.BaseList.Types.Count > 0 &&
+                                    classDecl.BaseList.Types[0].Kind == SyntaxKind.BaseClassWithArguments)
+                                {
+                                    result = GetOrAddModelIfContains(((BaseClassWithArgumentsSyntax)classDecl.BaseList.Types[0]).ArgumentList, span);
+                                }
+
+                                if (result != null)
+                                {
+                                    return result;
+                                }
+                            }
+                        }
+                        break;
+
+                    case SyntaxKind.StructDeclaration:
+                        {
+                            StructDeclarationSyntax structDecl = (StructDeclarationSyntax)memberDecl;
+
+                            if (structDecl.ParameterList != null)
+                            {
+                                var result = GetOrAddModelForParameterDefaultValue(structDecl.ParameterList.Parameters, span);
+
+                                if (result != null)
+                                {
+                                    return result;
+                                }
+                            }
+                        }
+                        break;
+
                     case SyntaxKind.DestructorDeclaration:
                         {
                             DestructorDeclarationSyntax destructorDecl = (DestructorDeclarationSyntax)memberDecl;
@@ -965,6 +1005,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol));
                     }
 
+                case SyntaxKind.ArgumentList:
+                    CSharpSyntaxNode parent = node.Parent;
+                    if (parent != null && parent.Kind == SyntaxKind.BaseClassWithArguments)
+                    {
+                        var initializer = (BaseClassWithArgumentsSyntax)parent;
+                        parent = initializer.Parent;
+                        if (parent != null && parent.Kind == SyntaxKind.BaseList && initializer == ((BaseListSyntax)parent).Types[0])
+                        {
+                            parent = parent.Parent;
+                            if (parent != null && parent.Kind == SyntaxKind.ClassDeclaration)
+                            {
+                                var classDecl = (ClassDeclarationSyntax)parent;
+                                var constructorSymbol = (SourceMethodSymbol)GetDeclaredConstructorSymbol(classDecl);
+
+                                if ((object)constructorSymbol == null)
+                                    return null;
+
+                                return InitializerSemanticModel.Create(
+                                    this.Compilation,
+                                    initializer.ArgumentList,
+                                    constructorSymbol,
+                                    //insert an extra binder to perform constructor initialization checks
+                                    outer.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructorSymbol));
+                            }
+                        }
+                    }
+                    break;
+
                 case SyntaxKind.Attribute:
                     {
                         var attribute = (AttributeSyntax)node;
@@ -1014,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 flags |= BinderFlags.FieldInitializer;
             }
 
-            return new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
+            return new LocalScopeBinder(outer.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true)).WithAdditionalFlagsAndContainingMemberOrLambda(flags, fieldSymbol);
         }
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)
@@ -1200,6 +1268,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         return GetDeclaredNamespaceOrType(declarationSyntax) ?? GetDeclaredMemberSymbol(declarationSyntax);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Given a type declaration, get the corresponding Primary Constructor symbol.
+        /// </summary>
+        public override IMethodSymbol GetDeclaredConstructorSymbol(TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredConstructorSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                CheckSyntaxNode(declarationSyntax);
+
+                ParameterListSyntax paramList = null;
+
+                switch (declarationSyntax.Kind)
+                {
+                    
+                    case SyntaxKind.ClassDeclaration:
+                        paramList = ((ClassDeclarationSyntax)declarationSyntax).ParameterList;
+                        break;
+
+                    case SyntaxKind.StructDeclaration:
+                        paramList = ((StructDeclarationSyntax)declarationSyntax).ParameterList;
+                        break;
+                }
+
+                if (paramList != null)
+                {
+                    var container = this.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+
+                    if ((object)container != null)
+                    {
+                        return (IMethodSymbol)this.GetDeclaredMember((NamedTypeSymbol)container, paramList.Span, WellKnownMemberNames.InstanceConstructorName);
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -1701,7 +1806,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
+            MethodSymbol method;
+
+            if (memberDecl.Kind == SyntaxKind.ClassDeclaration || memberDecl.Kind == SyntaxKind.StructDeclaration)
+            {
+                method = GetDeclaredConstructorSymbol((TypeDeclarationSyntax)memberDecl, cancellationToken) as MethodSymbol;
+            }
+            else
+            {
+                method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
+            }
+
             if ((object)method == null)
             {
                 return null;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -554,6 +554,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns what symbol(s), if any, the given base class initializer syntax bound to in the program.
+        /// </summary>
+        /// <param name="initializer">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public SymbolInfo GetSymbolInfo(BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                CheckSyntaxNode(initializer);
+
+                // Here we rely on the fact that ArgumentList is not optional
+                return CanGetSemanticInfo(initializer)
+                    ? GetSymbolInfoWorker(initializer.ArgumentList, SymbolInfoOptions.DefaultOptions, cancellationToken)
+                    : SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given attribute syntax bound to in the program.
         /// </summary>
         /// <param name="attributeSyntax">The syntax node to get semantic information for.</param>
@@ -768,6 +786,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets type information about a base class initializer.
+        /// </summary>
+        /// <param name="initializer">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public TypeInfo GetTypeInfo(BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetTypeInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                CheckSyntaxNode(initializer);
+
+                // Here we rely on the fact that ArgumentList is not optional
+                return CanGetSemanticInfo(initializer)
+                    ? GetTypeInfoWorker(initializer.ArgumentList, cancellationToken)
+                    : TypeInfo.None;
+            }
+        }
+
         public abstract TypeInfo GetTypeInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -918,6 +954,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return CanGetSemanticInfo(initializer)
                     ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(initializer, SymbolInfoOptions.DefaultOptions, cancellationToken))
+                    : ImmutableArray<ISymbol>.Empty;
+            }
+        }
+
+        public ImmutableArray<ISymbol> GetMemberGroup(BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                CheckSyntaxNode(initializer);
+
+                // Here we rely on the fact that ArgumentList is not optional
+                return CanGetSemanticInfo(initializer)
+                    ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(initializer.ArgumentList, SymbolInfoOptions.DefaultOptions, cancellationToken))
                     : ImmutableArray<ISymbol>.Empty;
             }
         }
@@ -2461,6 +2510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE:       GetDeclaredSymbol should be called on the variable declarators directly.
         /// </remarks>
         public abstract ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a type declaration, get the corresponding Primary Constructor symbol.
+        /// </summary>
+        public abstract IMethodSymbol GetDeclaredConstructorSymbol(TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
@@ -4214,6 +4268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("node");
             }
 
+            var baseWithArgs = node as BaseClassWithArgumentsSyntax;
+            if (baseWithArgs != null)
+            {
+                return this.GetSymbolInfo(baseWithArgs, cancellationToken);
+            }
+
             var expression = node as ExpressionSyntax;
             if (expression != null)
             {
@@ -4260,6 +4320,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("node");
             }
 
+            var baseWithArgs = node as BaseClassWithArgumentsSyntax;
+            if (baseWithArgs != null)
+            {
+                return this.GetTypeInfo(baseWithArgs, cancellationToken);
+            }
+
             var expression = node as ExpressionSyntax;
             if (expression != null)
             {
@@ -4292,6 +4358,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node == null)
             {
                 throw new ArgumentNullException("node");
+            }
+
+            var baseWithArgs = node as BaseClassWithArgumentsSyntax;
+            if (baseWithArgs != null)
+            {
+                return this.GetMemberGroup(baseWithArgs, cancellationToken);
             }
 
             var expression = node as ExpressionSyntax;

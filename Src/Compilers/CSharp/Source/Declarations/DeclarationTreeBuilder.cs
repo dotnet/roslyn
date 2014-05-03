@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasGlobalMembers)
             {
                 //The implicit class is not static and has no extensions
-                SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-                var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags);
+                SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None; 
+                var memberNames = GetNonTypeMemberNames(internalMembers, false, ref declFlags);
                 var container = syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //Script class is not static and contains no extensions.
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-            var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
+            SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None; 
+            var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, false, ref declFlags);
             rootChildren.Add(
                 CreateScriptClass(
                     compilationUnit,
@@ -309,14 +309,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members, ref declFlags);
+            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
+                                                    node.Kind == SyntaxKind.ClassDeclaration ?
+                                                        ((ClassDeclarationSyntax)node).ParameterList != null :
+                                                        node.Kind == SyntaxKind.StructDeclaration ?
+                                                            ((StructDeclarationSyntax)node).ParameterList != null :
+                                                            false,
+                                                    ref declFlags);
 
             return new SingleTypeDeclaration(
                 kind: kind,
                 name: node.Identifier.ValueText,
                 modifiers: node.Modifiers.ToDeclarationModifiers(),
                 arity: node.Arity,
-                declFlags: declFlags,
+                declFlags: declFlags, 
                 syntaxReference: syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
@@ -399,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
-
+           
             int i = 0;
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
@@ -419,13 +425,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberNames;
         }
 
-        private static string[] GetNonTypeMemberNames(Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static string[] GetNonTypeMemberNames(Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, bool hasPrimaryConstructor, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
 
-            var set = PooledHashSet<string>.GetInstance();
+            var set = PooledHashSet<string>.GetInstance();           
+
+            if (hasPrimaryConstructor)
+            {
+                anyNonTypeMembers = true;
+                set.Add(WellKnownMemberNames.InstanceConstructorName);
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasPrimaryCtor;
+            }
 
             foreach (var member in members)
             {
@@ -455,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            if (anyNonTypeMembers)
+            if (anyNonTypeMembers) 
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }

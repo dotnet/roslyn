@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class InitializerRewriter
     {
-        internal static BoundStatementList Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol constructor)
+        internal static BoundTypeOrInstanceInitializers Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol constructor)
         {
             Debug.Assert(!boundInitializers.IsDefault);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 listSyntax = constructor.GetNonNullSyntaxNode();
             }
 
-            return new BoundStatementList(listSyntax, boundStatements.AsImmutableOrNull());
+            return new BoundTypeOrInstanceInitializers(listSyntax, boundStatements.AsImmutableOrNull());
         }
     }
 }

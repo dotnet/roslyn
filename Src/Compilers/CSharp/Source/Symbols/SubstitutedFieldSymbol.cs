@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -138,7 +138,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Symbol underlying = originalDefinition.AssociatedSymbol;
-                return ((object)underlying == null) ? null : underlying.SymbolAsMember(ContainingType);
+
+                if ((object) underlying == null)
+                {
+                    return null;
+                }
+
+                if (underlying.Kind == SymbolKind.Parameter)
+                {
+                    // This can only be a parameter of a Primary Constructor
+                    var parameter = (ParameterSymbol)underlying;
+                    return ((MethodSymbol)parameter.ContainingSymbol.SymbolAsMember(ContainingType)).Parameters[parameter.Ordinal];
+                }
+
+                return underlying.SymbolAsMember(ContainingType);
             }
         }
 

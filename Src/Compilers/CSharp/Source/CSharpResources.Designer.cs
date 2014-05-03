@@ -376,6 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use primary constructor parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression within variable initializers and arguments to the base constructor..
+        /// </summary>
+        internal static string ERR_AnonDelegateCantUsePrimaryConstructorParameter {
+            get {
+                return ResourceManager.GetString("ERR_AnonDelegateCantUsePrimaryConstructorParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?.
         /// </summary>
         internal static string ERR_AnonMethGrpInForEach {
@@ -4642,6 +4651,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor..
+        /// </summary>
+        internal static string ERR_InstanceCtorCannotHaveDefaultThisInitializer {
+            get {
+                return ResourceManager.GetString("ERR_InstanceCtorCannotHaveDefaultThisInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Since this type has a primary constructor, all instance constructor declarations must specify a constructor initializer of the form this([argument-list])..
+        /// </summary>
+        internal static string ERR_InstanceCtorMustHaveThisInitializer {
+            get {
+                return ResourceManager.GetString("ERR_InstanceCtorMustHaveThisInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare instance members in a static class.
         /// </summary>
         internal static string ERR_InstanceMemberInStaticClass {
@@ -5016,6 +5043,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidSpecifier {
             get {
                 return ResourceManager.GetString("ERR_InvalidSpecifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor..
+        /// </summary>
+        internal static string ERR_InvalidUseOfPrimaryConstructorParameter {
+            get {
+                return ResourceManager.GetString("ERR_InvalidUseOfPrimaryConstructorParameter", resourceCulture);
             }
         }
         
@@ -6451,6 +6487,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A parameter must either have an accessibility modifier or must not have any field modifiers..
+        /// </summary>
+        internal static string ERR_ParamMissingAccessMod {
+            get {
+                return ResourceManager.GetString("ERR_ParamMissingAccessMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The params parameter cannot be declared as ref or out.
         /// </summary>
         internal static string ERR_ParamsCantBeRefOut {
@@ -6753,6 +6798,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PredefinedTypeNotFound {
             get {
                 return ResourceManager.GetString("ERR_PredefinedTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constructor initializer cannot access the parameters to a primary constructor..
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterInConstructorInitializer {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterInConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as containing type.
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterSameNameAsContainingType {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsContainingType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter of a primary constructor cannot have the same name as a type&apos;s type parameter &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_PrimaryCtorParameterSameNameAsTypeParam {
+            get {
+                return ResourceManager.GetString("ERR_PrimaryCtorParameterSameNameAsTypeParam", resourceCulture);
             }
         }
         
@@ -7081,6 +7153,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A ref or out parameter cannot have any field modifiers..
+        /// </summary>
+        internal static string ERR_RefOutParameterWithFieldModifier {
+            get {
+                return ResourceManager.GetString("ERR_RefOutParameterWithFieldModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A property or indexer may not be passed as an out or ref parameter.
         /// </summary>
         internal static string ERR_RefProperty {
@@ -7405,6 +7486,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Only one part of a partial type can declare primary constructor parameters..
+        /// </summary>
+        internal static string ERR_SeveralPartialsDeclarePrimaryCtor {
+            get {
+                return ResourceManager.GetString("ERR_SeveralPartialsDeclarePrimaryCtor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key file &apos;{0}&apos; is missing the private key needed for signing.
         /// </summary>
         internal static string ERR_SignButNoPrivateKey {
@@ -7563,6 +7653,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StaticNotVirtual {
             get {
                 return ResourceManager.GetString("ERR_StaticNotVirtual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A parameter cannot have static modifier..
+        /// </summary>
+        internal static string ERR_StaticParamMod {
+            get {
+                return ResourceManager.GetString("ERR_StaticParamMod", resourceCulture);
             }
         }
         

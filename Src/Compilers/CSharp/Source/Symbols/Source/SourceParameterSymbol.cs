@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -41,15 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
-            if (!isParams &&
-                !isExtensionMethodThis &&
-                (syntax.Default == null) &&
-                (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
-            {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
-            }
-
             if (isParams)
             {
                 // touch the constructor in order to generate proper use-site diagnostics
@@ -59,7 +50,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            var syntaxRef = syntax.GetReference();
+            var sourceMethod = owner as SourceMethodSymbol;
+            if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
+            {
+                foreach (SyntaxToken modToken in syntax.Modifiers)
+                {
+                    switch (modToken.CSharpKind())
+                    {
+                        case SyntaxKind.NewKeyword:
+                        case SyntaxKind.PublicKeyword:
+                        case SyntaxKind.ProtectedKeyword:
+                        case SyntaxKind.InternalKeyword:
+                        case SyntaxKind.PrivateKeyword:
+                        case SyntaxKind.StaticKeyword:
+                        case SyntaxKind.ReadOnlyKeyword:
+                        case SyntaxKind.VolatileKeyword:
+
+                            return new SourcePrimaryConstructorParameterSymbolWithBackingField(
+                                            owner,
+                                            ordinal,
+                                            parameterType,
+                                            refKind,
+                                            name,
+                                            locations,
+                                            syntax,
+                                            ConstantValue.Unset,
+                                            isParams,
+                                            isExtensionMethodThis,
+                                            diagnostics);
+                    }
+                }
+            }
+
+            if (!isParams &&
+                !isExtensionMethodThis &&
+                (syntax.Default == null) &&
+                (syntax.AttributeLists.Count == 0) &&
+                !owner.IsPartialMethod())
+            {
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+            }
+
             return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,
@@ -69,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 false,
                 name,
                 locations,
-                syntaxRef,
+                syntax.GetReference(),
                 ConstantValue.Unset,
                 isParams,
                 isExtensionMethodThis);

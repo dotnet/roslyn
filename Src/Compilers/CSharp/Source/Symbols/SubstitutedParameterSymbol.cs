@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Globalization;
@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+        }
+
+        internal override FieldSymbol PrimaryConstructorParameterBackingField
+        {
+            get
+            {
+                FieldSymbol underlying = this.underlyingParameter.PrimaryConstructorParameterBackingField;
+                return ((object)underlying == null) ? null : (FieldSymbol)underlying.SymbolAsMember(ContainingType);
+            }
         }
     }
 }

@@ -465,6 +465,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns what symbol(s), if any, the given base class initializer syntax bound to in the program.
+        /// </summary>
+        public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSymbolInfo(initializer, cancellationToken);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given attribute syntax bound to in the program.
         /// </summary>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, AttributeSyntax attributeSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -583,6 +599,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return CSharpTypeInfo.None;
+            }
+        }
+
+        /// <summary>
+        /// Gets type information about a base class initializer.
+        /// </summary>
+        public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetTypeInfo(initializer, cancellationToken);
+            }
+            else
+            {
+                return TypeInfo.None;
             }
         }
 
@@ -728,6 +760,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static ImmutableArray<ISymbol> GetMemberGroup(this SemanticModel semanticModel, ConstructorInitializerSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetMemberGroup(initializer, cancellationToken);
+            }
+            else
+            {
+                return ImmutableArray.Create<ISymbol>();
+            }
+        }
+
+        public static ImmutableArray<ISymbol> GetMemberGroup(this SemanticModel semanticModel, BaseClassWithArgumentsSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1098,6 +1143,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (csmodel != null)
             {
                 return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Given a type declaration, get the corresponding Primary Constructor symbol.
+        /// </summary>
+        public static IMethodSymbol GetDeclaredConstructorSymbol(this SemanticModel semanticModel, TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetDeclaredConstructorSymbol(declarationSyntax, cancellationToken);
             }
             else
             {

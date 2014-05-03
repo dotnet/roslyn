@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax = node.Syntax;
 
             // assign new frame to the frame variable
-            CompilationState.AddSynthesizedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, null), frame.Constructor));
+            CompilationState.AddSynthesizedMethod(frame.Constructor, FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null), frame.Constructor));
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -438,11 +438,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression value;
                 switch (symbol.Kind)
-                {
+            {
                     case SymbolKind.Parameter:
-                        {
+                {
                             var parameter = (ParameterSymbol)symbol;
-                            ParameterSymbol parameterToUse;
+                    ParameterSymbol parameterToUse;
                             if (!parameterMap.TryGetValue(parameter, out parameterToUse))
                             {
                                 parameterToUse = parameter;
@@ -454,11 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!this.assignLocals)
                         {
                             return;
-                        }
-                        else
-                        {
+                }
+                else
+                {
                             var local = (LocalSymbol)symbol;
-                            LocalSymbol localToUse;
+                    LocalSymbol localToUse;
                             if (!localMap.TryGetValue(local, out localToUse))
                             {
                                 localToUse = local;
@@ -491,8 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       why do we have it in the lowered tree at all?
 
             return (currentMethod == topLevelMethod || topLevelMethod.ThisParameter == null ?
-                    node :
-                    FramePointer(node.Syntax, (NamedTypeSymbol)node.Type));
+                node :
+                FramePointer(node.Syntax, (NamedTypeSymbol)node.Type));
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)

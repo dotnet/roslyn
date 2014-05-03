@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,10 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ReturnsVoid || (object)method.IteratorElementType != null
                 || (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
-                if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
+                var sourceMethod = method as SourceMethodSymbol;
+
+                if ((method.IsImplicitlyDeclared && 
+                     !((object)sourceMethod != null && sourceMethod.IsPrimaryCtor && (object)((SourceMemberContainerTypeSymbol)sourceMethod.ContainingType).PrimaryCtor == (object)sourceMethod)) || 
+                    Analyze(compilation, method, block, diagnostics))
                 {
                     // we don't analyze synthesized void methods.
-                    var sourceMethod = method as SourceMethodSymbol;
                     block = AppendImplicitReturn(block, method, (object)sourceMethod != null ? sourceMethod.BlockSyntax : null);
                 }
             }

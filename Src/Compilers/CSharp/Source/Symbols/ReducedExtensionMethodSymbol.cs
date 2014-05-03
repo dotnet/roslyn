@@ -439,6 +439,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return this.containingMethod.typeMap.SubstituteType(this.underlyingParameter.Type); }
             }
+
+            internal override FieldSymbol PrimaryConstructorParameterBackingField
+            {
+                get
+                {
+                    return null;
+                }
+            }
         }
     }
 }

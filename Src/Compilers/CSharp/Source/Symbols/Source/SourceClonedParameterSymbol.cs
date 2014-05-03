@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -47,16 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional
         {
-            get
+            get 
             {
                 // pseudo-custom attributes are not suppressed:
-                return suppressOptional ? originalParam.HasOptionalAttribute : originalParam.IsMetadataOptional;
+                return suppressOptional ? originalParam.HasOptionalAttribute : originalParam.IsMetadataOptional; 
             }
         }
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
-            get
+            get 
             {
                 // pseudo-custom attributes are not suppressed:
                 return suppressOptional ? originalParam.DefaultValueFromAttributes : originalParam.ExplicitDefaultConstantValue;
@@ -109,7 +110,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return originalParam.GetAttributes();
         }
 
-        public override string Name
+        internal override FieldSymbol PrimaryConstructorParameterBackingField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public sealed override string Name
         {
             get { return originalParam.Name; }
         }

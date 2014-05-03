@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -131,15 +131,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     SourceMethodSymbol method = null;
-                    if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
+
+                    if (usage == NodeUsage.MethodBody)
                     {
                         method = GetMethodSymbol(methodDecl, resultBinder);
+                        resultBinder = resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false);
+                    }
+
+                    if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
+                    {
+                        method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new WithMethodTypeParametersBinder(method, resultBinder);
                     }
 
                     if (usage == NodeUsage.MethodBody)
                     {
-                        method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
@@ -176,8 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ctors cannot be generic
                             //TODO: the error should be given in a different place, but should we ignore or consider the type args?
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
+                            Debug.Assert(!method.IsPrimaryCtor);
 
-                            resultBinder = new InMethodBinder(method, resultBinder);
+                            resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
                         }
                     }
 
@@ -187,6 +194,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBinder;
+            }
+
+            public override Binder VisitBaseClassWithArguments(BaseClassWithArgumentsSyntax node)
+            {
+                if (LookupPosition.IsBetweenTokens(position, node.ArgumentList.OpenParenToken, node.ArgumentList.CloseParenToken))
+                {
+                    // This is a base initializer for the primary constructor.
+                    Binder resultBinder;
+                    var key = CreateBinderCacheKey(node, NodeUsage.ConstructorBodyOrInitializer);
+
+                    if (!binderCache.TryGetValue(key, out resultBinder))
+                    {
+                        resultBinder = base.VisitBaseClassWithArguments(node);
+                        var parent = node.Parent;
+
+                        if (parent != null && parent.Kind == SyntaxKind.BaseList && node == ((BaseListSyntax)parent).Types.FirstOrDefault())
+                        {
+                            parent = parent.Parent;
+                            if (parent != null && parent.Kind == SyntaxKind.ClassDeclaration)
+                            {
+                                var classDecl = (ClassDeclarationSyntax)parent;
+                                var container = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(classDecl) as SourceMemberContainerTypeSymbol;
+
+                                if ((object)container != null)
+                                {
+                                    ParameterListSyntax parameters = classDecl.ParameterList;
+
+                                    if (parameters != null)
+                                    {
+                                        var method = (SourceMethodSymbol)GetMemberSymbol(WellKnownMemberNames.InstanceConstructorName, parameters.FullSpan, container, SymbolKind.Method);
+                                        if ((object)method != null)
+                                        {
+                                            Debug.Assert(method.IsPrimaryCtor);
+                                            // Ctors cannot be generic
+                                            Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
+
+                                            resultBinder = new InMethodBinder(method, resultBinder);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        binderCache.TryAdd(key, resultBinder);
+                    }
+
+                    return resultBinder;
+                }
+
+                return base.VisitBaseClassWithArguments(node);
             }
 
             public override Binder VisitDestructorDeclaration(DestructorDeclarationSyntax parent)
@@ -267,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)accessor != null)
                         {
-                            resultBinder = new InMethodBinder(accessor, resultBinder);
+                            resultBinder = new InMethodBinder(accessor, resultBinder.WithPrimaryConstructorParametersIfNecessary(accessor.ContainingType, shadowBackingFields: false));
                         }
                     }
 
@@ -297,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     if ((object)method != null && inBody)
                     {
-                        resultBinder = new InMethodBinder(method, resultBinder);
+                        resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
@@ -999,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Binder GetParameterNameAttributeValueBinder(MemberDeclarationSyntax memberSyntax, Binder nextBinder)
             {
                 BaseMethodDeclarationSyntax baseMethodDeclSyntax = memberSyntax as BaseMethodDeclarationSyntax;
-                if ((object)baseMethodDeclSyntax != null && baseMethodDeclSyntax.ParameterCount > 0)
+                if ((object)baseMethodDeclSyntax != null && baseMethodDeclSyntax.ParameterList.ParameterCount > 0)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     MethodSymbol method = GetMethodSymbol(baseMethodDeclSyntax, outerBinder);

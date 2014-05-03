@@ -1260,6 +1260,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
 
+        // TODO: Revise the numbers after an RI to Main.
+        ERR_SeveralPartialsDeclarePrimaryCtor = 9001,
+        ERR_InstanceCtorMustHaveThisInitializer = 9002,
+        ERR_PrimaryCtorParameterSameNameAsTypeParam = 9003,
+        ERR_PrimaryCtorParameterSameNameAsContainingType = 9004,
+        ERR_PrimaryCtorParameterInConstructorInitializer = 9005,
+        ERR_InvalidUseOfPrimaryConstructorParameter = 9007,
+        ERR_AnonDelegateCantUsePrimaryConstructorParameter = 9008,
+        ERR_InstanceCtorCannotHaveDefaultThisInitializer = 9009,
+        ERR_StaticParamMod = 9010,
+        ERR_ParamMissingAccessMod = 9011,
+        ERR_RefOutParameterWithFieldModifier = 9012,
+
         // Values in the range 10000-14000 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,

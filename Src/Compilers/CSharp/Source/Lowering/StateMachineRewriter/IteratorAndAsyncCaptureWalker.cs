@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -117,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // parameters are NOT intitially assigned here - if that is a problem, then
             // the parameters must be captured.
             MakeSlot(parameter);
+        }
+
+        protected override void EnterPrimaryConstructorParameter(ParameterSymbol parameter)
+        {
+            // Do nothing, they are already fields.
         }
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)

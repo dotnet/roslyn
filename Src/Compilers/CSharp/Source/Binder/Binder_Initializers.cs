@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundInitializer boundInitializer = BindFieldInitializer(
-                            new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol),
+                            new LocalScopeBinder(parentBinder.WithPrimaryConstructorParametersIfNecessary(fieldSymbol.ContainingType, shadowBackingFields: true)).
+                                            WithAdditionalFlagsAndContainingMemberOrLambda(parentBinder.Flags | BinderFlags.FieldInitializer, fieldSymbol),
                             fieldSymbol,
                             (EqualsValueClauseSyntax)initializerNode,
                             diagnostics);

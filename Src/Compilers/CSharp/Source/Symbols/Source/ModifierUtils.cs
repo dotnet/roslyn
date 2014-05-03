@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            out bool modifierErrors)
+            out bool modifierErrors,
+            bool ignoreParameterModifiers = false)
         {
-            var result = modifiers.ToDeclarationModifiers();
+            var result = modifiers.ToDeclarationModifiers(ignoreParameterModifiers);
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers)
+        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers, bool ignoreParameterModifiers = false)
         {
             var result = DeclarationModifiers.None;
 
@@ -195,6 +196,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.VolatileKeyword:
                         one = DeclarationModifiers.Volatile;
                         break;
+
+                    case SyntaxKind.ThisKeyword:
+                    case SyntaxKind.RefKeyword:
+                    case SyntaxKind.OutKeyword:
+                    case SyntaxKind.ParamsKeyword:
+                        if (ignoreParameterModifiers)
+                        {
+                            continue;
+                        }
+
+                        goto default;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(modifier.CSharpContextualKind());

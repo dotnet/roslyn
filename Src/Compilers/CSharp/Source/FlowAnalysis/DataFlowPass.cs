@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.alreadyReported = BitArray.Empty;           // no variables yet reported unassigned
             this.State = ReachableState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
+            EnterPrimaryConstructorParameters();
             EnterParameters(methodParameters);               // with parameters assigned
             if ((object)methodThisParameter != null)
             {
@@ -328,10 +329,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (variable.Kind)
             {
+                case SymbolKind.Parameter:
+                    // Parameters of a primary constructor are never captured, they are similar to fields.
+                    var container = variable.ContainingSymbol as SourceMethodSymbol;
+                    if ((object)container != null && container.IsPrimaryCtor )
+                    {
+                        break;
+                    }
+
+                    goto case SymbolKind.RangeVariable;
                 case SymbolKind.Local:
                     if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.Parameter;
-                case SymbolKind.Parameter:
+                    goto case SymbolKind.RangeVariable;
                 case SymbolKind.RangeVariable:
                     if (currentMethodOrLambda != variable.ContainingSymbol)
                     {
@@ -953,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.RangeVariable:
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
-                    break;
+                        break;
 
                 case BoundKind.ForEachStatement:
                     {
@@ -1128,6 +1137,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        void EnterPrimaryConstructorParameters()
+        {
+            foreach (var parameter in PrimaryConstructorParameters)
+            {
+                EnterPrimaryConstructorParameter(parameter);
+            }
+        }
+
         protected virtual void EnterParameter(ParameterSymbol parameter)
         {
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
@@ -1142,6 +1159,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
             }
+        }
+
+        /// <summary>
+        /// Called for each primary constructor parameter when we are not in primary constructor.
+        /// </summary>
+        protected virtual void EnterPrimaryConstructorParameter(ParameterSymbol parameter)
+        {
+            // All primary constructor parameters are considered assigned inside other methods.
+            int slot = MakeSlot(parameter);
+
+            if (slot > 0) SetSlotState(slot, true);
+            NoteWrite(parameter, value: null, read: true);
         }
 
         private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, CSharpSyntaxNode syntax, Location location)

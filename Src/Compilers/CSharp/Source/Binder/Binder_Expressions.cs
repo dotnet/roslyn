@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // UNDONE: The binding and conversion has to be executed in a checked context.
 
-            var collisionDetector = new LocalScopeBinder(containingSymbol as MethodSymbol, this);
+            var collisionDetector = new LocalScopeBinder(containingSymbol as MethodSymbol, this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType, shadowBackingFields: false));
             valueBeforeConversion = collisionDetector.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
@@ -1106,11 +1106,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        bool isCaptured = parameter.ContainingSymbol != this.ContainingMemberOrLambda;
-                        if (isCaptured && parameter.RefKind != RefKind.None)
+                        var paramMethod = parameter.ContainingSymbol as SourceMethodSymbol;
+                        bool isPrimaryCtorParameter = ((object)paramMethod != null && paramMethod.IsPrimaryCtor);
+                        Symbol containingMember;
+
+                        if (isPrimaryCtorParameter && (object)(containingMember = this.ContainingMember()) != paramMethod)
                         {
-                            isError = true;
+                            if (this.InConstructorInitializer)
+                            {
+                                // SPEC:
+                                // An instance constructor initializer cannot access the parameters to a primary constructor. 
+                                Error(diagnostics, ErrorCode.ERR_PrimaryCtorParameterInConstructorInitializer, node);
+                            }
+                            else if (!this.InFieldInitializer)
+                            {
+                                Debug.Assert(!this.InConstructorInitializer);
+
+                                // SPEC:
+                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
+                                Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
+                            }
+                            else if (containingMember.IsStatic)
+                            {
+                                Debug.Assert(this.InFieldInitializer);
+                                // SPEC:
+                                // Parameters can only be accessed in instance variable initializers and arguments to the base constructor
+
+                                // We already complained if the type is static, let's not complain more in that case.
+                                if (!this.ContainingMemberOrLambda.ContainingType.IsStatic)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, node);
+                                }
+                            }
+                            else if ((object)containingMember != (object)this.ContainingMemberOrLambda && (this.InConstructorInitializer || this.InFieldInitializer))
+                            {
+                                Debug.Assert(this.InFieldInitializer);
+                                // SPEC:
+                                // we should simply disallow reference to the parameters inside anonymous functions that occur in field and property initializers, as well as in base arguments.
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, node, parameter.Name);
+                            }
+                        }
+                        else if ((object)parameter.ContainingSymbol != (object)this.ContainingMemberOrLambda)
+                        {
+                            // Captured in a lambda.
+                            if (isPrimaryCtorParameter && this.InConstructorInitializer)
+                            {
+                                // SPEC:
+                                // we should simply disallow reference to the parameters inside anonymous functions that occur in field and property initializers, as well as in base arguments.
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUsePrimaryConstructorParameter, node, parameter.Name);
+                            }
+                            else if (parameter.RefKind != RefKind.None)
+                        {
                             Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         }
 
                         return new BoundParameter(node, parameter, hasErrors: isError);
@@ -3341,7 +3389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the (implicit or explicit) constructor initializer of a constructor symbol (in source).
         /// </summary>
-        /// <param name="initializerSyntaxOpt">Null for implicit, SyntaxKind BaseConstructorInitializer or ThisConstructorInitializer for explicit.</param>
+        /// <param name="initializerArgumentListOpt">
+        /// Null for implicit, 
+        /// BaseConstructorInitializerSyntax.ArgumentList, or 
+        /// ThisConstructorInitializerSyntax.ArgumentList, or 
+        /// BaseClassWithArgumentsSyntax.ArgumentList for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3349,7 +3401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method should be kept consistent with Compiler.BindConstructorInitializer (e.g. same error codes).
         /// </remarks>
         internal BoundExpression BindConstructorInitializer(
-            ConstructorInitializerSyntax initializerSyntaxOpt,
+            ArgumentListSyntax initializerArgumentListOpt,
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
@@ -3361,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType = constructor.ContainingType;
 
             // Structs and enums do not have implicit constructor initializers.
-            if ((containingType.TypeKind == TypeKind.Enum || containingType.TypeKind == TypeKind.Struct) && initializerSyntaxOpt == null)
+            if ((containingType.TypeKind == TypeKind.Enum || containingType.TypeKind == TypeKind.Struct) && initializerArgumentListOpt == null)
             {
                 return null;
             }
@@ -3374,14 +3426,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
-                if (initializerSyntaxOpt != null)
+                if (initializerArgumentListOpt != null)
                 {
-                    this.BindArgumentsAndNames(initializerSyntaxOpt.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                    this.BindArgumentsAndNames(initializerArgumentListOpt, diagnostics, analyzedArguments, allowArglist: true);
                 }
 
                 NamedTypeSymbol initializerType = containingType;
 
-                bool isBaseConstructorInitializer = initializerSyntaxOpt == null || initializerSyntaxOpt.Kind == SyntaxKind.BaseConstructorInitializer;
+                bool isBaseConstructorInitializer = initializerArgumentListOpt == null || 
+                                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseConstructorInitializer ||
+                                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments;
+
                 if (isBaseConstructorInitializer)
                 {
                     initializerType = initializerType.BaseTypeNoUseSiteDiagnostics;
@@ -3395,7 +3450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // If the constructor initializer is implicit and there is no base type, we're done.
                         // Otherwise, if the constructor initializer is explicit, we're in an error state.
-                        if (initializerSyntaxOpt == null)
+                        if (initializerArgumentListOpt == null)
                         {
                             return null;
                         }
@@ -3403,18 +3458,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.Locations[0], containingType);
                             return new BoundBadExpression(
-                                syntax: initializerSyntaxOpt,
+                                syntax: initializerArgumentListOpt.Parent,
                                 resultKind: LookupResultKind.Empty,
                                 symbols: ImmutableArray<Symbol>.Empty,
                                 childBoundNodes: analyzedArguments.Arguments.ToImmutable().Cast<BoundExpression, BoundNode>(),
                                 type: constructorReturnType);
                         }
                     }
-                    else if (initializerSyntaxOpt != null && containingType.TypeKind == TypeKind.Struct)
+                    else if (initializerArgumentListOpt != null && containingType.TypeKind == TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.Locations[0], containingType);
                         return new BoundBadExpression(
-                            syntax: initializerSyntaxOpt,
+                            syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: analyzedArguments.Arguments.ToImmutable().Cast<BoundExpression, BoundNode>(),
@@ -3423,14 +3478,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(initializerSyntaxOpt.Kind == SyntaxKind.ThisConstructorInitializer);
+                    Debug.Assert(initializerArgumentListOpt.Parent.Kind == SyntaxKind.ThisConstructorInitializer);
                 }
 
-                if (initializerSyntaxOpt != null && analyzedArguments.HasDynamicArgument)
+                if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, initializerSyntaxOpt.ThisOrBaseKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
+                                    initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments ? 
+                                        initializerArgumentListOpt.GetLocation() :
+                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
                     return new BoundBadExpression(
-                            syntax: initializerSyntaxOpt,
+                            syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: analyzedArguments.Arguments.ToImmutable().Cast<BoundExpression, BoundNode>(),
@@ -3439,10 +3497,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CSharpSyntaxNode nonNullSyntax;
                 Location errorLocation;
-                if (initializerSyntaxOpt != null)
+                if (initializerArgumentListOpt != null)
                 {
-                    nonNullSyntax = initializerSyntaxOpt;
-                    errorLocation = initializerSyntaxOpt.ThisOrBaseKeyword.GetLocation();
+                    if (initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments)
+                    {
+                        nonNullSyntax = initializerArgumentListOpt;
+                        errorLocation = initializerArgumentListOpt.GetLocation();
+                    }
+                    else
+                {
+                        nonNullSyntax = initializerArgumentListOpt.Parent;
+                        errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
+                    }
                 }
                 else
                 {
@@ -3452,6 +3518,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression receiver = new BoundThisReference(nonNullSyntax, initializerType) { WasCompilerGenerated = true };
+
+                if (initializerType.IsErrorType())
+                {
+                    var sourceMethod = constructor as SourceMethodSymbol;
+                    if ((object)sourceMethod != null && sourceMethod.IsPrimaryCtor)
+                    {
+                        // Do not perform overload resolution on erroneous base for primary constructor.
+                        // The errors could be confusing because the type associated with the error type symbol
+                        // might be different from the one the arguments are applied to (base type mismatch across 
+                        // partial declarations, etc). 
+                        var result = CreateBadCall(
+                            node: nonNullSyntax,
+                            name: WellKnownMemberNames.InstanceConstructorName,
+                            receiver: receiver,
+                            methods: ImmutableArray<MethodSymbol>.Empty,
+                            resultKind: LookupResultKind.OverloadResolutionFailure,
+                            typeArguments: ImmutableArray<TypeSymbol>.Empty,
+                            analyzedArguments: analyzedArguments,
+                            invokedAsExtensionMethod: false,
+                            isDelegate: false);
+                        result.WasCompilerGenerated = initializerArgumentListOpt == null;
+                        return result;
+                    }
+                }
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
@@ -3473,8 +3563,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resultMember == constructor)
                     {
                         Debug.Assert(initializerType.IsErrorType() ||
-                            (initializerSyntaxOpt != null && initializerSyntaxOpt.Kind == SyntaxKind.ThisConstructorInitializer));
-                        diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall, initializerSyntaxOpt.ThisOrBaseKeyword.GetLocation(), constructor);
+                            (initializerArgumentListOpt != null && initializerArgumentListOpt.Parent.Kind == SyntaxKind.ThisConstructorInitializer));
+                        diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall,
+                            initializerArgumentListOpt.Parent.Kind == SyntaxKind.BaseClassWithArguments ? 
+                                initializerArgumentListOpt.GetLocation() : 
+                                ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(), 
+                            constructor);
                         hasErrors = true; //will prevent recursive constructor from being emitted
                     }
                     else if (resultMember.HasUnsafeParameter())
@@ -3505,7 +3599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultKind: LookupResultKind.Viable,
                         type: constructorReturnType,
                         hasErrors: hasErrors)
-                    { WasCompilerGenerated = initializerSyntaxOpt == null };
+                    { WasCompilerGenerated = initializerArgumentListOpt == null };
                 }
                 else
                 {
@@ -3519,7 +3613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments: analyzedArguments,
                         invokedAsExtensionMethod: false,
                         isDelegate: false);
-                    result.WasCompilerGenerated = initializerSyntaxOpt == null;
+                    result.WasCompilerGenerated = initializerArgumentListOpt == null;
                     return result;
                 }
             }
