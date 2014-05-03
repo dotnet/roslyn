@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return LanguageVersion.CSharp1;
                 case "ISO-2":
                     return LanguageVersion.CSharp2;
+                case "experimental":
+                    return LanguageVersion.Experimental;
                 default:
                     if (!string.IsNullOrEmpty(projectLanguageVersion))
                     {

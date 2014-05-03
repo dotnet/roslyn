@@ -337,8 +337,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IsExpression,
         AsExpression,
         CoalesceExpression,
-        SimpleMemberAccessExpression,  // dot .
-        PointerMemberAccessExpression,  // arrow ->
+        SimpleMemberAccessExpression,  // dot access:   a.b
+        PointerMemberAccessExpression,  // arrow access:   a->b
+        ConditionalAccessExpression,    // question mark access:   a?.b , a?[1]
+
+        // binding expressions
+        MemberBindingExpression,
+        ElementBindingExpression,
 
         // binary assignment expressions
         SimpleAssignmentExpression,

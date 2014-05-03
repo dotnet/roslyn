@@ -210,6 +210,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
+                case BoundKind.ConditionalAccess:
+                    EmitConditionalAccessExpression((BoundConditionalAccess)expression, used);
+                    break;
+
+                case BoundKind.ConditionalReceiver:
+                    EmitConditionalReceiver((BoundConditionalReceiver)expression, used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -217,6 +225,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitConditionalAccessExpression(BoundConditionalAccess expression, bool used)
+        {
+            var receiver = expression.Receiver;
+
+            if (receiver.IsDefaultValue())
+            {
+                EmitDefaultValue(expression.Type, used, expression.Syntax);
+                return;
+            }
+
+            EmitExpression(receiver, used: true);
+
+            var receiverConstant = receiver.ConstantValue;
+            if (receiverConstant != null)
+            {
+                // const but not default
+                EmitExpression(expression.AccessExpression, used);
+                return;
+            }
+
+            builder.EmitOpCode(ILOpCode.Dup);
+
+            object whenNotNull = new object();
+            object done = new object();
+
+            builder.EmitBranch(ILOpCode.Brtrue, whenNotNull);
+
+            builder.EmitOpCode(ILOpCode.Pop);
+            EmitDefaultValue(expression.Type, used, expression.Syntax);
+            builder.EmitBranch(ILOpCode.Br, done);
+
+            if(!used)
+            {
+                // when unused, notNull branch just pops the reciever off the stack
+                // but in whenNotNull branch we still have it
+                builder.AdjustStack(+1);
+            }
+            builder.MarkLabel(whenNotNull);
+            EmitExpression(expression.AccessExpression, used);
+            builder.MarkLabel(done);
+        }
+
+        private void EmitConditionalReceiver(BoundConditionalReceiver expression, bool used)
+        {
+            EmitPopIfUnused(used);
         }
 
         private void EmitRefValueOperator(BoundRefValueOperator expression, bool used)
@@ -2110,6 +2165,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // We need to unbox if the target type is not a reference type
                     builder.EmitOpCode(ILOpCode.Unbox_any);
                     EmitSymbolToken(targetType, asOp.Syntax);
+                }
+            }
+        }
+
+        private void EmitDefaultValue(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
+        {
+            if(used)
+            {
+                var constantValue = type.GetDefaultValue();
+                if (constantValue != null)
+                {
+                    builder.EmitConstantValue(constantValue);
+                }
+                else
+                {
+                    EmitInitObj(type, true, syntaxNode);
                 }
             }
         }

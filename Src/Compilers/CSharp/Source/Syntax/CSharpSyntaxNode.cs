@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // we could check up front that index is within FullSpan,
-            // but we wan to optimize for the common case where position is valid.
+            // but we want to optimize for the common case where position is valid.
             Debug.Assert(!FullSpan.Contains(position), "Position is valid. How could we not find a child?");
             throw new ArgumentOutOfRangeException("position");
         }

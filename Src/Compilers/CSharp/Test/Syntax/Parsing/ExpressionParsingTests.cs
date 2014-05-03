@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text);
         }
 
+        private ExpressionSyntax ParseExpressionExperimental(string text)
+        {
+            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Experimental));
+        }
+
         [Fact]
         public void TestEmptyString()
         {
@@ -306,6 +311,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestMemberAccess(SyntaxKind.DotToken);
             TestMemberAccess(SyntaxKind.MinusGreaterThanToken);
+        }
+
+        [Fact]
+        private void TestConditionalAccessNoExperimental()
+        {
+            var text = "a.b?.c.d?[1]?.e()?.f";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(12, expr.Errors().Length);
+
+            var e = (ConditionalExpressionSyntax)expr;
+            Assert.Equal(".c.d?[1]?.e()?.f", e.WhenTrue.ToString());
+        }
+
+        [Fact]
+        private void TestConditionalAccess()
+        {
+            var text = "a.b?.c.d?[1]?.e()?.f";
+            var expr = this.ParseExpressionExperimental(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+
+            var e = (ConditionalAccessExpressionSyntax)expr;
+            Assert.Equal("a.b?.c.d?[1]?.e()", e.Expression.ToString());
+            var cons = e.WhenNotNull;
+            Assert.Equal(".f", cons.ToString());
+            Assert.Equal(cons.Kind, SyntaxKind.MemberBindingExpression);
+
+            e = e.Expression as ConditionalAccessExpressionSyntax;
+            Assert.Equal("a.b?.c.d?[1]", e.Expression.ToString());
+            cons = e.WhenNotNull;
+            Assert.Equal(".e()", cons.ToString());
+            Assert.Equal(cons.Kind, SyntaxKind.InvocationExpression);
+
+            e = e.Expression as ConditionalAccessExpressionSyntax;
+            Assert.Equal("a.b?.c.d", e.Expression.ToString());
+            cons = e.WhenNotNull;
+            Assert.Equal("[1]", cons.ToString());
+            Assert.Equal(cons.Kind, SyntaxKind.ElementBindingExpression);
+
+            e = e.Expression as ConditionalAccessExpressionSyntax;
+            Assert.Equal("a.b", e.Expression.ToString());
+            cons = e.WhenNotNull;
+            Assert.Equal(".c.d", cons.ToString());
+            Assert.Equal(cons.Kind, SyntaxKind.SimpleMemberAccessExpression);
         }
 
         private void TestFunctionKeyword(SyntaxKind kind, SyntaxToken keyword)

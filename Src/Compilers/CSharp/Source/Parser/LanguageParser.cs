@@ -7821,7 +7821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static bool IsExpectedBinaryOperator(SyntaxKind kind)
         {
-            return SyntaxFacts.IsBinaryExpression(kind) && kind != SyntaxKind.DotToken && kind != SyntaxKind.MinusGreaterThanToken;
+            return SyntaxFacts.IsBinaryExpression(kind);
         }
 
         private bool IsPossibleAwaitExpressionStatement()
@@ -8181,6 +8181,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.MinusGreaterThanToken:
                         expr = syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         break;
+                    case SyntaxKind.DotToken:
+                        expr = syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
+                        break;
+
+                    case SyntaxKind.QuestionToken:
+                        if (AreExpreimentalFeaturesEnabled())
+                        {
+                            if (CanStartConsequenceExpression(this.PeekToken(1).Kind))
+                            {
+                                var qToken = this.EatToken();
+                                var consequence = ParseConsequenceSyntax();
+                                expr = syntaxFactory.ConditionalAccessExpression(expr, qToken, consequence);
+                                break;
+                            }
+                        }
+
+                        goto default;
+                    default:
+                        return expr;
+                }
+            }
+        }
+
+        private bool CanStartConsequenceExpression(SyntaxKind kind)
+        {
+            return kind == SyntaxKind.DotToken ||
+                    kind == SyntaxKind.OpenBracketToken;
+        }
+
+        internal ExpressionSyntax ParseConsequenceSyntax()
+        {
+            SyntaxKind tk = this.CurrentToken.Kind;
+            ExpressionSyntax expr = null;
+            switch (tk)
+            {
+                case SyntaxKind.DotToken:
+                    expr = syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
+                    break;
+
+                case SyntaxKind.OpenBracketToken:
+                    expr = syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList());
+                    break;
+            }
+
+            Debug.Assert(expr != null);
+
+            while (true)
+            {
+                tk = this.CurrentToken.Kind;
+                switch (tk)
+                {
+                    case SyntaxKind.OpenParenToken:
+                        expr = syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
+                        break;
+
+                    case SyntaxKind.OpenBracketToken:
+                        expr = syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
+                        break;
+
                     case SyntaxKind.DotToken:
                         expr = syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         break;

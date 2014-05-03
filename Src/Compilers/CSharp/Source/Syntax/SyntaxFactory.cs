@@ -1609,6 +1609,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
+                case SyntaxKind.MemberBindingExpression:
+                    {
+                        if (((MemberBindingExpressionSyntax)parent).Name == node)
+                        {
+                            return parent;
+                        }
+
+                        break;
+                    }
+
                 // Only care about name member crefs because the other cref members
                 // are identifier by keywords, not syntax nodes.
                 case SyntaxKind.NameMemberCref:

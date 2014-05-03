@@ -380,6 +380,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindConditionalLogicalOperator((BinaryExpressionSyntax)node, diagnostics);
                 case SyntaxKind.CoalesceExpression:
                     return BindNullCoalescingOperator((BinaryExpressionSyntax)node, diagnostics);
+                case SyntaxKind.ConditionalAccessExpression:
+                    return BindConditionalAccessExpression((ConditionalAccessExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.MemberBindingExpression:
+                    return BindMemberBindingExpression((MemberBindingExpressionSyntax)node, invoked, indexed, diagnostics);
+
+                case SyntaxKind.ElementBindingExpression:
+                    return BindElementBindingExpression((ElementBindingExpressionSyntax)node, invoked, indexed, diagnostics);
 
                 case SyntaxKind.IsExpression:
                     return BindIsOperator((BinaryExpressionSyntax)node, diagnostics);
@@ -6242,45 +6250,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindElementAccess(ElementAccessExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node != null);
+            BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
+            return BindElementAccess(node, receiver, node.ArgumentList, diagnostics);
+        }
 
-            BoundExpression expr = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
+        private BoundExpression BindElementAccess(ExpressionSyntax node, BoundExpression receiver, BracketedArgumentListSyntax argumentList, DiagnosticBag diagnostics)
+        {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             try
             {
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+                BindArgumentsAndNames(argumentList, diagnostics, analyzedArguments);
 
-                if (expr.Kind == BoundKind.PropertyGroup)
+                if (receiver.Kind == BoundKind.PropertyGroup)
                 {
-                    var propertyGroup = (BoundPropertyGroup)expr;
+                    var propertyGroup = (BoundPropertyGroup)receiver;
                     return BindIndexedPropertyAccess(node, propertyGroup.ReceiverOpt, propertyGroup.Properties, analyzedArguments, diagnostics);
                 }
 
-                expr = CheckValue(expr, BindValueKind.RValue, diagnostics);
+                receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
 
-                if ((object)expr.Type == null)
-                {
-                    return BadIndexerExpression(node, expr, analyzedArguments, null, diagnostics);
-                }
-                else if (expr.Kind == BoundKind.DefaultOperator && ((BoundDefaultOperator)expr).ConstantValue == ConstantValue.Null)
-                {
-                    Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, expr.Type);
-                }
-
-                // Did we have any errors?
-                if (analyzedArguments.HasErrors || expr.HasAnyErrors)
-                {
-                    // At this point we definitely have reported an error, but we still might be 
-                    // able to get more semantic analysis of the indexing operation. We do not
-                    // want to report cascading errors.
-
-                    DiagnosticBag tmp = DiagnosticBag.GetInstance();
-                    BoundExpression result = BindElementAccessCore(node, expr, analyzedArguments, tmp);
-                    tmp.Free();
-                    return result;
-                }
-
-                return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
+                return BindElementOrIndexerAccess(node, receiver, analyzedArguments, diagnostics);
             }
             finally
             {
@@ -6288,7 +6277,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BadIndexerExpression(ElementAccessExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticInfo errorOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindElementOrIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            if ((object)expr.Type == null)
+            {
+                return BadIndexerExpression(node, expr, analyzedArguments, null, diagnostics);
+            }
+            else if (expr.Kind == BoundKind.DefaultOperator && ((BoundDefaultOperator)expr).ConstantValue == ConstantValue.Null)
+            {
+                Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, expr.Type);
+            }
+
+            // Did we have any errors?
+            if (analyzedArguments.HasErrors || expr.HasAnyErrors)
+            {
+                // At this point we definitely have reported an error, but we still might be 
+                // able to get more semantic analysis of the indexing operation. We do not
+                // want to report cascading errors.
+
+                DiagnosticBag tmp = DiagnosticBag.GetInstance();
+                BoundExpression result = BindElementAccessCore(node, expr, analyzedArguments, tmp);
+                tmp.Free();
+                return result;
+            }
+
+            return BindElementAccessCore(node, expr, analyzedArguments, diagnostics);
+        }
+
+        private BoundExpression BadIndexerExpression(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticInfo errorOpt, DiagnosticBag diagnostics)
         {
             if (!expr.HasAnyErrors)
             {
@@ -6300,7 +6316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindElementAccessCore(
-             ElementAccessExpressionSyntax node,
+             ExpressionSyntax node,
              BoundExpression expr,
              AnalyzedArguments arguments,
              DiagnosticBag diagnostics)
@@ -6334,7 +6350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindArrayAccess(ElementAccessExpressionSyntax node, BoundExpression expr, AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private BoundExpression BindArrayAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
@@ -6451,7 +6467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindPointerElementAccess(ElementAccessExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        private BoundExpression BindPointerElementAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
@@ -6510,7 +6526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
-        private BoundExpression BindIndexerAccess(ElementAccessExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
@@ -6967,6 +6983,183 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Symbol.ReportUseSiteDiagnostic(info, diagnostics, location);
+        }
+
+        private BoundConditionalAccess BindConditionalAccessExpression(ConditionalAccessExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            BoundExpression receiver = BindConditionalAccessReceiver(node, diagnostics);
+
+            var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);
+            var access = conditionalAccessBinder.BindValue(node.WhenNotNull, diagnostics, BindValueKind.RValue);
+
+            if (receiver.HasAnyErrors || access.HasAnyErrors)
+            {
+                return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
+            }
+
+            var receiverType = receiver.Type;
+            Debug.Assert(receiverType != null);
+
+            // access cannot be a method group
+            if (access.Kind == BoundKind.MethodGroup)
+            {
+                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+            }
+
+            var accessType = access.Type;
+
+            // access cannot have no type
+            if (accessType == null)
+            {
+                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+            }
+
+            // access cannot have unconstrained generic type
+            if (!accessType.IsReferenceType && !accessType.IsValueType)
+            {
+                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+            }
+
+            // access cannot be void
+            if (accessType.SpecialType == SpecialType.System_Void)
+            {
+                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+            }
+
+            // if access has value type, the type of the conditional access is nullable of that
+            if (accessType.IsValueType && !accessType.IsNullableType())
+            {
+                accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
+            }
+
+            return new BoundConditionalAccess(node, receiver, access, accessType);
+        }
+
+        private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)
+        {
+            var operatorToken = node.OperatorToken;
+            // TODO: need a special ERR for this.
+            //       conditional access is not really a binary operator.
+            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), access.Display);
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+            access = BadExpression(access.Syntax, access);
+
+            return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
+        }
+
+        private BoundExpression BindMemberBindingExpression(MemberBindingExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
+        {
+            BoundExpression receiver = GetReceiverForConditionalAccessor(node, diagnostics);
+
+            var memberAccess = BindMemberAccessWithBoundLeft(node, receiver, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
+            return memberAccess;
+        }
+
+        private BoundExpression BindElementBindingExpression(ElementBindingExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
+        {
+            BoundExpression receiver = GetReceiverForConditionalAccessor(node, diagnostics);
+
+            var memberAccess = BindElementAccess(node, receiver, node.ArgumentList, diagnostics);
+            return memberAccess;
+        }
+
+        private BoundExpression GetReceiverForConditionalAccessor(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            BoundExpression receiver = null;
+
+            var conditionalAccessNode = node.Parent;
+            for (; conditionalAccessNode.Kind != SyntaxKind.ConditionalAccessExpression; conditionalAccessNode = conditionalAccessNode.Parent) { };
+
+            var currentBinder = this;
+            while (currentBinder != null)
+            {
+                var conditionalAccessBinder = currentBinder as BinderWithConditionalReceiver;
+                if (conditionalAccessBinder != null)
+                {
+                    receiver = conditionalAccessBinder.receiverExpression;
+                    break;
+                }
+                currentBinder = currentBinder.Next;
+            }
+
+            if (receiver == null || receiver.Syntax != ((ConditionalAccessExpressionSyntax)conditionalAccessNode).Expression)
+            {
+                // this can happen when semantic model binds parts of a Call or a broken access expression. 
+                // We may not have receiver available in such cases.
+                // Not a problem - we only need receiver to get its type and we can bind it here.
+                receiver = BindConditionalAccessReceiver((ConditionalAccessExpressionSyntax)conditionalAccessNode, diagnostics);
+            }
+
+            if (receiver.HasAnyErrors)
+            {
+                return receiver;
+            }
+
+            // create surrogate receiver
+            var receiverType = receiver.Type;
+            if (receiverType != null && receiverType.IsNullableType())
+            {
+                receiverType = receiverType.GetNullableUnderlyingType();
+            }
+
+            receiver = new BoundConditionalReceiver(receiver.Syntax, receiverType);
+            return receiver;
+        }
+
+        private BoundExpression BindConditionalAccessReceiver(ConditionalAccessExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var receiverSyntax = node.Expression;
+            var receiver = BindValue(receiverSyntax, diagnostics, BindValueKind.RValue);
+            receiver = MakeMemberAccessValue(receiver, diagnostics);
+
+            if (receiver.HasAnyErrors)
+            {
+                return receiver;
+            }
+
+            var operatorToken = node.OperatorToken;
+
+            if (receiver.Kind == BoundKind.UnboundLambda)
+            {
+                var msgId = ((UnboundLambda)receiver).MessageID;
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), msgId.Localize());
+                diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+                return BadExpression(receiverSyntax, receiver);
+            }
+
+            var receiverType = receiver.Type;
+
+            // Can't dot into the null literal or anything that has no type
+            if (receiverType == null)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorToken.Text, receiver.Display);
+                return BadExpression(node, receiver);
+            }
+
+            // receiver cannot be "base"
+            if (receiverType == null)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorToken.Text, receiver.Display);
+                return BadExpression(node, receiver);
+            }
+
+            // No member accesses on void
+            if (receiverType != null && receiverType.SpecialType == SpecialType.System_Void)
+            {
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), receiverType);
+                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                return BadExpression(receiverSyntax, receiver);
+            }
+
+            if (receiverType != null && receiverType.IsValueType && !receiverType.IsNullableType())
+            {
+                // must be nullable or reference type
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), receiverType);
+                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                return BadExpression(receiverSyntax, receiver);
+            }
+
+            return receiver;
         }
     }
 }

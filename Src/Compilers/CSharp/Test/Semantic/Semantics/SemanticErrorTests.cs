@@ -21772,5 +21772,169 @@ class Program
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(14, 17)
     );
         }
+
+        [Fact]
+        public void ConditionalMemberAccess001()
+        {
+            var text = @"
+class Program
+{
+    public int P1
+    {
+        set { }
+    }
+
+    public void V() { }
+
+    static void Main(string[] args)
+    {
+        var x = 123 ?.ToString();
+
+        var p = new Program();
+        var x1 = p.P1 ?.ToString();
+        var x2 = p.V() ?.ToString();
+        var x3 = p.V ?.ToString();
+        var x4 = ()=> { return 1; } ?.ToString();
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+    // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+    //         var x = 123 ?.ToString();
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
+    // (16,18): error CS0154: The property or indexer 'Program.P1' cannot be used in this context because it lacks the get accessor
+    //         var x1 = p.P1 ?.ToString();
+    Diagnostic(ErrorCode.ERR_PropertyLacksGet, "p.P1").WithArguments("Program.P1").WithLocation(16, 18),
+    // (17,24): error CS0023: Operator '?' cannot be applied to operand of type 'void'
+    //         var x2 = p.V() ?.ToString();
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void").WithLocation(17, 24),
+    // (18,20): error CS0119: 'Program.V()' is a method, which is not valid in the given context
+    //         var x3 = p.V ?.ToString();
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "V").WithArguments("Program.V()", "method").WithLocation(18, 20),
+    // (19,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+    //         var x4 = ()=> { return 1; } ?.ToString();
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "()=> { return 1; } ?.ToString()").WithArguments("?", "lambda expression").WithLocation(19, 18)
+               );
+        }
+
+        [Fact]
+        public void ConditionalMemberAccess002_noExperimental()
+        {
+            var text = @"
+class Program
+{
+    public int? P1
+    {
+        get { return null; }
+    }  
+
+    public void V() { }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        var x1 = p.P1 ?.ToString;
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (14,24): error CS1525: Invalid expression term '.'
+    //         var x1 = p.P1 ?.ToString;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(14, 24),
+    // (14,33): error CS1003: Syntax error, ':' expected
+    //         var x1 = p.P1 ?.ToString;
+    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(14, 33),
+    // (14,33): error CS1525: Invalid expression term ';'
+    //         var x1 = p.P1 ?.ToString;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(14, 33),
+    // (14,18): error CS0029: Cannot implicitly convert type 'int?' to 'bool'
+    //         var x1 = p.P1 ?.ToString;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.P1").WithArguments("int?", "bool").WithLocation(14, 18)
+               );
+        }
+
+        [Fact]
+        public void ConditionalMemberAccess002()
+        {
+            var text = @"
+class Program
+{
+    public int? P1
+    {
+        get { return null; }
+    }  
+
+    public void V() { }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        var x1 = p.P1 ?.ToString;
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+    // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
+    //         var x1 = p.P1 ?.ToString;
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
+               );
+        }
+        
+
+        [Fact]
+        public void ConditionalElementAccess001()
+        {
+            var text = @"
+class Program
+{
+    public int P1
+    {
+        set { }
+    }
+
+    public void V() { }
+
+    static void Main(string[] args)
+    {
+        var x = 123 ?[1,2];
+
+        var p = new Program();
+        var x1 = p.P1 ?[1,2];
+        var x2 = p.V() ?[1,2];
+        var x3 = p.V ?[1,2];
+        var x4 = ()=> { return 1; } ?[1,2];
+
+        var x5 = null?.ToString();
+        var x6 = base?.ToString();
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+    // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+    //         var x = 123 ?[1,2];
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
+    // (16,18): error CS0154: The property or indexer 'Program.P1' cannot be used in this context because it lacks the get accessor
+    //         var x1 = p.P1 ?[1,2];
+    Diagnostic(ErrorCode.ERR_PropertyLacksGet, "p.P1").WithArguments("Program.P1").WithLocation(16, 18),
+    // (17,24): error CS0023: Operator '?' cannot be applied to operand of type 'void'
+    //         var x2 = p.V() ?[1,2];
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void").WithLocation(17, 24),
+    // (18,20): error CS0119: 'Program.V()' is a method, which is not valid in the given context
+    //         var x3 = p.V ?[1,2];
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "V").WithArguments("Program.V()", "method").WithLocation(18, 20),
+    // (19,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+    //         var x4 = ()=> { return 1; } ?[1,2];
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "()=> { return 1; } ?[1,2]").WithArguments("?", "lambda expression").WithLocation(19, 18),
+    // (21,18): error CS0023: Operator '?' cannot be applied to operand of type '<null>'
+    //         var x5 = null?.ToString();
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "null?.ToString()").WithArguments("?", "<null>").WithLocation(21, 18),
+    // (21,18): error CS0023: Operator '?' cannot be applied to operand of type '<null>'
+    //         var x5 = null?.ToString();
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "null?.ToString()").WithArguments("?", "<null>").WithLocation(21, 18),
+    // (22,18): error CS1511: Keyword 'base' is not available in a static method
+    //         var x6 = base?.ToString();
+    Diagnostic(ErrorCode.ERR_BaseInStaticMeth, "base").WithLocation(22, 18));
+        }
+
     }
 }

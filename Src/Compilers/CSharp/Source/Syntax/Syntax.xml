@@ -371,6 +371,65 @@
       <summary>Creates an MemberAccessExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="ConditionalAccessExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ConditionalAccessExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the object conditionally accessed.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="WhenNotNull" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the access expression to be executed when the object is not null.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for conditional access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a ConditionalAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>    
+  <Node Name="MemberBindingExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="MemberBindingExpression"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing dot.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the member being bound to.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for member binding expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an MemberBindingExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+    <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ElementBindingExpression"/>
+    <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
+      <PropertyComment>
+        <summary>BracketedArgumentListSyntax node representing the list of arguments of the element binding expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for element binding expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ElementBindingExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="BinaryExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="AddExpression"/>
     <Kind Name="SubtractExpression"/>

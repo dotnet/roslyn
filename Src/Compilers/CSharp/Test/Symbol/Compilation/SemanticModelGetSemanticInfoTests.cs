@@ -14864,5 +14864,262 @@ namespace Test
             var typeComparer = (IEquatable<TypeInfo>)typeInfo1;
             Assert.True(typeComparer.Equals(typeInfo2));
         }
+
+        [Fact]
+        public void ConditionalAccessErr001()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
+        var dummy2 = """"qqq"""" ?/*<bind>*/.ToString().Length/*</bind>*/.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<MemberAccessExpressionSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("string.Length", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccessErr002()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
+        var dummy2 = ""qqq"" ?/*<bind>*/.ToString/*</bind>*/.Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<MemberBindingExpressionSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
+            Assert.Equal("string.ToString()", sortedCandidates[0].ToDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("string.ToString(System.IFormatProvider)", sortedCandidates[1].ToDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
+            var sortedMethodGroup = semanticInfo.MethodGroup.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
+            Assert.Equal("string.ToString()", sortedMethodGroup[0].ToDisplayString());
+            Assert.Equal("string.ToString(System.IFormatProvider)", sortedMethodGroup[1].ToDisplayString());
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccess001()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
+        var dummy2 = ""qqq"" ?/*<bind>*/.ToString()/*</bind>*/.Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<InvocationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("string", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("string", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("string.ToString()", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccess001_noExperimental()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
+        var dummy2 = ""qqq"" ?/*<bind>*/.ToString()/*</bind>*/.Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("?", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccess002()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString().Length ?.ToString();
+        var dummy2 = ""qqq"" ?.ToString()./*<bind>*/Length/*</bind>*/.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("string.Length", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+        
+        [Fact]
+        public void ConditionalAccess003()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = /*<bind>*/((string)null) ?.ToString().Length/*</bind>*/ ?.ToString();
+        var dummy2 = ""qqq"" ?.ToString().Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<ConditionalAccessExpressionSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int?", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccess004()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString()./*<bind>*/Length/*</bind>*/ ?.ToString();
+        var dummy2 = ""qqq"" ?.ToString().Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("string.Length", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ConditionalAccess005()
+        {
+            string sourceCode = @"
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null) ?.ToString() ?/*<bind>*/[1]/*</bind>*/ ?.ToString();
+        var dummy2 = ""qqq"" ?.ToString().Length.ToString();
+        var dummy3 = 1.ToString() ?.ToString().Length.ToString();
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTestExperimental<ElementBindingExpressionSyntax>(sourceCode);
+
+            Assert.Equal("char", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("char", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("string.this[int]", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Property, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+
+
     }
 }

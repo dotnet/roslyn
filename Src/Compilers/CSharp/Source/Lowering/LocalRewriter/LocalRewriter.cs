@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LoweredDynamicOperationFactory dynamicFactory;
         private bool sawLambdas;
         private bool inExpressionLambda;
-        private int ExceptionHandleNesting;
+
+        private bool sawAwait;
         private bool sawAwaitInExceptionHandler;
         private readonly DiagnosticBag diagnostics;
 

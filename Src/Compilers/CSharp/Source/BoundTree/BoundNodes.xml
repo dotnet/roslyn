@@ -948,6 +948,17 @@
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
   </Node>
 
+  <Node Name="BoundConditionalAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="AccessExpression" Type="BoundExpression"/> 
+  </Node>
+
+  <!-- represents the receiver of a conditional access expression -->
+  <Node Name="BoundConditionalReceiver" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+    
   <Node Name="BoundMethodGroup" Base="BoundMethodOrPropertyGroup">
     <!-- SPEC: A method group is a set of overloaded methods resulting from a member lookup. 
          SPEC: A method group may have an associated instance expression and 

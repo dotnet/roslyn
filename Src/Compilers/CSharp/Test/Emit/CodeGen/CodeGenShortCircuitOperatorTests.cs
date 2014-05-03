@@ -937,5 +937,405 @@ False
 }
 ");
         }
+
+        [Fact]
+        public void TestConditionalMemberAccess001()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        Test(null);
+        System.Console.Write('#');
+        int[] a = new int[] { };
+        Test(a);
+    }
+
+    static void Test(int[] x)
+    {
+        System.Console.Write(x?.ToString().ToString().ToString() ?? ""NULL"");
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "NULL#System.Int32[]");
+            comp.VerifyIL("C.Test", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0008
+  IL_0004:  pop
+  IL_0005:  ldnull
+  IL_0006:  br.s       IL_0017
+  IL_0008:  callvirt   ""string object.ToString()""
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  callvirt   ""string object.ToString()""
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_0020
+  IL_001a:  pop
+  IL_001b:  ldstr      ""NULL""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUnused()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString();
+        var dummy2 = ""qqq""?.ToString();
+        var dummy3 = 1.ToString()?.ToString();
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldstr      ""qqq""
+  IL_0005:  callvirt   ""string object.ToString()""
+  IL_000a:  pop
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_0019
+  IL_0017:  pop
+  IL_0018:  ret
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  pop
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUsed()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString();
+        var dummy2 = ""qqq""?.ToString();
+        var dummy3 = 1.ToString()?.ToString();
+        dummy1 += dummy2 += dummy3;
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (string V_0, //dummy2
+  string V_1, //dummy3
+  int V_2)
+  IL_0000:  ldnull
+  IL_0001:  ldstr      ""qqq""
+  IL_0006:  callvirt   ""string object.ToString()""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  dup
+  IL_0016:  brtrue.s   IL_001c
+  IL_0018:  pop
+  IL_0019:  ldnull
+  IL_001a:  br.s       IL_0021
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.0
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""string string.Concat(string, string)""
+  IL_0029:  dup
+  IL_002a:  stloc.0
+  IL_002b:  call       ""string string.Concat(string, string)""
+  IL_0030:  pop
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUnused1()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString().Length;
+        var dummy2 = ""qqq""?.ToString().Length;
+        var dummy3 = 1.ToString()?.ToString().Length;
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldstr      ""qqq""
+  IL_0005:  callvirt   ""string object.ToString()""
+  IL_000a:  callvirt   ""int string.Length.get""
+  IL_000f:  newobj     ""int?..ctor(int)""
+  IL_0014:  pop
+  IL_0015:  ldc.i4.1
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""string int.ToString()""
+  IL_001e:  dup
+  IL_001f:  brtrue.s   IL_0023
+  IL_0021:  pop
+  IL_0022:  ret
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  callvirt   ""int string.Length.get""
+  IL_002d:  newobj     ""int?..ctor(int)""
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUsed1()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString().Length;
+        System.Console.WriteLine(dummy1);
+
+        var dummy2 = ""qqq""?.ToString().Length;
+        System.Console.WriteLine(dummy2);
+
+        var dummy3 = 1.ToString()?.ToString().Length;
+        System.Console.WriteLine(dummy3);
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"3
+1");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       99 (0x63)
+  .maxstack  2
+  .locals init (int? V_0,
+  int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""int?""
+  IL_000e:  call       ""void System.Console.WriteLine(object)""
+  IL_0013:  ldstr      ""qqq""
+  IL_0018:  callvirt   ""string object.ToString()""
+  IL_001d:  callvirt   ""int string.Length.get""
+  IL_0022:  newobj     ""int?..ctor(int)""
+  IL_0027:  box        ""int?""
+  IL_002c:  call       ""void System.Console.WriteLine(object)""
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       ""string int.ToString()""
+  IL_003a:  dup
+  IL_003b:  brtrue.s   IL_0049
+  IL_003d:  pop
+  IL_003e:  ldloca.s   V_0
+  IL_0040:  initobj    ""int?""
+  IL_0046:  ldloc.0
+  IL_0047:  br.s       IL_0058
+  IL_0049:  callvirt   ""string object.ToString()""
+  IL_004e:  callvirt   ""int string.Length.get""
+  IL_0053:  newobj     ""int?..ctor(int)""
+  IL_0058:  box        ""int?""
+  IL_005d:  call       ""void System.Console.WriteLine(object)""
+  IL_0062:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUnused2()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString().Length?.ToString();
+        var dummy2 = ""qqq""?.ToString().Length.ToString();
+        var dummy3 = 1.ToString()?.ToString().Length.ToString();
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  2
+  .locals init (int? V_0,
+  int? V_1,
+  int V_2)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloc.1
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool int?.HasValue.get""
+  IL_0013:  brfalse.s  IL_0025
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""int int?.GetValueOrDefault()""
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  call       ""string int.ToString()""
+  IL_0024:  pop
+  IL_0025:  ldstr      ""qqq""
+  IL_002a:  callvirt   ""string object.ToString()""
+  IL_002f:  callvirt   ""int string.Length.get""
+  IL_0034:  stloc.2
+  IL_0035:  ldloca.s   V_2
+  IL_0037:  call       ""string int.ToString()""
+  IL_003c:  pop
+  IL_003d:  ldc.i4.1
+  IL_003e:  stloc.2
+  IL_003f:  ldloca.s   V_2
+  IL_0041:  call       ""string int.ToString()""
+  IL_0046:  dup
+  IL_0047:  brtrue.s   IL_004b
+  IL_0049:  pop
+  IL_004a:  ret
+  IL_004b:  callvirt   ""string object.ToString()""
+  IL_0050:  callvirt   ""int string.Length.get""
+  IL_0055:  stloc.2
+  IL_0056:  ldloca.s   V_2
+  IL_0058:  call       ""string int.ToString()""
+  IL_005d:  pop
+  IL_005e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestConditionalMemberAccessUsed2()
+        {
+            var source = @"
+
+public class C
+{
+    static void Main()
+    {
+        var dummy1 = ((string)null)?.ToString().Length?.ToString();
+        System.Console.WriteLine(dummy1);
+
+        var dummy2 = ""qqq""?.ToString().Length?.ToString();
+        System.Console.WriteLine(dummy2);
+
+        var dummy3 = 1.ToString()?.ToString().Length?.ToString();
+        System.Console.WriteLine(dummy3);
+    }
+}";
+
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"3
+1");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      174 (0xae)
+  .maxstack  2
+  .locals init (int? V_0,
+  int? V_1,
+  int V_2)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloc.1
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool int?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0018
+  IL_0015:  ldnull
+  IL_0016:  br.s       IL_0027
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  stloc.2
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  call       ""string int.ToString()""
+  IL_0027:  call       ""void System.Console.WriteLine(string)""
+  IL_002c:  ldstr      ""qqq""
+  IL_0031:  callvirt   ""string object.ToString()""
+  IL_0036:  callvirt   ""int string.Length.get""
+  IL_003b:  newobj     ""int?..ctor(int)""
+  IL_0040:  dup
+  IL_0041:  stloc.0
+  IL_0042:  stloc.1
+  IL_0043:  ldloca.s   V_1
+  IL_0045:  call       ""bool int?.HasValue.get""
+  IL_004a:  brtrue.s   IL_004f
+  IL_004c:  ldnull
+  IL_004d:  br.s       IL_005e
+  IL_004f:  ldloca.s   V_0
+  IL_0051:  call       ""int int?.GetValueOrDefault()""
+  IL_0056:  stloc.2
+  IL_0057:  ldloca.s   V_2
+  IL_0059:  call       ""string int.ToString()""
+  IL_005e:  call       ""void System.Console.WriteLine(string)""
+  IL_0063:  ldc.i4.1
+  IL_0064:  stloc.2
+  IL_0065:  ldloca.s   V_2
+  IL_0067:  call       ""string int.ToString()""
+  IL_006c:  dup
+  IL_006d:  brtrue.s   IL_007b
+  IL_006f:  pop
+  IL_0070:  ldloca.s   V_1
+  IL_0072:  initobj    ""int?""
+  IL_0078:  ldloc.1
+  IL_0079:  br.s       IL_008a
+  IL_007b:  callvirt   ""string object.ToString()""
+  IL_0080:  callvirt   ""int string.Length.get""
+  IL_0085:  newobj     ""int?..ctor(int)""
+  IL_008a:  dup
+  IL_008b:  stloc.0
+  IL_008c:  stloc.1
+  IL_008d:  ldloca.s   V_1
+  IL_008f:  call       ""bool int?.HasValue.get""
+  IL_0094:  brtrue.s   IL_0099
+  IL_0096:  ldnull
+  IL_0097:  br.s       IL_00a8
+  IL_0099:  ldloca.s   V_0
+  IL_009b:  call       ""int int?.GetValueOrDefault()""
+  IL_00a0:  stloc.2
+  IL_00a1:  ldloca.s   V_2
+  IL_00a3:  call       ""string int.ToString()""
+  IL_00a8:  call       ""void System.Console.WriteLine(string)""
+  IL_00ad:  ret
+}
+");
+        }
+
     }
 }

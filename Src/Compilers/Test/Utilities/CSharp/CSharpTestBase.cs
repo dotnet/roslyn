@@ -102,6 +102,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
+        internal CompilationVerifier CompileAndVerifyExperimental(
+            string source,
+            string expectedOutput = null,
+            MetadataReference[] additionalRefs = null,
+            IEnumerable<ModuleData> dependencies = null,
+            EmitOptions emitOptions = EmitOptions.All,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly, EmitOptions> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            bool collectEmittedAssembly = true,
+            bool emitPdb = false,
+            bool verify = true)
+        {
+            var compOptions = TestOptions.Exe;
+            if (!emitPdb)
+            {
+                compOptions = compOptions.WithOptimizations(true);
+            }
+
+            var compilation = CreateExperimentalCompilationWithMscorlib45(source, additionalRefs, compOptions);
+
+            return CompileAndVerify(
+                compilation: compilation,
+                dependencies: dependencies,
+                emitOptions: emitOptions,
+                sourceSymbolValidator: Translate2(sourceSymbolValidator),
+                assemblyValidator: assemblyValidator,
+                symbolValidator: Translate2(symbolValidator),
+                expectedSignatures: expectedSignatures,
+                expectedOutput: expectedOutput,
+                collectEmittedAssembly: collectEmittedAssembly,
+                emitPdb: emitPdb,
+                verify: verify);
+        }
+
         internal CompilationVerifier CompileAndVerify(
             string[] sources,
             MetadataReference[] additionalRefs = null,
@@ -418,6 +454,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 references: references,
                 compOptions: compOptions,
                 assemblyName: assemblyName);
+        }
+
+        public static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            string text,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions compOptions = null,
+            string assemblyName = "",
+            string sourceFileName = "")
+        {
+
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef_v4_0_30316_17626);
+            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, compOptions, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib(

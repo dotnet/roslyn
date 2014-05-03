@@ -32,6 +32,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Represents a small change from the enclosing/next binder.
+        /// Can specify a receiver Expression for containing conditional member access.
+        /// </summary>
+        private sealed class BinderWithConditionalReceiver : Binder
+        {
+            internal readonly BoundExpression receiverExpression;
+
+            internal BinderWithConditionalReceiver(Binder next, BoundExpression receiverExpression)
+                : base(next)
+            {
+                this.receiverExpression = receiverExpression;
+            }
+        }
+
         internal Binder WithFlags(BinderFlags flags)
         {
             return this.Flags == flags

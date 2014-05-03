@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
+        public static readonly CSharpParseOptions ExperimentalParseOptions = 
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Experimental);
+        
         public static readonly CSharpCompilationOptions Dll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         public static readonly CSharpCompilationOptions Exe = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
         public static readonly CSharpCompilationOptions WinExe = new CSharpCompilationOptions(OutputKind.WindowsApplication);

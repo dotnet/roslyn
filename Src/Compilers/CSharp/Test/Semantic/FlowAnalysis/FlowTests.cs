@@ -2083,5 +2083,129 @@ class C
                 //             Console.WriteLine(g);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "g").WithArguments("g"));
         }
+
+        [Fact]
+        public void UseDef_CondAccess()
+        {
+            var source = @"
+class C
+{
+    C M1(out C arg)
+    {
+        arg = this;
+        return arg;
+    }
+
+    static void Main()
+    {
+        C o;
+
+        var d = new C();
+        var v = d ?. M1(out o);
+
+        System.Console.WriteLine(o);
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (17,34): error CS0165: Use of unassigned local variable 'o'
+    //         System.Console.WriteLine(o);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
+    );
+        }
+
+        [Fact]
+        public void UseDef_CondAccess01()
+        {
+            var source = @"
+class C
+{
+    C M1(out C arg)
+    {
+        arg = this;
+        return arg;
+    }
+
+    static void Main()
+    {
+        C o;
+
+        var d = new C();
+        var v = d ?. M1(out o) ?? (o = null);
+
+        System.Console.WriteLine(o);
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (17,34): error CS0165: Use of unassigned local variable 'o'
+    //         System.Console.WriteLine(o);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
+    );
+        }
+
+        [Fact]
+        public void UseDef_CondAccess02()
+        {
+            var source = @"
+class C
+{
+    C M1(out C arg)
+    {
+        arg = this;
+        return arg;
+    }
+
+    C M2( C arg)
+    {
+        return arg;
+    }
+
+    static void Main()
+    {
+        C o;
+
+        var d = new C();
+        var v = d ?. M1(out o) ?. M2(o);
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (20,38): error CS0165: Use of unassigned local variable 'o'
+    //         var v = d ?. M1(out o) ?. M2(o);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(20, 38)
+    );
+        }
+
+        [Fact]
+        public void UseDef_CondAccess03()
+        {
+            var source = @"
+class C
+{
+    C M1(out C arg)
+    {
+        arg = this;
+        return arg;
+    }
+
+    C M2( C arg)
+    {
+        return arg;
+    }
+
+    static void Main()
+    {
+        C o;
+
+        var d = new C();
+        var v = d.M1(out o) ?. M1(out o) ?. M2(o);
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+    );
+        }
+
     }
 }

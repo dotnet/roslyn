@@ -1873,6 +1873,55 @@ hello
         }
 
         [Fact]
+        public void AsyncInConditionalAccess()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Test
+{
+
+    class C1
+    {
+        public int M(int x)
+        {
+            return x;
+        }
+    }
+
+    public static int Get(int x)
+    {
+        Console.WriteLine(""> "" + x);
+        return x;
+    }
+
+    public static async Task<int> F(int x)
+    {
+        return await Task.Factory.StartNew(() => x);
+    }
+
+    public static async Task<int?> G()
+    {
+        var c = new C1();
+        return c?.M(await F(Get(42)));
+    }
+
+    public static void Main()
+    {
+        var t = G();
+        System.Console.WriteLine(t.Result);
+    }
+}";
+            var expected = @"
+> 42
+42";
+            CompileAndVerifyExperimental(source, expected);
+        }
+
+
+        [Fact]
         public void Conformance_Awaiting_Methods_Generic01()
         {
             var source = @"

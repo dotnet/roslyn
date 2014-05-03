@@ -1014,5 +1014,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), (int)requiredVersion);
             return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
         }
+
+        protected bool AreExpreimentalFeaturesEnabled()
+        {
+            return this.Options.LanguageVersion == LanguageVersion.Experimental;
+        }
     }
 }

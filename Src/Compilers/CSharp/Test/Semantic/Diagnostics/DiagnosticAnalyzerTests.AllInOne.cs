@@ -50,6 +50,23 @@ public class C
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
+        // AllInOne does not include experimental features.
+        [Fact]
+        public void DiagnosticAnalyzerConditionalAccess()
+        {
+            var source = @"
+public class C
+{
+    public string this[int index]
+    {
+        get { return string.Empty ?. ToString() ?[1] .ToString() ; }
+        set { value = value + string.Empty; }
+    }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+        }
+
         [Fact]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {

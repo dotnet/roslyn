@@ -1888,6 +1888,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        {
+            VisitRvalue(node.Receiver);
+
+            if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
+            {
+                VisitRvalue(node.AccessExpression);
+            }
+            else
+            {
+                var savedState = this.State.Clone();
+                if (IsConstantNull(node.Receiver))
+                {
+                    SetUnreachable();
+                }
+
+                VisitRvalue(node.AccessExpression);
+                IntersectWith(ref this.State, ref savedState);
+            }
+            return null;
+        }
+
+        public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitSequence(BoundSequence node)
         {
             var sideEffects = node.SideEffects;

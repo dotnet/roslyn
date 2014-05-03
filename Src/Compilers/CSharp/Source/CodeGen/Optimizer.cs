@@ -1182,6 +1182,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(left, right, node.LeftConversion, node.Type);
         }
 
+        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        {
+            var origStack = this.evalStack;
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+
+            var cookie = GetStackStateCookie();     // implicit branch here
+
+            // right is evaluated with original stack 
+            // (this is not entirely true, codegen will keep receiver on the stack, but that is irrelevant here)
+            this.evalStack = origStack;
+            BoundExpression access = (BoundExpression)this.Visit(node.AccessExpression);
+
+            EnsureStackState(cookie);   // implicit label here
+
+            return node.Update(receiver, access, node.Type);
+        }
+
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
             // checked(-x) is emitted as "0 - x"

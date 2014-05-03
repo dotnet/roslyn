@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     public class CSharpTrackingDiagnosticAnalyzer : TrackingDiagnosticAnalyzer<SyntaxKind>
     {
         static readonly Regex omittedSyntaxKindRegex =
-            new Regex(@"Using|Extern|Parameter|Constraint|Specifier|Initializer|Global|Method|Destructor");
+            new Regex(@"Using|Extern|Parameter|Constraint|Specifier|Initializer|Global|Method|Destructor|MemberBindingExpression|ElementBindingExpression");
 
         protected override bool IsOnCodeBlockSupported(SymbolKind symbolKind, MethodKind methodKind, bool returnsVoid)
         {

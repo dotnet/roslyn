@@ -8,12 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
-            if (this.ExceptionHandleNesting != 0)
-            {
-                Debug.Assert(this.ExceptionHandleNesting > 0);
-                this.sawAwaitInExceptionHandler = true;
-            }
-
+            this.sawAwait = true;
             return base.VisitAwaitExpression(node);
         }
     }
