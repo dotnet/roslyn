@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -973,7 +973,7 @@ class C : I
     void M(C c)
     {
         int x;
-        x = this[]; //CS0443 - can't omit all
+        x = c[]; //CS0443 - can't omit all
         x = c[x: 0];
         x = c[y: ""hello""];
         x = c[z:'a'];
@@ -984,7 +984,7 @@ class C : I
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (8,18): error CS0443: Syntax error; value expected
+                // (8,15): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
 
@@ -1000,7 +1000,7 @@ class C : I
     void M(C c)
     {
         int x;
-        x = this[]; //CS0443 - can't omit all
+        x = c[]; //CS0443 - can't omit all
 
         x = c[0];
         x = c[0, 1];
@@ -1019,7 +1019,7 @@ class C : I
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,18): error CS0443: Syntax error; value expected
+                // (9,15): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
 

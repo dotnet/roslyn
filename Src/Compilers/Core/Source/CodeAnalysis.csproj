@@ -187,6 +187,7 @@
     <Compile Include="DocumentationMode.cs" />
     <Compile Include="Emit\AnonymousTypeKey.cs" />
     <Compile Include="Emit\AnonymousTypeValue.cs" />
+    <Compile Include="Compilation\CommonModuleCompilationState.cs" />
     <Compile Include="Emit\Context.cs" />
     <Compile Include="Emit\EditAndContinue\DefinitionMap.cs" />
     <Compile Include="Emit\EditAndContinue\DeltaPeWriter.cs" />
@@ -209,7 +210,7 @@
     <Compile Include="Emit\NoPia\CommonEmbeddedTypeParameter.cs" />
     <Compile Include="Emit\NoPia\EmbeddedTypesManager.cs" />
     <Compile Include="Emit\NoPia\VtblGap.cs" />
-    <Compile Include="Emit\PEModuleBuilder.cs" />
+    <Compile Include="Emit\CommonPEModuleBuilder.cs" />
     <Compile Include="Emit\SemanticEdit.cs" />
     <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
@@ -451,6 +452,7 @@
     <Compile Include="SymbolDisplay\SymbolDisplayPropertyStyle.cs" />
     <Compile Include="SymbolDisplay\SymbolDisplayTypeQualificationStyle.cs" />
     <Compile Include="Symbols\Accessibility.cs" />
+    <Compile Include="Symbols\AnonymousTypes\CommonAnonymousTypeManager.cs" />
     <Compile Include="Symbols\Attributes\AttributeDescription.cs" />
     <Compile Include="Symbols\Attributes\AttributeUsageInfo.cs" />
     <Compile Include="Symbols\Attributes\CommonAssemblyWellKnownAttributeData.cs" />

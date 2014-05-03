@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
+        protected override IEnumerable<Cci.ICustomModifier> ReturnValueCustomModifiers
         {
             get
             {
-                return UnderlyingProperty.TypeCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingProperty.TypeCustomModifiers;
             }
         }
 

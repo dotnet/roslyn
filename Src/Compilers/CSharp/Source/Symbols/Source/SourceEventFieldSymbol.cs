@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventSymbol associatedEvent;
 
         internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag discardedDiagnostics)
-            : base(associatedEvent.containingType, declaratorSyntax, (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private, modifierErrors: true, diagnostics: discardedDiagnostics)
+            : base(associatedEvent.containingType, declaratorSyntax, associatedEvent.Modifiers, modifierErrors: true, diagnostics: discardedDiagnostics)
         {
             this.associatedEvent = associatedEvent;
         }
@@ -43,6 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.associatedEvent;
+            }
+        }
+
+        public override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                return Accessibility.Private;
             }
         }
 

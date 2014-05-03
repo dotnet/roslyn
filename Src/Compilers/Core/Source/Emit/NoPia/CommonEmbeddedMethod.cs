@@ -184,19 +184,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return null; }
                 }
 
-                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes
+                ImmutableArray<Cci.ILocalScope> Cci.IMethodBody.LocalScopes
                 {
-                    get { return ImmutableArray<Cci.LocalScope>.Empty; }
+                    get { return ImmutableArray<Cci.ILocalScope>.Empty; }
                 }
 
-                ImmutableArray<Cci.NamespaceScope> Cci.IMethodBody.NamespaceScopes
+                ImmutableArray<Cci.INamespaceScope> Cci.IMethodBody.NamespaceScopes
                 {
-                    get { return ImmutableArray<Cci.NamespaceScope>.Empty; }
+                    get { return ImmutableArray<Cci.INamespaceScope>.Empty; }
                 }
 
-                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.IteratorScopes
+                ImmutableArray<Cci.ILocalScope> Cci.IMethodBody.IteratorScopes
                 {
-                    get { return ImmutableArray<Cci.LocalScope>.Empty; }
+                    get { return ImmutableArray<Cci.ILocalScope>.Empty; }
                 }
 
                 string Cci.IMethodBody.IteratorClassName
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+            IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
             {
                 get
                 {
@@ -511,6 +511,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return UnderlyingMethodSignature.ReturnValueIsByRef;
+                }
+            }
+
+            bool Cci.ISignature.ReturnValueIsModified
+            {
+                get
+                {
+                    return UnderlyingMethodSignature.ReturnValueIsModified;
                 }
             }
 

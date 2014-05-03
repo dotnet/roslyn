@@ -45,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier)
+        Protected Overrides ReadOnly Property ReturnValueCustomModifiers As IEnumerable(Of Cci.ICustomModifier)
             Get
-                Return UnderlyingProperty.TypeCustomModifiers.As(Of Cci.ICustomModifier)
+                Return UnderlyingProperty.TypeCustomModifiers
             End Get
         End Property
 

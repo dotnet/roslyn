@@ -687,36 +687,35 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return GetSourceModuleAttributes(); }
         }
 
-        ImmutableArray<Cci.ExternNamespace> Cci.IModule.GetExternNamespaces()
+        IEnumerable<Cci.IExternNamespace> Cci.IModule.ExternNamespaces
         {
-            var result = ArrayBuilder<Cci.ExternNamespace>.GetInstance(compilation.ExternalReferences.Length);
-
-            var referenceManager = this.compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in compilation.ExternalReferences)
+            get
             {
-                // duplicate references might have been skipped by the assembly binder:
+                var referenceManager = this.compilation.GetBoundReferenceManager();
 
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                // Enumerate external references (#r's don't define aliases) to preserve the order.
+                foreach (MetadataReference reference in compilation.ExternalReferences)
                 {
-                    var displayName = symbol.Identity.GetDisplayName();
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
+                    // duplicate references might have been skipped by the assembly binder:
 
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    IAssemblySymbol symbol;
+                    ImmutableArray<string> aliases;
+                    if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                    {
+                        var displayName = symbol.Identity.GetDisplayName();
+                        for (int i = 0; i < aliases.Length; i++)
                         {
-                            result.Add(new Cci.ExternNamespace(alias, displayName));
+                            string alias = aliases[i];
+
+                            // filter out duplicates and global aliases:
+                            if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                            {
+                                yield return new ExternNamespace(alias, displayName);
+                            }
                         }
                     }
                 }
             }
-
-            return result.ToImmutableAndFree();
         }
 
         // PE entry point, only available for console and windows apps:
