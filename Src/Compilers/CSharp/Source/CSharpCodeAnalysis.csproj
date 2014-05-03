@@ -113,7 +113,6 @@
     <Compile Include="Binder\ConstantFieldsInProgressBinder.cs" />
     <Compile Include="Binder\ContextualAttributeBinder.cs" />
     <Compile Include="Binder\EarlyWellKnownAttributeBinder.cs" />
-    <Compile Include="Binder\EmbeddedStatementBinder.cs" />
     <Compile Include="Binder\ExecutableCodeBinder.cs" />
     <Compile Include="Binder\ExtensionMethodScope.cs" />
     <Compile Include="Binder\FixedStatementBinder.cs" />
@@ -121,7 +120,6 @@
     <Compile Include="Binder\ForEachLoopBinder.cs" />
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
-    <Compile Include="Binder\IfBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\Imports.cs" />
@@ -140,7 +138,6 @@
     <Compile Include="Binder\LoopBinderContext.cs" />
     <Compile Include="Binder\MethodGroupResolution.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
-    <Compile Include="Binder\ScopedExpressionBinder.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
     <Compile Include="Binder\Semantics\Conversions\Conversion.cs" />
@@ -193,7 +190,6 @@
     <Compile Include="Binder\WithLambdaParametersBinder.cs" />
     <Compile Include="Binder\WithMethodTypeParametersBinder.cs" />
     <Compile Include="Binder\WithParametersBinder.cs" />
-    <Compile Include="Binder\WithPrimaryConstructorParametersBinder.cs" />
     <Compile Include="Binder\WithTypeParametersBinder.cs" />
     <Compile Include="BoundTree\BoundExpression.cs" />
     <Compile Include="BoundTree\BoundExpressionExtensions.cs" />
@@ -212,7 +208,6 @@
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
     <Compile Include="BoundTree\UnboundLambda.cs" />
-    <Compile Include="BoundTree\UninitializedVarDeclarationExpression.cs" />
     <Compile Include="CodeGen\CodeGenerator.cs" />
     <Compile Include="CodeGen\EmitAddress.cs" />
     <Compile Include="CodeGen\EmitArrayInitializer.cs" />
@@ -253,7 +248,6 @@
     <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
-    <Compile Include="Compiler\ModuleCompilationState.cs" />
     <Compile Include="Compiler\NamespaceScopeBuilder.cs" />
     <Compile Include="Compiler\SynthesizedMetadataCompiler.cs" />
     <Compile Include="Compiler\TypeCompilationState.cs" />
@@ -647,7 +641,6 @@
     <Compile Include="Symbols\Source\SourceNamespaceSymbol_Completion.cs" />
     <Compile Include="Symbols\Source\SourceParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceParameterSymbolBase.cs" />
-    <Compile Include="Symbols\Source\SourcePrimaryConstructorParameterSymbolWithBackingField.cs" />
     <Compile Include="Symbols\Source\SourcePropertyAccessorSymbol.cs" />
     <Compile Include="Symbols\Source\SourcePropertySymbol.cs" />
     <Compile Include="Symbols\Source\SourceSimpleParameterSymbol.cs" />
@@ -719,8 +712,8 @@
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
+    <Compile Include="Syntax\BaseMethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\BaseSyntaxNodeExtensions.cs" />
-    <Compile Include="Syntax\ClassDeclarationSyntax.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
@@ -776,13 +769,11 @@
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.cs" />
     <Compile Include="Syntax\NameSyntax.cs" />
-    <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />
-    <Compile Include="Syntax\StructDeclarationSyntax.cs" />
     <Compile Include="Syntax\StructuredTriviaSyntax.cs" />
     <Compile Include="Syntax\SyntaxEquivalence.cs" />
     <Compile Include="Syntax\SyntaxExtensions.cs" />

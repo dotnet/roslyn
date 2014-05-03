@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = TestResource.AllInOneCSharpCode;
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllInterfaceMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds();
 
             analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyAnalyzerDiagnostics3(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics3(new[] { analyzer });
             analyzer.VerifyAllInterfaceMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
@@ -70,7 +70,7 @@ public class C
         [Fact]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer => 
                 AnalyzerDriver.GetDiagnostics(compilation, new[] { analyzer }, CancellationToken.None), typeof(AnalyzerDriver).Name);
         }

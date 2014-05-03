@@ -929,7 +929,6 @@
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
-    <Compile Include="Compilation\ModuleCompilationState.vb" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />

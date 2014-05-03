@@ -1219,9 +1219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            Debug.Assert(node.OuterLocals.IsEmpty);
             Debug.Assert(this.evalStack == 0);
-            DeclareLocals(node.InnerLocalsOpt, 0);
+            DeclareLocals(node.LocalsOpt, 0);
 
             var origStack = this.evalStack;
 
@@ -1237,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EnsureOnlyEvalStack();
 
             ImmutableArray<BoundSwitchSection> switchSections = this.VisitList(node.SwitchSections);
-            var result = node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, node.BreakLabel, node.StringEquality);
+            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.LocalsOpt, switchSections, node.BreakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();
@@ -1278,10 +1277,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EnsureOnlyEvalStack();
 
-            var locals = node.Locals;
+            var local = node.LocalOpt;
             var exceptionSourceOpt = node.ExceptionSourceOpt;
 
-            DeclareLocals(locals, stack: 0);
+            if ((object)local != null)
+            {
+                DeclareLocal(local, stack: 0);
+            }
 
             if (exceptionSourceOpt != null)
             {
@@ -1326,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var boundBlock = (BoundBlock)this.Visit(node.Body);
             var exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
-            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock);
+            return node.Update(local, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock);
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
@@ -1713,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            var locals = node.Locals;
+            var local = node.LocalOpt;
             var exceptionSource = node.ExceptionSourceOpt;
             var type = node.ExceptionTypeOpt;
             var filter = node.ExceptionFilterOpt;
@@ -1756,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             body = (BoundBlock)this.Visit(body);
             type = this.VisitType(type);
 
-            return node.Update(locals, exceptionSource, type, filter, body);
+            return node.Update(local, exceptionSource, type, filter, body);
         }
     }
 

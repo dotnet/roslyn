@@ -378,9 +378,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return sources.Select(src => Parse(src)).ToArray();
         }
 
-        public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)
+        public static SyntaxTree ParseWithRoundTripCheck(string text)
         {
-            var tree = Parse(text, options: options);
+            var tree = Parse(text);
             var parsedText = tree.GetRoot();
             // we validate the text roundtrips
             Assert.Equal(text, parsedText.ToFullString());
@@ -431,12 +431,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions compOptions = null,
-            CSharpParseOptions parseOptions = null,
             string sourceFileName = "",
             string assemblyName = "")
         {
             return CreateCompilationWithMscorlib45(
-                new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
+                new SyntaxTree[] { Parse(source, sourceFileName) },
                 references,
                 compOptions,
                 assemblyName);

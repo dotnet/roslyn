@@ -53,6 +53,7 @@
     <Compile Include="CodeGen\CompilationTestData.cs" />
     <Compile Include="CodeGen\DebugDocumentProvider.cs" />
     <Compile Include="CodeGen\EmitState.cs" />
+    <Compile Include="CodeGen\ExternNamespace.cs" />
     <Compile Include="CodeGen\FullLocalSlotManager.cs" />
     <Compile Include="CodeGen\ILBuilder.cs" />
     <Compile Include="CodeGen\ILBuilderConversions.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="CodeGen\LabelInfo.cs" />
     <Compile Include="CodeGen\LocalConstantDefinition.cs" />
     <Compile Include="CodeGen\LocalDefinition.cs" />
+    <Compile Include="CodeGen\LocalScope.cs" />
     <Compile Include="CodeGen\LocalScopeManager.cs" />
     <Compile Include="CodeGen\LocalSlotManager.cs" />
     <Compile Include="CodeGen\MetadataConstant.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="CodeGen\MetadataNamedArgument.cs" />
     <Compile Include="CodeGen\MetadataTypeOf.cs" />
     <Compile Include="CodeGen\MethodBody.cs" />
+    <Compile Include="CodeGen\NamespaceScope.cs" />
     <Compile Include="CodeGen\PermissionSetAttribute.cs" />
     <Compile Include="CodeGen\PrivateImplementationDetails.cs" />
     <Compile Include="CodeGen\RawSequencePoint.cs" />
@@ -81,6 +84,7 @@
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.SwitchBucket.cs" />
     <Compile Include="CodeGen\SwitchStringJumpTableEmitter.cs" />
     <Compile Include="CodeGen\TokenMap.cs" />
+    <Compile Include="CodeGen\UsedNamespaceOrType.cs" />
     <Compile Include="CodeGen\Win32Res.cs" />
     <Compile Include="Collections\ArrayBuilder.ArrayBuilderEnumerator.cs" />
     <Compile Include="Collections\ArrayBuilder.cs" />
@@ -183,7 +187,6 @@
     <Compile Include="DocumentationMode.cs" />
     <Compile Include="Emit\AnonymousTypeKey.cs" />
     <Compile Include="Emit\AnonymousTypeValue.cs" />
-    <Compile Include="Compilation\CommonModuleCompilationState.cs" />
     <Compile Include="Emit\Context.cs" />
     <Compile Include="Emit\EditAndContinue\DefinitionMap.cs" />
     <Compile Include="Emit\EditAndContinue\DeltaPeWriter.cs" />
@@ -206,7 +209,7 @@
     <Compile Include="Emit\NoPia\CommonEmbeddedTypeParameter.cs" />
     <Compile Include="Emit\NoPia\EmbeddedTypesManager.cs" />
     <Compile Include="Emit\NoPia\VtblGap.cs" />
-    <Compile Include="Emit\CommonPEModuleBuilder.cs" />
+    <Compile Include="Emit\PEModuleBuilder.cs" />
     <Compile Include="Emit\SemanticEdit.cs" />
     <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
@@ -359,7 +362,6 @@
     <Compile Include="PEWriter\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
-    <Compile Include="PEWriter\ExternNamespace.cs" />
     <Compile Include="PEWriter\FullPeWriter.cs" />
     <Compile Include="PEWriter\ICustomAttribute.cs" />
     <Compile Include="PEWriter\IFileReference.cs" />
@@ -367,7 +369,6 @@
     <Compile Include="PEWriter\InstructionOperandTypes.cs" />
     <Compile Include="PEWriter\ISymbolWriter.cs" />
     <Compile Include="PEWriter\ISymUnmanagedAsyncMethodPropertiesWriter.cs" />
-    <Compile Include="PEWriter\LocalScope.cs" />
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
@@ -376,11 +377,10 @@
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
     <Compile Include="PEWriter\Miscellaneous.cs" />
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
-    <Compile Include="PEWriter\NamespaceScope.cs" />
     <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
     <Compile Include="PEWriter\PdbWriter.cs" />
-    <Compile Include="PEWriter\PeDebugDirectory.cs" />
+    <Compile Include="PEWriter\PdbWriterInterface.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
@@ -388,12 +388,12 @@
     <Compile Include="PEWriter\SectionHeader.cs" />
     <Compile Include="PEWriter\SecurityAction.cs" />
     <Compile Include="PEWriter\SequencePoint.cs" />
+    <Compile Include="PEWriter\TempCCIParts.cs" />
     <Compile Include="PEWriter\TypeLibTypeFlags.cs" />
     <Compile Include="PEWriter\Types.cs" />
     <Compile Include="PEWriter\TypeSpecComparer.cs" />
+    <Compile Include="PEWriter\UnitHelper.cs" />
     <Compile Include="PEWriter\Units.cs" />
-    <Compile Include="PEWriter\UsedNamespaceOrType.cs" />
-    <Compile Include="PEWriter\UsedNamespaceOrTypeKind.cs" />
     <Compile Include="PrimitiveTypeCodeExtensions.cs" />
     <Compile Include="ReferenceManager\AssemblyData.cs" />
     <Compile Include="ReferenceManager\AssemblyDataForAssemblyBeingBuilt.cs" />
@@ -451,7 +451,6 @@
     <Compile Include="SymbolDisplay\SymbolDisplayPropertyStyle.cs" />
     <Compile Include="SymbolDisplay\SymbolDisplayTypeQualificationStyle.cs" />
     <Compile Include="Symbols\Accessibility.cs" />
-    <Compile Include="Symbols\AnonymousTypes\CommonAnonymousTypeManager.cs" />
     <Compile Include="Symbols\Attributes\AttributeDescription.cs" />
     <Compile Include="Symbols\Attributes\AttributeUsageInfo.cs" />
     <Compile Include="Symbols\Attributes\CommonAssemblyWellKnownAttributeData.cs" />
