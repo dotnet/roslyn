@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,27 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected SymbolCompletionState state;
         protected readonly SourceMemberContainerTypeSymbol containingType;
-        private readonly string name;
-        private readonly Location location;
-        private readonly SyntaxReference syntaxReference;
-
-        private string lazyDocComment;
         private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
 
-        private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-
-        protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
+        protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
-            Debug.Assert(name != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(location != null);
 
             this.containingType = containingType;
-            this.name = name;
-            this.syntaxReference = syntax;
-            this.location = location;
         }
 
         internal sealed override bool RequiresCompletion
@@ -59,27 +45,108 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.DefaultForceComplete(this);
         }
 
-        public SyntaxTree SyntaxTree
+        public abstract override string Name { get; }
+
+        protected abstract DeclarationModifiers Modifiers { get; }
+
+        public sealed override bool IsStatic
         {
             get
             {
-                return this.syntaxReference.SyntaxTree;
+                return (Modifiers & DeclarationModifiers.Static) != 0;
             }
         }
 
-        public CSharpSyntaxNode SyntaxNode
+        public sealed override bool IsReadOnly
         {
             get
             {
-                return (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
+                return (Modifiers & DeclarationModifiers.ReadOnly) != 0;
             }
         }
 
-        public sealed override string Name
+        public sealed override bool IsConst
         {
             get
             {
-                return name;
+                return (Modifiers & DeclarationModifiers.Const) != 0;
+            }
+        }
+
+        public sealed override bool IsVolatile
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Volatile) != 0;
+            }
+        }
+
+        public sealed override bool IsFixed
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.Fixed) != 0;
+            }
+        }
+
+        internal bool IsNew
+        {
+            get
+            {
+                return (Modifiers & DeclarationModifiers.New) != 0;
+            }
+        }
+
+        public sealed override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                return ModifierUtils.EffectiveAccessibility(Modifiers);
+            }
+        }
+
+        protected void CheckAccessibility(DiagnosticBag diagnostics)
+        {
+            var info = ModifierUtils.CheckAccessibility(Modifiers);
+            if (info != null)
+            {
+                diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
+            }
+        }
+
+        protected void ReportModifiersDiagnostics(DiagnosticBag diagnostics)
+        {
+            if (containingType.IsSealed && (DeclaredAccessibility == Accessibility.Protected || DeclaredAccessibility == Accessibility.ProtectedOrInternal))
+            {
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(containingType), ErrorLocation, this);
+            }
+            else if (IsVolatile && IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_VolatileAndReadonly, ErrorLocation, this);
+            }
+            else if (containingType.IsStatic && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, ErrorLocation, this);
+            }
+
+            // TODO: Consider checking presence of core type System.Runtime.CompilerServices.IsVolatile 
+            // if there is a volatile modifier. Perhaps an appropriate error should be reported if the 
+            // type isn't available.
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                if (!IsVolatile)
+                {
+                    return ImmutableArray<CustomModifier>.Empty;
+                }
+                else
+                {
+                    return ImmutableArray.Create<CustomModifier>(
+                            CSharpCustomModifier.CreateRequired(this.ContainingAssembly.GetSpecialType(SpecialType.System_Runtime_CompilerServices_IsVolatile)));
+                }
             }
         }
 
@@ -99,39 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(location, this.DeclaringCompilation);
-        }
-
-        public sealed override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray.Create(location);
-            }
-        }
-
-        internal Location Location
-        {
-            get
-            {
-                return location;
-            }
-        }
-
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>(syntaxReference);
-            }
-        }
-
-        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
-        }
+        internal abstract Location ErrorLocation {  get; }
 
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
@@ -239,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (obsoleteData != null)
                 {
                     arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                }
+                    }
 
                 return boundAttribute;
             }
@@ -414,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.ContainingType.Layout.Kind == LayoutKind.Explicit)
                 {
                     // error CS0625: '<field>': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, this.Location, this);
+                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, this.ErrorLocation, this);
                 }
             }
 
@@ -481,6 +516,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+    }
+
+    internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
+    {
+        private readonly string name;
+        private readonly Location location;
+        private readonly SyntaxReference syntaxReference;
+
+        private string lazyDocComment;
+        private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+
+
+        protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
+            : base(containingType)
+        {
+            Debug.Assert(name != null);
+            Debug.Assert(syntax != null);
+            Debug.Assert(location != null);
+
+            this.name = name;
+            this.syntaxReference = syntax;
+            this.location = location;
+        }
+
+        public SyntaxTree SyntaxTree
+        {
+            get
+            {
+                return this.syntaxReference.SyntaxTree;
+            }
+        }
+
+        public CSharpSyntaxNode SyntaxNode
+        {
+            get
+            {
+                return (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
+            }
+        }
+
+        public sealed override string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
+
+        internal override LexicalSortKey GetLexicalSortKey()
+        {
+            return new LexicalSortKey(location, this.DeclaringCompilation);
+        }
+
+        public sealed override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray.Create(location);
+            }
+        }
+
+        internal sealed override Location ErrorLocation
+        {
+            get
+            {
+                return location;
+            }
+        }
+
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return ImmutableArray.Create<SyntaxReference>(syntaxReference);
+            }
+        }
+
+        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+        }
+
         internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
             var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
@@ -490,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!inProgress.IsEmpty)
-            {
+        {
                 // Add this field as a dependency of the original field, and
                 // return Unset. The outer GetConstantValue caller will call
                 // this method again after evaluating any dependencies.
@@ -524,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// constant value if there were no dependencies. (If there are dependencies,
         /// the constant value will be re-evaluated after evaluating dependencies.)
         /// </summary>
-        internal ImmutableHashSet<SourceFieldSymbol> GetConstantValueDependencies(bool earlyDecodingWellKnownAttributes)
+        internal ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> GetConstantValueDependencies(bool earlyDecodingWellKnownAttributes)
         {
             var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
             if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
@@ -532,12 +650,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Constant value already determined. No need to
                 // compute dependencies since the constant values
                 // of all dependencies should be evaluated as well.
-                return ImmutableHashSet<SourceFieldSymbol>.Empty;
+                return ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
             }
 
-            ImmutableHashSet<SourceFieldSymbol> dependencies;
-            var builder = PooledHashSet<SourceFieldSymbol>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
+            ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
+            var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
+                var diagnostics = DiagnosticBag.GetInstance();
             value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
 
             // Only persist if there are no dependencies and the calculation
@@ -554,14 +672,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     earlyDecodingWellKnownAttributes,
                     diagnostics,
                     startsCycle: false);
-                dependencies = ImmutableHashSet<SourceFieldSymbol>.Empty;
+                dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
             }
             else
             {
-                dependencies = ImmutableHashSet<SourceFieldSymbol>.Empty.Union(builder);
+                dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty.Union(builder);
             }
 
-            diagnostics.Free();
+                    diagnostics.Free();
             builder.Free();
             return dependencies;
         }
@@ -571,14 +689,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.GetLazyConstantValue(earlyDecodingWellKnownAttributes) != Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
                 return;
-            }
+                }
 
-            var builder = PooledHashSet<SourceFieldSymbol>.GetInstance();
+            var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             var diagnostics = DiagnosticBag.GetInstance();
             if (startsCycle)
-            {
+                {
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, this.location, this);
-            }
+                }
 
             var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
             this.SetLazyConstantValue(
@@ -586,14 +704,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 earlyDecodingWellKnownAttributes,
                 diagnostics,
                 startsCycle);
-            diagnostics.Free();
+                diagnostics.Free();
             builder.Free();
         }
 
         private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
         {
             return earlyDecodingWellKnownAttributes ? this.lazyConstantEarlyDecodingValue : this.lazyConstantValue;
-        }
+            }
 
         private void SetLazyConstantValue(
             ConstantValue value,
@@ -622,6 +740,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbol> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
+        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
     }
 }

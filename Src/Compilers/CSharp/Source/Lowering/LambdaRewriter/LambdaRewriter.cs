@@ -608,14 +608,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode RewriteCatch(BoundCatchBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            AddLocals(node.Locals, newLocals);
-            var rewrittenCatchLocals = newLocals.ToImmutableAndFree();
+            LocalSymbol rewrittenCatchLocal = null;
+
+            if (newLocals.Count > 0)
+            {
+                Debug.Assert(newLocals.Count == 1, "must be only one local that is the frame reference");
+                Debug.Assert(this.proxies.ContainsKey(node.LocalOpt), "original local should be proxied");
+
+                // getting new locals means that our original local was lifted into a closure
+                // and instead of an actual local catch will own frame reference.
+                rewrittenCatchLocal = newLocals[0];
+            }
+            else if (node.LocalOpt != null)
+            {
+                // local was not lifted, but its type may need to be rewritten
+                // this happens when it has a generic type which needs to be rewritten
+                // when lambda body was moved to a separate method.
+                var origLocal = node.LocalOpt;
+                Debug.Assert(!this.proxies.ContainsKey(origLocal), "captured local should not need rewriting");
+
+                var newType = VisitType(origLocal.Type);
+                if (newType == origLocal.Type)
+                {
+                    // keeping same local
+                    rewrittenCatchLocal = origLocal;
+                }
+                else
+                {
+                    //  need a local of a different type
+                    rewrittenCatchLocal = new SynthesizedLocal(CurrentMethod, newType, origLocal.Name, declarationKind: LocalDeclarationKind.Catch);
+                    localMap.Add(origLocal, rewrittenCatchLocal);
+                }
+            }
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffecs.
             BoundExpression rewrittenExceptionSource = null;
-            var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
                 rewrittenExceptionSource = (BoundExpression)Visit(node.ExceptionSourceOpt);
@@ -629,27 +658,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenExceptionSource.Type);
                 }
             }
-            else if (prologue.Count > 0)
-            {
-                Debug.Assert(rewrittenFilter != null);
-                rewrittenFilter = new BoundSequence(
-                    rewrittenFilter.Syntax,
-                    ImmutableArray.Create<LocalSymbol>(),
-                    prologue.ToImmutable(),
-                    rewrittenFilter,
-                    rewrittenFilter.Type);
-            }
 
-            // done with this.
+            // done with these.
+            newLocals.Free();
             prologue.Free();
 
             // rewrite filter and body
             // NOTE: this will proxy all accesses to exception local if that got lifted.
             var exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             var rewrittenBlock = (BoundBlock)this.Visit(node.Body);
 
             return node.Update(
-                rewrittenCatchLocals, 
+                rewrittenCatchLocal,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
                 rewrittenFilter,

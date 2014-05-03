@@ -1467,7 +1467,7 @@ i + ne,         //-LiftedUnderlyingAndEnumAddition
 e + i,          //-EnumAndUnderlyingAddition
 e + ni,         //-LiftedEnumAndUnderlyingAddition
 ni + e,         //-LiftedUnderlyingAndEnumAddition
-ni + ne,        //-LiftedUnderlyingAndEnumAddition
+ni + ne         //-LiftedUnderlyingAndEnumAddition
 ne + i,         //-LiftedEnumAndUnderlyingAddition
 ne + ni         //-LiftedEnumAndUnderlyingAddition" + Postfix;
 

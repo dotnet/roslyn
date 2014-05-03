@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1235,6 +1235,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        private static SyntaxModifier GetFieldModifier(SyntaxToken token)
+        {
+            switch (token.Kind)
+            {
+                case SyntaxKind.PublicKeyword:
+                    return SyntaxModifier.Public;
+                case SyntaxKind.InternalKeyword:
+                    return SyntaxModifier.Internal;
+                case SyntaxKind.ProtectedKeyword:
+                    return SyntaxModifier.Protected;
+                case SyntaxKind.PrivateKeyword:
+                    return SyntaxModifier.Private;
+                case SyntaxKind.StaticKeyword:
+                    return SyntaxModifier.Static;
+                case SyntaxKind.NewKeyword:
+                    return SyntaxModifier.New;
+                case SyntaxKind.ReadOnlyKeyword:
+                    return SyntaxModifier.ReadOnly;
+                case SyntaxKind.VolatileKeyword:
+                    return SyntaxModifier.Volatile;
+                default:
+                    return SyntaxModifier.None;
+            }
+        }
+
         private bool IsPossibleModifier()
         {
             return GetModifier(this.CurrentToken) != SyntaxModifier.None;
@@ -1361,36 +1386,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                 }
 
-                if ((mods & newMod) != 0)
-                {
-                    if (seenNoDuplicates)
-                    {
-                        modTok = this.AddError(modTok, ErrorCode.ERR_DuplicateModifier, SyntaxFacts.GetText(modTok.Kind));
-                        seenNoDuplicates = false;
-                    }
-                }
-                else
-                {
-                    if ((mods & AccessModifiers) != 0 && (newMod & AccessModifiers) != 0)
-                    {
-                        // Can't have two different access modifiers.
-                        // Exception: "internal protected" or "protected internal" is allowed.
-                        if (!(((newMod == SyntaxModifier.Protected) && (mods & SyntaxModifier.Internal) != 0) ||
-                                ((newMod == SyntaxModifier.Internal) && (mods & SyntaxModifier.Protected) != 0)))
-                        {
-                            if (seenNoAccessibilityDuplicates)
-                            {
-                                modTok = this.AddError(modTok, ErrorCode.ERR_BadMemberProtection);
-                            }
-
-                            seenNoAccessibilityDuplicates = false;
-                        }
-                    }
-                }
-
+                ReportDuplicateModifiers(ref modTok, newMod, mods, ref seenNoDuplicates, ref seenNoAccessibilityDuplicates);
                 mods |= newMod;
 
                 tokens.Add(modTok);
+            }
+        }
+
+        private void ReportDuplicateModifiers(ref SyntaxToken modTok, SyntaxModifier newMod, SyntaxModifier mods, ref bool seenNoDuplicates, ref bool seenNoAccessibilityDuplicates)
+        {
+            if ((mods & newMod) != 0)
+            {
+                if (seenNoDuplicates)
+                {
+                    modTok = this.AddError(modTok, ErrorCode.ERR_DuplicateModifier, SyntaxFacts.GetText(modTok.Kind));
+                    seenNoDuplicates = false;
+                }
+            }
+            else
+            {
+                if ((mods & AccessModifiers) != 0 && (newMod & AccessModifiers) != 0)
+                {
+                    // Can't have two different access modifiers.
+                    // Exception: "internal protected" or "protected internal" is allowed.
+                    if (!(((newMod == SyntaxModifier.Protected) && (mods & SyntaxModifier.Internal) != 0) ||
+                            ((newMod == SyntaxModifier.Internal) && (mods & SyntaxModifier.Protected) != 0)))
+                    {
+                        if (seenNoAccessibilityDuplicates)
+                        {
+                            modTok = this.AddError(modTok, ErrorCode.ERR_BadMemberProtection);
+                        }
+
+                        seenNoAccessibilityDuplicates = false;
+                    }
+                }
             }
         }
 
@@ -1533,9 +1562,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList(allowVariance: classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword);
 
+            // Primary constructor parameters
+            ParameterListSyntax parameterList = null;
+            if (this.Options.LanguageVersion == LanguageVersion.Experimental && this.CurrentToken.Kind == SyntaxKind.OpenParenToken &&
+                (classOrStructOrInterface.Kind == SyntaxKind.ClassKeyword || classOrStructOrInterface.Kind == SyntaxKind.StructKeyword))
+            {
+                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true, allowFieldModifiers: true);
+            }
+
             this.termState = saveTerm;
             bool hasTypeParams = typeParameters != null;
-            var baseList = this.ParseBaseList();
+            var baseList = this.ParseBaseList(allowArguments: classOrStructOrInterface.Kind == SyntaxKind.ClassKeyword && parameterList != null);
 
             // Parse class body
             bool parseMembers = true;
@@ -1616,6 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             classOrStructOrInterface,
                             name,
                             typeParameters,
+                            parameterList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1630,6 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             classOrStructOrInterface,
                             name,
                             typeParameters,
+                            parameterList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1762,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private BaseListSyntax ParseBaseList()
+        private BaseListSyntax ParseBaseList(bool allowArguments)
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1780,7 +1819,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    list.Add(this.ParseDeclarationType(isConstraint: false, parentIsParameter: false));
+                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false, parentIsParameter: false);
+
+                    if (allowArguments && this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                    {
+                        firstType = syntaxFactory.BaseClassWithArguments(firstType, this.ParseParenthesizedArgumentList());
+                    }
+
+                    list.Add(firstType);
 
                     // any additional types
                     while (true)
@@ -2592,7 +2638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.termState |= TerminatorState.IsEndOfMethodSignature;
             try
             {
-                var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+                var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
 
                 ConstructorInitializerSyntax initializer = null;
                 if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
@@ -2748,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveTerm = this.termState;
             this.termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
 
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
@@ -2859,7 +2905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var type = this.ParseType(parentIsParameter: false);
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
             if (paramList.Parameters.Count != 1)
             {
                 paramList = this.AddErrorToFirstToken(paramList, ErrorCode.ERR_OvlUnaryOperatorExpected);
@@ -2935,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
 
             // ReportExtensionMethods(parameters, retval);
             switch (paramList.Parameters.Count)
@@ -3445,7 +3491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        internal ParameterListSyntax ParseParenthesizedParameterList(bool allowThisKeyword, bool allowDefaults, bool allowAttributes)
+        internal ParameterListSyntax ParseParenthesizedParameterList(bool allowThisKeyword, bool allowDefaults, bool allowAttributes, bool allowFieldModifiers)
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax))
             {
@@ -3461,7 +3507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 SyntaxToken open;
                 SyntaxToken close;
-                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword: allowThisKeyword, allowDefaults: allowDefaults, allowAttributes: allowAttributes);
+                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword, allowDefaults, allowAttributes, allowFieldModifiers);
                 return syntaxFactory.ParameterList(open, parameters, close);
             }
             finally
@@ -3486,7 +3532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 SyntaxToken open;
                 SyntaxToken close;
-                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword: false, allowDefaults: allowDefaults, allowAttributes: true);
+                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword: false, allowDefaults: allowDefaults, allowAttributes: true, allowFieldModifiers: false);
                 return syntaxFactory.BracketedParameterList(open, parameters, close);
             }
             finally
@@ -3559,7 +3605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxKind closeKind,
             bool allowThisKeyword,
             bool allowDefaults,
-            bool allowAttributes)
+            bool allowAttributes,
+            bool allowFieldModifiers)
         {
             open = this.EatToken(openKind);
 
@@ -3577,12 +3624,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     bool mustBeLastHadParams = false;
                     bool hasParams = false;
                     bool hasArgList = false;
-                    if (this.IsPossibleParameter(allowThisKeyword) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+
+                    if (this.IsPossibleParameter(allowThisKeyword, allowFieldModifiers) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter
                         attributes.Clear();
                         modifiers.Clear();
-                        var parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword: allowThisKeyword, allowDefaults: allowDefaults, allowAttributes: allowAttributes);
+                        var parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes, allowFieldModifiers);
                         nodes.Add(parameter);
                         hasParams = modifiers.Any(SyntaxKind.ParamsKeyword);
                         hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
@@ -3600,12 +3648,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 break;
                             }
-                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleParameter(allowThisKeyword))
+                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleParameter(allowThisKeyword, allowFieldModifiers))
                             {
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                                 attributes.Clear();
                                 modifiers.Clear();
-                                parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword: allowThisKeyword, allowDefaults: allowDefaults, allowAttributes: allowAttributes);
+                                parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes, allowFieldModifiers);
                                 nodes.Add(parameter);
                                 hasParams = modifiers.Any(SyntaxKind.ParamsKeyword);
                                 hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
@@ -3618,13 +3666,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 continue;
                             }
-                            else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.CommaToken, closeKind, allowThisKeyword) == PostSkipAction.Abort)
+                            else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.CommaToken, closeKind, allowThisKeyword, allowFieldModifiers) == PostSkipAction.Abort)
                             {
                                 break;
                             }
                         }
                     }
-                    else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.IdentifierToken, closeKind, allowThisKeyword) == PostSkipAction.Continue)
+                    else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.IdentifierToken, closeKind, allowThisKeyword, allowFieldModifiers) == PostSkipAction.Continue)
                     {
                         goto tryAgain;
                     }
@@ -3651,15 +3699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken;
         }
 
-        private PostSkipAction SkipBadParameterListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind, bool allowThisKeyword)
+        private PostSkipAction SkipBadParameterListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind, bool allowThisKeyword, bool allowFieldModifiers)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(allowThisKeyword),
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(allowThisKeyword, allowFieldModifiers),
                 p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
                 expected);
         }
 
-        private bool IsPossibleParameter(bool allowThisKeyword)
+        private bool IsPossibleParameter(bool allowThisKeyword, bool allowFieldModifiers)
         {
             switch (this.CurrentToken.Kind)
             {
@@ -3673,6 +3721,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return allowThisKeyword;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
+
+                case SyntaxKind.NewKeyword:
+                case SyntaxKind.PublicKeyword:
+                case SyntaxKind.ProtectedKeyword:
+                case SyntaxKind.InternalKeyword:
+                case SyntaxKind.PrivateKeyword:
+                case SyntaxKind.StaticKeyword:
+                case SyntaxKind.ReadOnlyKeyword:
+                case SyntaxKind.VolatileKeyword:
+                    return allowFieldModifiers;
+
                 default:
                     return IsPredefinedType(this.CurrentToken.Kind);
             }
@@ -3736,7 +3795,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxListBuilder modifiers,
             bool allowThisKeyword,
             bool allowDefaults,
-            bool allowAttributes)
+            bool allowAttributes, 
+            bool allowFieldModifiers)
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax, attributes, modifiers))
             {
@@ -3744,7 +3804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             this.ParseAttributeDeclarations(attributes, allowAttributes);
-            this.ParseParameterModifiers(modifiers, allowThisKeyword);
+            this.ParseParameterModifiers(modifiers, allowThisKeyword, allowFieldModifiers);
 
             var hasArgList = this.CurrentToken.Kind == SyntaxKind.ArgListKeyword;
 
@@ -3844,112 +3904,171 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool allowThisKeyword)
+        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool allowThisKeyword, bool allowFieldModifiers)
         {
             var flags = ParamFlags.None;
+            SyntaxModifier fieldMods = 0;
+            bool seenNoDuplicates = true;
+            bool seenNoAccessibilityDuplicates = true;
 
-            while (IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword))
+            while (true)
             {
-                var mod = this.EatToken();
-
-                if (mod.Kind == SyntaxKind.ThisKeyword ||
-                    mod.Kind == SyntaxKind.RefKeyword ||
-                    mod.Kind == SyntaxKind.OutKeyword ||
-                    mod.Kind == SyntaxKind.ParamsKeyword)
+                if (IsParameterModifier(this.CurrentToken.Kind, allowThisKeyword))
                 {
-                    if (mod.Kind == SyntaxKind.ThisKeyword)
-                    {
-                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
+                    var mod = this.EatToken();
 
-                        if ((flags & ParamFlags.This) != 0)
+                    if (mod.Kind == SyntaxKind.ThisKeyword ||
+                        mod.Kind == SyntaxKind.RefKeyword ||
+                        mod.Kind == SyntaxKind.OutKeyword ||
+                        mod.Kind == SyntaxKind.ParamsKeyword)
+                    {
+                        if (mod.Kind == SyntaxKind.ThisKeyword)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureExtensionMethod);
+
+                            if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            }
+                            else if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
+                            }
+                            else if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.This;
+                            }
                         }
-                        else if ((flags & ParamFlags.Out) != 0)
+                        else if (mod.Kind == SyntaxKind.RefKeyword)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
+                            if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
+                            }
+                            else if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Ref;
+                            }
                         }
-                        else if ((flags & ParamFlags.Ref) != 0)
+                        else if (mod.Kind == SyntaxKind.OutKeyword)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                            if ((flags & ParamFlags.Out) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
+                            }
+                            else if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
+                            }
+                            else if ((flags & ParamFlags.Ref) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Out;
+                            }
                         }
-                        else if ((flags & ParamFlags.Params) != 0)
+                        else if (mod.Kind == SyntaxKind.ParamsKeyword)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.This;
+                            if ((flags & ParamFlags.Params) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                            }
+                            else if ((flags & ParamFlags.This) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
+                            }
+                            else if ((flags & (ParamFlags.Ref | ParamFlags.Out | ParamFlags.This)) != 0)
+                            {
+                                mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            }
+                            else
+                            {
+                                flags |= ParamFlags.Params;
+                            }
                         }
                     }
-                    else if (mod.Kind == SyntaxKind.RefKeyword)
+
+                    modifiers.Add(mod);
+                    continue;
+                }
+
+                if (allowFieldModifiers)
+                {
+                    var newFieldMod = GetFieldModifier(this.CurrentToken);
+                    if (newFieldMod != SyntaxModifier.None)
                     {
-                        if ((flags & ParamFlags.Ref) != 0)
+                        var modTok = this.EatToken();
+
+                        if (newFieldMod == SyntaxModifier.Static)
                         {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
-                        }
-                        else if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
+                            if ((fieldMods & SyntaxModifier.Static) == 0)
+                            {
+                                modTok = this.AddError(modTok, ErrorCode.ERR_StaticParamMod);
+                            }
                         }
                         else
                         {
-                            flags |= ParamFlags.Ref;
+                            ReportDuplicateModifiers(ref modTok, newFieldMod, fieldMods, ref seenNoDuplicates, ref seenNoAccessibilityDuplicates);
                         }
-                    }
-                    else if (mod.Kind == SyntaxKind.OutKeyword)
-                    {
-                        if ((flags & ParamFlags.Out) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.OutKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
-                        }
-                        else if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_ParamsCantBeRefOut);
-                        }
-                        else if ((flags & ParamFlags.Ref) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Out;
-                        }
-                    }
-                    else if (mod.Kind == SyntaxKind.ParamsKeyword)
-                    {
-                        if ((flags & ParamFlags.Params) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
-                        }
-                        else if ((flags & ParamFlags.This) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
-                        }
-                        else if ((flags & (ParamFlags.Ref | ParamFlags.Out | ParamFlags.This)) != 0)
-                        {
-                            mod = this.AddError(mod, ErrorCode.ERR_MultiParamMod);
-                        }
-                        else
-                        {
-                            flags |= ParamFlags.Params;
-                        }
+
+                        fieldMods |= newFieldMod;
+
+                        modifiers.Add(modTok);
+                        continue;
                     }
                 }
 
-                modifiers.Add(mod);
+                break;
+            }
+
+            if (fieldMods != 0 && fieldMods != SyntaxModifier.Static && ((fieldMods & AccessModifiers) == 0 || (flags & (ParamFlags.Ref | ParamFlags.Out)) != 0))
+            {
+                for (int i = 0; i < modifiers.Count; i++)
+                {
+                    var mod = GetFieldModifier((SyntaxToken)modifiers[i]);
+
+                    if (mod != SyntaxModifier.None && mod != SyntaxModifier.Static)
+                    {
+                        Debug.Assert((fieldMods & AccessModifiers) == 0 || (flags & (ParamFlags.Ref | ParamFlags.Out)) != 0);
+
+                        if ((flags & (ParamFlags.Ref | ParamFlags.Out)) != 0)
+                        {
+                            modifiers[i] = this.AddError(modifiers[i], ErrorCode.ERR_RefOutParameterWithFieldModifier);
+                        }
+                        else if ((fieldMods & AccessModifiers) == 0)
+                        {
+                            modifiers[i] = this.AddError(modifiers[i], ErrorCode.ERR_ParamMissingAccessMod);
+                        }
+
+                        break;
+                    }
+                }
             }
         }
 
@@ -4587,7 +4706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.termState |= TerminatorState.IsEndOfMethodSignature;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList(allowVariance: true);
-            var parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
@@ -6274,7 +6393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveTerm = this.termState;
             this.termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true, allowFieldModifiers: false);
 
             this.termState = saveTerm;
             var separatedParameters = paramList.Parameters.GetWithSeparators();
@@ -9359,7 +9478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ParameterListSyntax parameterList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: false, allowAttributes: false);
+                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: false, allowAttributes: false, allowFieldModifiers: false);
             }
 
             var body = this.ParseBlock();

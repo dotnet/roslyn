@@ -145,14 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
-        /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
-        {
-            return this.Next.GetDeclaredLocalsForScope(node);
-        }
-
-        /// <summary>
         /// The member containing the binding context.  Note that for the purposes of the compiler,
         /// a lambda expression is considered a "member" of its enclosing method, field, or lambda.
         /// </summary>
@@ -553,7 +545,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var unusedDiagnostics = DiagnosticBag.GetInstance();
             foreach (var argumentSyntax in arguments)
             {
-                BindArgumentAndName(analyzedArguments, unusedDiagnostics, false, argumentSyntax, allowArglist: false);
+                var argument = this.BindExpression(argumentSyntax.Expression, unusedDiagnostics);
+
+                analyzedArguments.Arguments.Add(argument);
+                analyzedArguments.RefKinds.Add(argumentSyntax.RefOrOutKeyword.CSharpKind().GetRefKind());
+                analyzedArguments.Names.Add(argumentSyntax.NameColon == null
+                    ? null
+                    : argumentSyntax.NameColon.Name);
             }
 
             OverloadResolution.MethodOrPropertyOverloadResolution(

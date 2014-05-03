@@ -1264,4 +1264,10 @@
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 
+  <!-- 
+  Special node to encapsulate initializers added into a constructor. 
+  Helps to do special optimizations in lowering, doesn't survive the lowering.
+  -->
+  <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList">
+  </Node>
 </Tree>

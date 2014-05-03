@@ -302,5 +302,86 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return node.Update(operand, getTypeFromHandle, type);
         }
+
+        public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
+        {
+            ImmutableArray<BoundStatement> rewrittenStatements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
+            ImmutableArray<BoundStatement> optimizedStatements = ImmutableArray<BoundStatement>.Empty;
+
+            if (compilation.Options.Optimize)
+            {
+                // TODO: this part may conflict with InitializerRewriter.Rewrite in how it handles 
+                //       the first field initializer (see 'if (i == 0)'...) which seems suspicious
+                ArrayBuilder<BoundStatement> statements = ArrayBuilder<BoundStatement>.GetInstance();
+                bool anyNonDefault = false;
+
+                foreach (var initializer in rewrittenStatements)
+                {
+                    if (ShouldOptimizeOutInitializer(initializer))
+                    {
+                        if (this.factory.CurrentMethod.IsStatic)
+                        {
+                            // NOTE: Dev11 removes static initializers if ONLY all of them are optimized out
+                            statements.Add(initializer);
+                        }
+                    }
+                    else
+                    {
+                        statements.Add(initializer);
+                        anyNonDefault = true;
+                    }
+                }
+
+                if (anyNonDefault)
+                {
+                    optimizedStatements = statements.ToImmutableAndFree();
+                }
+                else
+                {
+                    statements.Free();
+                }
+            }
+            else
+            {
+                optimizedStatements = rewrittenStatements;
+            }
+
+            return new BoundStatementList(node.Syntax, optimizedStatements, node.HasErrors);
+        }
+
+        /// <summary>
+        /// Returns true if the initializer is a field initializer which should be optimized out
+        /// </summary>
+        private static bool ShouldOptimizeOutInitializer(BoundStatement initializer)
+        {
+            BoundStatement statement = initializer;
+
+            if (initializer.Kind == BoundKind.SequencePointWithSpan)
+            {
+                statement = ((BoundSequencePointWithSpan)initializer).StatementOpt;
+            }
+            else if (initializer.Kind == BoundKind.SequencePoint)
+            {
+                statement = ((BoundSequencePoint)initializer).StatementOpt;
+            }
+
+            if (statement == null || statement.Kind != BoundKind.ExpressionStatement)
+            {
+                Debug.Assert(false, "initializer does not initialize a field?");
+                return false;
+            }
+
+            BoundAssignmentOperator assignment = ((BoundExpressionStatement)statement).Expression as BoundAssignmentOperator;
+            if (assignment == null)
+            {
+                Debug.Assert(false, "initializer does not initialize a field?");
+                return false;
+            }
+
+            Debug.Assert(assignment.Left.Kind == BoundKind.FieldAccess);
+
+            BoundExpression rhs = assignment.Right;
+            return rhs.IsDefaultValue();
+        }
     }
 }

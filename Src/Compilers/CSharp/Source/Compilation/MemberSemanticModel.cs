@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -408,6 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override IMethodSymbol GetDeclaredSymbol(BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define method inside member.
+            return null;
+        }
+
+        public override IMethodSymbol GetDeclaredConstructorSymbol(TypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define type inside a member.
             return null;
         }
 
@@ -1631,6 +1637,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Already bound. Return the top-most bound node associated with the statement. 
                     return (BoundStatement)boundNodes[0];
                 }
+            }
+
+            internal override Binder WithPrimaryConstructorParametersIfNecessary(NamedTypeSymbol containingType, bool shadowBackingFields)
+            {
+                Binder result = base.WithPrimaryConstructorParametersIfNecessary(containingType, shadowBackingFields);
+
+                if (result != this)
+                {
+                    result = new IncrementalBinder(this.semanticModel, result);
+                }
+
+                return result;
             }
         }
     }

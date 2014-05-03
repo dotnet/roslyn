@@ -2914,15 +2914,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A declaration expression is not permitted in a variable-initializer of a field declaration, an attribute application, or in a class-base specification..
-        /// </summary>
-        internal static string ERR_DeclarationExpressionOutsideOfAMethodBody {
-            get {
-                return ResourceManager.GetString("ERR_DeclarationExpressionOutsideOfAMethodBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -8274,15 +8265,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VariableUsedBeforeDeclarationAndHidesField {
             get {
                 return ResourceManager.GetString("ERR_VariableUsedBeforeDeclarationAndHidesField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reference to variable &apos;{0}&apos; is not permitted in this context..
-        /// </summary>
-        internal static string ERR_VariableUsedInTheSameArgumentList {
-            get {
-                return ResourceManager.GetString("ERR_VariableUsedInTheSameArgumentList", resourceCulture);
             }
         }
         
