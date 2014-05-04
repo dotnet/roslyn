@@ -113,6 +113,7 @@
     <Compile Include="Binder\ConstantFieldsInProgressBinder.cs" />
     <Compile Include="Binder\ContextualAttributeBinder.cs" />
     <Compile Include="Binder\EarlyWellKnownAttributeBinder.cs" />
+    <Compile Include="Binder\EmbeddedStatementBinder.cs" />
     <Compile Include="Binder\ExecutableCodeBinder.cs" />
     <Compile Include="Binder\ExtensionMethodScope.cs" />
     <Compile Include="Binder\FixedStatementBinder.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Binder\ForEachLoopBinder.cs" />
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
+    <Compile Include="Binder\IfBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\Imports.cs" />
@@ -138,6 +140,7 @@
     <Compile Include="Binder\LoopBinderContext.cs" />
     <Compile Include="Binder\MethodGroupResolution.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
+    <Compile Include="Binder\ScopedExpressionBinder.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
     <Compile Include="Binder\Semantics\Conversions\Conversion.cs" />
@@ -209,6 +212,7 @@
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
     <Compile Include="BoundTree\UnboundLambda.cs" />
+    <Compile Include="BoundTree\UninitializedVarDeclarationExpression.cs" />
     <Compile Include="CodeGen\CodeGenerator.cs" />
     <Compile Include="CodeGen\EmitAddress.cs" />
     <Compile Include="CodeGen\EmitArrayInitializer.cs" />

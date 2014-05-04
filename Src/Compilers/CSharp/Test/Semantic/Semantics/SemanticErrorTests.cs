@@ -12781,6 +12781,28 @@ public class A : Attribute
         return 1;
     }
 
+}", parseOptions: Test.Utilities.TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental))
+                .VerifyDiagnostics(
+    // (4,25): error CS1001: Identifier expected
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(4, 25),
+    // (4,18): error CS0165: Use of unassigned local variable ''
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "string ").WithArguments("").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void CS1525ERR_InvalidExprTerm_NoDeclExpr()
+        {
+            CreateCompilationWithMscorlib(
+@"public class MyClass {
+
+    public static int Main() {
+        bool b = string is string;
+        return 1;
+    }
+
 }")
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string"));
         }

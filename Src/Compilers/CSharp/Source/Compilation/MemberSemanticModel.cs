@@ -160,6 +160,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (LookupPosition.IsInStatementScope(position, stmt))
                     {
                         binder = rootBinder.GetBinder(current);
+
+                        if (binder != null)
+                        {
+                            switch (stmt.CSharpKind())
+                            {
+                                case SyntaxKind.ForEachStatement:
+                                    var forEachStmt = (ForEachStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, forEachStmt.InKeyword, forEachStmt.CloseParenToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ScopedExpressionBinder);
+                                    }
+                                    break;
+
+                                case SyntaxKind.ForStatement:
+                                    var forStmt = (ForStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, forStmt.OpenParenToken, forStmt.FirstSemicolonToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ForLoopInitializationBinder);
+                                    }
+                                    break;
+
+                                case SyntaxKind.SwitchStatement:
+                                    var switchStmt = (SwitchStatementSyntax)stmt;
+                                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.CloseParenToken))
+                                    {
+                                        binder = binder.Next;
+                                        Debug.Assert(binder is ScopedExpressionBinder);
+                                    }
+                                    break;
+                            }
+                        }
                     }
                 }
                 else if (current.Kind == SyntaxKind.CatchClause)
@@ -1433,6 +1466,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetBindableSyntaxNode(parent);
 
                     case SyntaxKind.VariableDeclarator: // declarators are mapped in SyntaxBinder
+
+                        if (parent.Kind == SyntaxKind.DeclarationExpression)
+                        {
+                            return GetBindableSyntaxNode(parent);
+                        }
+
                         // When a local variable declaration contains a single declarator, the bound node
                         // is associated with the declaration, rather than with the declarator.  If we
                         // used the declarator here, we would have enough context to bind it, but we wouldn't
