@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return slot; }
         }
 
-        public Microsoft.Cci.IMetadataConstant CompileTimeValue
+        public Cci.IMetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public IEnumerable<Microsoft.Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ICustomModifier>(); }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         public bool IsConstant

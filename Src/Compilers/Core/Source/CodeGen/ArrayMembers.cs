@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ArrayMethodParameterInfo(index);
         }
 
-        public IEnumerable<Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomModifier>(); }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         public bool IsByReference
@@ -414,14 +414,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return (ushort)parameters.Length; }
         }
 
-        public IEnumerable<Cci.ICustomModifier> ReturnValueCustomModifiers
+        public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomModifier>(); }
-        }
-
-        public bool ReturnValueIsModified
-        {
-            get { return false; }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         public Cci.ITypeReference GetContainingType(EmitContext context)

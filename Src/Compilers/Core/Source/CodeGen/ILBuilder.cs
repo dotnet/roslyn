@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="edgeInclusive">Specifies whether scope spans should be reported as edge inclusive
         /// (position at "start + length" is IN the scope). VB EE expects that.</param>
         /// <returns></returns>
-        internal ImmutableArray<LocalScope> GetAllScopes(bool edgeInclusive = false)
+        internal ImmutableArray<Cci.LocalScope> GetAllScopes(bool edgeInclusive = false)
         {
             return scopeManager.GetAllScopesWithLocals(edgeInclusive);
         }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="edgeInclusive">Specifies whether scope spans should be reported as edge inclusive
         /// (position at "start + length" is IN the scope). VB EE expects that.</param>
         /// <returns></returns>
-        internal ImmutableArray<LocalScope> GetIteratorScopes(bool edgeInclusive = false)
+        internal ImmutableArray<Cci.LocalScope> GetIteratorScopes(bool edgeInclusive = false)
         {
             // The iterator scopes are enumerated and returned here, sorted by variable "index",
             // which is a number appearing after the "__" at the end of the field's name.  The index should

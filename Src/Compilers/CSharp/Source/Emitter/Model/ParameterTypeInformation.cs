@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -19,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.UnderlyingParameter = underlyingParameter;
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
-                return UnderlyingParameter.CustomModifiers;
+                return UnderlyingParameter.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -32,14 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 return UnderlyingParameter.RefKind != RefKind.None;
-            }
-        }
-
-        bool Cci.IParameterTypeInformation.IsModified
-        {
-            get
-            {
-                return UnderlyingParameter.CustomModifiers.Length != 0;
             }
         }
 
@@ -83,19 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.type = type;
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomModifier>(); }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         bool Cci.IParameterTypeInformation.IsByReference
         {
             get { return isByRef; }
-        }
-
-        bool Cci.IParameterTypeInformation.IsModified
-        {
-            get { return false; }
         }
 
         bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers

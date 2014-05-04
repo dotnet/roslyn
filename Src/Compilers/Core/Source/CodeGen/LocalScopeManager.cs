@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// NOTE that edgeInclusive affects only how results are _reported_. 
             /// All internal representation is EDGE EXCLUSIVE.
             /// </remarks>
-            internal ImmutableArray<LocalScope> GetAllScopesWithLocals(bool edgeInclusive = false)
+            internal ImmutableArray<Cci.LocalScope> GetAllScopesWithLocals(bool edgeInclusive = false)
             {
-                var result = ArrayBuilder<LocalScope>.GetInstance();
+                var result = ArrayBuilder<Cci.LocalScope>.GetInstance();
                 ScopeBounds rootBounds = rootScope.GetScopesWithLocals(result, edgeInclusive);
 
                 uint expectedRootScopeLength = rootBounds.End - rootBounds.Begin;
@@ -141,12 +141,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // we add it even if it does not contain any locals
                 if (result.Count > 0 && result[result.Count - 1].Length != expectedRootScopeLength)
                 {
-                    result.Add(new LocalScope(
+                    result.Add(new Cci.LocalScope(
                         0,
                         expectedRootScopeLength,
-                        null,
-                        SpecializedCollections.EmptyEnumerable<LocalDefinition>(),
-                        SpecializedCollections.EmptyEnumerable<LocalDefinition>()));
+                        ImmutableArray<Cci.ILocalDefinition>.Empty,
+                        ImmutableArray<Cci.ILocalDefinition>.Empty));
                 }
 
                 //scopes should be sorted by position and size
@@ -167,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return result.ToImmutableAndFree();
             }
 
-            internal ImmutableArray<LocalScope> GetIteratorScopes(bool edgeInclusive)
+            internal ImmutableArray<Cci.LocalScope> GetIteratorScopes(bool edgeInclusive)
             {
-                var result = ArrayBuilder<LocalScope>.GetInstance();
+                var result = ArrayBuilder<Cci.LocalScope>.GetInstance();
                 rootScope.GetIteratorScopes(result, edgeInclusive);
                 return result.ToImmutableAndFree();
             }
@@ -267,9 +266,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// Recursively calculates the start and end of the given scope.
             /// Only scopes with locals are actually dumped to the list.
             /// </summary>
-            internal abstract ScopeBounds GetScopesWithLocals(ArrayBuilder<LocalScope> scopesWithVariables, bool edgeInclusive);
+            internal abstract ScopeBounds GetScopesWithLocals(ArrayBuilder<Cci.LocalScope> scopesWithVariables, bool edgeInclusive);
 
-            protected static ScopeBounds GetScopesWithLocals<TScopeInfo>(ArrayBuilder<LocalScope> scopesWithVariables, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
+            protected static ScopeBounds GetScopesWithLocals<TScopeInfo>(ArrayBuilder<Cci.LocalScope> scopesWithVariables, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
                 where TScopeInfo : ScopeInfo
             {
                 Debug.Assert(scopes.Count > 0);
@@ -291,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// Recursively calculates the start and end of the given scope.
             /// Only scopes with locals are actually dumped to the list.
             /// </summary>
-            internal abstract ScopeBounds GetIteratorScopes(ArrayBuilder<LocalScope> scopesWithIteratorLocals, bool edgeInclusive);
+            internal abstract ScopeBounds GetIteratorScopes(ArrayBuilder<Cci.LocalScope> scopesWithIteratorLocals, bool edgeInclusive);
 
-            protected static ScopeBounds GetIteratorScopes<TScopeInfo>(ArrayBuilder<LocalScope> scopesWithIteratorLocals, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
+            protected static ScopeBounds GetIteratorScopes<TScopeInfo>(ArrayBuilder<Cci.LocalScope> scopesWithIteratorLocals, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
                 where TScopeInfo : ScopeInfo
             {
                 Debug.Assert(scopes.Count > 0);
@@ -438,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal override ScopeBounds GetScopesWithLocals(ArrayBuilder<LocalScope> scopesWithVariables, bool edgeInclusive)
+            internal override ScopeBounds GetScopesWithLocals(ArrayBuilder<Cci.LocalScope> scopesWithVariables, bool edgeInclusive)
             {
                 uint begin = uint.MaxValue;
                 uint end = 0;
@@ -472,20 +471,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if ((this.LocalVariables != null || this.LocalConstants != null) && end > begin)
                 {
                     uint endAdjusted = edgeInclusive ? end - 1 : end;
-                    IEnumerable<Microsoft.Cci.ILocalDefinition> localConstantDefinitions = this.LocalConstants == null
-                        ? SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ILocalDefinition>()
-                        : this.LocalConstants.ToArray();
-                    IEnumerable<Microsoft.Cci.ILocalDefinition> localDefinitions = this.LocalVariables == null
-                        ? SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ILocalDefinition>()
-                        : this.LocalVariables.ToArray();
-                    LocalScope newScope = new LocalScope(begin, endAdjusted, null, localConstantDefinitions, localDefinitions);
+
+                    var newScope = new Cci.LocalScope(
+                        begin, 
+                        endAdjusted - begin, 
+                        this.LocalConstants.AsImmutableOrEmpty<Cci.ILocalDefinition>(),
+                        this.LocalVariables.AsImmutableOrEmpty<Cci.ILocalDefinition>());
+
                     scopesWithVariables.Add(newScope);
                 }
 
                 return new ScopeBounds(begin, end);
             }
 
-            internal override ScopeBounds GetIteratorScopes(ArrayBuilder<LocalScope> scopesWithIteratorLocals, bool edgeInclusive)
+            internal override ScopeBounds GetIteratorScopes(ArrayBuilder<Cci.LocalScope> scopesWithIteratorLocals, bool edgeInclusive)
             {
                 uint begin = uint.MaxValue;
                 uint end = 0;
@@ -519,10 +518,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (this.IteratorVariables != null && end > begin)
                 {
                     uint endAdjusted = edgeInclusive ? end - 1 : end;
-                    var newScope = new LocalScope(begin, endAdjusted, null, null, null);
+
+                    var newScope = new Cci.LocalScope(
+                        begin, 
+                        endAdjusted - begin,
+                        ImmutableArray<Cci.ILocalDefinition>.Empty,
+                        ImmutableArray<Cci.ILocalDefinition>.Empty);
+
                     foreach (var iv in this.IteratorVariables)
                     {
-                        while (scopesWithIteratorLocals.Count <= iv) scopesWithIteratorLocals.Add(null);
+                        while (scopesWithIteratorLocals.Count <= iv)
+                        {
+                            scopesWithIteratorLocals.Add(default(Cci.LocalScope));
+                        }
+
                         scopesWithIteratorLocals[iv] = newScope;
                     }
                 }
@@ -857,19 +866,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal override ScopeBounds GetScopesWithLocals(ArrayBuilder<LocalScope> scopesWithVariables, bool edgeInclusive)
+            internal override ScopeBounds GetScopesWithLocals(ArrayBuilder<Cci.LocalScope> scopesWithVariables, bool edgeInclusive)
             {
                 return GetScopesWithLocals(scopesWithVariables, this.handlers, edgeInclusive);
             }
 
-            internal override ScopeBounds GetIteratorScopes(ArrayBuilder<LocalScope> scopesWithIteratorVariables, bool edgeInclusive)
+            internal override ScopeBounds GetIteratorScopes(ArrayBuilder<Cci.LocalScope> scopesWithIteratorVariables, bool edgeInclusive)
             {
                 return GetIteratorScopes(scopesWithIteratorVariables, this.handlers, edgeInclusive);
             }
 
             private static ScopeBounds GetBounds(ExceptionHandlerScope scope)
             {
-                var scopes = ArrayBuilder<LocalScope>.GetInstance();
+                var scopes = ArrayBuilder<Cci.LocalScope>.GetInstance();
                 var result = scope.GetScopesWithLocals(scopes, edgeInclusive: false);
                 scopes.Free();
                 return result;
@@ -901,13 +910,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Compares scopes by their start (ascending) and then size (descending).
         /// </summary>
-        private sealed class ScopeComparer : IComparer<LocalScope>
+        private sealed class ScopeComparer : IComparer<Cci.LocalScope>
         {
             public static readonly ScopeComparer Instance = new ScopeComparer();
 
             private ScopeComparer() { }
 
-            public int Compare(LocalScope x, LocalScope y)
+            public int Compare(Cci.LocalScope x, Cci.LocalScope y)
             {
                 var res = x.Offset.CompareTo(y.Offset);
                 if (res == 0)

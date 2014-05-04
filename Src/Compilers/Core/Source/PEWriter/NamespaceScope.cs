@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.CodeGen
+namespace Microsoft.Cci
 {
     /// <summary>
-    /// This is a list of the using directives (including aliases) in
-    /// a namespace.
+    /// This is a list of the using directives (including aliases) in a lexial scope.
     /// </summary>
-    internal class NamespaceScope : Cci.INamespaceScope
+    /// <remarks>
+    /// This scope is tied to a particular method body, so that partial types can be accommodated.
+    /// </remarks>
+    internal class NamespaceScope
     {
         public static readonly NamespaceScope Empty = new NamespaceScope(ImmutableArray<UsedNamespaceOrType>.Empty);
 
@@ -24,11 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.usedNamespaces = usedNamespaces;
         }
 
-        ImmutableArray<Cci.IUsedNamespaceOrType> Cci.INamespaceScope.UsedNamespaces
+        /// <summary>
+        /// Zero or more used namespaces. These correspond to using clauses in C#.
+        /// </summary>
+        public ImmutableArray<UsedNamespaceOrType> UsedNamespaces
         {
             get
             {
-                return this.usedNamespaces.Cast<UsedNamespaceOrType, Cci.IUsedNamespaceOrType>();
+                return this.usedNamespaces;
             }
         }
     }

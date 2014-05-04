@@ -54,12 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Function IFieldReferenceGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IFieldReference.GetType
             Dim customModifiers = m_UnderlyingField.CustomModifiers
-            Dim type = (DirectCast(context.Module, PEModuleBuilder)).Translate(m_UnderlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = DirectCast(context.Module, PEModuleBuilder).Translate(m_UnderlyingField.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
             Else
-                Return New Cci.ModifiedTypeReference(type, customModifiers)
+                Return New Cci.ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
             End If
         End Function
 

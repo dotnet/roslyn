@@ -1,13 +1,7 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -24,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly SequencePointList sequencePoints;
         private readonly DebugDocumentProvider debugDocumentProvider;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers;
-        private readonly ImmutableArray<LocalScope> localScopes;
-        private readonly ImmutableArray<NamespaceScope> namespaceScopes;
+        private readonly ImmutableArray<Cci.LocalScope> localScopes;
+        private readonly ImmutableArray<Cci.NamespaceScope> namespaceScopes;
         private readonly string iteratorClassName;
-        private readonly ImmutableArray<LocalScope> iteratorScopes;
+        private readonly ImmutableArray<Cci.LocalScope> iteratorScopes;
         private readonly Cci.CustomDebugInfoKind customDebugInfoKind;
         private readonly bool hasDynamicLocalVariables;
 
@@ -39,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
-            ImmutableArray<LocalScope> localScopes,
+            ImmutableArray<Cci.LocalScope> localScopes,
             Cci.CustomDebugInfoKind customDebugInfoKind,
             bool hasDynamicLocalVariables,
-            ImmutableArray<NamespaceScope> namespaceScopes = default(ImmutableArray<NamespaceScope>),
+            ImmutableArray<Cci.NamespaceScope> namespaceScopes = default(ImmutableArray<Cci.NamespaceScope>),
             string iteratorClassName = null,
-            ImmutableArray<LocalScope> iteratorScopes = default(ImmutableArray<LocalScope>),
+            ImmutableArray<Cci.LocalScope> iteratorScopes = default(ImmutableArray<Cci.LocalScope>),
             Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo = null)
         {
             this.ilBits = ilBits;
@@ -58,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.localScopes = localScopes;
             this.customDebugInfoKind = customDebugInfoKind;
             this.hasDynamicLocalVariables = hasDynamicLocalVariables;
-            this.namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<NamespaceScope>.Empty : namespaceScopes;
+            this.namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
             this.iteratorClassName = iteratorClassName;
-            this.iteratorScopes = iteratorScopes.IsDefault ? ImmutableArray<LocalScope>.Empty : iteratorScopes;
+            this.iteratorScopes = iteratorScopes.IsDefault ? ImmutableArray<Cci.LocalScope>.Empty : iteratorScopes;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
@@ -131,22 +125,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        ImmutableArray<Cci.ILocalScope> Cci.IMethodBody.LocalScopes
+        ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes
         {
             get
             {
-                return this.localScopes.Cast<LocalScope, Cci.ILocalScope>();
+                return this.localScopes;
             }
         }
 
         /// <summary>
         /// This is a list of the using directives that were in scope for this method body.
         /// </summary>
-        ImmutableArray<Cci.INamespaceScope> Cci.IMethodBody.NamespaceScopes
+        ImmutableArray<Cci.NamespaceScope> Cci.IMethodBody.NamespaceScopes
         {
             get
             {
-                return StaticCast<Cci.INamespaceScope>.From(this.namespaceScopes);
+                return this.namespaceScopes;
             }
         }
 
@@ -158,11 +152,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        ImmutableArray<Cci.ILocalScope> Cci.IMethodBody.IteratorScopes
+        ImmutableArray<Cci.LocalScope> Cci.IMethodBody.IteratorScopes
         {
             get
             {
-                return StaticCast<Cci.ILocalScope>.From(this.iteratorScopes);
+                return this.iteratorScopes;
             }
         }
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, customModifiers);
+                return new Cci.ModifiedTypeReference(type, customModifiers.As<Cci.ICustomModifier>());
             }
         }
 

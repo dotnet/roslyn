@@ -1,16 +1,25 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.Cci;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeGen
+namespace Microsoft.Cci
 {
     /// <summary>
     /// This represents a single using directive (in the scope of a method body).
     /// It has a name and possibly an alias.
     /// </summary>
-    internal sealed class UsedNamespaceOrType : IUsedNamespaceOrType
+    /// <remarks>
+    /// A namespace that is used (imported) inside a namespace scope.
+    /// 
+    /// Kind            | Example                   | Alias     | TargetName
+    /// ----------------+---------------------------+-----------+-------------------
+    /// Namespace       | using System;             | null      | "System"
+    /// NamespaceAlias  | using S = System;         | "S"       | "System"
+    /// ExternNamespace | extern alias LibV1;       | "LibV1"   | null
+    /// TypeAlias       | using C = System.Console; | "C"       | "System.Console"
+    /// </remarks>
+    internal sealed class UsedNamespaceOrType
     {
         private readonly UsedNamespaceOrTypeKind kind;
         private readonly string name;
@@ -94,64 +103,79 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.projectLevel = projectLevel;
         }
 
-        string IUsedNamespaceOrType.TargetName { get { return name; } }
+        /// <summary>
+        /// The name of a namepace that has been aliased.  For example the "y.z" of "using x = y.z;" or "using y.z" in C#.
+        /// </summary>
+        public string TargetName { get { return name; } }
 
-        string IUsedNamespaceOrType.Alias { get { return alias; } }
+        /// <summary>
+        /// An alias for a namespace. For example the "x" of "using x = y.z;" in C#. Empty if no alias is present.
+        /// </summary>
+        public string Alias { get { return alias; } }
 
-        string IUsedNamespaceOrType.ExternAlias { get { return externAlias; } }
+        /// <summary>
+        /// The name of an extern alias that has been used to qualify a name.  For example the "Q" of "using x = Q::y.z;" or "using Q::y.z" in C#.
+        /// </summary>
+        public string ExternAlias { get { return externAlias; } }
 
-        bool IUsedNamespaceOrType.ProjectLevel { get { return projectLevel; } }
+        /// <summary>
+        /// Indicates whether the import was specified on a project level, or on file level (used for VB only)
+        /// </summary>
+        public bool ProjectLevel { get { return projectLevel; } }
 
-        UsedNamespaceOrTypeKind IUsedNamespaceOrType.Kind { get { return this.kind; } }
+        /// <summary>
+        /// Distinguishes the various kinds of targets.
+        /// </summary>
+        public UsedNamespaceOrTypeKind Kind { get { return this.kind; } }
 
-        string IUsedNamespaceOrType.FullName
+        /// <summary>
+        /// Returns an encoded name for this used type or namespace. The encoding is dependent on the <see cref="UsedNamespaceOrTypeKind"/>.
+        /// </summary>
+        public string Encode()
         {
-            get
+            // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
+            // but they were probably implementation details that do not affect roslyn.
+            switch (this.kind)
             {
-                // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
-                // but they were probably implementation details that do not affect roslyn.
-                switch (this.kind)
-                {
-                    case UsedNamespaceOrTypeKind.CSNamespace:
-                        return this.externAlias == null
-                            ? "U" + this.name
-                            : "E" + this.name + " " + this.externAlias;
+                case UsedNamespaceOrTypeKind.CSNamespace:
+                    return this.externAlias == null
+                        ? "U" + this.name
+                        : "E" + this.name + " " + this.externAlias;
 
-                    case UsedNamespaceOrTypeKind.CSNamespaceAlias:
-                        return this.externAlias == null
-                            ? "A" + this.alias + " U" + this.name
-                            : "A" + this.alias + " E" + this.name + " " + this.externAlias;
+                case UsedNamespaceOrTypeKind.CSNamespaceAlias:
+                    return this.externAlias == null
+                        ? "A" + this.alias + " U" + this.name
+                        : "A" + this.alias + " E" + this.name + " " + this.externAlias;
 
-                    case UsedNamespaceOrTypeKind.CSExternNamespace:
-                        return "X" + this.externAlias;
+                case UsedNamespaceOrTypeKind.CSExternNamespace:
+                    return "X" + this.externAlias;
 
-                    case UsedNamespaceOrTypeKind.CSTypeAlias:
-                        Debug.Assert(this.externAlias == null);
-                        return "A" + this.alias + " T" + this.name;
+                case UsedNamespaceOrTypeKind.CSTypeAlias:
+                    Debug.Assert(this.externAlias == null);
+                    return "A" + this.alias + " T" + this.name;
 
-                    case UsedNamespaceOrTypeKind.VBNamespace:
-                        return (this.projectLevel ? "@P:" : "@F:") + this.name;
+                case UsedNamespaceOrTypeKind.VBNamespace:
+                    return (this.projectLevel ? "@P:" : "@F:") + this.name;
 
-                    case UsedNamespaceOrTypeKind.VBNamespaceOrTypeAlias:
-                        return (this.projectLevel ? "@PA:" : "@FA:") + this.alias + "=" + this.name;
+                case UsedNamespaceOrTypeKind.VBNamespaceOrTypeAlias:
+                    return (this.projectLevel ? "@PA:" : "@FA:") + this.alias + "=" + this.name;
 
-                    case UsedNamespaceOrTypeKind.VBXmlNamespace:
-                        return (this.projectLevel ? "@PX:" : "@FX:") + this.alias + "=" + this.name;
+                case UsedNamespaceOrTypeKind.VBXmlNamespace:
+                    return (this.projectLevel ? "@PX:" : "@FX:") + this.alias + "=" + this.name;
 
-                    case UsedNamespaceOrTypeKind.VBType:
-                        return (this.projectLevel ? "@PT:" : "@FT:") + this.name;
+                case UsedNamespaceOrTypeKind.VBType:
+                    return (this.projectLevel ? "@PT:" : "@FT:") + this.name;
 
-                    case UsedNamespaceOrTypeKind.VBCurrentNamespace:
-                        // VB appends the namespace of the container without prefixes
-                        return this.name;
+                case UsedNamespaceOrTypeKind.VBCurrentNamespace:
+                    // VB appends the namespace of the container without prefixes
+                    return this.name;
 
-                    case UsedNamespaceOrTypeKind.VBDefaultNamespace:
-                        // VB marks the default/root namespace with an asteriks
-                        return "*" + this.name;
+                case UsedNamespaceOrTypeKind.VBDefaultNamespace:
+                    // VB marks the default/root namespace with an asteriks
+                    return "*" + this.name;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(this.kind);
-                }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(this.kind);
             }
         }
     }

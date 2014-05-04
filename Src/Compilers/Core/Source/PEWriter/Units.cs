@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using System.Collections.Immutable;
 
 namespace Microsoft.Cci
 {
@@ -387,9 +388,9 @@ namespace Microsoft.Cci
         /// Builds symbol definition to location map used for emitting token -> location info
         /// into PDB to be consumed by WinMdExp.exe tool (only applicable for /t:winmdobj)
         /// </summary>
-        MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
+        MultiDictionary<DebugSourceDocument, DefinitionWithLocation> GetSymbolToLocationMap();
 
-        IEnumerable<IExternNamespace> ExternNamespaces { get; }
+        ImmutableArray<ExternNamespace> GetExternNamespaces();
 
         ushort MajorSubsystemVersion { get; }
         ushort MinorSubsystemVersion { get; }

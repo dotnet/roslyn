@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If customModifiers.Length = 0 Then
                 Return type
             Else
-                Return New Cci.ModifiedTypeReference(type, customModifiers)
+                Return New Cci.ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
             End If
         End Function
 

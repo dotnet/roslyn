@@ -69,7 +69,7 @@ namespace Microsoft.Cci
             this.Visit(customAttribute.GetNamedArguments(Context));
         }
 
-        public void Visit(IEnumerable<ICustomModifier> customModifiers)
+        public void Visit(ImmutableArray<ICustomModifier> customModifiers)
         {
             foreach (ICustomModifier customModifier in customModifiers)
             {
@@ -150,10 +150,7 @@ namespace Microsoft.Cci
             this.Visit(functionPointerTypeReference.GetType(Context));
             this.Visit(functionPointerTypeReference.GetParameters(Context));
             this.Visit(functionPointerTypeReference.ExtraArgumentTypes);
-            if (functionPointerTypeReference.ReturnValueIsModified)
-            {
-                this.Visit(functionPointerTypeReference.ReturnValueCustomModifiers);
-            }
+            this.Visit(functionPointerTypeReference.ReturnValueCustomModifiers);
         }
 
         public virtual void Visit(IGenericMethodInstanceReference genericMethodInstanceReference)
@@ -222,11 +219,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ILocalDefinition localDefinition)
         {
-            if (localDefinition.IsModified)
-            {
-                this.Visit(localDefinition.CustomModifiers);
-            }
-
+            this.Visit(localDefinition.CustomModifiers);
             this.Visit(localDefinition.Type);
         }
 
@@ -302,10 +295,7 @@ namespace Microsoft.Cci
         public virtual void Visit(IMethodDefinition method)
         {
             this.Visit(method.ReturnValueAttributes);
-            if (method.ReturnValueIsModified)
-            {
-                this.Visit(method.ReturnValueCustomModifiers);
-            }
+            this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
             {
@@ -445,10 +435,7 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
-            if (parameterDefinition.IsModified)
-            {
-                this.Visit(parameterDefinition.CustomModifiers);
-            }
+            this.Visit(parameterDefinition.CustomModifiers);
 
             IMetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
             if (defaultValue != null)
@@ -477,11 +464,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
-            if (parameterTypeInformation.IsModified)
-            {
-                this.Visit(parameterTypeInformation.CustomModifiers);
-            }
-
+            this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }
 

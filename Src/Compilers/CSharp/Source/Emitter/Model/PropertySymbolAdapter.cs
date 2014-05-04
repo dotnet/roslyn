@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return StaticCast<Cci.IParameterTypeInformation>.From(this.Parameters);
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get
             {
                 CheckDefinitionInvariant();
-                return this.TypeCustomModifiers;
+                return this.TypeCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -169,15 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
                 return this.Type is ByRefReturnErrorTypeSymbol;
-            }
-        }
-
-        bool Cci.ISignature.ReturnValueIsModified
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.TypeCustomModifiers.Length != 0;
             }
         }
 

@@ -30,7 +30,7 @@ namespace Microsoft.Cci
             get { return null; }
         }
 
-        public IEnumerable<ICustomModifier> CustomModifiers
+        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
             get { return this.containingMethod.ReturnValueCustomModifiers; }
         }
@@ -67,11 +67,6 @@ namespace Microsoft.Cci
         public bool HasByRefBeforeCustomModifiers
         {
             get { return false; }
-        }
-
-        public bool IsModified
-        {
-            get { return this.containingMethod.ReturnValueIsModified; }
         }
 
         public bool IsMarshalledExplicitly

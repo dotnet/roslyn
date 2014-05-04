@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Class to cache and build namespace scopes. Should be released and collected once all namespace scopes
     /// are built, since it contains caches that won't be needed anymore.
     /// </summary>
-    internal class NamespaceScopeBuilder
+    internal sealed class NamespaceScopeBuilder
     {
         // Cache to map from ConsList<Imports> to ImmutableArray<NamespaceScope>. Currently we just use
         // identity comparison on the key. We could implement our own comparer to detect equivalent ConsList<Imports>,
         // but that only provides benefit when many file share the exactly same set of Imports in the same order. This would
         // be a complex comparer to implement, and the benefit wouldn't be very high.
-        private readonly ConcurrentDictionary<ConsList<Imports>, ImmutableArray<NamespaceScope>> cache = new ConcurrentDictionary<ConsList<Imports>, ImmutableArray<NamespaceScope>>();
+        private readonly ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> cache = new ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>>();
 
         // Cache to map from namespace or type to the string used to represent that namespace/type in the debug info.
         private readonly ConcurrentDictionary<NamespaceOrTypeSymbol, string> stringCache = new ConcurrentDictionary<NamespaceOrTypeSymbol, string>();
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation compilation;
 
         // Cached delegates.
-        private Func<ConsList<Imports>, ImmutableArray<NamespaceScope>> buildNamespaceScopes;
+        private Func<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> buildNamespaceScopes;
         private Func<NamespaceOrTypeSymbol, string> buildNamespaceOrTypeString;
 
         public NamespaceScopeBuilder(CSharpCompilation compilation)
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// approach of using the context of the (possibly synthesized) constructor into which the field initializers are
         /// inserted.  It might be possible to give field initializers their own scopes, assuming the EE supports it.
         /// </remarks>
-        public ImmutableArray<NamespaceScope> GetNamespaceScopes(ConsList<Imports> debugImports)
+        public ImmutableArray<Cci.NamespaceScope> GetNamespaceScopes(ConsList<Imports> debugImports)
         {
             if (debugImports == null)
             {
-                return ImmutableArray<NamespaceScope>.Empty;
+                return ImmutableArray<Cci.NamespaceScope>.Empty;
             }
             else
             {
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<NamespaceScope> BuildNamespaceScopes(ConsList<Imports> debugImports)
+        private ImmutableArray<Cci.NamespaceScope> BuildNamespaceScopes(ConsList<Imports> debugImports)
         {
-            ArrayBuilder<NamespaceScope> namespaceScopes = ArrayBuilder<NamespaceScope>.GetInstance();
+            var namespaceScopes = ArrayBuilder<Cci.NamespaceScope>.GetInstance();
 
             foreach (Imports imports in debugImports)
             {
-                ArrayBuilder<UsedNamespaceOrType> usedNamespaces = ArrayBuilder<UsedNamespaceOrType>.GetInstance();
+                var usedNamespaces = ArrayBuilder<Cci.UsedNamespaceOrType>.GetInstance();
 
                 // NOTE: order based on dev10: extern aliases, then usings, then aliases namespaces and types
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var alias in externAliases)
                     {
-                        usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpExternNamespace(alias.Alias.Name));
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpExternNamespace(alias.Alias.Name));
                     }
                 }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // TODO: incorrect, see bug #913022
                             string externAlias = GetExternAliases(@namespace).FirstOrDefault();
 
-                            usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpNamespace(namespaceString, externAlias));
+                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespace(namespaceString, externAlias));
                         }
                         else
                         {
@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // TODO: incorrect, see bug #913022
                             string externAlias = GetExternAliases((NamespaceSymbol)target).FirstOrDefault();
 
-                            usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpNamespaceAlias(targetString, alias, externAlias));
+                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespaceAlias(targetString, alias, externAlias));
                         }
                         else
                         {
                             Debug.Assert(target is TypeSymbol);
-                            usedNamespaces.Add(UsedNamespaceOrType.CreateCSharpTypeAlias(targetString, alias));
+                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpTypeAlias(targetString, alias));
                         }
                     }
                 }
 
-                namespaceScopes.Add(new NamespaceScope(usedNamespaces.ToImmutableAndFree()));
+                namespaceScopes.Add(new Cci.NamespaceScope(usedNamespaces.ToImmutableAndFree()));
             }
 
             return namespaceScopes.ToImmutableAndFree(); //NOTE: inner-to-outer order matches dev10

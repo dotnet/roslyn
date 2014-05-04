@@ -130,12 +130,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Visit return value type
             VisitTypeReference(methodReference.GetType(context), context);
-            if (methodReference.ReturnValueIsModified)
+            
+            foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
             {
-                foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
-                {
-                    VisitTypeReference(typeModifier.GetModifier(context), context);
-                }
+                VisitTypeReference(typeModifier.GetModifier(context), context);
             }
         }
 
@@ -145,12 +143,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 VisitTypeReference(param.GetType(context), context);
 
-                if (param.IsModified)
+                foreach (var typeModifier in param.CustomModifiers)
                 {
-                    foreach (var typeModifier in param.CustomModifiers)
-                    {
-                        VisitTypeReference(typeModifier.GetModifier(context), context);
-                    }
+                    VisitTypeReference(typeModifier.GetModifier(context), context);
                 }
             }
         }

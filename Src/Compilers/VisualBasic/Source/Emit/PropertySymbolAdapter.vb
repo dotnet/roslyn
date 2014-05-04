@@ -101,10 +101,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
         End Function
 
-        Private ReadOnly Property ISignatureReturnValueCustomModifiers As IEnumerable(Of Microsoft.Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
+        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
             Get
                 CheckDefinitionInvariant()
-                Return Me.TypeCustomModifiers
+                Return Me.TypeCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
@@ -112,13 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
                 Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property ISignatureReturnValueIsModified As Boolean Implements ISignature.ReturnValueIsModified
-            Get
-                CheckDefinitionInvariant()
-                Return Me.TypeCustomModifiers.Length <> 0
             End Get
         End Property
 

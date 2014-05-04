@@ -1027,7 +1027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagsForCurrentMethod.Free()
         End Sub
 
-        Private Function GetNamespaceScopes(method As MethodSymbol) As ImmutableArray(Of NamespaceScope)
+        Private Function GetNamespaceScopes(method As MethodSymbol) As ImmutableArray(Of Cci.NamespaceScope)
             Debug.Assert(Me._generateDebugInfo = (_namespaceScopeBuilder IsNot Nothing))
 
             If _generateDebugInfo AndAlso method.GenerateDebugInfo Then
@@ -1114,7 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             processedInitializers As Binder.ProcessedFieldOrPropertyInitializers,
             previousSubmissionFields As SynthesizedSubmissionFields,
             constructorToInject As MethodSymbol,
-            namespaceScopes As ImmutableArray(Of NamespaceScope)
+            namespaceScopes As ImmutableArray(Of Cci.NamespaceScope)
         )
             Dim constructorInitializerOpt = If(constructorToInject Is Nothing,
                                                Nothing,
@@ -1206,7 +1206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   optimize As Boolean,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagsForThisMethod As DiagnosticBag,
-                                                  namespaceScopes As ImmutableArray(Of NamespaceScope)) As MethodBody
+                                                  namespaceScopes As ImmutableArray(Of Cci.NamespaceScope)) As MethodBody
 
             Dim localSlotManager = [module].CreateLocalSlotManager(method)
             Dim builder As ILBuilder = New ILBuilder([module], localSlotManager, optimize)

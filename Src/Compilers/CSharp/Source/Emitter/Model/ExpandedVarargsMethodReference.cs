@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return underlyingMethod.GetParameters(context);
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get { return underlyingMethod.ReturnValueCustomModifiers; }
         }
@@ -104,11 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return underlyingMethod.ReturnValueIsByRef; }
-        }
-
-        bool Cci.ISignature.ReturnValueIsModified
-        {
-            get { return underlyingMethod.ReturnValueIsModified; }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)

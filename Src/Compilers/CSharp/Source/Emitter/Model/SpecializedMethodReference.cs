@@ -11,27 +11,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// A{int}.M()
     /// A.B{int}.C.M()
     /// </summary>
-    internal class SpecializedMethodReference : MethodReference, Microsoft.Cci.ISpecializedMethodReference
+    internal class SpecializedMethodReference : MethodReference, Cci.ISpecializedMethodReference
     {
         public SpecializedMethodReference(MethodSymbol underlyingMethod)
             : base(underlyingMethod)
         {
         }
 
-        public override void Dispatch(Microsoft.Cci.MetadataVisitor visitor)
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Microsoft.Cci.ISpecializedMethodReference)this);
+            visitor.Visit((Cci.ISpecializedMethodReference)this);
         }
 
-        Microsoft.Cci.IMethodReference Microsoft.Cci.ISpecializedMethodReference.UnspecializedVersion
+        Cci.IMethodReference Cci.ISpecializedMethodReference.UnspecializedVersion
         {
             get
             {
-                return (MethodSymbol)UnderlyingMethod.OriginalDefinition;
+                return UnderlyingMethod.OriginalDefinition;
             }
         }
 
-        public override Microsoft.Cci.ISpecializedMethodReference AsSpecializedMethodReference
+        public override Cci.ISpecializedMethodReference AsSpecializedMethodReference
         {
             get
             {

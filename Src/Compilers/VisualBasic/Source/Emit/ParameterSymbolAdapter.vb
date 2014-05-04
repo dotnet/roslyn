@@ -1,17 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -19,21 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 
-        Private ReadOnly Property IParameterTypeInformationCustomModifiers As IEnumerable(Of Microsoft.Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
-                Return Me.CustomModifiers
+                Return Me.CustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property IParameterTypeInformationIsByReference As Boolean Implements IParameterTypeInformation.IsByReference
             Get
                 Return Me.IsByRef
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameterTypeInformationIsModified As Boolean Implements IParameterTypeInformation.IsModified
-            Get
-                Return Me.CustomModifiers.Length <> 0
             End Get
         End Property
 

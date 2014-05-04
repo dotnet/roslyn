@@ -254,22 +254,15 @@ namespace Microsoft.Cci
         /// <summary>
         /// Custom modifiers associated with local variable definition.
         /// </summary>
-        IEnumerable<ICustomModifier> CustomModifiers
+        ImmutableArray<ICustomModifier> CustomModifiers
         {
             get;
-
-            // ^ requires this.IsModified;
         }
 
         /// <summary>
         /// True if this local definition is readonly and initialized with a compile time constant value.
         /// </summary>
         bool IsConstant { get; }
-
-        /// <summary>
-        /// The local variable has custom modifiers.
-        /// </summary>
-        bool IsModified { get; }
 
         /// <summary>
         /// True if the value referenced by the local must not be moved by the actions of the garbage collector.
@@ -425,7 +418,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns zero or more local (block) scopes into which the CLR IL operations in the given method body is organized.
         /// </summary>
-        ImmutableArray<ILocalScope> LocalScopes { get; }
+        ImmutableArray<LocalScope> LocalScopes { get; }
 
         /// <summary>
         /// Returns zero or more namespace scopes into which the namespace type containing the given method body has been nested.
@@ -433,7 +426,7 @@ namespace Microsoft.Cci
         /// component in the namespace type name. For istance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
         /// is for the y.
         /// </summary>
-        ImmutableArray<INamespaceScope> NamespaceScopes { get; }
+        ImmutableArray<NamespaceScope> NamespaceScopes { get; }
 
         /// <summary>
         /// Returns zero or more local (block) scopes, each defining an IL range in which an iterator local is defined.
@@ -445,7 +438,7 @@ namespace Microsoft.Cci
         /// "&lt;xyzzy&gt;5__1", and the ILocalScope returned from this method at index 1 (i.e. the second one) will
         /// have the scope information for where that variable is in scope.
         /// </summary>
-        ImmutableArray<ILocalScope> IteratorScopes { get; }
+        ImmutableArray<LocalScope> IteratorScopes { get; }
 
         /// <summary>
         /// If the body was written as an iterator, returns the name of the (nested)
@@ -760,22 +753,15 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
         /// </summary>
-        IEnumerable<ICustomModifier> ReturnValueCustomModifiers
+        ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
         {
             get;
-
-            // ^ requires this.ReturnValueIsModified;
         }
 
         /// <summary>
         /// True if the return value is passed by reference (using a managed pointer).
         /// </summary>
         bool ReturnValueIsByRef { get; }
-
-        /// <summary>
-        /// True if the return value has one or more custom modifiers associated with it.
-        /// </summary>
-        bool ReturnValueIsModified { get; }
 
         /// <summary>
         /// The return type of the method or type of the property.

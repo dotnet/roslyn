@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
             get
             {
-                return UnderlyingMethod.ReturnTypeCustomModifiers;
+                return UnderlyingMethod.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -99,14 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 return UnderlyingMethod.ReturnType is ByRefReturnErrorTypeSymbol;
-            }
-        }
-
-        bool Cci.ISignature.ReturnValueIsModified
-        {
-            get
-            {
-                return UnderlyingMethod.ReturnTypeCustomModifiers.Length != 0;
             }
         }
 

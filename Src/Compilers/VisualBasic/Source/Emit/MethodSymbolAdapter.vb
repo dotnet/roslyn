@@ -1,23 +1,23 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.Cci
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class MethodSymbol
-        Implements ITypeMemberReference
-        Implements IMethodReference
-        Implements IGenericMethodInstanceReference
-        Implements ISpecializedMethodReference
-        Implements ITypeDefinitionMember
-        Implements IMethodDefinition
+        Implements Cci.ITypeMemberReference
+        Implements Cci.IMethodReference
+        Implements Cci.IGenericMethodInstanceReference
+        Implements Cci.ISpecializedMethodReference
+        Implements Cci.ITypeDefinitionMember
+        Implements Cci.IMethodDefinition
 
-        Public Const DisableJITOptimizationFlags As Reflection.MethodImplAttributes = Reflection.MethodImplAttributes.NoInlining Or Reflection.MethodImplAttributes.NoOptimization
+        Public Const DisableJITOptimizationFlags As MethodImplAttributes = MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
 
-        Private ReadOnly Property IMethodReferenceAsGenericMethodInstanceReference As IGenericMethodInstanceReference Implements IMethodReference.AsGenericMethodInstanceReference
+        Private ReadOnly Property IMethodReferenceAsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference Implements Cci.IMethodReference.AsGenericMethodInstanceReference
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
 
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodReferenceAsSpecializedMethodReference As ISpecializedMethodReference Implements IMethodReference.AsSpecializedMethodReference
+        Private ReadOnly Property IMethodReferenceAsSpecializedMethodReference As Cci.ISpecializedMethodReference Implements Cci.IMethodReference.AsSpecializedMethodReference
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
 
@@ -42,11 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
+        Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition ' Implements IReference.AsDefinition
             Return ResolvedMethodImpl(DirectCast(context.Module, PEModuleBuilder))
         End Function
 
-        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
+        Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
@@ -61,64 +61,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me.ContainingType
         End Function
 
-        Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
+        Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
 
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not Me.IsDefinition Then
                 If Me.IsGenericMethod AndAlso Me IsNot Me.ConstructedFrom Then
-                    Debug.Assert((DirectCast(Me, IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
-                    visitor.Visit(DirectCast(Me, IGenericMethodInstanceReference))
+                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+                    visitor.Visit(DirectCast(Me, Cci.IGenericMethodInstanceReference))
                 Else
-                    Debug.Assert((DirectCast(Me, IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
-                    visitor.Visit(DirectCast(Me, ISpecializedMethodReference))
+                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
+                    visitor.Visit(DirectCast(Me, Cci.ISpecializedMethodReference))
                 End If
             Else
                 If Me.ContainingModule = moduleBeingBuilt.SourceModule Then
-                    Debug.Assert((DirectCast(Me, IMethodReference)).GetResolvedMethod(visitor.Context) IsNot Nothing)
-                    visitor.Visit(DirectCast(Me, IMethodDefinition))
+                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).GetResolvedMethod(visitor.Context) IsNot Nothing)
+                    visitor.Visit(DirectCast(Me, Cci.IMethodDefinition))
                 Else
-                    visitor.Visit(DirectCast(Me, IMethodReference))
+                    visitor.Visit(DirectCast(Me, Cci.IMethodReference))
                 End If
             End If
         End Sub
 
-        Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
+        Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
                 Return Me.MetadataName
             End Get
         End Property
 
-        Private ReadOnly Property IMethodReferenceAcceptsExtraArguments As Boolean Implements IMethodReference.AcceptsExtraArguments
+        Private ReadOnly Property IMethodReferenceAcceptsExtraArguments As Boolean Implements Cci.IMethodReference.AcceptsExtraArguments
             Get
                 Return Me.IsVararg
             End Get
         End Property
 
-        Private ReadOnly Property IMethodReferenceGenericParameterCount As UShort Implements IMethodReference.GenericParameterCount
+        Private ReadOnly Property IMethodReferenceGenericParameterCount As UShort Implements Cci.IMethodReference.GenericParameterCount
             Get
                 Return CType(Me.Arity, UShort)
             End Get
         End Property
 
-        Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements IMethodReference.IsGeneric
+        Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements Cci.IMethodReference.IsGeneric
             Get
                 Return Me.IsGenericMethod
             End Get
         End Property
 
-        Private ReadOnly Property IMethodReferenceParameterCount As UShort Implements ISignature.ParameterCount
+        Private ReadOnly Property IMethodReferenceParameterCount As UShort Implements Cci.ISignature.ParameterCount
             Get
                 Return CType(Me.ParameterCount, UShort)
             End Get
         End Property
 
-        Private Function IMethodReferenceGetResolvedMethod(context As EmitContext) As IMethodDefinition Implements IMethodReference.GetResolvedMethod
+        Private Function IMethodReferenceGetResolvedMethod(context As EmitContext) As Cci.IMethodDefinition Implements Cci.IMethodReference.GetResolvedMethod
             Return ResolvedMethodImpl(DirectCast(context.Module, PEModuleBuilder))
         End Function
 
-        Private Function ResolvedMethodImpl(moduleBeingBuilt As PEModuleBuilder) As IMethodDefinition
+        Private Function ResolvedMethodImpl(moduleBeingBuilt As PEModuleBuilder) As Cci.IMethodDefinition
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             ' Can't be generic instantiation
@@ -131,19 +131,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private ReadOnly Property IMethodReferenceExtraParameters As ImmutableArray(Of IParameterTypeInformation) Implements IMethodReference.ExtraParameters
+        Private ReadOnly Property IMethodReferenceExtraParameters As ImmutableArray(Of Cci.IParameterTypeInformation) Implements Cci.IMethodReference.ExtraParameters
             Get
-                Return ImmutableArray(Of IParameterTypeInformation).Empty
+                Return ImmutableArray(Of Cci.IParameterTypeInformation).Empty
             End Get
         End Property
 
-        Private ReadOnly Property ISignatureCallingConvention As CallingConvention Implements ISignature.CallingConvention
+        Private ReadOnly Property ISignatureCallingConvention As Cci.CallingConvention Implements Cci.ISignature.CallingConvention
             Get
                 Return Me.CallingConvention
             End Get
         End Property
 
-        Private Function ISignatureGetParameters(context As EmitContext) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
+        Private Function ISignatureGetParameters(context As EmitContext) As ImmutableArray(Of Cci.IParameterTypeInformation) Implements Cci.ISignature.GetParameters
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -163,45 +163,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function EnumerateDefinitionParameters() As ImmutableArray(Of Cci.IParameterTypeInformation)
             Debug.Assert(Me.Parameters.All(Function(p) p.IsDefinition))
 
-            Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
+            Return StaticCast(Of Cci.IParameterTypeInformation).From(Me.Parameters)
         End Function
 
-        Private ReadOnly Property ISignatureReturnValueCustomModifiers As IEnumerable(Of Microsoft.Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
+        Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.ReturnValueCustomModifiers
             Get
-                Return Me.ReturnTypeCustomModifiers
+                Return Me.ReturnTypeCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
-        Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements ISignature.ReturnValueIsByRef
+        Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
                 Return False
             End Get
         End Property
 
-        Private ReadOnly Property ISignatureReturnValueIsModified As Boolean Implements ISignature.ReturnValueIsModified
-            Get
-                Return Me.ReturnTypeCustomModifiers.Length <> 0
-            End Get
-        End Property
-
-        Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
+        Private Function ISignatureGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.ISignature.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Dim returnType As TypeSymbol = Me.ReturnType
             Return moduleBeingBuilt.Translate(returnType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As EmitContext) As IEnumerable(Of ITypeReference) Implements IGenericMethodInstanceReference.GetGenericArguments
+        Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As EmitContext) As IEnumerable(Of Cci.ITypeReference) Implements Cci.IGenericMethodInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            Debug.Assert((DirectCast(Me, IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+            Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
             Return From arg In Me.TypeArguments
                    Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As IMethodReference Implements IGenericMethodInstanceReference.GetGenericMethod
-            Debug.Assert((DirectCast(Me, IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+        Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
+            Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
 
             If Me.OriginalDefinition IsNot Me.ConstructedFrom Then
                 Return Me.ConstructedFrom
@@ -223,14 +217,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New SpecializedMethodReference(methodSymbol)
         End Function
 
-        Private ReadOnly Property ISpecializedMethodReferenceUnspecializedVersion As IMethodReference Implements ISpecializedMethodReference.UnspecializedVersion
+        Private ReadOnly Property ISpecializedMethodReferenceUnspecializedVersion As Cci.IMethodReference Implements Cci.ISpecializedMethodReference.UnspecializedVersion
             Get
-                Debug.Assert((DirectCast(Me, IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
+                Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
                 Return Me.OriginalDefinition
             End Get
         End Property
 
-        Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
+        Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As Cci.ITypeDefinition Implements Cci.ITypeDefinitionMember.ContainingTypeDefinition
             Get
                 CheckDefinitionInvariant()
 
@@ -243,19 +237,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
+        Private ReadOnly Property ITypeDefinitionMemberVisibility As Cci.TypeMemberVisibility Implements Cci.ITypeDefinitionMember.Visibility
             Get
                 CheckDefinitionInvariant()
                 Return PEModuleBuilder.MemberVisibility(Me)
             End Get
         End Property
 
-        Private Function IMethodDefinitionGetBody(context As EmitContext) As IMethodBody Implements IMethodDefinition.GetBody
+        Private Function IMethodDefinitionGetBody(context As EmitContext) As Cci.IMethodBody Implements Cci.IMethodDefinition.GetBody
             CheckDefinitionInvariant()
             Return (DirectCast(context.Module, PEModuleBuilder)).GetMethodBody(Me)
         End Function
 
-        Private ReadOnly Property IMethodDefinitionGenericParameters As IEnumerable(Of IGenericMethodParameter) Implements IMethodDefinition.GenericParameters
+        Private ReadOnly Property IMethodDefinitionGenericParameters As IEnumerable(Of Cci.IGenericMethodParameter) Implements Cci.IMethodDefinition.GenericParameters
             Get
                 CheckDefinitionInvariant()
                 Debug.Assert(Me.TypeParameters.All(Function(param) param Is param.OriginalDefinition))
@@ -263,21 +257,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionHasDeclarativeSecurity As Boolean Implements IMethodDefinition.HasDeclarativeSecurity
+        Private ReadOnly Property IMethodDefinitionHasDeclarativeSecurity As Boolean Implements Cci.IMethodDefinition.HasDeclarativeSecurity
             Get
                 CheckDefinitionInvariant()
                 Return Me.HasDeclarativeSecurity
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsAbstract As Boolean Implements IMethodDefinition.IsAbstract
+        Private ReadOnly Property IMethodDefinitionIsAbstract As Boolean Implements Cci.IMethodDefinition.IsAbstract
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsMustOverride
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsAccessCheckedOnOverride As Boolean Implements IMethodDefinition.IsAccessCheckedOnOverride
+        Private ReadOnly Property IMethodDefinitionIsAccessCheckedOnOverride As Boolean Implements Cci.IMethodDefinition.IsAccessCheckedOnOverride
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsAccessCheckedOnOverride
@@ -291,14 +285,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsConstructor As Boolean Implements IMethodDefinition.IsConstructor
+        Private ReadOnly Property IMethodDefinitionIsConstructor As Boolean Implements Cci.IMethodDefinition.IsConstructor
             Get
                 CheckDefinitionInvariant()
                 Return Me.MethodKind = MethodKind.Constructor
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsExternal As Boolean Implements IMethodDefinition.IsExternal
+        Private ReadOnly Property IMethodDefinitionIsExternal As Boolean Implements Cci.IMethodDefinition.IsExternal
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsExternal
@@ -312,13 +306,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As System.Reflection.MethodImplAttributes Implements IMethodDefinition.GetImplementationAttributes
+        Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As MethodImplAttributes Implements Cci.IMethodDefinition.GetImplementationAttributes
             CheckDefinitionInvariant()
             Return Me.ImplementationAttributes Or
                    If(DirectCast(context.Module, PEModuleBuilder).JITOptimizationIsDisabled(Me), DisableJITOptimizationFlags, Nothing)
         End Function
 
-        Private ReadOnly Property IMethodDefinitionIsHiddenBySignature As Boolean Implements IMethodDefinition.IsHiddenBySignature
+        Private ReadOnly Property IMethodDefinitionIsHiddenBySignature As Boolean Implements Cci.IMethodDefinition.IsHiddenBySignature
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsHiddenBySignature
@@ -332,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsNewSlot As Boolean Implements IMethodDefinition.IsNewSlot
+        Private ReadOnly Property IMethodDefinitionIsNewSlot As Boolean Implements Cci.IMethodDefinition.IsNewSlot
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsMetadataNewSlot()
@@ -358,21 +352,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private ReadOnly Property IMethodDefinitionIsPlatformInvoke As Boolean Implements IMethodDefinition.IsPlatformInvoke
+        Private ReadOnly Property IMethodDefinitionIsPlatformInvoke As Boolean Implements Cci.IMethodDefinition.IsPlatformInvoke
             Get
                 CheckDefinitionInvariant()
                 Return Me.GetDllImportData() IsNot Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionPlatformInvokeData As IPlatformInvokeInformation Implements IMethodDefinition.PlatformInvokeData
+        Private ReadOnly Property IMethodDefinitionPlatformInvokeData As Cci.IPlatformInvokeInformation Implements Cci.IMethodDefinition.PlatformInvokeData
             Get
                 CheckDefinitionInvariant()
                 Return Me.GetDllImportData()
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsRuntimeSpecial As Boolean Implements IMethodDefinition.IsRuntimeSpecial
+        Private ReadOnly Property IMethodDefinitionIsRuntimeSpecial As Boolean Implements Cci.IMethodDefinition.IsRuntimeSpecial
             Get
                 CheckDefinitionInvariant()
                 Return Me.HasRuntimeSpecialName
@@ -392,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsSealed As Boolean Implements IMethodDefinition.IsSealed
+        Private ReadOnly Property IMethodDefinitionIsSealed As Boolean Implements Cci.IMethodDefinition.IsSealed
             Get
                 CheckDefinitionInvariant()
                 Return Me.HasFinalFlag
@@ -410,28 +404,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsSpecialName As Boolean Implements IMethodDefinition.IsSpecialName
+        Private ReadOnly Property IMethodDefinitionIsSpecialName As Boolean Implements Cci.IMethodDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
                 Return Me.HasSpecialName
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsStatic As Boolean Implements IMethodDefinition.IsStatic
+        Private ReadOnly Property IMethodDefinitionIsStatic As Boolean Implements Cci.IMethodDefinition.IsStatic
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsShared
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionIsVirtual As Boolean Implements IMethodDefinition.IsVirtual
+        Private ReadOnly Property IMethodDefinitionIsVirtual As Boolean Implements Cci.IMethodDefinition.IsVirtual
             Get
                 CheckDefinitionInvariant()
                 Return Me.IsMetadataVirtual()
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionParameters As ImmutableArray(Of IParameterDefinition) Implements IMethodDefinition.Parameters
+        Private ReadOnly Property IMethodDefinitionParameters As ImmutableArray(Of Cci.IParameterDefinition) Implements Cci.IMethodDefinition.Parameters
             Get
                 CheckDefinitionInvariant()
 
@@ -440,25 +434,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(p Is p.OriginalDefinition)
                 Next
 #End If
-                Return StaticCast(Of IParameterDefinition).From(Me.Parameters)
+                Return StaticCast(Of Cci.IParameterDefinition).From(Me.Parameters)
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionRequiresSecurityObject As Boolean Implements IMethodDefinition.RequiresSecurityObject
+        Private ReadOnly Property IMethodDefinitionRequiresSecurityObject As Boolean Implements Cci.IMethodDefinition.RequiresSecurityObject
             Get
                 CheckDefinitionInvariant()
                 Return False
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of ICustomAttribute) Implements IMethodDefinition.ReturnValueAttributes
+        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
             Get
                 CheckDefinitionInvariant()
                 Return GetCustomAttributesToEmit(Me.GetReturnTypeAttributes(), synthesized:=Nothing, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements IMethodDefinition.ReturnValueIsMarshalledExplicitly
+        Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
             Get
                 CheckDefinitionInvariant()
                 Return Me.ReturnValueIsMarshalledExplicitly
@@ -472,14 +466,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueMarshallingInformation As IMarshallingInformation Implements IMethodDefinition.ReturnValueMarshallingInformation
+        Private ReadOnly Property IMethodDefinitionReturnValueMarshallingInformation As Cci.IMarshallingInformation Implements Cci.IMethodDefinition.ReturnValueMarshallingInformation
             Get
                 CheckDefinitionInvariant()
                 Return ReturnTypeMarshallingInformation
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueMarshallingDescriptor As ImmutableArray(Of Byte) Implements IMethodDefinition.ReturnValueMarshallingDescriptor
+        Private ReadOnly Property IMethodDefinitionReturnValueMarshallingDescriptor As ImmutableArray(Of Byte) Implements Cci.IMethodDefinition.ReturnValueMarshallingDescriptor
             Get
                 CheckDefinitionInvariant()
                 Return ReturnValueMarshallingDescriptor
@@ -493,11 +487,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionSecurityAttributes As IEnumerable(Of SecurityAttribute) Implements IMethodDefinition.SecurityAttributes
+        Private ReadOnly Property IMethodDefinitionSecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) Implements Cci.IMethodDefinition.SecurityAttributes
             Get
                 CheckDefinitionInvariant()
                 Debug.Assert(Me.HasDeclarativeSecurity)
-                Dim securityAttributes As IEnumerable(Of SecurityAttribute) = Me.GetSecurityInformation()
+                Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Me.GetSecurityInformation()
                 Debug.Assert(securityAttributes IsNot Nothing)
                 Return securityAttributes
             End Get

@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -21,21 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Me.m_UnderlyingParameter = underlyingParameter
         End Sub
 
-        Private ReadOnly Property IParameterTypeInformationCustomModifiers As IEnumerable(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.CustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.CustomModifiers
             Get
-                Return m_UnderlyingParameter.CustomModifiers
+                Return m_UnderlyingParameter.CustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property IParameterTypeInformationIsByReference As Boolean Implements Cci.IParameterTypeInformation.IsByReference
             Get
                 Return m_UnderlyingParameter.IsByRef
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameterTypeInformationIsModified As Boolean Implements Cci.IParameterTypeInformation.IsModified
-            Get
-                Return m_UnderlyingParameter.CustomModifiers.Length <> 0
             End Get
         End Property
 

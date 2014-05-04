@@ -35,21 +35,4 @@ namespace Microsoft.Cci
         /// </summary>
         IDefinition AsDefinition(EmitContext context);
     }
-
-    /// <summary>
-    /// An object that represents a document. This can be either source or binary or designer surface etc
-    /// </summary>
-    internal interface Document
-    {
-        /// <summary>
-        /// The location where this document was found, or where it should be stored.
-        /// This will also uniquely identify the source document within an instance of compilation host.
-        /// </summary>
-        string Location { get; }
-
-        /// <summary>
-        /// The name of the document. For example the name of the file if the document corresponds to a file.
-        /// </summary>
-        string Name { get; }
-    }
 }

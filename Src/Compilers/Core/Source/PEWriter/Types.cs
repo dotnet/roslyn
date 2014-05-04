@@ -8,6 +8,17 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    internal enum PlatformType
+    {
+        SystemObject = CodeAnalysis.SpecialType.System_Object,
+        SystemDecimal = CodeAnalysis.SpecialType.System_Decimal,
+        SystemTypedReference = CodeAnalysis.SpecialType.System_TypedReference,
+        SystemType = CodeAnalysis.WellKnownType.System_Type,
+        SystemInt32 = CodeAnalysis.SpecialType.System_Int32,
+        SystemVoid = CodeAnalysis.SpecialType.System_Void,
+        SystemString = CodeAnalysis.SpecialType.System_String,
+    }
+
     /// <summary>
     /// Represents an exported type.
     /// </summary>
@@ -98,22 +109,15 @@ namespace Microsoft.Cci
         /// <summary>
         /// The list of custom modifiers, if any, associated with the parameter. Evaluate this property only if IsModified is true.
         /// </summary>
-        IEnumerable<ICustomModifier> CustomModifiers
+        ImmutableArray<ICustomModifier> CustomModifiers
         {
             get;
-
-            // ^ requires this.IsModified;
         }
 
         /// <summary>
         /// True if the parameter is passed by reference (using a managed pointer).
         /// </summary>
         bool IsByReference { get; }
-
-        /// <summary>
-        /// This parameter has one or more custom modifiers associated with it.
-        /// </summary>
-        bool IsModified { get; }
 
         /// <summary>
         /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
@@ -382,7 +386,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the list of custom modifiers associated with the type reference. Evaluate this property only if IsModified is true.
         /// </summary>
-        IEnumerable<ICustomModifier> CustomModifiers { get; }
+        ImmutableArray<ICustomModifier> CustomModifiers { get; }
 
         /// <summary>
         /// An unmodified type reference.

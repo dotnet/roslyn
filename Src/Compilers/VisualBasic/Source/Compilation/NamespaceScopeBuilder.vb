@@ -20,19 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class NamespaceScopeBuilder
 
         ' lazy project level imports
-        Private m_lazyProjectLevelImports As NamespaceScope
+        Private m_lazyProjectLevelImports As Cci.NamespaceScope
 
         ' lazy default/root namespace
-        Private m_lazyDefaultNamespaceImport As NamespaceScope
+        Private m_lazyDefaultNamespaceImport As Cci.NamespaceScope
 
         ' delegate for adding an element to the file level imports cache
-        Private ReadOnly m_buildFileLevelImports As Func(Of SourceFile, NamespaceScope)
+        Private ReadOnly m_buildFileLevelImports As Func(Of SourceFile, Cci.NamespaceScope)
 
         ' delegate for adding an element to the name string cache
         Private ReadOnly m_buildNamespaceOrTypeString As Func(Of NamespaceOrTypeSymbol, String)
 
         ' cache to map from source file to namespace scopes
-        Private ReadOnly m_sourceLevelImportsCache As ConcurrentDictionary(Of SourceFile, NamespaceScope)
+        Private ReadOnly m_sourceLevelImportsCache As ConcurrentDictionary(Of SourceFile, Cci.NamespaceScope)
 
         ' Cache to map from namespace or type to the string used to represent that namespace/type in the debug info.
         Private ReadOnly m_stringCache As ConcurrentDictionary(Of NamespaceOrTypeSymbol, String)
@@ -41,14 +41,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
 
         Public Sub New()
-            m_sourceLevelImportsCache = New ConcurrentDictionary(Of SourceFile, NamespaceScope)()
+            m_sourceLevelImportsCache = New ConcurrentDictionary(Of SourceFile, Cci.NamespaceScope)()
             m_stringCache = New ConcurrentDictionary(Of NamespaceOrTypeSymbol, String)()
 
             m_buildFileLevelImports = AddressOf BuildFileLevelImports
             m_buildNamespaceOrTypeString = AddressOf BuildNamespaceOrTypeString
         End Sub
 
-        Public Function GetNamespaceScopes(method As MethodSymbol) As ImmutableArray(Of NamespaceScope)
+        Public Function GetNamespaceScopes(method As MethodSymbol) As ImmutableArray(Of Cci.NamespaceScope)
 
             Dim sourceModule = DirectCast(method.ContainingModule, SourceModuleSymbol)
 
@@ -65,44 +65,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The order should be irrelevant because at the end it's a flat list, however we still output file level imports 
             ' before project level imports the same way as Dev11 did.
 
-            Dim sourceLevelImports As NamespaceScope
+            Dim sourceLevelImports As Cci.NamespaceScope
             sourceLevelImports = m_sourceLevelImportsCache.GetOrAdd(sourceModule.GetSourceFile(method.Syntax.SyntaxTree),
                                                                     m_buildFileLevelImports)
 
-            Return ImmutableArray.Create(Of NamespaceScope)(sourceLevelImports,
-                                                           m_lazyDefaultNamespaceImport,
-                                                           m_lazyProjectLevelImports,
-                                                           BuildCurrentNamespace(method))
+            Return ImmutableArray.Create(sourceLevelImports,
+                                         m_lazyDefaultNamespaceImport,
+                                         m_lazyProjectLevelImports,
+                                         BuildCurrentNamespace(method))
         End Function
 
-        Private Function BuildProjectLevelImports([module] As SourceModuleSymbol) As NamespaceScope
+        Private Function BuildProjectLevelImports([module] As SourceModuleSymbol) As Cci.NamespaceScope
             Return BuildNamespaceScope([module].XmlNamespaces,
                                        [module].AliasImports,
                                        [module].MemberImports,
                                        isProjectLevel:=True)
         End Function
 
-        Private Function BuildFileLevelImports(file As SourceFile) As NamespaceScope
+        Private Function BuildFileLevelImports(file As SourceFile) As Cci.NamespaceScope
             Return BuildNamespaceScope(file.XmlNamespaces,
                                        If(file.AliasImports IsNot Nothing, file.AliasImports.Values, Nothing),
                                        file.MemberImports,
                                        isProjectLevel:=False)
         End Function
 
-        Private Function BuildCurrentNamespace(method As MethodSymbol) As NamespaceScope
-            Return New NamespaceScope(ImmutableArray.Create(Of UsedNamespaceOrType)(
-                                        UsedNamespaceOrType.CreateVisualBasicCurrentNamespace(
-                                            GetNamespaceOrTypeString(method.ContainingNamespace))))
+        Private Function BuildCurrentNamespace(method As MethodSymbol) As Cci.NamespaceScope
+            Return New Cci.NamespaceScope(ImmutableArray.Create(
+                Cci.UsedNamespaceOrType.CreateVisualBasicCurrentNamespace(GetNamespaceOrTypeString(method.ContainingNamespace))))
         End Function
 
-        Private Function BuildDefaultNamespace([module] As SourceModuleSymbol) As NamespaceScope
+        Private Function BuildDefaultNamespace([module] As SourceModuleSymbol) As Cci.NamespaceScope
             Dim rootNamespace = [module].RootNamespace
             If rootNamespace IsNot Nothing AndAlso Not rootNamespace.IsGlobalNamespace Then
-                Return New NamespaceScope(ImmutableArray.Create(Of UsedNamespaceOrType)(
-                                            UsedNamespaceOrType.CreateVisualBasicDefaultNamespace(
-                                                GetNamespaceOrTypeString(rootNamespace))))
+                Return New Cci.NamespaceScope(ImmutableArray.Create(
+                    Cci.UsedNamespaceOrType.CreateVisualBasicDefaultNamespace(GetNamespaceOrTypeString(rootNamespace))))
             Else
-                Return NamespaceScope.Empty
+                Return Cci.NamespaceScope.Empty
             End If
         End Function
 
@@ -111,13 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             aliasImports As IEnumerable(Of AliasAndImportsClausePosition),
             memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
             isProjectLevel As Boolean
-        ) As NamespaceScope
-            Dim scopeBuilder = ArrayBuilder(Of UsedNamespaceOrType).GetInstance
+        ) As Cci.NamespaceScope
+            Dim scopeBuilder = ArrayBuilder(Of Cci.UsedNamespaceOrType).GetInstance
 
             ' first come xml imports
             If xmlNamespaces IsNot Nothing Then
                 For Each xmlImport In xmlNamespaces
-                    scopeBuilder.Add(UsedNamespaceOrType.CreateVisualBasicXmlNamespace(xmlImport.Value.XmlNamespace,
+                    scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateVisualBasicXmlNamespace(xmlImport.Value.XmlNamespace,
                                                                                        xmlImport.Key,
                                                                                        isProjectLevel))
                 Next
@@ -128,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each aliasImport In aliasImports
                     Dim target = aliasImport.Alias.Target
                     If target.IsNamespace OrElse DirectCast(target, NamedTypeSymbol).Arity = 0 Then
-                        scopeBuilder.Add(UsedNamespaceOrType.CreateVisualBasicNamespaceOrTypeAlias(GetNamespaceOrTypeString(target),
+                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateVisualBasicNamespaceOrTypeAlias(GetNamespaceOrTypeString(target),
                                                                                                    aliasImport.Alias.Name,
                                                                                                    isProjectLevel))
                     End If
@@ -139,12 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not memberImports.IsEmpty Then
                 For Each import In memberImports
                     If import.NamespaceOrType.IsNamespace Then
-                        scopeBuilder.Add(UsedNamespaceOrType.CreateVisualBasicNamespace(GetNamespaceOrTypeString(import.NamespaceOrType),
+                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateVisualBasicNamespace(GetNamespaceOrTypeString(import.NamespaceOrType),
                                                                                         isProjectLevel))
 
                     Else
                         If DirectCast(import.NamespaceOrType, NamedTypeSymbol).Arity = 0 Then
-                            scopeBuilder.Add(UsedNamespaceOrType.CreateVisualBasicType(GetNamespaceOrTypeString(import.NamespaceOrType),
+                            scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateVisualBasicType(GetNamespaceOrTypeString(import.NamespaceOrType),
                                                                                        isProjectLevel))
 
                         End If
@@ -152,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End If
 
-            Dim scope = If(scopeBuilder.Count = 0, NamespaceScope.Empty, New NamespaceScope(scopeBuilder.ToImmutable()))
+            Dim scope = If(scopeBuilder.Count = 0, Cci.NamespaceScope.Empty, New Cci.NamespaceScope(scopeBuilder.ToImmutable()))
             scopeBuilder.Free()
 
             Return scope

@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return true; }
         }
 
-        public IEnumerable<Microsoft.Cci.ICustomModifier> CustomModifiers
+        public ImmutableArray<ICustomModifier> CustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Microsoft.Cci.ICustomModifier>(); }
+            get { return ImmutableArray<ICustomModifier>.Empty; }
         }
 
         public bool IsModified

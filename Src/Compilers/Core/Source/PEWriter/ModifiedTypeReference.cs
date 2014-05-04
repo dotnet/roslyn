@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
-using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -12,18 +12,18 @@ namespace Microsoft.Cci
     internal sealed class ModifiedTypeReference : IModifiedTypeReference
     {
         private readonly ITypeReference modifiedType;
-        private readonly IEnumerable<ICustomModifier> customModifiers;
+        private readonly ImmutableArray<ICustomModifier> customModifiers;
 
-        public ModifiedTypeReference(ITypeReference modifiedType, IEnumerable<ICustomModifier> customModifiers)
+        public ModifiedTypeReference(ITypeReference modifiedType, ImmutableArray<ICustomModifier> customModifiers)
         {
             Debug.Assert(modifiedType != null);
-            Debug.Assert(customModifiers != null);
+            Debug.Assert(!customModifiers.IsDefault);
 
             this.modifiedType = modifiedType;
             this.customModifiers = customModifiers;
         }
 
-        IEnumerable<ICustomModifier> IModifiedTypeReference.CustomModifiers
+        ImmutableArray<ICustomModifier> IModifiedTypeReference.CustomModifiers
         {
             get
             {

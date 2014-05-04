@@ -13,7 +13,7 @@ namespace Microsoft.Cci
         protected readonly HashSet<IReference> alreadySeen = new HashSet<IReference>();
         protected readonly HashSet<IReference> alreadyHasToken = new HashSet<IReference>();
         protected bool typeReferenceNeedsToken;
-        protected IModule/*?*/ module;
+        protected IModule module;
 
         internal ReferenceIndexerBase(EmitContext context)
             : base(context)
@@ -38,7 +38,7 @@ namespace Microsoft.Cci
 
             // do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
             // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
-            var definingUnit = TypeHelper.GetDefiningUnitReference(aliasForType.ExportedType, Context);
+            var definingUnit = PeWriter.GetDefiningUnitReference(aliasForType.ExportedType, Context);
             var definingAssembly = definingUnit as IAssemblyReference;
             if (definingAssembly != null)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
+            IUnitReference/*?*/ definingUnit = PeWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 return;
@@ -143,7 +143,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IMethodReference methodReference)
         {
-            IGenericMethodInstanceReference/*?*/ genericMethodInstanceReference = methodReference.AsGenericMethodInstanceReference;
+            IGenericMethodInstanceReference genericMethodInstanceReference = methodReference.AsGenericMethodInstanceReference;
             if (genericMethodInstanceReference != null)
             {
                 this.Visit(genericMethodInstanceReference);
@@ -160,32 +160,26 @@ namespace Microsoft.Cci
             // in fact the number of extra arguments passed is zero; in that case we are permitted to use
             // an ordinary method def token. We consistently choose to emit a method ref regardless.)
 
-            IUnitReference/*?*/ definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = PeWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module) && !methodReference.AcceptsExtraArguments)
             {
                 return;
             }
 
             this.Visit((ITypeMemberReference)methodReference);
-            ISpecializedMethodReference/*?*/ specializedMethodReference = methodReference.AsSpecializedMethodReference;
+            ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
                 IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
                 this.Visit(unspecializedMethodReference.GetType(Context));
                 this.Visit(unspecializedMethodReference.GetParameters(Context));
-                if (unspecializedMethodReference.ReturnValueIsModified)
-                {
-                    this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
-                }
+                this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
             }
             else
             {
                 this.Visit(methodReference.GetType(Context));
                 this.Visit(methodReference.GetParameters(Context));
-                if (methodReference.ReturnValueIsModified)
-                {
-                    this.Visit(methodReference.ReturnValueCustomModifiers);
-                }
+                this.Visit(methodReference.ReturnValueCustomModifiers);
             }
 
             if (methodReference.AcceptsExtraArguments)

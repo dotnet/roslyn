@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -223,17 +222,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
         }
 
-        IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomModifier>(); }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef
-        {
-            get { return false; }
-        }
-
-        bool Cci.ISignature.ReturnValueIsModified
         {
             get { return false; }
         }

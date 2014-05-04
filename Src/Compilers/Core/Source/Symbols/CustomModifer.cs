@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis
@@ -19,8 +18,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract INamedTypeSymbol Modifier { get; }
 
-        #region CCI stubs -- languages must re-implement these
-        bool ICustomModifier.IsOptional
+        #region ICustomModifier
+
+        bool Cci.ICustomModifier.IsOptional
         {
             get
             {
@@ -28,10 +28,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        ITypeReference ICustomModifier.GetModifier(EmitContext context)
+        Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
         {
             throw new NotImplementedException();
         }
+
         #endregion  
     }
 }

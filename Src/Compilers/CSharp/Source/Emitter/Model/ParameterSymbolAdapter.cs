@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IParameterTypeInformation,
         Cci.IParameterDefinition
     {
-        IEnumerable<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
-                return this.CustomModifiers;
+                return this.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -34,14 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.HasByRefBeforeCustomModifiers;
-            }
-        }
-
-        bool Cci.IParameterTypeInformation.IsModified
-        {
-            get
-            {
-                return this.CustomModifiers.Length != 0;
             }
         }
 
