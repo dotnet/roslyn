@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1516,6 +1516,32 @@ class Program
         [WorkItem(543933, "DevDiv")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var d = new Dictionary<object, object>()
+        {
+            {""s"", 1 },
+        var x = 1;
+    }
+}
+";
+            CreateCompilationWithMscorlib(source, parseOptions: Test.Utilities.TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics(
+                // (10,18): error CS1513: } expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(10, 18),
+                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'value' of 'System.Collections.Generic.Dictionary<object, object>.Add(object, object)'
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var x = 1").WithArguments("value", "System.Collections.Generic.Dictionary<object, object>.Add(object, object)").WithLocation(10, 9));
+        }
+
+        [WorkItem(543933, "DevDiv")]
+        [Fact]
+        public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression_NoDeclExpr()
         {
             var source = @"
 class Program

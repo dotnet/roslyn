@@ -98,6 +98,7 @@
     <Compile Include="Semantics\ColorColorTests.cs" />
     <Compile Include="Semantics\ConditionalOperatorTests.cs" />
     <Compile Include="Semantics\ConstantTests.cs" />
+    <Compile Include="Semantics\DeclarationExpressionsTests.cs" />
     <Compile Include="Semantics\DynamicTests.cs" />
     <Compile Include="Semantics\FieldInitializerBindingTests.cs" />
     <Compile Include="Semantics\ForEachTests.cs" />

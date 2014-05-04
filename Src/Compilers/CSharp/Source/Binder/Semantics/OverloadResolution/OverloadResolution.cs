@@ -1126,10 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allSame = true; // Are all parameter types equivalent by identify conversions?
             for (int i = 0; i < arguments.Count; ++i)
             {
+                var argumentKind = arguments[i].Kind;
 
                 // If these are both applicable varargs methods and we're looking at the __arglist argument
                 // then clearly neither of them is going to be better in this argument.
-                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                if (argumentKind == BoundKind.ArgListOperator)
                 {
                     Debug.Assert(i == arguments.Count - 1);
                     Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
@@ -1139,6 +1140,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind1, refKind2;
                 var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
                 var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+
+                if (argumentKind == BoundKind.UninitializedVarDeclarationExpression)
+                {
+                    // If argument is a 'var' declaration without initializer,
+                    // neither candidate is better in this argument.
+                    if (allSame && Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    {
+                        allSame = false;
+                    }
+
+                    continue;
+                }
+
                 bool okToDowngradeToNeither;
                 var r = BetterConversionFromExpression(arguments[i],
                                                        type1,
@@ -2586,6 +2600,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // defer applicability check to runtime:
                 return Conversion.ImplicitDynamic;
+            }
+
+            if (argument.Kind == BoundKind.UninitializedVarDeclarationExpression)
+            {
+                Debug.Assert(argRefKind != RefKind.None);
+
+                // Any parameter type is good, we'll use it for the var local.
+                return Conversion.Identity;
             }
 
             if (argRefKind == RefKind.None)

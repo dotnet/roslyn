@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -131,6 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundLocal)node).LocalSymbol;
                         }
 
+                    case BoundKind.DeclarationExpression:
+                        {
+                            return ((BoundDeclarationExpression)node).LocalSymbol;
+                        }
+
                     case BoundKind.Parameter:
                         {
                             return ((BoundParameter)node).ParameterSymbol;
@@ -138,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.CatchBlock:
                         {
-                            return ((BoundCatchBlock)node).LocalOpt;
+                            var local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
+                            return (object)local != null && local.DeclarationKind == LocalDeclarationKind.Catch ? local : null;
                         }
 
                     case BoundKind.ForEachStatement:

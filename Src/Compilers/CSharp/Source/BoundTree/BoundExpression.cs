@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -101,6 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ConstantValueOpt; }
         }
 
+        public override Symbol ExpressionSymbol
+        {
+            get { return this.LocalSymbol; }
+        }
+    }
+
+    partial class BoundDeclarationExpression
+    {
         public override Symbol ExpressionSymbol
         {
             get { return this.LocalSymbol; }

@@ -58,6 +58,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
+        protected ImmutableArray<LocalSymbol> BuildLocals(StatementSyntax stmt, bool isRoot = true)
+        {
+            Debug.Assert(stmt != null);
+            var walker = new BuildLocalsFromDeclarationsWalker(this, isRoot ? stmt : null);
+
+            walker.Visit(stmt);
+
+            if (walker.Locals != null)
+            {
+                return walker.Locals.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<LocalSymbol>.Empty;
+        }
+
         internal sealed override ImmutableArray<LabelSymbol> Labels
         {
             get
@@ -123,48 +138,208 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
         {
-            ArrayBuilder<LocalSymbol> locals = null;
+            var walker = new BuildLocalsFromDeclarationsWalker(this);
+
             foreach (var statement in statements)
             {
-                var innerStatement = statement;
-
-                // drill into any LabeledStatements -- atomic LabelStatements have been bound into
-                // wrapped LabeledStatements by this point
-                while (innerStatement.Kind == SyntaxKind.LabeledStatement)
-                {
-                    innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
-                }
-
-                if (innerStatement.Kind == SyntaxKind.LocalDeclarationStatement)
-                {
-                    var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                    if (locals == null)
-                    {
-                        locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                    }
-
-                    foreach (var vdecl in decl.Declaration.Variables)
-                    {
-                        var localSymbol = SourceLocalSymbol.MakeLocal(
-                            this.Owner,
-                            this,
-                            decl.Declaration.Type,
-                            vdecl.Identifier,
-                            vdecl.Initializer,
-                            decl.IsConst ? LocalDeclarationKind.Constant
-                                         : decl.IsFixed ? LocalDeclarationKind.Fixed
-                                                        : LocalDeclarationKind.Variable);
-                        locals.Add(localSymbol);
-                    }
-                }
+                walker.Visit(statement);
             }
 
-            if (locals != null)
+            if (walker.Locals != null)
             {
-                return locals.ToImmutableAndFree();
+                return walker.Locals.ToImmutableAndFree();
             }
 
             return ImmutableArray<LocalSymbol>.Empty;
+        }
+
+        protected class BuildLocalsFromDeclarationsWalker : CSharpSyntaxWalker 
+        {
+            public readonly LocalScopeBinder Binder;
+            public readonly StatementSyntax RootStmtOpt;
+            public ArrayBuilder<LocalSymbol> Locals;
+
+            public BuildLocalsFromDeclarationsWalker(LocalScopeBinder binder, StatementSyntax rootStmtOpt = null)
+            {
+                this.Binder = binder;
+                this.RootStmtOpt = rootStmtOpt;
+            }
+
+            public override void VisitVariableDeclaration(VariableDeclarationSyntax node)
+            {
+                if (Locals == null)
+                {
+                    Locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                }
+
+                LocalDeclarationKind kind;
+
+                switch (node.Parent.CSharpKind())
+                {
+                    case SyntaxKind.LocalDeclarationStatement:
+                        var localDecl = (LocalDeclarationStatementSyntax)node.Parent;
+                        kind = localDecl.IsConst ? LocalDeclarationKind.Constant :
+                                                  localDecl.IsFixed ? LocalDeclarationKind.Fixed :
+                                                                     LocalDeclarationKind.Variable;
+                        break;
+
+                    case SyntaxKind.ForStatement:
+                        kind = LocalDeclarationKind.For;
+                        break;
+
+                    case SyntaxKind.UsingStatement:
+                        kind = LocalDeclarationKind.Using;
+                        break;
+
+                    case SyntaxKind.FixedStatement:
+                        kind = LocalDeclarationKind.Fixed;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                foreach (var vdecl in node.Variables)
+                {
+                    var localSymbol = SourceLocalSymbol.MakeLocal(
+                        Binder.Owner,
+                        Binder,
+                        node.Type,
+                        vdecl.Identifier,
+                        vdecl.Initializer,
+                        kind);
+                    Locals.Add(localSymbol);
+
+                    Visit(vdecl.Initializer);
+                }
+            }
+
+            public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
+            {
+                if (Locals == null)
+                {
+                    Locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                }
+
+                var localSymbol = SourceLocalSymbol.MakeLocal(
+                    Binder.Owner,
+                    Binder,
+                    node.Type,
+                    node.Variable.Identifier,
+                    node.Variable.Initializer,
+                    LocalDeclarationKind.Variable);
+
+                Locals.Add(localSymbol);
+
+                Visit(node.Variable.Initializer);
+            }
+
+            public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
+            {
+                Debug.Assert(false);
+                base.VisitVariableDeclarator(node);
+            }
+
+            public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitBlock(BlockSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                base.VisitBlock(node);
+            }
+
+            public override void VisitForStatement(ForStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override void VisitUsingStatement(UsingStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                Visit(node.Declaration);
+                Visit(node.Expression);
+            }
+
+            public override void VisitFixedStatement(FixedStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                Visit(node.Declaration);
+            }
+
+            public override void VisitSwitchStatement(SwitchStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override void VisitForEachStatement(ForEachStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override void VisitWhileStatement(WhileStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                Visit(node.Condition);
+            }
+
+            public override void VisitDoStatement(DoStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                Visit(node.Condition);
+            }
+
+            public override void VisitCatchClause(CatchClauseSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitIfStatement(IfStatementSyntax node)
+            {
+                if (RootStmtOpt != node)
+                {
+                    return;
+                }
+
+                Visit(node.Condition);
+            }
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
@@ -319,6 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequence2 ss = null;
             BoundExpression boundExpression = VisitExpression(ref ss, node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return UpdateStatement(ss, node.Update(boundExpression, node.ConstantTargetOpt, node.LocalsOpt, switchSections, node.BreakLabel, node.StringEquality));
+            return UpdateStatement(ss, node.Update(node.OuterLocals, boundExpression, node.ConstantTargetOpt, node.InnerLocalsOpt, switchSections, node.BreakLabel, node.StringEquality));
         }
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {

@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenConsequence = VisitStatement(node.Consequence);
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
-            var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            var result = RewriteIfStatement(syntax, node.Locals, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
             if (this.generateDebugInfo && !node.WasCompilerGenerated)
@@ -34,52 +36,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement RewriteIfStatement(
             CSharpSyntaxNode syntax,
+            ImmutableArray<LocalSymbol> locals,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,
             BoundStatement rewrittenAlternativeOpt,
             bool hasErrors)
         {
             var afterif = new GeneratedLabelSymbol("afterif");
-
-            // if (condition) 
-            //   consequence;  
-            //
-            // becomes
-            //
-            // GotoIfFalse condition afterif;
-            // consequence;
-            // afterif:
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
             if (rewrittenAlternativeOpt == null)
             {
-                return BoundStatementList.Synthesized(syntax,
-                    new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif),
-                    rewrittenConsequence,
-                    new BoundLabelStatement(syntax, afterif));
+                // if (condition) 
+                //   consequence;  
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
+
+                builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
+                builder.Add(rewrittenConsequence);
+            }
+            else
+            {
+                // if (condition)
+                //     consequence;
+                // else 
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
+
+                var alt = new GeneratedLabelSymbol("alternative");
+
+                builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt));
+                builder.Add(rewrittenConsequence);
+                builder.Add(new BoundGotoStatement(syntax, afterif));
+                builder.Add(new BoundLabelStatement(syntax, alt));
+                builder.Add(rewrittenAlternativeOpt);
             }
 
-            // if (condition)
-            //     consequence;
-            // else 
-            //     alternative
-            //
-            // becomes
-            //
-            // GotoIfFalse condition alt;
-            // consequence
-            // goto afterif;
-            // alt:
-            // alternative;
-            // afterif:
+            builder.Add(new BoundLabelStatement(syntax, afterif));
 
-            var alt = new GeneratedLabelSymbol("alternative");
-            return BoundStatementList.Synthesized(syntax, hasErrors,
-                new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt),
-                rewrittenConsequence,
-                new BoundGotoStatement(syntax, afterif),
-                new BoundLabelStatement(syntax, alt),
-                rewrittenAlternativeOpt,
-                new BoundLabelStatement(syntax, afterif));
+            if (!locals.IsDefaultOrEmpty)
+            {
+                return new BoundBlock(syntax, locals, builder.ToImmutableAndFree(), hasErrors);
+            }
+
+            return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (Dev10 has them all come into scope at once, not per-declaration.)
                 return new BoundBlock(
                     usingSyntax,
-                    node.LocalsOpt,
+                    node.Locals,
                     ImmutableArray.Create<BoundStatement>(result));
             }
         }
@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(node.ExpressionOpt);
             if (rewrittenExpression.ConstantValue == ConstantValue.Null)
             {
+                Debug.Assert(node.Locals.IsEmpty); // TODO: This might not be a valid assumption in presence of semicolon operator.
                 return tryBlock;
             }
 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
                 syntax: usingSyntax,
-                localsOpt: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol),
+                localsOpt: node.Locals.Add(boundTemp.LocalSymbol),
                 statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 
@@ -336,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if (local.HasValue) local.GetValueOrDefault().Dispose();
                 finallyStatement = RewriteIfStatement(
                     syntax: syntax,
+                    locals: ImmutableArray<LocalSymbol>.Empty,
                     rewrittenCondition: ifCondition,
                     rewrittenConsequence: disposeStatement,
                     rewrittenAlternativeOpt: null,

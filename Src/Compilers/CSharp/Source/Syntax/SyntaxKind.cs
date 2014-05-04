@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitArrayCreationExpression,
         StackAllocArrayCreationExpression,
         OmittedArraySizeExpression,
+        DeclarationExpression,
 
         // binary expressions
         AddExpression,

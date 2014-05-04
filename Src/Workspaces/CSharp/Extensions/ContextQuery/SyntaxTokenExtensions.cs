@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -273,6 +273,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // Check to see if the parser has treated this as a partially typed declaration expression.
+            if (token.IsKind(SyntaxKind.IdentifierToken) &&
+                token.IsParentKind(SyntaxKind.IdentifierName) &&
+                token.Parent.IsParentKind(SyntaxKind.DeclarationExpression))
+            {
+                var queryClause = token.Parent.FirstAncestorOrSelf<QueryClauseSyntax>();
+                if (queryClause == null)
+                {
+                    return false;
+                }
+
+                var declarationExpression = (DeclarationExpressionSyntax)token.Parent.Parent;
+                if (declarationExpression.Type == token.Parent &&
+                    declarationExpression.Variable != null &&
+                    declarationExpression.Variable.Initializer == null)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -338,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             var ordering = targetToken.GetAncestor<OrderingSyntax>();
-
             if (ordering == null)
             {
                 return false;
@@ -346,7 +365,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // orderby a |
             // orderby a, b |
-            if (targetToken == ordering.Expression.GetLastToken(includeSkipped: true))
+            var lastToken = ordering.Expression.GetLastToken(includeSkipped: true);
+
+            // In the following case, the parser may treat a partially typed keyword as part of a
+            // declaration expression:
+            //   orderby a a|
+            if (ordering.Expression.IsKind(SyntaxKind.DeclarationExpression))
+            {
+                lastToken = lastToken.GetPreviousToken(includeSkipped: true);
+            }
+
+            if (targetToken == lastToken)
             {
                 return true;
             }

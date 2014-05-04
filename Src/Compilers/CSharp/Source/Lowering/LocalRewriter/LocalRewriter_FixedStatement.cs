@@ -15,16 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
-            int numFixedLocals = node.Locals.Length;
+            ImmutableArray<BoundLocalDeclaration> localDecls = node.Declarations.LocalDeclarations;
+            int numFixedLocals = localDecls.Length;
 
-            var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance(numFixedLocals);
+            var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance(node.Locals.Length);
             localBuilder.AddRange(node.Locals);
 
             var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance(numFixedLocals + 1 + 1); //+1 for body, +1 for hidden seq point
             var cleanup = new BoundStatement[numFixedLocals];
-
-            ImmutableArray<BoundLocalDeclaration> localDecls = node.Declarations.LocalDeclarations;
-            Debug.Assert(localDecls.Length == numFixedLocals);
 
             for (int i = 0; i < numFixedLocals; i++)
             {
@@ -247,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Local(stringTemp),
                 fixedInitializer.ElementPointerTypeConversion);
 
-            BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(declarator, localSymbol,
+            BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(declarator, localSymbol, 
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
 
             BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(stringTemp), BinaryOperatorKind.NotEqual);
@@ -337,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression firstElementAddress = new BoundAddressOfOperator(factory.Syntax, firstElement, isFixedStatementAddressOf: true, type: new PointerTypeSymbol(arrayElementType));
             BoundExpression convertedFirstElementAddress = factory.Convert(
                 localType,
-                firstElementAddress,
+                firstElementAddress, 
                 fixedInitializer.ElementPointerTypeConversion);
 
             //loc = &temp[0]

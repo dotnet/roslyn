@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -245,14 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCatchBlock(BoundCatchBlock node)
             {
-                var local = node.LocalOpt;
+                var locals = node.Locals;
 
-                if ((object)local == null)
+                if (locals.IsDefaultOrEmpty)
                 {
                     return base.VisitCatchBlock(node);
                 }
 
-                var previousBlock = PushBlock(node, ImmutableArray.Create(local));
+                var previousBlock = PushBlock(node, locals);
                 var result = base.VisitCatchBlock(node);
                 PopBlock(previousBlock);
                 return node;
@@ -287,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
-                var localsOpt = node.LocalsOpt;
+                Debug.Assert(node.OuterLocals.IsEmpty);
+                var localsOpt = node.InnerLocalsOpt;
                 if (localsOpt.IsDefaultOrEmpty)
                 {
                     // no variables declared inside the switch statement.

@@ -430,6 +430,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
+        {
+            if (node.InitializerOpt != null)
+            {
+                var rvalue = VisitRvalue(node.InitializerOpt) as BoundExpression;
+                var valueHolder = MakeValueHolder(rvalue);
+                this.State.variables[node.LocalSymbol] = valueHolder.value;
+            }
+
+            // Treat similar to BoundLocal. This might need an adjustment for a semicolon operators.
+            base.VisitDeclarationExpression(node);
+            Value result;
+            this.State.variables.TryGetValue(node.LocalSymbol, out result);
+            return result != null ? new BoundValueHolder(result, node.Type, node.Syntax) : null;
+        }
+
         public override BoundNode VisitLocal(BoundLocal node)
         {
             base.VisitLocal(node);

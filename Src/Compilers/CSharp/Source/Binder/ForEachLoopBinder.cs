@@ -56,6 +56,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Will be populated with binding diagnostics.</param>
         internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics)
         {
+            BoundForEachStatement result = BindForEachPartsWorker(diagnostics);
+
+            var foreachExpressionBinder = (ScopedExpressionBinder)this.Next;
+            if (!foreachExpressionBinder.Locals.IsDefaultOrEmpty)
+            {
+                result = result.Update(foreachExpressionBinder.Locals, 
+                                       result.EnumeratorInfoOpt, 
+                                       result.ElementConversion, 
+                                       result.IterationVariableType, 
+                                       result.IterationVariable, 
+                                       result.Expression, 
+                                       result.Body, 
+                                       result.Checked, 
+                                       result.BreakLabel, 
+                                       result.ContinueLabel);
+            }
+
+            return result;
+        }
+
+        private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics)
+        { 
             BoundExpression collectionExpr = this.Next.BindValue(syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
@@ -105,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundForEachStatement(
                     syntax,
+                    ImmutableArray<LocalSymbol>.Empty,
                     null, // can't be sure that it's complete
                     default(Conversion),
                     boundIterationVariableType,
@@ -193,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundForEachStatement(
                 syntax,
+                ImmutableArray<LocalSymbol>.Empty,
                 builder.Build(this.Flags),
                 elementConversion,
                 boundIterationVariableType,

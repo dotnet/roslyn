@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,25 +22,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var declaration = this.syntax.Declaration;
-            if (declaration == null)
+            var walker = new BuildLocalsFromDeclarationsWalker(this);
+
+            walker.Visit(syntax.Condition);
+
+            foreach (var incrementor in syntax.Incrementors)
             {
-                return ImmutableArray<LocalSymbol>.Empty;
+                walker.Visit(incrementor);
             }
 
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var variable in declaration.Variables)
+            if (walker.Locals != null)
             {
-                var localSymbol = SourceLocalSymbol.MakeLocal(
-                    this.Owner,
-                    this,
-                    declaration.Type,
-                    variable.Identifier,
-                    variable.Initializer,
-                    LocalDeclarationKind.For);
-                locals.Add(localSymbol);
+                return walker.Locals.ToImmutableAndFree();
             }
-            return locals.ToImmutableAndFree();
+
+            return ImmutableArray<LocalSymbol>.Empty;
+        }
+
+        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics)
+        {
+            BoundForStatement result = BindForParts(syntax, diagnostics);
+
+            var initializationBinder = (ForLoopInitializationBinder)this.Next;
+            if (!initializationBinder.Locals.IsDefaultOrEmpty)
+            {
+                result = result.Update(initializationBinder.Locals, 
+                                       result.Initializer,
+                                       result.InnerLocals,
+                                       result.Condition, 
+                                       result.Increment,
+                                       result.Body, 
+                                       result.BreakLabel, 
+                                       result.ContinueLabel);
+            }
+
+            return result;
+        }
+    }
+
+    internal sealed class ForLoopInitializationBinder : LocalScopeBinder
+    {
+        private readonly ForStatementSyntax syntax;
+
+        public ForLoopInitializationBinder(MethodSymbol owner, Binder enclosing, ForStatementSyntax syntax)
+            : base(owner, enclosing)
+        {
+            Debug.Assert(syntax != null);
+            this.syntax = syntax;
+        }
+
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        {
+            var walker = new BuildLocalsFromDeclarationsWalker(this);
+
+            walker.Visit(syntax.Declaration);
+
+            foreach (var initializer in syntax.Initializers)
+            {
+                walker.Visit(initializer);
+            }
+
+            if (walker.Locals != null)
+            {
+                return walker.Locals.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<LocalSymbol>.Empty;
         }
     }
 }

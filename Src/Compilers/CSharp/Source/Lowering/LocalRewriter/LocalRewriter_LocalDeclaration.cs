@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -77,6 +78,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenLocalDeclaration;
+        }
+
+        public override BoundNode VisitDeclarationExpression(BoundDeclarationExpression node)
+        {
+            var local = new BoundLocal(node.Syntax, node.LocalSymbol, null, node.LocalSymbol.Type);
+
+            if (node.InitializerOpt == null)
+            {
+                return local;
+            }
+
+            return new BoundSequence(node.Syntax, 
+                                     ImmutableArray<LocalSymbol>.Empty, 
+                                     ImmutableArray.Create<BoundExpression>(new BoundAssignmentOperator(
+                                                                                                        node.Syntax,
+                                                                                                        new BoundLocal(
+                                                                                                            local.Syntax,
+                                                                                                            local.LocalSymbol,
+                                                                                                            null,
+                                                                                                            local.Type
+                                                                                                        ),
+                                                                                                        VisitExpression(node.InitializerOpt),
+                                                                                                        local.Type)),
+                                     local,
+                                     local.Type);
         }
     }
 }

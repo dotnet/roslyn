@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -293,6 +293,26 @@ partial class C
         // Object could not declare in lock statement
         [Fact]
         public void ObjectDeclaredInLock()
+        {
+            var source = @"
+class Test
+{
+    public static void Main()
+    {
+        lock (Res d = new Res ())// Invalid
+        {
+        }
+    }
+}
+class Res
+{
+}
+";
+            CreateCompilationWithMscorlib(source, parseOptions: Test.Utilities.TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectDeclaredInLock_NoDeclExpr()
         {
             var source = @"
 class Test

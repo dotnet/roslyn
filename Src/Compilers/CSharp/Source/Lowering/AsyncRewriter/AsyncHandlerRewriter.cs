@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: null,
@@ -545,19 +545,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.ExpressionStatement(storePending),
                         setPendingCatchNum));
 
-                // catch local lives on the synthetic catch handler block
-                handlerLocals = node.LocalOpt == null ?
-                                ImmutableArray<LocalSymbol>.Empty :
-                                ImmutableArray.Create(node.LocalOpt);
+                // catch locals live on the synthetic catch handler block
+                handlerLocals = node.Locals;
             }
             else
             {
-                // catch local moves up into hoisted locals
-                // since we might need to access it from both the filter and the catch
+                // catch locals move up into hoisted locals
+                // since we might need to access them from both the filter and the catch
                 handlerLocals = ImmutableArray<LocalSymbol>.Empty;
-                if (node.LocalOpt != null)
+                foreach (var local in node.Locals)
                 {
-                    currentAwaitCatchFrame.HoistLocal(node.LocalOpt, F);
+                    currentAwaitCatchFrame.HoistLocal(local, F);
                 }
 
                 // store pending exception 
@@ -574,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     rewrittenFilter);
 
                 catchAndPend = node.Update(
-                    catchTemp,
+                    ImmutableArray.Create(catchTemp),
                     F.Local(catchTemp),
                     catchType,
                     exceptionFilterOpt: newFilter,

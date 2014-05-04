@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -16,7 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceLocalSymbol : LocalSymbol
     {
         private readonly Binder binder;
-        private readonly MethodSymbol containingMethod;
+
+        /// <summary>
+        /// Might not be a method symbol in error cases.
+        /// </summary>
+        private readonly Symbol containingSymbol;
+
         private readonly SyntaxToken identifierToken;
         private readonly ImmutableArray<Location> locations;
         private readonly TypeSyntax typeSyntax;
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static SourceLocalSymbol MakeLocal(
-            MethodSymbol containingMethod,
+            Symbol containingSymbol,
             Binder binder,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
@@ -68,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalDeclarationKind declarationKind)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEach);
-            return new SourceLocalSymbol(containingMethod, binder, typeSyntax, identifierToken, initializer, null, declarationKind);
+            return new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, initializer, null, declarationKind);
         }
 
         private SourceLocalSymbol(
-            MethodSymbol containingMethod,
+            Symbol containingSymbol,
             Binder binder,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declarationKind != LocalDeclarationKind.CompilerGenerated);
 
             this.binder = binder;
-            this.containingMethod = containingMethod;
+            this.containingSymbol = containingSymbol;
             this.identifierToken = identifierToken;
             this.typeSyntax = typeSyntax;
             this.initializer = initializer;
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingMethod; }
+            get { return this.containingSymbol; }
         }
 
         /// <summary>
@@ -165,6 +170,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return this.type;
+            }
+        }
+
+        public bool IsVarPendingTypeInference
+        {
+            get
+            {
+                if ((object)this.type == null && typeSyntax.IsVar)
+                {
+                    bool isVar;
+                    TypeSymbol declType = this.binder.BindType(typeSyntax, new DiagnosticBag(), out isVar);
+                    return isVar;
+                }
+
+                return false;
             }
         }
 
@@ -343,12 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbol = obj as SourceLocalSymbol;
             return (object)symbol != null
                 && symbol.identifierToken.Equals(this.identifierToken)
-                && Equals(symbol.containingMethod, this.containingMethod);
+                && Equals(symbol.containingSymbol, this.containingSymbol);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.identifierToken.GetHashCode(), this.containingMethod.GetHashCode());
+            return Hash.Combine(this.identifierToken.GetHashCode(), this.containingSymbol.GetHashCode());
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -82,6 +82,10 @@ namespace Microsoft.CodeAnalysis.Differencing
             nodes = new List<TNode>[labelCount];
             int count = 0;
 
+            // It is important that we add the nodes in depth-first prefix order.
+            // This order ensures that a node of a certain kind can have a parent of the same kind 
+            // and we can still use tied-to-parent for that kind. That's because the parent will always
+            // be processed earlier than the child due to depth-first prefix ordering.
             foreach (TNode node in comparer.GetDescendants(root))
             {
                 int label = comparer.GetLabel(node);
@@ -97,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 }
 
                 list.Add(node);
+
                 count++;
             }
 
@@ -214,7 +219,10 @@ namespace Microsoft.CodeAnalysis.Differencing
                         var ancestor1 = comparer.GetAncestor(node1, tiedToAncestor);
                         var ancestor2 = comparer.GetAncestor(node2, tiedToAncestor);
 
-                        Debug.Assert(comparer.GetLabel(ancestor1) < comparer.GetLabel(node1));
+                        // Since CategorizeNodesByLabels added nodes to the s1/s2 lists in depth-first prefix order,
+                        // we can also accept equality in the following condition. That's because we find the partner 
+                        // of the parent node before we get to finding it for the child node of the same kind.
+                        Debug.Assert(comparer.GetLabel(ancestor1) <= comparer.GetLabel(node1));
 
                         if (!Contains(ancestor1, ancestor2))
                         {

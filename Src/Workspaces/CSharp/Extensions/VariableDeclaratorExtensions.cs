@@ -3,22 +3,26 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class VariableDeclaratorExtensions
     {
-        public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax variable)
+        public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax declarator)
         {
-            var parent = variable.Parent as VariableDeclarationSyntax;
-            if (parent == null)
+            var variableDeclaration = declarator.Parent as VariableDeclarationSyntax;
+            if (variableDeclaration != null)
             {
-                return null;
+                return variableDeclaration.Type;
             }
 
-            return parent.Type;
+            var declarationExpression = declarator.Parent as DeclarationExpressionSyntax;
+            if (declarationExpression != null)
+            {
+                return declarationExpression.Type;
+            }
+
+            return null;
         }
 
         public static bool IsTypeInferred(this VariableDeclaratorSyntax variable, SemanticModel semanticModel)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-            var binder = new ForLoopBinder(this.method, enclosing, node);
+            var binder = new ForLoopBinder(this.method, new ForLoopInitializationBinder(this.method, enclosing, node), node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
-            var binder = new ForEachLoopBinder(this.method, enclosing, node);
+            var binder = new ForEachLoopBinder(this.method, new ScopedExpressionBinder(this.method, enclosing, node.Expression), node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            var switchBinder = new SwitchBinder(this.method, enclosing, node);
+            var switchBinder = new SwitchBinder(this.method, new ScopedExpressionBinder(this.method, enclosing, node.Expression), node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -245,8 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            VisitPossibleEmbeddedStatement(node.Statement, enclosing);
-            Visit(node.Else, enclosing);
+            var ifBinder = new IfBinder(this.method, enclosing, node);
+            AddToMap(node, ifBinder);
+
+            VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
+            Visit(node.Else, ifBinder);
         }
 
         public override void VisitElseClause(ElseClauseSyntax node)
@@ -365,6 +368,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddToMap(statement, blockBinder);
                         Visit(statement, blockBinder);
                         return;
+
+                    case SyntaxKind.Block:
+                    case SyntaxKind.UsingStatement:
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.ForStatement:
+                    case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.FixedStatement:
+                    case SyntaxKind.LockStatement:
+                    case SyntaxKind.SwitchStatement:
+                    case SyntaxKind.IfStatement:
+                        // These statements always have dedicated binders.
+                        break;
+
+                    default:
+                        // Create a binder to introduce a scope for Declaration Expressions, if any.
+                        enclosing = new EmbeddedStatementBinder(this.method, enclosing, statement);
+                        AddToMap(statement, enclosing);
+                        break;
+
                 }
             }
 

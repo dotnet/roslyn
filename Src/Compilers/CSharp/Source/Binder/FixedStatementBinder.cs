@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,18 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (syntax.Declaration != null)
-            {
-                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
-                {
-                    locals.Add(SourceLocalSymbol.MakeLocal(this.Owner, this, syntax.Declaration.Type, declarator.Identifier, declarator.Initializer, LocalDeclarationKind.Fixed));
-                }
+            return BuildLocals(syntax);
+        }
 
-                return locals.ToImmutable();
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        {
+            if (syntax == node)
+            {
+                return this.Locals;
             }
 
-            return ImmutableArray<LocalSymbol>.Empty;
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

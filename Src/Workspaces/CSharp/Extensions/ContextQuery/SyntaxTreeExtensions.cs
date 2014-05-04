@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1121,6 +1121,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsDeclarationExpressionContext(
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        {
+            // cases:
+            //  M(out var
+            //  var x = var
+
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OutKeyword) &&
+                token.IsParentKind(SyntaxKind.Argument))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.EqualsToken) &&
+                token.IsParentKind(SyntaxKind.EqualsValueClause) &&
+                token.Parent.IsParentKind(SyntaxKind.VariableDeclarator))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsLocalVariableDeclarationContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
@@ -2109,11 +2135,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // Not on the left hand side of an object initializer
-                if (token.MatchesKind(SyntaxKind.IdentifierToken) &&
+                if (token.IsKind(SyntaxKind.IdentifierToken) &&
                     token.IsParentKind(SyntaxKind.IdentifierName) &&
                     (token.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) || token.Parent.IsParentKind(SyntaxKind.CollectionInitializerExpression)))
                 {
                     return false;
+                }
+
+                // Not after an 'out' declaration expression. For example: M(out var |
+                if (token.IsKind(SyntaxKind.IdentifierToken) &&
+                    token.IsParentKind(SyntaxKind.IdentifierName))
+                {
+                    if (token.Parent.IsParentKind(SyntaxKind.Argument) &&
+                        ((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
+                    {
+                        return false;
+                    }
+
+                    if (token.Parent.IsParentKind(SyntaxKind.DeclarationExpression) &&
+                        token.Parent.Parent.IsParentKind(SyntaxKind.Argument))
+                    {
+                        return false;
+                    }
                 }
 
                 // Now, make sure the name was actually in a location valid for

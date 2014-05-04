@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1218,7 +1218,10 @@ partial class C
             CreateCompilationWithMscorlib(source, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
                 // (7,32): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         fixed (int* ptr = arg) object o = null;
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"));
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"),
+                // (7,39): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         fixed (int* ptr = arg) object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o"));
         }
 
         [Fact, WorkItem(543426, "DevDiv")]
