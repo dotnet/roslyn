@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     optimize: compilation.Options.Optimize,
                     debugDocumentProvider: null,
-                    namespaceScopes: default(ImmutableArray<NamespaceScope>));
+                    namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
                 moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint);
@@ -612,12 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<NamespaceScope> GetNamespaceScopes(MethodSymbol method, ConsList<Imports> debugImports)
+        private ImmutableArray<Cci.NamespaceScope> GetNamespaceScopes(MethodSymbol method, ConsList<Imports> debugImports)
         {
             Debug.Assert(generateDebugInfo == (namespaceScopeBuilder != null));
 
             return (generateDebugInfo && method.GenerateDebugInfo) ?
-                namespaceScopeBuilder.GetNamespaceScopes(debugImports) : default(ImmutableArray<NamespaceScope>);
+                namespaceScopeBuilder.GetNamespaceScopes(debugImports) : default(ImmutableArray<Cci.NamespaceScope>);
         }
 
         private static bool IsFieldLikeEventAccessor(MethodSymbol method)
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnosticsThisMethod,
                         compilation.Options.Optimize,
                         debugDocumentProvider,
-                        default(ImmutableArray<NamespaceScope>));
+                        default(ImmutableArray<Cci.NamespaceScope>));
 
                     moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool optimize, 
             DebugDocumentProvider debugDocumentProvider,
-            ImmutableArray<NamespaceScope> namespaceScopes)
+            ImmutableArray<Cci.NamespaceScope> namespaceScopes)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (method.ExplicitInterfaceImplementations.Contains(compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext) as MethodSymbol) ||
                      method.ExplicitInterfaceImplementations.Contains(compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext) as MethodSymbol));
 
-                var iteratorScopes = hasIteratorScopes ? builder.GetIteratorScopes() : ImmutableArray<LocalScope>.Empty;
+                var iteratorScopes = hasIteratorScopes ? builder.GetIteratorScopes() : ImmutableArray<Cci.LocalScope>.Empty;
 
                 return new MethodBody(
                     builder.RealizedIL,

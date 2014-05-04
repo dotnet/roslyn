@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsSpecialName { get; }
             protected abstract Cci.CallingConvention CallingConvention { get; }
             protected abstract bool ReturnValueIsModified { get; }
-            protected abstract IEnumerable<Cci.ICustomModifier> ReturnValueCustomModifiers { get; }
+            protected abstract ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers { get; }
             protected abstract bool ReturnValueIsByRef { get; }
             protected abstract Cci.ITypeReference GetType(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
             protected abstract TEmbeddedType ContainingType { get; }
@@ -146,15 +146,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
             }
 
-            bool Cci.ISignature.ReturnValueIsModified
-            {
-                get
-                {
-                    return ReturnValueIsModified;
-                }
-            }
-
-            IEnumerable<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
             {
                 get
                 {

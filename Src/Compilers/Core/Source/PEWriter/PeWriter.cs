@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1176,6 +1177,35 @@ namespace Microsoft.Cci
             return builder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Returns a reference to the unit that defines the given referenced type. If the referenced type is a structural type, such as a pointer or a generic type instance,
+        /// then the result is null.
+        /// </summary>
+        public static IUnitReference GetDefiningUnitReference(ITypeReference typeReference, EmitContext context)
+        {
+            INestedTypeReference nestedTypeReference = typeReference.AsNestedTypeReference;
+            while (nestedTypeReference != null)
+            {
+                if (nestedTypeReference.AsGenericTypeInstanceReference != null)
+                {
+                    return null;
+                }
+
+                typeReference = nestedTypeReference.GetContainingType(context);
+                nestedTypeReference = typeReference.AsNestedTypeReference;
+            }
+
+            INamespaceTypeReference namespaceTypeReference = typeReference.AsNamespaceTypeReference;
+            if (namespaceTypeReference == null)
+            {
+                return null;
+            }
+
+            Debug.Assert(namespaceTypeReference.AsGenericTypeInstanceReference == null);
+
+            return namespaceTypeReference.GetUnit(context);
+        }
+
         private void CreateInitialAssemblyRefIndex()
         {
             Debug.Assert(!this.tableIndicesAreComplete);
@@ -1570,7 +1600,7 @@ namespace Microsoft.Cci
         private uint GetCustomAttributeTypeCodedIndex(IMethodReference methodReference)
         {
             IMethodDefinition methodDef = null;
-            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -1733,7 +1763,7 @@ namespace Microsoft.Cci
         internal virtual uint GetFieldToken(IFieldReference fieldReference)
         {
             IFieldDefinition fieldDef = null;
-            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 fieldDef = fieldReference.GetResolvedField(Context);
@@ -1956,7 +1986,7 @@ namespace Microsoft.Cci
         internal uint GetMethodDefOrRefCodedIndex(IMethodReference methodReference)
         {
             IMethodDefinition methodDef = null;
-            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -2156,7 +2186,7 @@ namespace Microsoft.Cci
         {
             uint methodDefIndex = 0;
             IMethodDefinition methodDef = null;
-            IUnitReference definingUnit = TypeHelper.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
+            IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
             if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
             {
                 methodDef = methodReference.GetResolvedMethod(Context);
@@ -2323,12 +2353,10 @@ namespace Microsoft.Cci
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);
             writer.WriteByte(0x06);
-            if (localConstant.IsModified)
+
+            foreach (ICustomModifier modifier in localConstant.CustomModifiers)
             {
-                foreach (ICustomModifier modifier in localConstant.CustomModifiers)
-                {
-                    this.SerializeCustomModifier(modifier, writer);
-                }
+                this.SerializeCustomModifier(modifier, writer);
             }
 
             this.SerializeTypeReference(localConstant.Type, writer, false, true);
@@ -3084,12 +3112,9 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    if (local.IsModified)
+                    foreach (ICustomModifier customModifier in local.CustomModifiers)
                     {
-                        foreach (ICustomModifier customModifier in local.CustomModifiers)
-                        {
-                            this.SerializeCustomModifier(customModifier, writer);
-                        }
+                        this.SerializeCustomModifier(customModifier, writer);
                     }
 
                     if (local.IsPinned)
@@ -5304,80 +5329,82 @@ namespace Microsoft.Cci
 
             bool emitDebugInfo = this.pdbWriter != null && (hasIteratorClassName || methodBody.HasAnyLocations);
 
-            if (emitDebugInfo)
+            if (!emitDebugInfo)
             {
-                uint methodToken = this.GetMethodToken(methodBody.MethodDefinition);
-                Debug.Assert(TypeOnly(methodToken) == TokenTypeIds.MethodDef);
-
-                this.pdbWriter.OpenMethod(methodToken);
-
-                var scopes = methodBody.LocalScopes;
-
-                this.customDebugMetadataForCurrentMethod.Clear();
-
-                // EDMAURER CCI originally didn't have the notion of the default scope that is open
-                // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
-                // a seemingly unecessary scope that contains only other scopes is put in the PDB.
-                if (scopes.Length > 0)
-                {
-                    this.DefineScopeLocals(scopes[0]);
-                }
-
-                // NOTE: skipping using debug info for iterator methods (see comment on hasIteratorClassName).
-                if (!hasIteratorClassName)
-                {
-                    this.SerializeNamespaceScopes(methodBody);
-                }
-
-                // CONSIDER: this may not be the same "first" method as in Dev10, but
-                // it shouldn't matter since all methods will still forward to a method
-                // containing the appropriate information.
-                if (this.tokenOfMethodWithModuleInfo == 0) //UNDONE: || edit-and-continue
-                {
-                    // This module level information could go on every method (and does in
-                    // the edit-and-continue case), but - as an optimization - we'll just
-                    // put it on the first method we happen to encounter and then put a
-                    // reference to the first method's token in every other method (so they
-                    // can find the information).
-                    if (this.EmitExternNamespaceAssemblies(this.module))
-                    {
-                        this.tokenOfMethodWithModuleInfo = methodToken;
-                    }
-                }
-
-                EmitPdbScopes(scopes);
-
-                pdbWriter.EmitSequencePoints(methodBody.GetSequencePoints());
-
-                AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncMethodDebugInfo;
-                if (asyncDebugInfo != null)
-                {
-                    this.pdbWriter.SetAsyncInfo(
-                        methodToken,
-                        this.GetMethodToken(asyncDebugInfo.KickoffMethod),
-                        asyncDebugInfo.CatchHandlerOffset,
-                        asyncDebugInfo.YieldOffsets,
-                        asyncDebugInfo.ResumeOffsets);
-                }
-
-                this.SerializeIteratorClassMetadata(methodBody);
-
-                // NOTE: skipping using and iterator local debug info for iterator methods (see comment on hasIteratorClassName).
-                if (!hasIteratorClassName)
-                {
-                    this.SerializeNamespaceScopeMetadata(methodBody);
-                    this.SerializeIteratorLocalScopes(methodBody);
-                }
-
-                this.SerializeDynamicLocalInfo(methodBody);
-
-                if (methodBody.CustomDebugInfoKind == CustomDebugInfoKind.CSharpStyle)
-                {
-                    this.SerializeCustomDebugMetadata();
-                }
-
-                this.pdbWriter.CloseMethod(ilLength);
+                return;
             }
+
+            uint methodToken = this.GetMethodToken(methodBody.MethodDefinition);
+            Debug.Assert(TypeOnly(methodToken) == TokenTypeIds.MethodDef);
+
+            this.pdbWriter.OpenMethod(methodToken);
+
+            var scopes = methodBody.LocalScopes;
+
+            this.customDebugMetadataForCurrentMethod.Clear();
+
+            // EDMAURER CCI originally didn't have the notion of the default scope that is open
+            // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
+            // a seemingly unecessary scope that contains only other scopes is put in the PDB.
+            if (scopes.Length > 0)
+            {
+                this.DefineScopeLocals(scopes[0]);
+            }
+
+            // NOTE: skipping using debug info for iterator methods (see comment on hasIteratorClassName).
+            if (!hasIteratorClassName)
+            {
+                this.SerializeNamespaceScopes(methodBody);
+            }
+
+            // CONSIDER: this may not be the same "first" method as in Dev10, but
+            // it shouldn't matter since all methods will still forward to a method
+            // containing the appropriate information.
+            if (this.tokenOfMethodWithModuleInfo == 0) //UNDONE: || edit-and-continue
+            {
+                // This module level information could go on every method (and does in
+                // the edit-and-continue case), but - as an optimization - we'll just
+                // put it on the first method we happen to encounter and then put a
+                // reference to the first method's token in every other method (so they
+                // can find the information).
+                if (this.EmitExternNamespaceAssemblies(this.module))
+                {
+                    this.tokenOfMethodWithModuleInfo = methodToken;
+                }
+            }
+
+            EmitPdbScopes(scopes);
+
+            pdbWriter.EmitSequencePoints(methodBody.GetSequencePoints());
+
+            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncMethodDebugInfo;
+            if (asyncDebugInfo != null)
+            {
+                this.pdbWriter.SetAsyncInfo(
+                    methodToken,
+                    this.GetMethodToken(asyncDebugInfo.KickoffMethod),
+                    asyncDebugInfo.CatchHandlerOffset,
+                    asyncDebugInfo.YieldOffsets,
+                    asyncDebugInfo.ResumeOffsets);
+            }
+
+            this.SerializeIteratorClassMetadata(methodBody);
+
+            // NOTE: skipping using and iterator local debug info for iterator methods (see comment on hasIteratorClassName).
+            if (!hasIteratorClassName)
+            {
+                this.SerializeNamespaceScopeMetadata(methodBody);
+                this.SerializeIteratorLocalScopes(methodBody);
+            }
+
+            this.SerializeDynamicLocalInfo(methodBody);
+
+            if (methodBody.CustomDebugInfoKind == CustomDebugInfoKind.CSharpStyle)
+            {
+                this.SerializeCustomDebugMetadata();
+            }
+
+            this.pdbWriter.CloseMethod(ilLength);
         }
 
         private void SerializeReferenceToMethodWithModuleInfo()
@@ -5408,7 +5435,7 @@ namespace Microsoft.Cci
         {
             // TODO: add nopia namespaces 
 
-            ImmutableArray<INamespaceScope> scopes;
+            ImmutableArray<Cci.NamespaceScope> scopes;
             if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody, out scopes) || scopes.IsEmpty)
             {
                 // SerializeNamespaceScopeMetadata will do the actual forwarding in case this is a CSharp method.
@@ -5444,11 +5471,11 @@ namespace Microsoft.Cci
             // DevDiv Bug 479703: "Possible access violation because of uninitialized data in string pool of SymWriter" (Resolved in RTM)
 
             IMethodDefinition methodDefinition = methodBody.MethodDefinition;
-            foreach (INamespaceScope namespaceScope in scopes)
+            foreach (NamespaceScope namespaceScope in scopes)
             {
-                foreach (IUsedNamespaceOrType used in namespaceScope.UsedNamespaces)
+                foreach (UsedNamespaceOrType used in namespaceScope.UsedNamespaces)
                 {
-                    string usingString = used.FullName;
+                    string usingString = used.Encode();
                     if (!IsUsingStringTooLong(usingString, methodDefinition))
                     {
                         this.pdbWriter.UsingNamespace(usingString, used.Alias);
@@ -5460,21 +5487,23 @@ namespace Microsoft.Cci
         private bool EmitExternNamespaceAssemblies(IModule module)
         {
             bool emitted = false;
-            foreach (IExternNamespace @extern in module.ExternNamespaces)
+            foreach (ExternNamespace @extern in module.GetExternNamespaces())
             {
                 string usingString = "Z" + @extern.NamespaceAlias + " " + @extern.AssemblyName;
                 if (!IsUsingStringTooLong(usingString))
                 {
                     this.pdbWriter.UsingNamespace(usingString, @extern.NamespaceAlias);
                 }
+
                 emitted = true; // Not strictly true if the name was too long, but there's no point in retrying.
             }
+
             return emitted;
         }
 
         private void SerializeIteratorLocalScopes(IMethodBody methodBody)
         {
-            ImmutableArray<ILocalScope> scopes = methodBody.IteratorScopes;
+            ImmutableArray<LocalScope> scopes = methodBody.IteratorScopes;
             uint numberOfScopes = (uint)scopes.Length;
             if (numberOfScopes == 0)
             {
@@ -5488,19 +5517,10 @@ namespace Microsoft.Cci
             cmw.Align(4);
             cmw.WriteUint(12 + numberOfScopes * 8);
             cmw.WriteUint(numberOfScopes);
-            foreach (ILocalScope scope in scopes)
+            foreach (var scope in scopes)
             {
-                if (scope == null)
-                {
-                    // Debug.Assert(false); // This shouldn't happen, but just in case: recover with gracefully degraded debug info
-                    cmw.WriteUint(0);
-                    cmw.WriteUint(0);
-                }
-                else
-                {
-                    cmw.WriteUint(scope.Offset);
-                    cmw.WriteUint(scope.Offset + scope.Length);
-                }
+                cmw.WriteUint(scope.Offset);
+                cmw.WriteUint(scope.Offset + scope.Length);
             }
 
             this.customDebugMetadataForCurrentMethod.Add(customMetadata);
@@ -5614,7 +5634,7 @@ namespace Microsoft.Cci
 
         private void SerializeNamespaceScopeMetadata(IMethodBody methodBody)
         {
-            ImmutableArray<INamespaceScope> scopes;
+            ImmutableArray<NamespaceScope> scopes;
             if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody, out scopes))
             {
                 Debug.Assert(!ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody));
@@ -5625,7 +5645,7 @@ namespace Microsoft.Cci
             MemoryStream customMetadata = new MemoryStream();
             List<ushort> usingCounts = new List<ushort>();
             BinaryWriter cmw = new BinaryWriter(customMetadata);
-            foreach (INamespaceScope namespaceScope in scopes)
+            foreach (NamespaceScope namespaceScope in scopes)
             {
                 usingCounts.Add((ushort)namespaceScope.UsedNamespaces.Length);
             }
@@ -5657,7 +5677,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private bool ShouldForwardToPreviousMethodWithUsingInfo(IMethodBody methodBody, out ImmutableArray<INamespaceScope> currentScopes)
+        private bool ShouldForwardToPreviousMethodWithUsingInfo(IMethodBody methodBody, out ImmutableArray<Cci.NamespaceScope> currentScopes)
         {
             currentScopes = methodBody.NamespaceScopes;
 
@@ -5673,29 +5693,29 @@ namespace Microsoft.Cci
             return currentScopes.SequenceEqual(previousScopes, NamespaceScopeComparer.Instance);
         }
 
-        private class NamespaceScopeComparer : IEqualityComparer<INamespaceScope>
+        private class NamespaceScopeComparer : IEqualityComparer<NamespaceScope>
         {
-            public static readonly IEqualityComparer<INamespaceScope> Instance = new NamespaceScopeComparer();
+            public static readonly IEqualityComparer<NamespaceScope> Instance = new NamespaceScopeComparer();
 
-            public bool Equals(INamespaceScope x, INamespaceScope y)
+            public bool Equals(NamespaceScope x, NamespaceScope y)
             {
                 Debug.Assert(x != null);
                 Debug.Assert(y != null);
                 return x.UsedNamespaces.SequenceEqual(y.UsedNamespaces, UsedNamespaceOrTypeComparer.Instance);
             }
 
-            public int GetHashCode(INamespaceScope obj)
+            public int GetHashCode(NamespaceScope obj)
             {
                 Debug.Assert(false);
                 return 0;
             }
         }
 
-        private class UsedNamespaceOrTypeComparer : IEqualityComparer<IUsedNamespaceOrType>
+        private class UsedNamespaceOrTypeComparer : IEqualityComparer<UsedNamespaceOrType>
         {
-            public static readonly IEqualityComparer<IUsedNamespaceOrType> Instance = new UsedNamespaceOrTypeComparer();
+            public static readonly IEqualityComparer<UsedNamespaceOrType> Instance = new UsedNamespaceOrTypeComparer();
 
-            public bool Equals(IUsedNamespaceOrType x, IUsedNamespaceOrType y)
+            public bool Equals(UsedNamespaceOrType x, UsedNamespaceOrType y)
             {
                 Debug.Assert(x != null);
                 Debug.Assert(y != null);
@@ -5706,7 +5726,7 @@ namespace Microsoft.Cci
                     x.ProjectLevel == y.ProjectLevel;
             }
 
-            public int GetHashCode(IUsedNamespaceOrType obj)
+            public int GetHashCode(UsedNamespaceOrType obj)
             {
                 Debug.Assert(false);
                 return 0;
@@ -5826,11 +5846,11 @@ namespace Microsoft.Cci
             return methodBodyIL;
         }
 
-        private void EmitPdbScopes(ImmutableArray<ILocalScope> scopes)
+        private void EmitPdbScopes(ImmutableArray<Cci.LocalScope> scopes)
         {
             // The order of OpenScope and CloseScope calls must follow the scope nesting.
 
-            var scopeStack = ArrayBuilder<ILocalScope>.GetInstance();
+            var scopeStack = ArrayBuilder<Cci.LocalScope>.GetInstance();
 
             for (int i = 1; i < scopes.Length; i++)
             {
@@ -5839,7 +5859,7 @@ namespace Microsoft.Cci
                 // Close any scopes that have finished.
                 while (scopeStack.Count > 0)
                 {
-                    ILocalScope topScope = scopeStack.Last();
+                    Cci.LocalScope topScope = scopeStack.Last();
                     if (currentScope.Offset < topScope.Offset + topScope.Length)
                     {
                         break;
@@ -5858,14 +5878,14 @@ namespace Microsoft.Cci
             // Close remaining scopes.
             for (int i = scopeStack.Count - 1; i >= 0; i--)
             {
-                ILocalScope scope = scopeStack[i];
+                Cci.LocalScope scope = scopeStack[i];
                 this.pdbWriter.CloseScope(scope.Offset + scope.Length);
             }
 
             scopeStack.Free();
         }
 
-        private void DefineScopeLocals(ILocalScope currentScope)
+        private void DefineScopeLocals(LocalScope currentScope)
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
@@ -5995,12 +6015,9 @@ namespace Microsoft.Cci
                 writer.WriteByte(0x10);
             }
 
-            if (parameterTypeInformation.IsModified)
+            foreach (ICustomModifier customModifier in parameterTypeInformation.CustomModifiers)
             {
-                foreach (ICustomModifier customModifier in parameterTypeInformation.CustomModifiers)
-                {
-                    this.SerializeCustomModifier(customModifier, writer);
-                }
+                this.SerializeCustomModifier(customModifier, writer);
             }
 
             if (!hasByRefBeforeCustomModifiers && parameterTypeInformation.IsByReference)
@@ -6468,10 +6485,48 @@ namespace Microsoft.Cci
                 if (containingAssembly == null || !ReferenceEquals(referencedAssembly, containingAssembly))
                 {
                     sb.Append(", ");
-                    sb.Append(UnitHelper.StrongName(referencedAssembly));
+                    sb.Append(StrongName(referencedAssembly));
                     isAssemQualified = true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Computes the string representing the strong name of the given assembly reference.
+        /// </summary>
+        private static string StrongName(IAssemblyReference assemblyReference)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(assemblyReference.Name);
+            sb.AppendFormat(CultureInfo.InvariantCulture, ", Version={0}.{1}.{2}.{3}", assemblyReference.Version.Major, assemblyReference.Version.Minor, assemblyReference.Version.Build, assemblyReference.Version.Revision);
+            if (assemblyReference.Culture != null && assemblyReference.Culture.Length > 0)
+            {
+                sb.AppendFormat(CultureInfo.InvariantCulture, ", Culture={0}", assemblyReference.Culture);
+            }
+            else
+            {
+                sb.Append(", Culture=neutral");
+            }
+
+            sb.Append(", PublicKeyToken=");
+            if (IteratorHelper.EnumerableIsNotEmpty(assemblyReference.PublicKeyToken))
+            {
+                foreach (byte b in assemblyReference.PublicKeyToken)
+                {
+                    sb.Append(b.ToString("x2"));
+                }
+            }
+            else
+            {
+                sb.Append("null");
+            }
+
+            if (assemblyReference.IsRetargetable)
+            {
+                sb.Append(", Retargetable=Yes");
+            }
+
+            return sb.ToString();
         }
 
         private void AppendSerializedTypeName(StringBuilder sb, ITypeReference type, ref bool isAssemQualified)
@@ -6504,7 +6559,7 @@ namespace Microsoft.Cci
                         referencedAssembly = namespaceType.GetUnit(Context) as IAssemblyReference;
                         if (referencedAssembly != null)
                         {
-                            typeName = typeName + ", " + UnitHelper.StrongName(referencedAssembly);
+                            typeName = typeName + ", " + StrongName(referencedAssembly);
                         }
                     }
                 }
@@ -6537,14 +6592,12 @@ namespace Microsoft.Cci
             uint numberOfRequiredParameters = (uint)@params.Length;
             uint numberOfOptionalParameters = (uint)extraArgumentTypes.Length;
             writer.WriteCompressedUInt(numberOfRequiredParameters + numberOfOptionalParameters);
-            if (signature.ReturnValueIsModified)
+            
+            foreach (ICustomModifier customModifier in signature.ReturnValueCustomModifiers)
             {
-                foreach (ICustomModifier customModifier in signature.ReturnValueCustomModifiers)
-                {
-                    this.SerializeCustomModifier(customModifier, writer);
-                }
+                this.SerializeCustomModifier(customModifier, writer);
             }
-
+        
             if (signature.ReturnValueIsByRef)
             {
                 writer.WriteByte(0x10);
@@ -7614,7 +7667,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteManagedResources(System.IO.Stream peStream)
+        private void WriteManagedResources(Stream peStream)
         {
             this.resourceWriter.BaseStream.WriteTo(peStream);
             while (peStream.Position % 4 != 0)
@@ -7623,7 +7676,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(System.IO.Stream peStream)
+        private void WriteDebugTable(Stream peStream)
         {
             PeDebugDirectory debugDirectory = this.debugDirectory;
             if (debugDirectory == null)
