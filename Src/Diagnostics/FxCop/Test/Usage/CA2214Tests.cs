@@ -319,6 +319,47 @@ End Class
             GetSortedDiagnostics(analyzer, project.Documents.Single()).Verify(analyzer);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2214VirtualOnOtherClassesCSharp()
+        {
+            VerifyCSharp(@"
+class D
+{
+    public virtual void Foo() {}
+}
+
+class C
+{
+    public C(object obj, D d)
+    {
+        if (obj.Equals(d))
+        {
+            d.Foo();
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2214VirtualOnOtherClassesBasic()
+        {
+            VerifyBasic(@"
+Class D
+    Public Overridable Sub Foo()
+    End Sub
+End Class
+
+Class C
+    Public Sub New(obj As Object, d As D)
+        If obj.Equals(d) Then
+            d.Foo()
+        End If
+    End Sub
+End Class
+");
+        }
+
         internal static string CA2214Name = "CA2214";
         internal static string CA2214Message = "Do not call overridable methods in constructors";
 

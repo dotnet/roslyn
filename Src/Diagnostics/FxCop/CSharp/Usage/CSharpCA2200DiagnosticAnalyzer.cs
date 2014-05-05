@@ -34,24 +34,26 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 return;
             }
 
-            var local = semanticModel.GetSymbolInfo(expr).Symbol as ILocalSymbol;
-            if (local == null || local.Locations.Length == 0)
-            {
-                return;
-            }
-
-            // if (local.LocalKind != LocalKind.Catch) return; // TODO: expose LocalKind in the symbol model?
-
             for (SyntaxNode syntax = throwStatement; syntax != null; syntax = syntax.Parent)
             {
                 switch (syntax.CSharpKind())
                 {
                     case SyntaxKind.CatchClause:
-                        var catchClause = syntax as CatchClauseSyntax;
-                        if (catchClause != null && catchClause.Declaration.Span.Contains(local.Locations[0].SourceSpan))
                         {
-                            addDiagnostic(CreateDiagnostic(throwStatement));
-                            return;
+                            var local = semanticModel.GetSymbolInfo(expr).Symbol as ILocalSymbol;
+                            if (local == null || local.Locations.Length == 0)
+                            {
+                                return;
+                            }
+
+                            // if (local.LocalKind != LocalKind.Catch) return; // TODO: expose LocalKind in the symbol model?
+
+                            var catchClause = syntax as CatchClauseSyntax;
+                            if (catchClause != null && catchClause.Declaration.Span.Contains(local.Locations[0].SourceSpan))
+                            {
+                                addDiagnostic(CreateDiagnostic(throwStatement));
+                                return;
+                            }
                         }
 
                         break;

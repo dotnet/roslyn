@@ -36,6 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
             Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
                 Select Case node.VisualBasicKind
                     Case SyntaxKind.SimpleMemberAccessExpression
+                        ' NOTE: This cannot be optimized based on memberAccess.Name because a given method
+                        ' may be an explicit interface implementation of IDisposable.Dispose.
                         Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
                         Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso

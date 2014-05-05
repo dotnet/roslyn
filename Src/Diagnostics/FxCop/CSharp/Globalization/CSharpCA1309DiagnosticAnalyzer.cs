@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -59,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                 if (node.Expression.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
-                    var expressionType = model.GetSymbolInfo(memberAccess.Expression).Symbol;
-                    if (expressionType != null)
+                    if (memberAccess.Name != null && IsEqualsOrCompare(memberAccess.Name.Identifier.ValueText))
                     {
                         var methodSymbol = model.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
-                        if (methodSymbol != null && methodSymbol.ContainingType.SpecialType == SpecialType.System_String &&
-                            IsEqualsOrCompare(methodSymbol.Name))
+                        if (methodSymbol != null && methodSymbol.ContainingType.SpecialType == SpecialType.System_String)
                         {
+                            Debug.Assert(IsEqualsOrCompare(methodSymbol.Name));
+
                             if (!IsAcceptableOverload(methodSymbol, model))
                             {
                                 // wrong overload

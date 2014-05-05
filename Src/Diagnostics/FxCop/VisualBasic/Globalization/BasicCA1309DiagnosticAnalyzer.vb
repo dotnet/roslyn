@@ -48,24 +48,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             Private Sub AnalyzeInvocationExpression(node As InvocationExpressionSyntax, model As SemanticModel, addDiagnostic As Action(Of Diagnostic))
                 If (node.Expression.VisualBasicKind() = SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = CType(node.Expression, MemberAccessExpressionSyntax)
-                    If memberAccess.Expression IsNot Nothing Then
-                        Dim expressionType = model.GetSymbolInfo(memberAccess.Expression).Symbol
-                        If expressionType IsNot Nothing Then
-                            Dim methodSymbol = TryCast(model.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
-                            If methodSymbol IsNot Nothing AndAlso methodSymbol.ContainingType.SpecialType = SpecialType.System_String AndAlso
-                            IsEqualsOrCompare(methodSymbol.Name) Then
-                                If Not IsAcceptableOverload(methodSymbol, model) Then
-                                    ' wrong overload
-                                    addDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule))
-                                Else
-                                    Dim lastArgument = TryCast(node.ArgumentList.Arguments.Last(), SimpleArgumentSyntax)
-                                    Dim lastArgSymbol = model.GetSymbolInfo(lastArgument.Expression).Symbol
-                                    If lastArgSymbol IsNot Nothing AndAlso lastArgSymbol.ContainingType IsNot Nothing AndAlso
-                                    lastArgSymbol.ContainingType.Equals(StringComparisonType) AndAlso
-                                    Not IsOrdinalOrOrdinalIgnoreCase(lastArgument, model) Then
-                                        ' right overload, wrong value
-                                        addDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule))
-                                    End If
+                    If memberAccess.Name IsNot Nothing AndAlso IsEqualsOrCompare(memberAccess.Name.Identifier.ValueText) Then
+                        Dim methodSymbol = TryCast(model.GetSymbolInfo(memberAccess.Name).Symbol, IMethodSymbol)
+                        If methodSymbol IsNot Nothing AndAlso methodSymbol.ContainingType.SpecialType = SpecialType.System_String Then
+                            Debug.Assert(IsEqualsOrCompare(methodSymbol.Name))
+
+                            If Not IsAcceptableOverload(methodSymbol, model) Then
+                                ' wrong overload
+                                addDiagnostic(memberAccess.Name.GetLocation().CreateDiagnostic(Rule))
+                            Else
+                                Dim lastArgument = TryCast(node.ArgumentList.Arguments.Last(), SimpleArgumentSyntax)
+                                Dim lastArgSymbol = model.GetSymbolInfo(lastArgument.Expression).Symbol
+                                If lastArgSymbol IsNot Nothing AndAlso lastArgSymbol.ContainingType IsNot Nothing AndAlso
+                                lastArgSymbol.ContainingType.Equals(StringComparisonType) AndAlso
+                                Not IsOrdinalOrOrdinalIgnoreCase(lastArgument, model) Then
+                                    ' right overload, wrong value
+                                    addDiagnostic(lastArgument.GetLocation().CreateDiagnostic(Rule))
                                 End If
                             End If
                         End If

@@ -44,13 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 if (node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)node;
-                    var methodSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
-                    if (methodSymbol != null && methodSymbol.MetadataName == Dispose)
+                    if (memberAccess.Name != null && memberAccess.Name.Identifier.ValueText == Dispose)
                     {
-                        var fieldSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
-                        if (fieldSymbol != null)
+                        var methodSymbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
+                        if (methodSymbol != null && methodSymbol.MetadataName == Dispose)
                         {
-                            NoteFieldDisposed(fieldSymbol);
+                            var fieldSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;
+                            if (fieldSymbol != null)
+                            {
+                                NoteFieldDisposed(fieldSymbol);
+                            }
                         }
                     }
                 }

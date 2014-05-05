@@ -24,14 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp)]
     public class CSharpCA2214DiagnosticAnalyzer : CA2214DiagnosticAnalyzer
     {
-        protected override ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer()
+        protected override ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol)
         {
-            return new SyntaxNodeAnalyzer();
+            return new SyntaxNodeAnalyzer(constructorSymbol);
         }
 
         private sealed class SyntaxNodeAnalyzer : AbstractSyntaxNodeAnalyzer, ISyntaxNodeAnalyzer<SyntaxKind>
         {
-            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.IdentifierName);
+            private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.InvocationExpression);
+            private INamedTypeSymbol containingType;
+
+            public SyntaxNodeAnalyzer(IMethodSymbol constructorSymbol)
+            {
+                this.containingType = constructorSymbol.ContainingType;
+            }
 
             public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
             {
@@ -43,47 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 
             public void AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
             {
-                // TODO: should we restrict this to invocation, delegate creation, etc?
-                switch (node.CSharpKind())
+                // TODO: For this to be correct, we need flow analysis to determine if a given method
+                // is actually invoked inside the current constructor. A method may be assigned to a
+                // delegate which can be called inside or outside the constructor. A method may also
+                // be called from within a lambda which is called inside or outside the constructor.
+                // Currently, FxCop does not produce a warning if a virtual method is called indirectly
+                // through a delegate or through a lambda.
+
+                var invocationExpression = (InvocationExpressionSyntax)node;
+                var method = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol as IMethodSymbol;
+                if (method != null &&
+                    (method.IsAbstract || method.IsVirtual) &&
+                    method.ContainingType == this.containingType)
                 {
-                    case SyntaxKind.IdentifierName:
-                        {
-                            var id = (IdentifierNameSyntax)node;
-                            var method = semanticModel.GetSymbolInfo(id).Symbol as IMethodSymbol;
-                            if (method == null || !(method.IsAbstract || method.IsVirtual))
-                            {
-                                return;
-                            }
-
-                            addDiagnostic(id.CreateDiagnostic(Rule));
-                        }
-
-                        return;
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        {
-                            var qid = (MemberAccessExpressionSyntax)node;
-                            var method = semanticModel.GetSymbolInfo(qid).Symbol as IMethodSymbol;
-                            if (method == null || !(method.IsAbstract || method.IsVirtual))
-                            {
-                                return;
-                            }
-
-                            if (qid.Expression.CSharpKind() == SyntaxKind.BaseExpression)
-                            {
-                                return;
-                            }
-
-                            var receiver = semanticModel.GetSymbolInfo(qid.Expression).Symbol as IParameterSymbol;
-                            if (receiver == null || !receiver.IsThis)
-                            {
-                                return;
-                            }
-
-                            addDiagnostic(qid.CreateDiagnostic(Rule));
-                        }
-
-                        return;
+                    addDiagnostic(invocationExpression.Expression.CreateDiagnostic(Rule));
                 }
             }
         }

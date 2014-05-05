@@ -13,15 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     Public Class BasicCA2214DiagnosticAnalyzer
         Inherits CA2214DiagnosticAnalyzer
 
-        Protected Overrides Function GetCodeBlockEndedAnalyzer() As ICodeBlockEndedAnalyzer
-            Return New SyntaxNodeAnalyzer()
+        Protected Overrides Function GetCodeBlockEndedAnalyzer(constructorSymbol As IMethodSymbol) As ICodeBlockEndedAnalyzer
+            Return New SyntaxNodeAnalyzer(constructorSymbol)
         End Function
 
         Private NotInheritable Class SyntaxNodeAnalyzer
             Inherits AbstractSyntaxNodeAnalyzer
             Implements ISyntaxNodeAnalyzer(Of SyntaxKind)
 
-            Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.IdentifierName)
+            Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.InvocationExpression)
+            Private _containingType As INamedTypeSymbol
+
+            Public Sub New(constructorSymbol As IMethodSymbol)
+                _containingType = constructorSymbol.ContainingType
+            End Sub
 
             Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).SyntaxKindsOfInterest
                 Get
@@ -30,35 +35,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
             End Property
 
             Public Sub AnalyzeNode(node As SyntaxNode, semanticModel As SemanticModel, addDiagnostic As Action(Of Diagnostic), cancellationToken As CancellationToken) Implements ISyntaxNodeAnalyzer(Of SyntaxKind).AnalyzeNode
-                ' TODO: should we restrict this to invocation, delegate creation, etc?
-                Select Case node.VisualBasicKind()
-                    Case SyntaxKind.IdentifierName
-                        Dim id = DirectCast(node, IdentifierNameSyntax)
-                        Dim method = TryCast(semanticModel.GetSymbolInfo(id).Symbol, IMethodSymbol)
-                        If method Is Nothing OrElse Not (method.IsAbstract OrElse method.IsVirtual) Then
-                            Return
-                        End If
+                ' TODO: For this to be correct, we need flow analysis to determine if a given method
+                ' is actually invoked inside the current constructor. A method may be assigned to a
+                ' delegate which can be called inside or outside the constructor. A method may also
+                ' be called from within a lambda which is called inside or outside the constructor.
+                ' Currently, FxCop does not produce a warning if a virtual method is called indirectly
+                ' through a delegate or through a lambda.
 
-                        addDiagnostic(id.CreateDiagnostic(Rule))
-
-                    Case SyntaxKind.SimpleMemberAccessExpression
-                        Dim qid = DirectCast(node, MemberAccessExpressionSyntax)
-                        Dim method = TryCast(semanticModel.GetSymbolInfo(qid).Symbol, IMethodSymbol)
-                        If method Is Nothing OrElse Not (method.IsAbstract OrElse method.IsVirtual) Then
-                            Return
-                        End If
-
-                        If qid.Expression.VisualBasicKind() = SyntaxKind.MyBaseExpression Then
-                            Return
-                        End If
-
-                        Dim receiver = TryCast(semanticModel.GetSymbolInfo(qid.Expression).Symbol, IParameterSymbol)
-                        If receiver Is Nothing OrElse Not receiver.IsThis Then
-                            Return
-                        End If
-
-                        addDiagnostic(qid.CreateDiagnostic(Rule))
-                End Select
+                Dim invocationExpression = DirectCast(node, InvocationExpressionSyntax)
+                Dim method = TryCast(semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol, IMethodSymbol)
+                If method IsNot Nothing AndAlso
+                   (method.IsAbstract OrElse method.IsVirtual) AndAlso
+                   method.ContainingType.Equals(_containingType) Then
+                    addDiagnostic(invocationExpression.Expression.CreateDiagnostic(Rule))
+                End If
             End Sub
         End Class
     End Class

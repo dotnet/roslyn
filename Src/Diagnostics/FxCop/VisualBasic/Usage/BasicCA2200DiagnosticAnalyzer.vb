@@ -28,13 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
                 Return
             End If
 
-            Dim local = TryCast(semanticModel.GetSymbolInfo(throwExpression).Symbol, ILocalSymbol)
-            If local Is Nothing OrElse local.Locations.Length = 0 Then
-                Return
-            End If
-
-            ' if (local.LocalKind) TODO: expose LocalKind In the symbol model?
-
             While node IsNot Nothing
                 Select Case node.VisualBasicKind
                     Case SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression,
@@ -45,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
 
                     Case SyntaxKind.CatchStatement
                         Dim catchStatement = DirectCast(node, CatchStatementSyntax)
-                        If CatchStatementIdentifierContainsSpan(catchStatement, local) Then
+                        If IsCaughtLocalThrown(semanticModel, catchStatement, throwExpression) Then
                             addDiagnostic(CreateDiagnostic(throwStatement))
                             Return
                         End If
 
                     Case SyntaxKind.CatchPart
                         Dim catchStatement = DirectCast(node, CatchPartSyntax).Begin
-                        If CatchStatementIdentifierContainsSpan(catchStatement, local) Then
+                        If IsCaughtLocalThrown(semanticModel, catchStatement, throwExpression) Then
                             addDiagnostic(CreateDiagnostic(throwStatement))
                             Return
                         End If
@@ -62,7 +55,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
             End While
         End Sub
 
-        Private Shared Function CatchStatementIdentifierContainsSpan(catchStatement As CatchStatementSyntax, local As ILocalSymbol) As Boolean
+        Private Shared Function IsCaughtLocalThrown(semanticModel As SemanticModel, catchStatement As CatchStatementSyntax, throwExpression As ExpressionSyntax) As Boolean
+            Dim local = TryCast(semanticModel.GetSymbolInfo(throwExpression).Symbol, ILocalSymbol)
+            If local Is Nothing OrElse local.Locations.Length = 0 Then
+                Return False
+            End If
+
+            ' if (local.LocalKind) TODO: expose LocalKind In the symbol model?
+
             Return catchStatement.IdentifierName.Span.Contains(local.Locations(0).SourceSpan)
         End Function
     End Class

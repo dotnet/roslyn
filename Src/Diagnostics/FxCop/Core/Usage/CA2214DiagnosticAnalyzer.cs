@@ -39,10 +39,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         public ICodeBlockEndedAnalyzer OnCodeBlockStarted(SyntaxNode codeBlock, ISymbol ownerSymbol, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
-            return ShouldOmitThisDiagnostic(ownerSymbol, semanticModel.Compilation) ? null : GetCodeBlockEndedAnalyzer();
+            return ShouldOmitThisDiagnostic(ownerSymbol, semanticModel.Compilation) ?
+                null :
+                GetCodeBlockEndedAnalyzer(ownerSymbol as IMethodSymbol);
         }
 
-        protected abstract ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer();
+        protected abstract ICodeBlockEndedAnalyzer GetCodeBlockEndedAnalyzer(IMethodSymbol constructorSymbol);
 
         private static bool ShouldOmitThisDiagnostic(ISymbol symbol, Compilation compilation)
         {
