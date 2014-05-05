@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -230,10 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
                 }
-                else if (!IsStatic)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
-                }
                 else if (!ContainingType.IsStatic || ContainingType.Arity != 0)
                 {
                     // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
@@ -242,6 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var identifier = (typeDecl != null) ? typeDecl.Identifier : syntax.Identifier;
                     var loc = identifier.GetLocation();
                     diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, loc);
+                }
+                else if (!IsStatic)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
                 }
                 else
                 {

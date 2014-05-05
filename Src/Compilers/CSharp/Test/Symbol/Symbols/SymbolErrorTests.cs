@@ -103,16 +103,16 @@ class Test
                 references: new[] { new MetadataImageReference(ModuleMetadata.CreateFromImage(module2.EmitToArray(metadataOnly: true))) });
 
             comp.VerifyDiagnostics(
-                // error CS8014: Reference to '1b2d660e-e892-4338-a4e7-f78ce7960ce9.netmodule' netmodule missing.
+    // error CS8014: Reference to '1b2d660e-e892-4338-a4e7-f78ce7960ce9.netmodule' netmodule missing.
     Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments(name1 + ".netmodule"),
-                // (8,18): error CS7079: The type 'A' is defined in a module that has not been added. You must add the module '2bddf16b-09e6-4c4d-bd08-f348e194eca4.netmodule'.
-                //         Test x = b;
+    // (8,18): error CS7079: The type 'A' is defined in a module that has not been added. You must add the module '2bddf16b-09e6-4c4d-bd08-f348e194eca4.netmodule'.
+    //         Test x = b;
     Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "b").WithArguments("A", name1 + ".netmodule"),
-                // (8,18): error CS0029: Cannot implicitly convert type 'B' to 'Test'
-                //         Test x = b;
+    // (8,18): error CS0029: Cannot implicitly convert type 'B' to 'Test'
+    //         Test x = b;
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "b").WithArguments("B", "Test"),
-                // (4,7): warning CS0649: Field 'Test.b' is never assigned to, and will always have its default value null
-                //     B b;    
+    // (4,7): warning CS0649: Field 'Test.b' is never assigned to, and will always have its default value null
+    //     B b;    
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "b").WithArguments("Test.b", "null")
             );
         }
@@ -136,14 +136,14 @@ class Test
             var ref2 = TestReferences.SymbolsTests.MDTestLib2;
             var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { ref2 }, assemblyName: "Test3");
             comp.VerifyDiagnostics(
-                // (9,22): error CS0012: The type 'C1<>.C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             Test x = var;
+    // (9,22): error CS0012: The type 'C1<>.C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    //             Test x = var;
     Diagnostic(ErrorCode.ERR_NoTypeDef, "var").WithArguments("C1<>.C2<>", "MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (9,22): error CS0029: Cannot implicitly convert type 'TC5<string, string>' to 'NS.Test'
-                //             Test x = var;
+    // (9,22): error CS0029: Cannot implicitly convert type 'TC5<string, string>' to 'NS.Test'
+    //             Test x = var;
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "var").WithArguments("TC5<string, string>", "NS.Test"),
-                // (5,28): warning CS0649: Field 'NS.Test.var' is never assigned to, and will always have its default value null
-                //        TC5<string, string> var; // inherit C1 from MDTestLib1.dll
+    // (5,28): warning CS0649: Field 'NS.Test.var' is never assigned to, and will always have its default value null
+    //        TC5<string, string> var; // inherit C1 from MDTestLib1.dll
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "var").WithArguments("NS.Test.var", "null")
             );
         }
@@ -506,8 +506,8 @@ public class A
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (7,28): error CS0056: Inconsistent accessibility: return type 'MyClass' is less accessible than operator 'A.implicit operator MyClass(A)'
-                //     public static implicit operator MyClass(A a)   // CS0056
+// (7,28): error CS0056: Inconsistent accessibility: return type 'MyClass' is less accessible than operator 'A.implicit operator MyClass(A)'
+//     public static implicit operator MyClass(A a)   // CS0056
 Diagnostic(ErrorCode.ERR_BadVisOpReturn, "MyClass").WithArguments("A.implicit operator MyClass(A)", "MyClass")
             );
         }
@@ -533,8 +533,8 @@ public class MyClass2
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (7,37): error CS0057: Inconsistent accessibility: parameter type 'MyClass' is less accessible than operator 'MyClass2.implicit operator MyClass2(MyClass)'
-                //     public static implicit operator MyClass2(MyClass iii)   // CS0057
+// (7,37): error CS0057: Inconsistent accessibility: parameter type 'MyClass' is less accessible than operator 'MyClass2.implicit operator MyClass2(MyClass)'
+//     public static implicit operator MyClass2(MyClass iii)   // CS0057
 Diagnostic(ErrorCode.ERR_BadVisOpParam, "MyClass2").WithArguments("MyClass2.implicit operator MyClass2(MyClass)", "MyClass"));
         }
 
@@ -1275,11 +1275,11 @@ class C : I
 }
 ")
                 .VerifyDiagnostics(
-                // (3,36): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
-                //     public event System.Action E { add { } remove { } }
+                    // (3,36): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
+                    //     public event System.Action E { add { } remove { } }
                     Diagnostic(ErrorCode.ERR_MemberReserved, "add").WithArguments("add_E", "C"),
-                // (3,44): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
-                //     public event System.Action E { add { } remove { } }
+                    // (3,44): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
+                    //     public event System.Action E { add { } remove { } }
                     Diagnostic(ErrorCode.ERR_MemberReserved, "remove").WithArguments("remove_E", "C"));
         }
 
@@ -1636,23 +1636,23 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,20): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed private C() { }
+    // (4,20): error CS0106: The modifier 'sealed' is not valid for this item
+    //     sealed private C() { }
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("sealed"),
-                // (5,18): error CS0106: The modifier 'abstract' is not valid for this item
-                //     new abstract C(object o);
+    // (5,18): error CS0106: The modifier 'abstract' is not valid for this item
+    //     new abstract C(object o);
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract"),
-                // (5,18): error CS0106: The modifier 'new' is not valid for this item
-                //     new abstract C(object o);
+    // (5,18): error CS0106: The modifier 'new' is not valid for this item
+    //     new abstract C(object o);
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new"),
-                // (6,20): error CS0106: The modifier 'virtual' is not valid for this item
-                //     public virtual C(C c) { }
+    // (6,20): error CS0106: The modifier 'virtual' is not valid for this item
+    //     public virtual C(C c) { }
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual"),
-                // (7,33): error CS0106: The modifier 'override' is not valid for this item
-                //     protected internal override C(int i, int j) { }
+    // (7,33): error CS0106: The modifier 'override' is not valid for this item
+    //     protected internal override C(int i, int j) { }
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("override"),
-                // (8,24): error CS0106: The modifier 'volatile' is not valid for this item
-                //     volatile const int x = 1;
+    // (8,24): error CS0106: The modifier 'volatile' is not valid for this item
+    //     volatile const int x = 1;
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile")
                 );
         }
@@ -2065,11 +2065,11 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (10,31): error CS0119: 'NS.Test.F()' is a method, which is not valid in the given context
-                //             Console.WriteLine(F.x);
+    // (10,31): error CS0119: 'NS.Test.F()' is a method, which is not valid in the given context
+    //             Console.WriteLine(F.x);
     Diagnostic(ErrorCode.ERR_BadSKunknown, "F").WithArguments("NS.Test.F()", "method"),
-                // (11,20): error CS0118: 'NS' is a namespace but is used like a variable
-                //             return NS();
+    // (11,20): error CS0118: 'NS' is a namespace but is used like a variable
+    //             return NS();
     Diagnostic(ErrorCode.ERR_BadSKknown, "NS").WithArguments("NS", "namespace", "variable")
            );
 
@@ -2093,17 +2093,17 @@ class Test
 ";
             // Roslyn gives same error twice
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
-                //             int y = (global::System.Int32) +x;
+    // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
+    //             int y = (global::System.Int32) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "global::System.Int32").WithArguments("int", "type"),
-                // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
-                //             int y = (global::System.Int32) +x;
+    // (8,22): error CS0119: 'int' is a type, which is not valid in the given context
+    //             int y = (global::System.Int32) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "global::System.Int32").WithArguments("int", "type"),
-                // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
-                //             short z = (System.Int16) +x;
+    // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
+    //             short z = (System.Int16) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int16").WithArguments("short", "type"),
-                // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
-                //             short z = (System.Int16) +x;
+    // (9,24): error CS0119: 'short' is a type, which is not valid in the given context
+    //             short z = (System.Int16) +x;
     Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int16").WithArguments("short", "type")
             );
         }
@@ -2332,32 +2332,32 @@ interface I<T> { }
             var comp = CreateCompilationWithMscorlib(text);
 
             comp.VerifyDiagnostics(
-                // (5,16): error CS0179: 'NS.C.C()' cannot be extern and declare a body
-                //         extern C() { }
+// (5,16): error CS0179: 'NS.C.C()' cannot be extern and declare a body
+//         extern C() { }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "C").WithArguments("NS.C.C()"),
 
 // (6,21): error CS0179: 'NS.C.M()' cannot be extern and declare a body
-                //         extern void M() { }
+//         extern void M() { }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "M").WithArguments("NS.C.M()"),
 
 // (7,27): error CS0179: 'NS.C.P.get' cannot be extern and declare a body
-                //         extern object P { get { return null; } set { } }
+//         extern object P { get { return null; } set { } }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("NS.C.P.get"),
 
 // (7,48): error CS0179: 'NS.C.P.set' cannot be extern and declare a body
-                //         extern object P { get { return null; } set { } }
+//         extern object P { get { return null; } set { } }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("NS.C.P.set"),
 
 // (8,40): error CS0179: 'NS.C.E.add' cannot be extern and declare a body
-                //         extern event System.Action E { add { } remove { } }
+//         extern event System.Action E { add { } remove { } }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("NS.C.E.add"),
 
 // (8,48): error CS0179: 'NS.C.E.remove' cannot be extern and declare a body
-                //         extern event System.Action E { add { } remove { } }
+//         extern event System.Action E { add { } remove { } }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("NS.C.E.remove"),
 
 // (9,29): error CS0179: 'NS.C.operator +(NS.C, NS.C)' cannot be extern and declare a body
-                //         extern int operator + (C c1, C c2) { return 1; }
+//         extern int operator + (C c1, C c2) { return 1; }
 Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("NS.C.operator +(NS.C, NS.C)")
                 );
         }
@@ -2584,11 +2584,11 @@ class Program
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (3,32): error CS0215: The return type of operator True or False must be bool
-                //     public static int operator true(MyClass MyInt)   // CS0215
+// (3,32): error CS0215: The return type of operator True or False must be bool
+//     public static int operator true(MyClass MyInt)   // CS0215
 Diagnostic(ErrorCode.ERR_OpTFRetType, "true"),
-                // (8,32): error CS0215: The return type of operator True or False must be bool
-                //     public static int operator false(MyClass MyInt)   // CS0215
+// (8,32): error CS0215: The return type of operator True or False must be bool
+//     public static int operator false(MyClass MyInt)   // CS0215
 Diagnostic(ErrorCode.ERR_OpTFRetType, "false")
                 );
         }
@@ -2620,11 +2620,11 @@ Diagnostic(ErrorCode.ERR_OpTFRetType, "false")
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (1,7): warning CS0660: 'MyClass' defines operator == or operator != but does not override Object.Equals(object o)
-                // class MyClass
+// (1,7): warning CS0660: 'MyClass' defines operator == or operator != but does not override Object.Equals(object o)
+// class MyClass
 Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "MyClass").WithArguments("MyClass"),
-                // (1,7): warning CS0661: 'MyClass' defines operator == or operator != but does not override Object.GetHashCode()
-                // class MyClass
+// (1,7): warning CS0661: 'MyClass' defines operator == or operator != but does not override Object.GetHashCode()
+// class MyClass
 Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "MyClass").WithArguments("MyClass"),
                 // (4,33): error CS0216: The operator 'MyClass.operator true(MyClass)' requires a matching operator 'false' to also be defined
                 //     public static bool operator true(MyClass MyInt)   // CS0216
@@ -2713,8 +2713,8 @@ public class MyClass
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (12,21): error CS0218: In order to be applicable as a short circuit operator, the declaring type 'MyClass' of user-defined operator 'MyClass.operator &(MyClass, MyClass)' must declare operator true and operator false.
-                //         MyClass i = f && f;   // CS0218, requires operators true and false
+// (12,21): error CS0218: In order to be applicable as a short circuit operator, the declaring type 'MyClass' of user-defined operator 'MyClass.operator &(MyClass, MyClass)' must declare operator true and operator false.
+//         MyClass i = f && f;   // CS0218, requires operators true and false
 Diagnostic(ErrorCode.ERR_MustHaveOpTF, "f && f").WithArguments("MyClass.operator &(MyClass, MyClass)", "MyClass")
                 );
         }
@@ -3769,9 +3769,9 @@ namespace N
 }
 ")
                 .VerifyDiagnostics(
-                // (4,32): error CS0275: 'I.this[char].get': accessibility modifiers may not be used on accessors in an interface
+                    // (4,32): error CS0275: 'I.this[char].get': accessibility modifiers may not be used on accessors in an interface
                     Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "get").WithArguments("I.this[char].get"),
-                // (5,43): error CS0275: 'I.this[string].set': accessibility modifiers may not be used on accessors in an interface
+                    // (5,43): error CS0275: 'I.this[string].set': accessibility modifiers may not be used on accessors in an interface
                     Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "set").WithArguments("I.this[string].set"));
         }
 
@@ -3942,35 +3942,35 @@ static class S
 }
 ";
             CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
-                // (7,15): error CS0306: The type 'int*' may not be used as a type argument
-                //         new C<int*>();
+// (7,15): error CS0306: The type 'int*' may not be used as a type argument
+//         new C<int*>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (8,15): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
-                //         new C<ArgIterator>();
+// (8,15): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
+//         new C<ArgIterator>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator"),
-                // (9,15): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
-                //         new C<RuntimeArgumentHandle>();
+// (9,15): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
+//         new C<RuntimeArgumentHandle>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-                // (10,15): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-                //         new C<TypedReference>();
+// (10,15): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+//         new C<TypedReference>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference"),
-                // (11,9): error CS0306: The type 'int*' may not be used as a type argument
-                //         F<int*>();
+// (11,9): error CS0306: The type 'int*' may not be used as a type argument
+//         F<int*>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*"),
-                // (12,9): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
-                //         o.E<object, ArgIterator>();
+// (12,9): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
+//         o.E<object, ArgIterator>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<object, ArgIterator>").WithArguments("System.ArgIterator"),
-                // (14,13): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
-                //         a = F<RuntimeArgumentHandle>;
+// (14,13): error CS0306: The type 'System.RuntimeArgumentHandle' may not be used as a type argument
+//         a = F<RuntimeArgumentHandle>;
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle"),
-                // (15,13): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-                //         a = o.E<T, TypedReference>;
+// (15,13): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+//         a = o.E<T, TypedReference>;
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference"),
-                // (16,34): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-                //         Console.WriteLine(typeof(TypedReference?));
+// (16,34): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+//         Console.WriteLine(typeof(TypedReference?));
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference"),
-                // (17,43): error CS0306: The type 'System.TypedReference' may not be used as a type argument
-                //         Console.WriteLine(typeof(Nullable<TypedReference>));
+// (17,43): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+//         Console.WriteLine(typeof(Nullable<TypedReference>));
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference"));
         }
 
@@ -4033,26 +4033,26 @@ class C<T>
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (10,31): error CS0307: The namespace 'NS' cannot be used with type arguments
-                //             Test<int> t = new NS<T>.Test<int>();
+// (10,31): error CS0307: The namespace 'NS' cannot be used with type arguments
+//             Test<int> t = new NS<T>.Test<int>();
 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "NS<T>").WithArguments("NS", "namespace"),
-                // (11,23): error CS0307: The field 'NS.Test<int>.field' cannot be used with type arguments
-                //             var v = t.field<string>;
+// (11,23): error CS0307: The field 'NS.Test<int>.field' cannot be used with type arguments
+//             var v = t.field<string>;
 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "field<string>").WithArguments("NS.Test<int>.field", "field"),
-                // (12,23): error CS0307: The property 'NS.Test<int>.P' cannot be used with type arguments
-                //             int p = t.P<int>();
+// (12,23): error CS0307: The property 'NS.Test<int>.P' cannot be used with type arguments
+//             int p = t.P<int>();
 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<int>").WithArguments("NS.Test<int>.P", "property"),
-                // (13,17): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-                //             if (v == v | p == p | t == t) {}
+// (13,17): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+//             if (v == v | p == p | t == t) {}
 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "v == v"),
-                // (13,26): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-                //             if (v == v | p == p | t == t) {}
+// (13,26): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+//             if (v == v | p == p | t == t) {}
 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "p == p"),
-                // (13,35): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-                //             if (v == v | p == p | t == t) {}
+// (13,35): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+//             if (v == v | p == p | t == t) {}
 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "t == t"),
-                // (5,25): warning CS0649: Field 'NS.Test<T>.field' is never assigned to, and will always have its default value null
-                //         internal object field;
+// (5,25): warning CS0649: Field 'NS.Test<T>.field' is never assigned to, and will always have its default value null
+//         internal object field;
 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Test<T>.field", "null")
                 );
         }
@@ -4442,14 +4442,14 @@ class B
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,25): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
-                //     public static int X = 5;
+    // (7,25): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
+    //     public static int X = 5;
     Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "= 5").WithArguments("B").WithLocation(7, 25),
-                // (9,28): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
-                //     public const decimal D = 5;
+    // (9,28): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
+    //     public const decimal D = 5;
     Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "= 5").WithArguments("B").WithLocation(9, 28),
-                // (8,18): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
-                //     public int Y = 5;
+    // (8,18): error CS8028: 'B': a class with the ComImport attribute cannot specify field initializers.
+    //     public int Y = 5;
     Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "= 5").WithArguments("B").WithLocation(8, 18)
                 );
         }
@@ -4983,7 +4983,7 @@ namespace NS
         // }
         // class B : NS.A { }
 
-            //Compiling the scenario below using the native compiler gives CS0438 for me (Ed).
+        //Compiling the scenario below using the native compiler gives CS0438 for me (Ed).
         {
             var text = @"using System;
 
@@ -5000,15 +5000,15 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0438
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0438
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
@@ -5040,14 +5040,14 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0438
+    // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0438
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -5085,30 +5085,30 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -5147,28 +5147,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -5206,30 +5206,30 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -5268,28 +5268,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   
+    // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   
+    // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -5327,28 +5327,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
         }
@@ -5386,28 +5386,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
-                // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
-                // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
                 );
         }
@@ -5445,28 +5445,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
         }
@@ -5504,28 +5504,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 }, compOptions: TestOptions.Exe);
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-                // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-                //             Console.WriteLine(typeof(Util.A).Module);   
+    // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+    //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
         }
@@ -5551,14 +5551,14 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5587,14 +5587,14 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5623,14 +5623,14 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                 });
 
             comp.VerifyDiagnostics(
-                // (15,15): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         class A {}
+    // (15,15): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
         }
@@ -5659,9 +5659,9 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                 });
 
             CompileAndVerify(comp, emitOptions: EmitOptions.CCI).VerifyDiagnostics();
@@ -5701,28 +5701,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5761,30 +5761,30 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5823,28 +5823,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5883,30 +5883,30 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     class Util {}
+    // (13,11): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     class Util {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -5948,28 +5948,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -6011,28 +6011,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
         }
@@ -6074,36 +6074,36 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS"),
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS"),
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
         }
@@ -6145,28 +6145,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS")
                 );
         }
@@ -6208,34 +6208,34 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util"),
-                // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util"),
-                // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
                 );
         }
@@ -6277,36 +6277,36 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new CSharpCompilationReference(lib)
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS"),
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     new MetadataImageReference(lib.EmitToArray())
                 });
 
             comp.VerifyDiagnostics(
-                // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
-                //     namespace Util 
+    // (13,15): error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    //     namespace Util 
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Util").WithArguments("Util", "NS"),
-                // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                //         public class A {}
+    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    //         public class A {}
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util")
                 );
         }
@@ -6342,28 +6342,28 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     mod3Ref
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
+                    new MetadataImageReference(mod1),
                     mod3Ref
                 });
 
@@ -6372,19 +6372,19 @@ namespace NS
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
                     mod3Ref,
-                    new MetadataImageReference(mod1) 
+                    new MetadataImageReference(mod1)
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
@@ -6392,10 +6392,10 @@ namespace NS
             //ErrTestMod01.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-                //             Console.WriteLine(typeof(Util.A));   // CS0101
+    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+    //             Console.WriteLine(typeof(Util.A));   // CS0101
     Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
@@ -6430,25 +6430,25 @@ namespace NS
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
-                    new MetadataImageReference(mod2), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
+                    new MetadataImageReference(mod2),
                     mod3Ref
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod01.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod2), 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod2),
+                    new MetadataImageReference(mod1),
                     mod3Ref
                 });
 
@@ -6457,22 +6457,22 @@ namespace NS
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
                 );
 
             comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    new MetadataImageReference(mod1), 
+                new List<MetadataReference>()
+                {
+                    new MetadataImageReference(mod1),
                     mod3Ref,
-                    new MetadataImageReference(mod2) 
+                    new MetadataImageReference(mod2)
                 });
 
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod01.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(true,
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
+    // ErrTestMod03.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
     Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS")
                 );
         }
@@ -6508,9 +6508,9 @@ public static int AT = (new { field = 2 }).field;
 ";
 
             var comp = CreateCompilationWithMscorlib(text,
-                new List<MetadataReference>() 
-                { 
-                    ModuleA01Ref, 
+                new List<MetadataReference>()
+                {
+                    ModuleA01Ref,
                     ModuleB01Ref
                 }, TestOptions.Exe);
 
@@ -6563,13 +6563,13 @@ interface ITest20
 ";
 
             var compilation = CreateCompilationWithMscorlib(source,
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     moduleRef
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8004: Type 'ITest20<T>' exported from module 'ITest20Mod.netmodule' conflicts with type declared in primary module of this assembly.
+    // error CS8004: Type 'ITest20<T>' exported from module 'ITest20Mod.netmodule' conflicts with type declared in primary module of this assembly.
     Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("ITest20<T>", "ITest20Mod.netmodule")
                 );
         }
@@ -6652,16 +6652,16 @@ namespace ns1
             var moduleRef2 = CreateCompilationWithMscorlib(mod2Source, compOptions: TestOptions.NetModule, assemblyName: "mod_1_2").EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlib("",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     moduleRef1,
                     moduleRef2
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8005: Type 'c2' exported from module 'mod_1_2.netmodule' conflicts with type 'c2<T>' exported from module 'mod_1_1.netmodule'.
+    // error CS8005: Type 'c2' exported from module 'mod_1_2.netmodule' conflicts with type 'c2<T>' exported from module 'mod_1_1.netmodule'.
     Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("c2", "mod_1_2.netmodule", "c2<T>", "mod_1_1.netmodule"),
-                // error CS8005: Type 'ns.c1' exported from module 'mod_1_2.netmodule' conflicts with type 'ns.c1<T>' exported from module 'mod_1_1.netmodule'.
+    // error CS8005: Type 'ns.c1' exported from module 'mod_1_2.netmodule' conflicts with type 'ns.c1<T>' exported from module 'mod_1_1.netmodule'.
     Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("ns.c1", "mod_1_2.netmodule", "ns.c1<T>", "mod_1_1.netmodule")
                 );
         }
@@ -6727,22 +6727,22 @@ public class CF3<T>
                                   EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlib(forwardedTypesSource,
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
+    // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("ns.CF2"),
-                // error CS8006: Forwarded type 'CF1' conflicts with type declared in primary module of this assembly.
+    // error CS8006: Forwarded type 'CF1' conflicts with type declared in primary module of this assembly.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF1")
                 );
 
             compilation = CreateCompilationWithMscorlib(modSource,
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     forwardedTypes1Ref
                 }, TestOptions.Dll);
@@ -6751,8 +6751,8 @@ public class CF3<T>
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module4_Ref,
                     forwardedTypes1Ref
                 }, TestOptions.Dll);
@@ -6760,17 +6760,17 @@ public class CF3<T>
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(modSource,
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     forwardedTypes2Ref,
                     new CSharpCompilationReference(forwardedTypes1, aliases: ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                 );
 
@@ -6781,62 +6781,62 @@ extern alias FT1;
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(FT1::CF1))]
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(FT1::ns.CF2))]
 ",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     forwardedTypesModRef,
                     new CSharpCompilationReference(forwardedTypes1, ImmutableArray.Create("FT1"))
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"),
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule")
                 );
 
             compilation = CreateCompilationWithMscorlib("",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     forwardedTypesModRef,
                     module1_FT1_Ref,
-                    forwardedTypes1Ref 
+                    forwardedTypes1Ref
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
-                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule")
                 );
 
             compilation = CreateCompilationWithMscorlib("",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     forwardedTypesModRef,
-                    forwardedTypes1Ref 
+                    forwardedTypes1Ref
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
-                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
     Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule")
                 );
 
             compilation = CreateCompilationWithMscorlib("",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     module2_FT1_Ref,
-                    forwardedTypes1Ref 
+                    forwardedTypes1Ref
                 }, TestOptions.Dll);
 
             CompileAndVerify(compilation, emitOptions: EmitOptions.RefEmitBug, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("",
-                new List<MetadataReference>() 
-                { 
+                new List<MetadataReference>()
+                {
                     module1_FT1_Ref,
                     module3_FT2_Ref,
                     forwardedTypes1Ref,
@@ -6844,9 +6844,9 @@ extern alias FT1;
                 }, TestOptions.Dll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                 );
         }
@@ -7492,16 +7492,16 @@ namespace NS
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,21): error CS0501: 'NS.clx<T>.M1(T)' must declare a body because it is not marked abstract, extern, or partial
-                //         public void M1(T t);
+// (7,21): error CS0501: 'NS.clx<T>.M1(T)' must declare a body because it is not marked abstract, extern, or partial
+//         public void M1(T t);
 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("NS.clx<T>.M1(T)"),
 
 // (8,20): error CS0501: 'NS.clx<T>.M2<V>()' must declare a body because it is not marked abstract, extern, or partial
-                //         internal V M2<V>();
+//         internal V M2<V>();
 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M2").WithArguments("NS.clx<T>.M2<V>()"),
 
 // (9,33): error CS0501: 'NS.clx<T>.M3(sbyte)' must declare a body because it is not marked abstract, extern, or partial
-                //         protected internal void M3(sbyte p);
+//         protected internal void M3(sbyte p);
 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(sbyte)"),
 
                 // (10,35): error CS0501: 'NS.clx<T>.operator +(NS.clx<T>)' must declare a body because it is not marked abstract, extern, or partial
@@ -7895,8 +7895,8 @@ internal override void GM<V>(V v) { }
 
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,24): error CS0508: 'GG.GM<V>(V)': return type must be 'V' to match overridden member 'G.GM<T>(T)'
-                // internal override void GM<V>(V v) { } 
+// (8,24): error CS0508: 'GG.GM<V>(V)': return type must be 'V' to match overridden member 'G.GM<T>(T)'
+// internal override void GM<V>(V v) { } 
 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG.GM<V>(V)", "G.GM<T>(T)", "V")
                 );
         }
@@ -9802,8 +9802,8 @@ public class D : B {}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
-                //     public static implicit operator B(D d) // CS0554
+// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
+//     public static implicit operator B(D d) // CS0554
 Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
                 );
         }
@@ -9827,12 +9827,12 @@ public struct S
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
-                //     public static implicit operator MyClass(MyClass aa)   // CS0555
+// (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+//     public static implicit operator MyClass(MyClass aa)   // CS0555
 Diagnostic(ErrorCode.ERR_IdentityConversion, "MyClass"),
 
 // (11,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
-                //     public static implicit operator S?(S s) { return s; }
+//     public static implicit operator S?(S s) { return s; }
 Diagnostic(ErrorCode.ERR_IdentityConversion, "S?")
                 );
         }
@@ -9882,8 +9882,8 @@ public class C
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (12,45): error CS0557: Duplicate user-defined conversion in type 'x.ii.iii'
-                //             public static explicit operator int(iii aa)
+// (12,45): error CS0557: Duplicate user-defined conversion in type 'x.ii.iii'
+//             public static explicit operator int(iii aa)
 Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.iii")
                 );
         }
@@ -9907,8 +9907,8 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (7,35): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
-                //          static implicit operator int(iii aa)   // CS0558, add public
+// (7,35): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
+//          static implicit operator int(iii aa)   // CS0558, add public
 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
                 );
         }
@@ -9926,8 +9926,8 @@ Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.i
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (3,32): error CS0559: The parameter type for ++ or -- operator must be the containing type
-                //     public static iii operator ++(int aa)   // CS0559
+// (3,32): error CS0559: The parameter type for ++ or -- operator must be the containing type
+//     public static iii operator ++(int aa)   // CS0559
 Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++"));
         }
 
@@ -9944,8 +9944,8 @@ Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++"));
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (3,32): error CS0562: The parameter of a unary operator must be the containing type
-                //     public static iii operator +(int aa)   // CS0562
+// (3,32): error CS0562: The parameter of a unary operator must be the containing type
+//     public static iii operator +(int aa)   // CS0562
 Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "+")
                 );
 
@@ -10013,8 +10013,8 @@ interface IA
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (4,17): error CS0567: Interfaces cannot contain operators
-                //    int operator +(int aa, int bb);   // CS0567
+// (4,17): error CS0567: Interfaces cannot contain operators
+//    int operator +(int aa, int bb);   // CS0567
 Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
                 );
         }
@@ -10308,8 +10308,8 @@ public class C
                 // (5,33): error CS0590: User-defined operators cannot return void
                 //     public static implicit operator void(C c1) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "void"),
-                // (5,46): error CS1547: Keyword 'void' cannot be used in this context
-                //     public static implicit operator void(C c1) { }
+// (5,46): error CS1547: Keyword 'void' cannot be used in this context
+//     public static implicit operator void(C c1) { }
 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (6,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c) { }
@@ -12290,16 +12290,16 @@ public static class C
             // "cascading" errors in Roslyn.
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,30): error CS0715: 'C.operator +(C)': static classes cannot contain user-defined operators
-                //     public static C operator +(C c)  // CS0715
+// (4,30): error CS0715: 'C.operator +(C)': static classes cannot contain user-defined operators
+//     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "+").WithArguments("C.operator +(C)"),
 
 // (4,30): error CS0721: 'C': static types cannot be used as parameters
-                //     public static C operator +(C c)  // CS0715
+//     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "+").WithArguments("C"),
 
 // (4,19): error CS0722: 'C': static types cannot be used as return types
-                //     public static C operator +(C c)  // CS0715
+//     public static C operator +(C c)  // CS0715
 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C").WithArguments("C")
                 );
         }
@@ -12701,12 +12701,12 @@ class C
     public static implicit operator S2(C c) { return null; }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (5,19): error CS0722: 'S1': static types cannot be used as return types
-                //     public static S1 operator-(C c)
+// (5,19): error CS0722: 'S1': static types cannot be used as return types
+//     public static S1 operator-(C c)
 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S1").WithArguments("S1"),
 
 // (9,37): error CS0722: 'S2': static types cannot be used as return types
-                //     public static implicit operator S2(C c) { return null; }
+//     public static implicit operator S2(C c) { return null; }
 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S2").WithArguments("S2")
                 );
         }
@@ -13016,17 +13016,17 @@ partial class C
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                //     partial int f;
+                   // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
+                   //     partial int f;
                    Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "f"),
-                // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                //     partial object P { get { return null; } }
+                   // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
+                   //     partial object P { get { return null; } }
                    Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P"),
-                // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                //     partial int this[int index]
+                  // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
+                  //     partial int this[int index]
                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "this"),
-                // (5,17): warning CS0169: The field 'C.f' is never used
-                //     partial int f;
+                   // (5,17): warning CS0169: The field 'C.f' is never used
+                   //     partial int f;
                    Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f"));
         }
 
@@ -13715,7 +13715,7 @@ references: new[] { reference });
             var reference = SystemCoreRef;
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new List<MetadataReference> { reference },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadExtensionMeth, Line = 3, Column = 17 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadExtensionAgg, Line = 1, Column = 14 });
         }
 
         [Fact]
@@ -13764,7 +13764,7 @@ references: new[] { reference });
         }
 
         [WorkItem(528256, "DevDiv")]
-        [Fact(Skip = "528256")]
+        [Fact()]
         public void CS1106ERR_BadExtensionAgg02()
         {
             CreateCompilationWithMscorlib(
@@ -13773,8 +13773,12 @@ references: new[] { reference });
     static void M(this object o);
 }")
                 .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(29, 11),
-                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("static").WithLocation(31, 17));
+                    // (1,11): error CS1106: Extension method must be defined in a non-generic static class
+                    // interface I
+                    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),
+                    // (3,17): error CS0106: The modifier 'static' is not valid for this item
+                    //     static void M(this object o);
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("static").WithLocation(3, 17));
         }
 
         [Fact]
@@ -14077,17 +14081,17 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
-                //     ArgIterator M(); // 1599
+// (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+//     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-                // (11,12): error CS1599: Method or delegate cannot return type 'System.RuntimeArgumentHandle'
-                //     public RuntimeArgumentHandle Test2() // 1599
+// (11,12): error CS1599: Method or delegate cannot return type 'System.RuntimeArgumentHandle'
+//     public RuntimeArgumentHandle Test2() // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-                // (17,19): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
-                //     public static ArgIterator operator +(C c1, C c2) // 1599
+// (17,19): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+//     public static ArgIterator operator +(C c1, C c2) // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-                // (9,21): error CS1599: Method or delegate cannot return type 'System.TypedReference'
-                //     public delegate TypedReference Test1(); // 1599
+// (9,21): error CS1599: Method or delegate cannot return type 'System.TypedReference'
+//     public delegate TypedReference Test1(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference")
                 );
         }
@@ -14122,20 +14126,20 @@ class MyClass
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                //     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
+// (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
+//     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("System.TypedReference"),
-                // (11,23): error CS1601: Cannot make reference to variable of type 'System.ArgIterator'
-                //     public void Test2(out ArgIterator t4)   // CS1601
+// (11,23): error CS1601: Cannot make reference to variable of type 'System.ArgIterator'
+//     public void Test2(out ArgIterator t4)   // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator t4").WithArguments("System.ArgIterator"),
-                // (16,13): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
-                //     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
+// (16,13): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
+//     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref RuntimeArgumentHandle r5").WithArguments("System.RuntimeArgumentHandle"),
-                // (5,21): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                //     delegate void D(ref TypedReference t1); // CS1601
+// (5,21): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
+//     delegate void D(ref TypedReference t1); // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t1").WithArguments("System.TypedReference"),
-                // (8,17): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
-                //         var x = __makeref(r3); // CS1601
+// (8,17): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
+//         var x = __makeref(r3); // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("System.RuntimeArgumentHandle")
                  );
         }
@@ -14269,8 +14273,8 @@ class AAttribute : Attribute { }
 }
 ";
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-                // (3,31): error CS0443: Syntax error; value expected
-                //     public unsafe fixed int A[];   // CS0443
+    // (3,31): error CS0443: Syntax error; value expected
+    //     public unsafe fixed int A[];   // CS0443
     Diagnostic(ErrorCode.ERR_ValueExpected, "]")
                 );
         }
@@ -14384,17 +14388,17 @@ class AAttribute : Attribute { }
     }
 ";
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-                // (3,33): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         public fixed int _Type1[1.2]; // error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+    // (3,33): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+    //         public fixed int _Type1[1.2]; // error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2").WithArguments("double", "int"),
-                // (4,33): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         public fixed int _Type2[true]; // error CS00029
+    // (4,33): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+    //         public fixed int _Type2[true]; // error CS00029
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "int"),
-                // (5,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         public fixed int _Type3["true"]; // error CS00029
+    // (5,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
+    //         public fixed int _Type3["true"]; // error CS00029
     Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""true""").WithArguments("string", "int"),
-                // (6,33): error CS0133: The expression being assigned to 's._Type4' must be constant
-                //         public fixed int _Type4[System.Convert.ToInt32(@"1")]; // error CS0133
+    // (6,33): error CS0133: The expression being assigned to 's._Type4' must be constant
+    //         public fixed int _Type4[System.Convert.ToInt32(@"1")]; // error CS0133
     Diagnostic(ErrorCode.ERR_NotConstantExpression, @"System.Convert.ToInt32(@""1"")").WithArguments("s._Type4")
                 );
         }
@@ -14419,14 +14423,14 @@ class AAttribute : Attribute { }
     }
 ";
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-                // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-                //         public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    //         public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     Diagnostic(ErrorCode.ERR_IllegalFixedType, "foo"),
-                // (4,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-                //         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    // (4,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    //         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     Diagnostic(ErrorCode.ERR_IllegalFixedType, "bar"),
-                // (9,20): warning CS0649: Field 'foo.ABC' is never assigned to, and will always have its default value 0
-                //         public int ABC;
+    // (9,20): warning CS0649: Field 'foo.ABC' is never assigned to, and will always have its default value 0
+    //         public int ABC;
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("foo.ABC", "0")
                 );
         }
@@ -14467,26 +14471,26 @@ class AAttribute : Attribute { }
 }
 ";
             CreateCompilationWithMscorlib(text, compOptions: TestOptions.UnsafeDll).VerifyDiagnostics(
-                // (8,15): error CS1003: Syntax error, '(' expected
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,15): error CS1003: Syntax error, '(' expected
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
-                // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-                // (8,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-                // (8,30): error CS1026: ) expected
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,30): error CS1026: ) expected
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
-                // (8,30): warning CS0642: Possible mistaken empty statement
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,30): warning CS0642: Possible mistaken empty statement
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_BadFixedInitType, "_buffer[2]"),
-                // (8,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
+    // (8,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
     Diagnostic(ErrorCode.ERR_FixedMustInit, "_buffer[2]")
                 );
         }
@@ -14515,11 +14519,11 @@ public class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Obsolete]  // CS1667
+    // (8,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+    //         [Obsolete]  // CS1667
     Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (10,10): error CS1667: Attribute 'System.Diagnostics.Conditional' is not valid on property or event accessors. It is only valid on 'class, method' declarations.
-                //         [System.Diagnostics.Conditional("Bernard")]
+    // (10,10): error CS1667: Attribute 'System.Diagnostics.Conditional' is not valid on property or event accessors. It is only valid on 'class, method' declarations.
+    //         [System.Diagnostics.Conditional("Bernard")]
     Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "System.Diagnostics.Conditional").WithArguments("System.Diagnostics.Conditional", "class, method")
                 );
         }
@@ -14635,7 +14639,7 @@ public class Derived : Base
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.get not impl
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.set not impl
-                // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
+                                                                                                                        // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
 
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 13, Column = 28 } //key error, property type changed
                 );
@@ -16368,8 +16372,8 @@ internal class D8 : NNN.X { }
 
             var tree = Parse(sourceLib, filename: @"C:\lib.cs");
 
-            var lib = CreateCompilationWithMscorlib(tree, new MetadataReference[] 
-            { 
+            var lib = CreateCompilationWithMscorlib(tree, new MetadataReference[]
+            {
                 new CSharpCompilationReference(ref1),
                 new CSharpCompilationReference(ref2),
             });
@@ -16449,8 +16453,8 @@ internal class D : C.X { }
 
             var tree = Parse(sourceLib, filename: @"C:\lib.cs");
 
-            var lib = CreateCompilationWithMscorlib(tree, new MetadataReference[] 
-            { 
+            var lib = CreateCompilationWithMscorlib(tree, new MetadataReference[]
+            {
                 new CSharpCompilationReference(ref1),
                 new CSharpCompilationReference(ref2),
             });
@@ -16704,7 +16708,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E1").WithArguments("C.E1.remove").WithLocation(5, 20),
                 // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.add").WithLocation(6, 24), // #15802
-                // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                                                                                                                            // (6,24): warning CS0626: Method, operator, or accessor 'C.E2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E2").WithArguments("C.E2.remove").WithLocation(6, 24)); // #15802
         }
 
@@ -16826,8 +16830,8 @@ class Test3 : Test2
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (1,7): warning CS0659: 'Test' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // class Test
+// (1,7): warning CS0659: 'Test' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+// class Test
 Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "Test").WithArguments("Test")
                 );
         }
@@ -16914,11 +16918,11 @@ class Test : TestBase  // CS0661
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,7): warning CS0659: 'Test' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // class Test : TestBase  // CS0661
+// (7,7): warning CS0659: 'Test' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+// class Test : TestBase  // CS0661
 Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "Test").WithArguments("Test"),
-                // (7,7): warning CS0661: 'Test' defines operator == or operator != but does not override Object.GetHashCode()
-                // class Test : TestBase  // CS0661
+// (7,7): warning CS0661: 'Test' defines operator == or operator != but does not override Object.GetHashCode()
+// class Test : TestBase  // CS0661
 Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "Test").WithArguments("Test")
                 );
         }
@@ -17098,11 +17102,11 @@ class C
 }
 ");
             compilation.VerifyDiagnostics(
-                // (4,33): warning CS1066: The default value specified for parameter 'c' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     public static C operator!(C c = null) { return c; }
+// (4,33): warning CS1066: The default value specified for parameter 'c' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+//     public static C operator!(C c = null) { return c; }
 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("c"),
-                // (5,43): warning CS1066: The default value specified for parameter 'c' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     public static implicit operator int(C c = null) { return 0; }
+// (5,43): warning CS1066: The default value specified for parameter 'c' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+//     public static implicit operator int(C c = null) { return 0; }
 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c").WithArguments("c")
 );
         }
@@ -17876,18 +17880,18 @@ namespace NS
     struct set_R { } // CS0102
 }")
                 .VerifyDiagnostics(
-                // (7,20): error CS0102: The type 'C' already contains a definition for 'get_P'
+                    // (7,20): error CS0102: The type 'C' already contains a definition for 'get_P'
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("C", "get_P"),
-                // (7,25): error CS0102: The type 'C' already contains a definition for 'set_P'
+                    // (7,25): error CS0102: The type 'C' already contains a definition for 'set_P'
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("C", "set_P"),
-                // (8,12): error CS0102: The type 'C' already contains a definition for 'set_Q'
+                    // (8,12): error CS0102: The type 'C' already contains a definition for 'set_Q'
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("C", "set_Q"),
-                // (9,12): error CS0102: The type 'C' already contains a definition for 'get_R'
+                    // (9,12): error CS0102: The type 'C' already contains a definition for 'get_R'
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "R").WithArguments("C", "get_R"),
-                // (9,16): error CS0102: The type 'C' already contains a definition for 'set_R'
+                    // (9,16): error CS0102: The type 'C' already contains a definition for 'set_R'
                     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "set").WithArguments("C", "set_R"),
-                // (3,20): warning CS0169: The field 'C.get_P' is never used
-                //     private double get_P; // CS0102
+                    // (3,20): warning CS0169: The field 'C.get_P' is never used
+                    //     private double get_P; // CS0102
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "get_P").WithArguments("C.get_P"));
         }
 
@@ -18768,9 +18772,9 @@ public class MyAttribute2 : MyAttribute1
 ", new[] { new CSharpCompilationReference(comp1) }, compOptions: TestOptions.Dll);
 
             var expected = new[] {
-// (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-// [MyAttribute2]
-Diagnostic(ErrorCode.ERR_NoTypeDef, "MyAttribute2").WithArguments("MyAttribute1", "Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                // (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // [MyAttribute2]
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "MyAttribute2").WithArguments("MyAttribute1", "Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                                  };
 
             var source3 = @"

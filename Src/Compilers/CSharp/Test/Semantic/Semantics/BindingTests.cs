@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1080,12 +1080,12 @@ class C : I
     internal static virtual void M4<T>() { }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,7): error CS1106: Extension method must be defined in a non-generic static class
+                // class C : I
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "C").WithLocation(5, 7),
                 // (7,17): error CS0425: The constraints for type parameter 'T' of method 'C.M1<T>()' must match the constraints for type parameter 'T' of interface method 'I.M1<T>()'. Consider using an explicit interface implementation instead.
                 //     public void M1<T>() { }
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M1").WithArguments("T", "C.M1<T>()", "T", "I.M1<T>()").WithLocation(7, 17),
-                // (8,10): error CS1105: Extension method must be static
-                //     void M2<T>(this object o) { }
-                Diagnostic(ErrorCode.ERR_BadExtensionMeth, "M2").WithLocation(8, 10),
                 // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
                 //     sealed void M3<T>() { }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
