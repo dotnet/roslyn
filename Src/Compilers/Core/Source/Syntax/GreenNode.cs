@@ -435,6 +435,11 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
         {
+            if (string.IsNullOrWhiteSpace(annotationKind))
+            {
+                throw new ArgumentNullException("annotationKind");
+            }
+
             var annotations = this.GetAnnotations();
 
             if (annotations == NoAnnotations)
@@ -458,6 +463,11 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<string> annotationKinds)
         {
+            if (annotationKinds == null)
+            {
+                throw new ArgumentNullException("annotationKinds");
+            }
+
             var annotations = this.GetAnnotations();
 
             if (annotations == NoAnnotations)
