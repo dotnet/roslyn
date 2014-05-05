@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     int k;
                     int n;
                     if (int.TryParse(name.Substring(0, separator), NumberStyles.None, CultureInfo.InvariantCulture, out k) &&
-                        int.TryParse(name.Substring(separator + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out n))
+                        int.TryParse(name.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, out n))
                     {
                         kind = (TempKind)k;
                         uniqueId = n;

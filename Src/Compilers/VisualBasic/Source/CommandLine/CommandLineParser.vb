@@ -1817,7 +1817,7 @@ lVbRuntimePlus:
 
             For Each id In values
                 Dim number As Long
-                If Not Int64.TryParse(id, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, number) Then
+                If Not Long.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, number) Then
                     AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, value.ToString(), name)
                 ElseIf number <= Int32.MaxValue AndAlso number >= 0 AndAlso
                        VisualBasic.MessageProvider.Instance.GetSeverity(CInt(number)) = DiagnosticSeverity.Warning AndAlso
