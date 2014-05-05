@@ -4068,5 +4068,26 @@ partial class Derived() : IDisposable(2)
                 );
         }
 
+        [Fact]
+        public void CycleInAStruct()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S(private S x)
+{
+    void Foo()
+    {
+        var y = x;
+    }
+
+    static void Main() { }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (2,20): error CS0523: Struct member 'S.x' of type 'S' causes a cycle in the struct layout
+    // struct S(private S x)
+    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S.x", "S").WithLocation(2, 20)
+                );
+        }
+
     }
 }

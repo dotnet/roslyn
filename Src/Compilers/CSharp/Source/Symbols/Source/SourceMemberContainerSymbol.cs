@@ -1722,6 +1722,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // If this is a backing field, report the error on the associated property.
                         var symbol = field.AssociatedSymbol ?? field;
+
+                        if (symbol.Kind == SymbolKind.Parameter)
+                        {
+                            // We should stick to members for this error.
+                            symbol = field;
+                        }
+
                         // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
                         diagnostics.Add(ErrorCode.ERR_StructLayoutCycle, symbol.Locations[0], symbol, type);
                         return true;
