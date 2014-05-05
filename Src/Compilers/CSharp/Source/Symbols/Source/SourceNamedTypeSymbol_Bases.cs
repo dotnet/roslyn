@@ -342,6 +342,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSyntax baseClass = ((BaseClassWithArgumentsSyntax)typeSyntax).BaseClass;
                         location = new SourceLocation(baseClass);
                         baseType = baseBinder.BindType(baseClass, diagnostics, newBasesBeingResolved);
+
+                        if (baseType.TypeKind == TypeKind.Interface)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ImplementedInterfaceWithArguments, ((BaseClassWithArgumentsSyntax)typeSyntax).ArgumentList.GetLocation());
+                        }
                     }
                     else
                     {

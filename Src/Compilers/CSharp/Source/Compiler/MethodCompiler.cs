@@ -1242,40 +1242,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var blockSyntax = sourceMethod.BlockSyntax;
                 if (blockSyntax != null)
                 {
-                var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
-                var inMethodBinder = factory.GetBinder(blockSyntax);
-                var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                body = binder.BindBlock(blockSyntax, diagnostics);
-                if (generateDebugInfo)
-                {
-                    debugImports = binder.ImportsList;
-                }
-                if (inMethodBinder.IsDirectlyInIterator)
-                {
-                    foreach (var parameter in method.Parameters)
+                    var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
+                    var inMethodBinder = factory.GetBinder(blockSyntax);
+                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
+                    body = binder.BindBlock(blockSyntax, diagnostics);
+                    if (generateDebugInfo)
                     {
-                        if (parameter.RefKind != RefKind.None)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
-                        }
-                        else if (parameter.Type.IsUnsafe())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
-                        }
+                        debugImports = binder.ImportsList;
                     }
 
-                    if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
+                    if (inMethodBinder.IsDirectlyInIterator)
                     {
-                        diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
-                    }
+                        foreach (var parameter in method.Parameters)
+                        {
+                            if (parameter.RefKind != RefKind.None)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                            }
+                            else if (parameter.Type.IsUnsafe())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                            }
+                        }
 
-                    if (sourceMethod.IsVararg)
-                    {
-                        // error CS1636: __arglist is not allowed in the parameter list of iterators
-                        diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
+                        if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
+                        }
+
+                        if (sourceMethod.IsVararg)
+                        {
+                            // error CS1636: __arglist is not allowed in the parameter list of iterators
+                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
+                        }
                     }
                 }
-            }
                 else // for [if (blockSyntax != null)]
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
@@ -1426,8 +1427,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSyntax baseTypeSyntax = classDecl.BaseList.Types[0];
                             if (baseTypeSyntax.Kind == SyntaxKind.BaseClassWithArguments)
                             {
-                                initializerArgumentListOpt = ((BaseClassWithArgumentsSyntax)baseTypeSyntax).ArgumentList;
-            }
+                                var baseBinder = compilation.GetBinder(classDecl.BaseList);
+                                baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, constructor.ContainingType);
+
+                                var baseClassWithArguments = (BaseClassWithArgumentsSyntax)baseTypeSyntax;
+                                TypeSymbol targetType = baseBinder.BindType(baseClassWithArguments.BaseClass, new DiagnosticBag());
+
+                                // If types are different, an error has been reported elsewhere.
+                                if (!targetType.IsErrorType() && baseType == targetType)
+                                {
+                                    initializerArgumentListOpt = baseClassWithArguments.ArgumentList;
+                                }
+                            }
                         }
                     }
                     else

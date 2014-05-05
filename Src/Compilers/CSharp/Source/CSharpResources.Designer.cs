@@ -4453,6 +4453,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implemented interface cannot have arguments..
+        /// </summary>
+        internal static string ERR_ImplementedInterfaceWithArguments {
+            get {
+                return ResourceManager.GetString("ERR_ImplementedInterfaceWithArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No best type found for implicitly-typed array.
         /// </summary>
         internal static string ERR_ImplicitlyTypedArrayNoBestType {

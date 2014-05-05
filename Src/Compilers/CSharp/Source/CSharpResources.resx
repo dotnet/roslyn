@@ -3813,4 +3813,7 @@
   <data name="ERR_RefOutParameterWithFieldModifier" xml:space="preserve">
     <value>A ref or out parameter cannot have any field modifiers.</value>
   </data>
+  <data name="ERR_ImplementedInterfaceWithArguments" xml:space="preserve">
+    <value>Implemented interface cannot have arguments.</value>
+  </data>
 </root>

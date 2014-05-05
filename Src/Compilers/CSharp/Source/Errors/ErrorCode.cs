@@ -1275,6 +1275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeclarationExpressionOutsideOfAMethodBody = 8047,
         ERR_VariableUsedInTheSameArgumentList = 8048,
 
+        ERR_ImplementedInterfaceWithArguments = 8049,
+
         // Values in the range 10000-14000 are used for "Code Analysis" issues previously reported by FXCop
         WRN_CA2000_DisposeObjectsBeforeLosingScope1 = 10000,
         WRN_CA2000_DisposeObjectsBeforeLosingScope2 = 10001,

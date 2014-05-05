@@ -731,7 +731,7 @@ static class Derived(int x)
         }
 
         [Fact]
-        public void Class8()
+        public void Class8_01()
         {
             var comp = CreateCompilationWithMscorlib(@"
 class Base(int x)
@@ -749,10 +749,43 @@ partial class Derived(int x) : Base(y)
             comp.VerifyDiagnostics(
     // (6,15): error CS0263: Partial declarations of 'Derived' must not specify different base classes
     // partial class Derived : object
-    Diagnostic(ErrorCode.ERR_PartialMultipleBases, "Derived").WithArguments("Derived"),
-    // (9,37): error CS0103: The name 'y' does not exist in the current context
-    // partial class Derived(int x) : Base(y)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y")
+    Diagnostic(ErrorCode.ERR_PartialMultipleBases, "Derived").WithArguments("Derived")
+                );
+        }
+
+        [Fact]
+        public void Class8_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Base1(int x)
+{
+}
+
+class Base2
+{}
+
+partial class Derived1(int x) : Base1(y)
+{
+}
+
+partial class Derived1 : Base2
+{}
+
+partial class Derived2 : Base2
+{}
+
+partial class Derived2(int x) : Base1(y)
+{
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (16,15): error CS0263: Partial declarations of 'Derived2' must not specify different base classes
+    // partial class Derived2 : Base2
+    Diagnostic(ErrorCode.ERR_PartialMultipleBases, "Derived2").WithArguments("Derived2").WithLocation(16, 15),
+    // (9,15): error CS0263: Partial declarations of 'Derived1' must not specify different base classes
+    // partial class Derived1(int x) : Base1(y)
+    Diagnostic(ErrorCode.ERR_PartialMultipleBases, "Derived1").WithArguments("Derived1").WithLocation(9, 15)
                 );
         }
 
@@ -3975,6 +4008,64 @@ class Derived<T>(private int v)
 
             Assert.Equal(parameter.PrimaryConstructorParameterBackingField, field);
             Assert.Equal(parameter, field.AssociatedSymbol);
+        }
+
+        [Fact, WorkItem(4)]
+        public void ArgumentsOnImplementedInterface_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+
+class C1() : IDisposable()
+{
+    public void Dispose() { }
+}
+
+class C2() : IDisposable(2)
+{
+    public void Dispose() { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (4,25): error CS9013: Implemented interface cannot have arguments.
+    // class C1() : IDisposable()
+    Diagnostic(ErrorCode.ERR_ImplementedInterfaceWithArguments, "()").WithLocation(4, 25),
+    // (9,25): error CS9013: Implemented interface cannot have arguments.
+    // class C2() : IDisposable(2)
+    Diagnostic(ErrorCode.ERR_ImplementedInterfaceWithArguments, "(2)").WithLocation(9, 25)
+                );
+        }
+
+        [Fact, WorkItem(4)]
+        public void ArgumentsOnImplementedInterface_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+
+class Base
+{
+    public Base(int x){}
+}
+
+partial class Derived : Base
+{
+}
+
+partial class Derived() : IDisposable(2)
+{
+    public void Dispose() { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            comp.VerifyDiagnostics(
+    // (13,38): error CS9013: Implemented interface cannot have arguments.
+    // partial class Derived() : IDisposable(2)
+    Diagnostic(ErrorCode.ERR_ImplementedInterfaceWithArguments, "(2)").WithLocation(13, 38),
+    // (13,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Base.Base(int)'
+    // partial class Derived() : IDisposable(2)
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("x", "Base.Base(int)").WithLocation(13, 22)
+                );
         }
 
     }
