@@ -2946,10 +2946,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (argument.Kind == BoundKind.UninitializedVarDeclarationExpression)
                 {
-                    arguments[arg] = ((UninitializedVarDeclarationExpression)argument).SetInferredType(GetCorrespondingParameterType(ref result, parameters, arg), success: true);
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    bool hasErrors = false;
+
+                    if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                        && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                        && parameterType.IsRestrictedType())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal,
+                              argument.Syntax.CSharpKind() == SyntaxKind.DeclarationExpression ?
+                                    ((DeclarationExpressionSyntax)argument.Syntax).Type :
+                                    argument.Syntax,
+                              parameterType);
+
+                        hasErrors = true;
+                    }
+
+                    arguments[arg] = ((UninitializedVarDeclarationExpression)argument).SetInferredType(parameterType, success: !hasErrors);
                 }
             }
-            }
+        }
 
         private static TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {

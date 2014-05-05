@@ -3994,5 +3994,48 @@ public class Cls
                 );
         }
 
+        [Fact]
+        public void RestrictedType()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Test
+{
+    static void Main() {}
+
+    async Task M1()
+    {
+        M1(out TypedReference x);
+        M1(out var y);
+        await Task.Factory.StartNew(() => { });
+    }
+
+    void M1(out TypedReference tr)
+    {
+        tr = default(TypedReference);
+    }
+
+    Task M2()
+    {
+        M1(out TypedReference x);
+        M1(out var y);
+        return null;
+    }
+}";
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental)).VerifyDiagnostics(
+    // (16,13): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
+    //     void M1(out TypedReference tr)
+    Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out TypedReference tr").WithArguments("System.TypedReference").WithLocation(16, 13),
+    // (11,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions.
+    //         M1(out TypedReference x);
+    Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 16),
+    // (12,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions.
+    //         M1(out var y);
+    Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(12, 16)
+                );
+        }
+
     }
 }
