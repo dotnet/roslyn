@@ -390,7 +390,7 @@ namespace Microsoft.Cci
         /// </summary>
         MultiDictionary<DebugSourceDocument, DefinitionWithLocation> GetSymbolToLocationMap();
 
-        ImmutableArray<ExternNamespace> GetExternNamespaces();
+        ImmutableArray<ExternNamespace> ExternNamespaces { get; }
 
         ushort MajorSubsystemVersion { get; }
         ushort MinorSubsystemVersion { get; }

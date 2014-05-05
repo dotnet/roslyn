@@ -301,6 +301,11 @@ namespace Microsoft.Cci
         /// Use <see cref="Location.None"/> rather than null.
         /// </remark>
         Location Location { get; }
+
+        /// <summary>
+        /// Slot index or -1 if not applicable.
+        /// </summary>
+        int SlotIndex { get; }
     }
 
     /// <summary>

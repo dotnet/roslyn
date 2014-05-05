@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis
                     boundReferenceDirectives.Add(referenceDirective.File, boundReference);
                 }
 
-                // Workaround for bug #531342: include facades if we reference a Portable Library:
+                // Workaround for bug #797360: include facades if we reference a Portable Library:
                 referencesBuilder.AddRange(ResolveFacadeReferences(compilation));
 
                 // add external reference at the end, so that they are processed first:

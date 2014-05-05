@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -14,17 +10,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// We need a CCI representation for local constants because they are emitted as locals in
     /// PDB scopes to improve the debugging experience (see LocalScopeProvider.GetConstantsInScope).
     /// </summary>
-    internal class LocalConstantDefinition : ILocalDefinition
+    internal sealed class LocalConstantDefinition : Cci.ILocalDefinition
     {
         private readonly string name;
         private readonly Location location;
-        private readonly IMetadataConstant compileTimeValue;
+        private readonly Cci.IMetadataConstant compileTimeValue;
         private readonly bool isDynamic;
 
         //Gives the synthesized dynamic attributes of the local definition
         private readonly ImmutableArray<TypedConstant> dynamicTransformFlags;
 
-        public LocalConstantDefinition(string name, Location location, IMetadataConstant compileTimeValue, bool isDynamic = false,
+        public LocalConstantDefinition(string name, Location location, Cci.IMetadataConstant compileTimeValue, bool isDynamic = false,
             ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
@@ -47,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return location; }
         }
 
-        public IMetadataConstant CompileTimeValue
+        public Cci.IMetadataConstant CompileTimeValue
         {
             get { return compileTimeValue; }
         }
 
-        public ITypeReference Type
+        public Cci.ITypeReference Type
         {
             get { return this.compileTimeValue.Type; }
         }
@@ -62,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return true; }
         }
 
-        public ImmutableArray<ICustomModifier> CustomModifiers
+        public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
-            get { return ImmutableArray<ICustomModifier>.Empty; }
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
         public bool IsModified
@@ -95,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
             get { return this.dynamicTransformFlags; }
+        }
+
+        public int SlotIndex
+        {
+            get
+            {
+                return -1;
+            }
         }
     }
 }

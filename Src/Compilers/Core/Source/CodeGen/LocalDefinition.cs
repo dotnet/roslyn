@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal sealed class LocalDefinition : Microsoft.Cci.ILocalDefinition
+    internal sealed class LocalDefinition : Cci.ILocalDefinition
     {
         //TODO: locals are really just typed slots. They do not have names.
         // name only matters for pdb generation where it is a scope-specific mapping to a slot.
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly string name; // null if it is a temp.
 
         //data type associated with the local signature slot.
-        private readonly Microsoft.Cci.ITypeReference type;
+        private readonly Cci.ITypeReference type;
 
         // specifies whether local slot has a byref constraint and whether
         // the type of the local has the "pinned modifier" (7.1.2).
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public LocalDefinition(
             object identity,
             string name,
-            Microsoft.Cci.ITypeReference type,
+            Cci.ITypeReference type,
             int slot,
             bool isCompilerGenerated,
             LocalSlotConstraints constraints,
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { return this.dynamicTransformFlags; }
         }
 
-        public Microsoft.Cci.ITypeReference Type
+        public Cci.ITypeReference Type
         {
             get { return this.type; }
         }

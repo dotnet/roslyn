@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
+        private ImmutableArray<Cci.ExternNamespace> lazyExternNamespaces;
+
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -304,6 +306,38 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 noPiaIndexer.Visit((Cci.ITypeDefinition)type);
             }
+        }
+
+        private ImmutableArray<Cci.ExternNamespace> CalculateExternNamespaces()
+        {
+            var result = ArrayBuilder<Cci.ExternNamespace>.GetInstance(compilation.ExternalReferences.Length);
+
+            var referenceManager = this.compilation.GetBoundReferenceManager();
+
+            // Enumerate external references (#r's don't define aliases) to preserve the order.
+            foreach (MetadataReference reference in compilation.ExternalReferences)
+            {
+                // duplicate references might have been skipped by the assembly binder:
+
+                IAssemblySymbol symbol;
+                ImmutableArray<string> aliases;
+                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                {
+                    var displayName = symbol.Identity.GetDisplayName();
+                    for (int i = 0; i < aliases.Length; i++)
+                    {
+                        string alias = aliases[i];
+
+                        // filter out duplicates and global aliases:
+                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                        {
+                            result.Add(new Cci.ExternNamespace(alias, displayName));
+                        }
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         #region Synthesized Members
@@ -687,36 +721,17 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return GetSourceModuleAttributes(); }
         }
 
-        ImmutableArray<Cci.ExternNamespace> Cci.IModule.GetExternNamespaces()
+        ImmutableArray<Cci.ExternNamespace> Cci.IModule.ExternNamespaces
         {
-            var result = ArrayBuilder<Cci.ExternNamespace>.GetInstance(compilation.ExternalReferences.Length);
-
-            var referenceManager = this.compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in compilation.ExternalReferences)
+            get
             {
-                // duplicate references might have been skipped by the assembly binder:
-
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                if (lazyExternNamespaces.IsDefault)
                 {
-                    var displayName = symbol.Identity.GetDisplayName();
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
-
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                        {
-                            result.Add(new Cci.ExternNamespace(alias, displayName));
-                        }
-                    }
+                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyExternNamespaces, CalculateExternNamespaces(), default(ImmutableArray<Cci.ExternNamespace>));
                 }
-            }
 
-            return result.ToImmutableAndFree();
+                return this.lazyExternNamespaces;
+            }
         }
 
         // PE entry point, only available for console and windows apps:
