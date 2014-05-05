@@ -3907,5 +3907,92 @@ public class Cls
                 );
         }
 
+        [Fact, WorkItem(42)]
+        public void BugCodePlex_42_1()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int.TryParse(""10"", out var n0);
+        int.TryParse(""20"", out int n0); // Collision
+
+        int.TryParse(""10"", out int n1);
+        int.TryParse(""20"", out var n1); // Collision
+
+        int.TryParse(""10"", out var n2);
+        int.TryParse(""20"", out var n2); // Collision
+
+        int n3 = 0;
+        System.Console.WriteLine(n3);
+        int.TryParse(""10"", out var n3); // Collision
+
+        System.Console.WriteLine(int n4 = 0);
+        int.TryParse(""10"", out var n4); // Collision
+
+        int.TryParse(""10"", out var n5);
+        System.Console.WriteLine(int n5 = 0); // Collision
+
+        int.TryParse(""10"", out var n6);
+        int n6 = 0; // Collision
+        System.Console.WriteLine(n6);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (7,36): error CS0128: A local variable named 'n0' is already defined in this scope
+    //         int.TryParse("20", out int n0); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n0").WithArguments("n0").WithLocation(7, 36),
+    // (10,36): error CS0128: A local variable named 'n1' is already defined in this scope
+    //         int.TryParse("20", out var n1); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n1").WithArguments("n1").WithLocation(10, 36),
+    // (13,36): error CS0128: A local variable named 'n2' is already defined in this scope
+    //         int.TryParse("20", out var n2); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n2").WithArguments("n2").WithLocation(13, 36),
+    // (17,36): error CS0128: A local variable named 'n3' is already defined in this scope
+    //         int.TryParse("10", out var n3); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n3").WithArguments("n3").WithLocation(17, 36),
+    // (20,36): error CS0128: A local variable named 'n4' is already defined in this scope
+    //         int.TryParse("10", out var n4); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n4").WithArguments("n4").WithLocation(20, 36),
+    // (23,38): error CS0128: A local variable named 'n5' is already defined in this scope
+    //         System.Console.WriteLine(int n5 = 0); // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n5").WithArguments("n5").WithLocation(23, 38),
+    // (26,13): error CS0128: A local variable named 'n6' is already defined in this scope
+    //         int n6 = 0; // Collision
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "n6").WithArguments("n6").WithLocation(26, 13),
+    // (26,13): warning CS0219: The variable 'n6' is assigned but its value is never used
+    //         int n6 = 0; // Collision
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n6").WithArguments("n6").WithLocation(26, 13)
+                );
+        }
+
+        [Fact, WorkItem(42)]
+        public void BugCodePlex_42_2()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var n7 = 10;
+        if (int.TryParse(""20"", out var n7))
+        {
+            System.Console.WriteLine(n7); // <-- The variable 'n7' cannot be used in this local scope because that name has been used in an enclosing scope to refer to variable 'n2'
+        }
+        System.Console.WriteLine(n7);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (7,40): error CS0136: A local or parameter named 'n7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         if (int.TryParse("20", out var n7))
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "n7").WithArguments("n7").WithLocation(7, 40)
+                );
+        }
+
     }
 }

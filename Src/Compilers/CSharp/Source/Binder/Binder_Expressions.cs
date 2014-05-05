@@ -534,9 +534,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isVar && node.Variable.Initializer == null)
             {
+                SourceLocalSymbol localSymbol = LocateDeclaredVariableSymbol(node.Variable, typeSyntax);
+
                 return new UninitializedVarDeclarationExpression(node,
                                                                  LocateDeclaredVariableSymbol(node.Variable, typeSyntax),
-                                                                 BindDeclaratorArguments(node.Variable, diagnostics));
+                                                                 BindDeclaratorArguments(node.Variable, diagnostics),
+                                                                 // Check for variable declaration errors.
+                                                                 hasErrors: this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics));
             }
 
             BoundLocalDeclaration localDeclaration = BindVariableDeclaration(LocalDeclarationKind.Variable, isVar, node.Variable, typeSyntax, declType, alias, diagnostics, node);
