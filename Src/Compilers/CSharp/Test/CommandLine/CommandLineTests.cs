@@ -2553,7 +2553,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<namespace>", "/u:"));
         }
 
-        [Fact]
+        [Fact(Skip = "939389")]
         public void WarningsErrors()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/nowarn", "a.cs" }, baseDirectory);
@@ -2665,7 +2665,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             AssertEx.Equal(expectedOptions, actualOrdered.Select(entry => entry.Value));
         }
 
-        [Fact]
+        [Fact(Skip = "939389")]
         public void WarningsParse()
         {
             var parsedArgs = CSharpCommandLineParser.Default.Parse(new string[] { "/warnaserror", "a.cs" }, baseDirectory);
