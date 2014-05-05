@@ -4037,5 +4037,105 @@ class Test
                 );
         }
 
+        [Fact]
+        public void BugCodePlex_18_1()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = (int[] y = { }) = new [] { 1 };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  4
+  .locals init (int[] V_0, //x
+  int[] V_1) //y
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""int""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stelem.i4
+  IL_0011:  dup
+  IL_0012:  stloc.1
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void BugCodePlex_18_2()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = int[] y = { } = new [] { 1 };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  4
+  .locals init (int[] V_0, //x
+  int[] V_1) //y
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""int""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stelem.i4
+  IL_0011:  dup
+  IL_0012:  stloc.1
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void BugCodePlex_18_3()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = var y = var z = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0, //x
+  int V_1, //y
+  int V_2) //z
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  stloc.0
+  IL_0006:  ret
+}");
+        }
+
     }
 }

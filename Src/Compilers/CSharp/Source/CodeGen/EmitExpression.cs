@@ -1795,6 +1795,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.Sequence:
+                    {
+                        var sequence = (BoundSequence)assignmentOperator.Left;
+                        var hasLocals = !sequence.Locals.IsEmpty;
+
+                        if (hasLocals)
+                        {
+                            builder.OpenLocalScope();
+
+                            foreach (var local in sequence.Locals)
+                            {
+                                DefineLocal(local, sequence.Syntax);
+                            }
+                        }
+
+                        EmitSideEffects(sequence);
+
+                        BoundLocal referencedLocal = DigForLocal(sequence.Value);
+                        LocalSymbol doNotRelease = null;
+                        if (referencedLocal != null)
+                        {
+                            doNotRelease = referencedLocal.LocalSymbol;
+                        }
+
+                        lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
+
+                        if (hasLocals)
+                        {
+                            builder.CloseLocalScope();
+
+                            foreach (var local in sequence.Locals)
+                            {
+                                if (local != doNotRelease)
+                                {
+                                    FreeLocal(local);
+                                }
+                                else
+                                {
+                                    throw ExceptionUtilities.Unreachable;
+                                }
+                            }
+                        }
+                    }
+                    break;
+
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
                 // Property access should have been rewritten.
@@ -1922,6 +1967,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.RefValueOperator:
                 case BoundKind.PointerIndirectionOperator:
                     EmitIndirectStore(expression.Type, expression.Syntax);
+                    break;
+
+                case BoundKind.Sequence:
+                    {
+                        var sequence = (BoundSequence)expression;
+                        EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.RefKind, assignment.Type));
+                    }
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
