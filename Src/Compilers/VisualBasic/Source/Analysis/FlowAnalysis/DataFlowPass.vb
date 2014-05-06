@@ -164,7 +164,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub ReportUnused(local As LocalSymbol)
             ' Never report that the function value is unused
-            If Not local.IsFunctionValue Then
+            ' Never report that local with empty name is unused
+            ' Locals with empty name can be generated in code with syntax errors and
+            ' we shouldn't report such locals as unused because they were not explicitly declared
+            ' by the user in the code
+            If Not local.IsFunctionValue AndAlso Not String.IsNullOrEmpty(local.Name) Then
                 If writtenVariables.Contains(local) Then
                     If local.IsConst Then
                         Me.diagnostics.Add(ERRID.WRN_UnusedLocalConst, local.Locations(0), If(local.Name, "dummy"))

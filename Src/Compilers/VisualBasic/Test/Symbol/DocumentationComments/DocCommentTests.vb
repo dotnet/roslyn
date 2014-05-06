@@ -537,9 +537,6 @@ d Sub
 BC30203: Identifier expected.
     Public    ''' As String
               ~
-BC42024: Unused local variable: ''.
-    Public    ''' As String
-              ~
 BC42302: XML comment must be the first statement on a line. XML comment will be ignored.
     Public    ''' As String
               ~~~~~~~~~~~~~

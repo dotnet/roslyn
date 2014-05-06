@@ -1482,6 +1482,34 @@ BC42104: Variable 'del5' is used before it has been assigned a value. A null ref
 </errors>)
         End Sub
 
+        <Fact(), WorkItem(530465, "DevDiv")>
+        Public Sub SuppressErrorReportingForSynthesizedLocalSymbolWithEmptyName()
+            Dim program = <compilation>
+                              <file name="a.b"><![CDATA[
+Module Module1     
+    Sub Main()
+        Dim
+    End Sub
+    Sub M()
+        Static
+    End Sub
+End Module
+                            ]]></file>
+                          </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(program)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<errors>
+BC30203: Identifier expected.
+        Dim
+           ~
+BC30203: Identifier expected.
+        Static
+              ~
+</errors>)
+        End Sub
+
     End Class
 
 End Namespace

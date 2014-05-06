@@ -532,9 +532,7 @@ End Module
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                 Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
-                Diagnostic(ERRID.WRN_UnusedLocal, "").WithArguments(""),
-                Diagnostic(ERRID.WRN_UnusedLocal, "").WithArguments(""))
+                Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"))
 
         End Sub
 
