@@ -58,6 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property CustomTags As IReadOnlyList(Of String)
+                Get
+                    Dim tags As String() = New String(0) {}
+                    Return tags
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property Id As String
                 Get
                     Return m_id

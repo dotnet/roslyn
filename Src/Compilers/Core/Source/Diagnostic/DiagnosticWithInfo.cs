@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -55,6 +56,15 @@ namespace Microsoft.CodeAnalysis
         public override IReadOnlyList<Location> AdditionalLocations
         {
             get { return this.Info.AdditionalLocations; }
+        }
+
+        public override IReadOnlyList<string> CustomTags
+        {
+            get
+            {
+                // Compiler diagnostics don't have any custom tags.
+                return SpecializedCollections.EmptyReadOnlyList<string>();
+            }
         }
 
         public override string Id

@@ -28,10 +28,11 @@ namespace Microsoft.CodeAnalysis
             private readonly bool isWarningAsError;
             private readonly Location location;
             private readonly IReadOnlyList<Location> additionalLocations;
+            private readonly IReadOnlyList<string> customTags;
 
             internal SimpleDiagnostic(string id, string category, string message, DiagnosticSeverity severity, bool isEnabledByDefault,
                                       int warningLevel, bool isWarningAsError, Location location,
-                                      IEnumerable<Location> additionalLocations)
+                                      IEnumerable<Location> additionalLocations, IEnumerable<string> customTags)
             {
                 if (isWarningAsError && severity != DiagnosticSeverity.Warning)
                 {
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis
                 this.isWarningAsError = isWarningAsError;
                 this.location = location;
                 this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
+                this.customTags = customTags == null ? SpecializedCollections.EmptyReadOnlyList<string>() : customTags.ToImmutableArray();
             }
 
             private SimpleDiagnostic(SerializationInfo info, StreamingContext context)
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis
                 this.isWarningAsError = info.GetBoolean("isWarningAsError");
                 this.location = (Location)info.GetValue("location", typeof(Location));
                 this.additionalLocations = ((Location[])info.GetValue("additionalLocations", typeof(Location[]))).ToImmutableArrayOrEmpty();
+                this.customTags = ((string[])info.GetValue("customTags", typeof(string[]))).ToImmutableArrayOrEmpty();
             }
 
             void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis
                 info.AddValue("isWarningAsError", this.isWarningAsError);
                 info.AddValue("location", this.location, typeof(Location));
                 info.AddValue("additionalLocations", this.additionalLocations.ToArray(), typeof(Location[]));
+                info.AddValue("customTags", this.customTags.ToArray(), typeof(string[]));
             }
 
             public override string Id
@@ -126,6 +130,11 @@ namespace Microsoft.CodeAnalysis
                 get { return this.additionalLocations; }
             }
 
+            public override IReadOnlyList<string> CustomTags
+            {
+                get { return this.customTags; }
+            }
+
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
@@ -160,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != this.location)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, this.isWarningAsError, location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, this.isWarningAsError, location, this.additionalLocations, this.customTags);
                 }
 
                 return this;
@@ -170,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.isWarningAsError != isWarningAsError)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, isWarningAsError, this.location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, this.severity, this.isEnabledByDefault, this.warningLevel, isWarningAsError, this.location, this.additionalLocations, this.customTags);
                 }
 
                 return this;
@@ -182,7 +191,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.Severity != severity)
                 {
-                    return new SimpleDiagnostic(this.id, this.category, this.message, severity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations);
+                    return new SimpleDiagnostic(this.id, this.category, this.message, severity, this.isEnabledByDefault, severity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError, this.location, this.additionalLocations, this.customTags);
                 }
 
                 return this;

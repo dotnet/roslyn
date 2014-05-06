@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private readonly bool isWarningAsError;
             private readonly object[] arguments;
             private static readonly Location[] emptyLocations = new Location[0];
+            private static readonly string[] emptyCustomTags = new string[0];
 
             public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, Location location, string message, bool isWarningAsError, params object[] arguments)
             {
@@ -42,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             public override IReadOnlyList<Location> AdditionalLocations { get { return emptyLocations; } }
+
+            public override IReadOnlyList<string> CustomTags { get { return emptyCustomTags; } }
 
             public override string Id { get { return id; } }
 

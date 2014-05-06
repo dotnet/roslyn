@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -36,10 +37,15 @@ namespace Microsoft.CodeAnalysis
         public DiagnosticSeverity DefaultSeverity { get; private set; }
 
         /// <summary>
-        /// Returns true if the rule is enabled by default.
+        /// Returns true if the diagnostic is enabled by default.
         /// </summary>
         public bool IsEnabledByDefault { get; private set; }
-        
+
+        /// <summary>
+        /// Custom tags for the diagnostic.
+        /// </summary>
+        public IEnumerable<string> CustomTags { get; private set; }
+
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// </summary>
@@ -49,8 +55,9 @@ namespace Microsoft.CodeAnalysis
         /// For example, for CA1001: "Implement IDisposable on '{0}' because it creates members of the following IDisposable types: '{1}'."</param>
         /// <param name="category">The category of the diagnostic (like Design, Naming etc.). For example, for CA1001: "Microsoft.Design".</param>
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
-        /// <param name="isEnabledByDefault">true if the diagnostic is enabled by default</param>
-        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
+        /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
+        public DiagnosticDescriptor(string id, string description, string messageFormat, string category, DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, params string[] customTags)
         {
             this.Id = id;
             this.Description = description;
@@ -58,6 +65,7 @@ namespace Microsoft.CodeAnalysis
             this.MessageFormat = messageFormat;
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
+            this.CustomTags = customTags;
         }
     }
 }

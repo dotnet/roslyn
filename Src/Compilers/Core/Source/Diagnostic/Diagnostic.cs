@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 message = string.Format(message, messageArgs);
             }
 
-            return Create(descriptor.Id, descriptor.Category, message, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault, warningLevel: descriptor.DefaultSeverity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError: false, location: location ?? Location.None, additionalLocations: additionalLocations);
+            return Create(descriptor.Id, descriptor.Category, message, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault, warningLevel: descriptor.DefaultSeverity == DiagnosticSeverity.Warning ? 1 : 0, isWarningAsError: false, location: location ?? Location.None, additionalLocations: additionalLocations, customTags: descriptor.CustomTags);
         }
 
         /// <summary>
@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis
         /// Typically, these are locations of other items referenced in the message.
         /// If null, <see cref="AdditionalLocations"/> will return an empty list.
         /// </param>
+        /// <param name="customTags">
+        /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
+        /// If null, <see cref="CustomTags"/> will return an empty list.
+        /// </param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             string id,
@@ -98,7 +102,8 @@ namespace Microsoft.CodeAnalysis
             int warningLevel,
             bool isWarningAsError,
             Location location = null,
-            IEnumerable<Location> additionalLocations = null)
+            IEnumerable<Location> additionalLocations = null,
+            IEnumerable<string> customTags = null)
         {
             if (id == null)
             {
@@ -115,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("message");
             }
 
-            return new SimpleDiagnostic(id, category, message, severity, isEnabledByDefault, warningLevel, isWarningAsError, location ?? Location.None, additionalLocations: additionalLocations);
+            return new SimpleDiagnostic(id, category, message, severity, isEnabledByDefault, warningLevel, isWarningAsError, location ?? Location.None, additionalLocations, customTags);
         }
 
         internal static Diagnostic Create(CommonMessageProvider messageProvider, int errorCode)
@@ -183,6 +188,11 @@ namespace Microsoft.CodeAnalysis
         /// Typically these are the locations of other items referenced in the message.
         /// </summary>
         public abstract IReadOnlyList<Location> AdditionalLocations { get; }
+
+        /// <summary>
+        /// Gets an array of custom tags for the diagnostic.
+        /// </summary>
+        public abstract IReadOnlyList<string> CustomTags { get; }
 
         public override string ToString()
         {
