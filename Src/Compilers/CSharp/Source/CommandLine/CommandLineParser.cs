@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 int newWarningLevel;
                                 if (string.IsNullOrEmpty(value) || 
-                                    !int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out newWarningLevel))
+                                    !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out newWarningLevel))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                                 }
@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (string id in values)
             {
                 ushort number;
-                if (!ushort.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out number) || 
+                if (!ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) || 
                     (!ErrorFacts.IsWarning((ErrorCode)number)))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.WRN_BadWarningNumber, id);
