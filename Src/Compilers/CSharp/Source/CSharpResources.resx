@@ -3730,7 +3730,7 @@
     <value>Feature '{0}' is not available in C# 5.  Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_DeclarationExpressionOutsideOfAMethodBody" xml:space="preserve">
-    <value>A declaration expression is not permitted in a variable-initializer of a field declaration, an attribute application, or in a class-base specification.</value>
+    <value>A declaration expression is not permitted in a variable-initializer of a field declaration, or in an attribute application.</value>
   </data>
   <data name="ERR_VariableUsedInTheSameArgumentList" xml:space="preserve">
     <value>Reference to variable '{0}' is not permitted in this context.</value>

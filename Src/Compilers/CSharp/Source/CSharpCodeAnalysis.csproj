@@ -189,6 +189,7 @@
     <Compile Include="Binder\UsingStatementBinder.cs" />
     <Compile Include="Binder\WhileBinder.cs" />
     <Compile Include="Binder\WithClassTypeParametersBinder.cs" />
+    <Compile Include="Binder\WithConstructorInitializerLocalsBinder.cs" />
     <Compile Include="Binder\WithCrefTypeParametersBinder.cs" />
     <Compile Include="Binder\WithLambdaParametersBinder.cs" />
     <Compile Include="Binder\WithMethodTypeParametersBinder.cs" />

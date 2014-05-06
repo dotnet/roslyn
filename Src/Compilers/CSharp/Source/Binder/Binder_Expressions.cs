@@ -528,7 +528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ContainingMemberOrLambda.Kind != SymbolKind.Method)
             {
-                // TODO: Might need to do extra work here for class-base specification.
                 Error(diagnostics, ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, node);
             }
 

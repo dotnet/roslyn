@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(!method.IsPrimaryCtor);
 
                             resultBinder = new InMethodBinder(method, resultBinder.WithPrimaryConstructorParametersIfNecessary(method.ContainingType, shadowBackingFields: false));
+
+                            if (parent.Initializer != null)
+                            {
+                                resultBinder = new WithConstructorInitializerLocalsBinder(method, resultBinder, parent);
+                            }
                         }
                     }
 
@@ -231,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
 
                                             resultBinder = new InMethodBinder(method, resultBinder);
+
+                                            if (node.ArgumentList != null)
+                                            {
+                                                resultBinder = new WithConstructorInitializerLocalsBinder(method, resultBinder, node.ArgumentList);
+                                            }
                                         }
                                     }
                                 }

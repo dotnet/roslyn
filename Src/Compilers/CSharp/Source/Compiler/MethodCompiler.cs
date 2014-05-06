@@ -1216,10 +1216,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             debugImports = null;
 
-            BoundStatement constructorInitializer = null;
-            BoundBlock body;
-
             var compilation = method.DeclaringCompilation;
+            BoundStatement constructorInitializer = null;
+            var localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
+
+            // delegates have constructors but not constructor initializers
+            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
+            {
+                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation, out localsDeclaredInInitializer);
+
+                if (initializerInvocation != null)
+                {
+                    constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
+                    Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+                }
+                else
+                {
+                    Debug.Assert(localsDeclaredInInitializer.IsEmpty);
+                }
+            }
+
+            BoundBlock body;
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)
@@ -1301,18 +1318,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body = null;
             }
 
-            // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
-            {
-                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
-
-                if (initializerInvocation != null)
-                {
-                    constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
-                    Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
-                }
-            }
-
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
 
             if (constructorInitializer != null)
@@ -1349,17 +1354,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpSyntaxNode syntax = body != null ? body.Syntax : method.GetNonNullSyntaxNode();
-
             BoundBlock block;
-            if (statements.Count == 1 && statements[0].Kind == ((body == null) ? BoundKind.Block : body.Kind))
+
+            if (localsDeclaredInInitializer.IsDefaultOrEmpty)
             {
-                // most common case - we just have a single block for the body.
-                block = (BoundBlock)statements[0];
-                statements.Free();
+                if (statements.Count == 1 && statements[0].Kind == ((body == null) ? BoundKind.Block : body.Kind))
+                {
+                    // most common case - we just have a single block for the body.
+                    block = (BoundBlock)statements[0];
+                    statements.Free();
+                }
+                else
+                {
+                    block = new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                }
             }
             else
             {
-                block = new BoundBlock(syntax, default(ImmutableArray<LocalSymbol>), statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                Debug.Assert(constructorInitializer != null);
+                block = new BoundBlock(constructorInitializer.Syntax.Parent, localsDeclaredInInitializer, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
             }
 
             return method.MethodKind == MethodKind.Destructor ? MethodBodySynthesizer.ConstructDestructorBody(syntax, method, block) : block;
@@ -1371,8 +1384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="constructor">Constructor method.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
+        /// <param name="localsDeclaredInInitializer">Locals declared in the initializer are returned through this parameter.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        private static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        private static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
@@ -1553,6 +1567,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //wrap in ConstructorInitializerBinder for appropriate errors
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+
+            if (initializerArgumentListOpt != null)
+            {
+                localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(syntax.Kind == SyntaxKind.ParameterList ? initializerArgumentListOpt : syntax);
+            }
+            else
+            {
+                localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
+            }
+
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }
 

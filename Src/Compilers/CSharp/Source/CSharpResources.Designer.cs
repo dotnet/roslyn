@@ -2914,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A declaration expression is not permitted in a variable-initializer of a field declaration, an attribute application, or in a class-base specification..
+        ///   Looks up a localized string similar to A declaration expression is not permitted in a variable-initializer of a field declaration, or in an attribute application..
         /// </summary>
         internal static string ERR_DeclarationExpressionOutsideOfAMethodBody {
             get {
