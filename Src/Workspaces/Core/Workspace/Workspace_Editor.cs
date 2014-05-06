@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var docId in docIds)
             {
-                this.ClearOpenDocument(docId);
+                this.ClearOpenDocument(docId, isSolutionClosing: true);
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected void ClearOpenDocument(DocumentId documentId)
+        protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing = false)
         {
             DocumentId currentContextDocumentId;
             using (this.stateLock.DisposableWrite())
@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis
                 currentContextDocumentId = this.ClearOpenDocument_NoLock(documentId);
             }
 
-            if (currentContextDocumentId != null && this.CanChangeActiveContextDocument)
+            // If the solution is closing, then setting the updated document context can fail
+            // if the host documents are already closed.
+            if (!isSolutionClosing && this.CanChangeActiveContextDocument && currentContextDocumentId != null)
             {
                 SetDocumentContext(currentContextDocumentId);
             }
