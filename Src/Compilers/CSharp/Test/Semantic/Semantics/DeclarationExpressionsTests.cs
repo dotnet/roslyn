@@ -280,16 +280,16 @@ public class Cls
 {
     public static void Main()
     {
-        for (int i = (int)double j = 0; (j = i) < 2; i=(int)j+1)
+        for (int i = (int)(double j = 0); (j = i) < 2; i=(int)j+1)
         {
             System.Console.WriteLine(j);
         }
 
-        for (int i = (int)double j = 10; (j = i) < 12; i=(int)j+1)
+        for (int i = (int)(double j = 10); (j = i) < 12; i=(int)j+1)
             System.Console.WriteLine(j + (int k = 5 + i) + k);
 
         int ii;
-        for (ii = (int)double j = 10; (j = ii) < 12; ii=(int)j+1)
+        for (ii = (int)(double j = 10); (j = ii) < 12; ii=(int)j+1)
             System.Console.WriteLine(j + (int k = 5 + ii) + k);
     }
 }";
@@ -322,7 +322,7 @@ public class Cls
         j = 3;
         k = 4;
 
-        for (int i = l; i < int l = 12; i++) {}
+        for (int i = l; i < (int l = 12); i++) {}
 
         for (int i = 0; i < m; i = (int m = 12) + m) {}
 
@@ -4038,7 +4038,7 @@ class Test
         }
 
         [Fact]
-        public void BugCodePlex_18_1()
+        public void BugCodePlex_18_01()
         {
             var text = @"
 public class Cls
@@ -4073,42 +4073,30 @@ public class Cls
         }
 
         [Fact]
-        public void BugCodePlex_18_2()
+        public void BugCodePlex_18_02()
         {
             var text = @"
 public class Cls
 {
     public static void Main()
     {
-        var x = int[] y = { } = new [] { 1 };
+        var x = int[] y = { } = null;
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
-            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Cls.Main",
-@"{
-  // Code size       21 (0x15)
-  .maxstack  4
-  .locals init (int[] V_0, //x
-  int[] V_1) //y
-  IL_0000:  ldc.i4.0
-  IL_0001:  newarr     ""int""
-  IL_0006:  stloc.1
-  IL_0007:  ldc.i4.1
-  IL_0008:  newarr     ""int""
-  IL_000d:  dup
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.1
-  IL_0010:  stelem.i4
-  IL_0011:  dup
-  IL_0012:  stloc.1
-  IL_0013:  stloc.0
-  IL_0014:  ret
-}");
+            compilation.VerifyDiagnostics(
+    // (6,31): error CS1002: ; expected
+    //         var x = int[] y = { } = null;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 31),
+    // (6,31): error CS1525: Invalid expression term '='
+    //         var x = int[] y = { } = null;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 31)
+                );
         }
 
         [Fact]
-        public void BugCodePlex_18_3()
+        public void BugCodePlex_18_03()
         {
             var text = @"
 public class Cls
@@ -4135,6 +4123,245 @@ public class Cls
   IL_0005:  stloc.0
   IL_0006:  ret
 }");
+        }
+
+        [Fact]
+        public void BugCodePlex_18_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = (object) int[] y = { };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,26): error CS1525: Invalid expression term 'int'
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 26),
+    // (6,30): error CS0443: Syntax error; value expected
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(6, 30),
+    // (6,32): error CS1002: ; expected
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(6, 32),
+    // (6,36): error CS1525: Invalid expression term '{'
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(6, 36),
+    // (6,36): error CS1002: ; expected
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 36),
+    // (6,32): error CS0103: The name 'y' does not exist in the current context
+    //         var x = (object) int[] y = { };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = int[] y = { } ? 1 : 2;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,31): error CS1003: Syntax error, ',' expected
+    //         var x = int[] y = { } ? 1 : 2;
+    Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(6, 31),
+    // (6,33): error CS1002: ; expected
+    //         var x = int[] y = { } ? 1 : 2;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "1").WithLocation(6, 33),
+    // (6,35): error CS1002: ; expected
+    //         var x = int[] y = { } ? 1 : 2;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 35),
+    // (6,35): error CS1513: } expected
+    //         var x = int[] y = { } ? 1 : 2;
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 35),
+    // (6,37): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         var x = int[] y = { } ? 1 : 2;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(6, 37)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = int[] y = { } ?? new int[] { 1 };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,31): error CS1002: ; expected
+    //         var x = int[] y = { } ?? new int[] { 1 };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "??").WithLocation(6, 31),
+    // (6,31): error CS1525: Invalid expression term '??'
+    //         var x = int[] y = { } ?? new int[] { 1 };
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "??").WithArguments("??").WithLocation(6, 31)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = int y++;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,22): error CS1002: ; expected
+    //         var x = int y++;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "++").WithLocation(6, 22),
+    // (6,24): error CS1525: Invalid expression term ';'
+    //         var x = int y++;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 24),
+    // (6,17): error CS0165: Use of unassigned local variable 'y'
+    //         var x = int y++;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = ++ int y;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,20): error CS1525: Invalid expression term 'int'
+    //         var x = ++ int y;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 20),
+    // (6,24): error CS1002: ; expected
+    //         var x = ++ int y;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(6, 24),
+    // (6,24): error CS0103: The name 'y' does not exist in the current context
+    //         var x = ++ int y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 24),
+    // (6,24): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         var x = ++ int y;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "y").WithLocation(6, 24)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_09()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {}
+
+    public async void Test()
+    {
+        var x = await int y = 2;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (9,23): error CS1525: Invalid expression term 'int'
+    //         var x = await int y = 2;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 23),
+    // (9,27): error CS1002: ; expected
+    //         var x = await int y = 2;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(9, 27),
+    // (9,27): error CS0103: The name 'y' does not exist in the current context
+    //         var x = await int y = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = 3 + int y = 2;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (6,21): error CS1525: Invalid expression term 'int'
+    //         var x = 3 + int y = 2;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
+    // (6,25): error CS1002: ; expected
+    //         var x = 3 + int y = 2;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(6, 25),
+    // (6,25): error CS0103: The name 'y' does not exist in the current context
+    //         var x = 3 + int y = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void BugCodePlex_18_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int[] y = { };
+        var x = y ?? int[] z = { 1 };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (7,22): error CS1525: Invalid expression term 'int'
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 22),
+    // (7,26): error CS0443: Syntax error; value expected
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(7, 26),
+    // (7,28): error CS1002: ; expected
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "z").WithLocation(7, 28),
+    // (7,32): error CS1525: Invalid expression term '{'
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(7, 32),
+    // (7,32): error CS1002: ; expected
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(7, 32),
+    // (7,36): error CS1002: ; expected
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 36),
+    // (7,28): error CS0103: The name 'z' does not exist in the current context
+    //         var x = y ?? int[] z = { 1 };
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(7, 28)
+                );
         }
 
         [Fact, WorkItem(2)]
@@ -4217,7 +4444,7 @@ class C
         }
 
         [Fact, WorkItem(2)]
-        public void InALambda_04()
+        public void InLambda_04()
         {
             var text = @"
 using System;

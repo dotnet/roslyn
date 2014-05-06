@@ -12786,6 +12786,12 @@ public class A : Attribute
     // (4,25): error CS1001: Identifier expected
     //         bool b = string is string;
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(4, 25),
+    // (4,25): error CS1002: ; expected
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "is").WithLocation(4, 25),
+    // (4,25): error CS1525: Invalid expression term 'is'
+    //         bool b = string is string;
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(4, 25),
     // (4,18): error CS0165: Use of unassigned local variable ''
     //         bool b = string is string;
     Diagnostic(ErrorCode.ERR_UseDefViolation, "string ").WithArguments("").WithLocation(4, 18)
