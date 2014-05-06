@@ -40,25 +40,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public abstract ImmutableArray<IDiagnosticAnalyzer> GetAnalyzers();
-
-        public override bool Equals(object obj)
-        {
-            AnalyzerReference other = obj as AnalyzerReference;
-
-            if(other != null)
-            {
-                return other.Display == this.Display &&
-                       other.FullPath == this.FullPath &&
-                       other.IsUnresolved == this.IsUnresolved;
-            }
-
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Display,
-                        Hash.Combine(this.FullPath, this.IsUnresolved.GetHashCode()));
-        }
     }
 }

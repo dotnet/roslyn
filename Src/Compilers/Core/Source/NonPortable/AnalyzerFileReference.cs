@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     { }
                     catch (FileLoadException)
                     { }
+                    catch (FileNotFoundException)
+                    { }
 
                     displayName = base.Display;
                 }
@@ -175,6 +177,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If there are no analyzers in this assembly, let the user know.
                 diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.WRN_NoAnalyzerInAssembly, fullPath));
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            AnalyzerFileReference other = obj as AnalyzerFileReference;
+
+            if (other != null)
+            {
+                return other.Display == this.Display &&
+                       other.FullPath == this.FullPath &&
+                       other.IsUnresolved == this.IsUnresolved;
+            }
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.Display,
+                        Hash.Combine(this.FullPath, this.IsUnresolved.GetHashCode()));
         }
     }
 }
