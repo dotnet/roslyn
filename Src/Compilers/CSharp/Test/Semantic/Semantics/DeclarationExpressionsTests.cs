@@ -5176,5 +5176,163 @@ class Derived() : Base(int x = 123, x + 1)
 
             CompileAndVerify(compilation, expectedOutput: @"Base: 123, 124").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void InUsing()
+        {
+            var text = @"
+using System;
+
+struct S : IDisposable
+{
+    public void Dispose() { }
+    static void Main()
+    {
+        using(S x) 
+        {
+            x = new S(); 
+        }
+
+        using(int y) 
+        {
+            y = 10; 
+        }
+
+        using(S a = new S()) 
+        {
+            a = new S(); 
+        }
+
+        using(S b, ) 
+        {
+            b = new S(); 
+        }
+
+        using(S c, d = new S()) 
+        {
+            c = new S(); 
+            d = new S(); 
+        }
+
+        using(S e = ) 
+        {
+            e = new S(); 
+        }
+
+        using(S f = , g = new S()) 
+        {
+            f = new S(); 
+            g = new S(); 
+        }
+
+        using(int h, ) 
+        {
+            h = 10; 
+        }
+
+        using(int i = ) 
+        {
+            i = 10; 
+        }
+
+        using(int 2) 
+        {
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (24,20): error CS1001: Identifier expected
+    //         using(S b, ) 
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(24, 20),
+    // (35,21): error CS1525: Invalid expression term ')'
+    //         using(S e = ) 
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(35, 21),
+    // (40,21): error CS1525: Invalid expression term ','
+    //         using(S f = , g = new S()) 
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(40, 21),
+    // (46,22): error CS1001: Identifier expected
+    //         using(int h, ) 
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(46, 22),
+    // (51,23): error CS1525: Invalid expression term ')'
+    //         using(int i = ) 
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 23),
+    // (56,19): error CS1001: Identifier expected
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(56, 19),
+    // (56,19): error CS1026: ) expected
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "2").WithLocation(56, 19),
+    // (56,20): error CS1002: ; expected
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(56, 20),
+    // (56,20): error CS1513: } expected
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(56, 20),
+    // (14,15): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using(int y) 
+    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int y").WithArguments("int").WithLocation(14, 15),
+    // (21,13): error CS1656: Cannot assign to 'a' because it is a 'using variable'
+    //             a = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a").WithArguments("a", "using variable").WithLocation(21, 13),
+    // (24,17): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(S b, ) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "b").WithLocation(24, 17),
+    // (24,20): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(S b, ) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(24, 20),
+    // (26,13): error CS1656: Cannot assign to 'b' because it is a 'using variable'
+    //             b = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "b").WithArguments("b", "using variable").WithLocation(26, 13),
+    // (29,17): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(S c, d = new S()) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "c").WithLocation(29, 17),
+    // (31,13): error CS1656: Cannot assign to 'c' because it is a 'using variable'
+    //             c = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c").WithArguments("c", "using variable").WithLocation(31, 13),
+    // (32,13): error CS1656: Cannot assign to 'd' because it is a 'using variable'
+    //             d = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "d").WithArguments("d", "using variable").WithLocation(32, 13),
+    // (37,13): error CS1656: Cannot assign to 'e' because it is a 'using variable'
+    //             e = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "e").WithArguments("e", "using variable").WithLocation(37, 13),
+    // (42,13): error CS1656: Cannot assign to 'f' because it is a 'using variable'
+    //             f = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "f").WithArguments("f", "using variable").WithLocation(42, 13),
+    // (43,13): error CS1656: Cannot assign to 'g' because it is a 'using variable'
+    //             g = new S(); 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "g").WithArguments("g", "using variable").WithLocation(43, 13),
+    // (46,19): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(int h, ) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "h").WithLocation(46, 19),
+    // (46,22): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(int h, ) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(46, 22),
+    // (46,15): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using(int h, ) 
+    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int h, ").WithArguments("int").WithLocation(46, 15),
+    // (48,13): error CS1656: Cannot assign to 'h' because it is a 'using variable'
+    //             h = 10; 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "h").WithArguments("h", "using variable").WithLocation(48, 13),
+    // (51,15): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using(int i = ) 
+    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int i = ").WithArguments("int").WithLocation(51, 15),
+    // (53,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
+    //             i = 10; 
+    Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "using variable").WithLocation(53, 13),
+    // (56,19): error CS0210: You must provide an initializer in a fixed or using statement declaration
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(56, 19),
+    // (56,15): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using(int 2) 
+    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int ").WithArguments("int").WithLocation(56, 15),
+    // (14,15): error CS0165: Use of unassigned local variable 'y'
+    //         using(int y) 
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(14, 15)
+                );
+        }
+
     }
 }

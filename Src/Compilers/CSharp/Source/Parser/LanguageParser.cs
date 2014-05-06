@@ -7662,11 +7662,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsUsingStatementVariableDeclaration(ScanTypeFlags st)
         {
-            bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
-            bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-            bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+            Debug.Assert(st != ScanTypeFlags.NullableType);
 
-            return condition1 || (condition2 && condition3);
+            if (Options.LanguageVersion != LanguageVersion.Experimental)
+            {
+                bool condition1 = st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken;
+                bool condition2 = st != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+                bool condition3 = st == ScanTypeFlags.NonGenericTypeOrExpression || this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+
+                return condition1 || (condition2 && condition3);
+            }
+
+            SyntaxKind nextTokenKind;
+
+            if (st == ScanTypeFlags.MustBeType && this.CurrentToken.Kind != SyntaxKind.DotToken)
+            {
+                // If the current token is an identifier, which is not followed by a '=' or a ',', treat it as a declaration expression.
+                return this.CurrentToken.Kind != SyntaxKind.IdentifierToken ||
+                       (nextTokenKind = this.PeekToken(1).Kind) == SyntaxKind.EqualsToken ||
+                       nextTokenKind == SyntaxKind.CommaToken;
+            }
+
+            if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
+
+            // If the current token is an identifier, which is not followed by a '=' or a ',', treat it as a declaration expression.
+            if ((nextTokenKind = this.PeekToken(1).Kind) != SyntaxKind.EqualsToken && nextTokenKind != SyntaxKind.CommaToken)
+            {
+                return false;
+            }
+
+            // If the current token is an identifier, which is not followed by a '=' or a ',', treat it as a declaration expression.
+            return st == ScanTypeFlags.NonGenericTypeOrExpression;
         }
 
         private WhileStatementSyntax ParseWhileStatement()
