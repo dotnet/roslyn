@@ -3868,7 +3868,7 @@ public class Cls
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "b2").WithArguments("b2").WithLocation(40, 46));
         }
 
-        [Fact(Skip = "867929")]
+        [Fact]
         public void CatchFilter_05()
         {
             var text = @"
@@ -4135,6 +4135,690 @@ public class Cls
   IL_0005:  stloc.0
   IL_0006:  ret
 }");
+        }
+
+        [Fact, WorkItem(2)]
+        public void InLambda_01()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => new Dictionary<int, int>().TryGetValue(0, out int value);
+        Action b = () => new Dictionary<int, int>().TryGetValue(0, out int value);
+        Action c = delegate  
+                   {
+                       new Dictionary<int, int>().TryGetValue(0, out int value);
+                   };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InLambda_02()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        Func<int, bool> a = key => new Dictionary<int, int>().TryGetValue(key, out int value);
+        Func<int, bool> b = key => new Dictionary<int, int>().TryGetValue(key, out int value);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InLambda_03()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Func<bool> f = () => int.TryParse(""42"", out int y);
+        Console.WriteLine(y); 
+
+        Func<bool> g = () => { return int.TryParse(""42"", out int z); };
+        Console.WriteLine(z); 
+
+        Func<bool> h = delegate { return int.TryParse(""42"", out int w); };
+        Console.WriteLine(w); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (9,27): error CS0103: The name 'y' does not exist in the current context
+    //         Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27),
+    // (12,27): error CS0103: The name 'z' does not exist in the current context
+    //         Console.WriteLine(z); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(12, 27),
+    // (15,27): error CS0103: The name 'w' does not exist in the current context
+    //         Console.WriteLine(w); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "w").WithArguments("w").WithLocation(15, 27)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InALambda_04()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Func<string, bool> f = str => int.TryParse(str, out int y);
+        Console.WriteLine(y); 
+
+        Func<string, bool> g = str => { return int.TryParse(str, out int z); };
+        Console.WriteLine(z); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (9,27): error CS0103: The name 'y' does not exist in the current context
+    //         Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 27),
+    // (12,27): error CS0103: The name 'z' does not exist in the current context
+    //         Console.WriteLine(z); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(12, 27)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { int.TryParse(""42"", out int y) }
+                  select x;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  from x2 in new[] { int.TryParse(x1, out int y) && y == 42 }
+                  select new { x1, x2 };
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
+{ x1 = 42, x2 = True }
+{ x1 = 43, x2 = False }").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_03()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  from x2 in new[] { int.TryParse(x1, out int y) }
+                  select y;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
+    // (12,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_04()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from bool x in new[] { int.TryParse(""42"", out int y) }
+                  select x;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_05()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  from bool x2 in new[] { int.TryParse(x1, out int y) && y == 42 }
+                  select new { x1, x2 };
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
+{ x1 = 42, x2 = True }
+{ x1 = 43, x2 = False }").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InFrom_06()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  from bool x2 in new[] { int.TryParse(x1, out int y) }
+                  select y;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
+    // (12,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InLet_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  let x2 = int.TryParse(x1, out int y) && y == 42 
+                  select new { x1, x2 };
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ x1 = 41, x2 = False }
+{ x1 = 42, x2 = True }
+{ x1 = 43, x2 = False }").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InLet_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  let x2 = int.TryParse(x1, out int y) && y == 42 
+                  select y;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
+    // (12,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InJoin_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] { 1 }
+                  join x2 in new[] { int.TryParse(""42"", out int y) }
+                            on x1 equals x2 ? 1 : 0 
+                  select new { x1, x2, y };
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+        }
+
+        public void InJoin_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  join x2 in new[] {42} 
+                            on int.TryParse(x1, out int y) ? y : 0 equals x2
+                  select new { x1, x2 };
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
+        }
+
+        public void InJoin_03()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x1 in new[] {""41"", ""42"", ""43""}
+                  join x2 in new[] {42} 
+                            on int.TryParse(x1, out int y) ? y : 0 equals x2 + y
+                  select y;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,80): error CS1938: The name 'y' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+    //                             on int.TryParse(x1, out int y) ? y : 0 equals x2 + y
+    Diagnostic(ErrorCode.ERR_QueryInnerKey, "y").WithArguments("y").WithLocation(10, 80),
+    // (11,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 26),
+    // (13,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 34)
+                );
+        }
+
+        public void InJoin_04()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x2 in new[] {42} 
+                  join x1 in new[] {""41"", ""42"", ""43""}
+                            on x2 equals int.TryParse(x1, out int y) ? y : 0
+                  select new { x1, x2 };
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ x1 = 42, x2 = 42 }").VerifyDiagnostics();
+        }
+
+        public void InJoin_05()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x2 in new[] {42} 
+                  join x1 in new[] {""41"", ""42"", ""43""}
+                            on x2 + y equals int.TryParse(x1, out int y) ? y : 0 
+                  select y;
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,37): error CS0103: The name 'y' does not exist in the current context
+    //                             on x2 + y equals int.TryParse(x1, out int y) ? y : 0
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 37),
+    // (11,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 26),
+    // (13,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InWhere_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] {""41"", ""42"", ""43""}
+                  where int.TryParse(x, out int y) && y == 42
+                  select x;
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"42").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InWhere_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"" }
+                  where int.TryParse(x, out int y)
+                  select y;
+
+        System.Console.WriteLine(y); 
+
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
+    // (12,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InOrderBy_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] {""41"", ""xx"", ""43""}
+                  orderby int.TryParse(x, out int y) ? y : 0
+                  select x;
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"xx
+41
+43").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InOrderBy_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"" }
+                  orderby int.TryParse(x, out int y) ? y : 0
+                  select y;
+
+        System.Console.WriteLine(y); 
+
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (10,26): error CS0103: The name 'y' does not exist in the current context
+    //                   select y;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 26),
+    // (12,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InSelect_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"" }
+                  select new { r = int.TryParse(x, out int y), y = y};
+
+        foreach (var item in res)
+        {
+            System.Console.WriteLine(item); 
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"{ r = True, y = 42 }").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2)]
+        public void InSelect_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"" }
+                  select new { r = int.TryParse(x, out int y), y = y};
+
+        System.Console.WriteLine(y); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (11,34): error CS0103: The name 'y' does not exist in the current context
+    //         System.Console.WriteLine(y); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(11, 34)
+                );
+        }
+
+        [Fact, WorkItem(2)]
+        public void InGroupBy_01()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"", ""xx"", ""43"" }
+                  group int.TryParse(x, out int y) ? y : 0 by int.TryParse(x, out int y) ? y : 43;
+
+        foreach (var group in res)
+        {
+            System.Console.WriteLine(group.Key); 
+
+            foreach (var item in group)
+            {
+                System.Console.WriteLine(""   {0}"", item); 
+            }
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: @"42
+   42
+43
+   0
+   43").VerifyDiagnostics();
+        }
+
+        public void InGroupBy_02()
+        {
+            var text = @"
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        var res = from x in new[] { ""42"", ""xx"", ""43"" }
+                  group int.TryParse(x, out int y) ? y : z 
+                  by int.TryParse(x, out int z) ? y : z;
+
+        System.Console.WriteLine(y); 
+        System.Console.WriteLine(z); 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, new[] { SystemCoreRef }, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+        // (10,51): error CS0103: The name 'y' does not exist in the current context
+        //                   by int.TryParse(x, out int z) ? y : z;
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(10, 51),
+        // (9,58): error CS0103: The name 'z' does not exist in the current context
+        //                   group int.TryParse(x, out int y) ? y : z
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(9, 58),
+        // (12,34): error CS0103: The name 'y' does not exist in the current context
+        //         System.Console.WriteLine(y);
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(12, 34),
+        // (13,34): error CS0103: The name 'z' does not exist in the current context
+        //         System.Console.WriteLine(z);
+        Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(13, 34)
+                );
         }
 
     }

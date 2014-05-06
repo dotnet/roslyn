@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
                 var construction = MakePair(node, x1.Name, x1Expression, x2.Name, x2Expression, state, d);
-                return lambdaBodyBinder.WrapExpressionLambdaBody(construction, node, d);
+                return lambdaBodyBinder.WrapExpressionLambdaBody(ImmutableArray<LocalSymbol>.Empty, construction, node, d);
             };
             var result = MakeQueryUnboundLambda(state.RangeVariableMap(), Args(x1, x2), node, resolver);
             state.rangeVariable = state.TransparentRangeVariable(this);
@@ -516,7 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LambdaBodyResolver resolver = (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag d) =>
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
-                var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
+
+                var expressionBinder = new ScopedExpressionBinder((MethodSymbol)lambdaBodyBinder.ContainingMemberOrLambda, lambdaBodyBinder, let.Expression);
+                var yExpression = expressionBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
@@ -544,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
-                return lambdaBodyBinder.WrapExpressionLambdaBody(construction, let, d);
+                return lambdaBodyBinder.WrapExpressionLambdaBody(expressionBinder.Locals, construction, let, d);
             };
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x, let.Expression, resolver);
             state.rangeVariable = state.TransparentRangeVariable(this);

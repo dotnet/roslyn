@@ -245,6 +245,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitFromClause(FromClauseSyntax node)
+            {
+                // Visit Expression only for a "from" clause that starts a query, it (the expression) doesn't become a body of a lambda.
+                var parent = node.Parent;
+
+                if (parent == null || (parent.Kind == SyntaxKind.QueryExpression && ((QueryExpressionSyntax)parent).FromClause == node))
+                {
+                    Visit(node.Expression);
+                }
+            }
+
+            public override void VisitLetClause(LetClauseSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitJoinClause(JoinClauseSyntax node)
+            {
+                Visit(node.InExpression);
+            }
+
+            public override void VisitWhereClause(WhereClauseSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitOrderByClause(OrderByClauseSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitSelectClause(SelectClauseSyntax node)
+            {
+                return;
+            }
+
+            public override void VisitGroupClause(GroupClauseSyntax node)
+            {
+                return;
+            }
+
             public override void VisitBlock(BlockSyntax node)
             {
                 if (RootStmtOpt != node)

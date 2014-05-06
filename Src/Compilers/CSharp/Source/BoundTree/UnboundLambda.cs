@@ -748,9 +748,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics)
         {
-            return this.IsExpressionLambda ?
-                lambdaBodyBinder.BindExpressionLambdaBody((ExpressionSyntax)this.Body, diagnostics) :
-                lambdaBodyBinder.BindBlock((BlockSyntax)this.Body, diagnostics);
+            if (this.IsExpressionLambda)
+            {
+                return lambdaBodyBinder.BindExpressionLambdaBody((ExpressionSyntax)this.Body, diagnostics);
+            }
+            else
+            {
+                return lambdaBodyBinder.BindBlock((BlockSyntax)this.Body, diagnostics);
+            }
         }
 
     }

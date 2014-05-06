@@ -3204,7 +3204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal BoundBlock WrapExpressionLambdaBody(BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal BoundBlock WrapExpressionLambdaBody(ImmutableArray<LocalSymbol> locals, BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
             var returnType = this.GetCurrentReturnType();
             BoundStatement statement;
@@ -3242,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            var block = new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
+            var block = new BoundBlock(node, locals, ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
             return block;
         }
 
@@ -3250,8 +3250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // { return M(a,b); } or { M(a,b); }.
         public BoundBlock BindExpressionLambdaBody(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(body, diagnostics, BindValueKind.RValue);
-            return WrapExpressionLambdaBody(expression, body, diagnostics);
+            var expressionBinder = new ScopedExpressionBinder((MethodSymbol)this.ContainingMemberOrLambda, this, body);
+            BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
+            return WrapExpressionLambdaBody(expressionBinder.Locals, expression, body, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals

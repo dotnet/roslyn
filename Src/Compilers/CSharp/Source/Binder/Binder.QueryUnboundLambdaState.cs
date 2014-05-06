@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body, TypeSyntax castTypeSyntax, TypeSymbol castType)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                BoundExpression expression = lambdaBodyBinder.BindValue(body, diagnostics, BindValueKind.RValue);
+                var expressionBinder = new ScopedExpressionBinder((MethodSymbol)lambdaBodyBinder.ContainingMemberOrLambda, lambdaBodyBinder, body);
+                BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
                 Debug.Assert((object)castType != null);
                 Debug.Assert(castTypeSyntax != null);
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 expression = lambdaBodyBinder.MakeQueryInvocation(body, expression, "Cast", castTypeSyntax, castType, diagnostics);
-                return lambdaBodyBinder.WrapExpressionLambdaBody(expression, body, diagnostics);
+                return lambdaBodyBinder.WrapExpressionLambdaBody(expressionBinder.Locals, expression, body, diagnostics);
             })
             { }
 
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                BoundExpression expression = lambdaBodyBinder.BindValue(body, diagnostics, BindValueKind.RValue);
-                return lambdaBodyBinder.WrapExpressionLambdaBody(expression, body, diagnostics);
+                return lambdaBodyBinder.BindExpressionLambdaBody(body, diagnostics);
             })
             { }
 
