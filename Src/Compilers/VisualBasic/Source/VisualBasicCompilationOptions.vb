@@ -135,7 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceProvider,
                 assemblyIdentityComparer,
                 strongNameProvider,
-                MetadataImportOptions.Public)
+                MetadataImportOptions.Public,
+                features:=ImmutableArray(Of String).Empty)
 
         End Sub
 
@@ -172,7 +173,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataReferenceProvider As MetadataReferenceProvider,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions)
+            metadataImportOptions As MetadataImportOptions,
+            features As ImmutableArray(Of String))
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -200,7 +202,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceProvider:=metadataReferenceProvider,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions)
+                metadataImportOptions:=metadataImportOptions,
+                features:=features)
 
             Initialize(globalImports, rootNamespace, optionStrict, optionInfer, optionExplicit, optionCompareText, embedVbCoreRuntime, parseOptions)
 
@@ -240,7 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceProvider:=other.MetadataReferenceProvider,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
-                metadataImportOptions:=other.MetadataImportOptions)
+                metadataImportOptions:=other.MetadataImportOptions,
+                features:=other.Features)
         End Sub
 
         ''' <summary>
@@ -671,6 +675,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
+        Friend Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VisualBasicCompilationOptions
+            If features = Me.Features Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.Features = features}
+        End Function
+
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
             Return Me.WithGeneralDiagnosticOption(value)
         End Function
@@ -681,6 +693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As CompilationOptions
             Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+        End Function
+
+        Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As CompilationOptions
+            Return Me.WithFeatures(features)
         End Function
 
         ''' <summary>

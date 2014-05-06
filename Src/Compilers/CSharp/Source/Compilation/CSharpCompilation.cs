@@ -164,38 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)container, name, arity, null);
         }
 
-        Dictionary<string, string> Features;
-        internal string Feature(string p)
-        {
-            if (this.Features == null)
-            {
-                var set = new Dictionary<string, string>();
-
-                if (options.Features != null)
-                {
-                    foreach (var s in options.Features)
-                    {
-                        int colon = s.IndexOf(':');
-                        if (colon > 0)
-                        {
-                            string name = s.Substring(0, colon);
-                            string value = s.Substring(colon + 1);
-                            set.Add(name, value);
-                }
-                        else
-                        {
-                            set.Add(s, "true");
-                        }
-                    }
-                }
-
-                Interlocked.CompareExchange(ref this.Features, set, null);
-            }
-
-            string v;
-            return this.Features.TryGetValue(p, out v) ? v : null;
-        }
-
         #region Constructors and Factories
 
         private static CSharpCompilationOptions DefaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);

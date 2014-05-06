@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken) :
-            base(context, messageProvider, pdbWriter, false, false, cancellationToken)
+            base(context, messageProvider, pdbWriter, false, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));

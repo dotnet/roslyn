@@ -1618,6 +1618,8 @@ namespace Microsoft.CodeAnalysis
                     metadataDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
+                        string deterministicString = this.Feature("deterministic");
+                        bool deterministic =  deterministicString != null && deterministicString != "false";
                         Cci.PeWriter.WritePeToStream(
                             new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                             this.MessageProvider,
@@ -1625,6 +1627,7 @@ namespace Microsoft.CodeAnalysis
                             pdbWriter,
                             metadataOnly,
                             foldIdenticalMethodBodies,
+                            deterministic,
                             cancellationToken);
                     }
                     catch (Cci.PdbWritingException ex)
@@ -1690,6 +1693,39 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
+        }
+
+        private Dictionary<string, string> lazyFeatures;
+        internal string Feature(string p)
+        {
+            if (this.lazyFeatures == null)
+            {
+                var set = new Dictionary<string, string>();
+                if (Options.Features != null)
+                {
+                    foreach (var s in Options.Features)
+                    {
+                        string feature = s.ToLowerInvariant();
+
+                        int colon = feature.IndexOf(':');
+                        if (colon > 0)
+                        {
+                            string name = feature.Substring(0, colon);
+                            string value = feature.Substring(colon + 1);
+                            set[name] = value;
+                        }
+                        else
+                        {
+                            set[feature] = "true";
+                        }
+                    }
+                }
+
+                Interlocked.CompareExchange(ref this.lazyFeatures, set, null);
+            }
+
+            string v;
+            return this.lazyFeatures.TryGetValue(p.ToLowerInvariant(), out v) ? v : null;
         }
 
         #endregion

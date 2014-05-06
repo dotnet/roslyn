@@ -136,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim moduleName As String = Nothing
                 Dim sqmsessionguid As Guid = Nothing
                 Dim touchedFilesPath As String = Nothing
+                Dim features = New List(Of String)()
 
                 For Each arg In flattenedArgs
                     Debug.Assert(Not arg.StartsWith("@", StringComparison.Ordinal))
@@ -919,6 +920,15 @@ lVbRuntimePlus:
 
                                 generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, unquoted, baseDirectory)
                                 Continue For
+
+                            Case "features"
+                                If value Is Nothing Then
+                                    features.Clear()
+                                Else
+                                    features.Add(value)
+                                End If
+                                Continue For
+
                         End Select
                     End If
 
@@ -1022,7 +1032,7 @@ lVbRuntimePlus:
 
                 Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
-                Dim options As New VisualBasicCompilationOptions(
+                Dim options = New VisualBasicCompilationOptions(
                         outputKind:=outputKind,
                         moduleName:=moduleName,
                         mainTypeName:=mainTypeName,
@@ -1048,7 +1058,7 @@ lVbRuntimePlus:
                         debugInformationKind:=emitDebugInformationKind,
                         optimize:=optimize,
                         subsystemVersion:=ssVersion,
-                        parseOptions:=parseOptions)
+                        parseOptions:=parseOptions).WithFeatures(features.AsImmutable())
 
                 ' add option incompatibility errors if any
                 diagnostics.AddRange(options.Errors)

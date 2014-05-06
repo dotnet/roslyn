@@ -60,12 +60,18 @@ namespace Microsoft.Cci
 
         private static readonly Encoding Utf8Encoding = Encoding.UTF8;
 
+        /// <summary>
+        /// True if we should attempt to generate a deterministic output (no timestamps or random data).
+        /// </summary>
+        private readonly bool deterministic;
+
         protected PeWriter(
             EmitContext context,
             CommonMessageProvider messageProvider,
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldIdenticalMethodBodies,
+            bool deterministic,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
@@ -84,6 +90,7 @@ namespace Microsoft.Cci
             this.emitRuntimeStartupStub = module.RequiresStartupStub;
             this.pdbWriter = pdbWriter;
             this.allowMissingMethodBodies = allowMissingMethodBodies;
+            this.deterministic = deterministic;
             this.cancellationToken = cancellationToken;
             this.sizeOfImportAddressTable = this.emitRuntimeStartupStub ? (!this.module.Requires64bits ? 8u : 16u) : 0;
 
@@ -502,7 +509,7 @@ namespace Microsoft.Cci
         // A map of method body to RVA. 
         private readonly Dictionary<byte[], uint> possiblyDuplicateMethodBodies;
         private readonly MemoryStream methodStream = new MemoryStream(32 * 1024);
-        
+
         private byte blobIndexSize;
         private byte stringIndexSize;
         private byte guidIndexSize;
@@ -676,6 +683,7 @@ namespace Microsoft.Cci
                 pdbWriter: null,
                 allowMissingMethodBodies: false,
                 foldDuplicateMethodBodies: false,
+                deterministic: false,
                 cancellationToken: cancellationToken);
         }
 
@@ -686,9 +694,10 @@ namespace Microsoft.Cci
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldDuplicateMethodBodies,
+            bool deterministic,
             CancellationToken cancellationToken)
         {
-            var writer = new FullPeWriter(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldDuplicateMethodBodies, cancellationToken);
+            var writer = new FullPeWriter(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldDuplicateMethodBodies, deterministic, cancellationToken);
             writer.WritePeToStream(stream);
 
             if (pdbWriter != null)
@@ -729,58 +738,86 @@ namespace Microsoft.Cci
             FillInClrHeader();
 
             // write to pe stream.
-            WriteHeaders(stream);
+            long positionOfHeaderTimestamp;
+            WriteHeaders(stream, out positionOfHeaderTimestamp);
             long startOfMetadataStream;
-            WriteTextSection(stream, metadataStream, out startOfMetadataStream);
+            long positionOfDebugTableTimestamp;
+            WriteTextSection(stream, metadataStream, out startOfMetadataStream, out positionOfDebugTableTimestamp);
             WriteRdataSection(stream);
             WriteSdataSection(stream);
             WriteCoverSection(stream);
             WriteTlsSection(stream);
             WriteResourceSection(stream);
             WriteRelocSection(stream);
+            if (this.deterministic)
+            {
             var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
-            WriteDeterministicGuid(stream, positionOfModuleVersionId);
+                WriteDeterministicGuidAndTimestamps(stream, positionOfModuleVersionId, positionOfHeaderTimestamp, positionOfDebugTableTimestamp);
+        }
         }
 
         /// <summary>
-        /// Compute a deterministic Guid based on the contents of the stream, and replace
-        /// the 16 zero bytes at the given position with that computed Guid.
+        /// Compute a deterministic Guid and timestamp based on the contents of the stream, and replace
+        /// the 16 zero bytes at the given position and one or two 4-byte values with that computed Guid and timestamp.
         /// </summary>
         /// <param name="stream">Stream of data</param>
-        /// <param name="positionOfModuleVersionId">Position of the stream of 16 zero bytes to be replaced by a Guid</param>
-        private static void WriteDeterministicGuid(Stream stream, long positionOfModuleVersionId)
+        /// <param name="positionOfModuleVersionId">Position in the stream of 16 zero bytes to be replaced by a Guid</param>
+        /// <param name="positionOfHeaderTimestamp">Position in the stream of four zero bytes to be replaced by a timestamp</param>
+        /// <param name="positionOfDebugTableTimestamp">Position in the stream of four zero bytes to be replaced by a timestamp, or 0 if there is no second timestamp to be replaced</param>
+        private static void WriteDeterministicGuidAndTimestamps(Stream stream, long positionOfModuleVersionId, long positionOfHeaderTimestamp, long positionOfDebugTableTimestamp)
         {
             var previousPosition = stream.Position;
-#if DEBUG
+
             // The existing Guid in the data should be empty, as we are about to compute it.
             // Check to be sure.
-            {
-                stream.Position = positionOfModuleVersionId;
-                byte[] guidBytes = new byte[16];
-                stream.Read(guidBytes, 0, 16);
-                var existingGuid = new Guid(guidBytes);
-                Debug.Assert(existingGuid == default(Guid));
-            }
-#endif
+            CheckZeroDataInStream(stream, positionOfModuleVersionId, 16);
 
             // Compute and write deterministic guid data over the relevant portion of the stream
-            var guidData = ComputeSerializedGuidFromData(stream);
+            byte[] timestamp;
+            var guidData = ComputeSerializedGuidFromData(stream, out timestamp);
             stream.Position = positionOfModuleVersionId;
             stream.Write(guidData, 0, 16);
+
+            // Write a deterministic timestamp over the relevant portion(s) of the stream
+            Debug.Assert(positionOfHeaderTimestamp != 0);
+            CheckZeroDataInStream(stream, positionOfHeaderTimestamp, 4);
+            stream.Position = positionOfHeaderTimestamp;
+            stream.Write(timestamp, 0, 4);
+            if (positionOfDebugTableTimestamp != 0)
+            {
+                CheckZeroDataInStream(stream, positionOfDebugTableTimestamp, 4);
+                stream.Position = positionOfDebugTableTimestamp;
+                stream.Write(timestamp, 0, 4);
+            }
+
             stream.Position = previousPosition;
         }
 
+        [Conditional("DEBUG")]
+        private static void CheckZeroDataInStream(Stream stream, long position, int bytes)
+        {
+            stream.Position = position;
+            for (int i = 0; i < bytes; i++)
+            {
+                int value = stream.ReadByte();
+                Debug.Assert(value == 0, "Value not zero", "Value at index '{0}' was not zero", i);
+            }
+        }
+
+
         /// <summary>
-        /// Compute a random-looking but deterministic Guid from a hash of the stream's data
+        /// Compute a random-looking but deterministic Guid from a hash of the stream's data, and produce a "timestamp" from the remaining bits.
         /// </summary>
-        private static byte[] ComputeSerializedGuidFromData(Stream stream)
+        private static byte[] ComputeSerializedGuidFromData(Stream stream, out byte[] timestamp)
         {
             stream.Position = 0; // rewind the stream
-            var sha1 = System.Security.Cryptography.SHA1CryptoServiceProvider.Create();
-            var hashData = sha1.ComputeHash(stream);
-            sha1.Dispose();
+
+            var hashData = Hash.ComputeSha1(stream);
             var guidData = new byte[16];
-            Array.Copy(hashData, guidData, 16);
+            for (var i = 0; i < guidData.Length; i++)
+            {
+                guidData[i] = hashData[i];
+            }
 
             // modify the guid data so it decodes to the form of a "random" guid ala rfc4122
             var t = guidData[7];
@@ -789,6 +826,13 @@ namespace Microsoft.Cci
             t = guidData[8];
             t = (byte)((t & 0x3f) | (2 << 6));
             guidData[8] = t;
+
+            // compute a random-looking timestamp from the remaining bits, but with the upper bit set
+            timestamp = new byte[4];
+            timestamp[0] = hashData[16];
+            timestamp[1] = hashData[17];
+            timestamp[2] = hashData[18];
+            timestamp[3] = (byte)(hashData[19] | 0x80);
 
             return guidData;
         }
@@ -1329,10 +1373,8 @@ namespace Microsoft.Cci
 
             // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
             // the file was created in seconds since January 1st 1970 00:00:00 or 0"
-            // We would like compilation to be deterministic (that is, when the same inputs are provided
-            // we get the same output).  We can make this part deterministic by taking advantage of
-            // the "or 0" part of the specification.
-            ntHeader.TimeDateStamp = (uint)0;
+            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
+            ntHeader.TimeDateStamp = deterministic ? 0 : (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
             ntHeader.ImportAddressTable.RelativeVirtualAddress = (this.emitRuntimeStartupStub) ? this.textSection.RelativeVirtualAddress : 0;
             ntHeader.ImportAddressTable.Size = this.sizeOfImportAddressTable;
@@ -1531,15 +1573,23 @@ namespace Microsoft.Cci
 
         private uint MakeModuleVersionIdGuidIndex()
         {
-            if (this.ModuleVersionId == default(Guid))
+            if (this.ModuleVersionId != default(Guid))
             {
+                // In the current implementation, we never expect to encounter an IModule
+                // that specifies a module ID, but if one did, we would handle it here. 
+                return GetGuidIndex(this.ModuleVersionId);
+            }
+            else if (deterministic)
+            {
+                // if we are being deterministic, write zero for now and select a Guid later
                 uint result = (this.guidWriter.BaseStream.Length >> 4) + 1;
                 this.guidWriter.WriteBytes(0, 16);
                 return result;
             }
             else
             {
-                return GetGuidIndex(this.ModuleVersionId);
+                // If we are being nondeterministic, write a random module version ID guid
+                return GetGuidIndex(Guid.NewGuid());
             }
         }
 
@@ -5251,6 +5301,8 @@ namespace Microsoft.Cci
             }
         }
 
+        private readonly List<MemoryStream> customDebugMetadataForCurrentMethod = new List<MemoryStream>();
+
         private void SerializeMethodBodies(bool separateMethodIL)
         {
             BinaryWriter writer = new BinaryWriter(this.methodStream);
@@ -5382,7 +5434,7 @@ namespace Microsoft.Cci
                         string usingString = "@" + this.GetMethodToken(forwardToMethod);
                         Debug.Assert(!IsUsingStringTooLong(usingString));
                         this.pdbWriter.UsingNamespace(usingString, methodBody.MethodDefinition.Name);
-                    }
+            }
 
                     // otherwise, the forwarding is done via custom debug info
                 }
@@ -5425,7 +5477,7 @@ namespace Microsoft.Cci
         private void SerializeNamespaceScopes(IMethodBody methodBody)
         {
             // TODO: add nopia namespaces 
-            
+
             // in case that the using namespace is too long, the native API SymWriter::UsingNamespace() would return 
             // an E_OUTOFMEMORY which will be translated to an OutOfMemory exception.
             // To avoid this we're checking the length before calling. However if _MAX_SYM_SIZE ever gets changed in
@@ -5468,7 +5520,7 @@ namespace Microsoft.Cci
                     this.pdbWriter.UsingNamespace(usingString, @extern.NamespaceAlias);
                 }
             }
-        }
+                }
 
         private uint ReadUint(byte[] buffer, int pos)
         {
@@ -7032,7 +7084,7 @@ namespace Microsoft.Cci
         //#define IMAGE_FILE_UP_SYSTEM_ONLY            0x4000  // File should only be run on a UP machine
         //#define IMAGE_FILE_BYTES_REVERSED_HI         0x8000  // Bytes of machine word are reversed.
 
-        private void WriteHeaders(System.IO.Stream peStream)
+        private void WriteHeaders(System.IO.Stream peStream, out long timestampOffset)
         {
             IModule module = this.module;
             NtHeader ntHeader = this.ntHeader;
@@ -7047,6 +7099,7 @@ namespace Microsoft.Cci
             // COFF Header 20 bytes
             writer.WriteUshort((ushort)module.Machine);
             writer.WriteUshort((ushort)ntHeader.NumberOfSections);
+            timestampOffset = (uint)(writer.BaseStream.Position + peStream.Position);
             writer.WriteUint(ntHeader.TimeDateStamp);
             writer.WriteUint(ntHeader.PointerToSymbolTable);
             writer.WriteUint(0); // NumberOfSymbols
@@ -7220,7 +7273,7 @@ namespace Microsoft.Cci
             writer.WriteUint(sectionHeader.Characteristics);
         }
 
-        private void WriteTextSection(System.IO.Stream peStream, MemoryStream metadataStream, out long startOfMetadata)
+        private void WriteTextSection(System.IO.Stream peStream, MemoryStream metadataStream, out long startOfMetadata, out long positionOfTimestamp)
         {
             peStream.Position = this.textSection.PointerToRawData;
             if (this.emitRuntimeStartupStub) this.WriteImportAddressTable(peStream);
@@ -7230,7 +7283,7 @@ namespace Microsoft.Cci
             this.WriteMetadata(peStream, metadataStream);
             this.WriteManagedResources(peStream);
             this.WriteSpaceForHash(peStream);
-            this.WriteDebugTable(peStream);
+            this.WriteDebugTable(peStream, out positionOfTimestamp);
             // this.WriteUnmanagedExportStubs();
             if (this.emitRuntimeStartupStub) this.WriteImportTable(peStream);
             if (this.emitRuntimeStartupStub) this.WriteNameTable(peStream);
@@ -7391,8 +7444,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(Stream peStream)
+        private void WriteDebugTable(Stream peStream, out long timestampOffset)
         {
+            timestampOffset = 0;
             PeDebugDirectory debugDirectory = this.debugDirectory;
             if (debugDirectory == null)
             {
@@ -7402,6 +7456,7 @@ namespace Microsoft.Cci
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
             writer.WriteUint(debugDirectory.Characteristics);
+            timestampOffset = writer.BaseStream.Position + peStream.Position;
             writer.WriteUint(debugDirectory.TimeDateStamp);
             writer.WriteUshort(debugDirectory.MajorVersion);
             writer.WriteUshort(debugDirectory.MinorVersion);

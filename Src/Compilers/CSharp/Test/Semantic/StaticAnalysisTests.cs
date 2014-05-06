@@ -52,7 +52,7 @@ namespace Washington
         {
             get
             {
-                var compOptions = TestOptions.Dll.WithOptimizations(true).WithFeatures(new[] { "checkdispose" });
+                var compOptions = TestOptions.Dll.WithOptimizations(true).WithFeatures((new[] { "checkdispose" }).AsImmutable());
                 if (Debugger.IsAttached)
                 {
                     // Using single-threaded build if debugger attached, to simplify debugging.

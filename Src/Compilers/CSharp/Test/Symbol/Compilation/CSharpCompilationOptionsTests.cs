@@ -353,9 +353,9 @@ Parameter name: ModuleName")
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpCompilationOptions),
                 "AllowUnsafe",
-                "Usings",
                 "Features",
-                "RuntimeMetadataVersion");
+                "RuntimeMetadataVersion",
+                "Usings");
         }
     }
 }

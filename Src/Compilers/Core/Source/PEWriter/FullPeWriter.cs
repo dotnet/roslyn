@@ -36,8 +36,9 @@ namespace Microsoft.Cci
             PdbWriter pdbWriter,
             bool allowMissingMethodBodies,
             bool foldIdenticalMethodBodies,
+            bool deterministic,
             CancellationToken cancellationToken) :
-            base(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldIdenticalMethodBodies, cancellationToken)
+            base(context, messageProvider, pdbWriter, allowMissingMethodBodies, foldIdenticalMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;

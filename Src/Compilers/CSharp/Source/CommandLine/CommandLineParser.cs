@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     highEntropyVirtualAddressSpace: highEntropyVA,
                     subsystemVersion: subsystemVersion,
                     runtimeMetadataVersion: runtimeMetadataVersion
-                ).WithFeatures(features);
+                ).WithFeatures(features.AsImmutable());
 
                 // add option incompatibility errors if any
                 diagnostics.AddRange(options.Errors);

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "DebugInformationKind",
                 "DelaySign",
                 "Errors",
+                "Features",
                 "FileAlignment",
                 "GeneralDiagnosticOption",
                 "HighEntropyVirtualAddressSpace",

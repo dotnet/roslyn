@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private const string AllowUnsafeString = "AllowUnsafe";
         private const string UsingsString = "Usings";
-        private const string FeaturesString = "Features";
         private const string RuntimeMetadataVersionString = "RuntimeMetadataVersion";
 
         /// <summary>
@@ -33,11 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global namespace usings.
         /// </summary>
         public ImmutableArray<string> Usings { get; private set; }
-
-        /// <summary>
-        /// A comma-separated list of strings designating experimental compiler features that are to be enabled.
-        /// </summary>
-        internal ImmutableArray<string> Features { get; private set; }
 
         internal string RuntimeMetadataVersion { get; private set; }
 
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimize, checkOverflow, allowUnsafe,
             cryptoKeyContainer, cryptoKeyFile, delaySign, fileAlignment, baseAddress, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, subsystemVersion, runtimeMetadataVersion, concurrentBuild,
-                   xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: null)
+                   xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, MetadataImportOptions.Public, features: ImmutableArray<string>.Empty)
         {
         }
 
@@ -110,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            IEnumerable<string> features)
+            ImmutableArray<string> features)
             : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, baseAddress,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind,
-                   subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions)
+                   subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features)
         {
-            Initialize(usings, allowUnsafe, features, runtimeMetadataVersion);
+            Initialize(usings, allowUnsafe, runtimeMetadataVersion);
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -152,11 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        private void Initialize(IEnumerable<string> usings, bool allowUnsafe, IEnumerable<string> features, string runtimeMetadataVersion)
+        private void Initialize(IEnumerable<string> usings, bool allowUnsafe, string runtimeMetadataVersion)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
-            this.Features = features.AsImmutableOrEmpty();
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
         }
 
@@ -166,7 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Initialize(
                 (string[])info.GetValue(UsingsString, typeof(string[])),
                 info.GetBoolean(AllowUnsafeString),
-                (string[])info.GetValue(FeaturesString, typeof(string[])),
                 info.GetString(RuntimeMetadataVersionString));
         }
 
@@ -175,7 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.GetObjectData(info, context);
             info.AddValue(UsingsString, this.Usings.ToArray());
             info.AddValue(AllowUnsafeString, this.AllowUnsafe);
-            info.AddValue(FeaturesString, Features.ToArray());
             info.AddValue(RuntimeMetadataVersionString, this.RuntimeMetadataVersion);
         }
 
@@ -438,9 +429,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
         }
 
-        internal CSharpCompilationOptions WithFeatures(IEnumerable<string> features)
+        internal new CSharpCompilationOptions WithFeatures(ImmutableArray<string> features)
         {
-            return new CSharpCompilationOptions(this) { Features = features.AsImmutableOrEmpty() };
+            if (features == this.Features)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { Features = features };
         }
 
         internal CSharpCompilationOptions WithRuntimeMetadataVersion(string version)
@@ -560,6 +556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithStrongNameProvider(provider);
         }
 
+        protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
+        {
+            return WithFeatures(features);
+        }
+
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
             //  /main & /target:{library|netmodule|winmdobj}
@@ -615,11 +616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "ScriptClassName", ScriptClassName ?? "null"));
             }
 
-            if (Features == null)
-            {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "Features", "null"));
-            }
-
             if (WarningLevel < 0 || WarningLevel > 4)
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "WarningLevel", WarningLevel));
@@ -654,8 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return this.AllowUnsafe == other.AllowUnsafe &&
                    this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
-                   (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal)) &&
-                   (this.Features == null ? other.Features == null : this.Features.SequenceEqual(other.Features, StringComparer.Ordinal));
+                   (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal));
         }
 
         public override bool Equals(object obj)
@@ -668,8 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(this.RuntimeMetadataVersion,
-                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0)))));
+                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal), 0))));
         }
     }
 }

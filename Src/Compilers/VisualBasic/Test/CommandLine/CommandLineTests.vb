@@ -5792,6 +5792,37 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         CleanupAllGeneratedFiles(file.Path)
     End Sub
 
+    <Fact>
+    Public Sub ParseFeatures()
+        Dim args = VisualBasicCommandLineParser.Default.Parse({"/features:Test", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test", args.CompilationOptions.Features.Single())
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(2, args.CompilationOptions.Features.Length)
+        Assert.Equal("Test", args.CompilationOptions.Features(0))
+        Assert.Equal("Experiment", args.CompilationOptions.Features(1))
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/features:Test:false,Key:value", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single())
+
+        ' We don't do any rigorous validation of /features arguments...
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/features", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Empty(args.CompilationOptions.Features)
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/features:,", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal(",", args.CompilationOptions.Features.Single())
+
+        args = VisualBasicCommandLineParser.Default.Parse({"/features:Test,", "a.vb"}, _baseDirectory)
+        args.Errors.Verify()
+        Assert.Equal("Test,", args.CompilationOptions.Features.Single())
+    End Sub
+
     Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
         actual.Verify(expected)
     End Sub

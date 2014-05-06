@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis
         private const string OptimizeString = "Optimize";
         private const string ConcurrentBuildString = "ConcurrentBuild";
         private const string SubsystemVersionString = "SubsystemVersion";
-        private const string metadataImportOptionsString = "MetadataImportOptions";
+        private const string MetadataImportOptionsString = "MetadataImportOptions";
+        private const string FeaturesString = "Features";
 
         /// <summary>
         /// The kind of assembly generated when emitted.
@@ -194,6 +196,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public AssemblyIdentityComparer AssemblyIdentityComparer { get; protected set; }
 
+        /// <summary>
+        /// A set of strings designating experimental compiler features that are to be enabled.
+        /// </summary>
+        protected internal ImmutableArray<string> Features { get; protected set; }
+
         private Lazy<ImmutableArray<Diagnostic>> lazyErrors = null;
 
         // Expects correct arguments.
@@ -223,13 +230,14 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
+            MetadataImportOptions metadataImportOptions,
+            ImmutableArray<string> features)
         {
             Initialize(
                 outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimize, checkOverflow, fileAlignment, 
                 baseAddress, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, highEntropyVirtualAddressSpace, debugInformationKind, 
                 subsystemVersion, concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, metadataReferenceProvider, assemblyIdentityComparer, strongNameProvider, 
-                metadataImportOptions);
+                metadataImportOptions, features);
         }
 
         internal void Initialize(
@@ -258,7 +266,8 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceProvider metadataReferenceProvider,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
+            MetadataImportOptions metadataImportOptions,
+            ImmutableArray<string> features)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -286,6 +295,7 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
+            this.Features = features;
             
             this.lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -323,7 +333,8 @@ namespace Microsoft.CodeAnalysis
                 metadataReferenceProvider: MetadataFileReferenceProvider.Default,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                 strongNameProvider: new DesktopStrongNameProvider(),
-                metadataImportOptions: (MetadataImportOptions)info.GetByte(metadataImportOptionsString));
+                metadataImportOptions: (MetadataImportOptions)info.GetByte(MetadataImportOptionsString),
+                features: ((string[])info.GetValue(FeaturesString, typeof(string[]))).AsImmutable());
         }
 
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -347,7 +358,8 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(OptimizeString, this.Optimize);
             info.AddValue(SubsystemVersionString, this.SubsystemVersion);
             info.AddValue(ConcurrentBuildString, this.ConcurrentBuild);
-            info.AddValue(metadataImportOptionsString, (byte)this.MetadataImportOptions);
+            info.AddValue(MetadataImportOptionsString, (byte)this.MetadataImportOptions);
+            info.AddValue(FeaturesString, Features.ToArray());
         }
 
         internal bool CanReuseCompilationReferenceManager(CompilationOptions other)
@@ -458,6 +470,11 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        internal CompilationOptions WithFeatures(ImmutableArray<string> features)
+        {
+            return CommonWithFeatures(features);
+        }
+
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizations(bool enabled);
@@ -470,6 +487,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
         /// <summary>
         /// Performs validation of options compatibilities and generates diagnostics if needed
@@ -521,7 +539,8 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
-                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
+                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
+                   this.Features.SequenceEqual(other.Features, StringComparer.Ordinal);
 
             return equal;
         }
@@ -555,7 +574,8 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer,
+                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0)))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

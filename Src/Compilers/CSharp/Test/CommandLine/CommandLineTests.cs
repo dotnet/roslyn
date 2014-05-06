@@ -6193,6 +6193,38 @@ using System.Diagnostics; // Unused.
 
             CleanupAllGeneratedFiles(filePath);
         }
+
+        [Fact]
+        public void ParseFeatures()
+        { 
+            var args = CSharpCommandLineParser.Default.Parse(new []{"/features:Test", "a.vb"}, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("Test", args.CompilationOptions.Features.Single());
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.CompilationOptions.Features.Length);
+            Assert.Equal("Test", args.CompilationOptions.Features[0]);
+            Assert.Equal("Experiment", args.CompilationOptions.Features[1]);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/features:Test:false,Key:value", "a.vb" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single());
+
+            // We don't do any rigorous validation of /features arguments...
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/features", "a.vb" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Empty(args.CompilationOptions.Features);
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/features:,", "a.vb" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(",", args.CompilationOptions.Features.Single());
+
+            args = CSharpCommandLineParser.Default.Parse(new[] { "/features:Test,", "a.vb" }, baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal("Test,", args.CompilationOptions.Features.Single());
+        }
     }
 
     [DiagnosticAnalyzer]

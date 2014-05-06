@@ -1,10 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -13,14 +12,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     {
         private Guid CompiledGuid(string source, string assemblyName)
         {
-            var compilation = CreateCompilation(source, assemblyName: assemblyName, references: new[] { MscorlibRef });
+            var compilation = CreateCompilation(source,
+                assemblyName: assemblyName,
+                references: new[] { MscorlibRef },
+                compOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFeatures((new[] { "deterministic" }).AsImmutable()));
+
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitOptions: EmitOptions.CCI, validator: (a, eo) =>
                 {
                     var module = a.Modules[0];
                     result = module.GetModuleVersionIdOrThrow();
                 });
+
             return result;
+        }
+
+        private ImmutableArray<byte> GetBytesEmitted(string source, Platform platform, DebugInformationKind debug, bool deterministic)
+        {
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: platform, debugInformationKind: debug);
+            if (deterministic)
+            {
+                options = options.WithFeatures((new[] { "dEtErmInIstIc" }).AsImmutable()); // expect case-insensitivity
+            }
+
+            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, compOptions: options);
+
+            // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
+            // between calls to Emit.
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            return compilation.EmitToArray();
+        }
+
+        private class ImmutableByteArrayEqualityComparer : IEqualityComparer<ImmutableArray<byte>>
+        {
+            public bool Equals(ImmutableArray<byte> x, ImmutableArray<byte> y)
+            {
+                return x.SequenceEqual(y);
+            }
+
+            public int GetHashCode(ImmutableArray<byte> obj)
+            {
+                return obj.GetHashCode();
+            }
         }
 
         [Fact]
@@ -38,6 +72,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.Equal(mvid1, mvid2);
             Assert.Equal(mvid3, mvid4);
             Assert.NotEqual(mvid1, mvid3);
+        }
+
+        [Fact]
+        public void CompareAllBytesEmitted()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args) {}
+}";
+            var comparer = new ImmutableByteArrayEqualityComparer();
+
+            var result1 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: DebugInformationKind.Full, deterministic: true);
+            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred,  debug: DebugInformationKind.Full, deterministic: true);
+            Assert.Equal(result1, result2, comparer);
+
+            var result3 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: true);
+            var result4 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: true);
+            Assert.Equal(result3, result4, comparer);
+            Assert.NotEqual(result1, result3, comparer);
+
+            var result5 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: false);
+            var result6 = GetBytesEmitted(source, platform: Platform.X64, debug: DebugInformationKind.None, deterministic: false);
+            Assert.NotEqual(result5, result6, comparer);
+            Assert.NotEqual(result3, result5, comparer);
         }
     }
 }

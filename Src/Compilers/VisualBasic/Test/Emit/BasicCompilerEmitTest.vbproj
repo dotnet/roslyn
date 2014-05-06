@@ -155,6 +155,7 @@
     <Compile Include="CodeGen\CodeGenWithEvents.vb" />
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
+    <Compile Include="Emit\DeterministicTests.vb" />
     <Compile Include="Emit\EditAndContinueTests.vb" />
     <Compile Include="Emit\EmitCustomModifiers.vb" />
     <Compile Include="Emit\EmitErrorTests.vb" />
