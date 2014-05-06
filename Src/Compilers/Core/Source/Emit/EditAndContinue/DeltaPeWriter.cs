@@ -414,38 +414,19 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.standAloneSignatureIndex.Rows;
         }
 
-        private IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes()
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
         {
             return this.changes.GetTopLevelTypes(this.Context);
         }
 
         protected override void CreateIndicesForModule()
         {
-            var typeDefs = ArrayBuilder<ITypeDefinition>.GetInstance();
-            this.GetTypesAndNestedTypes(typeDefs, this.GetTopLevelTypes());
-            foreach (var typeDef in typeDefs)
-            {
-                this.CreateIndicesForNonTypeMembers(typeDef);
-            }
-            typeDefs.Free();
-
+            base.CreateIndicesForModule();
             var module = (IPEDeltaAssemblyBuilder)this.module;
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
 
-        /// <summary>
-        /// Get the set of types and nested types, enclosing types first.
-        /// </summary>
-        private void GetTypesAndNestedTypes(ArrayBuilder<ITypeDefinition> builder, IEnumerable<ITypeDefinition> typeDefs)
-        {
-            foreach (var typeDef in typeDefs)
-            {
-                builder.Add(typeDef);
-                GetTypesAndNestedTypes(builder, typeDef.GetNestedTypes(this.Context));
-            }
-        }
-
-        private void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
+        protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
             switch (this.changes.GetChange(typeDef))
             {
@@ -1340,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public override void Visit(IModule module)
             {
                 this.module = module;
-                this.Visit(((DeltaPeWriter)this.peWriter).GetTopLevelTypes());
+                this.Visit(((DeltaPeWriter)this.peWriter).GetTopLevelTypes(module));
             }
 
             public override void Visit(IEventDefinition eventDefinition)

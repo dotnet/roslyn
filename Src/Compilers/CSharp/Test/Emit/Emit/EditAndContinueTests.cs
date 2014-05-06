@@ -716,6 +716,72 @@ class B
             }
         }
 
+        /// <summary>
+        /// Nested types should be emitted in the
+        /// same order as full emit.
+        /// </summary>
+        [Fact]
+        public void AddNestedTypesOrder()
+        {
+            var source0 =
+@"class A
+{
+    class B1
+    {
+        class C1 { }
+    }
+    class B2
+    {
+        class C2 { }
+    }
+}";
+            var source1 =
+@"class A
+{
+    class B1
+    {
+        class C1 { }
+    }
+    class B2
+    {
+        class C2 { }
+    }
+    class B3
+    {
+        class C3 { }
+    }
+    class B4
+    {
+        class C4 { }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, compOptions: TestOptions.UnoptimizedDll);
+            var compilation1 = CreateCompilationWithMscorlib(source1, compOptions: TestOptions.UnoptimizedDll);
+
+            var bytes0 = compilation0.EmitToArray(debug: true);
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B1", "B2", "C1", "C2");
+                Assert.Equal(4, reader0.GetTableRowCount(TableIndex.NestedClass));
+
+                var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(
+                        new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.B3")),
+                        new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.B4"))));
+
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    CheckNames(readers, reader1.GetTypeDefNames(), "B3", "B4", "C3", "C4");
+                    Assert.Equal(4, reader1.GetTableRowCount(TableIndex.NestedClass));
+                }
+            }
+        }
+
         [Fact]
         public void AddNestedGenericType()
         {
