@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             Assert.Null(r.SetMethod);
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoWithInitializerInStruct1()
         {
             var text = @"struct S
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
 // (3,16): error CS8036: Structs without explicit constructors cannot contain members with initializers.
 //     public int P { get; set; } = 1;
@@ -105,7 +105,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "P").Wit
 Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").WithArguments("S.R").WithLocation(5, 20));
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoWithInitializerInStruct2()
         {
             var text = @"struct S
@@ -117,7 +117,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -136,14 +136,14 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
             Assert.Null(r.SetMethod);
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoInitializerInInterface()
         {
             var text = @"interface I
 {
     int P { get; } = 0;
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
 
             comp.VerifyDiagnostics(
                 // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
@@ -158,7 +158,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
 {
     public int P { get; }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
 
             comp.VerifyDiagnostics(
 // (3,20): error CS8033: Auto-implemented properties must have set accessors or initializers.
@@ -166,7 +166,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(3, 20));
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoNoGet()
         {
             var text = @"class C
@@ -175,7 +175,7 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArgume
     public int Q { set; } = 0;
     public int R { set; }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
 
             comp.VerifyDiagnostics(
 // (4,20): error CS8034: Auto-implemented properties must have get accessors.

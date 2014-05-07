@@ -1660,7 +1660,7 @@ foreach(short ele in a)
             Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void TestGetSpeculativeSemanticModelInAutoPropInitializer1()
         {
             var source = @"class C
@@ -1669,7 +1669,7 @@ foreach(short ele in a)
     int X { get; } = 1;
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             var tree = comp.SyntaxTrees.Single();
 
             var model = comp.GetSemanticModel(tree);

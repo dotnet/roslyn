@@ -15119,16 +15119,16 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoPropertyInitializerInClassPrimaryConstructor()
         {
-            string sourceCode = @"
+            var comp = CreateCompilationWithMscorlib(@"
 
 class Program(int i)
 {
     public int P { get; } = /*<bind>*/i/*</bind>*/;
-}";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+}", parseOptions: TestOptions.ExperimentalParseOptions);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15145,16 +15145,16 @@ class Program(int i)
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoPropertyInitializerInStructPrimaryConstructor()
         {
-            string sourceCode = @"
+            var comp = CreateCompilationWithMscorlib(@"
 struct Program(int i)
 {
     public int P { get; } = /*<bind>*/i/*</bind>*/;
 }
-";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+", parseOptions: TestOptions.ExperimentalParseOptions);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);

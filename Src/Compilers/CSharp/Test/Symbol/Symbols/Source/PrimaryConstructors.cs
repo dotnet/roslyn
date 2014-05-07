@@ -1653,7 +1653,7 @@ class Derived(private int p0, private int p1 = Base.f0, private int p2 = 0, priv
             Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void ParameterVisibility_04()
         {
             var comp = CreateCompilationWithMscorlib(@"
@@ -1733,12 +1733,6 @@ struct Derived(private int p1, private int p2 = Base.f0, private int p3 = 0, pri
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (22,17): error CS0573: 'Derived.x': cannot have instance field initializers in structs
-    //     private int x = p4;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived.x").WithLocation(22, 17),
-    // (59,32): error CS0573: 'Derived.E2': cannot have instance field initializers in structs
-    //     public event System.Action E2 = GetAction(p11);
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E2").WithArguments("Derived.E2").WithLocation(59, 32),
     // (61,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p12").WithArguments("x").WithLocation(61, 24),
@@ -1753,8 +1747,7 @@ struct Derived(private int p1, private int p2 = Base.f0, private int p3 = 0, pri
     Diagnostic(ErrorCode.ERR_ObjectRequired, "p13").WithArguments("Derived.p13").WithLocation(67, 16),
     // (72,16): error CS0120: An object reference is required for the non-static field, method, or property 'Derived.p14'
     //         return p14;
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16)
-                );
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "p14").WithArguments("Derived.p14").WithLocation(72, 16));
 
             SyntaxTree tree = comp.SyntaxTrees.Single();
             SemanticModel semanticModel = comp.GetSemanticModel(tree);

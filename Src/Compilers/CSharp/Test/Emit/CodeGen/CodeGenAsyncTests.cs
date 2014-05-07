@@ -6693,7 +6693,7 @@ class Driver
         }
 
         [WorkItem(840843, "DevDiv")]
-        [Fact(Skip = "940557")]
+        [Fact]
         public void MissingAsyncMethodBuilder()
         {
             var source = @"
@@ -6709,16 +6709,16 @@ class C
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
-    // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-    //     async void M()
-    Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
-    // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
-    //     { 
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{ 
-    }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(5, 5),
-    // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
-    //     { 
-    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ 
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
+                // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
+                //     { 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{ 
+                }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(5, 5),
+                // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
+                //     { 
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ 
     }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException").WithLocation(5, 5)
                 );
         }

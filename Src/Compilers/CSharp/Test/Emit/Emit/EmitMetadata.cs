@@ -930,7 +930,7 @@ class C : I
             CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoPropInitializersClass()
         {
             var comp = CreateCompilationWithMscorlib(@"using System;
@@ -949,7 +949,8 @@ class C
         Console.Write(c.R);
         Console.Write(C.S);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions);
+}", parseOptions: TestOptions.ExperimentalParseOptions,
+    compOptions: TestOptions.ExeAlwaysImportInternals);
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -985,7 +986,7 @@ class C
                 expectedOutput: "1test300S");
         }
 
-        [Fact(Skip = "940557")]
+        [Fact]
         public void AutoPropInitializersStruct()
         {
             var comp = CreateCompilationWithMscorlib(@"using System;
@@ -1015,7 +1016,8 @@ struct S
         Console.Write(s.R);
         Console.Write(S.T);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions);
+}", parseOptions: TestOptions.ExperimentalParseOptions,
+    compOptions: TestOptions.ExeAlwaysImportInternals);
 
             Action<ModuleSymbol> validator = module =>
             {
