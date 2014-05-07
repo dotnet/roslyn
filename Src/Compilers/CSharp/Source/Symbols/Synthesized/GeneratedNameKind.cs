@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -8,20 +9,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         None = 0,
         ThisProxy = 4,
+        IteratorLocal = 5,
         DisplayClassLocal = 8,
         DisplayClassType = 12,
+        StateMachineType = 13,
     }
 
     internal static partial class GeneratedNames
     {
-        // The type of generated name. Returns non-zero for names
-        // starting with "<" or "CS$<" followed by ">c" where 'c' is in [1-9a-z].
+        // The type of generated name. See TryParseGeneratedName.
         internal static GeneratedNameKind GetKind(string name)
         {
-            if (name.StartsWith("<", StringComparison.Ordinal) || name.StartsWith("CS$<", StringComparison.Ordinal))
+            GeneratedNameKind kind;
+            int openBracketOffset;
+            int closeBracketOffset;
+            return TryParseGeneratedName(name, out kind, out openBracketOffset, out closeBracketOffset) ? kind : GeneratedNameKind.None;
+        }
+
+        // Parse the generated name. Returns true for names of the form
+        // [CS$]<[middle]>c__[suffix] where [CS$] is included for certain
+        // generated names, where [middle] and [suffix] are optional,
+        // and where c is a single character in [1-9a-z].
+        internal static bool TryParseGeneratedName(
+            string name,
+            out GeneratedNameKind kind,
+            out int openBracketOffset,
+            out int closeBracketOffset)
+        {
+            openBracketOffset = -1;
+            if (name.StartsWith("CS$<", StringComparison.Ordinal))
             {
-                int depth = 0;
-                for (int i = 0; i < name.Length - 1; i++)
+                openBracketOffset = 3;
+            }
+            else if (name.StartsWith("<", StringComparison.Ordinal))
+            {
+                openBracketOffset = 0;
+            }
+
+            if (openBracketOffset >= 0)
+            {
+                closeBracketOffset = -1;
+                int depth = 1;
+                // Find matching '>'. Since a valid generated name
+                // ends with ">c__[suffix]" we only need to search
+                // up to 3 characters from the end.
+                for (int i = openBracketOffset + 1; i < name.Length - 3; i++)
                 {
                     switch (name[i])
                     {
@@ -32,22 +64,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             depth--;
                             if (depth == 0)
                             {
-                                int c = name[i + 1];
-                                if ((c >= '1') && (c <= '9')) // Note '0' is not special.
-                                {
-                                    return (GeneratedNameKind)(c - '0');
-                                }
-                                else if ((c >= 'a') && (c <= 'z'))
-                                {
-                                    return (GeneratedNameKind)(c - 'a' + 10);
-                                }
-                                return GeneratedNameKind.None;
+                                closeBracketOffset = i;
+                                goto found;
                             }
                             break;
                     }
                 }
+
+found:
+                if ((closeBracketOffset > openBracketOffset) &&
+                    (name[closeBracketOffset + 2] == '_') &&
+                    (name[closeBracketOffset + 3] == '_')) // Not out of range since loop ended early.
+                {
+                    int c = name[closeBracketOffset + 1];
+                    if ((c >= '1') && (c <= '9')) // Note '0' is not special.
+                    {
+                        kind = (GeneratedNameKind)(c - '0');
+                        return true;
+                    }
+                    else if ((c >= 'a') && (c <= 'z'))
+                    {
+                        kind = (GeneratedNameKind)(c - 'a' + 10);
+                        return true;
+                    }
+                }
             }
-            return GeneratedNameKind.None;
+
+            kind = GeneratedNameKind.None;
+            openBracketOffset = -1;
+            closeBracketOffset = -1;
+            return false;
         }
     }
 }

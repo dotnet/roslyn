@@ -163,21 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool TryParseIteratorName(string mangledTypeName, out string iteratorName)
         {
-            if (mangledTypeName.Length < 3 || mangledTypeName[0] != '<')
+            GeneratedNameKind kind;
+            int openBracketOffset;
+            int closeBracketOffset;
+            if (TryParseGeneratedName(mangledTypeName, out kind, out openBracketOffset, out closeBracketOffset) &&
+                (kind == GeneratedNameKind.DisplayClassType) &&
+                (openBracketOffset == 0))
             {
-                iteratorName = null;
-                return false;
+                iteratorName = mangledTypeName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+                return true;
             }
-
-            int closing = mangledTypeName.IndexOf(">d__", 1, StringComparison.Ordinal);
-            if (closing < 0)
-            {
-                iteratorName = null;
-                return false;
-            }
-
-            iteratorName = mangledTypeName.Substring(1, closing - 1);
-            return true;
+            iteratorName = null;
+            return false;
         }
 
         internal static string MakeIteratorCurrentBackingFieldName()
