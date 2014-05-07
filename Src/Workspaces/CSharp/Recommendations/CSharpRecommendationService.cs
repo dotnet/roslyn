@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 return GetSymbolsOffOffAlias(context, ((AliasQualifiedNameSyntax)node).Alias, cancellationToken);
             }
+            else if (node.CSharpKind() == SyntaxKind.MemberBindingExpression)
+            {
+                var parentConditionalAccess = node.GetAncestor<ConditionalAccessExpressionSyntax>();
+                return GetSymbolsOffOfExpression(context, parentConditionalAccess.Expression, cancellationToken);
+            }
             else
             {
                 return SpecializedCollections.EmptyEnumerable<ISymbol>();

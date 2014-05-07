@@ -5281,5 +5281,40 @@ class Program
 
             AssertFormat(expected, code, changedOptionSet: options);
         }
+
+        public void ConditionalMemberAccess()
+        {
+            var code = @"
+class A
+{
+    public A a;
+}
+
+class Program
+{
+    static void Main()
+    {
+        A a = null;
+        A ?.a = null;
+    }
+}";
+
+            var expected = @"
+class A
+{
+    public A a;
+}
+
+class Program
+{
+    static void Main()
+    {
+        A a = null;
+        A?.a = null;
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
     }
 }
