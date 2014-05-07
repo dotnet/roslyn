@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
                 CodeGenerationPropertyInfo.GetIsNew(this),
-                CodeGenerationPropertyInfo.GetIsUnsafe(this));
+                CodeGenerationPropertyInfo.GetIsUnsafe(this),
+                CodeGenerationPropertyInfo.GetInitializer(this));
 
             return result;
         }

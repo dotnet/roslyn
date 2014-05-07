@@ -1829,13 +1829,26 @@ class B : A
     internal static abstract object R { get; set; }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 34 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AutoPropertiesMustHaveBothAccessors, Line = 8, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 37 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractInConcreteClass, Line = 9, Column = 41 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractInConcreteClass, Line = 9, Column = 46 });
+            var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            CreateCompilationWithMscorlib(tree).VerifyDiagnostics(
+    // (7,38): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
+    //     protected static override object P { get { return null; } }
+    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P").WithArguments("B.P").WithLocation(7, 38),
+    // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
+    //     public static virtual object Q { get; }
+    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
+    // (8,38): error CS0840: 'B.Q.get' must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors.
+    //     public static virtual object Q { get; }
+    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("B.Q.get").WithLocation(8, 38),
+    // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
+    //     internal static abstract object R { get; set; }
+    Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
+    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract class 'B'
+    //     internal static abstract object R { get; set; }
+    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
+    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract class 'B'
+    //     internal static abstract object R { get; set; }
+    Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
         }
 
         [Fact]
@@ -10089,7 +10102,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void CS0573ERR_FieldInitializerInStruct()
+        public void CS8036ERR_FieldInitializerInStruct()
         {
             var text = @"namespace x
 {
@@ -10102,8 +10115,8 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 
     public struct cly
     {
-        clx a = new clx();   // CS0573
-        int i = 7;           // CS0573
+        clx a = new clx();   // CS8036
+        int i = 7;           // CS8036
         const int c = 1;     // no error
         static int s = 2;    // no error
     }
@@ -10111,18 +10124,18 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0573: 'x.cly.a': cannot have instance field initializers in structs
-                //         clx a = new clx();   // CS0573
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly.a"),
-                // (13,13): error CS0573: 'x.cly.i': cannot have instance field initializers in structs
-                //         int i = 7;           // CS0573
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly.i"),
-                // (13,13): warning CS0414: The field 'x.cly.i' is assigned but its value is never used
-                //         int i = 7;           // CS0573
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i"),
-                // (15,20): warning CS0414: The field 'x.cly.s' is assigned but its value is never used
-                //         static int s = 2;    // no error
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s"));
+// (12,13): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//         clx a = new clx();   // CS0573
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+// (13,13): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//         int i = 7;           // CS0573
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+// (15,20): warning CS0414: The field 'x.cly.s' is assigned but its value is never used
+//         static int s = 2;    // no error
+Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20),
+// (13,13): warning CS0414: The field 'x.cly.i' is assigned but its value is never used
+//         int i = 7;           // CS0573
+Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13));
         }
 
         [Fact]
@@ -13428,49 +13441,6 @@ class A : IFace<int>
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
-        }
-
-        [Fact]
-        public void CS0840ERR_AutoPropertiesMustHaveBothAccessors01()
-        {
-            var text = @"
-class Test
-{
-    public int myProp { get; } // CS0840
-    public int myProp2 { get; private set; }
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_AutoPropertiesMustHaveBothAccessors, Line = 4, Column = 25 }
-                });
-        }
-
-        [Fact]
-        public void CS0840ERR_AutoPropertiesMustHaveBothAccessors02()
-        {
-            var text = @"interface I
-{
-    object P { get; }
-    object Q { get; set; }
-}
-abstract class A
-{
-    public abstract object P { get; }
-    public abstract object Q { get; set; }
-}
-abstract class B : A
-{
-    public override abstract object P { get; }
-}
-class C : B
-{
-    public override object P { get; } // CS0840
-    public override object Q { get; set; }
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AutoPropertiesMustHaveBothAccessors, Line = 17, Column = 32 });
         }
 
         [Fact]
@@ -18793,3 +18763,4 @@ public class Test
         }
     }
 }
+

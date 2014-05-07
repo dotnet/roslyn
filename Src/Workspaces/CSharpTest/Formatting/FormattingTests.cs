@@ -4151,7 +4151,8 @@ class innerClass
                         SyntaxFactory.AccessorDeclaration(
                             SyntaxKind.SetAccessorDeclaration,
                             SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("c = value;"))))
-                        })));
+                        })),
+               default(EqualsValueClauseSyntax));
 
             Assert.NotNull(property);
 

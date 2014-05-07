@@ -9,9 +9,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A binding for a field initializer, constructor initializer, or parameter default value.  
-    /// Represents the result of binding an initial
-    /// value expression rather than an block (for that, use a MethodBodySemanticModel).
+    /// A binding for a field initializer, property initializer, constructor
+    /// initializer, or parameter default value. Represents the result of
+    /// binding an initial value expression rather than an block (for that,
+    /// use a MethodBodySemanticModel).
     /// </summary>
     internal sealed class InitializerSemanticModel : MemberSemanticModel
     {
@@ -19,7 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // (a) A true field initializer (field = value) of a named type (incl. Enums) OR
         // (b) A constructor initializer (": this(...)" or ": base(...)") OR
         // (c) A parameter default value
-        private InitializerSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode syntax, Symbol symbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0) :
+        private InitializerSemanticModel(CSharpCompilation compilation,
+                                         CSharpSyntaxNode syntax,
+                                         Symbol symbol,
+                                         Binder rootBinder,
+                                         SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+                                         int speculatedPosition = 0) :
             base(compilation, syntax, symbol, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
         }
@@ -31,6 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(syntax.IsKind(SyntaxKind.VariableDeclarator) || syntax.IsKind(SyntaxKind.EnumMemberDeclaration));
             return new InitializerSemanticModel(compilation, syntax, fieldSymbol, rootBinder);
+        }
+
+        /// <summary>
+        /// Creates a SemanticModel for an autoprop initializer of a named type
+        /// </summary>
+        internal static InitializerSemanticModel Create(CSharpCompilation compilation, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
+        {
+            Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration));
+            return new InitializerSemanticModel(compilation, syntax, propertySymbol, rootBinder);
         }
 
         /// <summary>
@@ -165,7 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound);
-                        return binder.BindVariableInitializer(equalsValue, fieldType, diagnostics);
+                        return binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics);
+                    }
+
+                case SymbolKind.Property:
+                    {
+                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type;
+                        return binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics);
                     }
 
                 case SymbolKind.Parameter:

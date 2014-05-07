@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
+            var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;
+
+            var initializer = initializerNode != null
+                ? SyntaxFactory.EqualsValueClause(initializerNode)
+                : default(EqualsValueClauseSyntax);
+
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
             return AddCleanupAnnotationsTo(
@@ -103,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     type: property.Type.GenerateTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     identifier: property.Name.ToIdentifierToken(),
-                    accessorList: GenerateAccessorList(property, destination, options))));
+                    accessorList: GenerateAccessorList(property, destination, options),
+                    initializer: initializer)));
         }
 
         private static AccessorListSyntax GenerateAccessorList(

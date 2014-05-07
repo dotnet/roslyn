@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (WasImplicitReceiver(receiverOpt))
             {
-                if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                if ((InFieldInitializer || InAutoPropertyInitializer) && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     CSharpSyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind == SyntaxKind.InvocationExpression)
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorNode = node.Parent;
                     }
 
-                    ErrorCode code = InFieldInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
+                    ErrorCode code = InFieldInitializer || InAutoPropertyInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
                     diagnostics.Add(code, errorNode.Location, memberSymbol);
                     return true;
                 }

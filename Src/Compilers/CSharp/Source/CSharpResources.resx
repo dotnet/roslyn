@@ -1947,9 +1947,6 @@
   <data name="ERR_MissingArgument" xml:space="preserve">
     <value>Argument missing</value>
   </data>
-  <data name="ERR_AutoPropertiesMustHaveBothAccessors" xml:space="preserve">
-    <value>'{0}' must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors.</value>
-  </data>
   <data name="ERR_VariableUsedBeforeDeclaration" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared</value>
   </data>
@@ -3815,5 +3812,20 @@
   </data>
   <data name="ERR_ImplementedInterfaceWithArguments" xml:space="preserve">
     <value>Implemented interface cannot have arguments.</value>
+  </data>
+  <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
+    <value>Only auto-implemented properties can have a initializers.</value>
+  </data>
+  <data name="ERR_AutoPropertyMustHaveSetOrInitializer" xml:space="preserve">
+    <value>Auto-implemented properties must have set accessors or initializers.</value>
+  </data>
+  <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
+    <value>Auto-implemented properties must have get accessors.</value>
+  </data>
+  <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
+    <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
+  </data>
+  <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
+    <value>Structs without explicit constructors cannot contain members with initializers.</value>
   </data>
 </root>

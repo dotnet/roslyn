@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,6 +13,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FieldTests : CSharpTestBase
     {
+        [Fact]
+        public void InitializerInStruct()
+        {
+            var text = @"struct S
+{
+    public int I = 9;
+
+    public S(int i) {}
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializerInStruct2()
+        {
+            var text = @"struct S
+{
+    public int I = 9;
+
+    public S(int i) : this() {}
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void Simple1()
         {

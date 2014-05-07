@@ -716,13 +716,36 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_AttributeUsageOnNonAttributeClass", resourceCulture);
             }
         }
-        
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must declare a body because it is not marked abstract or extern. Automatically implemented properties must define both get and set accessors..
+        ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
-        internal static string ERR_AutoPropertiesMustHaveBothAccessors {
-            get {
-                return ResourceManager.GetString("ERR_AutoPropertiesMustHaveBothAccessors", resourceCulture);
+        internal static string ERR_AutoPropertyInitializerInInterface
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_AutoPropertyInitializerInInterface", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented properties must have get accessors..
+        /// </summary>
+        internal static string ERR_AutoPropertyMustHaveGetAccessor
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_AutoPropertyMustHaveGetAccessor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented properties must have set accessors or initializers..
+        /// </summary>
+        internal static string ERR_AutoPropertyMustHaveSetOrInitializer
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_AutoPropertyMustHaveSetOrInitializer", resourceCulture);
             }
         }
         
@@ -4667,7 +4690,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_InitializerAddHasWrongSignature", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Structs without explicit constructors cannot contain members with initializers..
+        /// </summary>
+        internal static string ERR_InitializerInStructWithoutExplicitConstructor
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_InitializerInStructWithoutExplicitConstructor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only auto-implemented properties can have a initializers..
+        /// </summary>
+        internal static string ERR_InitializerOnNonAutoProperty
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_InitializerOnNonAutoProperty", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Since this struct type has a primary constructor, an instance constructor declaration cannot specify a constructor initializer that invokes default constructor..
         /// </summary>

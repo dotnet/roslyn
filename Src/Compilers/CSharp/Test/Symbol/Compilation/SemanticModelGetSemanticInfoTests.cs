@@ -3452,7 +3452,7 @@ class Test
 }
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
-  
+
             Assert.Equal("System.Byte", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Byte", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -10718,7 +10718,7 @@ public class Test
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
-            
+
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -11756,7 +11756,7 @@ namespace Test
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-        
+
         [Fact]
         public void ImplicitArrayCreationExpression_MultiDim_IdentifierNameSyntax()
         {
@@ -12298,7 +12298,7 @@ class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason); 
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
             Assert.Equal("dynamic", sortedCandidates[0].ToTestDisplayString());
@@ -13319,7 +13319,7 @@ public class B : IEnumerable
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-        
+
         [Fact]
         public void CollectionInitializer_ComplexElementInitializer_InitializerExpressionSyntax()
         {
@@ -14448,7 +14448,7 @@ class C<[T(a: 1)]T>
 {
 }
 ";
-            
+
             var comp = CreateCompilationWithMscorlib(source);
             comp.GetParseDiagnostics().Verify(); // Syntactically correct.
 
@@ -14531,7 +14531,7 @@ class C2
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new [] {sourceCode1, sourceCode2});
+            var compilation = CreateCompilationWithMscorlib(new[] { sourceCode1, sourceCode2 });
 
             for (int i = 0; i < 2; i++)
             {
@@ -14787,7 +14787,7 @@ namespace Test
             var x3 = new Test.I() {1, 2};
         }
     }
-}", references: new [] {new CSharpCompilationReference(pia, embedInteropTypes:true)});
+}", references: new[] { new CSharpCompilationReference(pia, embedInteropTypes: true) });
 
             compilation.VerifyDiagnostics();
 
@@ -15119,7 +15119,56 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [Fact]
+        public void AutoPropertyInitializerInClassPrimaryConstructor()
+        {
+            string sourceCode = @"
 
+class Program(int i)
+{
+    public int P { get; } = /*<bind>*/i/*</bind>*/;
+}";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void AutoPropertyInitializerInStructPrimaryConstructor()
+        {
+            string sourceCode = @"
+struct Program(int i)
+{
+    public int P { get; } = /*<bind>*/i/*</bind>*/;
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("int", semanticInfo.Type.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("int", semanticInfo.ConvertedType.ToDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("int", semanticInfo.Symbol.ToDisplayString());
+            Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
     }
 }

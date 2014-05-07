@@ -19,6 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
+        {
+            SyntaxTokenList modifiers = declarationSyntax.Modifiers;
+            // Skip attributes
+            int start = modifiers.Any() ? modifiers[0].SpanStart : declarationSyntax.Type.SpanStart;
+            int end = declarationSyntax.Span.End;
+            TextSpan part = TextSpan.FromBounds(start, end);
+
+            var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
+            result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
+            return result;
+        }
+
         internal static void GetBreakpointSpan(VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;

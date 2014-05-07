@@ -3184,7 +3184,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             thisParam = containingMember.EnclosingThisSymbol();
                             break;
 
+                        // Fields and properties can't access 'this' since
+                        // initializers are run in the constructor    
                         case SymbolKind.Field:
+                        case SymbolKind.Property:
                             resultKind = LookupResultKind.NotReferencable;
                             thisParam = containingMember.EnclosingThisSymbol() ?? new ThisParameterSymbol(null, containingType);
                             break;

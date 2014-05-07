@@ -821,6 +821,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 null;
                         }
 
+                    case SyntaxKind.PropertyDeclaration:
+                        {
+                            var propertyDecl = (PropertyDeclarationSyntax)memberDecl;
+                            return (propertyDecl.Initializer != null) ?
+                                    GetOrAddModelIfContains(propertyDecl.Initializer, span) :
+                                    null;
+                        }
+
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
                     case SyntaxKind.AddAccessorDeclaration:
@@ -936,6 +944,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
                                     GetFieldInitializerBinder(fieldSymbol, outer));
+                            }
+
+                        case SyntaxKind.PropertyDeclaration:
+                            {
+                                var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
+                                var propertySymbol = (SourcePropertySymbol)GetDeclaredSymbol(propertyDecl);
+                                return InitializerSemanticModel.Create(
+                                    this.Compilation,
+                                    propertyDecl,
+                                    propertySymbol,
+                                    GetPropertyInitializerBinder(propertySymbol, outer));
                             }
 
                         case SyntaxKind.Parameter:
@@ -1071,6 +1090,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        private Binder GetPropertyInitializerBinder(PropertySymbol propertySymbol, Binder outer)
+        {
+            BinderFlags flags = outer.Flags | BinderFlags.AutoPropertyInitializer;
+
+            var withPrimaryConstructor =
+                outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType, shadowBackingFields: true);
+
+            return new LocalScopeBinder(withPrimaryConstructor.WithAdditionalFlagsAndContainingMemberOrLambda(
+                flags, propertySymbol));
+        }
+
 
         private Binder GetFieldInitializerBinder(FieldSymbol fieldSymbol, Binder outer)
         {

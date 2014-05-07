@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SourceMemberFieldSymbol : SourceFieldSymbolWithSyntaxReference
     {
         private readonly DeclarationModifiers modifiers;
+        private readonly bool hasInitializer;
 
         private TypeSymbol lazyType;
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
         {
             this.modifiers = modifiers;
+            this.hasInitializer = declarator.Initializer != null;
 
             this.CheckAccessibility(diagnostics);
 
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 diagnostics.Add(ErrorCode.ERR_BadConstType, constToken.GetLocation(), type);
             }
-            else
+            else if (IsVolatile && !type.IsValidVolatileFieldType())
             {
                 if (ContainingType.TypeKind == TypeKind.Struct && !IsStatic && !IsConst)
                 {
@@ -92,12 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (IsVolatile && !type.IsValidVolatileFieldType())
-                {
                     // '{0}': a volatile field cannot be of the type '{1}'
                     diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
                 }
-            }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
@@ -107,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(this.ErrorLocation, useSiteDiagnostics);
+        }
+
+        public bool HasInitializer
+        {
+            get { return hasInitializer; }
         }
 
         public VariableDeclaratorSyntax VariableDeclaratorNode
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
         {
-            get 
+            get
             {
                 if (this.containingType.AnyMemberHasAttributes)
                 {
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeChecks(type, fieldSyntax, declarator, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
-                compilation.SemanticDiagnostics.AddRange(diagnostics); 
+                compilation.SemanticDiagnostics.AddRange(diagnostics);
 
                 bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
                 if (isFirstDeclarator)
@@ -372,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
         {
             EqualsValueClauseSyntax initializer;
-            return !this.IsConst || ((initializer = VariableDeclaratorNode.Initializer) == null) 
+            return !this.IsConst || ((initializer = VariableDeclaratorNode.Initializer) == null)
                 ? null
                 : ConstantValueUtils.EvaluateFieldConstant(this, initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -130,16 +130,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var propertySyntax = syntax as PropertyDeclarationSyntax;
+            bool hasInitializer = propertySyntax != null && propertySyntax.Initializer != null;
+            if (containingType.IsInterface && hasInitializer)
+            {
+                diagnostics.Add(ErrorCode.ERR_AutoPropertyInitializerInInterface, location, this);
+            }
+
             if (generateBackingField)
             {
-                if (getSyntax != null && setSyntax != null)
+                var hasGetSyntax = getSyntax != null;
+                if (hasGetSyntax && setSyntax != null
+                    || (hasGetSyntax && hasInitializer))
                 {
                     //issue a diagnostic if the compiler generated attribute ctor is not found.
                     Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
 
                     string fieldName = GeneratedNames.MakeBackingFieldName(this.sourceName);
-                    this.backingField = new SynthesizedBackingFieldSymbol(this, fieldName, this.IsStatic);
+                    bool isReadOnly = hasGetSyntax && setSyntax == null;
+                    this.backingField = new SynthesizedBackingFieldSymbol(this,
+                                                                          fieldName,
+                                                                          isReadOnly,
+                                                                          this.IsStatic,
+                                                                          hasInitializer);
                 }
 
                 Binder.CheckFeatureAvailability(location, MessageID.IDS_FeatureAutoImplementedProperties, diagnostics);
@@ -219,7 +233,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (generateBackingField)
                 {
                     var accessor = this.getMethod ?? this.setMethod;
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertiesMustHaveBothAccessors, accessor.Locations[0], accessor);
+                    if (getSyntax == null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, accessor.Locations[0], accessor);
+                    }
+                    else if (propertySyntax != null && propertySyntax.Initializer == null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, accessor.Locations[0], accessor);
+                    }
                 }
             }
 
@@ -506,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Backing field for automatically implemented property.
-        internal FieldSymbol BackingField
+        internal SynthesizedBackingFieldSymbol BackingField
         {
             get { return this.backingField; }
         }

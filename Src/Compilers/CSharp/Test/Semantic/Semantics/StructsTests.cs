@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var text = @"
 public struct A
 {
-    A a = new A();   // CS0573
+    A a = new A();   // CS8036
     public static int Main() { return 1; }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,7): error CS0573: 'A.a': cannot have instance field initializers in structs
-                //     A a = new A();   // CS0573
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A.a"),
-                // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-                //     A a = new A();   // CS0573
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A"),
-                // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
-                //     A a = new A();   // CS0573
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a"));
+// (4,7): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//     A a = new A();   // CS8036
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("A.a").WithLocation(4, 7),
+// (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+//     A a = new A();   // CS8036
+Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+// (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+//     A a = new A();   // CS8036
+Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         // Test constructor forwarding works for structs

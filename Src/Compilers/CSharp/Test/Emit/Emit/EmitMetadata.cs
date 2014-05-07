@@ -930,6 +930,129 @@ class C : I
             CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
         }
 
+        [Fact]
+        public void AutoPropInitializersClass()
+        {
+            var comp = CreateCompilationWithMscorlib(@"using System;
+class C
+{
+    public int P { get; set; } = 1;
+    public string Q { get; set; } = ""test"";
+    public decimal R { get; } = 300;
+    public static char S { get; } = 'S';
+
+    static void Main()
+    {
+        var c = new C();
+        Console.Write(c.P);
+        Console.Write(c.Q);
+        Console.Write(c.R);
+        Console.Write(C.S);
+    }
+}", parseOptions: TestOptions.ExperimentalParseOptions);
+            Action<ModuleSymbol> validator = module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+
+                var p = type.GetMember<SourcePropertySymbol>("P");
+                var pBack = p.BackingField;
+                Assert.False(pBack.IsReadOnly);
+                Assert.False(pBack.IsStatic);
+                Assert.Equal(pBack.Type.SpecialType, SpecialType.System_Int32);
+
+                var q = type.GetMember<SourcePropertySymbol>("Q");
+                var qBack = q.BackingField;
+                Assert.False(qBack.IsReadOnly);
+                Assert.False(qBack.IsStatic);
+                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+
+                var r = type.GetMember<SourcePropertySymbol>("R");
+                var rBack = r.BackingField;
+                Assert.True(rBack.IsReadOnly);
+                Assert.False(rBack.IsStatic);
+                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+
+                var s = type.GetMember<SourcePropertySymbol>("S");
+                var sBack = s.BackingField;
+                Assert.True(sBack.IsReadOnly);
+                Assert.True(sBack.IsStatic);
+                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+            };
+
+            CompileAndVerify(
+                comp,
+                sourceSymbolValidator: validator,
+                expectedOutput: "1test300S");
+        }
+
+        [Fact]
+        public void AutoPropInitializersStruct()
+        {
+            var comp = CreateCompilationWithMscorlib(@"using System;
+struct S
+{
+    public readonly int P;
+    public string Q { get; set; } = ""test"";
+    public decimal R { get; } = 300;
+    public static char T { get; } = 'T';
+
+    public S(int p)
+    {
+        P = p;
+    }
+
+    static void Main()
+    {
+        var s = new S(1);
+        Console.Write(s.P);
+        Console.Write(s.Q);
+        Console.Write(s.R);
+        Console.Write(S.T);
+
+        s = new S();
+        Console.Write(s.P);
+        Console.Write(s.Q == null);
+        Console.Write(s.R);
+        Console.Write(S.T);
+    }
+}", parseOptions: TestOptions.ExperimentalParseOptions);
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+
+                var p = type.GetMember<SourceMemberFieldSymbol>("P");
+                Assert.False(p.HasInitializer);
+                Assert.True(p.IsReadOnly);
+                Assert.False(p.IsStatic);
+                Assert.Equal(p.Type.SpecialType, SpecialType.System_Int32);
+
+                var q = type.GetMember<SourcePropertySymbol>("Q");
+                var qBack = q.BackingField;
+                Assert.False(qBack.IsReadOnly);
+                Assert.False(qBack.IsStatic);
+                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+
+                var r = type.GetMember<SourcePropertySymbol>("R");
+                var rBack = r.BackingField;
+                Assert.True(rBack.IsReadOnly);
+                Assert.False(rBack.IsStatic);
+                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+
+                var s = type.GetMember<SourcePropertySymbol>("T");
+                var sBack = s.BackingField;
+                Assert.True(sBack.IsReadOnly);
+                Assert.True(sBack.IsStatic);
+                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+            };
+
+            CompileAndVerify(
+                comp,
+                sourceSymbolValidator: validator,
+                expectedOutput: "1test300T0True0T");
+        }
+
+
         /// <summary>
         /// Private accessors of a virtual property should not be virtual.
         /// </summary>

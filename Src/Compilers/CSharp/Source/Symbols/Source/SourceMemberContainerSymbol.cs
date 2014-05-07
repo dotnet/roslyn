@@ -2191,6 +2191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (TypeKind)
             {
                 case TypeKind.Struct:
+                    CheckForStructBadInitializers(builder, diagnostics);
+                    goto case TypeKind.Enum;
+
                 case TypeKind.Enum:
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
@@ -2653,6 +2656,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case SymbolKind.Property:
+                    break;
+
                 case SymbolKind.Event:
                     break;
 
@@ -2671,6 +2676,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
                         diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
+                    }
+                }
+            }
+        }
+
+        private void CheckForStructBadInitializers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(TypeKind == TypeKind.Struct);
+            if (builder.InstanceInitializers.Count > 0)
+            {
+                var members = builder.NonTypeNonIndexerMembers;
+                foreach (var s in members)
+                {
+                    if (s.Kind == SymbolKind.Method)
+                    {
+                        var method = s as MethodSymbol;
+                        if (method.MethodKind == MethodKind.Constructor
+                            && !method.IsParameterlessValueTypeConstructor())
+                        {
+                            return;
+                        }
+
+                    }
+                }
+
+                foreach (var s in members)
+                {
+                    var p = s as SourcePropertySymbol;
+                    if (p != null && !p.IsStatic && p.IsAutoProperty
+                        && p.BackingField.HasInitializer)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
+                            p.Location, p);
+                    }
+                    else
+                    {
+                        var f = s as SourceMemberFieldSymbol;
+                        if (f != null && !f.IsStatic && f.HasInitializer)
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor,
+                                f.Locations[0], f);
+                        }
                     }
                 }
             }
@@ -2910,6 +2959,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)property.BackingField != null)
                             {
                                 result.NonTypeNonIndexerMembers.Add(property.BackingField);
+
+                                var initializer = propertySyntax.Initializer;
+                                if (initializer != null)
+                                {
+                                    if (property.IsStatic)
+                                    {
+                                        AddInitializer(ref staticInitializers, property.BackingField, initializer);
+                                    }
+                                    else
+                                    {
+                                        AddInitializer(ref instanceInitializers, property.BackingField, initializer);
+                                    }
+                                }
                             }
                         }
                         break;

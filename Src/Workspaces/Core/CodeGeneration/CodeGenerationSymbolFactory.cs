@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -36,10 +36,33 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        internal static IPropertySymbol CreatePropertySymbol(INamedTypeSymbol containingType, IList<AttributeData> attributes, Accessibility accessibility, SymbolModifiers modifiers, ITypeSymbol type, IPropertySymbol explicitInterfaceSymbol, string name, IList<IParameterSymbol> parameters, IMethodSymbol getMethod, IMethodSymbol setMethod, bool isIndexer = false)
+        internal static IPropertySymbol CreatePropertySymbol(
+            INamedTypeSymbol containingType,
+            IList<AttributeData> attributes,
+            Accessibility accessibility,
+            SymbolModifiers modifiers,
+            ITypeSymbol type,
+            IPropertySymbol explicitInterfaceSymbol,
+            string name,
+            IList<IParameterSymbol> parameters,
+            IMethodSymbol getMethod,
+            IMethodSymbol setMethod,
+            bool isIndexer = false,
+            SyntaxNode initializer = null)
         {
-            var result = new CodeGenerationPropertySymbol(containingType, attributes, accessibility, modifiers, type, explicitInterfaceSymbol, name, isIndexer, parameters, getMethod, setMethod);
-            CodeGenerationPropertyInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe);
+            var result = new CodeGenerationPropertySymbol(
+                containingType,
+                attributes,
+                accessibility,
+                modifiers,
+                type,
+                explicitInterfaceSymbol,
+                name,
+                isIndexer,
+                parameters,
+                getMethod,
+                setMethod);
+            CodeGenerationPropertyInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, initializer);
             return result;
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -259,6 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var field in emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
                         {
                             if (emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
+
+                            var sourceField = field as SourceMemberFieldSymbol;
+                            if ((object)sourceField != null && sourceField.HasInitializer) continue;
+
+                            var backingField = field as SynthesizedBackingFieldSymbol;
+                            if ((object)backingField != null && backingField.HasInitializer) continue;
+
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {

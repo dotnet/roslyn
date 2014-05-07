@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3095,13 +3095,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var accessorList = this.ParseAccessorList(isEvent: false);
 
+            EqualsValueClauseSyntax initializer = null;
+            SyntaxToken semicolon = null;
+            // Check if we have an initializer
+            if (SyntaxKind.EqualsToken == this.CurrentToken.Kind
+                && this.Options.LanguageVersion == LanguageVersion.Experimental)
+            {
+                var equals = this.EatToken(SyntaxKind.EqualsToken);
+                var value = this.ParseExpression();
+
+                initializer = syntaxFactory.EqualsValueClause(equals, value);
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
+
             var decl = syntaxFactory.PropertyDeclaration(
                 attributes,
                 modifiers.ToTokenList(),
                 type,
                 explicitInterfaceOpt,
                 identifier,
-                accessorList);
+                accessorList,
+                initializer,
+                semicolon);
 
             decl = EatUnexpectedTrailingSemicolon(decl);
 

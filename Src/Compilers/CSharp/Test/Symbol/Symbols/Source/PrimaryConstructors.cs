@@ -1429,12 +1429,6 @@ struct Derived(int p1, int p2 = Base.f0, int p3 = 0, int p4 = 0, int p5 = 0, int
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (22,17): error CS0573: 'Derived.x': cannot have instance field initializers in structs
-    //     private int x = p4;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived.x").WithLocation(22, 17),
-    // (59,32): error CS0573: 'Derived.E2': cannot have instance field initializers in structs
-    //     public event System.Action E2 = GetAction(p11);
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E2").WithArguments("Derived.E2").WithLocation(59, 32),
     // (61,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12").WithLocation(61, 24),
@@ -2205,12 +2199,6 @@ struct Derived(ref int p1, ref int p2, ref int p3, ref int p4, ref int p5, ref i
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             comp.VerifyDiagnostics(
-    // (14,17): error CS0573: 'Derived.x': cannot have instance field initializers in structs
-    //     private int x = p4;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "x").WithArguments("Derived.x"),
-    // (51,32): error CS0573: 'Derived.E2': cannot have instance field initializers in structs
-    //     public event System.Action E2 = GetAction(p11);
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E2").WithArguments("Derived.E2"),
     // (53,24): error CS9007: Parameters of a primary constructor can only be accessed in instance variable initializers and arguments to the base constructor.
     //     void Test2(int x = p12)
     Diagnostic(ErrorCode.ERR_InvalidUseOfPrimaryConstructorParameter, "p12"),

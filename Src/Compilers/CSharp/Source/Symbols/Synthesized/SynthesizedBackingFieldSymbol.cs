@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,13 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedBackingFieldSymbol : SynthesizedFieldSymbolBase
     {
         private readonly SourcePropertySymbol property;
+        private readonly bool hasInitializer;
 
-        public SynthesizedBackingFieldSymbol(SourcePropertySymbol property, string name, bool isStatic)
-            : base(property.ContainingType, name, isPublic: false, isReadOnly: false, isStatic: isStatic)
+        public SynthesizedBackingFieldSymbol(
+            SourcePropertySymbol property,
+            string name,
+            bool isReadOnly,
+            bool isStatic,
+            bool hasInitializer)
+            : base(property.ContainingType, name, isPublic: false, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
 
             this.property = property;
+            this.hasInitializer = hasInitializer;
+        }
+
+        public bool HasInitializer
+        {
+            get { return hasInitializer; }
         }
 
         public override Symbol AssociatedSymbol

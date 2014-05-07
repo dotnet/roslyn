@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inTopLevelScriptMember = (object)containingType != null && containingType.IsScriptClass;
 
             // "this" is not allowed in field initializers (that are not script variable initializers):
-            if (InFieldInitializer && !inTopLevelScriptMember)
+            if ((InFieldInitializer || InAutoPropertyInitializer) && !inTopLevelScriptMember)
             {
                 return false;
             }
@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool InFieldInitializer
         {
             get { return this.Flags.Includes(BinderFlags.FieldInitializer); }
+        }
+
+        protected bool InAutoPropertyInitializer
+        {
+            get { return this.Flags.Includes(BinderFlags.AutoPropertyInitializer); }
         }
 
         protected bool InConstructorInitializer
@@ -233,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckValue(result, valueKind, diagnostics);
         }
 
-        internal BoundExpression BindVariableInitializer(
+        internal BoundExpression BindVariableOrAutoPropInitializer(
             EqualsValueClauseSyntax initializerOpt,
             TypeSymbol varType,
             DiagnosticBag diagnostics)
@@ -1317,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
-                if (InFieldInitializer && !currentType.IsScriptClass)
+                if ((InFieldInitializer || InAutoPropertyInitializer) && !currentType.IsScriptClass)
                 {
                     //can't access "this" in field initializers
                     Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);

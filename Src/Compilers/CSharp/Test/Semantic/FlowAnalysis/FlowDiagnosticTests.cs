@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -915,28 +915,26 @@ class Program
             string program = @"
 public struct A
 {
-    A a = new A(); // CS0573
+    A a = new A(); // CS8036
     public static void Main()
     {
         A a = new A();
     }
 }
 ";
-            CreateCompilationWithMscorlib(program)
-                .VerifyDiagnostics(
-                // (4,7): error CS0573: 'A.a': cannot have instance field initializers in structs
-                //     A a = new A(); // CS0573
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A.a"),
-                // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-                //     A a = new A(); // CS0573
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A"),
-                // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
-                //         A a = new A();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a"),
-                // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
-                //     A a = new A(); // CS0573
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a")
-                );
+            CreateCompilationWithMscorlib(program).VerifyDiagnostics(
+// (4,7): error CS8036: Structs without explicit constructors cannot contain members with initializers.
+//     A a = new A(); // CS8036
+Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "a").WithArguments("A.a").WithLocation(4, 7),
+// (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+//     A a = new A(); // CS8036
+Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+// (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
+//         A a = new A();
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
+// (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+//     A a = new A(); // CS8036
+Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         [WorkItem(542356, "DevDiv")]
@@ -1236,7 +1234,7 @@ public struct S
         }
 
         [Fact]
-        public void AutopropInitialization()
+        public void AutoPropInitialization1()
         {
             string program = @"
 struct Program
@@ -1249,10 +1247,48 @@ struct Program
     {
     }
 }";
-            CreateCompilationWithMscorlib(program)
+            CreateCompilationWithMscorlib(program, parseOptions: TestOptions.ExperimentalParseOptions)
                 .VerifyDiagnostics(
                 // (5,12): error CS0843: Backing field for automatically implemented property 'Program.X' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X"));
+        }
+
+        [Fact]
+        public void AutoPropInitialization2()
+        {
+            var text = @"struct S
+{
+    public int P { get; set; } = 1;
+    internal static long Q { get; } = 10;
+    public decimal R { get; } = 300;
+
+    public S(int i) {}
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AutoPropInitialization3()
+        {
+            var text = @"struct S
+{
+    public int P { get; private set; }
+    internal static long Q { get; } = 10;
+    public decimal R { get; } = 300;
+
+    public S(int p)
+    {
+        P = p;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics(
+    // (9,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+    //         P = p;
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "P").WithArguments("this").WithLocation(9, 9));
         }
 
         [Fact]

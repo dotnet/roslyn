@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return collisionDetector.BindVariableInitializer(initializer, fieldSymbol.Type, diagnostics);
+                return collisionDetector.BindVariableOrAutoPropInitializer(initializer, fieldSymbol.Type, diagnostics);
             }
         }
 
