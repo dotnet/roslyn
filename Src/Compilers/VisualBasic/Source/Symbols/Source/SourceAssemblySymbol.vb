@@ -1412,10 +1412,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If Not options.Optimize Then
                         debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.DisableOptimizations
+                    End If
 
-                        If options.DebugInformationKind = DebugInformationKind.Full Then
-                            debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.EnableEditAndContinue
-                        End If
+                    If options.EnableEditAndContinue Then
+                        debuggingMode = debuggingMode Or DebuggableAttribute.DebuggingModes.EnableEditAndContinue
                     End If
 
                     Dim typedConstantDebugMode = New TypedConstant(int32Type, TypedConstantKind.Enum, CInt(debuggingMode))

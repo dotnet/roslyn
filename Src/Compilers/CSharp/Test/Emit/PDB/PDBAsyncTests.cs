@@ -378,28 +378,28 @@ class TestCase
         <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x19"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x230"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x232"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x234"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x24c"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x254"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x235"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x237"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x239"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x251"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x259"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x261"" attributes=""0"" />
-        <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x232"" attributes=""0"" />
-        <local name=""&lt;&gt;t__ex"" il_index=""8"" il_start=""0x232"" il_end=""0x24c"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""0"" />
+        <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
+        <local name=""&lt;&gt;t__ex"" il_index=""9"" il_start=""0x237"" il_end=""0x251"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x261"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x261"" attributes=""0"" />
-        <scope startOffset=""0x19"" endOffset=""0x232"">
-          <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x232"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x266"">
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x266"" attributes=""0"" />
+        <scope startOffset=""0x19"" endOffset=""0x237"">
+          <local name=""rez"" il_index=""1"" il_start=""0x19"" il_end=""0x237"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x232"" endOffset=""0x24c"">
-          <local name=""&lt;&gt;t__ex"" il_index=""8"" il_start=""0x232"" il_end=""0x24c"" attributes=""0"" />
+        <scope startOffset=""0x237"" endOffset=""0x251"">
+          <local name=""&lt;&gt;t__ex"" il_index=""9"" il_start=""0x237"" il_end=""0x251"" attributes=""0"" />
         </scope>
       </scope>
-      <async-info kickoff-method=""100663297"" catch-IL-offset=""564"">
-        <await yield=""340"" resume=""417"" method=""100663299"" />
+      <async-info kickoff-method=""100663297"" catch-IL-offset=""569"">
+        <await yield=""340"" resume=""422"" method=""100663300"" />
       </async-info>
     </method>
   </methods>
@@ -451,7 +451,7 @@ class C
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__2"" parameterNames="""" />
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x30"" endOffset=""0x1CF"" />
+          <bucket startOffset=""0x30"" endOffset=""0x1D8"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""16"">
@@ -464,28 +464,28 @@ class C
         <entry il_offset=""0x54"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""21"" file_ref=""0"" />
         <entry il_offset=""0x60"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""47"" file_ref=""0"" />
         <entry il_offset=""0x77"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0xea"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x15d"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1cd"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1cf"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1d1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1e8"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1f0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xed"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x163"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""21"" file_ref=""0"" />
+        <entry il_offset=""0x1d6"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1d8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1db"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x1f3"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1fb"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x1fd"" attributes=""0"" />
-        <local name=""&lt;&gt;t__ex"" il_index=""3"" il_start=""0x1cf"" il_end=""0x1e8"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""0"" />
+        <local name=""&lt;&gt;t__ex"" il_index=""4"" il_start=""0x1d8"" il_end=""0x1f3"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x1fd"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x1fd"" attributes=""0"" />
-        <scope startOffset=""0x1cf"" endOffset=""0x1e8"">
-          <local name=""&lt;&gt;t__ex"" il_index=""3"" il_start=""0x1cf"" il_end=""0x1e8"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x208"">
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x208"" attributes=""0"" />
+        <scope startOffset=""0x1d8"" endOffset=""0x1f3"">
+          <local name=""&lt;&gt;t__ex"" il_index=""4"" il_start=""0x1d8"" il_end=""0x1f3"" attributes=""0"" />
         </scope>
       </scope>
       <async-info kickoff-method=""100663297"">
-        <await yield=""161"" resume=""188"" method=""100663301"" />
-        <await yield=""276"" resume=""303"" method=""100663301"" />
-        <await yield=""391"" resume=""415"" method=""100663301"" />
+        <await yield=""161"" resume=""191"" method=""100663302"" />
+        <await yield=""279"" resume=""309"" method=""100663302"" />
+        <await yield=""397"" resume=""424"" method=""100663302"" />
       </async-info>
     </method>
   </methods>
@@ -549,28 +549,28 @@ class C
         <entry il_offset=""0x2b"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""21"" file_ref=""0"" />
         <entry il_offset=""0x32"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""47"" file_ref=""0"" />
         <entry il_offset=""0x44"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""47"" file_ref=""0"" />
-        <entry il_offset=""0xb0"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xb2"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xb5"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xcd"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0xd5"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xb4"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xb6"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xb9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0xd1"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0xd9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe2"" attributes=""0"" />
-        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb2"" attributes=""0"" />
-        <local name=""&lt;&gt;t__ex"" il_index=""4"" il_start=""0xb2"" il_end=""0xcd"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""0"" />
+        <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""0"" />
+        <local name=""&lt;&gt;t__ex"" il_index=""5"" il_start=""0xb6"" il_end=""0xd1"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0xe2"">
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe2"" attributes=""0"" />
-        <scope startOffset=""0x16"" endOffset=""0xb2"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb2"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xe6"">
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0xe6"" attributes=""0"" />
+        <scope startOffset=""0x16"" endOffset=""0xb6"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x16"" il_end=""0xb6"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0xb2"" endOffset=""0xcd"">
-          <local name=""&lt;&gt;t__ex"" il_index=""4"" il_start=""0xb2"" il_end=""0xcd"" attributes=""0"" />
+        <scope startOffset=""0xb6"" endOffset=""0xd1"">
+          <local name=""&lt;&gt;t__ex"" il_index=""5"" il_start=""0xb6"" il_end=""0xd1"" attributes=""0"" />
         </scope>
       </scope>
       <async-info kickoff-method=""100663297"">
-        <await yield=""106"" resume=""130"" method=""100663301"" />
+        <await yield=""106"" resume=""134"" method=""100663302"" />
       </async-info>
     </method>
   </methods>
@@ -622,7 +622,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <iteratorLocals version=""4"" kind=""IteratorLocals"" size=""20"" bucketCount=""1"">
-          <bucket startOffset=""0x19"" endOffset=""0x288"" />
+          <bucket startOffset=""0x19"" endOffset=""0x28D"" />
         </iteratorLocals>
       </customDebugInfo>
       <sequencepoints total=""11"">
@@ -631,27 +631,27 @@ class C
         <entry il_offset=""0x19"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""23"" file_ref=""0"" />
         <entry il_offset=""0x26"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x22e"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x286"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x288"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x28b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x2a3"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x2ab"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x233"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""22"" file_ref=""0"" />
+        <entry il_offset=""0x28b"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x28d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x290"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x2a8"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x2b0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2b8"" attributes=""0"" />
-        <local name=""&lt;&gt;t__ex"" il_index=""5"" il_start=""0x288"" il_end=""0x2a3"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""0"" />
+        <local name=""&lt;&gt;t__ex"" il_index=""6"" il_start=""0x28d"" il_end=""0x2a8"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x2b8"">
+      <scope startOffset=""0x0"" endOffset=""0x2bd"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2b8"" attributes=""0"" />
-        <scope startOffset=""0x288"" endOffset=""0x2a3"">
-          <local name=""&lt;&gt;t__ex"" il_index=""5"" il_start=""0x288"" il_end=""0x2a3"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x2bd"" attributes=""0"" />
+        <scope startOffset=""0x28d"" endOffset=""0x2a8"">
+          <local name=""&lt;&gt;t__ex"" il_index=""6"" il_start=""0x28d"" il_end=""0x2a8"" attributes=""0"" />
         </scope>
       </scope>
       <async-info kickoff-method=""100663297"">
-        <await yield=""376"" resume=""448"" method=""100663299"" />
+        <await yield=""376"" resume=""453"" method=""100663300"" />
       </async-info>
     </method>
   </methods>
@@ -699,30 +699,30 @@ class C
         <entry il_offset=""0x19"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
         <entry il_offset=""0x1a"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""23"" file_ref=""0"" />
         <entry il_offset=""0x21"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x227"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x229"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x22c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x244"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x24c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x22c"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x22e"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x231"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
+        <entry il_offset=""0x249"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x251"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
       </sequencepoints>
       <locals>
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""0"" />
-        <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x229"" attributes=""0"" />
-        <local name=""&lt;&gt;t__ex"" il_index=""6"" il_start=""0x229"" il_end=""0x244"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""0"" />
+        <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
+        <local name=""&lt;&gt;t__ex"" il_index=""7"" il_start=""0x22e"" il_end=""0x249"" attributes=""0"" />
       </locals>
-      <scope startOffset=""0x0"" endOffset=""0x259"">
+      <scope startOffset=""0x0"" endOffset=""0x25e"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
-        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x259"" attributes=""0"" />
-        <scope startOffset=""0x19"" endOffset=""0x229"">
-          <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x229"" attributes=""0"" />
+        <local name=""cachedState"" il_index=""0"" il_start=""0x0"" il_end=""0x25e"" attributes=""0"" />
+        <scope startOffset=""0x19"" endOffset=""0x22e"">
+          <local name=""d"" il_index=""1"" il_start=""0x19"" il_end=""0x22e"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x229"" endOffset=""0x244"">
-          <local name=""&lt;&gt;t__ex"" il_index=""6"" il_start=""0x229"" il_end=""0x244"" attributes=""0"" />
+        <scope startOffset=""0x22e"" endOffset=""0x249"">
+          <local name=""&lt;&gt;t__ex"" il_index=""7"" il_start=""0x22e"" il_end=""0x249"" attributes=""0"" />
         </scope>
       </scope>
       <async-info kickoff-method=""100663297"">
-        <await yield=""366"" resume=""441"" method=""100663299"" />
+        <await yield=""366"" resume=""446"" method=""100663300"" />
       </async-info>
     </method>
   </methods>

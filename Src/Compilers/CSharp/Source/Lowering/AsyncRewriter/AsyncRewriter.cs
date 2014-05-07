@@ -31,9 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
+            // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
+            var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
+
             var bodyWithAwaitLifted = AwaitLiftingRewriter.Rewrite(body, method, compilationState, diagnostics);
 
-            stateMachineType = new AsyncStateMachine(method);
+            stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics, generateDebugInfo);
             if (!rewriter.constructedSuccessfully)
@@ -85,23 +88,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
 
             // Add IAsyncStateMachine.MoveNext()
-            {
-                var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
-                GenerateMoveNext(moveNextMethod);
-            }
+            
+            var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
+            GenerateMoveNext(moveNextMethod);
 
             // Add IAsyncStateMachine.SetStateMachine()
+            
+            OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
+            F.CloseMethod(
+                F.Block(
+                    // this.builderField.SetStateMachine(sm)
+                    F.ExpressionStatement(
+                        F.Call(
+                            F.Field(F.This(), builderField),
+                            asyncMethodBuilderMemberCollection.SetStateMachine,
+                            new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
+                    F.Return()));
+
+            // Constructor
+            if (stateMachineClass.TypeKind == TypeKind.Class)
             {
-                OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
-                F.CloseMethod(
-                    F.Block(
-                        // this.builderField.SetStateMachine(sm)
-                        F.ExpressionStatement(
-                            F.Call(
-                                F.Field(F.This(), builderField),
-                                asyncMethodBuilderMemberCollection.SetStateMachine,
-                                new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
-                        F.Return()));
+                F.CurrentMethod = stateMachineClass.Constructor;
+                F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }
 
