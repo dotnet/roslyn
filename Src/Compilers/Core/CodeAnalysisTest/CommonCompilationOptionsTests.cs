@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "CryptoKeyFile",
                 "DebugInformationKind",
                 "DelaySign",
-                "EnableEditAndContinue",
                 "Errors",
                 "Features",
                 "FileAlignment",

@@ -174,11 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThisReference(Syntax, CurrentMethod.ThisParameter.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression This(LocalSymbol thisTempOpt)
-        {
-            return (thisTempOpt != null) ? Local(thisTempOpt) : (BoundExpression)This();
-        }
-
         public BoundBaseReference Base()
         {
             Debug.Assert((object)CurrentMethod != null && !CurrentMethod.IsStatic);

@@ -11,16 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AsyncStateMachine : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly TypeKind typeKind;
         private readonly MethodSymbol constructor;
         private readonly MethodSymbol asyncMethod;
         private readonly ImmutableArray<NamedTypeSymbol> interfaces;
 
-        public AsyncStateMachine(MethodSymbol asyncMethod, TypeKind typeKind)
+        public AsyncStateMachine(MethodSymbol asyncMethod)
             : base(GeneratedNames.MakeIteratorOrAsyncDisplayClassName(asyncMethod.Name, SequenceNumber(asyncMethod)), asyncMethod)
         {
             // TODO: report use-site errors on these types
-            this.typeKind = typeKind;
             this.asyncMethod = asyncMethod;
             this.interfaces = ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine));
             this.constructor = new AsyncConstructor(this);
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override TypeKind TypeKind
         {
-            get { return typeKind; }
+            get { return TypeKind.Struct; }
         }
 
         internal override MethodSymbol Constructor

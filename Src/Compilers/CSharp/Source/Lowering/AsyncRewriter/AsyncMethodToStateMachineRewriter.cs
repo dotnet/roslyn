@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
+    sealed internal class AsyncMethodToStateMachineRewriter : MethodToStateMachineRewriter
     {
         /// <summary>
         /// The method being rewritten.
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool generateDebugInfo)
             : base(F, method, state, variablesCaptured, initialProxies, diagnostics,
-                   useFinalizerBookkeeping: false,
-                   generateDebugInfo: generateDebugInfo)
+                    useFinalizerBookkeeping: false,
+                    generateDebugInfo: generateDebugInfo)
         {
             this.method = method;
             this.asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = F.StateMachineField(awaiterType, GeneratedNames.AsyncAwaiterFieldName(CompilationState.GenerateTempNumber()), isPublic: true);
                 awaiterFields.Add(awaiterType, result);
             }
-
             return result;
         }
 
@@ -117,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Try(
                     F.Block(
                         ImmutableArray<LocalSymbol>.Empty,
-                            // switch (state) ...
-                            F.HiddenSequencePoint(),
+                        // switch (state) ...
+                        F.HiddenSequencePoint(),
                         Dispatch(),
                         F.Label(initialLabel),
-                            // [body]
-                            rewrittenBody
+                        // [body]
+                        rewrittenBody
                     ),
                     F.CatchBlocks(
                         F.Catch(
@@ -130,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Block(
                                 F.NoOp(method.ReturnsVoid ? NoOpStatementFlavor.AsyncMethodCatchHandler : NoOpStatementFlavor.Default),
                                 F.HiddenSequencePoint(),
-                                    // this.state = finishedState
-                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                                    // builder.SetException(ex)
-                                    F.ExpressionStatement(
+                                // this.state = finishedState
+                                F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                                // builder.SetException(ex)
+                                F.ExpressionStatement(
                                     F.Call(
                                         F.Field(F.This(), asyncMethodBuilderField),
                                         asyncMethodBuilderMemberCollection.SetException,
@@ -263,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var awaitIfIncomplete = F.Block(
-                    // temp $awaiterTemp = <expr>.GetAwaiter();
-                    F.Assignment(
+                // temp $awaiterTemp = <expr>.GetAwaiter();
+                F.Assignment(
                     F.Local(awaiterTemp),
                     MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
 
-                    // if(!($awaiterTemp.IsCompleted)) { ... }
-                    F.If(
+                // if(!($awaiterTemp.IsCompleted)) { ... }
+                F.If(
                     condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
                     thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
 
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $resultTemp
                 LocalSymbol resultTemp = F.SynthesizedLocal(type);
                 return F.Block(
-                ImmutableArray.Create(awaiterTemp, resultTemp),
+                    ImmutableArray.Create(awaiterTemp, resultTemp),
                     awaitIfIncomplete,
                     F.Assignment(F.Local(resultTemp), getResultCall),
                     F.ExpressionStatement(nullAwaiter),
@@ -298,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $awaiterTemp.GetResult();
                 // $awaiterTemp = null;
                 return F.Block(
-                ImmutableArray.Create(awaiterTemp),
+                    ImmutableArray.Create(awaiterTemp),
                     awaitIfIncomplete,
                     F.ExpressionStatement(getResultCall),
                     F.ExpressionStatement(nullAwaiter));
@@ -308,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeCallMaybeDynamic(
             BoundExpression receiver,
             MethodSymbol methodSymbol = null,
-        string methodName = null,
+            string methodName = null,
             bool resultsDiscarded = false)
         {
             if ((object)methodSymbol != null)
@@ -328,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 typeArguments: ImmutableArray<TypeSymbol>.Empty,
                 loweredArguments: ImmutableArray<BoundExpression>.Empty,
-            argumentNames: ImmutableArray<string>.Empty,
+                argumentNames: ImmutableArray<string>.Empty,
                 refKinds: ImmutableArray<RefKind>.Empty,
                 hasImplicitReceiver: false,
                 resultDiscarded: resultsDiscarded).ToExpression();
@@ -367,16 +366,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             blockBuilder.Add(
-                    // this.state = cachedState = stateForLabel
-                    F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(stateNumber))));
+                // this.state = cachedState = stateForLabel
+                F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(stateNumber))));
 
             blockBuilder.Add(
-                    // Emit await yield point to be injected into PDB
-                    F.NoOp(NoOpStatementFlavor.AwaitYieldPoint));
+                // Emit await yield point to be injected into PDB
+                F.NoOp(NoOpStatementFlavor.AwaitYieldPoint));
 
             blockBuilder.Add(
-                    // this.<>t__awaiter = $awaiterTemp
-                    F.Assignment(
+                // this.<>t__awaiter = $awaiterTemp
+                F.Assignment(
                     F.Field(F.This(), awaiterField),
                     (awaiterField.Type == awaiterTemp.Type)
                         ? F.Local(awaiterTemp)
@@ -393,13 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Label(resumeLabel));
 
             blockBuilder.Add(
-                    // Emit await resume point to be injected into PDB
-                    F.NoOp(NoOpStatementFlavor.AwaitResumePoint));
+                // Emit await resume point to be injected into PDB
+                F.NoOp(NoOpStatementFlavor.AwaitResumePoint));
 
             blockBuilder.Add(
-                    // $awaiterTemp = this.<>t__awaiter   or   $awaiterTemp = (AwaiterType)this.<>t__awaiter
-                    // $this.<>t__awaiter = null;
-                    F.Assignment(
+                // $awaiterTemp = this.<>t__awaiter   or   $awaiterTemp = (AwaiterType)this.<>t__awaiter
+                // $this.<>t__awaiter = null;
+                F.Assignment(
                     F.Local(awaiterTemp),
                     awaiterTemp.Type == awaiterField.Type
                         ? F.Field(F.This(), awaiterField)
@@ -409,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(F.Field(F.This(), awaiterField), F.NullOrDefault(awaiterField.Type)));
 
             blockBuilder.Add(
-                    // this.state = cachedState = NotStartedStateMachine
-                    F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine))));
+                // this.state = cachedState = NotStartedStateMachine
+                F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine))));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }
@@ -440,22 +439,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion),
                 null);
 
-            LocalSymbol thisTemp = (F.CurrentClass.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentClass) : null;
+            return F.Block(
+                ImmutableArray.Create(criticalNotifyCompletedTemp),
 
-            var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-
-            blockBuilder.Add(
                 F.Assignment(
                     F.Local(criticalNotifyCompletedTemp),
-                        // Use reference conversion rather than dynamic conversion:
-                        F.As(F.Local(awaiterTemp), criticalNotifyCompletedTemp.Type)));
+                    // Use reference conversion rather than dynamic conversion:
+                    F.As(F.Local(awaiterTemp), criticalNotifyCompletedTemp.Type)),
 
-            if (thisTemp != null)
-            {
-                blockBuilder.Add(F.Assignment(F.Local(thisTemp), F.This()));
-            }
-
-            blockBuilder.Add(
                 F.If(
                     condition: F.ObjectEqual(F.Local(criticalNotifyCompletedTemp), F.Null(criticalNotifyCompletedTemp.Type)),
 
@@ -463,15 +454,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ImmutableArray.Create(notifyCompletionTemp),
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
-                                // Use reference conversion rather than dynamic conversion:
-                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), ConversionKind.ExplicitReference)),
+                            // Use reference conversion rather than dynamic conversion:
+                            F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), ConversionKind.ExplicitReference)),
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), asyncMethodBuilderField),
                                 asyncMethodBuilderMemberCollection.AwaitOnCompleted.Construct(
                                     notifyCompletionTemp.Type,
                                     F.This().Type),
-                                F.Local(notifyCompletionTemp), F.This(thisTemp))),
+                                F.Local(notifyCompletionTemp), F.This())),
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                             F.NullOrDefault(notifyCompletionTemp.Type))),
@@ -483,70 +474,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted.Construct(
                                     criticalNotifyCompletedTemp.Type,
                                     F.This().Type),
-                                F.Local(criticalNotifyCompletedTemp), F.This(thisTemp))))));
+                                F.Local(criticalNotifyCompletedTemp), F.This())))),
 
-            blockBuilder.Add(
                 F.Assignment(
                     F.Local(criticalNotifyCompletedTemp),
                     F.NullOrDefault(criticalNotifyCompletedTemp.Type)));
-
-            return F.Block(
-                SingletonOrPair(criticalNotifyCompletedTemp, thisTemp), 
-                blockBuilder.ToImmutableAndFree());
         }
 
-        private BoundStatement GenerateAwaitOnCompleted(TypeSymbol loweredAwaiterType, LocalSymbol awaiterTemp)
+        private BoundExpressionStatement GenerateAwaitOnCompleted(TypeSymbol loweredAwaiterType, LocalSymbol awaiterTemp)
         {
             // this.builder.AwaitOnCompleted<TAwaiter,TSM>(ref $awaiterTemp, ref this)
             //    or
             // this.builder.AwaitOnCompleted<TAwaiter,TSM>(ref $awaiterArrayTemp[0], ref this)
-
-            LocalSymbol thisTemp = (F.CurrentClass.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentClass) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;
-
             var onCompleted = (useUnsafeOnCompleted ?
                 asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
-
-            BoundExpression result = 
+            return F.ExpressionStatement(
                 F.Call(
                     F.Field(F.This(), asyncMethodBuilderField),
                     onCompleted,
-                    F.Local(awaiterTemp), F.This(thisTemp));
-
-            if (thisTemp != null)
-            {
-                result = F.Sequence(
-                    ImmutableArray.Create(thisTemp), 
-                    ImmutableArray.Create<BoundExpression>(F.AssignmentExpression(F.Local(thisTemp), F.This())), 
-                    result); 
-            }
-
-            return F.ExpressionStatement(result);
-        }
-
-        private static ImmutableArray<LocalSymbol> SingletonOrPair(LocalSymbol var1, LocalSymbol var2 = null)
-        {
-            return (var2 == null) ? ImmutableArray.Create(var1) : ImmutableArray.Create(var1, var2);
-        }
-
-        private void MakeThisExpression(out LocalSymbol thisTemp, out BoundExpression @this)
-        {
-            if (F.CurrentClass.TypeKind == TypeKind.Class)
-            {
-                thisTemp = F.SynthesizedLocal(F.CurrentClass);
-                @this = F.Local(thisTemp);
-            }
-            else
-            {
-                thisTemp = null;
-                @this = F.This();
-            }
+                    F.Local(awaiterTemp), F.This()));
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)

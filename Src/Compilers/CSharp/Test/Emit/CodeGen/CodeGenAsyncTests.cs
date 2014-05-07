@@ -35,70 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
-        public void StructVsClass()
-        {
-            var source = @"
-using System.Threading;
-using System.Threading.Tasks;
-
-class Test
-{
-    public static async void F()
-    {
-        await Task.Factory.StartNew(() => {});
-    }
-}";
-            var c = CreateCompilationWithMscorlib45(source);
-
-            CompilationOptions options;
-
-            options = TestOptions.OptimizedDll;
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            });
-
-            options = TestOptions.UnoptimizedDll;
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            });
-
-            options = TestOptions.OptimizedDll.WithDebugInformationKind(DebugInformationKind.Full);
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            });
-
-            options = TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.PDBOnly);
-            Assert.False(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
-            });
-
-            options = TestOptions.UnoptimizedDll.WithDebugInformationKind(DebugInformationKind.Full);
-            Assert.True(options.EnableEditAndContinue);
-
-            CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
-            {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__1");
-                Assert.Equal(TypeKind.Class, stateMachine.TypeKind);
-            });
-        }
-
-        [Fact]
         public void VoidReturningAsync()
         {
             var source = @"
@@ -6773,18 +6709,20 @@ class C
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
-                // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
-                //     { 
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{ 
-                }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(5, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
-                //     { 
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ 
-                }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException").WithLocation(5, 5));
+    // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    //     async void M()
+    Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
+    // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
+    //     { 
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{ 
+    }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(5, 5),
+    // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
+    //     { 
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ 
+    }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException").WithLocation(5, 5)
+                );
         }
+
 
         [Fact]
         [WorkItem(868822, "DevDiv")]

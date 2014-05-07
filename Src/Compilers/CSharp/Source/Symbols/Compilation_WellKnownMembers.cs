@@ -392,11 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (optimizationsDisabled)
             {
                 constantVal |= disableOptsDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
-            }
 
-            if (options.EnableEditAndContinue)
-            {
-                constantVal |= enableENCDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
+                if (emittingFullDebugInfo)
+                {
+                    constantVal |= enableENCDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
+                }
             }
 
             var typedConstantDebugMode = new TypedConstant(debuggingModesType, TypedConstantKind.Enum, constantVal);
