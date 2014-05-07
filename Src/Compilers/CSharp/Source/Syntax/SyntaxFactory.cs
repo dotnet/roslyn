@@ -1830,28 +1830,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Block(List(statements));
         }
-
-        /// <summary>
-        /// Shim for legacy code -- should be removed when possible.
-        /// </summary>
-        public static PropertyDeclarationSyntax Update(
-            this PropertyDeclarationSyntax syntax,
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            AccessorListSyntax accessorList)
-        {
-            return syntax.Update(
-                attributeLists,
-                modifiers,
-                type,
-                explicitInterfaceSpecifier,
-                identifier,
-                accessorList,
-                default(EqualsValueClauseSyntax),
-                default(SyntaxToken));
-        }
     }
 }
