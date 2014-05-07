@@ -996,14 +996,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
         {
+            // Determine  a better location for diagnostic squiggles.  Squiggle the interace rather than the class.
+            Location interfacelocation = null;
+            if ((object)implementingType !=null)
+            {
+                var @interface = interfaceMember.ContainingType;
+                SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
+                interfacelocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+            }
+            else
+            {
+                interfacelocation = implementingType.Locations[0];
+            }
+
             if (closestMismatch.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, implementingType.Locations[0], implementingType, interfaceMember, closestMismatch);
+                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, interfacelocation, implementingType, interfaceMember, closestMismatch);
             }
             else if (closestMismatch.DeclaredAccessibility != Accessibility.Public)
             {
                 ErrorCode errorCode = interfaceMember.IsAccessor() ? ErrorCode.ERR_UnimplementedInterfaceAccessor : ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic;
-                diagnostics.Add(errorCode, implementingType.Locations[0], implementingType, interfaceMember, closestMismatch);
+                diagnostics.Add(errorCode, interfacelocation, implementingType, interfaceMember, closestMismatch);
             }
             else //return type doesn't match
             {
@@ -1024,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interfaceMemberReturnType = null;
                         break;
                 }
-                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, implementingType.Locations[0], implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
+                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfacelocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
             }
         }
 

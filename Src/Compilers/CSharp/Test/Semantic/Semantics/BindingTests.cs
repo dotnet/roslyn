@@ -1221,6 +1221,56 @@ public interface IDerived : IBase2, IBase3
 
         [WorkItem(911913, "DevDiv")]
         [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario11()
+        {
+            // Inherited Interface scenario 
+            string scenarioCode = @"
+static class Module1
+{
+    public static void Main()
+    {
+    }
+}
+
+interface Ibase
+{
+    void method1();
+}
+
+interface Ibase2
+{
+    void method2();
+}
+
+interface Iderived : Ibase
+{
+    void method3();
+}
+
+interface Iderived2 : Iderived
+{
+    void method4();
+}
+
+class foo : Iderived2, Iderived, Ibase, Ibase2
+{
+    void Ibase.method1()
+    { }
+    void Ibase2.method2()
+    { }
+    void Iderived2.method4()
+    { }
+}
+ ";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (29,24): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
+                // class foo : Iderived2, Iderived, Ibase, Ibase2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 24));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
         public void UnimplementedInterfaceSquiggleLocation_WithPartialClass01()
         {
             // partial class - missing method. 

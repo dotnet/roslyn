@@ -2469,11 +2469,11 @@ class Derived2 : Base, Interface
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
 
                 //Derived2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
             });
         }
 
@@ -2504,11 +2504,11 @@ class Derived2 : Base, Interface
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
 
                 //Derived2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
             });
         }
 
@@ -2539,11 +2539,11 @@ class Derived2 : Base, Interface
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
 
                 //Derived2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
             });
         }
 
@@ -2821,7 +2821,7 @@ public class C : I<object>
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
-                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
+                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
                  Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.F()"));
         }
 
@@ -2845,9 +2845,9 @@ public class C : I<object>
             // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
             // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
-               // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
-               Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
-               // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
+                // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
+                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.P"));
         }
 
@@ -2929,20 +2929,27 @@ partial class Base : Interface
     partial void Method7();
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (13,15): error CS0736: 'Base' does not implement interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement an interface member because it is static.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "Base").WithArguments("Base", "Interface.Method1()", "Base.Method1()"),
-                // (13,15): error CS0738: 'Base' does not implement interface member 'Interface.Method2()'. 'Base.Method2()' cannot implement 'Interface.Method2()' because it does not have the matching return type of 'void'.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Base").WithArguments("Base", "Interface.Method2()", "Base.Method2()", "void"),
-                // (13,15): error CS0737: 'Base' does not implement interface member 'Interface.Method3()'. 'Base.Method3()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Base").WithArguments("Base", "Interface.Method3()", "Base.Method3()"),
-                // (13,15): error CS0737: 'Base' does not implement interface member 'Interface.Method4()'. 'Base.Method4()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Base").WithArguments("Base", "Interface.Method4()", "Base.Method4()"),
-                // (13,15): error CS0737: 'Base' does not implement interface member 'Interface.Method5()'. 'Base.Method5()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Base").WithArguments("Base", "Interface.Method5()", "Base.Method5()"),
-                // (13,15): error CS0737: 'Base' does not implement interface member 'Interface.Method6()'. 'Base.Method6()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Base").WithArguments("Base", "Interface.Method6()", "Base.Method6()"),
-                // (13,15): error CS0737: 'Base' does not implement interface member 'Interface.Method7()'. 'Base.Method7()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Base").WithArguments("Base", "Interface.Method7()", "Base.Method7()"));
+                // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method7()'. 'Base.Method7()' cannot implement an interface member because it is not public.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method7()", "Base.Method7()").WithLocation(13, 22),
+                // (13,22): error CS0738: 'Base' does not implement interface member 'Interface.Method2()'. 'Base.Method2()' cannot implement 'Interface.Method2()' because it does not have the matching return type of 'void'.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Method2()", "Base.Method2()", "void").WithLocation(13, 22),
+                // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method3()'. 'Base.Method3()' cannot implement an interface member because it is not public.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method3()", "Base.Method3()").WithLocation(13, 22),
+                // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method4()'. 'Base.Method4()' cannot implement an interface member because it is not public.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method4()", "Base.Method4()").WithLocation(13, 22),
+                // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method5()'. 'Base.Method5()' cannot implement an interface member because it is not public.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method5()", "Base.Method5()").WithLocation(13, 22),
+                // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method6()'. 'Base.Method6()' cannot implement an interface member because it is not public.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method6()", "Base.Method6()").WithLocation(13, 22),
+                // (13,22): error CS0736: 'Base' does not implement interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement an interface member because it is static.
+                // partial class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "Interface").WithArguments("Base", "Interface.Method1()", "Base.Method1()").WithLocation(13, 22));
         }
 
         [Fact]
@@ -2970,12 +2977,12 @@ class Base : Interface
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
             });
         }
 
@@ -3005,11 +3012,11 @@ class Base : Interface
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 24 }, //indexer can't be static
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
             });
         }
 
@@ -3038,12 +3045,12 @@ class Base : Interface
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
             });
         }
 
@@ -3098,31 +3105,31 @@ class Derived : Base3, Interface { }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 22 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 13, Column = 22 },
 
                 //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 28, Column = 24 },
 
                  //Derived3
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 7 }
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 45, Column = 24 }
             });
         }
 
@@ -3174,28 +3181,28 @@ class Derived3 : Base2, Interface
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
 
                 //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
 
                 //Derived3
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
             });
         }
 
@@ -3248,25 +3255,25 @@ class Derived3 : Base2, Interface
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 24 }, //indexer can't be static
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
 
                 //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
 
                 //Derived3
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
 
                 //Base2
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 32, Column = 24 }, //indexer can't be static
@@ -3321,28 +3328,28 @@ class Derived3 : Base2, Interface
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 12, Column = 14 },
 
                 //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 26, Column = 24 },
 
                 //Derived3
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 40, Column = 25 },
             });
         }
 
@@ -5988,21 +5995,29 @@ class Class7 : Base7, Interface
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (17,16): error CS0535: 'Class1' does not implement interface member 'Interface.Method<T>(long, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class1", "Interface.Method<T>(long, int)"),
-                // (33,24): error CS0535: 'Class3' does not implement interface member 'Interface2.Method<T, U, V>(T, U, V)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface2").WithArguments("Class3", "Interface2.Method<T, U, V>(T, U, V)"),
+                // class Class1 : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class1", "Interface.Method<T>(long, int)").WithLocation(17, 16),
                 // (26,23): error CS0535: 'Class2' does not implement interface member 'Interface.Method<T>(long, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class2", "Interface.Method<T>(long, int)"),
-                // (35,7): error CS0738: 'Class4' does not implement interface member 'Interface.Method<T>(long, int)'. 'Class4.Method<T>(long, int)' cannot implement 'Interface.Method<T>(long, int)' because it does not have the matching return type of 'void'.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Class4").WithArguments("Class4", "Interface.Method<T>(long, int)", "Class4.Method<T>(long, int)", "void"),
-                // (49,16): error CS0535: 'Class6' does not implement interface member 'Interface.Method<T>(long, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class6", "Interface.Method<T>(long, int)"),
-                // (39,7): error CS0738: 'Class41' does not implement interface member 'Interface3.Property'. 'Class41.Property' cannot implement 'Interface3.Property' because it does not have the matching return type of 'int'.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Class41").WithArguments("Class41", "Interface3.Property", "Class41.Property", "int"),
-                // (44,16): error CS0535: 'Class5' does not implement interface member 'Interface.Method<T>(long, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class5", "Interface.Method<T>(long, int)"),
+                // class Class2 : Base2, Interface { }
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class2", "Interface.Method<T>(long, int)").WithLocation(26, 23),
+                // (33,24): error CS0535: 'Class3' does not implement interface member 'Interface2.Method<T, U, V>(T, U, V)'
+                // class Class3 : Base31, Interface2 { }
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface2").WithArguments("Class3", "Interface2.Method<T, U, V>(T, U, V)").WithLocation(33, 24),
                 // (58,23): error CS0535: 'Class7' does not implement interface member 'Interface.Method<T>(long, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class7", "Interface.Method<T>(long, int)"));
+                // class Class7 : Base7, Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class7", "Interface.Method<T>(long, int)").WithLocation(58, 23),
+                // (49,16): error CS0535: 'Class6' does not implement interface member 'Interface.Method<T>(long, int)'
+                // class Class6 : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class6", "Interface.Method<T>(long, int)").WithLocation(49, 16),
+                // (35,16): error CS0738: 'Class4' does not implement interface member 'Interface.Method<T>(long, int)'. 'Class4.Method<T>(long, int)' cannot implement 'Interface.Method<T>(long, int)' because it does not have the matching return type of 'void'.
+                // class Class4 : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Class4", "Interface.Method<T>(long, int)", "Class4.Method<T>(long, int)", "void").WithLocation(35, 16),
+                // (39,17): error CS0738: 'Class41' does not implement interface member 'Interface3.Property'. 'Class41.Property' cannot implement 'Interface3.Property' because it does not have the matching return type of 'int'.
+                // class Class41 : Interface3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface3").WithArguments("Class41", "Interface3.Property", "Class41.Property", "int").WithLocation(39, 17),
+                // (44,16): error CS0535: 'Class5' does not implement interface member 'Interface.Method<T>(long, int)'
+                // class Class5 : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class5", "Interface.Method<T>(long, int)").WithLocation(44, 16));
         }
 
         [WorkItem(540470, "DevDiv")]
@@ -6252,10 +6267,12 @@ abstract class Derived : Base2, I1
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,24): error CS0535: 'Class' does not implement interface member 'I1.Method(int, params System.Exception[])'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Class", "I1.Method(int, params System.Exception[])"),
-                // (32,16): error CS0737: 'Derived' does not implement interface member 'I1.Property'. 'Base.Property' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Derived").WithArguments("Derived", "I1.Property", "Base.Property"));
+                // (7,32): error CS0535: 'Class' does not implement interface member 'I1.Method(int, params System.Exception[])'
+                // abstract partial class Class : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Class", "I1.Method(int, params System.Exception[])").WithLocation(7, 32),
+                // (32,33): error CS0737: 'Derived' does not implement interface member 'I1.Property'. 'Base.Property' cannot implement an interface member because it is not public.
+                // abstract class Derived : Base2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("Derived", "I1.Property", "Base.Property").WithLocation(32, 33));
         }
 
         [Fact]
@@ -6368,9 +6385,9 @@ public class Test
                 // (25,63): error CS0535: 'Derived1<U, T>' does not implement interface member 'Outer<U>.Inner<int>.Interface<long, T>.Method<K>(U, int[], System.Collections.Generic.List<long>, Outer<U>.Inner<int>.Interface<T, K>)'
                 // internal class Derived1<U, T> : Outer<U>.Inner<T>.Base<U, T>, Outer<U>.Inner<int>.Interface<long, T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<int>.Interface<long, T>").WithArguments("Derived1<U, T>", "Outer<U>.Inner<int>.Interface<long, T>.Method<K>(U, int[], System.Collections.Generic.List<long>, Outer<U>.Inner<int>.Interface<T, K>)").WithLocation(25, 63),
-                // (25,16): error CS0738: 'Derived1<U, T>' does not implement interface member 'Outer<U>.Inner<int>.Interface<long, T>.Property'. 'Outer<U>.Inner<T>.Base<U, T>.Property' cannot implement 'Outer<U>.Inner<int>.Interface<long, T>.Property' because it does not have the matching return type of 'U'.
+                // (25,63): error CS0738: 'Derived1<U, T>' does not implement interface member 'Outer<U>.Inner<int>.Interface<long, T>.Property'. 'Outer<U>.Inner<T>.Base<U, T>.Property' cannot implement 'Outer<U>.Inner<int>.Interface<long, T>.Property' because it does not have the matching return type of 'U'.
                 // internal class Derived1<U, T> : Outer<U>.Inner<T>.Base<U, T>, Outer<U>.Inner<int>.Interface<long, T>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Derived1").WithArguments("Derived1<U, T>", "Outer<U>.Inner<int>.Interface<long, T>.Property", "Outer<U>.Inner<T>.Base<U, T>.Property", "U").WithLocation(25, 16),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Outer<U>.Inner<int>.Interface<long, T>").WithArguments("Derived1<U, T>", "Outer<U>.Inner<int>.Interface<long, T>.Property", "Outer<U>.Inner<T>.Base<U, T>.Property", "U").WithLocation(25, 63),
                 // (27,27): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Derived1<U, T>'
                 //     public class Derived2<T> : Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Derived1<U, T>").WithLocation(27, 27),
@@ -6380,9 +6397,9 @@ public class Test
                 // (27,32): error CS0535: 'Derived1<U, T>.Derived2<T>' does not implement interface member 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Method<K>(System.Collections.Generic.List<System.Collections.Generic.List<int>>, System.Collections.Generic.List<System.Collections.Generic.List<T>>[], System.Collections.Generic.List<long>, Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<System.Collections.Generic.List<int>, K>)'
                 //     public class Derived2<T> : Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>").WithArguments("Derived1<U, T>.Derived2<T>", "Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Method<K>(System.Collections.Generic.List<System.Collections.Generic.List<int>>, System.Collections.Generic.List<System.Collections.Generic.List<T>>[], System.Collections.Generic.List<long>, Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<System.Collections.Generic.List<int>, K>)").WithLocation(27, 32),
-                // (27,18): error CS0738: 'Derived1<U, T>.Derived2<T>' does not implement interface member 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property'. 'Derived1<U, T>.Derived2<T>.Property' cannot implement 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property' because it does not have the matching return type of 'System.Collections.Generic.List<System.Collections.Generic.List<int>>'.
+                // (27,32): error CS0738: 'Derived1<U, T>.Derived2<T>' does not implement interface member 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property'. 'Derived1<U, T>.Derived2<T>.Property' cannot implement 'Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property' because it does not have the matching return type of 'System.Collections.Generic.List<System.Collections.Generic.List<int>>'.
                 //     public class Derived2<T> : Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Derived2").WithArguments("Derived1<U, T>.Derived2<T>", "Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property", "Derived1<U, T>.Derived2<T>.Property", "System.Collections.Generic.List<System.Collections.Generic.List<int>>").WithLocation(27, 18));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Outer<List<List<int>>>.Inner<List<List<T>>>.Interface<long, List<int>>").WithArguments("Derived1<U, T>.Derived2<T>", "Outer<System.Collections.Generic.List<System.Collections.Generic.List<int>>>.Inner<System.Collections.Generic.List<System.Collections.Generic.List<T>>>.Interface<long, System.Collections.Generic.List<int>>.Property", "Derived1<U, T>.Derived2<T>.Property", "System.Collections.Generic.List<System.Collections.Generic.List<int>>").WithLocation(27, 32));
         }
 
         [Fact]
@@ -6806,7 +6823,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Method<Z>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, Z>)"),
                 // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<X>.Inner<int>.Interface<long, Y>.Property'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Property"));
-}
+        }
 
         [Fact]
         public void TestImplicitImplementationSubstitutionError()
@@ -6841,7 +6858,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-               // (16,7): error CS0535: 'Derived' does not implement interface member 'Interface.Method(System.Collections.Generic.List<int>)'
+                // (16,7): error CS0535: 'Derived' does not implement interface member 'Interface.Method(System.Collections.Generic.List<int>)'
                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.Method(System.Collections.Generic.List<int>)"));
         }
 
@@ -6907,14 +6924,18 @@ class Test : I3
     public void M9(params long[] x) { Console.WriteLine(""I3.M9+I1.M9""); } // Implements both I3.M9 and I1.M9
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-               // (32,7): error CS0738: 'Test' does not implement interface member 'I3.P'. 'Test.P' cannot implement 'I3.P' because it does not have the matching return type of 'long'.
-               Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Test").WithArguments("Test", "I3.P", "Test.P", "long"),
-               // (32,7): error CS0738: 'Test' does not implement interface member 'I1.M1(long)'. 'Test.M1(long)' cannot implement 'I1.M1(long)' because it does not have the matching return type of 'void'.
-               Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Test").WithArguments("Test", "I1.M1(long)", "Test.M1(long)", "void"),
-                // (32,7): error CS0535: 'Test' does not implement interface member 'I1.M6(ref long)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test", "I1.M6(ref long)"),
-               // (32,7): error CS0535: 'Test' does not implement interface member 'I1.M7(out long)'
-               Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test", "I1.M7(out long)"));
+                // (32,14): error CS0738: 'Test' does not implement interface member 'I3.P'. 'Test.P' cannot implement 'I3.P' because it does not have the matching return type of 'long'.
+                // class Test : I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I3").WithArguments("Test", "I3.P", "Test.P", "long").WithLocation(32, 14),
+                // (32,14): error CS0738: 'Test' does not implement interface member 'I1.M1(long)'. 'Test.M1(long)' cannot implement 'I1.M1(long)' because it does not have the matching return type of 'void'.
+                // class Test : I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I3").WithArguments("Test", "I1.M1(long)", "Test.M1(long)", "void").WithLocation(32, 14),
+                // (32,14): error CS0535: 'Test' does not implement interface member 'I1.M6(ref long)'
+                // class Test : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test", "I1.M6(ref long)").WithLocation(32, 14),
+                // (32,14): error CS0535: 'Test' does not implement interface member 'I1.M7(out long)'
+                // class Test : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test", "I1.M7(out long)").WithLocation(32, 14));
         }
 
         [Fact]
@@ -7186,14 +7207,13 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(    
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 //     void Finalize();
-                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
+                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(4, 10),
                 // (6,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 // class C1 : I { public void Finalize() { } }
-                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
-                // (7,7): error CS0737: 'C2' does not implement interface member 'I.Finalize()'. 'object.~Object()' cannot implement an interface member because it is not public.
+                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(6, 28),
+                // (7,12): error CS0737: 'C2' does not implement interface member 'I.Finalize()'. 'object.~Object()' cannot implement an interface member because it is not public.
                 // class C2 : I { }
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "C2").WithArguments("C2", "I.Finalize()", "object.~Object()")
-);
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C2", "I.Finalize()", "object.~Object()").WithLocation(7, 12));
         }
 
         [Fact]

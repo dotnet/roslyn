@@ -10,6 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
+        public static bool ImplementsInterface(this TypeSymbol subType, TypeSymbol superInterface, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            {
+                if (@interface.IsInterface && @interface == superInterface)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
             return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();

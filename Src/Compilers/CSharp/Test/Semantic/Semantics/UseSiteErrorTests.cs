@@ -142,35 +142,30 @@ class C : CSharpErrors.InterfaceMethods
 }";
 
             CompileWithMissingReference(text).VerifyDiagnostics(
-                // (4,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public UnavailableClass ReturnType1() { return null; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
                 // (5,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass[] ReturnType2() { return null; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 12),
                 // (6,32): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public void ParameterType1(UnavailableClass x) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 32),
                 // (7,32): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0738, CS0535)
-                // NOTE: Cascaded error messages would be the same for non-existent class - not specific to use site errors.
-
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType1()'. 'C.ReturnType1()' cannot implement 'CSharpErrors.InterfaceMethods.ReturnType1()' because it does not have the matching return type of 'UnavailableClass'.
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(7, 32),
+                // (4,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
+                //     public UnavailableClass ReturnType1() { return null; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 12),
+                // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType1()", "C.ReturnType1()", "UnavailableClass"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType2()'. 'C.ReturnType2()' cannot implement 'CSharpErrors.InterfaceMethods.ReturnType2()' because it does not have the matching return type of 'UnavailableClass[]'.
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType2()'. 'C.ReturnType2()' cannot implement 'CSharpErrors.InterfaceMethods.ReturnType2()' because it does not have the matching return type of 'UnavailableClass[]'.
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType2()", "C.ReturnType2()", "UnavailableClass[]"),
-
-                // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)'
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType2()", "C.ReturnType2()", "UnavailableClass[]").WithLocation(2, 11),
+                // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)"),
-                // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType1()'. 'C.ReturnType1()' cannot implement 'CSharpErrors.InterfaceMethods.ReturnType1()' because it does not have the matching return type of 'UnavailableClass'.
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType1()", "C.ReturnType1()", "UnavailableClass").WithLocation(2, 11));
         }
 
         [Fact]
@@ -414,46 +409,42 @@ class C : CSharpErrors.InterfaceProperties
 }";
 
             CompileWithMissingReference(text).VerifyDiagnostics(
-                // (4,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public UnavailableClass Get1 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
                 // (5,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass[] Get2 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 12),
                 // (7,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass Set1 { set { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(7, 12),
                 // (8,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass[] Set2 { set { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(8, 12),
                 // (10,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass GetSet1 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(10, 12),
                 // (11,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public UnavailableClass[] GetSet2 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet1'. 'C.GetSet1' cannot implement 'CSharpErrors.InterfaceProperties.GetSet1' because it does not have the matching return type of 'UnavailableClass'.
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(11, 12),
+                // (4,12): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
+                //     public UnavailableClass Get1 { get { return null; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 12),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set2'. 'C.Set2' cannot implement 'CSharpErrors.InterfaceProperties.Set2' because it does not have the matching return type of 'UnavailableClass[]'.
                 // class C : CSharpErrors.InterfaceProperties
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0738)
-                // NOTE: Cascaded error messages would be the same for non-existent class - not specific to use site errors.
-
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet1", "C.GetSet1", "UnavailableClass"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet2'. 'C.GetSet2' cannot implement 'CSharpErrors.InterfaceProperties.GetSet2' because it does not have the matching return type of 'UnavailableClass[]'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Set2", "C.Set2", "UnavailableClass[]").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet1'. 'C.GetSet1' cannot implement 'CSharpErrors.InterfaceProperties.GetSet1' because it does not have the matching return type of 'UnavailableClass'.
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet2", "C.GetSet2", "UnavailableClass[]"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get1'. 'C.Get1' cannot implement 'CSharpErrors.InterfaceProperties.Get1' because it does not have the matching return type of 'UnavailableClass'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet1", "C.GetSet1", "UnavailableClass").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet2'. 'C.GetSet2' cannot implement 'CSharpErrors.InterfaceProperties.GetSet2' because it does not have the matching return type of 'UnavailableClass[]'.
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Get1", "C.Get1", "UnavailableClass"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get2'. 'C.Get2' cannot implement 'CSharpErrors.InterfaceProperties.Get2' because it does not have the matching return type of 'UnavailableClass[]'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet2", "C.GetSet2", "UnavailableClass[]").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get1'. 'C.Get1' cannot implement 'CSharpErrors.InterfaceProperties.Get1' because it does not have the matching return type of 'UnavailableClass'.
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Get2", "C.Get2", "UnavailableClass[]"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set1'. 'C.Set1' cannot implement 'CSharpErrors.InterfaceProperties.Set1' because it does not have the matching return type of 'UnavailableClass'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Get1", "C.Get1", "UnavailableClass").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get2'. 'C.Get2' cannot implement 'CSharpErrors.InterfaceProperties.Get2' because it does not have the matching return type of 'UnavailableClass[]'.
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Set1", "C.Set1", "UnavailableClass"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set2'. 'C.Set2' cannot implement 'CSharpErrors.InterfaceProperties.Set2' because it does not have the matching return type of 'UnavailableClass[]'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Get2", "C.Get2", "UnavailableClass[]").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set1'. 'C.Set1' cannot implement 'CSharpErrors.InterfaceProperties.Set1' because it does not have the matching return type of 'UnavailableClass'.
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Set2", "C.Set2", "UnavailableClass[]"));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Set1", "C.Set1", "UnavailableClass").WithLocation(2, 11));
         }
 
         [Fact]
@@ -799,28 +790,24 @@ class C : CSharpErrors.InterfaceEvents
     public event CSharpErrors.EventDelegate<UnavailableClass[]> Event3 = () => { };
 }";
 
-            CompileWithMissingReference(text).VerifyDiagnostics(
-                // (4,18): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate"),
+            CompileWithMissingReference(text).VerifyDiagnostics(    // (4,18): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
+                                                                    //     public event UnavailableDelegate Event1 = () => { };
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate").WithLocation(4, 18),
                 // (5,45): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+    //     public event CSharpErrors.EventDelegate<UnavailableClass> Event2 = () => { };
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 45),
                 // (6,45): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0738)
-
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'. 'C.Event1' cannot implement 'CSharpErrors.InterfaceEvents.Event1' because it does not have the matching return type of 'UnavailableDelegate'.
+    //     public event CSharpErrors.EventDelegate<UnavailableClass[]> Event3 = () => { };
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 45),
+    // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'. 'C.Event3' cannot implement 'CSharpErrors.InterfaceEvents.Event3' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass[]>'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1", "C.Event1", "UnavailableDelegate"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'. 'C.Event2' cannot implement 'CSharpErrors.InterfaceEvents.Event2' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass>'.
+    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3", "C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>").WithLocation(2, 11),
+    // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'. 'C.Event1' cannot implement 'CSharpErrors.InterfaceEvents.Event1' because it does not have the matching return type of 'UnavailableDelegate'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2", "C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'. 'C.Event3' cannot implement 'CSharpErrors.InterfaceEvents.Event3' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass[]>'.
+    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1", "C.Event1", "UnavailableDelegate").WithLocation(2, 11),
+    // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'. 'C.Event2' cannot implement 'CSharpErrors.InterfaceEvents.Event2' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass>'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3", "C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"));
+    Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2", "C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>").WithLocation(2, 11));
         }
 
         [Fact]
@@ -836,26 +823,23 @@ class C : CSharpErrors.InterfaceEvents
 
             CompileWithMissingReference(text).VerifyDiagnostics(
                 // (4,18): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate"),
+                //     public event UnavailableDelegate Event1 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate").WithLocation(4, 18),
                 // (5,45): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
+                //     public event CSharpErrors.EventDelegate<UnavailableClass> Event2 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 45),
                 // (6,45): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0738)
-
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'. 'C.Event1' cannot implement 'CSharpErrors.InterfaceEvents.Event1' because it does not have the matching return type of 'UnavailableDelegate'.
+                //     public event CSharpErrors.EventDelegate<UnavailableClass[]> Event3 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 45),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'. 'C.Event3' cannot implement 'CSharpErrors.InterfaceEvents.Event3' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass[]>'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1", "C.Event1", "UnavailableDelegate"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'. 'C.Event2' cannot implement 'CSharpErrors.InterfaceEvents.Event2' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass>'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3", "C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'. 'C.Event1' cannot implement 'CSharpErrors.InterfaceEvents.Event1' because it does not have the matching return type of 'UnavailableDelegate'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2", "C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (2,7): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'. 'C.Event3' cannot implement 'CSharpErrors.InterfaceEvents.Event3' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass[]>'.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1", "C.Event1", "UnavailableDelegate").WithLocation(2, 11),
+                // (2,11): error CS0738: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'. 'C.Event2' cannot implement 'CSharpErrors.InterfaceEvents.Event2' because it does not have the matching return type of 'CSharpErrors.EventDelegate<UnavailableClass>'.
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3", "C.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2", "C.Event2", "CSharpErrors.EventDelegate<UnavailableClass>").WithLocation(2, 11));
         }
 
         [Fact]
@@ -908,34 +892,31 @@ class C : CSharpErrors.InterfaceEvents
             CompileWithMissingReference(text).VerifyDiagnostics(
                 // (4,11): error CS0246: The type or namespace name 'UnavailableDelegate' could not be found (are you missing a using directive or an assembly reference?)
                 //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate"),
-                // (5,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-                // (6,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
-                //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0539, CS0535)
-
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableDelegate").WithArguments("UnavailableDelegate").WithLocation(4, 11),
                 // (4,60): error CS0539: 'C.Event1' in explicit interface declaration is not a member of interface
                 //     event UnavailableDelegate CSharpErrors.InterfaceEvents.Event1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event1").WithArguments("C.Event1"),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event1").WithArguments("C.Event1").WithLocation(4, 60),
+                // (5,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
+                //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 38),
                 // (5,85): error CS0539: 'C.Event2' in explicit interface declaration is not a member of interface
                 //     event CSharpErrors.EventDelegate<UnavailableClass> CSharpErrors.InterfaceEvents.Event2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event2").WithArguments("C.Event2"),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event2").WithArguments("C.Event2").WithLocation(5, 85),
+                // (6,38): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
+                //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 38),
                 // (6,87): error CS0539: 'C.Event3' in explicit interface declaration is not a member of interface
                 //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event3").WithArguments("C.Event3"),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event3").WithArguments("C.Event3").WithLocation(6, 87),
                 // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3").WithLocation(2, 11),
                 // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1").WithLocation(2, 11),
                 // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2").WithLocation(2, 11));
         }
 
         [Fact]
@@ -1273,15 +1254,15 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
-                // (2,7): error CS0738: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.Event1'. 'ILErrors.ModReqClassEventsNonVirtual.Event1' cannot implement 'ILErrors.ModReqInterfaceEvents.Event1' because it does not have the matching return type of '?'.
+                // (2,49): error CS0738: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.Event1'. 'ILErrors.ModReqClassEventsNonVirtual.Event1' cannot implement 'ILErrors.ModReqInterfaceEvents.Event1' because it does not have the matching return type of '?'.
                 // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "B").WithArguments("B", "ILErrors.ModReqInterfaceEvents.Event1", "ILErrors.ModReqClassEventsNonVirtual.Event1", "?"),
-                // (2,7): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.remove_Event1(?)'
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.Event1", "ILErrors.ModReqClassEventsNonVirtual.Event1", "?").WithLocation(2, 49),
+                // (2,49): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.remove_Event1(?)'
                 // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.remove_Event1(?)"),
-                // (2,7): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.add_Event1(?)'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.remove_Event1(?)").WithLocation(2, 49),
+                // (2,49): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.add_Event1(?)'
                 // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.add_Event1(?)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.add_Event1(?)").WithLocation(2, 49));
         }
 
         [Fact]

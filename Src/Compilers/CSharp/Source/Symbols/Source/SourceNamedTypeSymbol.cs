@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
-
         protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
             Location backupLocation = null;
@@ -44,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BaseListSyntax bases = typeBlock.BaseList;
                 if (bases == null)
                 {
-                    continue; 
+                    continue;
                 }
-                SeparatedSyntaxList<TypeSyntax> inheritedTypeDecls  = typeBlock.BaseList.Types;
+                SeparatedSyntaxList<TypeSyntax> inheritedTypeDecls = typeBlock.BaseList.Types;
 
                 var baseBinder = this.DeclaringCompilation.GetBinder(bases);
                 baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-                if ((object) backupLocation == null)
+                if ((object)backupLocation == null)
                 {
                     backupLocation = ((TypeSyntax)inheritedTypeDecls[0]).GetLocation();
                 }
@@ -59,12 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (TypeSyntax t in inheritedTypeDecls)
                 {
                     TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                   
                     if (bt == @base)
                     {
                         unusedDiagnostics.Free();
                         return t.GetLocation();
                     }
-                }                
+                }
             }
             unusedDiagnostics.Free();
             return backupLocation;

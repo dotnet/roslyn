@@ -1989,8 +1989,9 @@ class B2 : B1, I1
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (10,7): error CS0737: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "B2").WithArguments("B2", "I1.Foo", "B2.Foo"));
+                // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is not public.
+                // class B2 : B1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
@@ -2017,8 +2018,9 @@ class B2 : B1, I1
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (10,7): error CS0736: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is static.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "B2").WithArguments("B2", "I1.Foo", "B2.Foo"));
+                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is static.
+                // class B2 : B1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
@@ -2055,10 +2057,12 @@ class B3 : I
     public static void M<T>() { }
 }";
             CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
-                // (5,7): error CS0736: 'B2' does not implement interface member 'I.M<T>()'. 'A.M<T>()' cannot implement an interface member because it is static.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "B2").WithArguments("B2", "I.M<T>()", "A.M<T>()").WithLocation(5, 7),
-                // (8,7): error CS0736: 'B3' does not implement interface member 'I.M<T>()'. 'B3.M<T>()' cannot implement an interface member because it is static.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "B3").WithArguments("B3", "I.M<T>()", "B3.M<T>()").WithLocation(8, 7));
+                // (5,15): error CS0736: 'B2' does not implement interface member 'I.M<T>()'. 'A.M<T>()' cannot implement an interface member because it is static.
+                // class B2 : A, I
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B2", "I.M<T>()", "A.M<T>()").WithLocation(5, 15),
+                // (8,12): error CS0736: 'B3' does not implement interface member 'I.M<T>()'. 'B3.M<T>()' cannot implement an interface member because it is static.
+                // class B3 : I
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B3", "I.M<T>()", "B3.M<T>()").WithLocation(8, 12));
         }
 
         [WorkItem(540383, "DevDiv")]
@@ -2081,8 +2085,9 @@ class B2 : B1, I1
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (10,7): error CS0738: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement 'I1.Foo' because it does not have the matching return type of 'int'.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "B2").WithArguments("B2", "I1.Foo", "B2.Foo", "int"));
+                // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement 'I1.Foo' because it does not have the matching return type of 'int'.
+                // class B2 : B1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("B2", "I1.Foo", "B2.Foo", "int").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(

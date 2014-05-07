@@ -351,9 +351,11 @@ class C : I
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
-                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
-                // (7,7): error CS0737: 'C' does not implement interface member 'I.Finalize()'. 'C.~C()' cannot implement an interface member because it is not public.
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "C").WithArguments("C", "I.Finalize()", "C.~C()"));
+                //     void Finalize();
+                Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(4, 10),
+                // (7,11): error CS0737: 'C' does not implement interface member 'I.Finalize()'. 'C.~C()' cannot implement an interface member because it is not public.
+                // class C : I
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.Finalize()", "C.~C()").WithLocation(7, 11));
         }
 
         [WorkItem(528912, "DevDiv")]

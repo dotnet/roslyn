@@ -255,12 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base);
 
-        private Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
+        internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
         {
             // We ideally want to identify the interface location in the baselist with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
             // this is the similar logic as the VB Implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
+            HashSet<DiagnosticInfo> unuseddiagnostics = null;
 
             NamedTypeSymbol directInterface = null;
             foreach (var iface in this.InterfacesNoUseSiteDiagnostics)
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     directInterface = iface;
                     break;
                 }
-                else if ((object)directInterface == null && ImplementsInterface(iface, implementedInterface))
+                else if ((object)directInterface == null && iface.ImplementsInterface(implementedInterface, ref unuseddiagnostics))
                 {
                     directInterface = iface;
                 }
@@ -278,20 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)directInterface != null);
             return GetCorrespondingBaseListLocation(directInterface);
-        }
-
-        private bool ImplementsInterface(TypeSymbol subType, TypeSymbol superInterface)
-        {
-            HashSet<DiagnosticInfo> unusedDiagnostics = null;
-
-            foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref unusedDiagnostics))
-            {
-                if (@interface.IsInterface && @interface == superInterface)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         /// <summary>
