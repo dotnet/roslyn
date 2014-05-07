@@ -519,7 +519,7 @@ class Derived : Base, I //CS0535
 
             compilation.VerifyDiagnostics(
                 // (12,7): error CS0535: 'Derived' does not implement interface member 'I.P.set'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived").WithArguments("Derived", "I.P.set"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("Derived", "I.P.set"));
 
             var global = compilation.GlobalNamespace;
 

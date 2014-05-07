@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return AttributeUsageInfo.Null;
         }
 
+        protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
+        {
+            // A script class may implement interfaces in hosted scenarios.
+            // The interface definitions are specified via API, not in compilation source.
+            return NoLocation.Singleton;
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get

@@ -2503,7 +2503,7 @@ class D : CodeModule
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CodeModule").WithArguments("C", "Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get"));
 
             var interfaceProperty = comp.GlobalNamespace
                 .GetMember<NamespaceSymbol>("Microsoft")

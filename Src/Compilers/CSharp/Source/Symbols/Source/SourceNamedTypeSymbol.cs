@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,6 +31,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private string lazyDocComment;
 
         private ThreeState lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
+
+
+        protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
+        {
+            Location backupLocation = null;
+            var unusedDiagnostics = DiagnosticBag.GetInstance();
+
+            foreach (SyntaxReference part in SyntaxReferences)
+            {
+                TypeDeclarationSyntax typeBlock = (TypeDeclarationSyntax)part.GetSyntax();
+                BaseListSyntax bases = typeBlock.BaseList;
+                if (bases == null)
+                {
+                    continue; 
+                }
+                SeparatedSyntaxList<TypeSyntax> inheritedTypeDecls  = typeBlock.BaseList.Types;
+
+                var baseBinder = this.DeclaringCompilation.GetBinder(bases);
+                baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+
+                if ((object) backupLocation == null)
+                {
+                    backupLocation = ((TypeSyntax)inheritedTypeDecls[0]).GetLocation();
+                }
+
+                foreach (TypeSyntax t in inheritedTypeDecls)
+                {
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                    if (bt == @base)
+                    {
+                        unusedDiagnostics.Free();
+                        return t.GetLocation();
+                    }
+                }                
+            }
+            unusedDiagnostics.Free();
+            return backupLocation;
+        }
 
         internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
             : base(containingSymbol, declaration, diagnostics)

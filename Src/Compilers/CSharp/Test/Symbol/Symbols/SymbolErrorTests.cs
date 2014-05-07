@@ -7456,7 +7456,7 @@ class MyClass : I
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 7 }, //Dev10 doesn't include this
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 17 }, //Dev10 doesn't include this
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MethodImplementingAccessor, Line = 8, Column = 16 });
         }
 
@@ -8913,7 +8913,7 @@ public class Derived : Base<int> // CS0534
 public class B : A { }   // CS0535 A::F is not implemented
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 14 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 18 });
         }
 
         [Fact]
@@ -9737,7 +9737,7 @@ public class a : ii
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 14 }, //CONSIDER: dev10 suppresses this
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 18 }, //CONSIDER: dev10 suppresses this
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 12, Column = 12 });
         }
 
@@ -11442,16 +11442,11 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (14,28): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(14, 28),
-                // (7,9): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(7, 9),
-                // (12,16): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(12, 16),
-                // (14,16): error CS0535: 'NS.Foo.SFoo' does not implement interface member 'NS.IFoo<System.Void>.M(System.Void)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "SFoo").WithArguments("NS.Foo.SFoo", "NS.IFoo<System.Void>.M(System.Void)").WithLocation(14, 16),
-                // (12,21): warning CS0626: Method, operator, or accessor 'NS.Foo.GetVoid()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Foo.GetVoid()").WithLocation(12, 21));
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo<Void>").WithArguments("NS.Foo.SFoo", "NS.IFoo<System.Void>.M(System.Void)"),
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Foo.GetVoid()")) ;
         }
 
         [Fact]

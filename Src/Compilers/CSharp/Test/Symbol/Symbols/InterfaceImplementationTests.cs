@@ -1213,7 +1213,7 @@ class Program
             var comp = CreateCompilationWithMscorlib(csharp);
             comp.VerifyDiagnostics(
                 // (15,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived").WithArguments("Derived", "Interface.M(ref int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("Derived").FindImplementationForInterfaceMember(
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
@@ -1284,7 +1284,7 @@ class Program
             var comp = CreateCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (7,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived").WithArguments("Derived", "Interface.M(ref int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("Derived").FindImplementationForInterfaceMember(
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
@@ -1340,7 +1340,7 @@ class Program
             var comp = CreateCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (10,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived").WithArguments("Derived", "Interface.M(ref int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("Derived").FindImplementationForInterfaceMember(
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
@@ -1415,7 +1415,7 @@ class Program
             var comp = CreateCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived").WithArguments("Derived", "Interface.M(ref int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("Derived").FindImplementationForInterfaceMember(
                 global.GetMember<NamedTypeSymbol>("Interface").GetMember<MethodSymbol>("M")));
@@ -1558,7 +1558,7 @@ class C1 : I1
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C1").WithArguments("C1", "I1.Foo(out int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.Foo(out int)"));
         }
 
         [Fact]
@@ -2108,10 +2108,10 @@ class Derived2 : Base2, Interface
             CreateCompilationWithMscorlib(source, new[] { ilRef }).VerifyDiagnostics(
                 // (6,7): error CS0535: 'Base2' does not implement interface member 'Interface.M()'
                 // class Base2 : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Base2").WithArguments("Base2", "Interface.M()"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"),
                 // (10,7): error CS0535: 'Derived2' does not implement interface member 'Interface.M()'
                 // class Derived2 : Base2, Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Derived2").WithArguments("Derived2", "Interface.M()"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived2", "Interface.M()"));
         }
 
         [WorkItem(718115, "DevDiv")]

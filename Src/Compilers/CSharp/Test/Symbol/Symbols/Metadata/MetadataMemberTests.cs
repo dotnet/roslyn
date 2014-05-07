@@ -569,10 +569,10 @@ class Explicit : Interface
             comp.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Empty' does not implement interface member 'Interface.SetterIsGap'
                 // class Empty : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Empty").WithArguments("Empty", "Interface.SetterIsGap"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Empty", "Interface.SetterIsGap"),
                 // (2,7): error CS0535: 'Empty' does not implement interface member 'Interface.GetterIsGap'
                 // class Empty : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Empty").WithArguments("Empty", "Interface.GetterIsGap"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Empty", "Interface.GetterIsGap"),
                 // (17,33): error CS0550: 'Explicit.Interface.GetterIsGap.get' adds an accessor not found in interface member 'Interface.GetterIsGap'
                 //     int Interface.GetterIsGap { get; set; }
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("Explicit.Interface.GetterIsGap.get", "Interface.GetterIsGap"),

@@ -830,6 +830,528 @@ public class Test
             // <fine-name>(4,16): error CS0012: The type 'BaseAssembly.BaseClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
         }
 
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_Typical()
+        {
+            string scenarioCode = @"
+public class ITT
+    : IInterfaceBase
+{ }
+public interface IInterfaceBase
+{
+    void bar();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.bar()'
+                //     : IInterfaceBase
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.bar()").WithLocation(3, 7));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_FullyQualified()
+        {
+
+            // Using fully Qualified names
+            string scenarioCode = @"
+public class ITT
+    : test.IInterfaceBase
+{ }
+
+namespace test
+{
+    public interface IInterfaceBase
+    {
+        void bar();
+    }
+}";
+
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (3,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.bar()'
+                //     : test.IInterfaceBase
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "test.IInterfaceBase").WithArguments("ITT", "test.IInterfaceBase.bar()").WithLocation(3, 7));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_WithAlias()
+        {
+            // Using Alias            
+            string scenarioCode = @"
+using a1 = test;
+
+public class ITT
+    : a1.IInterfaceBase
+{ }
+
+namespace test 
+{
+    public interface IInterfaceBase
+    {
+        void bar();
+    }
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (5,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.bar()'
+                //     : a1.IInterfaceBase
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "a1.IInterfaceBase").WithArguments("ITT", "test.IInterfaceBase.bar()").WithLocation(5, 7));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario01()
+        {
+            // Two interfaces, neither implemented with alias - should have 2 errors each squiggling a different interface type.            
+            string scenarioCode = @"
+using a1 = test;
+
+public class ITT
+    : a1.IInterfaceBase, a1.IInterfaceBase2 
+{ }
+
+namespace test 
+{
+    public interface IInterfaceBase
+    {
+        void xyz();
+    }
+
+    public interface IInterfaceBase2
+    {
+        void xyz();
+    }
+}";
+
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (5,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.xyz()'
+                //     : a1.IInterfaceBase, a1.IInterfaceBase2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "a1.IInterfaceBase").WithArguments("ITT", "test.IInterfaceBase.xyz()").WithLocation(5, 7),
+                // (5,26): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase2.xyz()'
+                //     : a1.IInterfaceBase, a1.IInterfaceBase2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "a1.IInterfaceBase2").WithArguments("ITT", "test.IInterfaceBase2.xyz()").WithLocation(5, 26));
+        }
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
+        {
+
+            // Two interfaces, only the  second is implemented 
+            string scenarioCode = @"
+public class ITT
+    : IInterfaceBase, IInterfaceBase2 
+{
+    void IInterfaceBase2.abc()
+    { }
+}
+
+public interface IInterfaceBase
+{
+        void xyz();
+}
+
+public interface IInterfaceBase2
+{
+        void abc();
+}";
+
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
+                //     : IInterfaceBase, IInterfaceBase2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(3, 7));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario03()
+        {
+            // Two interfaces, only the first is implemented
+            string scenarioCode = @"
+public class ITT
+    : IInterfaceBase, IInterfaceBase2 
+{
+    void IInterfaceBase.xyz()
+    { }
+}
+
+public interface IInterfaceBase
+{
+    void xyz();
+}
+
+public interface IInterfaceBase2
+{
+    void abc();
+}
+";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (3,23): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase2.abc()'
+                //     : IInterfaceBase, IInterfaceBase2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase2").WithArguments("ITT", "IInterfaceBase2.abc()").WithLocation(3, 23));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario04()
+        {
+            // Two interfaces, neither implemented but formatting of interfaces are on different lines
+            string scenarioCode = @"
+public class ITT
+    : IInterfaceBase, 
+     IInterfaceBase2 
+{ }
+
+public interface IInterfaceBase
+{
+    void xyz();
+}
+
+public interface IInterfaceBase2
+{
+    void xyz();
+}
+";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
+                //     : IInterfaceBase, 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(3, 7),
+                // (4,6): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase2.xyz()'
+                //      IInterfaceBase2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase2").WithArguments("ITT", "IInterfaceBase2.xyz()").WithLocation(4, 6));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario05()
+        {
+            // Inherited Interface scenario 
+            // With methods not implemented in both base and derived.
+            // Should reflect 2 diagnostics but both with be squiggling the derived as we are not 
+            // explicitly implementing base.
+            string scenarioCode = @"
+public class ITT: IDerived
+{ }
+
+interface IInterfaceBase
+{
+    void xyzb();
+}
+
+interface IDerived : IInterfaceBase
+{
+    void xyzd();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
+                // public class ITT: IDerived
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IDerived.xyzd()").WithLocation(2, 19),
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyzb()'
+                // public class ITT: IDerived
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IInterfaceBase.xyzb()").WithLocation(2, 19));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario06()
+        {
+            // Inherited Interface scenario 
+            string scenarioCode = @"
+public class ITT: IDerived, IInterfaceBase
+{ }
+
+interface IInterfaceBase
+{
+    void xyz();
+}
+
+interface IDerived : IInterfaceBase
+{
+    void xyzd();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
+                // public class ITT: IDerived, IInterfaceBase
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IDerived.xyzd()").WithLocation(2, 19),
+                // (2,29): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
+                // public class ITT: IDerived, IInterfaceBase
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(2, 29));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario07()
+        {
+            // Inherited Interface scenario - different order. 
+            string scenarioCode = @"
+public class ITT: IInterfaceBase, IDerived 
+{ }
+
+interface IDerived : IInterfaceBase
+{
+    void xyzd();
+}
+interface IInterfaceBase
+{
+    void xyz();
+}
+";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,35): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
+                // public class ITT: IInterfaceBase, IDerived 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IDerived.xyzd()").WithLocation(2, 35),
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
+                // public class ITT: IInterfaceBase, IDerived 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IInterfaceBase").WithArguments("ITT", "IInterfaceBase.xyz()").WithLocation(2, 19));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario08()
+        {
+            // Inherited Interface scenario
+            string scenarioCode = @"
+public class ITT: IDerived2 
+{}
+
+interface IBase
+{
+    void method1();
+}
+interface IBase2
+{
+    void Method2();
+}
+interface IDerived2: IBase, IBase2
+{}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
+                // public class ITT: IDerived2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived2").WithArguments("ITT", "IBase.method1()").WithLocation(2, 19),
+                // (2,19): error CS0535: 'ITT' does not implement interface member 'IBase2.Method2()'
+                // public class ITT: IDerived2 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived2").WithArguments("ITT", "IBase2.Method2()").WithLocation(2, 19));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario09()
+        {
+            // Inherited Interface scenario.           
+            string scenarioCode = @"
+public class ITT : IDerived
+{
+    void IBase2.method2()
+    { }
+
+    void IDerived.method3()
+    { }
+}
+
+public interface IBase
+{
+    void method1();
+}
+
+public interface IBase2
+{
+    void method2();
+}
+public interface IDerived : IBase, IBase2
+{
+    void method3();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,20): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
+                // public class ITT : IDerived
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IBase.method1()").WithLocation(2, 20));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario10()
+        {
+            // Inherited Interface scenario.
+            string scenarioCode = @"
+public class ITT : IDerived
+{
+    void IBase2.method2()
+    { }    
+    void IBase3.method3()
+    { }
+    void IDerived.method4()
+    { }
+}
+
+public interface IBase
+{
+    void method1();
+}
+
+public interface IBase2 : IBase
+{    
+    void method2();
+}
+
+public interface IBase3 : IBase
+{
+    void method3();
+}
+public interface IDerived : IBase2, IBase3
+{
+    void method4();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,20): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
+                // public class ITT : IDerived
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IDerived").WithArguments("ITT", "IBase.method1()").WithLocation(2, 20));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_WithPartialClass01()
+        {
+            // partial class - missing method. 
+            // each partial implements interface but one is missing method.
+            string scenarioCode = @"
+ public partial class Foo : IBase
+{
+    void IBase.method1()
+    { }
+
+    void IBase2.method2()
+    { }
+}
+
+public partial class Foo : IBase2
+{
+}
+
+public partial class Foo : IBase3
+{
+}
+
+public interface IBase
+{
+    void method1();
+}
+
+public interface IBase2
+{    
+    void method2();
+}
+
+public interface IBase3
+{
+    void method3();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (15,28): error CS0535: 'Foo' does not implement interface member 'IBase3.method3()'
+                // public partial class Foo : IBase3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(15, 28));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_WithPartialClass02()
+        {
+            // partial class - missing method. diagnostic is reported in correct partial class
+            // one partial class specifically does include any inherited interface 
+            string scenarioCode = @"
+public partial class Foo : IBase, IBase2
+{
+    void IBase.method1()
+    { }
+
+}
+
+public partial class Foo
+{
+}
+
+public partial class Foo : IBase3
+{
+}
+
+public interface IBase
+{
+    void method1();
+}
+
+public interface IBase2
+{
+    void method2();
+}
+
+public interface IBase3
+{
+    void method3();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,35): error CS0535: 'Foo' does not implement interface member 'IBase2.method2()'
+                // public partial class Foo : IBase, IBase2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase2").WithArguments("Foo", "IBase2.method2()").WithLocation(2, 35),
+                // (13,28): error CS0535: 'Foo' does not implement interface member 'IBase3.method3()'
+                // public partial class Foo : IBase3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(13, 28));
+        }
+
+        [WorkItem(911913, "DevDiv")]
+        [Fact]
+        public void UnimplementedInterfaceSquiggleLocation_WithPartialClass03()
+        {
+            // Partial class scenario
+            // One class implements multiple interfaces and is missing method.             
+            string scenarioCode = @" 
+public partial class Foo : IBase, IBase2
+{
+    void IBase.method1()
+    { }
+
+}
+
+public partial class Foo : IBase3
+{
+}
+
+public interface IBase
+{
+    void method1();
+}
+
+public interface IBase2
+{    
+    void method2();
+}
+
+public interface IBase3
+{
+    void method3();
+}";
+            var testAssembly = CreateCompilationWithMscorlib(scenarioCode);
+            testAssembly.VerifyDiagnostics(
+                // (2,35): error CS0535: 'Foo' does not implement interface member 'IBase2.method2()'
+                // public partial class Foo : IBase, IBase2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase2").WithArguments("Foo", "IBase2.method2()").WithLocation(2, 35),
+                // (9,28): error CS0535: 'Foo' does not implement interface member 'IBase3.method3()'
+                // public partial class Foo : IBase3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IBase3").WithArguments("Foo", "IBase3.method3()").WithLocation(9, 28)
+ );
+        }
         [WorkItem(541466, "DevDiv")]
         [Fact]
         public void UseSiteErrorViaAliasTest04()

@@ -536,9 +536,9 @@ class C : I<string>
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,20): error CS0539: 'C.M2<U>()' in explicit interface declaration is not a member of interface
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2<U>()").WithLocation(7, 20),
-                // (5,7): error CS0535: 'C' does not implement interface member 'I<string>.M1<U>()'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "I<string>.M1<U>()").WithLocation(5, 7));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2<U>()"),
+                // (5,11): error CS0535: 'C' does not implement interface member 'I<string>.M1<U>()'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<string>").WithArguments("C", "I<string>.M1<U>()"));
         }
 
         /// <summary>
@@ -2011,13 +2011,13 @@ class B4 : A4, I { }
 class B5 : A5, I { }";
             CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,7): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()").WithLocation(2, 7),
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()"),
                 // (3,7): error CS0425: The constraints for type parameter 'T' of method 'A3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B3").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()").WithLocation(3, 7),
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B3").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()"),
                 // (4,7): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B4").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B4").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()"),
                 // (5,7): error CS0535: 'B5' does not implement interface member 'I.M<T>()'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B5").WithArguments("B5", "I.M<T>()").WithLocation(5, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("B5", "I.M<T>()"));
         }
 
         /// <summary>

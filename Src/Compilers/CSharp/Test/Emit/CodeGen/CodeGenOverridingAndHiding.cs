@@ -4188,7 +4188,7 @@ Derived.M(y:2)");
                 referencedCompilations: new[] { B, C }).VerifyDiagnostics(
                 // (1,14): error CS0535: 'D' does not implement interface member 'B.M(A)'
                 // public class D : C, B { }
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "D").WithArguments("D", "B.M(A)")
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("D", "B.M(A)")
                 );
         }
 

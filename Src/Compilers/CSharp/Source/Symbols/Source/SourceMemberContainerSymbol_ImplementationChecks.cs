@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // Suppress for bogus properties and events and for indexed properties.
                                 if (!interfaceMember.MustCallMethodsDirectly() && !interfaceMember.IsIndexedProperty())
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, this.Locations[0], this, interfaceMember);
+                                    diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, GetImplementsLocation(@interface) ?? this.Locations[0], this, interfaceMember);
                                 }
                             }
                         }
@@ -251,6 +251,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return synthesizedImplementations.ToImmutableAndFree();
+        }
+
+        protected abstract Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base);
+
+        private Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
+        {
+            // We ideally want to identify the interface location in the baselist with an exact match but
+            // will fall back and use the first derived interface if exact interface is not present.
+            // this is the similar logic as the VB Implementation.
+            Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
+
+            NamedTypeSymbol directInterface = null;
+            foreach (var iface in this.InterfacesNoUseSiteDiagnostics)
+            {
+                if (iface == implementedInterface)
+                {
+                    directInterface = iface;
+                    break;
+                }
+                else if ((object)directInterface == null && ImplementsInterface(iface, implementedInterface))
+                {
+                    directInterface = iface;
+                }
+            }
+
+            Debug.Assert((object)directInterface != null);
+            return GetCorrespondingBaseListLocation(directInterface);
+        }
+
+        private bool ImplementsInterface(TypeSymbol subType, TypeSymbol superInterface)
+        {
+            HashSet<DiagnosticInfo> unusedDiagnostics = null;
+
+            foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref unusedDiagnostics))
+            {
+                if (@interface.IsInterface && @interface == superInterface)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

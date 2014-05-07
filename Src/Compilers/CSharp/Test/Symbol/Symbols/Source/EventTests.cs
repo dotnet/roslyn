@@ -606,13 +606,13 @@ class E : Interface
             CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,7): error CS0535: 'C' does not implement interface member 'Interface.raise_e(object, object)'
                 // class C : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "Interface.raise_e(object, object)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("C", "Interface.raise_e(object, object)"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'Interface.e'
                 // class C : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "Interface.e"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("C", "Interface.e"),
                 // (7,7): error CS0535: 'D' does not implement interface member 'Interface.raise_e(object, object)'
                 // class D : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "D").WithArguments("D", "Interface.raise_e(object, object)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("D", "Interface.raise_e(object, object)"),
 
                 // (15,32): warning CS0067: The event 'E.e' is never used
                 //     public event System.Action e;

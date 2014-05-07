@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -536,7 +536,7 @@ class C : I1
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "I1.this[int]"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C", "I1.this[int]"));
 
             var @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
             var interfaceIndexers = @interface.Indexers;
@@ -1371,9 +1371,9 @@ class Test : IRefIndexer
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Test' does not implement interface member 'IRefIndexer.get_Item(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Test").WithArguments("Test", "IRefIndexer.get_Item(ref int)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IRefIndexer").WithArguments("Test", "IRefIndexer.get_Item(ref int)"),
                 // (2,7): error CS0535: 'Test' does not implement interface member 'IRefIndexer.set_Item(ref int, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Test").WithArguments("Test", "IRefIndexer.set_Item(ref int, int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IRefIndexer").WithArguments("Test", "IRefIndexer.set_Item(ref int, int)"));
         }
 
         /// <summary>
@@ -1395,9 +1395,9 @@ class Test : IRefIndexer
                 // (4,21): error CS0539: 'Test.this[int]' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test.this[int]"),
                 // (2,7): error CS0535: 'Test' does not implement interface member 'IRefIndexer.get_Item(ref int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Test").WithArguments("Test", "IRefIndexer.get_Item(ref int)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IRefIndexer").WithArguments("Test", "IRefIndexer.get_Item(ref int)"),
                 // (2,7): error CS0535: 'Test' does not implement interface member 'IRefIndexer.set_Item(ref int, int)'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Test").WithArguments("Test", "IRefIndexer.set_Item(ref int, int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IRefIndexer").WithArguments("Test", "IRefIndexer.set_Item(ref int, int)"));
         }
 
         [Fact]

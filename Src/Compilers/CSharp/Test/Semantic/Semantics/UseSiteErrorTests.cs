@@ -167,10 +167,10 @@ class C : CSharpErrors.InterfaceMethods
 
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])"));
         }
 
         [Fact]
@@ -244,16 +244,16 @@ class C : CSharpErrors.InterfaceMethods
 
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType1()'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType1()"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType1()"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ReturnType2()'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType2()"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ReturnType2()"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass)"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])'
                 // class C : CSharpErrors.InterfaceMethods
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceMethods").WithArguments("C", "CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[])"));
         }
 
         [Fact]
@@ -559,22 +559,22 @@ class C : CSharpErrors.InterfaceProperties
 
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet1'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet1"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet1"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.GetSet2'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet2"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.GetSet2"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get1'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Get1"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Get1"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Get2'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Get2"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Get2"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set1'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Set1"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Set1"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceProperties.Set2'
                 // class C : CSharpErrors.InterfaceProperties
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceProperties.Set2"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceProperties").WithArguments("C", "CSharpErrors.InterfaceProperties.Set2"));
         }
 
         [Fact]
@@ -927,16 +927,15 @@ class C : CSharpErrors.InterfaceEvents
                 // (6,87): error CS0539: 'C.Event3' in explicit interface declaration is not a member of interface
                 //     event CSharpErrors.EventDelegate<UnavailableClass[]> CSharpErrors.InterfaceEvents.Event3 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Event3").WithArguments("C.Event3"),
-
-                // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'
+                // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1"),
-                // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3"),
+                // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event1'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2"),
-                // (2,7): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event3'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event1"),
+                // (2,11): error CS0535: 'C' does not implement interface member 'CSharpErrors.InterfaceEvents.Event2'
                 // class C : CSharpErrors.InterfaceEvents
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C").WithArguments("C", "CSharpErrors.InterfaceEvents.Event3"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CSharpErrors.InterfaceEvents").WithArguments("C", "CSharpErrors.InterfaceEvents.Event2"));
         }
 
         [Fact]
@@ -1279,10 +1278,10 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "B").WithArguments("B", "ILErrors.ModReqInterfaceEvents.Event1", "ILErrors.ModReqClassEventsNonVirtual.Event1", "?"),
                 // (2,7): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.remove_Event1(?)'
                 // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("B", "ILErrors.ModReqInterfaceEvents.remove_Event1(?)"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.remove_Event1(?)"),
                 // (2,7): error CS0535: 'B' does not implement interface member 'ILErrors.ModReqInterfaceEvents.add_Event1(?)'
                 // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("B", "ILErrors.ModReqInterfaceEvents.add_Event1(?)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "ILErrors.ModReqInterfaceEvents").WithArguments("B", "ILErrors.ModReqInterfaceEvents.add_Event1(?)"));
         }
 
         [Fact]
