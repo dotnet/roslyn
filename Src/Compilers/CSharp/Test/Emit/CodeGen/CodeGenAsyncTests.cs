@@ -6699,27 +6699,20 @@ class Driver
             var source = @"
 class C
 {
-    async void M()
-    { 
+    async void M() {}
     }
-}
 ";
 
             var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, OptionsDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
-    // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-    //     async void M()
-    Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
-    // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
-    //     { 
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{ 
-    }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(5, 5),
-    // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
-    //     { 
-    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ 
-    }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException").WithLocation(5, 5));
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"),
+                // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder"),
+                // (5,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException"));
         }
 
 
