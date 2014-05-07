@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
         public const uint BASIC_APPID = 51u;
 
         public const uint DATAID_SQM_ROSLYN_COMPILERTYPE = 1354u;           // 0=Compiler, 1= CompilerServer, 2=Interactive
-        public const uint DATAID_SQM_BUILDVERSION = 1353u;                  // Roslyn Build Version
+        public const uint DATAID_SQM_BUILDVERSION = 1523u;                  // Roslyn Build Version
         public const uint DATAID_SQM_ROSLYN_SOURCES = 1360u;                // No of source code files this compile
         public const uint DATAID_SQM_ROSLYN_REFERENCES = 1359u;             // No of referenced assemblies this compile
         public const uint DATAID_SQM_ROSLYN_ERRORNUMBERS = 1356u;           // List of errors [and warnings as errors]
