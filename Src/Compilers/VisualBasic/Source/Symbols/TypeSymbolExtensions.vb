@@ -506,12 +506,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
-            Dim seenUseSiteDiagnostics As Boolean = False
 
             For Each [interface] In subType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                If [interface].OriginalDefinition.GetUseSiteErrorInfo() IsNot Nothing Then
-                    seenUseSiteDiagnostics = True
-                End If
 
                 If [interface].IsInterface AndAlso
                    [interface] = superInterface Then

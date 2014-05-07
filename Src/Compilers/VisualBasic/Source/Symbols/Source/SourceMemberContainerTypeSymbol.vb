@@ -545,30 +545,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Gets the implements location for a particular interface, which must be implemented but might be indirectly implemented.
         ' Also gets the direct interface it was inherited through
-        Private Function GetImplementsLocation(implementedIface As NamedTypeSymbol, ByRef directIface As NamedTypeSymbol) As Location
-            Debug.Assert(Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedIface))
+        Private Function GetImplementsLocation(implementedInterface As NamedTypeSymbol, ByRef directInterface As NamedTypeSymbol) As Location
+            Debug.Assert(Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface))
 
             ' Find the directly implemented interface that "implementedIface" was inherited through.
-            directIface = Nothing
+            directInterface = Nothing
 
             For Each iface In Me.InterfacesNoUseSiteDiagnostics
-                If iface = implementedIface Then
-                    directIface = iface
+                If iface = implementedInterface Then
+                    directInterface = iface
                     Exit For
-                ElseIf directIface Is Nothing AndAlso iface.ImplementsInterface(implementedIface, useSiteDiagnostics:=Nothing) Then
-                    directIface = iface
-                    Exit For
+                ElseIf directInterface Is Nothing AndAlso iface.ImplementsInterface(implementedInterface, useSiteDiagnostics:=Nothing) Then
+                    directInterface = iface
                 End If
             Next
 
-            Debug.Assert(directIface IsNot Nothing)
+            Debug.Assert(directInterface IsNot Nothing)
 
-            Return GetInheritsOrImplementsLocation(directIface, Me.IsInterfaceType())
+            Return GetInheritsOrImplementsLocation(directInterface, Me.IsInterfaceType())
         End Function
 
-        Private Function GetImplementsLocation(implementedIface As NamedTypeSymbol) As Location
+        Private Function GetImplementsLocation(implementedInterface As NamedTypeSymbol) As Location
             Dim dummy As NamedTypeSymbol = Nothing
-            Return GetImplementsLocation(implementedIface, dummy)
+            Return GetImplementsLocation(implementedInterface, dummy)
         End Function
 
         Protected MustOverride Function GetInheritsOrImplementsLocation(base As NamedTypeSymbol, getInherits As Boolean) As Location

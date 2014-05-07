@@ -21282,6 +21282,107 @@ End Class
 </errors>)
         End Sub
 
+        <WorkItem(938459, "DevDiv")>
+        <Fact>
+        Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritenceOrdering()
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="C">
+    <file>
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+
+Interface IBase
+    Sub method1()
+End Interface
+
+Interface IBase2
+    Sub method2()
+End Interface
+
+Interface IDerived
+    Inherits IBase
+    Sub method3()
+End Interface
+
+Interface IDerived2
+    Inherits IDerived
+    Sub method4()
+End Interface
+
+Class foo
+    Implements IDerived2, IDerived, IBase, IBase2
+
+    Public Sub method1() Implements IBase.method1
+    End Sub
+
+    Public Sub method2() Implements IBase2.method2
+    End Sub
+
+    Public Sub method4() Implements IDerived2.method4
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.AssertTheseDiagnostics(
+            <errors>
+BC30149: Class 'foo' must implement 'Sub method3()' for interface 'IDerived'.
+    Implements IDerived2, IDerived, IBase, IBase2
+                          ~~~~~~~~
+            </errors>)
+
+            ' Change order so interfaces are defined in a completely different order.
+            ' The bug related to order of interfaces.
+            c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="C">
+    <file>
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+
+Interface IBase
+    Sub method1()
+End Interface
+
+Interface IBase2
+    Sub method2()
+End Interface
+
+Interface IDerived
+    Inherits IBase
+    Sub method3()
+End Interface
+
+Interface IDerived2
+    Inherits IDerived
+    Sub method4()
+End Interface
+
+Class foo
+    Implements IBase, IBase2, IDerived2, IDerived
+
+    Public Sub method4() Implements IDerived2.method4
+    End Sub
+    
+    Public Sub method1() Implements IBase.method1
+    End Sub
+
+    Public Sub method2() Implements IBase2.method2
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.AssertTheseDiagnostics(
+            <errors>
+BC30149: Class 'foo' must implement 'Sub method3()' for interface 'IDerived'.
+    Implements IBase, IBase2, IDerived2, IDerived
+                                         ~~~~~~~~            </errors>)
+        End Sub
+
         <Fact>
         Public Sub Bug17315_Namespace()
             Dim c = CompilationUtils.CreateCompilationWithReferences(
