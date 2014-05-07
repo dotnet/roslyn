@@ -31,9 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
+            // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
+            var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
+
             var bodyWithAwaitLifted = AwaitLiftingRewriter.Rewrite(body, method, compilationState, diagnostics);
 
-            stateMachineType = new AsyncStateMachine(method);
+            stateMachineType = new AsyncStateMachine(method, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, stateMachineType, compilationState, diagnostics, generateDebugInfo);
             if (!rewriter.constructedSuccessfully)
@@ -85,23 +88,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
 
             // Add IAsyncStateMachine.MoveNext()
-            {
-                var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
-                GenerateMoveNext(moveNextMethod);
-            }
+            
+            var moveNextMethod = OpenMethodImplementation(IAsyncStateMachine_MoveNext, "MoveNext", asyncKickoffMethod: this.method, hasMethodBodyDependency: true);
+            GenerateMoveNext(moveNextMethod);
 
             // Add IAsyncStateMachine.SetStateMachine()
+            
+            OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
+
+            // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
+            // If the state machine is a class there is no copy made and thus the initialization is not necessary. 
+            // In fact it is an error to reinitialize the builder since it already is initialized.
+            if (F.CurrentClass.TypeKind == TypeKind.Class)
             {
-                OpenMethodImplementation(IAsyncStateMachine_SetStateMachine, "SetStateMachine", debuggerHidden: true, hasMethodBodyDependency: false);
+                F.CloseMethod(F.Return());
+            }
+            else
+            {
                 F.CloseMethod(
+                    // this.builderField.SetStateMachine(sm)
                     F.Block(
-                        // this.builderField.SetStateMachine(sm)
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), builderField),
                                 asyncMethodBuilderMemberCollection.SetStateMachine,
                                 new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
                         F.Return()));
+            }
+
+            // Constructor
+            if (stateMachineClass.TypeKind == TypeKind.Class)
+            {
+                F.CurrentMethod = stateMachineClass.Constructor;
+                F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }
 
@@ -132,6 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
+
+                if (stateMachineVariable.Type.TypeKind == TypeKind.Class)
+                {
+                    // local = new {state machine type}();
+                    bodyBuilder.Add(
+                        F.Assignment(
+                            F.Local(stateMachineVariable), 
+                            F.New(((AsyncStateMachine)stateMachineVariable.Type).InstanceConstructors[0])));
+                }
 
                 // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
                 bodyBuilder.Add(

@@ -376,6 +376,14 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
 
+        internal bool EnableEditAndContinue
+        {
+            get
+            {
+                return DebugInformationKind == DebugInformationKind.Full && !Optimize;
+            }
+        }
+
         internal static bool IsValidFileAlignment(int value)
         {
             switch (value)
