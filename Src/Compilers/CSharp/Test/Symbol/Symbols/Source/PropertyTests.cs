@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             Assert.Null(r.SetMethod);
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoWithInitializerInStruct1()
         {
             var text = @"struct S
@@ -105,7 +105,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "P").Wit
 Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").WithArguments("S.R").WithLocation(5, 20));
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoWithInitializerInStruct2()
         {
             var text = @"struct S
@@ -136,7 +136,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
             Assert.Null(r.SetMethod);
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoInitializerInInterface()
         {
             var text = @"interface I
@@ -166,7 +166,7 @@ Diagnostic(ErrorCode.ERR_InitializerInStructWithoutExplicitConstructor, "R").Wit
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveSetOrInitializer, "get").WithArguments("C.P.get").WithLocation(3, 20));
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoNoGet()
         {
             var text = @"class C

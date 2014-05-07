@@ -15119,7 +15119,7 @@ public class C
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoPropertyInitializerInClassPrimaryConstructor()
         {
             string sourceCode = @"
@@ -15145,7 +15145,7 @@ class Program(int i)
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoPropertyInitializerInStructPrimaryConstructor()
         {
             string sourceCode = @"

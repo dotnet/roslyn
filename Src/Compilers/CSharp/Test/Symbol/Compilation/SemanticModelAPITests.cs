@@ -1660,7 +1660,7 @@ foreach(short ele in a)
             Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void TestGetSpeculativeSemanticModelInAutoPropInitializer1()
         {
             var source = @"class C

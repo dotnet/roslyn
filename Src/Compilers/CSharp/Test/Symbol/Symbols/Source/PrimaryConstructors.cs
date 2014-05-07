@@ -1653,7 +1653,7 @@ class Derived(private int p0, private int p1 = Base.f0, private int p2 = 0, priv
             Assert.Equal("System.Int32 Base.f0", symInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void ParameterVisibility_04()
         {
             var comp = CreateCompilationWithMscorlib(@"

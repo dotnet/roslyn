@@ -930,7 +930,7 @@ class C : I
             CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.DllAlwaysImportInternals);
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoPropInitializersClass()
         {
             var comp = CreateCompilationWithMscorlib(@"using System;
@@ -985,7 +985,7 @@ class C
                 expectedOutput: "1test300S");
         }
 
-        [Fact]
+        [Fact(Skip = "940557")]
         public void AutoPropInitializersStruct()
         {
             var comp = CreateCompilationWithMscorlib(@"using System;

@@ -6757,7 +6757,7 @@ class Driver
         }
 
         [WorkItem(840843, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "940557")]
         public void MissingAsyncMethodBuilder()
         {
             var source = @"
