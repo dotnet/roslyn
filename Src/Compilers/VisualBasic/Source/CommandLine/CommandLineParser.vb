@@ -149,10 +149,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If value IsNot Nothing Then
-                        value = value.ToLowerInvariant()
-                    End If
-
                     Select Case name
                         Case "?", "help"
                             If value IsNot Nothing Then
@@ -611,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If String.IsNullOrEmpty(value) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                                 Else
-                                    Select Case value
+                                    Select Case value.ToLowerInvariant()
                                         Case "9", "9.0"
                                             languageVersion = LanguageVersion.VisualBasic9
                                         Case "10", "10.0"
