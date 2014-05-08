@@ -131,7 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
         {
-            // The initial state is always the same for async methods.
+            if (frameType.TypeKind == TypeKind.Class)
+            {
+                // local = new {state machine type}();
+                bodyBuilder.Add(
+                    F.Assignment(
+                        F.Local(stateMachineLocal),
+                        F.New(frameType.InstanceConstructors[0])));
+            }
         }
 
         protected override BoundStatement GenerateReplacementBody(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
@@ -151,15 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
-
-                if (stateMachineVariable.Type.TypeKind == TypeKind.Class)
-                {
-                    // local = new {state machine type}();
-                    bodyBuilder.Add(
-                        F.Assignment(
-                            F.Local(stateMachineVariable), 
-                            F.New(((AsyncStateMachine)stateMachineVariable.Type).InstanceConstructors[0])));
-                }
 
                 // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
                 bodyBuilder.Add(

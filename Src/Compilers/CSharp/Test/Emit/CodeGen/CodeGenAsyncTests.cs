@@ -43,14 +43,14 @@ using System.Threading.Tasks;
 
 class Test
 {
-    public static async Task F()
+    public static async Task F(int a)
     {
-        await Task.Factory.StartNew(() => { System.Console.WriteLine(123); });
+        await Task.Factory.StartNew(() => { System.Console.WriteLine(a); });
     }
 
     public static void Main()
     {   
-        F().Wait();
+        F(123).Wait();
     }
 }";
             var c = CreateCompilationWithMscorlib45(source);
