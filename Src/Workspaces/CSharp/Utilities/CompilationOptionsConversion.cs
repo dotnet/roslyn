@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     {
         internal static LanguageVersion? GetLanguageVersion(string projectLanguageVersion)
         {
-            switch (projectLanguageVersion.ToLowerInvariant())
+            switch ((projectLanguageVersion ?? string.Empty).ToLowerInvariant())
             {
                 case "iso-1":
                     return LanguageVersion.CSharp1;
