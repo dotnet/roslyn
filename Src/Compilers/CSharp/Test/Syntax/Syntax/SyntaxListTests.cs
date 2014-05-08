@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -214,6 +215,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxNode>)null));
             Assert.Throws<ArgumentNullException>(() => list.Insert(0, null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNode>)null));
+        }
+
+        [Fact, WorkItem(127)]
+        public void AddEmptySyntaxList()
+        {
+            var attributes = new AttributeListSyntax[0];
+            var newMethodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "M");
+            Assert.DoesNotThrow(() => newMethodDeclaration.AddAttributeLists(attributes));
         }
     }
 }

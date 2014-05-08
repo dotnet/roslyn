@@ -194,7 +194,15 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.InsertRange(index, nodes);
-            return CreateList(list[0].Green, list);
+
+            if (list.Count == 0)
+            {
+                return this;
+            }
+            else
+            {
+                return CreateList(list[0].Green, list);
+            }
         }
 
         /// <summary>
