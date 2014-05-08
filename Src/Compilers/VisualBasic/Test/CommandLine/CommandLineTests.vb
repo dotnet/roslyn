@@ -981,6 +981,22 @@ a.vb
         parsedArgs.Errors.Verify()
         Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
 
+        parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:12", "a.vb"}, _baseDirectory)
+        parsedArgs.Errors.Verify()
+        Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
+
+        parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:12.0", "a.vb"}, _baseDirectory)
+        parsedArgs.Errors.Verify()
+        Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
+
+        parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:Experimental", "a.vb"}, _baseDirectory)
+        parsedArgs.Errors.Verify()
+        Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion)
+
+        parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:experimental", "a.vb"}, _baseDirectory)
+        parsedArgs.Errors.Verify()
+        Assert.Equal(LanguageVersion.Experimental, parsedArgs.ParseOptions.LanguageVersion)
+
         ' default: "current version"
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify()
@@ -1006,6 +1022,10 @@ a.vb
 
         parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:8", "a.vb"}, _baseDirectory)
         parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("8", "langversion"))
+        Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
+
+        parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:" & (LanguageVersion.VisualBasic12 + 1), "a.vb"}, _baseDirectory)
+        parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(CStr(LanguageVersion.VisualBasic12 + 1), "langversion"))
         Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
     End Sub
 

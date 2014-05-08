@@ -149,6 +149,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
+                    If value IsNot Nothing Then
+                        value = value.ToLowerInvariant()
+                    End If
+
                     Select Case name
                         Case "?", "help"
                             If value IsNot Nothing Then
@@ -614,6 +618,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             languageVersion = LanguageVersion.VisualBasic10
                                         Case "11", "11.0"
                                             languageVersion = LanguageVersion.VisualBasic11
+                                        Case "12", "12.0"
+                                            languageVersion = LanguageVersion.VisualBasic12
+                                        Case "experimental"
+                                            languageVersion = LanguageVersion.Experimental
                                         Case Else
                                             AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "langversion")
                                     End Select
