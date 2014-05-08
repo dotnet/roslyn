@@ -1090,14 +1090,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NothingKeyword
                     Return SyntaxKind.NothingLiteralExpression
 
-                Case SyntaxKind.NothingKeyword
-                    Return SyntaxKind.XmlText
-
                 Case Else
                     Return SyntaxKind.None
             End Select
-
-            ' ??? XmlTextLiteralToken|XmlEntityLiteralToken
 
         End Function
 
