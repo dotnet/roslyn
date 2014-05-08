@@ -54,38 +54,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log.Telemetry
         }
     }
 
-    internal enum LightBulbInvocationType
-    {
-        Keyboard,
-        Mouse
-    }
-
-    internal struct LightBulbSessionInfo
-    {
-        public readonly LightBulbInvocationType LightBulbInvocationType;
-        public readonly UserActionOutcome Outcome;
-        public readonly int NumberOfItemsShown;
-        public readonly int IndexOfSelectedItem;
-        public readonly int UniqueIdOfSelectedItem;
-        public readonly int ExtendedFlagsOfSelectedItem;
-
-        public LightBulbSessionInfo(
-            LightBulbInvocationType lightBulbInvocationType,
-            UserActionOutcome outcome,
-            int numberOfItemsShown,
-            int indexOfSelectedItem,
-            int uniqueIdOfSelectedItem,
-            int extendedFlagsOfSelectedItem)
-        {
-            this.LightBulbInvocationType = lightBulbInvocationType;
-            this.Outcome = outcome;
-            this.NumberOfItemsShown = numberOfItemsShown;
-            this.IndexOfSelectedItem = indexOfSelectedItem;
-            this.UniqueIdOfSelectedItem = uniqueIdOfSelectedItem;
-            this.ExtendedFlagsOfSelectedItem = extendedFlagsOfSelectedItem;
-        }
-    }
-
     internal class EncDebuggingSessionInfo
     {
         public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
