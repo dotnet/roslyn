@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly MetadataReference CorlibReference = new MetadataFileReference(typeof(object).Assembly.Location, MetadataImageKind.Assembly);
         private static readonly MetadataReference SystemCoreReference = new MetadataFileReference(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
         private static readonly MetadataReference CSharpSymbolsReference = new MetadataFileReference(typeof(CSharpCompilation).Assembly.Location, MetadataImageKind.Assembly);
-
-        private static readonly MetadataReference[] DefaultMetadataReferences = new[]
-        {
-            CorlibReference,
-            CSharpSymbolsReference,
-            TestBase.SystemRef
-        };
+        private static readonly MetadataReference CodeAnalysisReference = new MetadataFileReference(typeof(Compilation).Assembly.Location, MetadataImageKind.Assembly);
 
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";
@@ -237,6 +231,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
+                .AddMetadataReference(projectId, CodeAnalysisReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef);
 
             int count = 0;

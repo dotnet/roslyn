@@ -7,11 +7,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    // TODO(naslotto): This should be updated to follow the flow of array creation expressions
+    // TODO: This should be updated to follow the flow of array creation expressions
     // that are eventually converted to and leave a given method as IEnumerable<T> once we have
     // the ability to do more thorough data-flow analysis in diagnostic analyzers.
     public abstract class SpecializedEnumerableCreationAnalyzer : IDiagnosticAnalyzer, ICompilationStartedAnalyzer
     {
+        internal const string SpecializedCollectionsMetadataName = "Roslyn.Utilities.SpecializedCollections";
         internal const string IEnumerableMetadataName = "System.Collections.Generic.IEnumerable`1";
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
@@ -41,6 +42,16 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public ICompilationEndedAnalyzer OnCompilationStarted(Compilation compilation, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
         {
+            var specializedCollectionsSymbol = compilation.GetTypeByMetadataName(SpecializedCollectionsMetadataName);
+            if (specializedCollectionsSymbol == null)
+            {
+                // TODO: In the future, we may want to run this analyzer even if the SpecializedCollections
+                // type cannot be found in this compilation. In some cases, we may want to add a reference
+                // to SpecializedCollections as a linked file or an assembly that contains it. With this
+                // check, we will not warn where SpecializedCollections is not yet referenced.
+                return null;
+            }
+
             var genericEnumerableSymbol = compilation.GetTypeByMetadataName(IEnumerableMetadataName);
             if (genericEnumerableSymbol == null)
             {
