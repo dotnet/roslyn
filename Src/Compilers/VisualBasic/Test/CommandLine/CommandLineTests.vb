@@ -187,7 +187,7 @@ vbc : warning BC2026: warning number '42325' for the option 'nowarn' is either n
     End Sub
 
     <WorkItem(722561, "DevDiv")>
-    <Fact(Skip:="939394")>
+    <Fact>
     Public Sub Bug_722561()
         Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Public Class C
