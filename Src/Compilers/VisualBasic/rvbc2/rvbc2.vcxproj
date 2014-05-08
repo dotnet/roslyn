@@ -15,8 +15,11 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Label="Globals">
+    <ProjectGuid>{4A40DFE7-34B3-5931-D055-4258510BA9D1}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>RosCompiler</RootNamespace>
+    <ProjectName>rvbc2</ProjectName>
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -38,14 +41,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Label="Globals" />
-  <PropertyGroup Label="Globals" />
-  <PropertyGroup Label="Globals" />
-  <PropertyGroup Label="Globals">
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>rvbc2</RootNamespace>
-    <ProjectGuid>{4A40DFE7-34B3-5931-D055-4258510BA9D1}</ProjectGuid>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -103,6 +98,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup />
   <ImportGroup Label="ExtensionTargets"></ImportGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
