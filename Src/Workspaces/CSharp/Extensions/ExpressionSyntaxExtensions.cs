@@ -807,11 +807,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            if (node.Parent is MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
             if (node.CSharpKind() == SyntaxKind.IdentifierName &&
                 semanticModel.GetAliasInfo((IdentifierNameSyntax)node) != null)
             {
