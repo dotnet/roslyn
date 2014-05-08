@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public static async Task<string> GetOutputFilePathAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            var project = await LoadProjectAsync(path, globalProperties, cancellationToken);
+            var project = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
             return project.GetPropertyValue("TargetPath");
         }
 
