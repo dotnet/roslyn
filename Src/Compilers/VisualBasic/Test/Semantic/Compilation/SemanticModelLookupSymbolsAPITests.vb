@@ -1964,6 +1964,69 @@ End Class
             CompilationUtils.CheckSymbols(symbols, "Microsoft", "C", "System")
         End Sub
 
+        <Fact(), WorkItem(939844, "DevDiv")>
+        Public Sub Bug939844_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main(args As String())
+        Dim x = 1
+        If True Then
+            Dim y = 1
+            x=y 'BIND:"y"
+                                       
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim pos As Integer = FindBindingTextPosition(compilation, "a.vb") + 20
+
+            Dim symsX = semanticModel.LookupSymbols(pos, Nothing, "x")
+            Assert.Equal(1, symsX.Length)
+            Assert.Equal("x As System.Int32", symsX(0).ToTestDisplayString())
+
+            Dim symsY = semanticModel.LookupSymbols(pos, Nothing, "y")
+            Assert.Equal(1, symsY.Length)
+            Assert.Equal("y As System.Int32", symsY(0).ToTestDisplayString())
+        End Sub
+
+        <Fact(), WorkItem(939844, "DevDiv")>
+        Public Sub Bug939844_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main(args As String())
+        Dim x = 1
+        Select Case 1
+            Case 1
+            Dim y = 1
+            x=y 'BIND:"y"
+                                       
+        End Select
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim pos As Integer = FindBindingTextPosition(compilation, "a.vb") + 20
+
+            Dim symsX = semanticModel.LookupSymbols(pos, Nothing, "x")
+            Assert.Equal(1, symsX.Length)
+            Assert.Equal("x As System.Int32", symsX(0).ToTestDisplayString())
+
+            Dim symsY = semanticModel.LookupSymbols(pos, Nothing, "y")
+            Assert.Equal(1, symsY.Length)
+            Assert.Equal("y As System.Int32", symsY(0).ToTestDisplayString())
+        End Sub
+
 #End Region
 
     End Class

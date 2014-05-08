@@ -667,11 +667,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If endStatement Is Nothing Then
-                    ' No expected end statement. Check based on last statement in block instead.
-                    If body.Count > 0 Then
-                        Dim lastStatement = body(body.Count - 1)
-                        beforeEnd = position < lastStatement.SpanStart OrElse InSpanOrEffectiveTrailingOfNode(lastStatement, position)
-                    End If
+                    Select Case possibleBlock.VisualBasicKind
+                        Case SyntaxKind.SingleLineIfPart, SyntaxKind.SingleLineElsePart
+                            ' No expected end statement. These are "single" line blocks, check based on last statement in block instead.
+                            If body.Count > 0 Then
+                                Dim lastStatement = body(body.Count - 1)
+                                beforeEnd = position < lastStatement.SpanStart OrElse InSpanOrEffectiveTrailingOfNode(lastStatement, position)
+                            End If
+
+                        Case Else
+                            ' No expected end statement. These are multi-line blocks, check based on a token that follows the block instead.
+                            Dim followingToken As SyntaxToken = possibleBlock.GetLastToken(includeZeroWidth:=True).GetNextToken()
+
+                            If followingToken <> Nothing Then
+                                ' These blocks are always followed by a construct that terminates them. Let's treat it similar to the endStatement.
+                                beforeEnd = position < followingToken.SpanStart
+                            End If
+                    End Select
+
                 ElseIf endStatement.Width > 0 Then
                     beforeEnd = position < endStatement.SpanStart
                 End If
