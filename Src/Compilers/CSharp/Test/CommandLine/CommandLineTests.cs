@@ -1143,6 +1143,12 @@ d.cs
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso1"));
             Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("7"));
+            Assert.Equal(DefaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+
             parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/langversion:0", string.Format("/langversion:{0}", (int)LanguageVersion.Experimental + 1), "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),

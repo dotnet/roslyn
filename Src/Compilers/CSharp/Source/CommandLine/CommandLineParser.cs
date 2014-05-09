@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     int versionNumber;
-                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid())
+                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid() && versionNumber != (int)LanguageVersion.Experimental)
                     {
                         version = (LanguageVersion)versionNumber;
                         return true;
