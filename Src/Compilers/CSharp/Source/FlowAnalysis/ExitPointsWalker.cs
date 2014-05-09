@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 var result = walker.branchesOutOf.ToImmutableAndFree();
                 walker.branchesOutOf = null;
-                return badRegion ? Enumerable.Empty<StatementSyntax>() : result;
+                return badRegion ? SpecializedCollections.EmptyEnumerable<StatementSyntax>() : result;
             }
             finally
             {

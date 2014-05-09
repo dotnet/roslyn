@@ -1828,13 +1828,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureAttributesAreBound();
 
             if (lazyInternalsVisibleToMap == null)
-                return Enumerable.Empty<ImmutableArray<byte>>();
+                return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
 
             ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>> result = null;
 
             lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
 
-            return (result != null) ? result.Keys : Enumerable.Empty<ImmutableArray<byte>>();
+            return (result != null) ? result.Keys : SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)

@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool badRegion = false;
                 walker.Analyze(ref badRegion);
-                return badRegion ? Enumerable.Empty<Symbol>() : walker.variablesDeclared;
+                return badRegion ? SpecializedCollections.EmptyEnumerable<Symbol>() : walker.variablesDeclared;
             }
             finally
             {

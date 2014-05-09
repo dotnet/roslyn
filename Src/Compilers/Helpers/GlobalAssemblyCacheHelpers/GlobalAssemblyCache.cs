@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
                 nameObj = FusionAssemblyIdentity.ToAssemblyNameObject(partialName);
                 if (nameObj == null)
                 {
-                    return Enumerable.Empty<AssemblyIdentity>();
+                    return SpecializedCollections.EmptyEnumerable<AssemblyIdentity>();
                 }
             }
             else

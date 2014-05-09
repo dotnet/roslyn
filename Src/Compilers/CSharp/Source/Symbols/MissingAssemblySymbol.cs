@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
-            return System.Linq.Enumerable.Empty<ImmutableArray<byte>>();
+            return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
         public override bool MightContainExtensionMethods

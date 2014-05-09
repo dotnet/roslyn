@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo) As IEnumerable(Of Symbol)
             Dim walker = New VariablesDeclaredWalker(info, region)
             Try
-                Return If(walker.Analyze(), walker.variablesDeclared, Enumerable.Empty(Of Symbol)())
+                Return If(walker.Analyze(), walker.variablesDeclared, SpecializedCollections.EmptyEnumerable(Of Symbol)())
             Finally
                 walker.Free()
             End Try

@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
 
             lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
 
-            return result ?? Enumerable.Empty<ImmutableArray<byte>>();
+            return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
         internal bool DeclaresTheObjectClass

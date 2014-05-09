@@ -730,7 +730,7 @@ namespace Roslyn.Collections.Immutable
 
             internal override IEnumerable<Bucket> GetAll()
             {
-                return new Bucket[] { this };
+                return SpecializedCollections.SingletonEnumerable(this);
             }
         }
 

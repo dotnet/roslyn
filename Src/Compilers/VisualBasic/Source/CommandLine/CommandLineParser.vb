@@ -1288,7 +1288,7 @@ lVbRuntimePlus:
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
-                Return Enumerable.Empty(Of CommandLineReference)()
+                Return SpecializedCollections.EmptyEnumerable(Of CommandLineReference)()
             End If
 
             ' TODO: how does VB handle quotes, separators, ...?
@@ -1306,7 +1306,7 @@ lVbRuntimePlus:
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
-                Return Enumerable.Empty(Of CommandLineAnalyzerReference)()
+                Return SpecializedCollections.EmptyEnumerable(Of CommandLineAnalyzerReference)()
             End If
 
             Return ParseSeparatedPaths(value).

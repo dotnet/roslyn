@@ -824,14 +824,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             EnsureAttributesAreBound()
 
             If m_lazyInternalsVisibleToMap Is Nothing Then
-                Return Enumerable.Empty(Of ImmutableArray(Of Byte))()
+                Return SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))()
             End If
 
             Dim result As ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)) = Nothing
 
             m_lazyInternalsVisibleToMap.TryGetValue(simpleName, result)
 
-            Return If(result IsNot Nothing, result.Keys, Enumerable.Empty(Of ImmutableArray(Of Byte))())
+            Return If(result IsNot Nothing, result.Keys, SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))())
         End Function
 
         Friend ReadOnly Property DeclaresTheObjectClass As Boolean

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2516,7 +2516,7 @@ class C
         private static IEnumerable<ElementAccessExpressionSyntax> GetElementAccessExpressions(SyntaxNode node)
         {
             return node == null ?
-                new ElementAccessExpressionSyntax[0] :
+                SpecializedCollections.EmptyEnumerable<ElementAccessExpressionSyntax>() :
                 node.DescendantNodesAndSelf().Where(s => s.IsKind(SyntaxKind.ElementAccessExpression)).Cast<ElementAccessExpressionSyntax>();
         }
 

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim walker = New AlwaysAssignedWalker(info, region)
             Try
                 Dim result As Boolean = walker.Analyze()
-                Return If(result, walker.AlwaysAssigned, Enumerable.Empty(Of Symbol)())
+                Return If(result, walker.AlwaysAssigned, SpecializedCollections.EmptyEnumerable(Of Symbol)())
             Finally
                 walker.Free()
             End Try

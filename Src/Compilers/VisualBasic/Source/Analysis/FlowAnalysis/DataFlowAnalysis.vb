@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property UnsafeAddressTaken As IEnumerable(Of ISymbol)
             Get
-                Return Enumerable.Empty(Of ISymbol)
+                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
             End Get
         End Property
     End Class

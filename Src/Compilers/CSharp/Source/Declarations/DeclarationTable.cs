@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return allOlderRootDeclarations.Concat(new[] { latestLazyRootDeclaration.Value });
+                return allOlderRootDeclarations.Concat(SpecializedCollections.SingletonEnumerable(latestLazyRootDeclaration.Value));
             }
         }
 

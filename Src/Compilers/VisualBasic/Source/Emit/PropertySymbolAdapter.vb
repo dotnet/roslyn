@@ -17,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Me.GetMethod IsNot Nothing And Me.SetMethod IsNot Nothing Then
                     Return {Me.GetMethod, Me.SetMethod}
                 ElseIf Me.GetMethod IsNot Nothing Then
-                    Return {Me.GetMethod}
+                    Return SpecializedCollections.SingletonEnumerable(Me.GetMethod)
                 ElseIf Me.SetMethod IsNot Nothing Then
-                    Return {Me.SetMethod}
+                    Return SpecializedCollections.SingletonEnumerable(Me.SetMethod)
                 Else
                     Return SpecializedCollections.EmptyEnumerable(Of IMethodReference)()
                 End If

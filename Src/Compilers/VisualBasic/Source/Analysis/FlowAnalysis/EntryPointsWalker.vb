@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim walker = New EntryPointsWalker(info, region)
             Try
                 succeeded = walker.Analyze()
-                Return If(succeeded, walker.entryPoints, Enumerable.Empty(Of LabelStatementSyntax)())
+                Return If(succeeded, walker.entryPoints, SpecializedCollections.EmptyEnumerable(Of LabelStatementSyntax)())
             Finally
                 walker.Free()
             End Try

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo) As IEnumerable(Of StatementSyntax)
             Dim walker = New ExitPointsWalker(info, region)
             Try
-                Return If(walker.Analyze(), walker.branchesOutOf.ToImmutable(), Enumerable.Empty(Of StatementSyntax)())
+                Return If(walker.Analyze(), walker.branchesOutOf.ToImmutable(), SpecializedCollections.EmptyEnumerable(Of StatementSyntax)())
             Finally
                 walker.Free()
             End Try

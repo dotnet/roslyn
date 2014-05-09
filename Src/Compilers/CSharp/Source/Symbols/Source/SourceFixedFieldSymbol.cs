@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames
         {
-            get { return new string[] { FixedElementFieldName }; }
+            get { return SpecializedCollections.SingletonEnumerable(FixedElementFieldName); }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
