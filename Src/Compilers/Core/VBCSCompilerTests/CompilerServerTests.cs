@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             return retval;
         }
 
-        private string CSharpCommandLineCompiler
+        private string CSharpCommandLineCompilerClient
         {
             get
             {                
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private string BasicCommandLineCompiler
+        private string BasicCommandLineCompilerClient
         {
             get
             {
@@ -291,6 +291,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         #endregion
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
         {
             Dictionary<string, string> files =
@@ -307,7 +308,7 @@ class Hello
     }
 }"}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "/nologo hello.cs", tempDirectory, files);
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "/nologo hello.cs", tempDirectory, files);
             VerifyResultAndOutput(result, tempDirectory, "Hello, world.\r\n");
         }
 
@@ -319,10 +320,11 @@ class Hello
         /// amd64.
         /// </summary>
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Platformx86MscorlibCsc()
         {
             var files = new Dictionary<string, string> { { "c.cs", "class C {}" }};
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler,
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient,
                                                 "/nologo /t:library /platform:x86 c.cs",
                                                 tempDirectory,
                                                 files);
@@ -330,10 +332,11 @@ class Hello
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Platformx86MscorlibVbc()
         {
             var files = new Dictionary<string, string> { { "c.vb", "Class C\nEnd Class" } };
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler,
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient,
                                                 "/nologo /t:library /platform:x86 c.vb",
                                                 tempDirectory,
                                                 files);
@@ -341,6 +344,7 @@ class Hello
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibCS()
         {
             Dictionary<string, string> files =
@@ -353,11 +357,12 @@ class Hello
     { Console.WriteLine(""Hello, world.""); }
 }"}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "/nologo /r:mscorlib.dll hello.cs", tempDirectory, files);
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "/nologo /r:mscorlib.dll hello.cs", tempDirectory, files);
             VerifyResultAndOutput(result, tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldVB()
         {
             Dictionary<string, string> files =
@@ -372,11 +377,12 @@ Module Module1
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "/nologo /r:Microsoft.VisualBasic.dll hello.vb", tempDirectory, files);
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "/nologo /r:Microsoft.VisualBasic.dll hello.vb", tempDirectory, files);
             VerifyResultAndOutput(result, tempDirectory, "Hello from VB\r\n");
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibVB()
         {
             Dictionary<string, string> files =
@@ -390,11 +396,12 @@ Module Module1
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "/nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb", tempDirectory, files);
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "/nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb", tempDirectory, files);
             VerifyResultAndOutput(result, tempDirectory, "Hello from VB\r\n");
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void CompileErrorsCS()
         {
             Dictionary<string, string> files =
@@ -407,7 +414,7 @@ class Hello
     { Console.WriteLine(""Hello, world."") }
 }"}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "hello.cs", tempDirectory, files);
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "hello.cs", tempDirectory, files);
 
             // Should output errors, but not create output file.                  
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
@@ -418,6 +425,7 @@ class Hello
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void CompileErrorsVB()
         {
             Dictionary<string, string> files =
@@ -431,7 +439,7 @@ Module Module1
     End Sub
 End Class"}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "/r:Microsoft.VisualBasic.dll hellovb.vb", tempDirectory, files);
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "/r:Microsoft.VisualBasic.dll hellovb.vb", tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
@@ -443,9 +451,10 @@ End Class"}};
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorCS()
         {
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "missingfile.cs", tempDirectory, new Dictionary<string, string>());
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "missingfile.cs", tempDirectory, new Dictionary<string, string>());
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -456,6 +465,7 @@ End Class"}};
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorCS()
         {
             Dictionary<string, string> files =
@@ -470,7 +480,7 @@ class Hello
     }
 }"}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "/r:missing.dll hello.cs", tempDirectory, files);
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "/r:missing.dll hello.cs", tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -482,6 +492,7 @@ class Hello
 
         [WorkItem(546067, "DevDiv")]
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InvalidMetadataFileErrorCS()
         {
             Dictionary<string, string> files =
@@ -490,7 +501,7 @@ class Hello
                                                { "app.cs", "class Test { static void Main() {} }"},
                                            };
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "/r:Lib.cs app.cs", tempDirectory, files);
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "/r:Lib.cs app.cs", tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -501,9 +512,10 @@ class Hello
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorVB()
         {
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "missingfile.vb", tempDirectory, new Dictionary<string, string>());
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "missingfile.vb", tempDirectory, new Dictionary<string, string>());
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -514,6 +526,7 @@ class Hello
         }
 
         [Fact(), WorkItem(761131, "DevDiv")]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorVB()
         {
             Dictionary<string, string> files =
@@ -528,7 +541,7 @@ Module Module1
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "/nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", tempDirectory, files);
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "/nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -539,6 +552,7 @@ End Module"}};
 
         [WorkItem(546067, "DevDiv")]
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InvalidMetadataFileErrorVB()
         {
             Dictionary<string, string> files =
@@ -552,7 +566,7 @@ End Class" },
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler, "/r:Lib.vb app.vb", tempDirectory, files);
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "/r:Lib.vb app.vb", tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
@@ -563,6 +577,7 @@ End Module"}};
 
         [Fact()]
         [WorkItem(723280, "DevDiv")]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingVB()
         {
             TempDirectory rootDirectory = tempDirectory.CreateDirectory("ReferenceCachingVB");
@@ -582,7 +597,7 @@ End Class
 
             using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
-                var result = RunCommandLineCompiler(BasicCommandLineCompiler, "src1.vb /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "src1.vb /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -599,7 +614,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                    result = RunCommandLineCompiler(BasicCommandLineCompiler, "hello1.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "hello1.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -620,7 +635,7 @@ Public Sub Main()
 End Sub
 End Module
 "}};
-                        result = RunCommandLineCompiler(BasicCommandLineCompiler, "hello2.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "hello2.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -644,7 +659,7 @@ Public Class Library
 End Class
 "}};
 
-                        result = RunCommandLineCompiler(BasicCommandLineCompiler, "src2.vb /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "src2.vb /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -661,7 +676,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                            result = RunCommandLineCompiler(BasicCommandLineCompiler, "hello3.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "hello3.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -683,6 +698,7 @@ End Module
 
         [Fact()]
         [WorkItem(723280, "DevDiv")]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingCS()
         {
             TempDirectory rootDirectory = tempDirectory.CreateDirectory("ReferenceCachingCS");
@@ -700,7 +716,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-                var result = RunCommandLineCompiler(CSharpCommandLineCompiler, "src1.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "src1.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -716,7 +732,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-                    result = RunCommandLineCompiler(CSharpCommandLineCompiler, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -738,7 +754,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello2 from {0}"", Library.GetString()); }
 }"}};
-                        result = RunCommandLineCompiler(CSharpCommandLineCompiler, "hello2.cs /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "hello2.cs /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -761,7 +777,7 @@ public class Library
     { return ""library3""; }
 }"}};
 
-                        result = RunCommandLineCompiler(CSharpCommandLineCompiler, "src2.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "src2.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -777,7 +793,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
-                            result = RunCommandLineCompiler(CSharpCommandLineCompiler, "hello3.cs /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "hello3.cs /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -825,13 +841,13 @@ End Module", i));
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerCS(TempDirectory dir, int i)
         {
-            return ProcessLauncher.StartProcess(CSharpCommandLineCompiler, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
+            return ProcessLauncher.StartProcess(CSharpCommandLineCompilerClient, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
         }
 
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerVB(TempDirectory dir, int i)
         {
-            return ProcessLauncher.StartProcess(BasicCommandLineCompiler, string.Format("/nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
+            return ProcessLauncher.StartProcess(BasicCommandLineCompilerClient, string.Format("/nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
         }
 
         // Run output in directory set up by SetupDirectory
@@ -847,6 +863,7 @@ End Module", i));
         }
 
         [Fact(), WorkItem(761326, "DevDiv")]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MultipleSimultaneousCompiles()
         {
             // Run this many compiles simultaneously in different directories.
@@ -1439,6 +1456,7 @@ End Class
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableCS()
         {
             var libDirectory = tempDirectory.CreateDirectory("LibraryDir");
@@ -1454,7 +1472,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler,
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient,
                                                 "src1.cs /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
                                                 tempDirectory, files);
 
@@ -1473,7 +1491,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-            result = RunCommandLineCompiler(CSharpCommandLineCompiler, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", tempDirectory, files,
+            result = RunCommandLineCompiler(CSharpCommandLineCompilerClient, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", tempDirectory, files,
                                             additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
             Assert.Equal("", result.Output);
@@ -1484,6 +1502,7 @@ class Hello
         }
 
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableVB()
         {
             var libDirectory = tempDirectory.CreateDirectory("LibraryDir");
@@ -1501,7 +1520,7 @@ Public Class Library
 End Class
 "}};
 
-            var result = RunCommandLineCompiler(BasicCommandLineCompiler,
+            var result = RunCommandLineCompiler(BasicCommandLineCompilerClient,
                                                 "src1.vb /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
                                                 tempDirectory, files);
 
@@ -1521,7 +1540,7 @@ Module Module1
     End Sub
 End Module
 "}};
-            result = RunCommandLineCompiler(BasicCommandLineCompiler, "hello1.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", tempDirectory, files,
+            result = RunCommandLineCompiler(BasicCommandLineCompilerClient, "hello1.vb /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", tempDirectory, files,
                                             additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
             Assert.Equal("", result.Output);
@@ -1605,6 +1624,7 @@ End Module
 
         [WorkItem(871477, "DevDiv")]
         [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AssemblyIdentityComparer1()
         {
             tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib);
@@ -1623,7 +1643,7 @@ End Module
 }
 "}};
 
-            var result = RunCommandLineCompiler(CSharpCommandLineCompiler,
+            var result = RunCommandLineCompiler(CSharpCommandLineCompilerClient,
                                                 "ref_mscorlib2.cs /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
                                                 tempDirectory, files);
 
@@ -1647,7 +1667,7 @@ class Program
     }
 }
 "}};
-            result = RunCommandLineCompiler(CSharpCommandLineCompiler,
+            result = RunCommandLineCompiler(CSharpCommandLineCompilerClient,
                                             "main.cs /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
                                             tempDirectory, files);
 

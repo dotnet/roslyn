@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities
         public CultureContext(string testCulture)
         {
             threadCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo(testCulture);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(testCulture, useUserOverride:false);
         }
 
         public void Dispose()
