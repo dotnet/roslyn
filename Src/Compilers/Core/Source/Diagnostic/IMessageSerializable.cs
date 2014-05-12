@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Indicates that the implementing type can be serialized via <see cref="ToString"/> 
+    /// Indicates that the implementing type can be serialized via <see cref="object.ToString"/> 
     /// for diagnostic message purposes.
     /// </summary>
     /// <remarks>
