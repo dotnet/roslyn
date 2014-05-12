@@ -3395,7 +3395,8 @@ class C
             });
         }
 
-        [Fact]
+        [WorkItem(121)]
+        [Fact(Skip = "121")]
         public void Bug_AttributeOnWrongGenericParameter()
         {
             var source = @"
