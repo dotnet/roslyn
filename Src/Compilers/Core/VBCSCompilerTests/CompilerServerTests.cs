@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -223,18 +224,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(exeName));
             foreach (Process p in processes)
             {
-                try
+                int pathSize = exeName.Length * 2;
+                var exeNameBuffer = new StringBuilder(pathSize);
+
+                if (QueryFullProcessImageName(p.Handle,
+                                              0, // Win32 path format
+                                              exeNameBuffer,
+                                              ref pathSize) &&
+                    string.Equals(exeNameBuffer.ToString(),
+                                  exeName,
+                                  StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.Equals(p.MainModule.FileName, exeName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        p.Kill();
-                        p.WaitForExit();
-                    }
+                    p.Kill();
+                    p.WaitForExit();
                 }
-                catch (Exception)
-                { }
             }
         }
+
+        /// <summary>
+        /// Get the file path of the executable that started this process.
+        /// </summary>
+        /// <param name="processHandle"></param>
+        /// <param name="flags">Should always be 0: Win32 path format.</param>
+        /// <param name="exeNameBuffer">Buffer for the name</param>
+        /// <param name="bufferSize">
+        /// Size of the buffer coming in, chars written coming out.
+        /// </param>
+        [DllImport("Kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", CharSet = CharSet.Unicode)]
+        private static extern bool QueryFullProcessImageName(
+            IntPtr processHandle,
+            int flags,
+            StringBuilder exeNameBuffer,
+            ref int bufferSize);
 
         // In order that the compiler server doesn't stay around and prevent future builds, we explicitly
         // kill it after each test.
