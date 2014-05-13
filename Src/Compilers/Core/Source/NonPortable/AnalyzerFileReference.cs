@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -139,6 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             catch (ArgumentException e)
             { ex = e; }
             catch (PathTooLongException e)
+            { ex = e; }
+            catch (ReflectionTypeLoadException e)
             { ex = e; }
 
             if (ex != null)
