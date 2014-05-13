@@ -150,39 +150,14 @@ namespace Microsoft.CodeAnalysis.Text
         /// encoding can't decode the stream.</exception>
         internal static string DetectEncodingAndDecode(Stream data)
         {
-            Encoding encoding = null;
-
-            data.Seek(0, SeekOrigin.Begin);
-
-            // First, look for byte order marks...
-            if (data.Length >= 2)
-            {
-                byte[] byteOrderMark = new byte[2];
-                data.Read(byteOrderMark, 0, 2);
-
-                if (0xFE == byteOrderMark[0] && 0xFF == byteOrderMark[1])
-                {
-                    encoding = Encoding.BigEndianUnicode;
-                }
-                else if (0xFF == byteOrderMark[0] && 0xFE == byteOrderMark[1])
-                {
-                    encoding = Encoding.Unicode;
-                }
-                else if (data.Length >= 3)
-                {
-                    if (0xEF == byteOrderMark[0] && 0xBB == byteOrderMark[1] && 0xBF == data.ReadByte())
-                    {
-                        encoding = Encoding.UTF8;
-                    }
-                }
-            }
+            Encoding encoding = TryReadByteOrderMark(data);
 
             // If we didn't find a recognized byte order mark, check to see if the file contents are valid UTF-8
             // with no byte order mark.  Detecting UTF-8 with no byte order mark implicitly decodes the entire array
             // to check each byte, so we won't decode again unless we've already detected some other encoding or
             // this is not valid UTF-8
             string text = null;
-            if (encoding != null || !TryDecodeUTF8NoBOM(data, out text))
+            if (encoding != null || !TryDecodeUtf8NoByteOrderMark(data, out text))
             {
                 if (encoding == null)
                 {
@@ -248,10 +223,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // PERF: If the input is a MemoryStream, we may be able to save an allocation
             var memoryStream = data as MemoryStream;
-            if (memoryStream != null &&
-                TryDecodeMemoryStream(memoryStream, encoding,
-                                      includePreamble: true,
-                                      decodedText: out text))
+            if (memoryStream != null && TryDecodeMemoryStream(memoryStream, encoding, decodedText: out text))
             {
                 return text;
             }
@@ -315,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> 
         /// as its fallback decoder.</exception>
-        private static bool TryDecodeMemoryStream(MemoryStream data, Encoding encoding, bool includePreamble, out string decodedText)
+        private static bool TryDecodeMemoryStream(MemoryStream data, Encoding encoding, out string decodedText)
         {
             Debug.Assert(data.Position == 0);
 
@@ -330,29 +302,27 @@ namespace Microsoft.CodeAnalysis.Text
                 return false;
             }
 
-            int index = includePreamble ? encoding.GetPreamble().Length : 0;
+            Encoding actualEncoding = TryReadByteOrderMark(data) ?? encoding;
+            int preambleSize = (int)data.Position;
 
-            // buffer.Length is the MemoryStream's capacity, we want to use
-            // the original stream's length.
-            int count = (int)data.Length - index;
-            decodedText = encoding.GetString(buffer, index, count);
+            decodedText = actualEncoding.GetString(buffer, preambleSize, (int)data.Length - preambleSize);
             return true;
         }
 
         /// <summary>
         /// Assume that the input is UTF8 encoded with no byte order mark (BOM)
         /// </summary>
-        private static bool TryDecodeUTF8NoBOM(Stream data, out string text)
+        private static bool TryDecodeUtf8NoByteOrderMark(Stream data, out string text)
         {
             data.Seek(0, SeekOrigin.Begin);
 
-            var encoding = new UTF8Encoding(false, true);
+            var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
             // PERF: If the input is a MemoryStream, we may be able to save an allocation
             var memoryStream = data as MemoryStream;
             try
             {
-                if (memoryStream == null || !TryDecodeMemoryStream(memoryStream, encoding, includePreamble: false, decodedText: out text))
+                if (memoryStream == null || !TryDecodeMemoryStream(memoryStream, encoding, out text))
                 {
                     // We aren't using a 'using' block here because we don't want to automatically close the stream
                     text = new StreamReader(data, encoding).ReadToEnd();
@@ -365,6 +335,59 @@ namespace Microsoft.CodeAnalysis.Text
                 text = null;
                 return false;
             }
+        }
+
+        private static bool StartsWith(byte[] bytes, byte[] prefix)
+        {
+            if (bytes.Length < prefix.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < prefix.Length; i++)
+            {
+                if (bytes[i] != prefix[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static Encoding TryReadByteOrderMark(Stream data)
+        {
+            data.Seek(0, SeekOrigin.Begin);
+
+            switch (data.ReadByte())
+            {
+                case 0xFE:
+                    if (data.ReadByte() == 0xFF)
+                    {
+                        return Encoding.BigEndianUnicode;
+                    }
+
+                    break;
+
+                case 0xFF:
+                    if (data.ReadByte() == 0xFE)
+                    {
+                        return Encoding.Unicode;
+                    }
+
+                    break;
+
+                case 0xEF:
+                    if (data.ReadByte() == 0xBB && data.ReadByte() == 0xBF)
+                    {
+                        return Encoding.UTF8;
+                    }
+
+                    break;
+            }
+
+            data.Seek(0, SeekOrigin.Begin);
+            return null;
         }
 
         #endregion

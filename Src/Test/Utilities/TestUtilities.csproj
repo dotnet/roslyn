@@ -109,6 +109,7 @@
     <Compile Include="DisposableDirectory.cs" />
     <Compile Include="DisposableFile.cs" />
     <Compile Include="EmitOptions.cs" />
+    <Compile Include="EncodingUtilities.cs" />
     <Compile Include="EqualityUnit.cs" />
     <Compile Include="EqualityUnit`1.cs" />
     <Compile Include="EqualityUtil.cs" />

@@ -3,26 +3,101 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading.Tasks;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class EncodedStringTextTests : TestBase
     {
-        private byte[] GetBytes(Encoding encoding, string source)
+        private static EncodedStringText CreateMemoryStreamBasedEncodedText(string text, Encoding writeEncoding, Encoding readEncodingOpt)
         {
-            var preamble = encoding.GetPreamble();
-            var content = encoding.GetBytes(source);
+            byte[] bytes = writeEncoding.GetBytesWithPreamble(text);
 
-            var bytes = new byte[preamble.Length + content.Length];
-            preamble.CopyTo(bytes, 0);
-            content.CopyTo(bytes, preamble.Length);
+            // For testing purposes, create a bigger buffer so that we verify 
+            // that the implementation only uses the part that's covered by the stream and not the entire array.
+            byte[] buffer = new byte[bytes.Length + 10];
+            bytes.CopyTo(buffer, 0);
 
-            return bytes;
+            using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
+            {
+                return new EncodedStringText(stream, readEncodingOpt);
+            }
+        }
+
+        [Fact]
+        public void CheckSum002()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.ASCII, readEncodingOpt: null);
+
+            // this is known to be "2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", see http://en.wikipedia.org/wiki/SHA-1
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum003()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.Unicode, readEncodingOpt: null);
+
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("9d0047c0 8c84a7ef a55a955e aa3b4aae f62c9c39", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum004()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.BigEndianUnicode, readEncodingOpt: null);
+
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("72b2beae c76188ac 5b38c16c 4f9d518a 2be0a34c", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum006()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("", Encoding.ASCII, readEncodingOpt: null);
+
+            // this is known to be "da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", see http://en.wikipedia.org/wiki/SHA-1
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum007()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("", Encoding.Unicode, readEncodingOpt: null);
+
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("d62636d8 caec13f0 4e28442a 0a6fa1af eb024bbb", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void CheckSum008()
+        {
+            var data = CreateMemoryStreamBasedEncodedText("", Encoding.BigEndianUnicode, readEncodingOpt: null);
+
+            var checksum = data.GetSha1Checksum();
+            Assert.Equal("26237800 2c95ae7e 29535cb9 f438db21 9adf98f5", StringTextTest.ChecksumToHexQuads(checksum));
+        }
+
+        [Fact]
+        public void TryReadByteOrderMark()
+        {
+            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[0])));
+
+            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef })));
+            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xbb })));
+            Assert.Equal("Unicode (UTF-8)", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })).EncodingName);
+
+            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff })));
+            Assert.Equal("Unicode", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })).EncodingName);
+
+            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe })));
+            Assert.Equal("Unicode (Big-Endian)", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })).EncodingName);
         }
 
         [Fact]
@@ -38,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var text = "abc def baz aeiouy äëïöüû";
-            bytes = GetBytes(encoding, text);
+            bytes = encoding.GetBytesWithPreamble(text);
             using (var stream = new MemoryStream(bytes))
             {
                 Assert.Equal(text, EncodedStringText.DecodeIfNotBinary(stream, encoding));
@@ -54,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // Large file decode
             text = new String('x', 1024 * 1024);
-            bytes = GetBytes(encoding, text);
+            bytes = encoding.GetBytesWithPreamble(text);
             using (var stream = new MemoryStream(bytes))
             {
                 Assert.Equal(text, EncodedStringText.DecodeIfNotBinary(stream, encoding));
@@ -92,13 +167,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             verify("abc\0\0", Encoding.Default, true);
         }
 
-
         [Fact]
         public void Decode_NonUtf8()
         {
             var utf8 = new UTF8Encoding(false, true);
             var text = "abc def baz aeiouy " + Encoding.Default.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
-            var bytes = GetBytes(Encoding.Default, text);
+            var bytes = Encoding.Default.GetBytesWithPreamble(text);
 
             // Encoding.Default should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
@@ -120,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var utf8 = new UTF8Encoding(false, true);
             var text = "abc def baz aeiouy äëïöüû";
-            var bytes = GetBytes(utf8, text);
+            var bytes = utf8.GetBytesWithPreamble(text);
 
             // Detect encoding should correctly pick UTF-8
             using (var stream = new MemoryStream(bytes))
@@ -159,6 +233,56 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(expectedText, actualText);
                 }
             });
+        }
+
+        [Fact]
+        public void MemoryStreamBasedEncodedText1()
+        {
+            var encodings = new Encoding[]
+            {
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            };
+
+            foreach (var writeEncoding in encodings)
+            {
+                foreach (var readEncoding in encodings)
+                {
+                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    Assert.Equal(1, text.Lines.Count);
+                    Assert.Equal(3, text.Lines[0].Span.Length);
+                }
+            }
+        }
+
+        [Fact]
+        public void MemoryStreamBasedEncodedText2()
+        {
+            var writeEncodings = new Encoding[]
+            {
+                new UnicodeEncoding(bigEndian: true, byteOrderMark: true),
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: true),
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            };
+
+            var readEncodings = new Encoding[]
+            {
+                new UnicodeEncoding(bigEndian: true, byteOrderMark: true),
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: true),
+                new UnicodeEncoding(bigEndian: true, byteOrderMark: false),
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: false),
+                null,
+            };
+
+            foreach (var writeEncoding in writeEncodings)
+            {
+                foreach (var readEncoding in readEncodings)
+                {
+                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    Assert.Equal(1, text.Lines.Count);
+                    Assert.Equal(3, text.Lines[0].Span.Length);
+                }
+            }
         }
     }
 }

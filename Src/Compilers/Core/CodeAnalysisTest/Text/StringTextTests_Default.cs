@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -15,15 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected byte[] GetBytes(Encoding encoding, string source)
         {
             currentEncoding = encoding;
-
-            var preamble = encoding.GetPreamble();
-            var content = encoding.GetBytes(source);
-
-            byte[] bytes = new byte[preamble.Length + content.Length];
-            preamble.CopyTo(bytes, 0);
-            content.CopyTo(bytes, preamble.Length);
-
-            return bytes;
+            return encoding.GetBytesWithPreamble(source);
         }
 
         protected virtual SourceText Create(string source)
@@ -33,14 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 return new EncodedStringText(stream, encodingOpt: null);
             }
-        }
-
-        [Fact]
-        public void Ctor1()
-        {
-            var data = Create("foo");
-            Assert.Equal(1, data.Lines.Count);
-            Assert.Equal(3, data.Lines[0].Span.Length);
         }
 
         /// <summary>

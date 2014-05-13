@@ -18,17 +18,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
     /// </summary>
     public class StringTextTest
     {
-        private static SourceText CreateEncoded(string source, Encoding encoding)
+        internal static string ChecksumToHexQuads(ImmutableArray<byte> checksum)
         {
-            var stream = new MemoryStream();
+            Assert.Equal(Hash.Sha1HashSize, checksum.Length);
 
-            using (var writer = new StreamWriter(stream, encoding, 512, leaveOpen: false))
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < Hash.Sha1HashSize; i++)
             {
-                writer.Write(source);
-                writer.Flush();
-                stream.Seek(0, SeekOrigin.Begin);
-                return new EncodedStringText(stream, encodingOpt: null);
-            }          
+                if (i > 0 && ((i % 4) == 0))
+                {
+                    builder.Append(' ');
+                }
+
+                byte b = checksum[i];
+                builder.Append(b.ToString("x2"));
+            }
+
+            return builder.ToString();
         }
 
         [Fact]
@@ -205,89 +212,12 @@ bar baz";
             Assert.Equal("foo", data.Lines[0].ToString());
         }
 
-        private static string ChecksumToHexQuads(ImmutableArray<byte> checksum)
-        {
-            Assert.Equal(Hash.Sha1HashSize, checksum.Length);
-
-            var builder = new StringBuilder();
-
-            for (int i = 0; i < Hash.Sha1HashSize; i++)
-            {
-                if (i > 0 && ((i % 4) == 0))
-                {
-                    builder.Append(' ');
-                }
-
-                byte b = checksum[i];
-                builder.Append(b.ToString("x2"));
-            }
-
-            return builder.ToString();
-        }
-
         [Fact]
         public void CheckSum_Unspecified1()
         {
             var data = SourceText.From("The quick brown fox jumps over the lazy dog");
             var checksum = data.GetSha1Checksum();
             Assert.True(checksum.IsEmpty);
-        }
-
-
-        [Fact]
-        public void CheckSum002()
-        {
-            var data = CreateEncoded("The quick brown fox jumps over the lazy dog", Encoding.ASCII);
-
-            // this is known to be "2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", ChecksumToHexQuads(checksum));
-        }
-
-        [Fact]
-        public void CheckSum003()
-        {
-            var data = CreateEncoded("The quick brown fox jumps over the lazy dog", Encoding.Unicode);
-
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("9d0047c0 8c84a7ef a55a955e aa3b4aae f62c9c39", ChecksumToHexQuads(checksum));
-        }
-
-        [Fact]
-        public void CheckSum004()
-        {
-            var data = CreateEncoded("The quick brown fox jumps over the lazy dog", Encoding.BigEndianUnicode);
-
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("72b2beae c76188ac 5b38c16c 4f9d518a 2be0a34c", ChecksumToHexQuads(checksum));
-        }
-
-        [Fact]
-        public void CheckSum006()
-        {
-            var data = CreateEncoded("", Encoding.ASCII);
-
-            // this is known to be "da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", ChecksumToHexQuads(checksum));
-        }
-
-        [Fact]
-        public void CheckSum007()
-        {
-            var data = CreateEncoded("", Encoding.Unicode);
-
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("d62636d8 caec13f0 4e28442a 0a6fa1af eb024bbb", ChecksumToHexQuads(checksum));
-        }
-
-        [Fact]
-        public void CheckSum008()
-        {
-            var data = CreateEncoded("", Encoding.BigEndianUnicode);
-
-            var checksum = data.GetSha1Checksum();
-            Assert.Equal("26237800 2c95ae7e 29535cb9 f438db21 9adf98f5", ChecksumToHexQuads(checksum));
         }
 
         [Fact]

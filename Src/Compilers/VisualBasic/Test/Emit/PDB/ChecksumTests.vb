@@ -190,6 +190,7 @@ End Class
 ]]>
 
             Dim comp = CreateCompilationWithChecksums(source, "b.vb", "b:\base")
+            comp.VerifyDiagnostics()
             Dim actual = PDBTests.GetPdbXml(comp, "C.M")
 
             ' Only actually care about value of name attribute in file element.
