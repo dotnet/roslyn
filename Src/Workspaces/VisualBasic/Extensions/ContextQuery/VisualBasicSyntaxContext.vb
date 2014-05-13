@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
         Public ReadOnly IsCustomEventContext As Boolean
+        Public ReadOnly WithinAsyncMethod As Boolean
 
         Private Sub New(
             workspace As Workspace,
@@ -104,7 +105,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
+            Me.WithinAsyncMethod = IsWithinAsyncMethod(targetToken, cancellationToken)
         End Sub
+
+        Private Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+            Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
+            Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.Begin.Modifiers.Any(SyntaxKind.AsyncKeyword)
+        End Function
 
         Public Shared Function CreateContext(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
             Dim syntaxTree = semanticModel.SyntaxTree

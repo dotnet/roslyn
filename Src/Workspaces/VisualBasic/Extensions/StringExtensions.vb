@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function EscapeIdentifier(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing) As String
+        Public Function EscapeIdentifier(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing, Optional withinAsyncMethod As Boolean = False) As String
             Dim keywordKind = SyntaxFacts.GetKeywordKind(text)
             Dim needsEscaping = keywordKind <> SyntaxKind.None
 
@@ -54,11 +54,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
+            ' GetKeywordKind won't return SyntaxKind.AwaitKeyword (943836)
+            If withinAsyncMethod AndAlso text = "Await" Then
+                needsEscaping = True
+            End If
+
             Return If(needsEscaping, "[" + text + "]", text)
         End Function
 
         <Extension()>
-        Public Function ToIdentifierToken(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing) As SyntaxToken
+        Public Function ToIdentifierToken(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing, Optional withinAsyncMethod As Boolean = False) As SyntaxToken
             Contract.ThrowIfNull(text)
 
             Dim unescaped = text
@@ -69,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 wasAlreadyEscaped = True
             End If
 
-            Dim escaped = EscapeIdentifier(text, afterDot, symbol)
+            Dim escaped = EscapeIdentifier(text, afterDot, symbol, withinAsyncMethod)
             Dim token = If(escaped.Length > 0 AndAlso escaped(0) = "["c,
                 SyntaxFactory.Identifier(escaped, isBracketed:=True, identifierText:=unescaped, typeCharacter:=TypeCharacter.None),
                 SyntaxFactory.Identifier(text))
