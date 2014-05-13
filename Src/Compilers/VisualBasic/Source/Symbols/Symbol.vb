@@ -1110,13 +1110,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations
             Get
-                Return StaticCast(Of Location).From(Me.Locations)
+                Return Me.Locations
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference) Implements ISymbol.DeclaringSyntaxReferences
             Get
-                Return StaticCast(Of SyntaxReference).From(Me.DeclaringSyntaxReferences)
+                Return Me.DeclaringSyntaxReferences
             End Get
         End Property
 

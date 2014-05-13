@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.CustomModifiers
             Get
-                Return ImmutableArrayExtensions.Cast(Of CustomModifier, CustomModifier)(Me.CustomModifiers)
+                Return Me.CustomModifiers
             End Get
         End Property
 

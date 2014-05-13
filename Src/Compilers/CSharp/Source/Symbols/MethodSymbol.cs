@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.Cast<CustomModifier, CustomModifier>();
+                return this.ReturnTypeCustomModifiers;
             }
         }
 

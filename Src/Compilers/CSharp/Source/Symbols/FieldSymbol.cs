@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers.Cast<CustomModifier, CustomModifier>(); }
+            get { return this.CustomModifiers; }
         }
 
         IFieldSymbol IFieldSymbol.OriginalDefinition

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers.Cast<CustomModifier, CustomModifier>(); }
+            get { return this.CustomModifiers; }
         }
 
         IParameterSymbol IParameterSymbol.OriginalDefinition

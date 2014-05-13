@@ -74,13 +74,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
-                    Return ImmutableArray.Create(Of Location)(Me.m_container.TypeDescriptor.Fields(Me.PropertyIndex).Location)
+                    Return ImmutableArray.Create(Me.m_container.TypeDescriptor.Fields(Me.PropertyIndex).Location)
                 End Get
             End Property
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Return GetDeclaringSyntaxReferenceHelper(Of FieldInitializerSyntax)(StaticCast(Of Location).From(Me.Locations))
+                    Return GetDeclaringSyntaxReferenceHelper(Of FieldInitializerSyntax)(Me.Locations)
                 End Get
             End Property
 

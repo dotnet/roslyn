@@ -3210,23 +3210,23 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function LookupSymbolsCore(position As Integer, container As INamespaceOrTypeSymbol, name As String, includeReducedExtensionMethods As Boolean) As ImmutableArray(Of ISymbol)
-            Return StaticCast(Of ISymbol).From(LookupSymbols(position, ToLanguageSpecific(container), name, includeReducedExtensionMethods))
+            Return LookupSymbols(position, ToLanguageSpecific(container), name, includeReducedExtensionMethods)
         End Function
 
         Protected NotOverridable Overrides Function LookupBaseMembersCore(position As Integer, name As String) As ImmutableArray(Of ISymbol)
-            Return StaticCast(Of ISymbol).From(LookupBaseMembers(position, name))
+            Return LookupBaseMembers(position, name)
         End Function
 
         Protected NotOverridable Overrides Function LookupStaticMembersCore(position As Integer, container As INamespaceOrTypeSymbol, name As String) As ImmutableArray(Of ISymbol)
-            Return StaticCast(Of ISymbol).From(LookupStaticMembers(position, ToLanguageSpecific(container), name))
+            Return LookupStaticMembers(position, ToLanguageSpecific(container), name)
         End Function
 
         Protected NotOverridable Overrides Function LookupNamespacesAndTypesCore(position As Integer, container As INamespaceOrTypeSymbol, name As String) As ImmutableArray(Of ISymbol)
-            Return StaticCast(Of ISymbol).From(LookupNamespacesAndTypes(position, ToLanguageSpecific(container), name))
+            Return LookupNamespacesAndTypes(position, ToLanguageSpecific(container), name)
         End Function
 
         Protected NotOverridable Overrides Function LookupLabelsCore(position As Integer, name As String) As ImmutableArray(Of ISymbol)
-            Return StaticCast(Of ISymbol).From(LookupLabels(position, name))
+            Return LookupLabels(position, name)
         End Function
 
         Private Shared Function ToLanguageSpecific(container As INamespaceOrTypeSymbol) As NamespaceOrTypeSymbol

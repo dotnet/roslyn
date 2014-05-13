@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(syntax.ArrayBounds IsNot Nothing)
             Dim arraySize = BindArrayBounds(syntax.ArrayBounds, diagnostics)
-            Dim arrayCreation = New BoundArrayCreation(syntax, StaticCast(Of BoundExpression).From(arraySize), Nothing, fieldSymbol.Type)
+            Dim arrayCreation = New BoundArrayCreation(syntax, arraySize, Nothing, fieldSymbol.Type)
             arrayCreation.SetWasCompilerGenerated()
 
             Dim boundReceiver = If(fieldSymbol.IsShared, Nothing, CreateMeReference(syntax, isSynthetic:=True))

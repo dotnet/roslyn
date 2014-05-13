@@ -1679,7 +1679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overloads Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
             Dim members As ImmutableArray(Of NamedTypeSymbol) = Nothing
             If GetTypeMembersDictionary().TryGetValue(name, members) Then
-                Return StaticCast(Of NamedTypeSymbol).From(members)
+                Return members
             End If
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function

@@ -3047,7 +3047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                symbols = StaticCast<Symbol>.From(candidateSymbols);
+                                symbols = candidateSymbols;
                                 break;
                             }
                         }
@@ -4661,32 +4661,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool continueOnError,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            AnalyzerDriver.RunAnalyzersCore<SyntaxKind>(this, span, analyzers, n => n.CSharpKind(), addDiagnostic, continueOnError, cancellationToken);
+            AnalyzerDriver.RunAnalyzersCore(this, span, analyzers, n => n.CSharpKind(), addDiagnostic, continueOnError, cancellationToken);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)
         {
-            return StaticCast<ISymbol>.From(LookupSymbols(position, ToLanguageSpecific(container), name, includeReducedExtensionMethods));
+            return LookupSymbols(position, ToLanguageSpecific(container), name, includeReducedExtensionMethods);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupBaseMembersCore(int position, string name)
         {
-            return StaticCast<ISymbol>.From(LookupBaseMembers(position, name));
+            return LookupBaseMembers(position, name);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupStaticMembersCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return StaticCast<ISymbol>.From(LookupStaticMembers(position, ToLanguageSpecific(container), name));
+            return LookupStaticMembers(position, ToLanguageSpecific(container), name);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupNamespacesAndTypesCore(int position, INamespaceOrTypeSymbol container, string name)
         {
-            return StaticCast<ISymbol>.From(LookupNamespacesAndTypes(position, ToLanguageSpecific(container), name));
+            return LookupNamespacesAndTypes(position, ToLanguageSpecific(container), name);
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupLabelsCore(int position, string name)
         {
-            return StaticCast<ISymbol>.From(LookupLabels(position, name));
+            return LookupLabels(position, name);
         }
 
         private static NamespaceOrTypeSymbol ToLanguageSpecific(INamespaceOrTypeSymbol container)

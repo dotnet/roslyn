@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IParameterSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IParameterSymbol.CustomModifiers
             Get
-                Return ImmutableArrayExtensions.Cast(Of CustomModifier, CustomModifier)(Me.CustomModifiers)
+                Return Me.CustomModifiers
             End Get
         End Property
 

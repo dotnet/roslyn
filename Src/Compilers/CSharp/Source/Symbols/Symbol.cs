@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return StaticCast<SyntaxReference>.From(this.DeclaringSyntaxReferences);
+                return this.DeclaringSyntaxReferences;
             }
         }
 

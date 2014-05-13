@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IArrayTypeSymbol.CustomModifiers
             Get
-                Return ImmutableArrayExtensions.Cast(Of CustomModifier, CustomModifier)(Me.CustomModifiers)
+                Return Me.CustomModifiers
             End Get
         End Property
 

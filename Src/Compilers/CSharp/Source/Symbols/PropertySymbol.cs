@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract Microsoft.Cci.CallingConvention CallingConvention { get; }
+        internal abstract Cci.CallingConvention CallingConvention { get; }
 
         internal abstract bool MustCallMethodsDirectly { get; }
 
@@ -423,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
-            get { return this.TypeCustomModifiers.Cast<CustomModifier, CustomModifier>(); }
+            get { return this.TypeCustomModifiers; }
         }
 
         #endregion

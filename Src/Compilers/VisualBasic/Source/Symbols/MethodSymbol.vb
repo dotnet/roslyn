@@ -919,7 +919,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier) Implements IMethodSymbol.ReturnTypeCustomModifiers
             Get
-                Return ImmutableArrayExtensions.Cast(Of CustomModifier, CustomModifier)(Me.ReturnTypeCustomModifiers)
+                Return Me.ReturnTypeCustomModifiers
             End Get
         End Property
 

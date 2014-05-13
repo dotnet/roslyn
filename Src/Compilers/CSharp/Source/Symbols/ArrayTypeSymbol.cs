@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers.Cast<CustomModifier, CustomModifier>(); }
+            get { return this.CustomModifiers; }
         }
 
         bool IArrayTypeSymbol.Equals(IArrayTypeSymbol symbol)
