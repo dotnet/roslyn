@@ -89,6 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDiagnostics, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
+            {
+                VerifySpanForGetDiagnostics(span);
+                return Compilation.GetDiagnosticsForSyntaxTree(
+                    CompilationStage.Parse, this.SyntaxTree, span, false, cancellationToken);
+            }
+        }
+
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDiagnostics, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))

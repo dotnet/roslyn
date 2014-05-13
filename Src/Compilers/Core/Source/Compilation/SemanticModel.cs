@@ -283,6 +283,16 @@ namespace Microsoft.CodeAnalysis
         protected abstract IAliasSymbol GetSpeculativeAliasInfoCore(int position, SyntaxNode nameSyntax, SpeculativeBindingOption bindingOption);
 
         /// <summary>
+        /// Get all of the syntax errors within the syntax tree associated with this
+        /// object. Does not get errors involving declarations or compiling method bodies or initializers.
+        /// </summary>
+        /// <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        /// If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the
+        /// process of obtaining the diagnostics.</param>
+        public abstract ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Get all of the declaration errors within the syntax tree associated with this
         /// object. Does not get errors involving incorrect syntax, compiling method bodies or initializers.
         /// </summary>

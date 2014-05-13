@@ -108,6 +108,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_parentSemanticModel.GetExpressionConstantValue(node, cancellationToken)
         End Function
 
+        Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Throw New NotSupportedException()
+        End Function
+
         Public Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Throw New NotSupportedException()
         End Function

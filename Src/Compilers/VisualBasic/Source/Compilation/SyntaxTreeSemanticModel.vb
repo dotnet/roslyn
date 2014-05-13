@@ -83,6 +83,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Get all of the syntax errors within the syntax tree associated with this
+        ''' object. Does not get errors involving declarations or compiling method bodies or initializers.
+        ''' </summary>
+        ''' <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        ''' <param name="cancellationToken">A cancellation token that can be used to cancel the
+        ''' process of obtaining the diagnostics.</param>
+        Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDiagnostics, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
+                Return _compilation.GetDiagnosticsForTree(CompilationStage.Parse, _syntaxTree, span, False, cancellationToken)
+            End Using
+        End Function
+
+        ''' <summary>
         ''' Get all the syntax and declaration errors within the syntax tree associated with this object. Does not get
         ''' errors involving compiling method bodies or initializers.
         ''' </summary>

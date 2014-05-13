@@ -352,12 +352,35 @@ public class Test
 
             var errs = model.GetDiagnostics();
             Assert.Equal(4, errs.Count());
+            errs = model.GetSyntaxDiagnostics();
+            Assert.Equal(1, errs.Count());
             errs = model.GetDeclarationDiagnostics();
             Assert.Equal(2, errs.Count());
             errs = model.GetMethodBodyDiagnostics();
             Assert.Equal(1, errs.Count());
-            var treeErrs = tree.GetDiagnostics();
-            Assert.Equal(1, treeErrs.Count());
+        }
+
+        [Fact]
+        public void DiagnosticsFilteredWithPragmas()
+        {
+            var text = @"
+public class Test
+{
+
+#pragma warning disable 1633
+#pragma xyzzy whatever
+#pragma warning restore 1633
+
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithMscorlib(tree);
+            var model = comp.GetSemanticModel(tree);
+
+            var errs = model.GetDiagnostics();
+            Assert.Equal(0, errs.Count());
+            errs = model.GetSyntaxDiagnostics();
+            Assert.Equal(0, errs.Count());
         }
 
         [Fact]

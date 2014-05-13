@@ -359,6 +359,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        ''' <summary>
+        ''' Get all of the syntax errors within the syntax tree associated with this
+        ''' object. Does not get errors involving declarations or compiling method bodies or initializers.
+        ''' </summary>
+        ''' <param name="span">Optional span within the syntax tree for which to get diagnostics.
+        ''' If no argument is specified, then diagnostics for the entire tree are returned.</param>
+        ''' <param name="cancellationToken">A cancellation token that can be used to cancel the
+        ''' process of obtaining the diagnostics.</param>
+        Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Throw New NotSupportedException()
+        End Function
+
 
         ''' <summary>
         ''' Get all the syntax and declaration errors within the syntax tree associated with this object. Does not get
@@ -696,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: What VB calls the current conversion is used to convert the current placeholder to the iteration
                     ' variable type.  In the terminology of the public API, this is a conversion from the element type to the
                     ' iteration variable type, and is referred to as the element conversion.
-                    Dim boundConversion = DirectCast(enumeratorInfo.CurrentConversion, boundConversion)
+                    Dim boundConversion = DirectCast(enumeratorInfo.CurrentConversion, BoundConversion)
                     elementConversion = New Conversion(KeyValuePair.Create(boundConversion.ConversionKind, TryCast(boundConversion.ExpressionSymbol, MethodSymbol)))
                 End If
 
@@ -1129,7 +1141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As VisualBasicSyntaxNode,
             position As Integer
         ) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             EnsureFullyBoundIfImplicitVariablesAllowed()
 
@@ -1277,7 +1289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetAggregateClauseLambdaBinder(aggregate As AggregateClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             ' If position were in context of an additional query operator that operator would have handled it, unless there were 
             ' no need for a special binder.
@@ -1286,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(aggregate, position) Then
                 If Not aggregate.IntoKeyword.IsMissing AndAlso aggregate.IntoKeyword.SpanStart <= position Then
                     ' Should return binder for the Into clause - the last one associated with the node.
-                    Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(aggregate)
+                    Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(aggregate)
 #If DEBUG Then
                     Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(aggregate, guard:=True))
                     Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3))
@@ -1307,7 +1319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '   - Into clause binder.
                         ' If this Aggregate begins the query, it has only one binder - the Into clause binder.
 
-                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(aggregate)
+                        Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(aggregate)
 #If DEBUG Then
                         Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(aggregate, guard:=True))
                         Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3 AndAlso binders(0) IsNot Nothing))
@@ -1324,12 +1336,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function GetGroupJoinClauseLambdaBinder(join As GroupJoinClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(join, position) Then
                 If Not join.IntoKeyword.IsMissing AndAlso join.IntoKeyword.SpanStart <= position Then
                     ' Should return binder to lookup aggregate functions.
-                    Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(join)
+                    Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(join)
 #If DEBUG Then
                     Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(join, guard:=True))
                     Debug.Assert(binders.IsDefault OrElse binders.Length = 3)
@@ -1348,7 +1360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetJoinClauseLambdaBinder(join As JoinClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             ' If position were in context of an additional join that join would have handled it, unless there were 
             ' no need for a special binder.
@@ -1356,7 +1368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If position is in context of an 'On' clause, there is a binder that we need to return. 
 
             If Not join.OnKeyword.IsMissing AndAlso join.OnKeyword.SpanStart <= position AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(join, position) Then
-                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(join)
+                Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(join)
 #If DEBUG Then
                 Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(join, guard:=True))
                 Debug.Assert(binders.IsDefault OrElse (binders.Length > 1 AndAlso binders.Length < 4 AndAlso binders(0) IsNot Nothing))
@@ -1372,7 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetFromClauseLambdaBinder(from As FromClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(from, position) Then
                 binder = GetCollectionRangeVariablesLambdaBinder(from.Variables, position)
@@ -1382,7 +1394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetCollectionRangeVariablesLambdaBinder(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax), position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             For i As Integer = 0 To variables.Count - 1
                 Dim item As CollectionRangeVariableSyntax = variables(i)
@@ -1397,7 +1409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        Not (item.Parent.Parent.Kind = SyntaxKind.QueryExpression AndAlso
                                 DirectCast(item.Parent.Parent, QueryExpressionSyntax).Clauses.FirstOrDefault Is item.Parent)) Then
 
-                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(item)
+                        Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(item)
 #If DEBUG Then
                         Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(item, guard:=True))
                         Debug.Assert(binders.IsDefault OrElse (binders.Length > 0 AndAlso binders.Length < 3 AndAlso binders(0) IsNot Nothing))
@@ -1418,13 +1430,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function GetLetClauseLambdaBinder([let] As LetClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode([let], position) Then
 
                 For Each item As ExpressionRangeVariableSyntax In [let].Variables
                     If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(item, position) OrElse position < item.SpanStart Then
-                        Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(item)
+                        Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(item)
 #If DEBUG Then
                         Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound([let], guard:=True))
                         Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
@@ -1444,10 +1456,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetGroupByClauseLambdaBinder(groupBy As GroupByClauseSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(groupBy, position) Then
-                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(groupBy)
+                Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(groupBy)
 #If DEBUG Then
                 Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(groupBy, guard:=True))
                 Debug.Assert(binders.IsDefault OrElse (binders.Length = 2 OrElse binders.Length = 3))
@@ -1480,12 +1492,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetFunctionAggregationLambdaBinder(func As FunctionAggregationSyntax, position As Integer) As Binder
-            Dim binder As binder = Nothing
+            Dim binder As Binder = Nothing
 
             If Not func.OpenParenToken.IsMissing AndAlso func.OpenParenToken.SpanStart <= position AndAlso
                ((func.CloseParenToken.IsMissing AndAlso SyntaxFacts.InSpanOrEffectiveTrailingOfNode(func, position)) OrElse position < func.CloseParenToken.SpanStart) Then
 
-                Dim binders As ImmutableArray(Of binder) = GetQueryClauseLambdaBinders(func)
+                Dim binders As ImmutableArray(Of Binder) = GetQueryClauseLambdaBinders(func)
 #If DEBUG Then
                 Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(func, guard:=True))
                 Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
@@ -1575,7 +1587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(initialization, position) Then
 
-                    Dim cachedBinder As binder.AnonymousTypeFieldInitializerBinder = Nothing
+                    Dim cachedBinder As Binder.AnonymousTypeFieldInitializerBinder = Nothing
 
                     rwLock.EnterReadLock()
                     Try
@@ -1589,7 +1601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Get bound node for the whole AnonymousType initializer expression.
                     ' This will build required maps for it.
-                    Dim boundNode As boundNode = GetUpperBoundNode(initialization.Parent.Parent)
+                    Dim boundNode As BoundNode = GetUpperBoundNode(initialization.Parent.Parent)
 
                     rwLock.EnterReadLock()
                     Try
@@ -1627,7 +1639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetLambdaBodyBinder(lambda As LambdaExpressionSyntax) As LambdaBodyBinder
-            Dim boundLambda As boundLambda = GetBoundLambda(lambda)
+            Dim boundLambda As BoundLambda = GetBoundLambda(lambda)
 
             If boundLambda IsNot Nothing Then
                 Return boundLambda.LambdaBinderOpt
@@ -1894,7 +1906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
-                Dim binder As binder = Me.ContainingBinder.GetBinder(node)
+                Dim binder As Binder = Me.ContainingBinder.GetBinder(node)
 
                 If binder IsNot Nothing Then
                     Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
@@ -1909,7 +1921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(list As SyntaxList(Of StatementSyntax)) As Binder
-                Dim binder As binder = Me.ContainingBinder.GetBinder(list)
+                Dim binder As Binder = Me.ContainingBinder.GetBinder(list)
 
                 If binder IsNot Nothing Then
                     Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
