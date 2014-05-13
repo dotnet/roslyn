@@ -1292,13 +1292,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
+                var ancestorExpressions = returnStatement.GetAncestorsOrThis<ExpressionSyntax>();
+
                 // If we're in a a lambda, then use the return type of the lambda to figure out what to
                 // infer.  i.e.   Func<int,string> f = i => { return Foo(); }
-                var lambda = returnStatement.GetAncestorsOrThis<ExpressionSyntax>()
-                                            .FirstOrDefault(e => e.MatchesKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
+                var lambda = ancestorExpressions.FirstOrDefault(e => e.MatchesKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
                     return InferTypeInLambdaExpression(lambda);
+                }
+
+                // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
+                var delegateExpression = ancestorExpressions.FirstOrDefault(e => e.MatchesKind(SyntaxKind.AnonymousMethodExpression));
+                if (delegateExpression != null)
+                {
+                    var delegateType = InferTypesWorker(delegateExpression).FirstOrDefault();
+                    if (delegateType != null && delegateType.IsDelegateType())
+                    {
+                        var delegateInvokeMethod = delegateType.GetDelegateType(this.Compilation).DelegateInvokeMethod;
+                        if (delegateInvokeMethod != null)
+                        {
+                            return SpecializedCollections.SingletonEnumerable(delegateInvokeMethod.ReturnType);
+                        }
+                    }
                 }
 
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(this.semanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
