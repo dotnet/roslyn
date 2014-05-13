@@ -352,6 +352,7 @@
     <Compile Include="Compilation\SynthesizedMetadataCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.vb" />
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
+    <Compile Include="Compilation\VisualBasicDiagnosticFilter.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
     <Compile Include="Declarations\DeclarationModifiers.vb" />

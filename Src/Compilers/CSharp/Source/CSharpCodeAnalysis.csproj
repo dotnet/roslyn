@@ -231,6 +231,7 @@
     <Compile Include="Compilation\BuiltInOperators.cs" />
     <Compile Include="Compilation\CSharpCompilation.cs" />
     <Compile Include="Compilation\CSharpCompilationReference.cs" />
+    <Compile Include="Compilation\CSharpDiagnosticFilter.cs" />
     <Compile Include="Compilation\CSharpSemanticModel.cs" />
     <Compile Include="Compilation\ForEachStatementInfo.cs" />
     <Compile Include="Compilation\InitializerSemanticModel.cs" />
