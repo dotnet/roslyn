@@ -5334,5 +5334,229 @@ struct S : IDisposable
                 );
         }
 
+        [Fact, WorkItem(134)]
+        public void Compound_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", ++(var y = 2), y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2)++, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "2 3").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", --(var y = 2), y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2)--, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "2 1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) += 1, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) -= 1, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) *= 2, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 8) /= 2, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_09()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 8) %= 3, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "2 2").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 7) &= 3, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) |= 1, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "3 3").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_12()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 7) ^= 3, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_13()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) <<= 1, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "4 4").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(134)]
+        public void Compound_14()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1}"", (var y = 2) >>= 1, y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+        }
+
     }
 }
