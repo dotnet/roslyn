@@ -14,7 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 {
-    public class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationStartedAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ICompilationStartedAnalyzer
     {
         internal const string RuleId = "CA1708";
         internal const string Namespace = "Namespaces";

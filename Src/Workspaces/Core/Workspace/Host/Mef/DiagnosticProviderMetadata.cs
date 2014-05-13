@@ -7,15 +7,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class DiagnosticProviderMetadata : ILanguageMetadata
+    internal class DiagnosticProviderMetadata : ILanguagesMetadata
     {
         public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string[] Languages { get; private set; }
 
         public DiagnosticProviderMetadata(IDictionary<string, object> data)
         {
             this.Name = (string)data.GetValueOrDefault("Name");
-            this.Language = (string)data.GetValueOrDefault("Language");
+            this.Languages = (string[])data.GetValueOrDefault("Languages");
         }
     }
 }

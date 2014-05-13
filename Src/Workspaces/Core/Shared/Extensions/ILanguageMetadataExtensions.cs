@@ -36,5 +36,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return map;
         }
+
+        public static Dictionary<string, List<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
+            where TMetadata : ILanguagesMetadata
+        {
+            var map = new Dictionary<string, List<Lazy<TInterface, TMetadata>>>();
+
+            foreach (var service in services)
+            {
+                foreach (var language in service.Metadata.Languages.Distinct())
+                {
+                    if (!string.IsNullOrEmpty(language))
+                    {
+                        var list = map.GetOrAdd(language, _ => new List<Lazy<TInterface, TMetadata>>());
+                        list.Add(service);
+                    }
+                }
+            }
+
+            return map;
+        }
     }
 }

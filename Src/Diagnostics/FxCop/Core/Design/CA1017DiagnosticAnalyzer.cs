@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
-    public abstract class CA1017DiagnosticAnalyzer : ICompilationStartedAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class CA1017DiagnosticAnalyzer : ICompilationStartedAnalyzer
     {
         internal const string RuleId = "CA1017";
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,

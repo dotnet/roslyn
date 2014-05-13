@@ -78,31 +78,16 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Design\BasicAssemblyAttributesDiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1001DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1003DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1008DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1012DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1017DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1018DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1019DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicCA1060DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicEnumWithFlagsDiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicStaticTypeRulesDiagnosticAnalyzer.vb" />
     <Compile Include="Globalization\BasicCA1309DiagnosticAnalyzer.vb" />
-    <Compile Include="Interoperability\BasicPInvokeDiagnosticAnalyzer.vb" />
-    <Compile Include="Naming\BasicCA1708DiagnosticAnalyzer.vb" />
-    <Compile Include="Naming\BasicCA1715DiagnosticAnalyzer.vb" />
-    <Compile Include="Performance\BasicCA1813DiagnosticAnalyzer.vb" />
     <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
     <Compile Include="Reliability\BasicCA2002DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\BasicCA1036DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2200DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2213DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\BasicCA2231DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\BasicSerializationRulesDiagnosticAnalyzer.vb" />
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">

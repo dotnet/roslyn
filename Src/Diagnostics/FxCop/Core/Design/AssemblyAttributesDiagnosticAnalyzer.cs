@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
-    public class AssemblyAttributesDiagnosticAnalyzer : ICompilationStartedAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class AssemblyAttributesDiagnosticAnalyzer : ICompilationStartedAnalyzer
     {
         internal const string RuleNameForExportAttribute = "AssemblyAttributeRules";
         internal const string CA1016RuleName = "CA1016";

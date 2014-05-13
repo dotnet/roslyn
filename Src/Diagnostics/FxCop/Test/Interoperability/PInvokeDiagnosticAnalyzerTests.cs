@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Interoperability;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Interoperability;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interoperability
@@ -21,12 +16,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interoperability
 
         protected override IDiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicPInvokeDiagnosticAnalyzer();
+            return new PInvokeDiagnosticAnalyzer();
         }
 
         protected override IDiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpPInvokeDiagnosticAnalyzer();
+            return new PInvokeDiagnosticAnalyzer();
         }
 
         private static DiagnosticResult CSharpResult1401(int line, int column, string typeName)

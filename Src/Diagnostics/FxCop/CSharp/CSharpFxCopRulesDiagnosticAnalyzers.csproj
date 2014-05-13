@@ -55,31 +55,16 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Design\CSharpAssemblyAttributesDiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1001DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1003DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1008DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1012DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1017DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1018DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1019DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpCA1060DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpEnumWithFlagsDiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpStaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="Globalization\CSharpCA1309DiagnosticAnalyzer.cs" />
-    <Compile Include="Interoperability\CSharpPInvokeDiagnosticAnalyzer.cs" />
-    <Compile Include="Naming\CSharpCA1708DiagnosticAnalyzer.cs" />
-    <Compile Include="Naming\CSharpCA1715DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CSharpCA1813DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
     <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CSharpCA1036DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2200DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2214DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CSharpCA2231DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CSharpSerializationRulesDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">

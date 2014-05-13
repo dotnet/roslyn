@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     <DiagnosticAnalyzer>

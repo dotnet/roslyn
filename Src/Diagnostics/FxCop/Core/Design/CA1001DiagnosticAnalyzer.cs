@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Roslyn.Utilities;
 
@@ -13,7 +14,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// <summary>
     /// CA1001: Types that own disposable fields should be disposable
     /// </summary>
-    public abstract class CA1001DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class CA1001DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1001";
         internal const string Dispose = "Dispose";

@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 {
-    public class StaticTypeRulesDiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    /// <summary>
+    /// CA1025: Static holder types should be sealed
+    /// </summary>
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class StaticTypeRulesDiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleNameForExportAttribute = "StaticHolderTypeRules";
         internal const string CA1052RuleId = "CA1052";

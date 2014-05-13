@@ -11,7 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    public abstract class SerializationRulesDiagnosticAnalyzer : ICompilationStartedAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleNameForExportAttribute, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class SerializationRulesDiagnosticAnalyzer : ICompilationStartedAnalyzer
     {
         internal const string RuleNameForExportAttribute = "SerializationRules";
 

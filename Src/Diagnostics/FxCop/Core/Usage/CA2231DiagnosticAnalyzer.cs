@@ -11,8 +11,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    // Complain if the type implements Equals without overloading the equality operator.
-    public abstract class CA2231DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ISymbolAnalyzer
+    /// <summary>
+    /// CA2231: Complain if the type implements Equals without overloading the equality operator.
+    /// </summary>
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class CA2231DiagnosticAnalyzer : AbstractNamedTypeAnalyzer, ISymbolAnalyzer
     {
         internal const string RuleId = "CA2231";
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,

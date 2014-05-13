@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 {
-    public abstract class PInvokeDiagnosticAnalyzer : ICompilationStartedAnalyzer
+    [DiagnosticAnalyzer]
+    [ExportDiagnosticAnalyzer(PInvokeInteroperabilityRuleName, LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class PInvokeDiagnosticAnalyzer : ICompilationStartedAnalyzer
     {
         public const string PInvokeInteroperabilityRuleName = "PInvokeInteroperability";
         public const string CA1401 = "CA1401";

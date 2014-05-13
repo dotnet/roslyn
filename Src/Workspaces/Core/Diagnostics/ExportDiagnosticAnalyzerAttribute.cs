@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class ExportDiagnosticAnalyzerAttribute : ExportAttribute
     {
         public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string[] Languages { get; private set; }
 
         public ExportDiagnosticAnalyzerAttribute(
             string name,
-            string language)
+            params string[] languages)
             : base(typeof(IDiagnosticAnalyzer))
         {
             if (name == null)
@@ -22,13 +22,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException("name");
             }
 
-            if (language == null)
+            if (languages == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException("languages");
+            }
+
+            if (languages.Length == 0)
+            {
+                throw new ArgumentException("languages");
             }
 
             this.Name = name;
-            this.Language = language;
+            this.Languages = languages;
         }
     }
 }

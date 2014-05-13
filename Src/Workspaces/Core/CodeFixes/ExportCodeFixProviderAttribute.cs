@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public string Name { get; private set; }
 
         /// <summary>
-        /// The source language this provider can provide fixes for.  See <see cref="LanguageNames"/>.
+        /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
         /// </summary>
-        public string Language { get; private set; }
+        public string[] Languages { get; private set; }
 
         public ExportCodeFixProviderAttribute(
             string name,
-            string language)
+            params string[] languages)
             : base(typeof(ICodeFixProvider))
         {
             if (name == null)
@@ -31,13 +31,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException("name");
             }
 
-            if (language == null)
+            if (languages == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException("languages");
+            }
+
+            if (languages.Length == 0)
+            {
+                throw new ArgumentException("languages");
             }
 
             this.Name = name;
-            this.Language = language;
+            this.Languages = languages;
         }
     }
 }

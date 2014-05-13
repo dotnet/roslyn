@@ -341,7 +341,7 @@
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeSymbol.cs" />
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
-    <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
+    <Compile Include="Workspace\Host\Mef\DiagnosticProviderMetadata.cs" />
     <Compile Include="Diagnostics\ExportDiagnosticAnalyzerAttribute.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
@@ -487,6 +487,8 @@
     <Compile Include="IOrderableMetadata.cs" />
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
+    <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
+    <Compile Include="Workspace\Host\Mef\CodeFixProviderMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.cs" />
