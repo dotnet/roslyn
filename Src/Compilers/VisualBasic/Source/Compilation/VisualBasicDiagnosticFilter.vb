@@ -1,11 +1,22 @@
 ﻿Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
+''' <summary>
+''' Applies Visual Basic-specific modification and filtering of <see cref="Diagnostic"/>s.
+''' </summary>
 Public Class VisualBasicDiagnosticFilter
     Private Shared ReadOnly AlinkWarnings As ERRID() = {ERRID.WRN_ConflictingMachineAssembly,
                                                         ERRID.WRN_RefCultureMismatch,
                                                         ERRID.WRN_InvalidVersionFormat}
 
+    ''' <summary>
+    ''' Modifies an input <see cref="Diagnostic"/> per the given options. For example, the
+    ''' severity may be escalated, or the <see cref="Diagnostic"/> may be filtered out entirely</summary>
+    ''' (by returning null).
+    ''' <param name="diagnostic">The input diagnostic</param>
+    ''' <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
+    ''' <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
+    ''' <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
     Public Shared Function Filter(diagnostic As Diagnostic, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As Diagnostic
         ' Filter void diagnostics so that our callers don't have to perform resolution
         ' (which might copy the list of diagnostics).

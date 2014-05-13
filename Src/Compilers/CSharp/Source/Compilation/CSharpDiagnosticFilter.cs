@@ -6,12 +6,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Applies C#-specific modification and filtering of <see cref="Diagnostic"/>s.
+    /// </summary>
     public static class CSharpDiagnosticFilter
     {
         private static readonly ErrorCode[] AlinkWarnings = { ErrorCode.WRN_ConflictingMachineAssembly,
                                                               ErrorCode.WRN_RefCultureMismatch,
                                                               ErrorCode.WRN_InvalidVersionFormat };
 
+        /// <summary>
+        /// Modifies an input <see cref="Diagnostic"/> per the given options. For example, the
+        /// severity may be escalated, or the <see cref="Diagnostic"/> may be filtered out entirely
+        /// (by returning null).
+        /// </summary>
+        /// <param name="d">The input diagnostic</param>
+        /// <param name="warningLevelOption">The maximum warning level to allow. Diagnostics with a higher warning level will be filtered out.</param>
+        /// <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
+        /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
+        /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
         public static Diagnostic Filter(Diagnostic d, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             if (d == null) return d;
