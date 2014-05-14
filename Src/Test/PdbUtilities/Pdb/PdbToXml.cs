@@ -819,6 +819,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 writer.WriteEndElement(); // </local>
             }
+
             foreach (ISymbolConstant c in ((ISymbolScope2)scope).GetConstants())
             {
                 // Note: We can retrieve constant tokens by saving it into signature blob

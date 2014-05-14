@@ -869,8 +869,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var realizedIlBitStream = Microsoft.Cci.MemoryStream.GetInstance();
-            var writer = new Microsoft.Cci.BinaryWriter(realizedIlBitStream);
+            var realizedIlBitStream = Cci.MemoryStream.GetInstance();
+            var writer = new Cci.BinaryWriter(realizedIlBitStream);
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {

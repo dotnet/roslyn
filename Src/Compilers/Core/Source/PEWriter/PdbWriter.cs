@@ -77,11 +77,10 @@ namespace Microsoft.Cci
             }
         }
 
-        public void CloseMethod(uint offset)
+        public void CloseMethod()
         {
             try
             {
-                this.symWriter.CloseScope(offset);
                 this.symWriter.CloseMethod();
             }
             catch (Exception ex)
