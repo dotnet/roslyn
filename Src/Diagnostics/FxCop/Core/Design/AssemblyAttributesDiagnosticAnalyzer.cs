@@ -45,6 +45,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             var assemblyVersionAttributeSymbol = WellKnownTypes.AssemblyVersionAttribute(compilation);
             var assemblyComplianceAttributeSymbol = WellKnownTypes.CLSCompliantAttribute(compilation);
 
+            if (assemblyVersionAttributeSymbol == null && assemblyComplianceAttributeSymbol == null)
+            {
+                return null;
+            }
+
             bool assemblyVersionAttributeFound = false;
             bool assemblyComplianceAttributeFound = false;
 

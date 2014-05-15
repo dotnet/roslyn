@@ -20,6 +20,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1014CA1016BasicTestWithCLSCompliantAttributeNone()
+        {
+            VerifyBasic(
+@"
+imports System.Reflection
+
+    class Program
+    
+        Sub Main
+        End Sub
+    End class
+",
+            diagnosticCA1016, diagnosticCA1014);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1014BasicTestWithNoVersionAttribute()
         {
             VerifyBasic(
@@ -33,7 +49,7 @@ imports System.Reflection
         End Sub
     End class
 ",
-                diagnostic);
+                diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -56,7 +72,7 @@ class CLSCompliantAttribute : Attribute {
     public CLSCompliantAttribute(bool s) {}
 }
 ",
-                diagnostic);
+                diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -74,7 +90,7 @@ class Program
     }
 }
 ",
-                diagnostic);
+                diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -155,11 +171,34 @@ class Program
 ");
         }
 
-        private static DiagnosticResult diagnostic = new DiagnosticResult
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1014CSharpTestWithCLSCompliantAttributeNone()
+        {
+            VerifyCSharp(
+@"
+using System.Reflection;
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+",
+            diagnosticCA1016, diagnosticCA1014);
+        }
+
+        private static DiagnosticResult diagnosticCA1014 = new DiagnosticResult
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleName,
             Severity = DiagnosticSeverity.Warning,
             Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat
+        };
+
+        private static DiagnosticResult diagnosticCA1016 = new DiagnosticResult
+        {
+            Id = AssemblyAttributesDiagnosticAnalyzer.CA1016RuleName,
+            Severity = DiagnosticSeverity.Warning,
+            Message = AssemblyAttributesDiagnosticAnalyzer.CA1016Rule.MessageFormat
         };
     }
 }
