@@ -746,7 +746,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of ITypeSymbol)
                 Dim selectBlock = caseStatement.GetAncestor(Of SelectBlockSyntax)()
                 If selectBlock IsNot Nothing Then
-                    Return GetTypes(selectBlock.SelectStatement.Expression)
+                    If selectBlock.SelectStatement.Expression IsNot Nothing Then
+                        ' As the user adds case statements, the type/converted type of the select statement can change.
+                        ' The type could be either Int32 or the enum type, so we must look at both and take the enum type.
+                        Dim info = _semanticModel.GetTypeInfo(selectBlock.SelectStatement.Expression)
+                        If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error AndAlso info.Type.TypeKind = TypeKind.Enum Then
+                            Return SpecializedCollections.SingletonEnumerable(info.Type)
+                        End If
+
+                        If info.ConvertedType IsNot Nothing AndAlso info.ConvertedType.TypeKind <> TypeKind.Error AndAlso info.ConvertedType.TypeKind = TypeKind.Enum Then
+                            Return SpecializedCollections.SingletonEnumerable(info.ConvertedType)
+                        End If
+                    End If
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
