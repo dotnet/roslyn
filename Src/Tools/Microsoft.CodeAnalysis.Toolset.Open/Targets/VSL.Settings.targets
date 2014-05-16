@@ -22,17 +22,31 @@
 
     <MajorRoslynVersion>0.7</MajorRoslynVersion>
   </PropertyGroup>
-  
-    <!-- Build reliability -->
+
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '12.0'">
+      <PropertyGroup>
+        <MSBuildAssemblyNameFragment>v12.0</MSBuildAssemblyNameFragment>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- Build reliability -->
   <PropertyGroup>
     <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
   </PropertyGroup>
 
   <!-- Build settings for Open Source preview package -->
-      <PropertyGroup>
+  <PropertyGroup>
     <OpenSourceDebug>true</OpenSourceDebug>
   </PropertyGroup>
-  
+
   <!-- Project language -->
   <PropertyGroup Condition="'$(ProjectLanguage)' == ''">
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
@@ -105,7 +119,7 @@
       <PropertyGroup>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
-        
+
         <!-- Suppress the following warnings by default for C# projects
                 1591: So far we've chosen to implicitly implement interfaces and as a consequence
                       the methods are public.  We don't want to duplicate documentation for them 
@@ -120,7 +134,7 @@
         <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-     </PropertyGroup>
+      </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DebugType>pdbonly</DebugType>
         <DefineConstants>TRACE</DefineConstants>
