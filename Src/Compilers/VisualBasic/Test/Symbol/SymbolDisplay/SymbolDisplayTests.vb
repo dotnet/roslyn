@@ -2584,7 +2584,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Punctuation
                 })
         End Sub

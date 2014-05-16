@@ -1,108 +1,23 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
+
     ''' <summary>
     ''' Displays a value in the VisualBasic style.
     ''' </summary>
     ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.ObjectDisplay"/>
     Friend Module ObjectDisplay
-        ''' <summary>
-        ''' Displays a symbol in the Visual Basic style, based on a <see cref="SymbolDisplayFormat"/>.
-        ''' </summary>
-        ''' <param name="symbol">The symbol to be displayed.</param>
-        ''' <param name="format">The formatting options to apply.  If Nothing is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
-        ''' <returns>A formatted string that can be displayed to the user.</returns>
-        ''' <remarks>
-        ''' The return value is not expected to be syntactically valid Visual Basic.
-        ''' </remarks>
-        Public Function ToDisplayString(symbol As ISymbol, Optional format As SymbolDisplayFormat = Nothing) As String
-            Return ToDisplayParts(symbol, format:=format).ToDisplayString()
-        End Function
 
-        ''' <summary>
-        ''' Displays a symbol in the Visual Basic style, based on a <see cref="SymbolDisplayFormat"/>.
-        ''' Based on the context, qualify type And member names as little as possible without
-        ''' introducing ambiguities.
-        ''' </summary>
-        ''' <param name="symbol">The symbol to be displayed.</param>
-        ''' <param name="semanticModel">Semantic information about the context in which the symbol is being displayed.</param>
-        ''' <param name="position">A position within the <see cref="SyntaxTree"/> Or <paramref name="semanticModel"/>.</param>
-        ''' <param name="format">The formatting options to apply.  If null is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
-        ''' <returns>A formatted string that can be displayed to the user.</returns>
-        ''' <remarks>
-        ''' The return value is not expected to be syntactically valid Visual Basic.
-        ''' </remarks>
-        Public Function ToMinimalDisplayString(symbol As ISymbol,
-                                               semanticModel As SemanticModel,
-                                               position As Integer,
-                                               Optional format As SymbolDisplayFormat = Nothing) As String
-            Return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString()
-        End Function
-
-        ''' <summary>
-        ''' Convert a symbol to an array of string parts, each of which has a kind. Useful for
-        ''' colorizing the display string.
-        ''' </summary>
-        ''' <param name="symbol">The symbol to be displayed.</param>
-        ''' <param name="format">The formatting options to apply.  If Nothing Is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
-        ''' <returns>A list of display parts.</returns>
-        ''' <remarks>
-        ''' Parts are not localized until they are converted to strings.
-        ''' </remarks>
-        Public Function ToDisplayParts(symbol As ISymbol,
-                                       Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
-            format = If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat)
-            Return ToDisplayParts(symbol, semanticModelOpt:=Nothing, positionOpt:=-1, format:=format, minimal:=False)
-        End Function
-
-        ''' <summary>
-        ''' Convert a symbol to an array of string parts, each of which has a kind. Useful for
-        ''' colorizing the display string.
-        ''' </summary>
-        ''' <param name="symbol">The symbol to be displayed.</param>
-        ''' <param name="semanticModel">Semantic information about the context in which the symbol is being displayed.</param>
-        ''' <param name="position">A position within the <see cref="SyntaxTree"/> or <paramref name="semanticModel"/>.</param>
-        ''' <param name="format">The formatting options to apply.  If null is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
-        ''' <returns>A list of display parts.</returns>
-        ''' <remarks>
-        ''' Parts are not localized until they are converted to strings.
-        ''' </remarks>
-        Public Function ToMinimalDisplayParts(symbol As ISymbol,
-                                              semanticModel As SemanticModel,
-                                              position As Integer,
-                                              Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
-            format = If(format, SymbolDisplayFormat.MinimallyQualifiedFormat)
-            Return ToDisplayParts(symbol, semanticModel, position, format, minimal:=True)
-        End Function
-
-        Private Function ToDisplayParts(symbol As ISymbol,
-                                       semanticModelOpt As SemanticModel,
-                                       positionOpt As Integer,
-                                       format As SymbolDisplayFormat,
-                                       minimal As Boolean) As ImmutableArray(Of SymbolDisplayPart)
-            If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
-            End If
-
-            If minimal Then
-                If semanticModelOpt Is Nothing Then
-                    Throw New ArgumentException(VBResources.SemanticModelMustBeProvided)
-                ElseIf positionOpt < 0 OrElse positionOpt > semanticModelOpt.SyntaxTree.Length Then 'Note: not >= since EOF is allowed.
-                    Throw New ArgumentOutOfRangeException(VBResources.PositionNotWithinTree)
-                End If
-            Else
-                Debug.Assert(semanticModelOpt Is Nothing)
-                Debug.Assert(positionOpt < 0)
-            End If
-
-            Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            Dim visitor = New SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt)
-            symbol.Accept(visitor)
-            Return builder.ToImmutableAndFree()
-        End Function
+        Const NullChar As Char = ChrW(0)
+        Const Back As Char = ChrW(8)
+        Const Cr As Char = ChrW(13)
+        Const FormFeed As Char = ChrW(12)
+        Const Lf As Char = ChrW(10)
+        Const Tab As Char = ChrW(9)
+        Const VerticalTab As Char = ChrW(11)
 
         ''' <summary>
         ''' Returns a string representation of an object of primitive type.
@@ -180,16 +95,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Throw New ArgumentNullException()
             End If
 
-            Return VbStringDisplay.FormatString(value, quote, nonPrintableSubstitute, useHexadecimalNumbers)
+            Return FormatString(value, quote, nonPrintableSubstitute, useHexadecimalNumbers)
         End Function
 
         Friend Function FormatLiteral(c As Char, quote As Boolean, useHexadecimalNumbers As Boolean) As String
-            Dim wellKnown = VbStringDisplay.GetWellKnownCharacterName(c)
+            Dim wellKnown = GetWellKnownCharacterName(c)
             If wellKnown IsNot Nothing Then
                 Return wellKnown
             End If
 
-            If Not VbStringDisplay.IsPrintable(c) Then
+            If Not IsPrintable(c) Then
                 Dim codepoint = AscW(c)
                 Return If(useHexadecimalNumbers, "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
             End If
@@ -285,5 +200,184 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return value.ToString("M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture)
         End Function
 
+        Friend Function FormatString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As String
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            For Each token As Integer In TokenizeString(str, quote, nonPrintableSubstitute, useHexadecimalNumbers)
+                sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
+            Next
+
+            Return pooledBuilder.ToStringAndFree()
+        End Function
+
+        Private Function Character(c As Char) As Integer
+            Return (SymbolDisplayPartKind.StringLiteral << 16) Or AscW(c)
+        End Function
+
+        Private Function Identifier(c As Char) As Integer
+            Return (SymbolDisplayPartKind.MethodName << 16) Or AscW(c)
+        End Function
+
+        Private Function Number(c As Char) As Integer
+            Return (SymbolDisplayPartKind.NumericLiteral << 16) Or AscW(c)
+        End Function
+
+        Private Function Punctuation(c As Char) As Integer
+            Return (SymbolDisplayPartKind.Punctuation << 16) Or AscW(c)
+        End Function
+
+        Private Function [Operator](c As Char) As Integer
+            Return (SymbolDisplayPartKind.Operator << 16) Or AscW(c)
+        End Function
+
+        Private Function Space() As Integer
+            Return (SymbolDisplayPartKind.Space << 16) Or AscW(" "c)
+        End Function
+
+        Private Function Quotes() As Integer
+            Return (SymbolDisplayPartKind.StringLiteral << 16) Or AscW("""")
+        End Function
+
+        ' TODO: consider making "token" returned by this function a structure to abstract bit masking operations
+        Friend Iterator Function TokenizeString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As IEnumerable(Of Integer)
+            If str.Length = 0 Then
+                If quote Then
+                    Yield Quotes()
+                    Yield Quotes()
+                End If
+
+                Return
+            End If
+
+            Dim startNewConcatenand = False
+            Dim lastConcatenandWasQuoted = False
+            Dim i = 0
+            While i < str.Length
+                Dim isFirst = (i = 0)
+                Dim c = str(i)
+                i += 1
+                Dim wellKnown As String
+                Dim isNonPrintable As Boolean
+                Dim isCrLf As Boolean
+
+                ' vbCrLf
+                If c = Cr AndAlso i < str.Length AndAlso str(i) = Lf Then
+                    wellKnown = "vbCrLf"
+                    isNonPrintable = True
+                    isCrLf = True
+                    i += 1
+                Else
+                    wellKnown = GetWellKnownCharacterName(c)
+                    isNonPrintable = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
+                    isCrLf = False
+                End If
+
+                If isNonPrintable Then
+                    If nonPrintableSubstitute <> NullChar Then
+                        Yield Character(nonPrintableSubstitute)
+
+                        If isCrLf Then
+                            Yield Character(nonPrintableSubstitute)
+                        End If
+                    ElseIf quote Then
+                        If lastConcatenandWasQuoted Then
+                            Yield Quotes()
+                            lastConcatenandWasQuoted = False
+                        End If
+
+                        If Not isFirst Then
+                            Yield Space()
+                            Yield [Operator]("&"c)
+                            Yield Space()
+                        End If
+
+                        If wellKnown IsNot Nothing Then
+                            For Each e In wellKnown
+                                Yield Identifier(e)
+                            Next
+                        Else
+                            Yield Identifier("C"c)
+                            Yield Identifier("h"c)
+                            Yield Identifier("r"c)
+                            Yield Identifier("W"c)
+                            Yield Punctuation("("c)
+
+                            If useHexadecimalNumbers Then
+                                Yield Number("&"c)
+                                Yield Number("H"c)
+                            End If
+
+                            Dim codepoint = AscW(c)
+                            For Each digit In If(useHexadecimalNumbers, codepoint.ToString("X"), codepoint.ToString())
+                                Yield Number(digit)
+                            Next
+
+                            Yield Punctuation(")"c)
+                        End If
+
+                        startNewConcatenand = True
+                    ElseIf (isCrLf) Then
+                        Yield Character(Cr)
+                        Yield Character(Lf)
+                    Else
+                        Yield Character(c)
+                    End If
+                Else
+                    If isFirst AndAlso quote Then
+                        Yield Quotes()
+                    End If
+
+                    If startNewConcatenand Then
+                        Yield Space()
+                        Yield [Operator]("&"c)
+                        Yield Space()
+                        Yield Quotes()
+
+                        startNewConcatenand = False
+                    End If
+
+                    lastConcatenandWasQuoted = True
+                    If c = """"c AndAlso quote Then
+                        Yield Quotes()
+                        Yield Quotes()
+                    Else
+                        Yield Character(c)
+                    End If
+                End If
+            End While
+
+            If quote AndAlso lastConcatenandWasQuoted Then
+                Yield Quotes()
+            End If
+        End Function
+
+        Friend Function IsPrintable(c As Char) As Boolean
+            Dim category = CharUnicodeInfo.GetUnicodeCategory(c)
+            Return category <> UnicodeCategory.OtherNotAssigned AndAlso category <> UnicodeCategory.ParagraphSeparator AndAlso category <> UnicodeCategory.Control
+        End Function
+
+        Friend Function GetWellKnownCharacterName(c As Char) As String
+            Select Case c
+                Case NullChar
+                    Return "vbNullChar"
+                Case Back
+                    Return "vbBack"
+                Case Cr
+                    Return "vbCr"
+                Case FormFeed
+                    Return "vbFormFeed"
+                Case Lf
+                    Return "vbLf"
+                Case Tab
+                    Return "vbTab"
+                Case VerticalTab
+                    Return "vbVerticalTab"
+            End Select
+
+            Return Nothing
+        End Function
+
     End Module
+
 End Namespace

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -119,5 +120,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
             Return ObjectDisplay.FormatPrimitive(obj, quoteStrings, useHexadecimalNumbers)
         End Function
+
+        Friend Sub AddSymbolDisplayParts(parts As ArrayBuilder(Of SymbolDisplayPart), str As String)
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+            Dim sb = pooledBuilder.Builder
+
+            Dim lastKind = -1
+            For Each token As Integer In ObjectDisplay.TokenizeString(str, quote:=True, nonPrintableSubstitute:=Nothing, useHexadecimalNumbers:=True)
+                Dim kind = token >> 16
+
+                ' merge contiguous tokens of the same kind into a single part
+                If lastKind >= 0 AndAlso lastKind <> kind Then
+                    parts.Add(New SymbolDisplayPart(DirectCast(lastKind, SymbolDisplayPartKind), Nothing, sb.ToString()))
+                    sb.Clear()
+                End If
+
+                lastKind = kind
+                sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
+            Next
+
+            If lastKind >= 0 Then
+                parts.Add(New SymbolDisplayPart(DirectCast(lastKind, SymbolDisplayPartKind), Nothing, sb.ToString()))
+            End If
+
+            pooledBuilder.Free()
+        End Sub
+
+        Friend Sub AddSymbolDisplayParts(parts As ArrayBuilder(Of SymbolDisplayPart), c As Char)
+            Dim wellKnown = ObjectDisplay.GetWellKnownCharacterName(c)
+            If wellKnown IsNot Nothing Then
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.FieldName, Nothing, wellKnown))
+                Return
+            End If
+
+            If ObjectDisplay.IsPrintable(c) Then
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.StringLiteral, Nothing, """" & c & """c"))
+                Return
+            End If
+
+            ' non-printable, add "ChrW(codepoint)"
+            Dim codepoint = AscW(c)
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.MethodName, Nothing, "ChrW"))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.NumericLiteral, Nothing, "&H" & codepoint.ToString("X")))
+            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, ")"))
+        End Sub
     End Module
 End Namespace

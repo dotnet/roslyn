@@ -585,7 +585,6 @@
     <Compile Include="Text\TextSpan.cs" />
     <Compile Include="Text\TextUtilities.cs" />
     <Compile Include="TreeDumper.cs" />
-    <Compile Include="VbStringDisplay.cs" />
     <Compile Include="VersionHelper.cs" />
     <Compile Include="WellKnownMember.cs" />
     <Compile Include="WellKnownMembers.cs" />

@@ -20,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case type
                 Case SpecialType.System_String
-                    VbStringDisplay.AddSymbolDisplayParts(builder, DirectCast(value, String))
+                    SymbolDisplay.AddSymbolDisplayParts(builder, DirectCast(value, String))
 
                 Case SpecialType.System_Char
-                    VbStringDisplay.AddSymbolDisplayParts(builder, DirectCast(value, Char))
+                    SymbolDisplay.AddSymbolDisplayParts(builder, DirectCast(value, Char))
 
                 Case Else
                     Dim valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings:=True, useHexadecimalNumbers:=False)
