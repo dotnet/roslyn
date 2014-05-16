@@ -137,17 +137,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// This interface models the metadata representation of a function pointer type reference.
-    /// </summary>
-    internal interface IFunctionPointerTypeReference : ITypeReference, ISignature
-    {
-        /// <summary>
-        /// The types and modifiers of extra arguments that the caller will pass to the methods that are pointed to by this pointer.
-        /// </summary>
-        ImmutableArray<IParameterTypeInformation> ExtraArgumentTypes { get; }
-    }
-
-    /// <summary>
     /// The definition of a type parameter of a generic type or method.
     /// </summary>
     internal interface IGenericParameter : IGenericParameterReference

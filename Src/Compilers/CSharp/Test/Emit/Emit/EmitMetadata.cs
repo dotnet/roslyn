@@ -231,11 +231,20 @@ public class Test : Class2
                 cancellationToken: default(CancellationToken));
 
             diagnostics.Verify();
-            var context = new CodeAnalysis.Emit.EmitContext(assembly, null, new DiagnosticBag());
+            var context = new EmitContext(assembly, null, new DiagnosticBag());
             ImmutableArray<byte> image;
             using (var stream = new MemoryStream())
             {
-                Cci.PeWriter.WritePeToStream(context, compilation.MessageProvider, stream, CancellationToken.None);
+                Cci.PeWriter.WritePeToStream(
+                    context,
+                    compilation.MessageProvider,
+                    stream,
+                    pdbWriter: null,
+                    allowMissingMethodBodies: false,
+                    foldDuplicateMethodBodies: false,
+                    deterministic: false,
+                    cancellationToken: CancellationToken.None);
+
                 image = stream.ToImmutable();
             }
             context.Diagnostics.Verify();

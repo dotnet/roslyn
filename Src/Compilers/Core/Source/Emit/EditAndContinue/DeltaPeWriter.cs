@@ -582,17 +582,17 @@ namespace Microsoft.CodeAnalysis.Emit
             return new DeltaReferenceIndexer(this);
         }
 
-        protected override void OnSerializedMethodBody(IMethodDefinition method, IMethodBody body)
+        protected override void OnSerializedMethodBody(IMethodBody body)
         {
-            var symbol = (Microsoft.CodeAnalysis.IMethodSymbol)method;
-            if (!symbol.IsImplicitlyDeclared)
+            var method = body.MethodDefinition;
+            if (!method.IsImplicitlyDeclared)
             {
                 var locals = body.LocalVariables;
                 this.localMap[method] = (locals == null) ? ImmutableArray<LocalDefinition>.Empty : ImmutableArray.CreateRange(locals.Cast<LocalDefinition>());
             }
         }
 
-        protected override void OnSerializedMetadataTables()
+        protected override void OnBeforeHeapsAligned()
         {
             // Capture the size of the String heap before the heaps
             // are aligned to 4-byte boundaries since the String heap deltas are

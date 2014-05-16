@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -210,6 +211,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return typeParameters;
+                }
+            }
+
+            bool Cci.IMethodDefinition.IsImplicitlyDeclared
+            {
+                get
+                {
+                    return true;
                 }
             }
 

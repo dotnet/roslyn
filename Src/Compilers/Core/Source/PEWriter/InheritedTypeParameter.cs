@@ -84,14 +84,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public IFunctionPointerTypeReference AsFunctionPointerTypeReference
-        {
-            get
-            {
-                return this as IFunctionPointerTypeReference;
-            }
-        }
-
         public IGenericMethodParameter AsGenericMethodParameter
         {
             get

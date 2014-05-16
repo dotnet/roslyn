@@ -532,7 +532,7 @@ namespace Microsoft.Cci
             int count;
             foreach (IReference o in module.ReferencesInIL(out count))
             {
-                ITypeReference/*?*/ typeReference = o as ITypeReference;
+                var typeReference = o as ITypeReference;
                 if (typeReference != null)
                 {
                     this.typeReferenceNeedsToken = true;
@@ -541,7 +541,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    IFieldReference/*?*/ fieldReference = o as IFieldReference;
+                    var fieldReference = o as IFieldReference;
                     if (fieldReference != null)
                     {
                         if (fieldReference.IsContextualNamedEntity)
@@ -553,7 +553,7 @@ namespace Microsoft.Cci
                     }
                     else
                     {
-                        IMethodReference/*?*/ methodReference = o as IMethodReference;
+                        var methodReference = o as IMethodReference;
                         if (methodReference != null)
                         {
                             this.Visit(methodReference);

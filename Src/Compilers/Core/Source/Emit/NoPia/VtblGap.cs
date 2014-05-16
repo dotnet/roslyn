@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return SpecializedCollections.EmptyEnumerable<Cci.IGenericMethodParameter>(); }
         }
 
+        bool Cci.IMethodDefinition.IsImplicitlyDeclared
+        {
+            get { return true; }
+        }
+
         bool Cci.IMethodDefinition.HasDeclarativeSecurity
         {
             get { return false; }

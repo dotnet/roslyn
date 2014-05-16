@@ -145,14 +145,6 @@ namespace Microsoft.Cci
         {
         }
 
-        public virtual void Visit(IFunctionPointerTypeReference functionPointerTypeReference)
-        {
-            this.Visit(functionPointerTypeReference.GetType(Context));
-            this.Visit(functionPointerTypeReference.GetParameters(Context));
-            this.Visit(functionPointerTypeReference.ExtraArgumentTypes);
-            this.Visit(functionPointerTypeReference.ReturnValueCustomModifiers);
-        }
-
         public virtual void Visit(IGenericMethodInstanceReference genericMethodInstanceReference)
         {
         }
@@ -625,13 +617,6 @@ namespace Microsoft.Cci
             if (pointerTypeReference != null)
             {
                 this.Visit(pointerTypeReference);
-                return;
-            }
-
-            IFunctionPointerTypeReference functionPointerTypeReference = typeReference as IFunctionPointerTypeReference;
-            if (functionPointerTypeReference != null)
-            {
-                this.Visit(functionPointerTypeReference);
                 return;
             }
 

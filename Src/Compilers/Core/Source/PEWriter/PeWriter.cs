@@ -78,7 +78,6 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            methodBodyIndex = new Dictionary<IMethodDefinition, uint>(module.HintNumberOfMethodDefinitions);
             signatureIndex = new Dictionary<ISignature, uint>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
@@ -420,14 +419,14 @@ namespace Microsoft.Cci
         /// <summary>
         /// Invoked after serializing the method body.
         /// </summary>
-        protected virtual void OnSerializedMethodBody(IMethodDefinition method, IMethodBody body)
+        protected virtual void OnSerializedMethodBody(IMethodBody body)
         {
         }
 
         /// <summary>
         /// Invoked after serializing metadata tables.
         /// </summary>
-        protected virtual void OnSerializedMetadataTables()
+        protected virtual void OnBeforeHeapsAligned()
         {
         }
 
@@ -501,7 +500,6 @@ namespace Microsoft.Cci
         private readonly Dictionary<IFieldReference, uint> fieldSignatureIndex = new Dictionary<IFieldReference, uint>();
         private readonly Dictionary<ISignature, uint> signatureIndex;
         private readonly Dictionary<IMarshallingInformation, uint> marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, uint>();
-        private readonly Dictionary<IMethodDefinition, uint> methodBodyIndex;
         protected readonly List<IMethodImplementation> methodImplList = new List<IMethodImplementation>();
         private readonly Dictionary<IGenericMethodInstanceReference, uint> methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, uint>();
         // A map of method body to RVA. 
@@ -606,7 +604,7 @@ namespace Microsoft.Cci
         /// Fills in stringIndexMap with data from stringIndex and write to stringWriter.
         /// Releases stringIndex as the stringTable is sealed after this point.
         /// </summary>
-        private void FoldStrings()
+        private void SerializeStringHeap()
         {
             // Sort by suffix and remove stringIndex
             var sorted = new List<KeyValuePair<string, uint>>(this.stringIndex);
@@ -671,19 +669,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public static void WritePeToStream(EmitContext context, CommonMessageProvider messageProvider, Stream stream, CancellationToken cancellationToken)
-        {
-            WritePeToStream(
-                context,
-                messageProvider,
-                stream,
-                pdbWriter: null,
-                allowMissingMethodBodies: false,
-                foldDuplicateMethodBodies: false,
-                deterministic: false,
-                cancellationToken: cancellationToken);
-        }
-
         public static void WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -711,8 +696,7 @@ namespace Microsoft.Cci
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
-                    pdbWriter.WriteDefinitionLocations(
-                        writer, context.Module.GetSymbolToLocationMap());
+                    pdbWriter.WriteDefinitionLocations(context.Module.GetSymbolToLocationMap());
                 }
             }
         }
@@ -725,17 +709,16 @@ namespace Microsoft.Cci
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(32 * 1024);
             var ilWriter = new BinaryWriter(ilBuffer);
-
-            SerializeMethodBodiesAndPopulateTables(ilWriter);
+            var metadataBuffer = new MemoryStream(16 * 1024);
+            var metadataWriter = new BinaryWriter(metadataBuffer);
 
             // Since we are producing a full assembly, we should not have a module version ID
             // imposed ahead-of time. Instead we will compute a deterministic module version ID
             // based on the contents of the generated stream.
             Debug.Assert(this.ModuleVersionId == default(Guid));
 
-            var metadataBuffer = new MemoryStream(16 * 1024);
             uint moduleVersionIdOffsetInMetadataStream;
-            SerializeMetadata(metadataBuffer, separateMethodIL: false, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
+            SerializeMetadataAndIL(metadataWriter, ilWriter, separateMethodIL: false, moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream);
 
             // fill in header fields.
             FillInNtHeader((int)ilBuffer.Length);
@@ -759,6 +742,34 @@ namespace Microsoft.Cci
                 var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, positionOfModuleVersionId, positionOfHeaderTimestamp, positionOfDebugTableTimestamp);
             }
+        }
+
+        internal void WriteMetadataAndIL(Stream metadataStream, Stream ilStream)
+        {
+            // Extract information from object model into tables, indices and streams
+            CreateIndices();
+
+            // TODO: we can precalculate the exact size of IL stream
+            var ilBuffer = new MemoryStream(1024);
+            var ilWriter = new BinaryWriter(ilBuffer);
+            var metadataBuffer = new MemoryStream(4 * 1024);
+            var metadataWriter = new BinaryWriter(metadataBuffer);
+
+            // Add 4B of padding to the start of the separated IL stream, 
+            // so that method RVAs, which are offsets to this stream, are never 0.
+            ilWriter.WriteUint(0);
+
+            // this is used to handle edit-and-continue emit, so we should have a module
+            // version ID that is imposed by the caller (the same as the previous module version ID).
+            // Therefore we do not have to fill in a new module version ID in the generated metadata
+            // stream.
+            Debug.Assert(this.ModuleVersionId != default(Guid));
+
+            uint moduleVersionIdOffsetInMetadataStream;
+            SerializeMetadataAndIL(metadataWriter, ilWriter, separateMethodIL: true, moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream);
+
+            ilBuffer.WriteTo(ilStream);
+            metadataBuffer.WriteTo(metadataStream);
         }
 
         /// <summary>
@@ -842,48 +853,6 @@ namespace Microsoft.Cci
             return guidData;
         }
 
-        internal void WriteMetadataAndIL(Stream metadataStream, Stream ilStream)
-        {
-            // Extract information from object model into tables, indices and streams
-            CreateIndices();
-
-            // TODO: we can precalculate the exact size of IL stream
-            var ilBuffer = new MemoryStream(1024);
-            var ilWriter = new BinaryWriter(ilBuffer);
-
-            // Add 4B of padding to the start of the separated IL stream, 
-            // so that method RVAs, which are offsets to this stream, are never 0.
-            ilWriter.WriteUint(0);
-
-            SerializeMethodBodiesAndPopulateTables(ilWriter);
-
-            // this is used to handle edit-and-continue emit, so we should have a module
-            // version ID that is imposed by the caller (the same as the previous module version ID).
-            // Therefore we do not have to fill in a new module version ID in the generated metadata
-            // stream.
-            Debug.Assert(this.ModuleVersionId != default(Guid));
-
-            var metadataBuffer = new MemoryStream(16 * 1024);
-            uint moduleVersionIdOffset;
-            SerializeMetadata(metadataBuffer, separateMethodIL: true, moduleVersionIdOffset: out moduleVersionIdOffset);
-
-            ilBuffer.WriteTo(ilStream);
-            metadataBuffer.WriteTo(metadataStream);
-        }
-
-        private void SerializeMethodBodiesAndPopulateTables(BinaryWriter ilWriter)
-        {
-            SerializeMethodBodies(ilWriter);
-
-            PopulateTableRows();
-
-            // Do this as soon as table rows are done and before we need to final size of string table
-            FoldStrings(); 
-
-            // Do this here so that tables and win32 resources can contain actual RVAs without the need for fixups.
-            FillInSectionHeaders((int)ilWriter.BaseStream.Length); 
-        }
-
         internal static uint Aligned(uint position, uint alignment)
         {
             uint result = position & ~(alignment - 1);
@@ -956,14 +925,9 @@ namespace Microsoft.Cci
             return 0x1c + (uint)this.debugDirectory.Data.Length;
         }
 
-        private uint SizeOfGeneralMetadataHeader
-        {
-            get { return (uint)(this.IsMinimalDelta ? 124 : 108); }
-        }
-
         private uint ComputeSizeOfMetadata()
         {
-            uint result = this.SizeOfGeneralMetadataHeader;
+            uint result = this.MetadataHeaderSize;
             result += Aligned(this.ComputeSizeOfMetadataTablesStream(), 4);
             result += Aligned(this.stringWriter.BaseStream.Length, 4);
             if (this.userStringWriter.BaseStream.Length == 1)
@@ -2339,6 +2303,11 @@ namespace Microsoft.Cci
             return result;
         }
 
+        internal PrimitiveTypeCode GetConstantTypeCode(ILocalDefinition constant)
+        {
+            return constant.CompileTimeValue.Type.TypeCode(Context);
+        }
+
         private uint GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
             MemoryStream sig = MemoryStream.GetInstance();
@@ -2446,48 +2415,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private uint GetStandaloneSignatureToken(ILocalDefinition localConstant)
-        {
-            MemoryStream sig = MemoryStream.GetInstance();
-            BinaryWriter writer = new BinaryWriter(sig);
-            writer.WriteByte(0x06);
-
-            foreach (ICustomModifier modifier in localConstant.CustomModifiers)
-            {
-                this.SerializeCustomModifier(modifier, writer);
-            }
-
-            this.SerializeTypeReference(localConstant.Type, writer, false, true);
-            uint blobIndex = this.GetBlobIndex(sig.ToArray());
-            uint signatureIndex = GetStandaloneSignatureToken(blobIndex);
-            sig.Free();
-
-            return 0x11000000 | signatureIndex;
-        }
-
-        private uint GetStandaloneSignatureToken(IFunctionPointerTypeReference functionPointerTypeReference)
-        {
-            uint signatureIndex;
-            if (!this.signatureIndex.TryGetValue(functionPointerTypeReference, out signatureIndex))
-            {
-                MemoryStream sig = MemoryStream.GetInstance();
-                BinaryWriter writer = new BinaryWriter(sig);
-                this.SerializeSignature(functionPointerTypeReference, 0, functionPointerTypeReference.ExtraArgumentTypes, writer);
-                uint blobIndex = this.GetBlobIndex(sig.ToArray());
-                signatureIndex = GetStandaloneSignatureToken(blobIndex);
-
-                this.signatureIndex.Add(functionPointerTypeReference, signatureIndex);
-                sig.Free();
-            }
-
-            return 0x11000000 | signatureIndex;
-        }
-
-        private uint GetStandaloneSignatureToken(uint blobIndex)
-        {
-            return this.GetOrAddStandAloneSignatureIndex(blobIndex);
-        }
-
         private StringIdx GetStringIndex(string str)
         {
             Debug.Assert(str.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(str));
@@ -2583,7 +2510,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private bool IsUsingStringTooLong(string usingString, INamedEntity errorEntity = null)
+        internal bool IsUsingStringTooLong(string usingString, INamedEntity errorEntity = null)
         {
             if (IsTooLongInternal(usingString, PdbLengthLimit))
             {
@@ -2595,7 +2522,7 @@ namespace Microsoft.Cci
             return false;
         }
 
-        private bool IsLocalNameTooLong(ILocalDefinition localDefinition)
+        internal bool IsLocalNameTooLong(ILocalDefinition localDefinition)
         {
             string name = localDefinition.Name;
             if (IsTooLongInternal(name, PdbLengthLimit))
@@ -3127,8 +3054,15 @@ namespace Microsoft.Cci
             writer.WriteCompressedUInt(this.GetTypeDefOrRefCodedIndex(customModifier.GetModifier(Context), true));
         }
 
-        private void SerializeGeneralMetadataHeader(BinaryWriter writer, uint tableStreamLength)
+        private uint MetadataHeaderSize
         {
+            get { return (uint)(this.IsMinimalDelta ? 124 : 108); }
+        }
+
+        private void SerializeMetadataHeader(BinaryWriter writer, uint tableStreamLength)
+        {
+            uint startOffset = writer.BaseStream.Position;
+
             // Storage signature
             writer.WriteUint(0x424A5342); // Signature 4
             writer.WriteUshort(1); // metadata version major 6
@@ -3153,7 +3087,7 @@ namespace Microsoft.Cci
             writer.WriteUshort((ushort)(this.IsMinimalDelta ? 6 : 5)); // number of streams 32
 
             // Stream headers
-            uint offsetFromStartOfMetadata = this.SizeOfGeneralMetadataHeader;
+            uint offsetFromStartOfMetadata = this.MetadataHeaderSize;
             SerializeStreamHeader(ref offsetFromStartOfMetadata, tableStreamLength, (this.CompressMetadataStream ? "#~" : "#-"), writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, this.stringWriter.BaseStream.Length, "#Strings", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, this.userStringWriter.BaseStream.Length, "#US", writer);
@@ -3163,6 +3097,9 @@ namespace Microsoft.Cci
             {
                 SerializeStreamHeader(ref offsetFromStartOfMetadata, 0, "#JTD", writer);
             }
+
+            uint endOffset = writer.BaseStream.Position;
+            Debug.Assert(endOffset - startOffset == MetadataHeaderSize);
         }
 
         private static void SerializeStreamHeader(ref uint offsetFromStartOfMetadata, uint sizeOfStreamHeap, string streamName, BinaryWriter writer)
@@ -3185,92 +3122,49 @@ namespace Microsoft.Cci
             offsetFromStartOfMetadata += sizeOfStreamHeap;
         }
 
-        private uint SerializeLocalVariableSignatureAndReturnToken(IMethodBody methodBody)
+        private void SerializeMetadata(BinaryWriter metadataWriter, bool separateMethodIL, out uint moduleVersionIdOffset)
         {
-            Debug.Assert(!this.tableIndicesAreComplete);
-            var locals = methodBody.LocalVariables;
-            ushort numLocals = (ushort)locals.Length;
-            if (numLocals == 0)
-            {
-                return 0;
-            }
+            uint metadataStartOffset = metadataWriter.BaseStream.Position;
+            uint metadataTablesStartOffset = metadataStartOffset + MetadataHeaderSize;
 
-            MemoryStream stream = MemoryStream.GetInstance();
-            BinaryWriter writer = new BinaryWriter(stream);
-            writer.WriteByte(0x7);
-            writer.WriteCompressedUInt(numLocals);
-            foreach (ILocalDefinition local in methodBody.LocalVariables)
-            {
-                if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
-                {
-                    writer.WriteByte(0x16);
-                }
-                else
-                {
-                    foreach (ICustomModifier customModifier in local.CustomModifiers)
-                    {
-                        this.SerializeCustomModifier(customModifier, writer);
-                    }
+            // Leave space for the metadata header. We need to fill in the sizes of all tables and heaps.
+            // It's easier to write it at the end then to precalculate the sizes.
+            metadataWriter.BaseStream.Position = metadataTablesStartOffset;
+            this.SerializeMetadataTables(metadataWriter, separateMethodIL);
 
-                    if (local.IsPinned)
-                    {
-                        writer.WriteByte(0x45);
-                    }
+            uint metadataTablesEndOffset = metadataWriter.BaseStream.Position;
 
-                    if (local.IsReference)
-                    {
-                        writer.WriteByte(0x10);
-                    }
+            this.stringWriter.BaseStream.WriteTo(metadataWriter.BaseStream);
+            this.userStringWriter.BaseStream.WriteTo(metadataWriter.BaseStream);
 
-                    this.SerializeTypeReference(local.Type, writer, false, true);
-                }
-            }
+            uint guidHeapStartOffset = metadataWriter.BaseStream.Position;
+            moduleVersionIdOffset = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
+            
+            this.guidWriter.BaseStream.WriteTo(metadataWriter.BaseStream);
+            this.blobWriter.BaseStream.WriteTo(metadataWriter.BaseStream);
 
-            uint blobIndex = this.GetBlobIndex(writer.BaseStream.ToArray());
-            uint signatureIndex = this.GetStandaloneSignatureToken(blobIndex);
-            stream.Free();
+            uint metadataSize = metadataWriter.BaseStream.Position;
 
-            return 0x11000000 | signatureIndex;
+            // write header at the start of the metadata stream:
+            metadataWriter.BaseStream.Position = 0;
+            this.SerializeMetadataHeader(metadataWriter, tableStreamLength: metadataTablesEndOffset - metadataTablesStartOffset);
+
+            metadataWriter.BaseStream.Position = metadataSize;
         }
 
-        private void SerializeMetadata(MemoryStream metadataStream, bool separateMethodIL, out uint moduleVersionIdOffset)
+        private uint GetModuleVersionGuidOffsetInMetadataStream(uint guidHeapOffsetInMetadataStream)
         {
-            MemoryStream tableStream = new MemoryStream(16 * 1024);
+            // index of module version ID in the guidWriter stream
+            uint moduleVersionIdIndex = this.moduleRow.ModuleVersionId;
 
-            this.SerializeMetadataTables(tableStream, separateMethodIL);
-            this.OnSerializedMetadataTables();
-            this.stringWriter.Align(4);
-            this.userStringWriter.Align(4);
-            this.guidWriter.Align(4);
-            this.blobWriter.Align(4);
+            // offset into the guidWriter stream of the module version ID
+            uint moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
 
-            BinaryWriter writer = new BinaryWriter(metadataStream);
-            this.SerializeGeneralMetadataHeader(writer, tableStream.Length);
-            tableStream.WriteTo(metadataStream);
-            this.stringWriter.BaseStream.WriteTo(metadataStream);
-            this.userStringWriter.BaseStream.WriteTo(metadataStream);
-
-            // compute the offset into the metadataStream of the module version ID
-            {
-                uint guidTableOffset = metadataStream.Position;
-
-                // index of module version ID in the guidWriter stream
-                uint moduleVersionIdIndex = this.moduleRow.ModuleVersionId;
-
-                // offset into the guidWriter stream of the module version ID
-                uint moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
-
-                // finally, the stream index of the module version ID
-                moduleVersionIdOffset = guidTableOffset + moduleVersionOffsetInGuidTable;
-            }
-
-            this.guidWriter.BaseStream.WriteTo(metadataStream);
-            this.blobWriter.BaseStream.WriteTo(metadataStream);
+            return guidHeapOffsetInMetadataStream + moduleVersionOffsetInGuidTable;
         }
 
-        private void SerializeMetadataTables(MemoryStream tableStream, bool separateMethodIL)
+        private void SerializeMetadataTables(BinaryWriter writer, bool separateMethodIL)
         {
-            BinaryWriter writer = new BinaryWriter(tableStream);
             this.SerializeTablesHeader(writer);
             this.SerializeModuleTable(writer);
             this.SerializeTypeRefTable(writer);
@@ -3390,11 +3284,35 @@ namespace Microsoft.Cci
             return false;
         }
 
-        private void PopulateTableRows()
+        private void SerializeMetadataAndIL(BinaryWriter metadataWriter, BinaryWriter ilWriter, bool separateMethodIL, out uint moduleVersionIdOffsetInMetadataStream)
         {
+            uint[] methodBodyRvas = SerializeMethodBodies(ilWriter);
+
             cancellationToken.ThrowIfCancellationRequested();
 
+            // method body serialization adds Stand Alone Signatures
             this.tableIndicesAreComplete = true;
+
+            PopulateTables(methodBodyRvas);
+
+            // Do this as soon as table rows are done and before we need to final size of string table
+            SerializeStringHeap();
+
+            // Do this here so that tables and win32 resources can contain actual RVAs without the need for fixups.
+            FillInSectionHeaders((int)ilWriter.BaseStream.Length);
+
+            // Align heaps
+            this.OnBeforeHeapsAligned();
+            this.stringWriter.Align(4);
+            this.userStringWriter.Align(4);
+            this.guidWriter.Align(4);
+            this.blobWriter.Align(4);
+
+            SerializeMetadata(metadataWriter, separateMethodIL, moduleVersionIdOffset: out moduleVersionIdOffsetInMetadataStream);
+        }
+
+        private void PopulateTables(uint[] methodBodyRvas)
+        {
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
             this.PopulateClassLayoutTableRows();
@@ -3415,7 +3333,7 @@ namespace Microsoft.Cci
             this.PopulateManifestResourceTableRows();
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
-            this.PopulateMethodTableRows();
+            this.PopulateMethodTableRows(methodBodyRvas);
             this.PopulateMethodSemanticsTableRows();
             this.PopulateMethodSpecTableRows();
             this.PopulateModuleRefTableRows();
@@ -4490,46 +4408,33 @@ namespace Microsoft.Cci
 
         private readonly List<MethodSpecRow> methodSpecTable = new List<MethodSpecRow>();
 
-        private void PopulateMethodTableRows()
+        private void PopulateMethodTableRows(uint[] methodBodyRvas)
         {
             var methodDefs = this.GetMethodDefs();
-            this.methodTable.Capacity = methodDefs.Count;
+            this.methodTable = new MethodRow[methodDefs.Count];
 
+            int i = 0;
             foreach (IMethodDefinition methodDef in methodDefs)
             {
-                MethodRow r = new MethodRow();
-                if (methodDef.HasBody())
+                this.methodTable[i] = new MethodRow
                 {
-                    uint rva;
-                    if (this.methodBodyIndex.TryGetValue(methodDef, out rva))
-                    {
-                        r.Rva = rva;
-                    }
-                    else if (!allowMissingMethodBodies)
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }
-                else
-                {
-                    // 0 is actually written to metadata when the row is serialized
-                    r.Rva = uint.MaxValue;
-                }
+                    Rva = methodBodyRvas[i],
+                    ImplFlags = (ushort)methodDef.GetImplementationAttributes(Context),
+                    Flags = GetMethodFlags(methodDef),
+                    Name = this.GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
+                    Signature = this.GetMethodSignatureIndex(methodDef),
+                    ParamList = this.GetParameterDefIndex(methodDef),
+                };
 
-                r.ImplFlags = (ushort)methodDef.GetImplementationAttributes(Context);
-                r.Flags = GetMethodFlags(methodDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef);
-                r.Signature = this.GetMethodSignatureIndex(methodDef);
-                r.ParamList = this.GetParameterDefIndex(methodDef);
-                this.methodTable.Add(r);
+                i++;
             }
 
-            this.tableSizes[(uint)TableIndex.MethodDef] = (uint)this.methodTable.Count;
+            this.tableSizes[(uint)TableIndex.MethodDef] = (uint)this.methodTable.Length;
         }
 
         private struct MethodRow { public uint Rva; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public uint Signature; public uint ParamList; }
 
-        private readonly List<MethodRow> methodTable = new List<MethodRow>();
+        private MethodRow[] methodTable;
 
         private void PopulateModuleRefTableRows()
         {
@@ -5316,39 +5221,56 @@ namespace Microsoft.Cci
                 SerializeIndex(writer, genericParamConstraint.Constraint, this.typeDefOrRefCodedIndexSize);
             }
         }
-
-        private readonly List<MemoryStream> customDebugMetadataForCurrentMethod = new List<MemoryStream>();
-
-        private void SerializeMethodBodies(BinaryWriter writer)
+        
+        private uint[] SerializeMethodBodies(BinaryWriter writer)
         {
             var customDebugInfoWriter = new CustomDebugInfoWriter();
 
-            foreach (IMethodDefinition method in this.GetMethodDefs())
+            var methods = this.GetMethodDefs();
+            uint[] rvas = new uint[methods.Count];
+            
+            int i = 0;
+            foreach (IMethodDefinition method in methods)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                uint rva;
 
-                if (!method.HasBody())
+                if (method.HasBody())
                 {
-                    continue;
+                    IMethodBody body = method.GetBody(Context);
+                    Debug.Assert(body != null || allowMissingMethodBodies);
+
+                    if (body != null)
+                    {
+                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body.LocalVariables);
+
+                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                        rva = this.SerializeMethodBody(body, writer, localSignatureToken);
+
+                        if (pdbWriter != null)
+                        {
+                            pdbWriter.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
+                        }
+                    }
+                    else
+                    {
+                        rva = 0;
+                    }
+                }
+                else
+                {
+                    // 0 is actually written to metadata when the row is serialized
+                    rva = uint.MaxValue;
                 }
 
-                IMethodBody body = method.GetBody(Context);
-                if (body != null)
-                {
-                    this.SerializeMethodBody(body, writer, customDebugInfoWriter);
-                    this.OnSerializedMethodBody(method, body);
-                }
-                else if (!allowMissingMethodBodies)
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
+                rvas[i++] = rva;
             }
+
+            return rvas;
         }
 
-        private void SerializeMethodBody(IMethodBody methodBody, BinaryWriter writer, CustomDebugInfoWriter customDebugInfoWriter)
+        private uint SerializeMethodBody(IMethodBody methodBody, BinaryWriter writer, uint localSignatureToken)
         {
-            uint localSignatureToken = this.SerializeLocalVariableSignatureAndReturnToken(methodBody);
-
             int ilLength = methodBody.IL.Length;
             uint numberOfExceptionHandlers = (uint)methodBody.ExceptionRegions.Length;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureToken == 0 && numberOfExceptionHandlers == 0;
@@ -5408,140 +5330,78 @@ namespace Microsoft.Cci
                 }
             }
 
-            this.methodBodyIndex[methodBody.MethodDefinition] = bodyRva;
-            SerializeDebugInfo(methodBody, localSignatureToken, customDebugInfoWriter);
+            this.OnSerializedMethodBody(methodBody);
+
+            return bodyRva;
         }
 
-        private void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, CustomDebugInfoWriter customDebugInfoWriter)
+        private uint SerializeLocalVariablesSignature(ImmutableArray<ILocalDefinition> localVariables)
         {
-            bool isIterator = methodBody.IteratorClassName != null;
-            bool emitDebugInfo = this.pdbWriter != null && (isIterator || methodBody.HasAnyLocations);
+            Debug.Assert(!this.tableIndicesAreComplete);
 
-            if (!emitDebugInfo)
+            if (localVariables.Length == 0)
             {
-                return;
+                return 0;
             }
 
-            uint methodToken = this.GetMethodToken(methodBody.MethodDefinition);
-            Debug.Assert(TypeOnly(methodToken) == TokenTypeIds.MethodDef);
-
-            this.pdbWriter.OpenMethod(methodToken);
-
-            var scopes = methodBody.LocalScopes;
-
-            // CCI originally didn't have the notion of the default scope that is open
-            // when a method is opened. In order to reproduce CSC PDBs, this must be added. Otherwise
-            // a seemingly unecessary scope that contains only other scopes is put in the PDB.
-            if (scopes.Length > 0)
+            MemoryStream stream = MemoryStream.GetInstance();
+            BinaryWriter writer = new BinaryWriter(stream);
+            writer.WriteByte(0x07);
+            writer.WriteCompressedUInt((uint)localVariables.Length);
+            foreach (ILocalDefinition local in localVariables)
             {
-                this.DefineScopeLocals(methodBody, scopes[0], localSignatureToken);
-            }
-
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator)
-            {
-                IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(methodBody, methodToken, out forwardToMethod))
+                if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
                 {
-                    if (forwardToMethod != null)
-                    {
-                        string usingString = "@" + this.GetMethodToken(forwardToMethod);
-                        Debug.Assert(!IsUsingStringTooLong(usingString));
-                        this.pdbWriter.UsingNamespace(usingString, methodBody.MethodDefinition.Name);
-                    }
-
-                    // otherwise, the forwarding is done via custom debug info
+                    writer.WriteByte(0x16);
                 }
                 else
                 {
-                    this.SerializeNamespaceScopes(methodBody);
-                }
-            }
-
-            EmitPdbScopes(methodBody, localSignatureToken);
-
-            pdbWriter.EmitSequencePoints(methodBody.GetSequencePoints());
-
-            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncMethodDebugInfo;
-            if (asyncDebugInfo != null)
-            {
-                this.pdbWriter.SetAsyncInfo(
-                    methodToken,
-                    this.GetMethodToken(asyncDebugInfo.KickoffMethod),
-                    asyncDebugInfo.CatchHandlerOffset,
-                    asyncDebugInfo.YieldOffsets,
-                    asyncDebugInfo.ResumeOffsets);
-            }
-
-            bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, out emitExternNamespaces);
-            if (blob != null)
-            {
-                this.pdbWriter.DefineCustomMetadata("MD2", blob);
-            }
-
-            if (emitExternNamespaces)
-            {
-                this.EmitExternNamespaceAssemblies(this.module);
-            }
-
-            // TODO: it's not clear why we are closing a scope here with IL length:
-            this.pdbWriter.CloseScope((uint)methodBody.IL.Length);
-
-            this.pdbWriter.CloseMethod();
-        }
-
-        private void SerializeNamespaceScopes(IMethodBody methodBody)
-        {
-            // TODO: add nopia namespaces 
-
-            // in case that the using namespace is too long, the native API SymWriter::UsingNamespace() would return 
-            // an E_OUTOFMEMORY which will be translated to an OutOfMemory exception.
-            // To avoid this we're checking the length before calling. However if _MAX_SYM_SIZE ever gets changed in
-            // the native API this code gets out of sync. But there is no other alternative. Checking for E_OUTOFMEMORY and
-            // continuing does not work because then the native API will work with uninitialized memory which showed issues
-            // in x64 builds.
-            // Pointers: 
-            //   - symwrite.cpp, SymWriter::UsingNamespace(const WCHAR *fullName)
-            //        (uninitialized memory by calling "use = m_usings.next()" without setting use->m_name AND
-            //         not setting use->m_scope to a default value)
-            //   - symwrite.h, SymWriter::AddName
-            //        (returning false for too long strings)
-            //   - symwrite.cpp, SymWriter::EmitChildren( size_t i )
-            //        (accessing m_string with offset of use->m_name (uninitialized) when use->m_scope == for loop index. So
-            //         whenever the unitialized value is a low number (0 ..) then uninitialized memory is accessed -> access violation
-            //
-            // DevDiv Bug 479703: "Possible access violation because of uninitialized data in string pool of SymWriter" (Resolved in RTM)
-
-            IMethodDefinition methodDefinition = methodBody.MethodDefinition;
-            foreach (NamespaceScope namespaceScope in methodBody.NamespaceScopes)
-            {
-                foreach (UsedNamespaceOrType used in namespaceScope.UsedNamespaces)
-                {
-                    string usingString = used.Encode();
-                    if (!IsUsingStringTooLong(usingString, methodDefinition))
+                    foreach (ICustomModifier customModifier in local.CustomModifiers)
                     {
-                        this.pdbWriter.UsingNamespace(usingString, used.Alias);
+                        this.SerializeCustomModifier(customModifier, writer);
                     }
+
+                    if (local.IsPinned)
+                    {
+                        writer.WriteByte(0x45);
+                    }
+
+                    if (local.IsReference)
+                    {
+                        writer.WriteByte(0x10);
+                    }
+
+                    this.SerializeTypeReference(local.Type, writer, false, true);
                 }
             }
+
+            uint blobIndex = this.GetBlobIndex(writer.BaseStream.ToArray());
+            uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+            stream.Free();
+
+            return 0x11000000 | signatureIndex;
         }
 
-        private void EmitExternNamespaceAssemblies(IModule module)
+        internal uint SerializeLocalConstantSignature(ILocalDefinition localConstant)
         {
-            foreach (ExternNamespace @extern in module.ExternNamespaces)
-            {
-                string usingString = "Z" + @extern.NamespaceAlias + " " + @extern.AssemblyName;
-                if (!IsUsingStringTooLong(usingString))
-                {
-                    this.pdbWriter.UsingNamespace(usingString, @extern.NamespaceAlias);
-                }
-            }
-                }
+            MemoryStream sig = MemoryStream.GetInstance();
+            BinaryWriter writer = new BinaryWriter(sig);
+            writer.WriteByte(0x06);
 
-        private uint ReadUint(byte[] buffer, int pos)
+            foreach (ICustomModifier modifier in localConstant.CustomModifiers)
+            {
+                this.SerializeCustomModifier(modifier, writer);
+            }
+
+            this.SerializeTypeReference(localConstant.Type, writer, false, true);
+            uint blobIndex = this.GetBlobIndex(sig.ToArray());
+            uint signatureIndex = GetOrAddStandAloneSignatureIndex(blobIndex);
+            sig.Free();
+
+            return 0x11000000 | signatureIndex;
+        }
+
+        private static uint ReadUint(byte[] buffer, int pos)
         {
             uint result = buffer[pos];
             result |= (uint)buffer[pos + 1] << 8;
@@ -5550,7 +5410,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private void WriteUint(byte[] buffer, uint value, int pos)
+        private static void WriteUint(byte[] buffer, uint value, int pos)
         {
             unchecked
             {
@@ -5630,66 +5490,6 @@ namespace Microsoft.Cci
             }
 
             return methodBodyIL;
-        }
-
-        private void EmitPdbScopes(IMethodBody methodBody, uint localSignatureToken)
-        {
-            // The order of OpenScope and CloseScope calls must follow the scope nesting.
-            var scopes = methodBody.LocalScopes;
-            var scopeStack = ArrayBuilder<LocalScope>.GetInstance();
-
-            for (int i = 1; i < scopes.Length; i++)
-            {
-                var currentScope = scopes[i];
-
-                // Close any scopes that have finished.
-                while (scopeStack.Count > 0)
-                {
-                    LocalScope topScope = scopeStack.Last();
-                    if (currentScope.Offset < topScope.Offset + topScope.Length)
-                    {
-                        break;
-                    }
-
-                    scopeStack.RemoveLast();
-                    this.pdbWriter.CloseScope(topScope.Offset + topScope.Length);
-                }
-
-                // Open this scope.
-                scopeStack.Add(currentScope);
-                this.pdbWriter.OpenScope(currentScope.Offset);
-                this.DefineScopeLocals(methodBody, currentScope, localSignatureToken);
-            }
-
-            // Close remaining scopes.
-            for (int i = scopeStack.Count - 1; i >= 0; i--)
-            {
-                LocalScope scope = scopeStack[i];
-                this.pdbWriter.CloseScope(scope.Offset + scope.Length);
-            }
-
-            scopeStack.Free();
-        }
-
-        private void DefineScopeLocals(IMethodBody methodBody, LocalScope currentScope, uint localSignatureToken)
-        {
-            foreach (ILocalDefinition scopeConstant in currentScope.Constants)
-            {
-                uint token = this.GetStandaloneSignatureToken(scopeConstant);
-                if (!IsLocalNameTooLong(scopeConstant))
-                {
-                    this.pdbWriter.DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, scopeConstant.CompileTimeValue.Type.TypeCode(Context), token);
-                }
-            }
-
-            foreach (ILocalDefinition scopeLocal in currentScope.Variables)
-            {
-                if (!IsLocalNameTooLong(scopeLocal))
-                {
-                    Debug.Assert(scopeLocal.SlotIndex >= 0);
-                    this.pdbWriter.DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.IsCompilerGenerated, localSignatureToken);
-                }
-            }
         }
 
         private void SerializeMethodBodyExceptionHandlerTable(IMethodBody methodBody, uint numberOfExceptionHandlers, BinaryWriter writer)
@@ -6506,7 +6306,6 @@ namespace Microsoft.Cci
                 IArrayTypeReference arrayTypeReference;
                 IGenericMethodParameterReference genericMethodParameterReference;
                 IGenericTypeParameterReference genericTypeParameterReference;
-                IFunctionPointerTypeReference functionPointerTypeReference;
 
                 if ((genericTypeParameterReference = typeReference.AsGenericTypeParameterReference) != null)
                 {
@@ -6539,12 +6338,6 @@ namespace Microsoft.Cci
                 else if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
                     writer.WriteByte(0x16);
-                    return;
-                }
-                else if ((functionPointerTypeReference = typeReference as IFunctionPointerTypeReference) != null)
-                {
-                    writer.WriteByte(0x1b);
-                    this.SerializeSignature(functionPointerTypeReference, 0, functionPointerTypeReference.ExtraArgumentTypes, writer);
                     return;
                 }
                 else if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
@@ -7301,7 +7094,7 @@ namespace Microsoft.Cci
             this.WriteTextData(peStream);
         }
 
-        private void WriteImportAddressTable(System.IO.Stream peStream)
+        private void WriteImportAddressTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(16));
             bool use32bitAddresses = !this.module.Requires64bits;
@@ -7324,7 +7117,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteImportTable(System.IO.Stream peStream)
+        private void WriteImportTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(70));
             bool use32bitAddresses = !this.module.Requires64bits;
@@ -7370,7 +7163,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteNameTable(System.IO.Stream peStream)
+        private void WriteNameTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(14));
             foreach (char ch in "mscoree.dll")
@@ -7383,7 +7176,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteClrHeader(System.IO.Stream peStream)
+        private void WriteClrHeader(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(72));
             ClrHeader clrHeader = this.clrHeader;
@@ -7483,7 +7276,7 @@ namespace Microsoft.Cci
 
         // private void WriteUnmanagedExportStubs() { }
 
-        private void WriteRuntimeStartupStub(System.IO.Stream peStream)
+        private void WriteRuntimeStartupStub(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(16));
             // entry point code, consisting of a jump indirect to _CorXXXMain
@@ -7509,25 +7302,25 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteCoverSection(System.IO.Stream peStream)
+        private void WriteCoverSection(Stream peStream)
         {
             peStream.Position = this.coverSection.PointerToRawData;
             this.coverageDataWriter.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteRdataSection(System.IO.Stream peStream)
+        private void WriteRdataSection(Stream peStream)
         {
             peStream.Position = this.rdataSection.PointerToRawData;
             this.rdataWriter.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteSdataSection(System.IO.Stream peStream)
+        private void WriteSdataSection(Stream peStream)
         {
             peStream.Position = this.sdataSection.PointerToRawData;
             this.sdataWriter.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteRelocSection(System.IO.Stream peStream)
+        private void WriteRelocSection(Stream peStream)
         {
             if (!this.emitRuntimeStartupStub)
             {
@@ -7558,7 +7351,7 @@ namespace Microsoft.Cci
             writer.BaseStream.WriteTo(peStream);
         }
 
-        private void WriteResourceSection(System.IO.Stream peStream)
+        private void WriteResourceSection(Stream peStream)
         {
             if (this.win32ResourceWriter.BaseStream.Length == 0)
             {
@@ -7574,7 +7367,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteTlsSection(System.IO.Stream peStream)
+        private void WriteTlsSection(Stream peStream)
         {
             peStream.Position = this.tlsSection.PointerToRawData;
             this.tlsDataWriter.BaseStream.WriteTo(peStream);

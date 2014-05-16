@@ -264,6 +264,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+
+        Private ReadOnly Property IMethodDefinitionIsImplicitlyDeclared As Boolean Implements Cci.IMethodDefinition.IsImplicitlyDeclared
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsImplicitlyDeclared
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodDefinitionIsAbstract As Boolean Implements Cci.IMethodDefinition.IsAbstract
             Get
                 CheckDefinitionInvariant()
