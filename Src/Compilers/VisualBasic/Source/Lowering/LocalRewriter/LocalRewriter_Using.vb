@@ -84,17 +84,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Case "Using <variable declarations>"  
 
                 Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance
+                Dim hasMultipleResources = node.ResourceList.Length > 1
 
-                ' the try statements will be nested. To avoid re-rewriting were iterating through the resource list in reverse
+                ' the try statements will be nested. To avoid re-rewriting we're iterating through the resource list in reverse
                 For declarationIndex = node.ResourceList.Length - 1 To 0 Step -1
                     Dim localDeclaration = node.ResourceList(declarationIndex)
+                    Dim syntaxForSequencePoint = If(hasMultipleResources, localDeclaration.Syntax.Parent, Nothing)
 
                     If localDeclaration.Kind = BoundKind.LocalDeclaration Then
                         Dim localVariableDeclaration = DirectCast(localDeclaration, BoundLocalDeclaration)
 
                         placeholderInfo = node.UsingInfo.PlaceholderInfo(localVariableDeclaration.LocalSymbol.Type)
                         currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                                     localDeclaration.Syntax.Parent,
+                                                                     syntaxForSequencePoint,
                                                                      localVariableDeclaration.LocalSymbol,
                                                                      localVariableDeclaration.InitializerOpt,
                                                                      placeholderInfo,
@@ -103,13 +105,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         localsBuilder.Add(localVariableDeclaration.LocalSymbol)
                     Else
                         Dim localAsNewDeclaration = DirectCast(localDeclaration, BoundAsNewLocalDeclarations)
+                        syntaxForSequencePoint = If(hasMultipleResources, localAsNewDeclaration.Syntax, Nothing)
+
                         Dim variableCount = localAsNewDeclaration.LocalDeclarations.Length
 
                         placeholderInfo = node.UsingInfo.PlaceholderInfo(localAsNewDeclaration.LocalDeclarations.First.LocalSymbol.Type)
 
                         For initializedVariableIndex = localAsNewDeclaration.LocalDeclarations.Length - 1 To 0 Step -1
                             currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                                         localAsNewDeclaration.Syntax,
+                                                                         syntaxForSequencePoint,
                                                                          localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol,
                                                                          localAsNewDeclaration.Initializer,
                                                                          placeholderInfo,
@@ -136,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             blockSyntax.UsingStatement)
 
                 currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                             node.Syntax,
+                                                             Nothing,
                                                              tempResourceSymbol,
                                                              initializationExpression,
                                                              placeholderInfo,
@@ -216,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                       VisitAndGenerateObjectCloneIfNeeded(initializationExpression, suppressObjectClone:=True),
                                                                                                       suppressObjectClone:=True,
                                                                                                       type:=resourceType).ToStatement
-            If GenerateDebugInfo Then
+            If GenerateDebugInfo AndAlso syntaxForSequencePoint IsNot Nothing Then
                 boundResourceInitializationAssignment = New BoundSequencePoint(syntaxForSequencePoint, boundResourceInitializationAssignment)
             End If
 

@@ -82,5 +82,205 @@ End Class
             PDBTests.AssertXmlEqual(expected, actual)
         End Sub
 
+        <Fact>
+        Public Sub UsingExpression()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Sub Main()
+        Using (New DisposableObject())
+        End Using
+    End Sub
+End Class
+
+Class DisposableObject
+    Implements IDisposable
+    
+    Sub New()
+    End Sub
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim expected = <sequencePoints>
+                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
+                               <entry start_row="5" start_column="9" end_row="5" end_column="39"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                           </sequencePoints>
+
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+        End Sub
+
+        <Fact>
+        Public Sub UsingVariableDeclaration()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Sub Main()
+        Using v As New DisposableObject()
+        End Using
+    End Sub
+End Class
+
+Class DisposableObject
+    Implements IDisposable
+    
+    Sub New()
+    End Sub
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim expected = <sequencePoints>
+                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
+                               <entry start_row="5" start_column="9" end_row="5" end_column="42"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                           </sequencePoints>
+
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+        End Sub
+
+        <Fact>
+        Public Sub UsingMultipleVariableDeclaration()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Sub Main()
+        Using v1 As New DisposableObject(), v2 As New DisposableObject()
+        End Using
+    End Sub
+End Class
+
+Class DisposableObject
+    Implements IDisposable
+    
+    Sub New()
+    End Sub
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim expected = <sequencePoints>
+                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
+                               <entry start_row="5" start_column="9" end_row="5" end_column="73"/>
+                               <entry start_row="5" start_column="15" end_row="5" end_column="43"/>
+                               <entry start_row="5" start_column="45" end_row="5" end_column="73"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                           </sequencePoints>
+
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+        End Sub
+
+        <Fact>
+        Public Sub UsingVariableAsNewDeclaration()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Sub Main()
+        Using v1, v2 As New DisposableObject()
+        End Using
+    End Sub
+End Class
+
+Class DisposableObject
+    Implements IDisposable
+    
+    Sub New()
+    End Sub
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim expected = <sequencePoints>
+                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
+                               <entry start_row="5" start_column="9" end_row="5" end_column="47"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                           </sequencePoints>
+
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+        End Sub
+
+        <Fact>
+        Public Sub UsingMultipleVariableAsNewDeclaration()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Sub Main()
+        Using v1, v2 As New DisposableObject(), v3, v4 As New DisposableObject()
+        End Using
+    End Sub
+End Class
+
+Class DisposableObject
+    Implements IDisposable
+    
+    Sub New()
+    End Sub
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class 
+    </file>
+</compilation>
+
+            Dim expected = <sequencePoints>
+                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
+                               <entry start_row="5" start_column="9" end_row="5" end_column="81"/>
+                               <entry start_row="5" start_column="15" end_row="5" end_column="47"/>
+                               <entry start_row="5" start_column="15" end_row="5" end_column="47"/>
+                               <entry start_row="5" start_column="49" end_row="5" end_column="81"/>
+                               <entry start_row="5" start_column="49" end_row="5" end_column="81"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
+                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
+                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                           </sequencePoints>
+
+            AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, UnoptimizedDll, "C1.Main")))
+        End Sub
     End Class
 End Namespace

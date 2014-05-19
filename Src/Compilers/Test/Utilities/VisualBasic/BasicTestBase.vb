@@ -532,6 +532,12 @@ Public MustInherit Class BasicTestBaseBase
         Return XElement.Parse(TestBase.GetPdbXml(compilation, methodName))
     End Function
 
+    Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
+        Dim compilation = CreateCompilationWithMscorlib(source, options)
+        compilation.VerifyDiagnostics()
+        Return GetPdbXml(compilation, methodName)
+    End Function
+
     Public Shared Shadows Function GetSequencePoints(pdbXml As XElement) As XElement
         Return <sequencePoints>
                    <%= From entry In pdbXml.<methods>.<method>.<sequencepoints>.<entry>
