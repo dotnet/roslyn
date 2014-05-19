@@ -8408,6 +8408,86 @@ struct S4<T>
                 );
         }
 
+        [WorkItem(872954)]
+        [Fact]
+        public void CS0523ERR_StructLayoutCycle07()
+        {
+            var text =
+@"struct S0<T>
+{
+    static S0<T> x;
+}
+struct S1<T>
+{
+    class C { }
+    static S1<C> x;
+}
+struct S2<T>
+{
+    struct S { }
+    static S2<S> x;
+}
+struct S3<T>
+{
+    interface I { }
+    static S3<I> x;
+}
+struct S4<T>
+{
+    delegate void D();
+    static S4<D> x;
+}
+struct S5<T>
+{
+    enum E { }
+    static S5<E> x;
+}
+struct S6<T>
+{
+    static S6<T[]> x;
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,18): error CS0523: Struct member 'S1<T>.x' of type 'S1<S1<T>.C>' causes a cycle in the struct layout
+                //     static S1<C> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S1<T>.x", "S1<S1<T>.C>").WithLocation(8, 18),
+                // (13,18): error CS0523: Struct member 'S2<T>.x' of type 'S2<S2<T>.S>' causes a cycle in the struct layout
+                //     static S2<S> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S2<T>.x", "S2<S2<T>.S>").WithLocation(13, 18),
+                // (18,18): error CS0523: Struct member 'S3<T>.x' of type 'S3<S3<T>.I>' causes a cycle in the struct layout
+                //     static S3<I> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S3<T>.x", "S3<S3<T>.I>").WithLocation(18, 18),
+                // (23,18): error CS0523: Struct member 'S4<T>.x' of type 'S4<S4<T>.D>' causes a cycle in the struct layout
+                //     static S4<D> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S4<T>.x", "S4<S4<T>.D>").WithLocation(23, 18),
+                // (28,18): error CS0523: Struct member 'S5<T>.x' of type 'S5<S5<T>.E>' causes a cycle in the struct layout
+                //     static S5<E> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S5<T>.x", "S5<S5<T>.E>").WithLocation(28, 18),
+                // (32,20): error CS0523: Struct member 'S6<T>.x' of type 'S6<T[]>' causes a cycle in the struct layout
+                //     static S6<T[]> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("S6<T>.x", "S6<T[]>").WithLocation(32, 20),
+                // (8,18): warning CS0169: The field 'S1<T>.x' is never used
+                //     static S1<C> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S1<T>.x").WithLocation(8, 18),
+                // (23,18): warning CS0169: The field 'S4<T>.x' is never used
+                //     static S4<D> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S4<T>.x").WithLocation(23, 18),
+                // (18,18): warning CS0169: The field 'S3<T>.x' is never used
+                //     static S3<I> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S3<T>.x").WithLocation(18, 18),
+                // (3,18): warning CS0169: The field 'S0<T>.x' is never used
+                //     static S0<T> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S0<T>.x").WithLocation(3, 18),
+                // (13,18): warning CS0169: The field 'S2<T>.x' is never used
+                //     static S2<S> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S2<T>.x").WithLocation(13, 18),
+                // (28,18): warning CS0169: The field 'S5<T>.x' is never used
+                //     static S5<E> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S5<T>.x").WithLocation(28, 18),
+                // (32,20): warning CS0169: The field 'S6<T>.x' is never used
+                //     static S6<T[]> x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S6<T>.x").WithLocation(32, 20));
+        }
+
         [Fact]
         public void CS0524ERR_InterfacesCannotContainTypes01()
         {

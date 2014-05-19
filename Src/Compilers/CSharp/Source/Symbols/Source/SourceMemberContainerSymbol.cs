@@ -1924,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool InfiniteFlatteningGraph(SourceMemberContainerTypeSymbol top, NamedTypeSymbol t, Dictionary<NamedTypeSymbol, NamedTypeSymbol> instanceMap)
         {
-            if (!ContainsTypeParameter(t)) return false;
+            if (!t.ContainsTypeParameter()) return false;
             NamedTypeSymbol oldInstance;
             var tOriginal = t.OriginalDefinition;
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
@@ -1950,31 +1950,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     instanceMap.Remove(tOriginal);
                 }
-            }
-        }
-
-        private static bool ContainsTypeParameter(TypeSymbol t)
-        {
-            if ((object)t == null) return false;
-            switch (t.TypeKind)
-            {
-                case TypeKind.ArrayType:
-                    return ContainsTypeParameter(((ArrayTypeSymbol)t).ElementType);
-                case TypeKind.TypeParameter:
-                    return true;
-                case TypeKind.Class:
-                case TypeKind.Struct:
-                case TypeKind.Delegate:
-                case TypeKind.Interface:
-                    foreach (var ta in ((NamedTypeSymbol)t).TypeArgumentsNoUseSiteDiagnostics)
-                    {
-                        if (ContainsTypeParameter(ta)) return true;
-                    }
-                    return ContainsTypeParameter(t.ContainingType);
-                case TypeKind.PointerType:
-                    return ContainsTypeParameter(((PointerTypeSymbol)t).PointedAtType);
-                default:
-                    return false;
             }
         }
 
