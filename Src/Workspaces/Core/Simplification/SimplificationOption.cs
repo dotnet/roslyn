@@ -69,5 +69,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         [ExportOption]
 #endif
         public static readonly PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
+
+#if MEF
+        [ExportOption]
+#endif
+        public static readonly PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new PerLanguageOption<bool>(PerLanguageFeatureName, "PreferIntrinsicPredefinedTypeKeywordInDeclaration", defaultValue: true);
     }
 }

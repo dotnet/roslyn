@@ -1232,18 +1232,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing Then
                         Dim type = semanticModel.GetTypeInfo(name).Type
 
-                        If type IsNot Nothing Then
-                            Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
-                            If keywordKind <> SyntaxKind.None AndAlso Not TypeOf (name.Parent) Is CrefReferenceSyntax Then
-                                replacementNode = SyntaxFactory.PredefinedType(
+                        If optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic) Then
+                            If type IsNot Nothing Then
+                                Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
+                                If keywordKind <> SyntaxKind.None AndAlso Not TypeOf (name.Parent) Is CrefReferenceSyntax Then
+                                    replacementNode = SyntaxFactory.PredefinedType(
                                     SyntaxFactory.Token(
                                         name.GetLeadingTrivia(),
                                         keywordKind,
                                         name.GetTrailingTrivia()))
 
-                                issueSpan = name.Span
+                                    issueSpan = name.Span
 
-                                Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                                    Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                                End If
                             End If
                         End If
                     End If

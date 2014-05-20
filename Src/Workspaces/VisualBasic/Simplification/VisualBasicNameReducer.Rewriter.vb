@@ -94,6 +94,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return result
             End Function
 
+            Public Overrides Function VisitArrayType(node As ArrayTypeSyntax) As SyntaxNode
+                Dim oldAlwaysSimplify = Me._alwaysSimplify
+                If Not Me._alwaysSimplify Then
+                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
+                End If
+
+                Dim result = SimplifyExpression(
+                    node,
+                    newNode:=MyBase.VisitArrayType(node),
+                    simplifier:=AddressOf SimplifyName)
+
+                Me._alwaysSimplify = oldAlwaysSimplify
+
+                Return result
+            End Function
+
         End Class
     End Class
 End Namespace

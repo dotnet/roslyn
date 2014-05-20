@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // we can still find the tracked node in the new document
             var finalClassDecl = root2.GetCurrentNodes(classDecl).First();
-            Assert.Equal(@"public class C { private int X; void M() { } }", finalClassDecl.ToString());
+            Assert.Equal(@"public class C { private System.Int32 X; void M() { } }", finalClassDecl.ToString());
 
             // and other tracked nodes too
             var finalMethodDecl = root2.GetCurrentNodes(methodDecl).First();

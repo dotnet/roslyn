@@ -1226,18 +1226,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        var type = semanticModel.GetTypeInfo(name).Type;
-                        if (type != null)
+                        if (optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp))
                         {
-                            var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                            if (keywordKind != SyntaxKind.None)
+                            var type = semanticModel.GetTypeInfo(name).Type;
+                            if (type != null)
                             {
-                                replacementNode = SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(name.GetLeadingTrivia(), keywordKind, name.GetTrailingTrivia()));
+                                var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
+                                if (keywordKind != SyntaxKind.None)
+                                {
+                                    replacementNode = SyntaxFactory.PredefinedType(
+                                        SyntaxFactory.Token(name.GetLeadingTrivia(), keywordKind, name.GetTrailingTrivia()));
 
-                                issueSpan = name.Span; // we want to show the whole name expression as unnecessary
+                                    issueSpan = name.Span; // we want to show the whole name expression as unnecessary
 
-                                return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+                                    return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+                                }
                             }
                         }
                     }
