@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var initializerGroup in initializers)
                         {
-                            foreach (var singleInitializer in initializerGroup)
+                            foreach (var singleInitializer in initializerGroup.Initializers)
                             {
                                 if (!singleInitializer.Field.IsMetadataConstant)
                                 {
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (var initializerGroup in initializers)
                         {
-                            foreach (var singleInitializer in initializerGroup)
+                            foreach (var singleInitializer in initializerGroup.Initializers)
                             {
                                 // CS8028: '{0}': a class with the ComImport attribute cannot specify field initializers.
                                 diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.GetLocation(), this.Name);

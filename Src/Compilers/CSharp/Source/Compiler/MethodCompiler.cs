@@ -814,7 +814,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 (methodSymbol.IsStatic || 
                                                  isPrimaryCtor || (object)container == null || (object)container.PrimaryCtor == null);
 
-                    body = MethodCompiler.BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
+                    Debug.Assert(!(includeInitializersInBody && isPrimaryCtor) || processedInitializers.LoweredInitializers == null);
+
+                    var initializationScopeLocals = ImmutableArray<LocalSymbol>.Empty;
+                    int initializationScopeStatements = 0;
+
+                    if (includeInitializersInBody && isPrimaryCtor)
+                    {
+                        // See if there are any locals in intialization scope
+                        Debug.Assert((object)methodSymbol == sourceMethod);
+                        Debug.Assert(sourceMethod.SyntaxNode.Kind == SyntaxKind.ParameterList);
+
+                        var correspondingTypeDeclaration = (TypeDeclarationSyntax)sourceMethod.SyntaxNode.Parent;
+
+                        foreach (var initializer in processedInitializers.BoundInitializers)
+                        {
+                            if (initializer.Kind == BoundKind.InitializationScope && initializer.Syntax == correspondingTypeDeclaration)
+                            {
+                                var initializationScope = (BoundInitializationScope)initializer;
+                                initializationScopeLocals = initializationScope.Locals;
+                                initializationScopeStatements = initializationScope.Initializers.Length;
+                                break;
+                            }
+                        }
+                    }
+
+                    body = MethodCompiler.BindMethodBody(methodSymbol, initializationScopeLocals, compilationState, diagsForCurrentMethod, this.generateDebugInfo, out debugImports);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -827,16 +852,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body == null || !isPrimaryCtor)
                         {
-                        // These analyses check for diagnostics in lambdas.
-                        // Control flow analysis and implicit return insertion are unnecessary.
-                        DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
-                        DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
-                    }
+                            // These analyses check for diagnostics in lambdas.
+                            // Control flow analysis and implicit return insertion are unnecessary.
+                            DataFlowPass.Analyze(compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DiagnosticsPass.IssueDiagnostics(compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
+                        }
                         else 
                         {
+                            Debug.Assert(isPrimaryCtor);
+
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             // We will not be repeating this analysis for other constructors.
-                            body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+
+                            if (initializationScopeLocals.IsDefaultOrEmpty)
+                            {
+                                body = body.Update(body.LocalsOpt, body.Statements.Insert(0, analyzedInitializers));
+                            }
+                            else
+                            {
+                                // This gets tricky, we need to make sure that the initializers declaring initializationScopeLocals 
+                                // and the body are in the same block with Locals == initializationScopeLocals. At the same time,
+                                // we cannot just inject the body at the end of existing initialization block because it can be 
+                                // followed by other initializers, and all of them should be executed before the body.
+                                // What we will do instead, we will put all initializers inside that block, preserving their order,
+                                // and will append body at the end. 
+                                var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance(analyzedInitializers.Statements.Length + initializationScopeStatements);
+                                BoundBlock blockToUpdate = null;
+                                
+                                foreach (var initializer in analyzedInitializers.Statements)
+                                {
+                                    if (initializer.Kind == BoundKind.Block)
+                                    {
+                                        var block = (BoundBlock)initializer;
+
+                                        if (block.LocalsOpt == initializationScopeLocals)
+                                        {
+                                            if (blockToUpdate != null)
+                                            {
+                                                throw ExceptionUtilities.Unreachable;
+                                            }
+
+                                            blockToUpdate = block;
+                                            blockBuilder.AddRange(block.Statements);
+                                            continue;
+                                        }
+                                    }
+
+                                    blockBuilder.Add(initializer);
+                                }
+
+                                blockBuilder.Add(body);
+
+                                Debug.Assert(blockBuilder.Count == analyzedInitializers.Statements.Length + initializationScopeStatements);
+                                body = blockToUpdate.Update(blockToUpdate.LocalsOpt, blockBuilder.ToImmutableAndFree());
+                            }
+
                             includeInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -973,8 +1043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // initializers for global code have already been included in the body
                         if (includeInitializersInBody)
                         {
-                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
-                            }
+                            boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                        }
 
                         if (hasBody)
                         {
@@ -1208,11 +1278,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ConsList<Imports> unused;
-            return BindMethodBody(method, compilationState, diagnostics, false, out unused);
+            return BindMethodBody(method, ImmutableArray<LocalSymbol>.Empty, compilationState, diagnostics, false, out unused);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
+        private static BoundBlock BindMethodBody(MethodSymbol method, ImmutableArray<LocalSymbol> initializationScopeLocals, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
         {
             debugImports = null;
 
@@ -1223,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // delegates have constructors but not constructor initializers
             if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
             {
-                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation, out localsDeclaredInInitializer);
+                var initializerInvocation = BindConstructorInitializer(method, initializationScopeLocals, diagnostics, compilation, out localsDeclaredInInitializer);
 
                 if (initializerInvocation != null)
                 {
@@ -1261,6 +1331,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
                     var inMethodBinder = factory.GetBinder(blockSyntax);
+
+                    // Bring locals declared in initializer in scope, they should be visible within the block.
+                    if (!localsDeclaredInInitializer.IsDefaultOrEmpty)
+                    {
+                        inMethodBinder = new SimpleLocalScopeBinder(localsDeclaredInInitializer, inMethodBinder);
+                    }
+
                     var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
                     if (generateDebugInfo)
@@ -1304,6 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sourceMethod.IsPrimaryCtor)
                     {
+                        // TODO: When we add binding for the body, initializationScopeLocals and localsDeclaredInInitializer should both be brought in scope for the binding.
                         body = null;
                     }
                     else
@@ -1382,12 +1460,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the (implicit or explicit) constructor initializer of a constructor symbol.
         /// </summary>
         /// <param name="constructor">Constructor method.</param>
+        /// <param name="initializationScopeLocals">Locals declared within an initialization scope.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
         /// <param name="localsDeclaredInInitializer">Locals declared in the initializer are returned through this parameter.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        private static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
+        private static BoundExpression BindConstructorInitializer(MethodSymbol constructor, ImmutableArray<LocalSymbol> initializationScopeLocals, DiagnosticBag diagnostics, CSharpCompilation compilation, out ImmutableArray<LocalSymbol> localsDeclaredInInitializer)
         {
+            localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
+
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
@@ -1563,6 +1644,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
+
+                if (!initializationScopeLocals.IsDefaultOrEmpty)
+                {
+                    Debug.Assert(syntax.Kind == SyntaxKind.ParameterList);
+                    outerBinder = new SimpleLocalScopeBinder(initializationScopeLocals, outerBinder);
+                }
+
+                if (syntax.Kind == SyntaxKind.ParameterList)
+                {
+                    outerBinder = new WithConstructorInitializerLocalsBinder(outerBinder, initializerArgumentListOpt);
+                }
+                else
+                {
+                    outerBinder = new WithConstructorInitializerLocalsBinder(outerBinder, (ConstructorDeclarationSyntax)syntax);
+                }
             }
 
             //wrap in ConstructorInitializerBinder for appropriate errors
@@ -1571,10 +1667,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializerArgumentListOpt != null)
             {
                 localsDeclaredInInitializer = initializerBinder.GetDeclaredLocalsForScope(syntax.Kind == SyntaxKind.ParameterList ? initializerArgumentListOpt : syntax);
-            }
-            else
-            {
-                localsDeclaredInInitializer = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);

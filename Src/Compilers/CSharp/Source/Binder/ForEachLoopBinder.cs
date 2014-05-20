@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ForEachLoopBinder(MethodSymbol owner, Binder enclosing, ForEachStatementSyntax syntax)
-            : base(owner, enclosing)
+        public ForEachLoopBinder(Binder enclosing, ForEachStatementSyntax syntax)
+            : base(enclosing)
         {
             Debug.Assert(syntax != null);
             this.syntax = syntax;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
-                this.Owner,
+                (MethodSymbol)this.ContainingMemberOrLambda,
                 this,
                 this.syntax.Type,
                 this.syntax.Identifier,

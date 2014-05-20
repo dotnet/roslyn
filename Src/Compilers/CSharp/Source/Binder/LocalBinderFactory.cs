@@ -135,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Top-level block has an enclosing that is not a BinderContext. All others must (so that variables can be declared).
         public override void VisitBlock(BlockSyntax node)
         {
-            var blockBinder = new BlockBinder(this.method, enclosing, node.Statements);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var blockBinder = new BlockBinder(enclosing, node.Statements);
             AddToMap(node, blockBinder);
 
             // Visit all the statements inside this block
@@ -147,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
-            var usingBinder = new UsingStatementBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var usingBinder = new UsingStatementBinder(enclosing, node);
             AddToMap(node, usingBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, usingBinder);
@@ -155,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
-            var whileBinder = new WhileBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var whileBinder = new WhileBinder(enclosing, node);
             AddToMap(node, whileBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, whileBinder);
@@ -163,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDoStatement(DoStatementSyntax node)
         {
-            var whileBinder = new WhileBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var whileBinder = new WhileBinder(enclosing, node);
             AddToMap(node, whileBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, whileBinder);
@@ -171,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-            var binder = new ForLoopBinder(this.method, new ForLoopInitializationBinder(this.method, enclosing, node), node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var binder = new ForLoopBinder(new ForLoopInitializationBinder(enclosing, node), node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -179,7 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
-            var binder = new ForEachLoopBinder(this.method, new ScopedExpressionBinder(this.method, enclosing, node.Expression), node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var binder = new ForEachLoopBinder(new ScopedExpressionBinder(enclosing, node.Expression), node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -203,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
-            var binder = new FixedStatementBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var binder = new FixedStatementBinder(enclosing, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -226,7 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            var switchBinder = new SwitchBinder(this.method, new ScopedExpressionBinder(this.method, enclosing, node.Expression), node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var switchBinder = new SwitchBinder(new ScopedExpressionBinder(enclosing, node.Expression), node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -245,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            var ifBinder = new IfBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var ifBinder = new IfBinder(enclosing, node);
             AddToMap(node, ifBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
@@ -290,7 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCatchClause(CatchClauseSyntax node)
         {
-            var clauseBinder = new CatchClauseBinder(this.method, enclosing, node);
+            Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+            var clauseBinder = new CatchClauseBinder(enclosing, node);
             AddToMap(node, clauseBinder);
             Visit(node.Block, clauseBinder);
 
@@ -364,7 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but we still want to bind it.  We'll pretend that the statement was
                         // inside a block.
 
-                        var blockBinder = new BlockBinder(this.method, enclosing, new SyntaxList<StatementSyntax>(statement));
+                        Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+                        var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         AddToMap(statement, blockBinder);
                         Visit(statement, blockBinder);
                         return;
@@ -384,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         // Create a binder to introduce a scope for Declaration Expressions, if any.
-                        enclosing = new EmbeddedStatementBinder(this.method, enclosing, statement);
+                        Debug.Assert((object)this.method == enclosing.ContainingMemberOrLambda);
+                        enclosing = new EmbeddedStatementBinder(enclosing, statement);
                         AddToMap(statement, enclosing);
                         break;
 

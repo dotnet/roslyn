@@ -3250,7 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // { return M(a,b); } or { M(a,b); }.
         public BoundBlock BindExpressionLambdaBody(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            var expressionBinder = new ScopedExpressionBinder((MethodSymbol)this.ContainingMemberOrLambda, this, body);
+            var expressionBinder = new ScopedExpressionBinder(this, body);
             BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
             return WrapExpressionLambdaBody(expressionBinder.Locals, expression, body, diagnostics);
         }

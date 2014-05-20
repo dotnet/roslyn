@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inTopLevelScriptMember = (object)containingType != null && containingType.IsScriptClass;
 
             // "this" is not allowed in field initializers (that are not script variable initializers):
-            if ((InFieldInitializer || InAutoPropertyInitializer) && !inTopLevelScriptMember)
+            if (InFieldInitializer && !inTopLevelScriptMember)
             {
                 return false;
             }
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !inTopLevelScriptMember || !isExplicit;
         }
 
-        protected bool InFieldInitializer
+        internal bool InFieldInitializer
         {
             get { return this.Flags.Includes(BinderFlags.FieldInitializer); }
         }
 
-        protected bool InAutoPropertyInitializer
+        internal bool InParameterDefaultValue
         {
-            get { return this.Flags.Includes(BinderFlags.AutoPropertyInitializer); }
+            get { return this.Flags.Includes(BinderFlags.ParameterDefaultValue); }
         }
 
         protected bool InConstructorInitializer
@@ -261,12 +261,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // UNDONE: The binding and conversion has to be executed in a checked context.
 
-            var collisionDetector = new LocalScopeBinder(containingSymbol as MethodSymbol, this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType, shadowBackingFields: false));
-            valueBeforeConversion = collisionDetector.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            var scopeBinder = new ScopedExpressionBinder(this.WithPrimaryConstructorParametersIfNecessary(containingSymbol.ContainingType, shadowBackingFields: false).
+                                                                WithContainingMemberOrLambda(containingSymbol),
+                                                         defaultValueSyntax.Value);
+            valueBeforeConversion = scopeBinder.WithAdditionalFlags(BinderFlags.ParameterDefaultValue).BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            return GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
+            BoundExpression result = GenerateConversionForAssignment(parameterType, valueBeforeConversion, diagnostics, isDefaultParameter: true);
+
+            if (!scopeBinder.Locals.IsDefaultOrEmpty)
+            {
+                result = scopeBinder.AddLocalScopeToExpression(result);
+            }
+
+            return result;
         }
 
         internal BoundExpression BindEnumConstantInitializer(
@@ -531,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, /*isFixed*/ false, out isVar, out alias);
 
-            if (ContainingMemberOrLambda.Kind != SymbolKind.Method)
+            if ((ContainingMemberOrLambda.Kind != SymbolKind.Method && !this.InFieldInitializer) || this.InParameterDefaultValue)
             {
                 Error(diagnostics, ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, node);
             }
@@ -1322,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
-                if ((InFieldInitializer || InAutoPropertyInitializer) && !currentType.IsScriptClass)
+                if (InFieldInitializer && !currentType.IsScriptClass)
                 {
                     //can't access "this" in field initializers
                     Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);

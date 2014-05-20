@@ -14,30 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<LocalSymbol> locals;
         private ImmutableArray<LabelSymbol> labels;
 
-        protected readonly MethodSymbol Owner;
-
         internal LocalScopeBinder(Binder next)
-            : this(null, next)
+            : this(next, next.Flags)
         {
         }
 
-        internal LocalScopeBinder(MethodSymbol owner, Binder next)
-            : this(owner, next, next.Flags)
-        {
-        }
-
-        internal LocalScopeBinder(MethodSymbol owner, Binder next, BinderFlags flags)
+        internal LocalScopeBinder(Binder next, BinderFlags flags)
             : base(next, flags)
         {
-            this.Owner = owner;
-        }
-
-        internal override Symbol ContainingMemberOrLambda
-        {
-            get
-            {
-                return this.Owner ?? Next.ContainingMemberOrLambda;
-            }
         }
 
         internal sealed override ImmutableArray<LocalSymbol> Locals
@@ -153,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        protected class BuildLocalsFromDeclarationsWalker : CSharpSyntaxWalker 
+        public class BuildLocalsFromDeclarationsWalker : CSharpSyntaxWalker 
         {
-            public readonly LocalScopeBinder Binder;
+            public readonly Binder Binder;
             public readonly StatementSyntax RootStmtOpt;
             public ArrayBuilder<LocalSymbol> Locals;
 
-            public BuildLocalsFromDeclarationsWalker(LocalScopeBinder binder, StatementSyntax rootStmtOpt = null)
+            public BuildLocalsFromDeclarationsWalker(Binder binder, StatementSyntax rootStmtOpt = null)
             {
                 this.Binder = binder;
                 this.RootStmtOpt = rootStmtOpt;
@@ -202,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var vdecl in node.Variables)
                 {
                     var localSymbol = SourceLocalSymbol.MakeLocal(
-                        Binder.Owner,
+                        Binder.ContainingMemberOrLambda,
                         Binder,
                         node.Type,
                         vdecl.Identifier,
@@ -222,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var localSymbol = SourceLocalSymbol.MakeLocal(
-                    Binder.Owner,
+                    Binder.ContainingMemberOrLambda,
                     Binder,
                     node.Type,
                     node.Variable.Identifier,
@@ -395,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
         {
+            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda; 
+
             foreach (var statement in statements)
             {
                 var stmt = statement;
@@ -406,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         labels = ArrayBuilder<LabelSymbol>.GetInstance();
                     }
 
-                    var labelSymbol = new SourceLabelSymbol(this.Owner, labeledStatement.Identifier);
+                    var labelSymbol = new SourceLabelSymbol(containingMethod, labeledStatement.Identifier);
                     labels.Add(labelSymbol);
                     stmt = labeledStatement.Statement;
                 }

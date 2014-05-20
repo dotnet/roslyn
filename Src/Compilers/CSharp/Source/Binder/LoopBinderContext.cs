@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly GeneratedLabelSymbol breakLabel;
         private readonly GeneratedLabelSymbol continueLabel;
 
-        protected LoopBinder(MethodSymbol owner, Binder enclosing)
-            : base(owner, enclosing)
+        protected LoopBinder(Binder enclosing)
+            : base(enclosing)
         {
             this.breakLabel = new GeneratedLabelSymbol("break");
             this.continueLabel = new GeneratedLabelSymbol("continue");

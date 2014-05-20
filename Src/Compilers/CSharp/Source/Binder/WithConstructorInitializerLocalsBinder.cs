@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpSyntaxNode scope;
         private readonly ArgumentListSyntax initializerArgumentList;
 
-        public WithConstructorInitializerLocalsBinder(MethodSymbol owner, Binder enclosing, ConstructorDeclarationSyntax declaration)
-            : base(owner, enclosing, enclosing.Flags)
+        public WithConstructorInitializerLocalsBinder(Binder enclosing, ConstructorDeclarationSyntax declaration)
+            : base(enclosing, enclosing.Flags)
         {
             Debug.Assert(declaration.Initializer != null);
             this.scope = declaration;
             this.initializerArgumentList = declaration.Initializer.ArgumentList;
         }
 
-        public WithConstructorInitializerLocalsBinder(MethodSymbol owner, Binder enclosing, ArgumentListSyntax initializerArgumentList)
-            : base(owner, enclosing, enclosing.Flags)
+        public WithConstructorInitializerLocalsBinder(Binder enclosing, ArgumentListSyntax initializerArgumentList)
+            : base(enclosing, enclosing.Flags)
         {
             Debug.Assert(initializerArgumentList != null);
             this.scope = initializerArgumentList;

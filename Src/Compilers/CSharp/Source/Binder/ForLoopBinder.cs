@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ForStatementSyntax syntax;
 
-        public ForLoopBinder(MethodSymbol owner, Binder enclosing, ForStatementSyntax syntax)
-            : base(owner, enclosing)
+        public ForLoopBinder(Binder enclosing, ForStatementSyntax syntax)
+            : base(enclosing)
         {
             Debug.Assert(syntax != null);
             this.syntax = syntax;
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ForStatementSyntax syntax;
 
-        public ForLoopInitializationBinder(MethodSymbol owner, Binder enclosing, ForStatementSyntax syntax)
-            : base(owner, enclosing)
+        public ForLoopInitializationBinder(Binder enclosing, ForStatementSyntax syntax)
+            : base(enclosing)
         {
             Debug.Assert(syntax != null);
             this.syntax = syntax;

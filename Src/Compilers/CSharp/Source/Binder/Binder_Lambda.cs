@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!names.IsDefault)
             {
-                var binder = new LocalScopeBinder(this.ContainingMemberOrLambda as MethodSymbol, this);
+                var binder = new LocalScopeBinder(this);
                 for (int n = 0; n < names.Length; ++n)
                 {
                     string name = lambda.ParameterName(n);

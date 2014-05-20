@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
-                var expressionBinder = new ScopedExpressionBinder((MethodSymbol)lambdaBodyBinder.ContainingMemberOrLambda, lambdaBodyBinder, let.Expression);
+                var expressionBinder = new ScopedExpressionBinder(lambdaBodyBinder, let.Expression);
                 var yExpression = expressionBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())

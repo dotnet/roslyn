@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly StatementSyntax embeddedStatement;
 
-        public EmbeddedStatementBinder(MethodSymbol owner, Binder enclosing, StatementSyntax embeddedStatement)
-            : base(owner, enclosing, enclosing.Flags)
+        public EmbeddedStatementBinder(Binder enclosing, StatementSyntax embeddedStatement)
+            : base(enclosing, enclosing.Flags)
         {
             this.embeddedStatement = embeddedStatement;
         }

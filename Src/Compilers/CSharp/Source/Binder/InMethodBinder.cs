@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class InMethodBinder : LocalScopeBinder
     {
         private readonly MultiDictionary<string, ParameterSymbol> parameterMap;
+        private readonly MethodSymbol methodSymbol;
         private SmallDictionary<string, Symbol> definitionMap;
         private IteratorInfo iteratorInfo;
 
@@ -38,9 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(owner, enclosing)
+            : base(enclosing)
         {
             Debug.Assert((object)owner != null);
+
+            methodSymbol = owner;
 
             var parameters = owner.Parameters;
             if (!parameters.IsEmpty)
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Owner;
+                return this.methodSymbol;
             }
         }
 
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol returnType = this.Owner.ReturnType;
+            TypeSymbol returnType = this.methodSymbol.ReturnType;
 
             if (!this.IsDirectlyInIterator)
             {
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)elementType == null)
                 {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, this.Owner.Locations[0], this.Owner, returnType);
+                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, this.methodSymbol.Locations[0], this.methodSymbol, returnType);
                     elementType = CreateErrorType();
                 }
 
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (options.CanConsiderMembers())
             {
-                foreach (var parameter in this.Owner.Parameters)
+                foreach (var parameter in this.methodSymbol.Parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
                     {

@@ -160,26 +160,145 @@ public class Cls
             var text = @"
 public class Cls
 {
-
-    int x = int y = 3;
-
     public static void Main()
     {
     }
 
-    static void Test(int p = int y = 3)
+    static void Test1(int p = (int a = 3) + a)
+    {
+    }
+
+    static void Test2(int p1 = int b = 3, int p2 = b)
+    {
+    }
+
+    static void Test3(int p1 = c, int p2 = int c = 3)
     {
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             compilation.VerifyDiagnostics(
-    // (11,30): error CS1736: Default parameter value for 'p' must be a compile-time constant
-    //     static void Test(int p = int y = 3)
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "int y = 3").WithArguments("p").WithLocation(11, 30),
-    // (5,13): error CS8028: A declaration expression is not permitted in a variable-initializer of a field declaration, or in a class-base specification.
-    //     int x = int y = 3;
-    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int y = 3").WithLocation(5, 13)
+    // (8,32): error CS8047: A declaration expression is not permitted in this context.
+    //     static void Test1(int p = (int a = 3) + a)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int a = 3").WithLocation(8, 32),
+    // (8,31): error CS1736: Default parameter value for 'p' must be a compile-time constant
+    //     static void Test1(int p = (int a = 3) + a)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(int a = 3) + a").WithArguments("p").WithLocation(8, 31),
+    // (12,32): error CS8047: A declaration expression is not permitted in this context.
+    //     static void Test2(int p1 = int b = 3, int p2 = b)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int b = 3").WithLocation(12, 32),
+    // (12,32): error CS1736: Default parameter value for 'p1' must be a compile-time constant
+    //     static void Test2(int p1 = int b = 3, int p2 = b)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "int b = 3").WithArguments("p1").WithLocation(12, 32),
+    // (12,52): error CS0103: The name 'b' does not exist in the current context
+    //     static void Test2(int p1 = int b = 3, int p2 = b)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(12, 52),
+    // (12,47): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+    //     static void Test2(int p1 = int b = 3, int p2 = b)
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p2").WithArguments("?", "int").WithLocation(12, 47),
+    // (16,32): error CS0103: The name 'c' does not exist in the current context
+    //     static void Test3(int p1 = c, int p2 = int c = 3)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(16, 32),
+    // (16,27): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+    //     static void Test3(int p1 = c, int p2 = int c = 3)
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p1").WithArguments("?", "int").WithLocation(16, 27),
+    // (16,44): error CS8047: A declaration expression is not permitted in this context.
+    //     static void Test3(int p1 = c, int p2 = int c = 3)
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int c = 3").WithLocation(16, 44),
+    // (16,44): error CS1736: Default parameter value for 'p2' must be a compile-time constant
+    //     static void Test3(int p1 = c, int p2 = int c = 3)
+    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "int c = 3").WithArguments("p2").WithLocation(16, 44)
+                );
+        }
+
+        [Fact]
+        public void ERR_DeclarationExpressionOutsideOfAMethodBody_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    [TestAttribute((int a = 3) + a)]
+    void Test1(){}
+
+    [TestAttribute(int b = 3, Y = b)]
+    void Test2(){}
+
+    [TestAttribute(Y = (int c = 3) + c)]
+    void Test3(){}
+
+    [TestAttribute(Y = int d = 3, Z = d)]
+    void Test4(){}
+
+    [TestAttribute(e, Y = int e = 3)]
+    void Test5(){}
+
+    [TestAttribute(Y = f, Z = int f = 3)]
+    void Test6(){}
+}
+
+class TestAttribute : System.Attribute
+{
+    public TestAttribute() { }
+    public TestAttribute(int a) { }
+    public TestAttribute(int a, int b) { }
+
+    public int Y { get; set; }
+    public int Z { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (8,21): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute((int a = 3) + a)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int a = 3").WithLocation(8, 21),
+    // (8,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+    //     [TestAttribute((int a = 3) + a)]
+    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(int a = 3) + a").WithLocation(8, 20),
+    // (11,20): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute(int b = 3, Y = b)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int b = 3").WithLocation(11, 20),
+    // (11,35): error CS0103: The name 'b' does not exist in the current context
+    //     [TestAttribute(int b = 3, Y = b)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(11, 35),
+    // (11,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+    //     [TestAttribute(int b = 3, Y = b)]
+    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int b = 3").WithLocation(11, 20),
+    // (14,25): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute(Y = (int c = 3) + c)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int c = 3").WithLocation(14, 25),
+    // (14,24): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+    //     [TestAttribute(Y = (int c = 3) + c)]
+    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(int c = 3) + c").WithLocation(14, 24),
+    // (17,24): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute(Y = int d = 3, Z = d)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int d = 3").WithLocation(17, 24),
+    // (17,39): error CS0103: The name 'd' does not exist in the current context
+    //     [TestAttribute(Y = int d = 3, Z = d)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(17, 39),
+    // (17,24): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+    //     [TestAttribute(Y = int d = 3, Z = d)]
+    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int d = 3").WithLocation(17, 24),
+    // (20,20): error CS0103: The name 'e' does not exist in the current context
+    //     [TestAttribute(e, Y = int e = 3)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(20, 20),
+    // (20,27): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute(e, Y = int e = 3)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int e = 3").WithLocation(20, 27),
+    // (23,24): error CS0103: The name 'f' does not exist in the current context
+    //     [TestAttribute(Y = f, Z = int f = 3)]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(23, 24),
+    // (23,31): error CS8047: A declaration expression is not permitted in this context.
+    //     [TestAttribute(Y = f, Z = int f = 3)]
+    Diagnostic(ErrorCode.ERR_DeclarationExpressionOutsideOfAMethodBody, "int f = 3").WithLocation(23, 31),
+    // (23,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+    //     [TestAttribute(Y = f, Z = int f = 3)]
+    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "int f = 3").WithLocation(23, 31)
                 );
         }
 
@@ -5556,6 +5675,1962 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
 
             CompileAndVerify(compilation, expectedOutput: "1 1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t = new Test();
+        System.Console.WriteLine(""{0} {1} {2}"", t.x, t.y, t.z);
+    }
+}
+
+class Test
+{
+    public int x = (int x = 10);
+    public int y = ++x + 1;
+    public int z = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t1 = new Test();
+        var t2 = new Test(1);
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}"", t1.x1, t1.y1, t1.z1, t1.x2, t1.y2, t1.z2, t2.x1, t2.y1, t2.z1, t2.x2, t2.y2, t2.z2);
+    }
+}
+
+partial class Test
+{
+    public int x1 = (int x = 10);
+    public int y1 = ++x + 1;
+    public int z1 = x;
+
+    public Test(){}
+}
+
+partial class Test
+{
+    public int x2 = (int x = 100);
+    public int y2 = ++x + 1;
+    public int z2 = x;
+
+    public Test(int v){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t1 = new Test();
+        var t2 = new Test(1);
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}"", t1.x1, t1.y1, t1.z1, t1.x2, t1.y2, t1.z2, t2.x1, t2.y1, t2.z1, t2.x2, t2.y2, t2.z2);
+    }
+}
+
+partial class Test
+{
+    public int x2 = (int x = 100);
+    public int y2 = ++x + 1;
+    public int z2 = x;
+
+    public Test(){}
+}
+
+partial class Test
+{
+    public int x1 = (int x = 10);
+    public int y1 = ++x + 1;
+    public int z1 = x;
+
+    public Test(int v){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t1 = new Test();
+        var t2 = new Test(1);
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}"", t1.x1, t1.y1, t1.z1(), t1.x2, t1.y2, t1.z2(), t2.x1, t2.y1, t2.z1(), t2.x2, t2.y2, t2.z2());
+    }
+}
+
+partial class Test
+{
+    public int x1 = (int x = 10);
+    public System.Func<int> z1 = () => x;
+    public int y1 = ++x + 1;
+
+    public Test(){}
+}
+
+partial class Test
+{
+    public int x2 = (int x = 100);
+    public System.Func<int> z2 = () => x;
+    public int y2 = ++x + 1;
+
+    public Test(int v){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101 10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1} {2}"", Test.x, Test.y, Test.z);
+    }
+}
+
+class Test
+{
+    public static int x = (int x = 10);
+    public static int y = ++x + 1;
+    public static int z = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5}"", Test.x1, Test.y1, Test.z1, Test.x2, Test.y2, Test.z2);
+    }
+}
+
+partial class Test
+{
+    public static int x1 = (int x = 10);
+    public static int y1 = ++x + 1;
+    public static int z1 = x;
+
+    static Test(){}
+}
+
+partial class Test
+{
+    public static int x2 = (int x = 100);
+    public static int y2 = ++x + 1;
+    public static int z2 = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5}"", Test.x1, Test.y1, Test.z1, Test.x2, Test.y2, Test.z2);
+    }
+}
+
+partial class Test
+{
+    public static int x2 = (int x = 100);
+    public static int y2 = ++x + 1;
+    public static int z2 = x;
+}
+
+partial class Test
+{
+    public static int x1 = (int x = 10);
+    public static int y1 = ++x + 1;
+    public static int z1 = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5}"", Test.x1, Test.y1, Test.z1(), Test.x2, Test.y2, Test.z2());
+    }
+}
+
+partial class Test
+{
+    public static int x1 = (int x = 10);
+    public static System.Func<int> z1 = () => x;
+    public static int y1 = ++x + 1;
+}
+
+partial class Test
+{
+    public static int x2 = (int x = 100);
+    public static System.Func<int> z2 = () => x;
+    public static int y2 = ++x + 1;
+            
+    static Test(){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_09()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t1 = new Test();
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5}"", t1.x1, t1.y1, t1.z1, Test.x2, Test.y2, Test.z2);
+    }
+}
+
+partial class Test
+{
+    public int x1 = (int x = 10);
+    public int y1 = ++x + 1;
+    public int z1 = x;
+
+    public static int x2 = (int y = 100);
+    public static int y2 = ++y + 1;
+    public static int z2 = y;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var t1 = new Test();
+        System.Console.WriteLine(""{0} {1} {2} {3} {4} {5}"", t1.x1, t1.y1, t1.z1, Test.x2, Test.y2, Test.z2);
+    }
+}
+
+partial class Test
+{
+    public int x1 = (int x = 10);
+    public static int x2 = (int x = 100);
+    public int y1 = ++x + 1;
+    public static int y2 = ++x + 1;
+    public int z1 = x;
+    public static int z2 = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11 100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x) {}
+    public Base() {}
+}
+
+partial class Test0() : Base
+{
+    public int x1 = (int x = 10);
+}
+
+partial class Test1() : Base(x)
+{
+    public int x1 = (int x = 10);
+}
+
+partial class Test2 : Base
+{
+    public int x1 = (int x = 10);
+
+    public Test2() : base(x) {} 
+}
+
+partial class Test3
+{
+    public int x1 = (int x = 10);
+
+    public Test3() 
+    {
+        System.Console.WriteLine(x);
+    } 
+}
+
+class Test4 : Base
+{
+    static int x1 = (int x = 10);
+
+    static Test4() : base((int y = x) + y){}  
+}
+
+class Test5 : Base
+{
+    int x1 = (int x = 10);
+
+    static Test5() : base(x){}  
+}
+
+partial class Test6(int p = x)
+{
+    public int x1 = (int x = 10);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (46,22): error CS0514: 'Test4': static constructor cannot have an explicit 'this' or 'base' constructor call
+    //     static Test4() : base((int y = x) + y){}  
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("Test4").WithLocation(46, 22),
+    // (53,22): error CS0514: 'Test5': static constructor cannot have an explicit 'this' or 'base' constructor call
+    //     static Test5() : base(x){}  
+    Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("Test5").WithLocation(53, 22),
+    // (56,29): error CS0103: The name 'x' does not exist in the current context
+    // partial class Test6(int p = x)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(56, 29),
+    // (56,25): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+    // partial class Test6(int p = x)
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "int").WithLocation(56, 25),
+    // (20,30): error CS0841: Cannot use local variable 'x' before it is declared
+    // partial class Test1() : Base(x)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(20, 30),
+    // (29,27): error CS0103: The name 'x' does not exist in the current context
+    //     public Test2() : base(x) {} 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(29, 27),
+    // (38,34): error CS0103: The name 'x' does not exist in the current context
+    //         System.Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(38, 34)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_12()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x, int y) {}
+    public Base() {}
+}
+
+partial class Test1() : Base(x, y)
+{
+    public int x1 = (int x = 10);
+}
+
+partial class Test1
+{
+    public int x2 = (int y = 10);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (15,30): error CS0841: Cannot use local variable 'x' before it is declared
+    // partial class Test1() : Base(x, y)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(15, 30),
+    // (15,33): error CS0103: The name 'y' does not exist in the current context
+    // partial class Test1() : Base(x, y)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(15, 33)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_13()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x, int y) {}
+    public Base() {}
+}
+
+partial class Test1
+{
+    public int x2 = (int y = 10);
+}
+
+partial class Test1() : Base(x, y)
+{
+    public int x1 = (int x = 10);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (20,30): error CS0841: Cannot use local variable 'x' before it is declared
+    // partial class Test1() : Base(x, y)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(20, 30),
+    // (20,33): error CS0103: The name 'y' does not exist in the current context
+    // partial class Test1() : Base(x, y)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(20, 33)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_14()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x, int y, int z) {}
+    public Base() {}
+}
+
+partial class Test1
+{
+    public int x2 = (int y = 10);
+}
+
+partial class Test1() : Base(x, y, z)
+{
+    public int x1 = (int x = 10);
+}
+
+partial class Test1
+{
+    public int x3 = (int z = 10);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (20,30): error CS0841: Cannot use local variable 'x' before it is declared
+    // partial class Test1() : Base(x, y, z)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(20, 30),
+    // (20,33): error CS0103: The name 'y' does not exist in the current context
+    // partial class Test1() : Base(x, y, z)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(20, 33),
+    // (20,36): error CS0103: The name 'z' does not exist in the current context
+    // partial class Test1() : Base(x, y, z)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(20, 36)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_15()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x) {}
+}
+partial class Test1() : Base(int x = 10)
+{
+    public int x1 = x;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (15,21): error CS0103: The name 'x' does not exist in the current context
+    //     public int x1 = x;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 21)
+                );
+        }
+
+        [Fact(Skip = "TODO")]
+        public void InitializationScope_16()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1(int x)
+{
+    public int x1 = (int x = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "TODO")]
+        public void InitializationScope_17()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1(int x)
+{
+    public static int x1 = (int x = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "TODO")]
+        public void InitializationScope_18()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1(int x)
+{
+    const int x1 = (int x = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip ="TODO")]
+        public void InitializationScope_19()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1(int x)
+{
+    const decimal x1 = (int x = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_20()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x) {}
+}
+partial class Test1(int x) : Base(int x = 10)
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (13,39): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // partial class Test1(int x) : Base(int x = 10)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(13, 39)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_21()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    int x1 = (int a = 1) + a + (int a = 2);
+    int x2 {get;} = (int b = 1) + b + (int b = 2);
+    event System.Action x3  = (System.Action c = null) += c += (System.Action c = null);
+
+    static int x4 = (int d = 1) + d + (int d = 2);
+    static int x5 {get;} = (int e = 1) + e + (int e = 2);
+    static event System.Action x6  = (System.Action f = null) += f += (System.Action f = null);
+
+    const int x7 = (int g = 1) + g + (int g = 2);
+    const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (19,43): error CS0128: A local variable named 'g' is already defined in this scope
+    //     const int x7 = (int g = 1) + g + (int g = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "g").WithArguments("g").WithLocation(19, 43),
+    // (20,55): error CS0128: A local variable named 'h' is already defined in this scope
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "h").WithArguments("h").WithLocation(20, 55),
+    // (15,44): error CS0128: A local variable named 'd' is already defined in this scope
+    //     static int x4 = (int d = 1) + d + (int d = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(15, 44),
+    // (16,51): error CS0128: A local variable named 'e' is already defined in this scope
+    //     static int x5 {get;} = (int e = 1) + e + (int e = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "e").WithArguments("e").WithLocation(16, 51),
+    // (17,86): error CS0128: A local variable named 'f' is already defined in this scope
+    //     static event System.Action x6  = (System.Action f = null) += f += (System.Action f = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(17, 86),
+    // (20,55): error CS0128: A local variable named 'h' is already defined in this scope
+    //     const decimal x8 = (decimal h = 1) + h + (decimal h = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "h").WithArguments("h").WithLocation(20, 55),
+    // (11,37): error CS0128: A local variable named 'a' is already defined in this scope
+    //     int x1 = (int a = 1) + a + (int a = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(11, 37),
+    // (12,44): error CS0128: A local variable named 'b' is already defined in this scope
+    //     int x2 {get;} = (int b = 1) + b + (int b = 2);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "b").WithArguments("b").WithLocation(12, 44),
+    // (13,79): error CS0128: A local variable named 'c' is already defined in this scope
+    //     event System.Action x3  = (System.Action c = null) += c += (System.Action c = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(13, 79)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_22()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (22,22): error CS0103: The name 'd1' does not exist in the current context
+    //     static int x41 = d1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
+    // (24,29): error CS0103: The name 'e1' does not exist in the current context
+    //     static int x51 {get;} = e1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e1").WithArguments("e1").WithLocation(24, 29),
+    // (26,44): error CS0103: The name 'f1' does not exist in the current context
+    //     static event System.Action x61  = ()=> f1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (14,19): error CS0128: A local variable named 'a' is already defined in this scope
+    //     int x1 = (int a = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(14, 19),
+    // (16,26): error CS0128: A local variable named 'b' is already defined in this scope
+    //     int x2 {get;} = (int b = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "b").WithArguments("b").WithLocation(16, 26),
+    // (18,46): error CS0128: A local variable named 'c' is already defined in this scope
+    //     event System.Action x3  = (System.Action c = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_23()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    int x {get;} = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    int y {get;} = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (22,22): error CS0103: The name 'd1' does not exist in the current context
+    //     static int x41 = d1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
+    // (24,29): error CS0103: The name 'e1' does not exist in the current context
+    //     static int x51 {get;} = e1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e1").WithArguments("e1").WithLocation(24, 29),
+    // (26,44): error CS0103: The name 'f1' does not exist in the current context
+    //     static event System.Action x61  = ()=> f1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (14,19): error CS0128: A local variable named 'a' is already defined in this scope
+    //     int x1 = (int a = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(14, 19),
+    // (16,26): error CS0128: A local variable named 'b' is already defined in this scope
+    //     int x2 {get;} = (int b = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "b").WithArguments("b").WithLocation(16, 26),
+    // (18,46): error CS0128: A local variable named 'c' is already defined in this scope
+    //     event System.Action x3  = (System.Action c = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_24()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    event System.Action x = (System.Action a = null)+=(System.Action b = null)+=(System.Action c = null)+=(System.Action d = null)+=(System.Action e = null)+=(System.Action f = null)+=(System.Action g = null)+=(System.Action h = null);
+    event System.Action y = (System.Action a1 = null)+=(System.Action b1 = null)+=(System.Action c1= null)+=(System.Action d1 = null)+=(System.Action e1 = null)+=(System.Action f1 = null)+=(System.Action g1 = null)+=(System.Action h1 = null);
+
+    System.Action x1 = (System.Action a = null);
+    System.Action x11 = a1;
+    System.Action x2 {get;} = (System.Action b = null);
+    System.Action x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = c1;
+
+    static System.Action x4 = (System.Action d = null);
+    static System.Action x41 = d1;
+    static System.Action x5 {get;} = (System.Action e = null);
+    static System.Action x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = f1;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (22,32): error CS0103: The name 'd1' does not exist in the current context
+    //     static System.Action x41 = d1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 32),
+    // (24,39): error CS0103: The name 'e1' does not exist in the current context
+    //     static System.Action x51 {get;} = e1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e1").WithArguments("e1").WithLocation(24, 39),
+    // (26,39): error CS0103: The name 'f1' does not exist in the current context
+    //     static event System.Action x61  = f1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 39),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (14,39): error CS0128: A local variable named 'a' is already defined in this scope
+    //     System.Action x1 = (System.Action a = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(14, 39),
+    // (16,46): error CS0128: A local variable named 'b' is already defined in this scope
+    //     System.Action x2 {get;} = (System.Action b = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "b").WithArguments("b").WithLocation(16, 46),
+    // (18,46): error CS0128: A local variable named 'c' is already defined in this scope
+    //     event System.Action x3  = (System.Action c = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(18, 46)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_25()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    static int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    static int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (21,26): error CS0128: A local variable named 'd' is already defined in this scope
+    //     static int x4 = (int d = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(21, 26),
+    // (23,33): error CS0128: A local variable named 'e' is already defined in this scope
+    //     static int x5 {get;} = (int e = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "e").WithArguments("e").WithLocation(23, 33),
+    // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
+    //     static event System.Action x6  = (System.Action f = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (15,15): error CS0103: The name 'a1' does not exist in the current context
+    //     int x11 = a1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a1").WithArguments("a1").WithLocation(15, 15),
+    // (17,22): error CS0103: The name 'b1' does not exist in the current context
+    //     int x21 {get;} = b1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(17, 22),
+    // (19,37): error CS0103: The name 'c1' does not exist in the current context
+    //     event System.Action x31  = ()=> c1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_26()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    static int x {get;} = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    static int y {get;} = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (21,26): error CS0128: A local variable named 'd' is already defined in this scope
+    //     static int x4 = (int d = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(21, 26),
+    // (23,33): error CS0128: A local variable named 'e' is already defined in this scope
+    //     static int x5 {get;} = (int e = 1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "e").WithArguments("e").WithLocation(23, 33),
+    // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
+    //     static event System.Action x6  = (System.Action f = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (15,15): error CS0103: The name 'a1' does not exist in the current context
+    //     int x11 = a1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a1").WithArguments("a1").WithLocation(15, 15),
+    // (17,22): error CS0103: The name 'b1' does not exist in the current context
+    //     int x21 {get;} = b1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(17, 22),
+    // (19,37): error CS0103: The name 'c1' does not exist in the current context
+    //     event System.Action x31  = ()=> c1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_27()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    static event System.Action x = (System.Action a = null)+=(System.Action b = null)+=(System.Action c = null)+=(System.Action d = null)+=(System.Action e = null)+=(System.Action f = null)+=(System.Action g = null)+=(System.Action h = null);
+    static event System.Action y = (System.Action a1 = null)+=(System.Action b1 = null)+=(System.Action c1= null)+=(System.Action d1 = null)+=(System.Action e1 = null)+=(System.Action f1 = null)+=(System.Action g1 = null)+=(System.Action h1 = null);
+
+    System.Action x1 = (System.Action a = null);
+    System.Action x11 = a1;
+    System.Action x2 {get;} = (System.Action b = null);
+    System.Action x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = c1;
+
+    static System.Action x4 = (System.Action d = null);
+    static System.Action x41 = d1;
+    static System.Action x5 {get;} = (System.Action e = null);
+    static System.Action x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = f1;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (21,46): error CS0128: A local variable named 'd' is already defined in this scope
+    //     static System.Action x4 = (System.Action d = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(21, 46),
+    // (23,53): error CS0128: A local variable named 'e' is already defined in this scope
+    //     static System.Action x5 {get;} = (System.Action e = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "e").WithArguments("e").WithLocation(23, 53),
+    // (25,53): error CS0128: A local variable named 'f' is already defined in this scope
+    //     static event System.Action x6  = (System.Action f = null);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "f").WithArguments("f").WithLocation(25, 53),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (15,25): error CS0103: The name 'a1' does not exist in the current context
+    //     System.Action x11 = a1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a1").WithArguments("a1").WithLocation(15, 25),
+    // (17,32): error CS0103: The name 'b1' does not exist in the current context
+    //     System.Action x21 {get;} = b1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(17, 32),
+    // (19,32): error CS0103: The name 'c1' does not exist in the current context
+    //     event System.Action x31  = c1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 32)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_28()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (12,19): error CS0133: The expression being assigned to 'Test1.y' must be constant
+    //     const int y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1)").WithArguments("Test1.y").WithLocation(12, 19),
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (11,19): error CS0133: The expression being assigned to 'Test1.x' must be constant
+    //     const int x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1)").WithArguments("Test1.x").WithLocation(11, 19),
+    // (22,22): error CS0103: The name 'd1' does not exist in the current context
+    //     static int x41 = d1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
+    // (24,29): error CS0103: The name 'e1' does not exist in the current context
+    //     static int x51 {get;} = e1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e1").WithArguments("e1").WithLocation(24, 29),
+    // (26,44): error CS0103: The name 'f1' does not exist in the current context
+    //     static event System.Action x61  = ()=> f1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (15,15): error CS0103: The name 'a1' does not exist in the current context
+    //     int x11 = a1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a1").WithArguments("a1").WithLocation(15, 15),
+    // (17,22): error CS0103: The name 'b1' does not exist in the current context
+    //     int x21 {get;} = b1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(17, 22),
+    // (19,37): error CS0103: The name 'c1' does not exist in the current context
+    //     event System.Action x31  = ()=> c1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_29()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+partial class Test1
+{
+    const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+
+    int x1 = (int a = 1);
+    int x11 = a1;
+    int x2 {get;} = (int b = 1);
+    int x21 {get;} = b1;
+    event System.Action x3  = (System.Action c = null);
+    event System.Action x31  = ()=> c1 = 2;
+
+    static int x4 = (int d = 1);
+    static int x41 = d1;
+    static int x5 {get;} = (int e = 1);
+    static int x51 {get;} = e1;
+    static event System.Action x6  = (System.Action f = null);
+    static event System.Action x61  = ()=> f1 = 2;
+
+    const int x7 = (int g = 1);
+    const int x71 = g1;
+    const decimal x8 = (decimal h = 1);
+    const decimal x81 = (decimal)h1;
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (12,23): error CS0133: The expression being assigned to 'Test1.y' must be constant
+    //     const decimal y = (int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a1 = 1)+(int b1 = 1)+(int c1 = 1)+(int d1 = 1)+(int e1 = 1)+(int f1 = 1)+(int g1 = 1)+(int h1 = 1)").WithArguments("Test1.y").WithLocation(12, 23),
+    // (28,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(28, 20),
+    // (29,21): error CS0103: The name 'g1' does not exist in the current context
+    //     const int x71 = g1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g1").WithArguments("g1").WithLocation(29, 21),
+    // (30,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(30, 24),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (11,23): error CS0133: The expression being assigned to 'Test1.x' must be constant
+    //     const decimal x = (int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int a = 1)+(int b = 1)+(int c = 1)+(int d = 1)+(int e = 1)+(int f = 1)+(int g = 1)+(int h = 1)").WithArguments("Test1.x").WithLocation(11, 23),
+    // (22,22): error CS0103: The name 'd1' does not exist in the current context
+    //     static int x41 = d1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d1").WithArguments("d1").WithLocation(22, 22),
+    // (24,29): error CS0103: The name 'e1' does not exist in the current context
+    //     static int x51 {get;} = e1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e1").WithArguments("e1").WithLocation(24, 29),
+    // (26,44): error CS0103: The name 'f1' does not exist in the current context
+    //     static event System.Action x61  = ()=> f1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f1").WithArguments("f1").WithLocation(26, 44),
+    // (31,34): error CS0103: The name 'h1' does not exist in the current context
+    //     const decimal x81 = (decimal)h1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h1").WithArguments("h1").WithLocation(31, 34),
+    // (15,15): error CS0103: The name 'a1' does not exist in the current context
+    //     int x11 = a1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a1").WithArguments("a1").WithLocation(15, 15),
+    // (17,22): error CS0103: The name 'b1' does not exist in the current context
+    //     int x21 {get;} = b1;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(17, 22),
+    // (19,37): error CS0103: The name 'c1' does not exist in the current context
+    //     event System.Action x31  = ()=> c1 = 2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c1").WithArguments("c1").WithLocation(19, 37)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_30()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2, System.Action x3, int x4, int x5, System.Action x6, int x7, decimal x8){}
+}
+
+class Test1 : Base
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+
+    Test1() : base(
+        (int a = 1), 
+        (int b = 1), 
+        (System.Action c = null), 
+        (int d = 1),
+        (int e = 1),
+        (System.Action f = null),
+        (int g = 1),
+        (decimal h = 1))
+    {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (24,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(24, 20),
+    // (25,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(25, 24)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_31()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2, System.Action x3, int x4, int x5, System.Action x6, int x7, decimal x8){}
+}
+
+class Test1() : Base(
+        (int a = 1), 
+        (int b = 1), 
+        (System.Action c = null), 
+        (int d = 1),
+        (int e = 1),
+        (System.Action f = null),
+        (int g = 1),
+        (decimal h = 1))
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (32,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(32, 20),
+    // (33,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(33, 24),
+    // (15,14): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         (int a = 1), 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(15, 14),
+    // (16,14): error CS0136: A local or parameter named 'b' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         (int b = 1), 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "b").WithArguments("b").WithLocation(16, 14),
+    // (17,24): error CS0136: A local or parameter named 'c' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         (System.Action c = null), 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "c").WithArguments("c").WithLocation(17, 24)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_32()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2, System.Action x3, int x4, int x5, System.Action x6, int x7, decimal x8){}
+}
+
+class Test1 : Base
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+
+    Test1() : base(
+        a, 
+        b, 
+        c, 
+        d,
+        e,
+        f,
+        g,
+        h)
+    {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (24,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(24, 20),
+    // (25,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(25, 24),
+    // (28,9): error CS0103: The name 'a' does not exist in the current context
+    //         a, 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(28, 9),
+    // (29,9): error CS0103: The name 'b' does not exist in the current context
+    //         b, 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(29, 9),
+    // (30,9): error CS0103: The name 'c' does not exist in the current context
+    //         c, 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(30, 9),
+    // (31,9): error CS0103: The name 'd' does not exist in the current context
+    //         d,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(31, 9),
+    // (32,9): error CS0103: The name 'e' does not exist in the current context
+    //         e,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(32, 9),
+    // (33,9): error CS0103: The name 'f' does not exist in the current context
+    //         f,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(33, 9),
+    // (34,9): error CS0103: The name 'g' does not exist in the current context
+    //         g,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(34, 9),
+    // (35,9): error CS0103: The name 'h' does not exist in the current context
+    //         h)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(35, 9)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_33()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2, System.Action x3, int x4, int x5, System.Action x6, int x7, decimal x8){}
+}
+
+class Test1() : Base(
+        a, 
+        b, 
+        c, 
+        d,
+        e,
+        f,
+        g,
+        h)
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (32,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(32, 20),
+    // (33,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(33, 24),
+    // (15,9): error CS0841: Cannot use local variable 'a' before it is declared
+    //         a, 
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "a").WithArguments("a").WithLocation(15, 9),
+    // (16,9): error CS0841: Cannot use local variable 'b' before it is declared
+    //         b, 
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(16, 9),
+    // (17,9): error CS0841: Cannot use local variable 'c' before it is declared
+    //         c, 
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(17, 9),
+    // (18,9): error CS0103: The name 'd' does not exist in the current context
+    //         d,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(18, 9),
+    // (19,9): error CS0103: The name 'e' does not exist in the current context
+    //         e,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(19, 9),
+    // (20,9): error CS0103: The name 'f' does not exist in the current context
+    //         f,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(20, 9),
+    // (21,9): error CS0103: The name 'g' does not exist in the current context
+    //         g,
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(21, 9),
+    // (22,9): error CS0103: The name 'h' does not exist in the current context
+    //         h)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_34()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Test1
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+
+    Test1()
+    {
+        System.Console.WriteLine(int a = 1); 
+        System.Console.WriteLine(int b = 1); 
+        System.Console.WriteLine(System.Action c = null); 
+        System.Console.WriteLine(int d = 1);
+        System.Console.WriteLine(int e = 1);
+        System.Console.WriteLine(System.Action f = null);
+        System.Console.WriteLine(int g = 1);
+        System.Console.WriteLine(decimal h = 1);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (19,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(19, 20),
+    // (20,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(20, 24)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_35()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Test1
+{
+    int x1 = (int a = 1);
+    int x2 {get;} = (int b = 1);
+    event System.Action x3  = (System.Action c = null);
+
+    static int x4 = (int d = 1);
+    static int x5 {get;} = (int e = 1);
+    static event System.Action x6  = (System.Action f = null);
+
+    const int x7 = (int g = 1);
+    const decimal x8 = (decimal h = 1);
+
+    Test1()
+    {
+        System.Console.WriteLine(a); 
+        System.Console.WriteLine(b); 
+        System.Console.WriteLine(c); 
+        System.Console.WriteLine(d);
+        System.Console.WriteLine(e);
+        System.Console.WriteLine(f);
+        System.Console.WriteLine(g);
+        System.Console.WriteLine(h);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (19,20): error CS0133: The expression being assigned to 'Test1.x7' must be constant
+    //     const int x7 = (int g = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int g = 1)").WithArguments("Test1.x7").WithLocation(19, 20),
+    // (20,24): error CS0133: The expression being assigned to 'Test1.x8' must be constant
+    //     const decimal x8 = (decimal h = 1);
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "(decimal h = 1)").WithArguments("Test1.x8").WithLocation(20, 24),
+    // (24,34): error CS0103: The name 'a' does not exist in the current context
+    //         System.Console.WriteLine(a); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(24, 34),
+    // (25,34): error CS0103: The name 'b' does not exist in the current context
+    //         System.Console.WriteLine(b); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(25, 34),
+    // (26,34): error CS0103: The name 'c' does not exist in the current context
+    //         System.Console.WriteLine(c); 
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(26, 34),
+    // (27,34): error CS0103: The name 'd' does not exist in the current context
+    //         System.Console.WriteLine(d);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(27, 34),
+    // (28,34): error CS0103: The name 'e' does not exist in the current context
+    //         System.Console.WriteLine(e);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(28, 34),
+    // (29,34): error CS0103: The name 'f' does not exist in the current context
+    //         System.Console.WriteLine(f);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(29, 34),
+    // (30,34): error CS0103: The name 'g' does not exist in the current context
+    //         System.Console.WriteLine(g);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "g").WithArguments("g").WithLocation(30, 34),
+    // (31,34): error CS0103: The name 'h' does not exist in the current context
+    //         System.Console.WriteLine(h);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "h").WithArguments("h").WithLocation(31, 34)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_36()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2){}
+}
+
+class Test1() : Base(
+        (int a = 1), 
+        (int a = 2))
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (16,14): error CS0128: A local variable named 'a' is already defined in this scope
+    //         (int a = 2))
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(16, 14)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_37()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2){}
+}
+
+class Test1 : Base
+{
+    Test1() : base(
+        (int a = 1), 
+        (int a = 2))
+    {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (18,14): error CS0128: A local variable named 'a' is already defined in this scope
+    //         (int a = 2))
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "a").WithArguments("a").WithLocation(18, 14)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_38()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+}
+
+class Base
+{
+    public Base(int x1, int x2){}
+}
+
+class Test1 : Base
+{
+    Test1() : base(
+        (int a = 1), 
+        (int b = 2))
+    {
+        System.Console.WriteLine(a);
+        System.Console.WriteLine(int b = 3);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            compilation.VerifyDiagnostics(
+    // (21,38): error CS0136: A local or parameter named 'b' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         System.Console.WriteLine(int b = 3);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "b").WithArguments("b").WithLocation(21, 38)
+                );
+        }
+
+        [Fact]
+        public void InitializationScope_39()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Test();
+        if (x != null)
+        {
+            x = null;
+        }
+    }
+}
+
+class Base
+{
+    public Base(int x1, System.Func<int> x2, int x3)
+    {
+        System.Console.WriteLine(""{0} {1} {2}"", x1, x2(), x3);
+    }
+}
+
+class Test() : Base((int x = 10)++, ()=>x, x++)
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "10 12 11").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_40()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Test();
+        if (x != null)
+        {
+            x = null;
+        }
+    }
+}
+
+class Base
+{
+    public Base(int x1, System.Func<int> x2, int x3)
+    {
+        System.Console.WriteLine(""{0} {1} {2}"", x1, x2(), x3);
+    }
+}
+
+class Test(int x1, System.Func<int> x2, int x3) : Base(x1, x2, x3)
+{
+    public Test() : this((int x = 100)++, ()=>x, x++)
+    {}
+}
+"; 
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "100 102 101").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_41()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Test();
+        if (x != null)
+        {
+            x = null;
+        }
+    }
+}
+
+class Test(int x1, System.Func<int> x2)
+{
+    public Test() : this((int x = 200)++, System.Func<int> y = ()=>x)
+    {
+        System.Console.WriteLine(""{0} {1}"", x++, y());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "201 202").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InitializationScope_42()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new Test();
+        if (x != null)
+        {
+            x = null;
+        }
+    }
+}
+
+class Test(int x1)
+{
+    public Test() : this(int x = 300)
+    {
+        System.Func<int> y = ()=>x;
+        System.Console.WriteLine(""{0} {1}"", x++, y());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, compOptions: TestOptions.Exe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Experimental));
+
+            CompileAndVerify(compilation, expectedOutput: "300 301").VerifyDiagnostics();
         }
 
     }

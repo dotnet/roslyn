@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly IfStatementSyntax ifStatement;
 
-        public IfBinder(MethodSymbol owner, Binder enclosing, IfStatementSyntax ifStatement)
-            : base(owner, enclosing, enclosing.Flags)
+        public IfBinder(Binder enclosing, IfStatementSyntax ifStatement)
+            : base(enclosing, enclosing.Flags)
         {
             this.ifStatement = ifStatement;
         }

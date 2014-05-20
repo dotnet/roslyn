@@ -801,15 +801,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal readonly SourceConstructorSymbol PrimaryCtor;
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
-            internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> StaticInitializers;
-            internal readonly ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers;
+            internal readonly ImmutableArray<FieldInitializers> StaticInitializers;
+            internal readonly ImmutableArray<FieldInitializers> InstanceInitializers;
             internal readonly ImmutableArray<SyntaxReference> IndexerDeclarations;
 
             public MembersAndInitializers(
                 SourceConstructorSymbol primaryCtor,
                 ImmutableArray<Symbol> nonTypeNonIndexerMembers,
-                ImmutableArray<ImmutableArray<FieldInitializer>> staticInitializers,
-                ImmutableArray<ImmutableArray<FieldInitializer>> instanceInitializers,
+                ImmutableArray<FieldInitializers> staticInitializers,
+                ImmutableArray<FieldInitializers> instanceInitializers,
                 ImmutableArray<SyntaxReference> indexerDeclarations)
             {
                 Debug.Assert(!nonTypeNonIndexerMembers.IsDefault);
@@ -830,12 +830,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<ImmutableArray<FieldInitializer>> StaticInitializers
+        internal ImmutableArray<FieldInitializers> StaticInitializers
         {
             get { return GetMembersAndInitializers().StaticInitializers; }
         }
 
-        internal ImmutableArray<ImmutableArray<FieldInitializer>> InstanceInitializers
+        internal ImmutableArray<FieldInitializers> InstanceInitializers
         {
             get { return GetMembersAndInitializers().InstanceInitializers; }
         }
@@ -2143,8 +2143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             public SourceConstructorSymbol PrimaryCtor;
             public ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldInitializer>>.GetInstance();
+            public ArrayBuilder<FieldInitializers> StaticInitializers = ArrayBuilder<FieldInitializers>.GetInstance();
+            public ArrayBuilder<FieldInitializers> InstanceInitializers = ArrayBuilder<FieldInitializers>.GetInstance();
             public ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
 
             public MembersAndInitializers ToReadOnlyAndFree()
@@ -2216,25 +2216,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.NamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
-                        AddNonTypeMembers(builder, null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.CompilationUnit:
-                        AddNonTypeMembers(builder, null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, null, null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
                         var classDecl = (ClassDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, classDecl.ParameterList, classDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, classDecl, classDecl.ParameterList, classDecl.Members, diagnostics);
                         break;
 
                     case SyntaxKind.InterfaceDeclaration:
-                        AddNonTypeMembers(builder, null, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, (InterfaceDeclarationSyntax)syntax, null, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.StructDeclaration:
                         var structDecl = (StructDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, structDecl.ParameterList, structDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, structDecl, structDecl.ParameterList, structDecl.Members, diagnostics);
                         break;
 
                     default:
@@ -2560,7 +2560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            AddInitializers(ref result.StaticInitializers, initializers);
+            AddInitializers(ref result.StaticInitializers, null, initializers);
         }
 
         private static void AddInitializer(ref ArrayBuilder<FieldInitializer> initializers, FieldSymbol field, CSharpSyntaxNode node)
@@ -2573,16 +2573,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             initializers.Add(new FieldInitializer(field, node.GetReferenceOrNull()));
         }
 
-        private static void AddInitializers(ref ArrayBuilder<ImmutableArray<FieldInitializer>> allInitializers, ArrayBuilder<FieldInitializer> siblings)
+        private static void AddInitializers(ref ArrayBuilder<FieldInitializers> allInitializers, TypeDeclarationSyntax typeDeclaration, ArrayBuilder<FieldInitializer> siblings)
         {
             if (siblings != null)
             {
                 if (allInitializers == null)
                 {
-                    allInitializers = new ArrayBuilder<ImmutableArray<FieldInitializer>>();
+                    allInitializers = new ArrayBuilder<FieldInitializers>();
                 }
 
-                allInitializers.Add(siblings.ToImmutableAndFree());
+                allInitializers.Add(new FieldInitializers(typeDeclaration.GetReferenceOrNull(), siblings.ToImmutableAndFree()));
             }
         }
 
@@ -2700,7 +2700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldInitializer>> staticInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<FieldInitializers> staticInitializers, DiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -2739,7 +2739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var siblings in staticInitializers)
                 {
-                    foreach (var initializer in siblings)
+                    foreach (var initializer in siblings.Initializers)
                     {
                         // constants don't count, since they do not exist as fields at runtime
                         // NOTE: even for decimal constants (which require field initializers), 
@@ -2781,6 +2781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddNonTypeMembers(
             MembersAndInitializersBuilder result,
+            TypeDeclarationSyntax typeDeclaration,
             ParameterListSyntax primaryCtorParameterList,
             SyntaxList<MemberDeclarationSyntax> members,
             DiagnosticBag diagnostics)
@@ -3083,8 +3084,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            AddInitializers(ref result.InstanceInitializers, instanceInitializers);
-            AddInitializers(ref result.StaticInitializers, staticInitializers);
+            AddInitializers(ref result.InstanceInitializers, typeDeclaration, instanceInitializers);
+            AddInitializers(ref result.StaticInitializers, typeDeclaration, staticInitializers);
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

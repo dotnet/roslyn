@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Binder GetPropertyInitializerBinder(PropertySymbol propertySymbol, Binder outer)
         {
-            BinderFlags flags = outer.Flags | BinderFlags.AutoPropertyInitializer;
+            BinderFlags flags = outer.Flags | BinderFlags.FieldInitializer;
 
             var withPrimaryConstructor =
                 outer.WithPrimaryConstructorParametersIfNecessary(propertySymbol.ContainingType, shadowBackingFields: true);

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SuppressAccessChecks = 1 << 21,
 
-        AutoPropertyInitializer = 1 << 22,
+        ParameterDefaultValue = 1 << 22,
 
         // Groups
 

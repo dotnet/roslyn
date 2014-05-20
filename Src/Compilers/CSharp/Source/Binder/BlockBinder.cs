@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntaxList<StatementSyntax> statements;
 
-        public BlockBinder(MethodSymbol owner, Binder enclosing, SyntaxList<StatementSyntax> statements)
-            : this(owner, enclosing, statements, enclosing.Flags)
+        public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements)
+            : this(enclosing, statements, enclosing.Flags)
         {
         }
 
-        public BlockBinder(MethodSymbol owner, Binder enclosing, SyntaxList<StatementSyntax> statements, BinderFlags additionalFlags)
-            : base(owner, enclosing, enclosing.Flags | additionalFlags)
+        public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements, BinderFlags additionalFlags)
+            : base(enclosing, enclosing.Flags | additionalFlags)
         {
             this.statements = statements;
         }

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local declaration statements need to be wrapped in a block so the local gets seen 
             if (!statement.IsKind(SyntaxKind.Block))
             {
-                binder = new BlockBinder(methodSymbol, binder, new SyntaxList<StatementSyntax>(statement));
+                binder = new BlockBinder(binder, new SyntaxList<StatementSyntax>(statement));
             }
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, position);

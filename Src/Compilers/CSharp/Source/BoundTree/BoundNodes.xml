@@ -38,6 +38,11 @@
     <Field Name="Statement" Type="BoundStatement"/>
   </Node>
 
+  <Node Name="BoundInitializationScope" Base="BoundInitializer">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;" Null="disallow"/>
+    <Field Name="Initializers" Type="ImmutableArray&lt;BoundInitializer&gt;" Null="disallow"/>
+  </Node>
+	
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
   </AbstractNode>

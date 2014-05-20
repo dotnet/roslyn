@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body, TypeSyntax castTypeSyntax, TypeSymbol castType)
                 : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                var expressionBinder = new ScopedExpressionBinder((MethodSymbol)lambdaBodyBinder.ContainingMemberOrLambda, lambdaBodyBinder, body);
+                var expressionBinder = new ScopedExpressionBinder(lambdaBodyBinder, body);
                 BoundExpression expression = expressionBinder.BindValue(body, diagnostics, BindValueKind.RValue);
                 Debug.Assert((object)castType != null);
                 Debug.Assert(castTypeSyntax != null);

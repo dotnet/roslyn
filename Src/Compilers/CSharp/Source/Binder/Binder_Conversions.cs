@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (WasImplicitReceiver(receiverOpt))
             {
-                if ((InFieldInitializer || InAutoPropertyInitializer) && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     CSharpSyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind == SyntaxKind.InvocationExpression)
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorNode = node.Parent;
                     }
 
-                    ErrorCode code = InFieldInitializer || InAutoPropertyInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
+                    ErrorCode code = InFieldInitializer ? ErrorCode.ERR_FieldInitRefNonstatic : ErrorCode.ERR_ObjectRequired;
                     diagnostics.Add(code, errorNode.Location, memberSymbol);
                     return true;
                 }

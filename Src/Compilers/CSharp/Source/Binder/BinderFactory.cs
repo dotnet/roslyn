@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Note, there is no guarantee that the factory always gives back the same binder instance for the same <param name="node"/>.
+        /// </summary>
         internal Binder GetBinder(CSharpSyntaxNode node)
         {
             int position = node.SpanStart;

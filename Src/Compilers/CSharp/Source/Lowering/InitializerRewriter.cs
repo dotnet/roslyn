@@ -15,57 +15,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!boundInitializers.IsDefault);
 
-            var boundStatements = new BoundStatement[boundInitializers.Length];
-            for (int i = 0; i < boundStatements.Length; i++)
+            var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
+
+            for (int i = 0; i < boundInitializers.Length; i++)
             {
                 var init = boundInitializers[i];
-                var syntax = init.Syntax;
+
                 switch (init.Kind)
                 {
                     case BoundKind.FieldInitializer:
-                        var fieldInit = (BoundFieldInitializer)init;
+                        boundStatements.Add(RewriteFieldInitializer((BoundFieldInitializer)init));
+                        break;
 
-                        var boundReceiver = fieldInit.Field.IsStatic ? null :
-                            new BoundThisReference(syntax, fieldInit.Field.ContainingType);
+                    case BoundKind.InitializationScope:
+                        var scope = (BoundInitializationScope)init;
+                        var fieldInitializers = ArrayBuilder<BoundStatement>.GetInstance(scope.Initializers.Length);
 
-                        // Mark this as CompilerGenerated so that the local rewriter doesn't add a sequence point.
-                        boundStatements[i] =
-                            new BoundExpressionStatement(syntax,
-                                new BoundAssignmentOperator(syntax,
-                                    new BoundFieldAccess(syntax,
-                                        boundReceiver,
-                                        fieldInit.Field,
-                                        constantValueOpt: null),
-                                    fieldInit.InitialValue,
-                                    fieldInit.Field.Type)
-                        { WasCompilerGenerated = true })
-                        { WasCompilerGenerated = true };
-
-                        Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
-                        Debug.Assert(syntax.Parent.Kind == SyntaxKind.EqualsValueClause);
-                        switch (syntax.Parent.Parent.Kind)
+                        foreach (BoundFieldInitializer fieldInitializer in scope.Initializers)
                         {
-                            case SyntaxKind.VariableDeclarator:
-                                var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
-                                boundStatements[i] = LocalRewriter.AddSequencePoint(declaratorSyntax, boundStatements[i]);
-                                break;
-
-                            case SyntaxKind.PropertyDeclaration:
-                                var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
-                                boundStatements[i] = LocalRewriter.AddSequencePoint(declaration, boundStatements[i]);
-                                break;
-
-                            default:
-                                throw ExceptionUtilities.Unreachable;
+                            fieldInitializers.Add(RewriteFieldInitializer(fieldInitializer));
                         }
+
+                        boundStatements.Add(new BoundBlock(scope.Syntax, scope.Locals, fieldInitializers.ToImmutableAndFree()));
                         break;
 
                     case BoundKind.GlobalStatementInitializer:
                         var stmtInit = (BoundGlobalStatementInitializer)init;
 
                         // the value of the last expression statement (if any) is stored to a ref parameter of the submission constructor:
-                        if (constructor.IsSubmissionConstructor && i == boundStatements.Length - 1 && stmtInit.Statement.Kind == BoundKind.ExpressionStatement)
+                        if (constructor.IsSubmissionConstructor && i == boundInitializers.Length - 1 && stmtInit.Statement.Kind == BoundKind.ExpressionStatement)
                         {
+                            var syntax = stmtInit.Syntax;
                             var submissionResultVariable = new BoundParameter(syntax, constructor.Parameters[1]);
                             var expr = ((BoundExpressionStatement)stmtInit.Statement).Expression;
 
@@ -73,26 +53,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // so we just need to assign it to the out parameter:
                             if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
                             {
-                                boundStatements[i] =
+                                boundStatements.Add(
                                     new BoundExpressionStatement(syntax,
                                         new BoundAssignmentOperator(syntax,
                                             submissionResultVariable,
                                             expr,
                                             expr.Type
                                         )
-                                    );
+                                    ));
 
                                 break;
                             }
                         }
 
-                        boundStatements[i] = stmtInit.Statement;
+                        boundStatements.Add(stmtInit.Statement);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(init.Kind);
                 }
             }
+
+            Debug.Assert(boundStatements.Count == boundInitializers.Length);
 
             CSharpSyntaxNode listSyntax;
 
@@ -106,7 +88,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 listSyntax = constructor.GetNonNullSyntaxNode();
             }
 
-            return new BoundTypeOrInstanceInitializers(listSyntax, boundStatements.AsImmutableOrNull());
+            return new BoundTypeOrInstanceInitializers(listSyntax, boundStatements.ToImmutableAndFree());
         }
+
+        private static BoundStatement RewriteFieldInitializer(BoundFieldInitializer fieldInit)
+        {
+            var syntax = fieldInit.Syntax;
+            var boundReceiver = fieldInit.Field.IsStatic ? null :
+                                        new BoundThisReference(syntax, fieldInit.Field.ContainingType);
+
+            // Mark this as CompilerGenerated so that the local rewriter doesn't add a sequence point.
+            BoundStatement boundStatement =
+                new BoundExpressionStatement(syntax,
+                    new BoundAssignmentOperator(syntax,
+                        new BoundFieldAccess(syntax,
+                            boundReceiver,
+                            fieldInit.Field,
+                            constantValueOpt: null),
+                        fieldInit.InitialValue,
+                        fieldInit.Field.Type)
+                    { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true };
+
+            Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
+            Debug.Assert(syntax.Parent.Kind == SyntaxKind.EqualsValueClause);
+            switch (syntax.Parent.Parent.Kind)
+            {
+                case SyntaxKind.VariableDeclarator:
+                    var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
+                    boundStatement = LocalRewriter.AddSequencePoint(declaratorSyntax, boundStatement);
+                    break;
+
+                case SyntaxKind.PropertyDeclaration:
+                    var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
+                    boundStatement = LocalRewriter.AddSequencePoint(declaration, boundStatement);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+
+            return boundStatement;
+        }
+
     }
 }

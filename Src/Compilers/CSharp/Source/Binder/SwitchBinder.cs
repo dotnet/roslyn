@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol switchGoverningType;
         private readonly GeneratedLabelSymbol breakLabel;
 
-        internal SwitchBinder(MethodSymbol method, Binder next, SwitchStatementSyntax switchSyntax)
-            : base(method, next)
+        internal SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
+            : base(next)
         {
             this.switchSyntax = switchSyntax;
             this.breakLabel = new GeneratedLabelSymbol("break");
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Create the label symbol
-                labels.Add(new SourceLabelSymbol(this.Owner, labelSyntax, boundLabelConstantOpt));
+                labels.Add(new SourceLabelSymbol((MethodSymbol)this.ContainingMemberOrLambda, labelSyntax, boundLabelConstantOpt));
             }
         }
 
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)boundLabelSymbol == null)
             {
                 Debug.Assert(hasErrors);
-                boundLabelSymbol = new SourceLabelSymbol(this.Owner, node, labelExpressionConstant);
+                boundLabelSymbol = new SourceLabelSymbol((MethodSymbol)this.ContainingMemberOrLambda, node, labelExpressionConstant);
             }
 
             return new BoundSwitchLabel(

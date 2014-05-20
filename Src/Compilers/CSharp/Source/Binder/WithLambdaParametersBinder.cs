@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SmallDictionary<string, ParameterSymbol> definitionMap;
 
         public WithLambdaParametersBinder(LambdaSymbol lambdaSymbol, Binder enclosing)
-            : base(lambdaSymbol, enclosing)
+            : base(enclosing)
         {
             this.lambdaSymbol = lambdaSymbol;
             this.parameterMap = new MultiDictionary<string, ParameterSymbol>();

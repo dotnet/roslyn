@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -10,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ExpressionSyntax expression;
 
-        public ScopedExpressionBinder(MethodSymbol owner, Binder enclosing, ExpressionSyntax expression)
-            : base(owner, enclosing, enclosing.Flags)
+        public ScopedExpressionBinder(Binder enclosing, ExpressionSyntax expression)
+            : base(enclosing, enclosing.Flags)
         {
             this.expression = expression;
         }
@@ -28,6 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ImmutableArray<LocalSymbol>.Empty;
+        }
+
+        internal BoundSequence AddLocalScopeToExpression(BoundExpression expression)
+        {
+            Debug.Assert(!this.Locals.IsDefaultOrEmpty);
+            Debug.Assert((object)expression.Type != null);
+            return new BoundSequence(expression.Syntax, this.Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
         }
     }
 }

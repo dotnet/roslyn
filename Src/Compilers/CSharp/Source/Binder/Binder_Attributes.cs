@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.NameEquals == null)
                     {
                         // Constructor argument
-                        hadError |= BindArgumentAndName(
+                        var scopeBinder = new ScopedExpressionBinder(this, argument.Expression);
+
+                        hadError |= scopeBinder.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
                             hadError,
@@ -274,6 +276,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argument.NameColon,
                             refKind: RefKind.None,
                             allowArglist: false);
+
+                        if (!scopeBinder.Locals.IsDefaultOrEmpty)
+                        {
+                            int index = boundConstructorArguments.Arguments.Count - 1;
+                            boundConstructorArguments.Arguments[index] = scopeBinder.AddLocalScopeToExpression(boundConstructorArguments.Arguments[index]);
+                        }
 
                         if (boundNamedArgumentsBuilder != null)
                         {
@@ -336,8 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // BindRValue just binds the expression without doing any validation (if its a valid expression for attribute argument).
             // Validation is done later by AttributeExpressionVisitor
-            BoundExpression namedArgumentValue = BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
+            var scopeBinder = new ScopedExpressionBinder(this, namedArgument.Expression);
+            BoundExpression namedArgumentValue = scopeBinder.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
             namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
+
+            if (!scopeBinder.Locals.IsDefaultOrEmpty)
+            {
+                namedArgumentValue = scopeBinder.AddLocalScopeToExpression(namedArgumentValue);
+            }
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;

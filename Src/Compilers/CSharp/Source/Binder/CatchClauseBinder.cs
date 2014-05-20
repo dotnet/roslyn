@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CatchClauseSyntax syntax;
 
-        public CatchClauseBinder(MethodSymbol owner, Binder enclosing, CatchClauseSyntax syntax)
-            : base(owner, enclosing, enclosing.Flags | BinderFlags.InCatchBlock)
+        public CatchClauseBinder(Binder enclosing, CatchClauseSyntax syntax)
+            : base(enclosing, enclosing.Flags | BinderFlags.InCatchBlock)
         {
             Debug.Assert(syntax != null);
             this.syntax = syntax;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationOpt = syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.CSharpKind() != SyntaxKind.None))
             {
-                local = SourceLocalSymbol.MakeLocal(this.Owner, this, declarationOpt.Type, declarationOpt.Identifier, null, LocalDeclarationKind.Catch);
+                local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, null, LocalDeclarationKind.Catch);
             }
 
             if (syntax.Filter != null)

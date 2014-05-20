@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly UsingStatementSyntax syntax;
         private readonly LockOrUsingStatementExpressionHandler expressionHandler;
 
-        public UsingStatementBinder(MethodSymbol owner, Binder enclosing, UsingStatementSyntax syntax)
-            : base(owner, enclosing)
+        public UsingStatementBinder(Binder enclosing, UsingStatementSyntax syntax)
+            : base(enclosing)
         {
             this.syntax = syntax;
             this.expressionHandler = syntax.Expression == null ? null : new LockOrUsingStatementExpressionHandler(syntax.Expression, this);
